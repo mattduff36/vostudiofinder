@@ -112,7 +112,7 @@ export class NotificationService {
   /**
    * Get user notification preferences
    */
-  static async getUserPreferences(userId: string): Promise<NotificationPreferences> {
+  static async getUserPreferences(_userId: string): Promise<NotificationPreferences> {
     // This would fetch from database
     // For now, return default preferences
     return {
@@ -155,7 +155,7 @@ export class NotificationService {
   /**
    * Mark notification as read
    */
-  static async markAsRead(notificationId: string): Promise<void> {
+  static async markAsRead(_notificationId: string): Promise<void> {
     // Update in database
     // await db.notification.update({
     //   where: { id: notificationId },
@@ -166,7 +166,7 @@ export class NotificationService {
   /**
    * Mark all notifications as read for a user
    */
-  static async markAllAsRead(userId: string): Promise<void> {
+  static async markAllAsRead(_userId: string): Promise<void> {
     // Update in database
     // await db.notification.updateMany({
     //   where: { userId, read: false },
@@ -191,7 +191,7 @@ export class NotificationService {
   /**
    * Get unread notification count
    */
-  static async getUnreadCount(userId: string): Promise<number> {
+  static async getUnreadCount(_userId: string): Promise<number> {
     // This would fetch from database
     return 0;
   }
@@ -199,7 +199,7 @@ export class NotificationService {
   /**
    * Delete notification
    */
-  static async deleteNotification(notificationId: string): Promise<void> {
+  static async deleteNotification(_notificationId: string): Promise<void> {
     // Delete from database
     // await db.notification.delete({ where: { id: notificationId } });
   }
