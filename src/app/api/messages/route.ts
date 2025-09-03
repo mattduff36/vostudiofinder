@@ -69,11 +69,8 @@ export async function POST(request: NextRequest) {
       data: {
         senderId: session.user.id,
         receiverId: validatedData.receiverId,
-        studioId: validatedData.studioId,
         subject: validatedData.subject,
         content: validatedData.message,
-        contactEmail: validatedData.contactEmail,
-        contactPhone: validatedData.contactPhone,
       },
       include: {
         sender: {
@@ -86,11 +83,6 @@ export async function POST(request: NextRequest) {
           select: {
             displayName: true,
             email: true,
-          },
-        },
-        studio: {
-          select: {
-            name: true,
           },
         },
       },

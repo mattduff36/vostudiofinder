@@ -19,9 +19,9 @@ export async function PATCH(request: NextRequest) {
 
     const updatedStudio = await db.studio.update({
       where: { id: studioId },
-      data: { 
+            data: {
         status: status,
-        verifiedAt: status === 'VERIFIED' ? new Date() : null,
+        isVerified: status === 'VERIFIED',
       },
     });
 

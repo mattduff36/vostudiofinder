@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { forgotPasswordSchema } from '@/lib/validations/auth';
-import { generateResetToken } from '@/lib/auth-utils';
+// import { generateResetToken } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 
@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
     }
     
     // Generate reset token
-    const resetToken = generateResetToken();
-    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+    // const resetToken = generateResetToken();
+    // const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
     
     // Save reset token to database
     await db.user.update({
