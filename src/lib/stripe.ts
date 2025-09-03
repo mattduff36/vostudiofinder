@@ -71,7 +71,7 @@ export async function createCheckoutSession({
     });
     customerId = newCustomer.id;
   } else {
-    customerId = customer.data[0].id;
+    customerId = customer.data[0]?.id || '';
   }
 
   // Create checkout session
