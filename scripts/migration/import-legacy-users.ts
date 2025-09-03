@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import mysql from 'mysql2/promise';
 import * as bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
 

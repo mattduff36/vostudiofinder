@@ -62,10 +62,17 @@ export default async function Home() {
     db.user.count(),
   ]);
 
+  // Convert Decimal fields to numbers for client components
+  const serializedStudios = featuredStudios.map(studio => ({
+    ...studio,
+    latitude: studio.latitude ? Number(studio.latitude) : null,
+    longitude: studio.longitude ? Number(studio.longitude) : null,
+  }));
+
   return (
     <HomePage
       session={session}
-      featuredStudios={featuredStudios}
+      featuredStudios={serializedStudios}
       stats={{
         totalStudios,
         totalUsers,

@@ -167,8 +167,15 @@ export async function GET(request: NextRequest) {
     const hasNextPage = validatedParams.page < totalPages;
     const hasPrevPage = validatedParams.page > 1;
 
+    // Serialize Decimal fields for JSON response
+    const serializedStudios = studios.map(studio => ({
+      ...studio,
+      latitude: studio.latitude ? Number(studio.latitude) : null,
+      longitude: studio.longitude ? Number(studio.longitude) : null,
+    }));
+
     const response = {
-      studios,
+      studios: serializedStudios,
       pagination: {
         page: validatedParams.page,
         limit: validatedParams.limit,

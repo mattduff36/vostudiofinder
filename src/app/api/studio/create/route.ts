@@ -90,10 +90,17 @@ export async function POST(request: NextRequest) {
       },
     });
     
+    // Serialize Decimal fields for JSON response
+    const serializedStudio = completeStudio ? {
+      ...completeStudio,
+      latitude: completeStudio.latitude ? Number(completeStudio.latitude) : null,
+      longitude: completeStudio.longitude ? Number(completeStudio.longitude) : null,
+    } : null;
+
     return NextResponse.json(
       {
         message: 'Studio created successfully',
-        studio: completeStudio,
+        studio: serializedStudio,
       },
       { status: 201 }
     );
