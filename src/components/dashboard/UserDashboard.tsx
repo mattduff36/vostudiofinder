@@ -87,7 +87,7 @@ interface UserDashboardProps {
 
 export function UserDashboard({ data }: UserDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'studios' | 'reviews' | 'messages' | 'connections'>('overview');
-  const { user, stats, studios, reviews, messages, connections } = data;
+  const { user, stats, reviews, messages } = data;
 
   const isStudioOwner = user.role === 'STUDIO_OWNER' || user.role === 'ADMIN';
 
