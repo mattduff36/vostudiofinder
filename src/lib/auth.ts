@@ -21,7 +21,7 @@ export const authOptions: NextAuthOptions = {
           email: data.email!,
           username: username,
           displayName: data.name || data.email?.split('@')[0] || 'User',
-          avatarUrl: data.image,
+          avatarUrl: data.image || null,
           emailVerified: !!data.emailVerified,
         },
       });
