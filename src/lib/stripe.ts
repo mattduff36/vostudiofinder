@@ -151,8 +151,8 @@ export async function handleSubscriptionSuccess(subscription: Stripe.Subscriptio
     subscriptionId: subscription.id,
     customerId: subscription.customer,
     status: subscription.status,
-    currentPeriodStart: new Date(subscription.current_period_start * 1000),
-    currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+    currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+    currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
   });
 
   return {
