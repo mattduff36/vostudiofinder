@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { StudioHeader } from './StudioHeader';
+
 import { StudioGallery } from './StudioGallery';
 import { StudioInfo } from './StudioInfo';
 import { StudioReviews } from './StudioReviews';
