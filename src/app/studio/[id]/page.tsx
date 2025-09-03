@@ -31,12 +31,12 @@ export async function generateMetadata({ params }: StudioPageProps): Promise<Met
 
   return {
     title: `${studio.name} - Recording Studio | VoiceoverStudioFinder`,
-    description: studio.description.substring(0, 160),
+    description: studio.description?.substring(0, 160) || `${studio.name} recording studio`,
     keywords: `recording studio, ${studio.name}, voiceover, audio production, ${studio.address}`,
     openGraph: {
       title: studio.name,
-      description: studio.description,
-      type: 'business.business',
+      description: studio.description || `${studio.name} recording studio`,
+      type: 'website',
       images: studio.images?.[0]?.imageUrl ? [studio.images[0].imageUrl] : [],
     },
   };
@@ -137,7 +137,7 @@ export default async function StudioPage({ params }: StudioPageProps) {
         '@type': 'Person',
         name: review.reviewer.displayName,
       },
-      reviewBody: review.comment,
+      reviewBody: review.content,
       datePublished: review.createdAt.toISOString(),
     })),
     image: studio.images.map((img) => img.imageUrl),
@@ -153,8 +153,48 @@ export default async function StudioPage({ params }: StudioPageProps) {
       />
       <StudioProfile 
         studio={{
-          ...studio,
+          id: studio.id,
+          name: studio.name,
+          description: studio.description || '',
+          studioType: studio.studioType,
+          address: studio.address || '',
+          isPremium: studio.isPremium,
+          isVerified: studio.isVerified,
+          ...(studio.latitude && { latitude: Number(studio.latitude) }),
+          ...(studio.longitude && { longitude: Number(studio.longitude) }),
+          images: studio.images.map(image => ({
+            id: image.id,
+            imageUrl: image.imageUrl,
+            sortOrder: image.sortOrder,
+            ...(image.altText && { altText: image.altText }),
+          })),
+          services: studio.services,
+          reviews: studio.reviews.map(review => ({
+            id: review.id,
+            rating: review.rating,
+            content: review.content || '',
+            isAnonymous: review.isAnonymous,
+            createdAt: review.createdAt,
+            reviewer: {
+              displayName: review.reviewer.displayName,
+              ...(review.reviewer.avatarUrl && { avatarUrl: review.reviewer.avatarUrl }),
+            },
+          })),
+          owner: {
+            id: studio.owner.id,
+            displayName: studio.owner.displayName,
+            username: studio.owner.username,
+            role: studio.owner.role as string,
+            ...(studio.owner.avatarUrl && { avatarUrl: studio.owner.avatarUrl }),
+          },
+          createdAt: studio.createdAt,
+          updatedAt: studio.updatedAt,
+          ...(studio.websiteUrl && { websiteUrl: studio.websiteUrl }),
+          ...(studio.phone && { phone: studio.phone }),
           averageRating,
+          _count: {
+            reviews: studio.reviews.length,
+          },
         }}
       />
     </>

@@ -26,7 +26,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       limit: 1,
     });
 
-    if (customers.data.length === 0 || customers.data[0].id !== invoice.customer) {
+    if (customers.data.length === 0 || !customers.data[0] || customers.data[0].id !== invoice.customer) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 

@@ -17,7 +17,7 @@ export async function GET() {
       limit: 1,
     });
 
-    if (customers.data.length === 0) {
+    if (customers.data.length === 0 || !customers.data[0]) {
       return NextResponse.json({ invoices: [] });
     }
 

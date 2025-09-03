@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { requireAuth } from '@/lib/auth-guards';
 import { UserDashboard } from '@/components/dashboard/UserDashboard';
 import { db } from '@/lib/db';
-import { Role } from '@prisma/client';
+
 
 export const metadata: Metadata = {
   title: 'Dashboard - VoiceoverStudioFinder',
@@ -71,11 +71,6 @@ export default async function DashboardPage() {
             avatarUrl: true,
           },
         },
-        studio: {
-          select: {
-            name: true,
-          },
-        },
       },
       orderBy: { createdAt: 'desc' },
       take: 10,
@@ -121,12 +116,54 @@ export default async function DashboardPage() {
   };
 
   const dashboardData = {
-    user: session.user,
+    user: {
+      id: session.user.id,
+      displayName: session.user.displayName,
+      email: session.user.email,
+      username: session.user.username,
+      role: session.user.role as string,
+      ...(session.user.avatarUrl && { avatarUrl: session.user.avatarUrl }),
+    },
     stats,
     studios: userStudios,
-    reviews: userReviews,
-    messages: userMessages,
-    connections: userConnections,
+    reviews: userReviews.map(review => ({
+      id: review.id,
+      rating: review.rating,
+      content: review.content || '',
+      createdAt: review.createdAt,
+      studio: review.studio,
+    })),
+    messages: userMessages.map(message => ({
+      id: message.id,
+      subject: message.subject || '',
+      isRead: message.isRead,
+      createdAt: message.createdAt,
+      senderId: message.senderId,
+      receiverId: message.receiverId,
+      sender: {
+        displayName: message.sender.displayName,
+        ...(message.sender.avatarUrl && { avatarUrl: message.sender.avatarUrl }),
+      },
+      receiver: {
+        displayName: message.receiver.displayName,
+        ...(message.receiver.avatarUrl && { avatarUrl: message.receiver.avatarUrl }),
+      },
+    })),
+    connections: userConnections.map(connection => ({
+      id: connection.id,
+      userId: connection.userId,
+      connectedUserId: connection.connectedUserId,
+      user: {
+        id: connection.user.id,
+        displayName: connection.user.displayName,
+        ...(connection.user.avatarUrl && { avatarUrl: connection.user.avatarUrl }),
+      },
+      connectedUser: {
+        id: connection.connectedUser.id,
+        displayName: connection.connectedUser.displayName,
+        ...(connection.connectedUser.avatarUrl && { avatarUrl: connection.connectedUser.avatarUrl }),
+      },
+    })),
   };
 
   return <UserDashboard data={dashboardData} />;
