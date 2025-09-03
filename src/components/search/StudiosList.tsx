@@ -97,7 +97,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                           {studio.name}
                         </h3>
                         {studio.isPremium && (
-                          <Crown className="w-5 h-5 text-yellow-500 flex-shrink-0" title="Premium Studio" />
+                          <Crown className="w-5 h-5 text-yellow-500 flex-shrink-0" aria-label="Premium Studio" />
                         )}
                         {studio.isVerified && (
                           <div className="flex-shrink-0 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
