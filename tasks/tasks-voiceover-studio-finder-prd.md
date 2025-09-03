@@ -107,14 +107,14 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
   - [x] 4.9 Add full-text search capabilities for studio descriptions
   - [x] 4.10 Optimize search performance with caching and indexing
 
-- [ ] 5.0 Create Premium Subscription and Payment Processing System
+- [x] 5.0 Create Premium Subscription and Payment Processing System
   - [x] 5.1 Integrate Stripe payment processing with webhook handling
   - [x] 5.2 Create subscription plans (£25/year premium studio listing)
   - [x] 5.3 Build payment forms and checkout flow
   - [x] 5.4 Implement subscription management (upgrade, cancel, renewal)
   - [x] 5.5 Create invoice generation and payment history
   - [x] 5.6 Add premium feature unlocking (featured listings, enhanced profiles)
-  - [ ] 5.7 Implement VAT handling for UK/EU customers
+  - [x] 5.7 Implement VAT handling for UK/EU customers
   - [x] 5.8 Create admin dashboard for payment monitoring
   - [x] 5.9 Set up automated email notifications for payment events
   - [x] 5.10 Add refund processing and dispute handling
@@ -122,9 +122,9 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
 - [ ] 6.0 Implement Communication Features (Reviews, Messaging, Social)
   - [x] 6.1 Create review and rating system with moderation
   - [x] 6.2 Build private messaging system between users
-  - [ ] 6.3 Implement user connections and networking features
-  - [ ] 6.4 Create notification system for messages and reviews
-  - [ ] 6.5 Add review response capability for studio owners
+  - [x] 6.3 Implement user connections and networking features
+  - [x] 6.4 Create notification system for messages and reviews
+  - [x] 6.5 Add review response capability for studio owners
   - [ ] 6.6 Implement content moderation and reporting system
   - [ ] 6.7 Create user blocking and privacy controls
   - [ ] 6.8 Add social media sharing integration

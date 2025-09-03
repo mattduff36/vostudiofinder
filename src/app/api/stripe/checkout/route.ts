@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { createCheckoutSession, SubscriptionPlan } from '@/lib/stripe';
 import { db } from '@/lib/db';
+import { VATService } from '@/lib/vat';
 import { handleApiError } from '@/lib/sentry';
 
 const checkoutSchema = z.object({
