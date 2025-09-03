@@ -178,10 +178,10 @@ export class NotificationService {
    * Get notifications for a user
    */
   static async getUserNotifications(
-    userId: string,
-    limit: number = 20,
-    offset: number = 0,
-    unreadOnly: boolean = false
+    _userId: string,
+    _limit: number = 20,
+    _offset: number = 0,
+    _unreadOnly: boolean = false
   ): Promise<NotificationData[]> {
     // This would fetch from database
     // For now, return empty array
