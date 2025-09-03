@@ -70,7 +70,7 @@ export function ConnectionsList({
   };
 
   const handleConnectionAction = async (
-    connectionId: string,
+    _connectionId: string,
     targetUserId: string,
     action: 'accept' | 'reject'
   ) => {
