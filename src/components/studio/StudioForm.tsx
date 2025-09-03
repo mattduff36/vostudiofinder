@@ -7,8 +7,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createStudioSchema, type CreateStudioInput } from '@/lib/validations/studio';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { FileUpload } from '@/components/ui/FileUpload';
 import { StudioType, ServiceType } from '@prisma/client';
-import { MapPin, Globe, Phone, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Globe, Phone, Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
 
 interface StudioFormProps {
   initialData?: Partial<CreateStudioInput>;
@@ -43,6 +44,32 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
     control,
     name: 'images',
   });
+
+  const handleImageUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'voiceover-studios');
+
+    const response = await fetch('/api/upload/image', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Upload failed');
+    }
+
+    const result = await response.json();
+    
+    // Add the uploaded image to the form
+    appendImage({ 
+      url: result.image.url, 
+      altText: `Studio image ${imageFields.length + 1}` 
+    });
+
+    return { url: result.image.url, id: result.image.id };
+  };
 
   const onSubmit = async (data: CreateStudioInput) => {
     setIsLoading(true);
@@ -240,54 +267,77 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
               <h3 className="text-lg font-medium text-text-primary border-b pb-2 flex-1">
                 Studio Images
               </h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => appendImage({ url: '', altText: '' })}
-                disabled={imageFields.length >= 10}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Image
-              </Button>
             </div>
 
-            {imageFields.length > 0 && (
-              <div className="space-y-4">
-                {imageFields.map((field, index) => (
-                  <div key={field.id} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
-                    <ImageIcon className="w-5 h-5 text-text-secondary mt-2 flex-shrink-0" />
-                    <div className="flex-1 space-y-3">
-                      <Input
-                        label={`Image URL ${index + 1}`}
-                        type="url"
-                        placeholder="https://example.com/studio-image.jpg"
-                        {...register(`images.${index}.url`)}
-                      />
-                      <Input
-                        label="Alt Text (optional)"
-                        placeholder="Describe the image for accessibility"
-                        {...register(`images.${index}.altText`)}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeImage(index)}
-                      className="mt-6"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+            {/* Image Upload */}
+            {imageFields.length < 10 && (
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                <div className="text-center">
+                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <div className="mt-4">
+                    <FileUpload
+                      onUpload={handleImageUpload}
+                      accept="image/*"
+                      maxSize={5}
+                      multiple={false}
+                      folder="voiceover-studios"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+                    />
                   </div>
-                ))}
+                  <p className="mt-2 text-sm text-gray-500">
+                    Upload high-quality images of your studio (up to 5MB each)
+                  </p>
+                </div>
               </div>
             )}
 
-            <div className="text-sm text-text-secondary">
-              <p>• Add up to 10 images of your studio</p>
-              <p>• Use high-quality images (minimum 800x600 pixels)</p>
-              <p>• Images should showcase your equipment, space, and atmosphere</p>
+            {/* Uploaded Images Display */}
+            {imageFields.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="text-md font-medium text-text-primary">
+                  Uploaded Images ({imageFields.length}/10)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {imageFields.map((field, index) => (
+                    <div key={field.id} className="relative group border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="aspect-w-16 aspect-h-12">
+                        <img
+                          src={field.url}
+                          alt={field.altText || `Studio image ${index + 1}`}
+                          className="w-full h-48 object-cover"
+                        />
+                      </div>
+                      <div className="p-3">
+                        <Input
+                          label="Alt Text (optional)"
+                          placeholder="Describe this image"
+                          {...register(`images.${index}.altText`)}
+                          className="text-sm"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 bg-white/90 hover:bg-white"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="text-sm text-text-secondary bg-blue-50 p-4 rounded-lg">
+              <h5 className="font-medium text-blue-900 mb-2">Image Guidelines:</h5>
+              <ul className="space-y-1 text-blue-800">
+                <li>• Add up to 10 high-quality images of your studio</li>
+                <li>• Use images that showcase your equipment, space, and atmosphere</li>
+                <li>• Recommended minimum size: 800x600 pixels</li>
+                <li>• Supported formats: JPEG, PNG, WebP (max 5MB each)</li>
+              </ul>
             </div>
           </div>
 
