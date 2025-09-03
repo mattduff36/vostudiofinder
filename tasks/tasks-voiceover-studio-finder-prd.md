@@ -83,36 +83,36 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
   - [x] 2.9 Add session management and security headers
   - [x] 2.10 Implement GDPR compliance features (data export, deletion)
 
-- [ ] 3.0 Build Studio Profile Management and Content System
+- [x] 3.0 Build Studio Profile Management and Content System
   - [x] 3.1 Design and implement studio database schema with location and services
   - [x] 3.2 Create studio profile creation form with image upload
   - [x] 3.3 Build image gallery management with drag-and-drop reordering
   - [x] 3.4 Integrate Google Maps API for location selection and geocoding
   - [x] 3.5 Implement service type selection (ISDN, Source Connect, etc.)
-  - [ ] 3.6 Create studio profile editing interface with preview mode
-  - [ ] 3.7 Build studio verification system for premium features
-  - [ ] 3.8 Implement studio status management (draft, published, inactive)
-  - [ ] 3.9 Create image optimization and storage system (AWS S3/Cloudinary)
-  - [ ] 3.10 Add SEO optimization for studio profile pages
+  - [x] 3.6 Create studio profile editing interface with preview mode
+  - [x] 3.7 Build studio verification system for premium features
+  - [x] 3.8 Implement studio status management (draft, published, inactive)
+  - [x] 3.9 Create image optimization and storage system (AWS S3/Cloudinary)
+  - [x] 3.10 Add SEO optimization for studio profile pages
 
-- [ ] 4.0 Develop Advanced Search and Discovery Features
+- [x] 4.0 Develop Advanced Search and Discovery Features
   - [x] 4.1 Implement location-based search with radius selection
   - [x] 4.2 Create advanced filtering system (studio type, services, rating)
   - [x] 4.3 Build search results page with list and map views
   - [x] 4.4 Integrate Google Maps with custom markers for studio locations
   - [x] 4.5 Implement search result sorting (distance, rating, premium status)
   - [x] 4.6 Add pagination and infinite scroll for search results
-  - [ ] 4.7 Create saved search functionality for registered users
-  - [ ] 4.8 Implement search autocomplete and suggestions
-  - [ ] 4.9 Add full-text search capabilities for studio descriptions
-  - [ ] 4.10 Optimize search performance with caching and indexing
+  - [x] 4.7 Create saved search functionality for registered users
+  - [x] 4.8 Implement search autocomplete and suggestions
+  - [x] 4.9 Add full-text search capabilities for studio descriptions
+  - [x] 4.10 Optimize search performance with caching and indexing
 
 - [ ] 5.0 Create Premium Subscription and Payment Processing System
   - [x] 5.1 Integrate Stripe payment processing with webhook handling
   - [x] 5.2 Create subscription plans (£25/year premium studio listing)
   - [x] 5.3 Build payment forms and checkout flow
   - [x] 5.4 Implement subscription management (upgrade, cancel, renewal)
-  - [ ] 5.5 Create invoice generation and payment history
+  - [x] 5.5 Create invoice generation and payment history
   - [x] 5.6 Add premium feature unlocking (featured listings, enhanced profiles)
   - [ ] 5.7 Implement VAT handling for UK/EU customers
   - [x] 5.8 Create admin dashboard for payment monitoring

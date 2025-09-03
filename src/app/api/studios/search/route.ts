@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { studioSearchSchema } from '@/lib/validations/studio';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
+import { cache } from '@/lib/cache';
 import { Prisma } from '@prisma/client';
+import crypto from 'crypto';
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,18 +25,46 @@ export async function GET(request: NextRequest) {
 
     const validatedParams = studioSearchSchema.parse(params);
 
+    // Generate cache key based on search parameters
+    const cacheKey = crypto
+      .createHash('md5')
+      .update(JSON.stringify(validatedParams))
+      .digest('hex');
+
+    // Try to get cached results first
+    const cachedResults = await cache.getCachedSearchResults(cacheKey);
+    if (cachedResults) {
+      return NextResponse.json(cachedResults);
+    }
+
     // Build where clause
     const where: Prisma.StudioWhereInput = {
       status: 'ACTIVE',
       AND: [],
     };
 
-    // Text search in name and description
+    // Enhanced full-text search in name, description, and services
     if (validatedParams.query) {
+      const searchTerms = validatedParams.query.toLowerCase().split(' ').filter(term => term.length > 0);
+      
       where.AND!.push({
         OR: [
+          // Exact name match (highest priority)
+          { name: { equals: validatedParams.query, mode: 'insensitive' } },
+          // Name contains all terms
           { name: { contains: validatedParams.query, mode: 'insensitive' } },
+          // Description contains all terms
           { description: { contains: validatedParams.query, mode: 'insensitive' } },
+          // Any service matches
+          {
+            services: {
+              some: {
+                service: { contains: validatedParams.query, mode: 'insensitive' },
+              },
+            },
+          },
+          // Address contains search terms
+          { address: { contains: validatedParams.query, mode: 'insensitive' } },
         ],
       });
     }
@@ -135,7 +165,7 @@ export async function GET(request: NextRequest) {
     const hasNextPage = validatedParams.page < totalPages;
     const hasPrevPage = validatedParams.page > 1;
 
-    return NextResponse.json({
+    const response = {
       studios,
       pagination: {
         page: validatedParams.page,
@@ -151,7 +181,12 @@ export async function GET(request: NextRequest) {
         studioType: validatedParams.studioType,
         services: validatedParams.services,
       },
-    });
+    };
+
+    // Cache the results for 5 minutes
+    await cache.cacheSearchResults(cacheKey, response, 300);
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Studio search error:', error);
     

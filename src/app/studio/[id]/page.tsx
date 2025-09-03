@@ -100,12 +100,63 @@ export default async function StudioPage({ params }: StudioPageProps) {
     ? studio.reviews.reduce((sum, review) => sum + review.rating, 0) / studio.reviews.length
     : 0;
 
+  // Generate structured data for SEO
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    '@id': `https://voiceoverstudiofinder.com/studio/${studio.id}`,
+    name: studio.name,
+    description: studio.description,
+    url: `https://voiceoverstudiofinder.com/studio/${studio.id}`,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: studio.address,
+      addressCountry: 'GB',
+    },
+    geo: studio.latitude && studio.longitude ? {
+      '@type': 'GeoCoordinates',
+      latitude: studio.latitude,
+      longitude: studio.longitude,
+    } : undefined,
+    aggregateRating: studio.reviews.length > 0 ? {
+      '@type': 'AggregateRating',
+      ratingValue: averageRating.toFixed(1),
+      reviewCount: studio.reviews.length,
+      bestRating: 5,
+      worstRating: 1,
+    } : undefined,
+    review: studio.reviews.slice(0, 5).map((review) => ({
+      '@type': 'Review',
+      reviewRating: {
+        '@type': 'Rating',
+        ratingValue: review.rating,
+        bestRating: 5,
+        worstRating: 1,
+      },
+      author: {
+        '@type': 'Person',
+        name: review.reviewer.displayName,
+      },
+      reviewBody: review.comment,
+      datePublished: review.createdAt.toISOString(),
+    })),
+    image: studio.images.map((img) => img.imageUrl),
+    priceRange: '$$',
+    serviceType: 'Audio Recording Studio',
+  };
+
   return (
-    <StudioProfile 
-      studio={{
-        ...studio,
-        averageRating,
-      }}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <StudioProfile 
+        studio={{
+          ...studio,
+          averageRating,
+        }}
+      />
+    </>
   );
 }
