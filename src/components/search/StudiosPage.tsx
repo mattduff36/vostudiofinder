@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
-import { SearchResults } from './SearchResults';
+
 import { Button } from '@/components/ui/Button';
 import { Map, List, Filter } from 'lucide-react';
 
