@@ -7,11 +7,11 @@ dotenv.config({ path: '.env.local' });
 const prisma = new PrismaClient();
 
 // Create MySQL connection to read from backup
-async function createMySQLConnection() {
-  // For now, we'll parse the SQL file directly since we don't have a running MySQL instance
-  // In production, you'd connect to the actual database
-  return null;
-}
+// async function createMySQLConnection() {
+//   // For now, we'll parse the SQL file directly since we don't have a running MySQL instance
+//   // In production, you'd connect to the actual database
+//   return null;
+// }
 
 interface LegacyUser {
   id: number;
