@@ -9,7 +9,23 @@ import { db } from './db';
 import { Role } from '@prisma/client';
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db) as any,
+  adapter: {
+    ...PrismaAdapter(db),
+    createUser: async (data) => {
+      // Generate username from email if not provided
+      const username = data.email?.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.random().toString(36).substring(7);
+      
+      return db.user.create({
+        data: {
+          email: data.email!,
+          username: username,
+          displayName: data.name || data.email?.split('@')[0] || 'User',
+          avatarUrl: data.image,
+          emailVerified: !!data.emailVerified,
+        },
+      });
+    },
+  } as any,
   session: {
     strategy: 'jwt',
   },
