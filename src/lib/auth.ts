@@ -11,7 +11,7 @@ import { Role } from '@prisma/client';
 export const authOptions: NextAuthOptions = {
   adapter: {
     ...PrismaAdapter(db),
-    createUser: async (data) => {
+    createUser: async (data: { email?: string; name?: string; image?: string; emailVerified?: Date | null }) => {
       // Generate username from email if not provided
       const username = data.email?.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.random().toString(36).substring(7);
       
