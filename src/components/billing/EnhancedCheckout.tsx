@@ -21,9 +21,6 @@ export function EnhancedCheckout({
   studioId,
   planName,
   planPrice,
-  planCurrency,
-  onSuccess,
-  onError,
 }: EnhancedCheckoutProps) {
   const { data: session } = useSession();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('stripe');
@@ -65,7 +62,6 @@ export function EnhancedCheckout({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Payment failed';
       setError(errorMessage);
-      onError?.(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +91,6 @@ export function EnhancedCheckout({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'PayPal payment failed';
       setError(errorMessage);
-      onError?.(errorMessage);
     } finally {
       setIsLoading(false);
     }

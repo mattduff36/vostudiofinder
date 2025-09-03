@@ -122,7 +122,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
               <Input
                 label="Studio Name"
                 placeholder="Enter your studio name"
-                error={errors.name?.message}
+                error={errors.name?.message || ''}
                 {...register('name')}
               />
 
@@ -172,7 +172,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
               <Input
                 label="Address"
                 placeholder="Enter your studio address"
-                error={errors.address?.message}
+                error={errors.address?.message || ''}
                 {...register('address')}
               />
               <MapPin className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />
@@ -184,7 +184,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                   label="Website (optional)"
                   type="url"
                   placeholder="https://yourstudio.com"
-                  error={errors.websiteUrl?.message}
+                  error={errors.websiteUrl?.message || ''}
                   {...register('websiteUrl')}
                 />
                 <Globe className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />
@@ -195,7 +195,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                   label="Phone (optional)"
                   type="tel"
                   placeholder="+1 (555) 123-4567"
-                  error={errors.phone?.message}
+                  error={errors.phone?.message || ''}
                   {...register('phone')}
                 />
                 <Phone className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />

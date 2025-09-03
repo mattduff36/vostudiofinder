@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { signupSchema, type SignupInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Eye, EyeOff, Mail, User, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail } from 'lucide-react';
 
 export function SignupForm() {
   const router = useRouter();
@@ -21,7 +21,6 @@ export function SignupForm() {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
   });
@@ -59,8 +58,6 @@ export function SignupForm() {
     }
   };
 
-  const password = watch('password');
-
   return (
     <div className="w-full max-w-md space-y-6">
       <div className="text-center">
@@ -87,7 +84,7 @@ export function SignupForm() {
           label="Display Name"
           type="text"
           placeholder="Your full name"
-          error={errors.displayName?.message}
+          error={errors.displayName?.message || ''}
           {...register('displayName')}
         />
 
@@ -96,7 +93,7 @@ export function SignupForm() {
             label="Email Address"
             type="email"
             placeholder="your@email.com"
-            error={errors.email?.message}
+            error={errors.email?.message || ''}
             {...register('email')}
           />
           <Mail className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />
@@ -107,7 +104,7 @@ export function SignupForm() {
             label="Password"
             type={showPassword ? 'text' : 'password'}
             placeholder="Create a strong password"
-            error={errors.password?.message}
+            error={errors.password?.message || ''}
             {...register('password')}
           />
           <button
@@ -124,7 +121,7 @@ export function SignupForm() {
             label="Confirm Password"
             type={showConfirmPassword ? 'text' : 'password'}
             placeholder="Confirm your password"
-            error={errors.confirmPassword?.message}
+            error={errors.confirmPassword?.message || ''}
             {...register('confirmPassword')}
           />
           <button

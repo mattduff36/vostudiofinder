@@ -139,7 +139,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
             label="Avatar URL"
             type="url"
             placeholder="https://example.com/avatar.jpg"
-            error={errors.avatarUrl?.message}
+            error={errors.avatarUrl?.message || ''}
             helperText="Enter a URL to your profile image"
             {...register('avatarUrl')}
           />
@@ -149,7 +149,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               label="Display Name"
               type="text"
               placeholder="Your full name"
-              error={errors.displayName?.message}
+              error={errors.displayName?.message || ''}
               {...register('displayName')}
             />
 
@@ -157,7 +157,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               label="Username"
               type="text"
               placeholder="username"
-              error={errors.username?.message}
+              error={errors.username?.message || ''}
               helperText="This will be part of your profile URL"
               {...register('username')}
             />

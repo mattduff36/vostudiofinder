@@ -88,7 +88,7 @@ export function SigninForm() {
             label="Email Address"
             type="email"
             placeholder="your@email.com"
-            error={errors.email?.message}
+            error={errors.email?.message || ''}
             {...register('email')}
           />
           <Mail className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />
@@ -99,7 +99,7 @@ export function SigninForm() {
             label="Password"
             type={showPassword ? 'text' : 'password'}
             placeholder="Enter your password"
-            error={errors.password?.message}
+            error={errors.password?.message || ''}
             {...register('password')}
           />
           <button

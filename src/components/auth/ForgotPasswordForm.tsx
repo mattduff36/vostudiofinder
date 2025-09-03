@@ -76,7 +76,7 @@ export function ForgotPasswordForm() {
             label="Email Address"
             type="email"
             placeholder="your@email.com"
-            error={errors.email?.message}
+            error={errors.email?.message || ''}
             {...register('email')}
           />
           <Mail className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />

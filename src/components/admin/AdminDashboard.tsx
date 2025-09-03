@@ -9,7 +9,6 @@ import {
   Activity,
   Crown,
   TrendingUp,
-  Calendar,
   Settings,
   Shield,
   MessageSquare

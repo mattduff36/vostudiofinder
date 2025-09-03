@@ -212,7 +212,7 @@ export function ContactStudio({ studio }: ContactStudioProps) {
             <Input
               label="Subject *"
               placeholder="Inquiry about studio booking"
-              error={errors.subject?.message}
+              error={errors.subject?.message || ''}
               {...register('subject')}
             />
 
@@ -238,7 +238,7 @@ export function ContactStudio({ studio }: ContactStudioProps) {
                 label="Your Email (optional)"
                 type="email"
                 placeholder="your@email.com"
-                error={errors.contactEmail?.message}
+                error={errors.contactEmail?.message || ''}
                 helperText="We'll use your account email if not provided"
                 {...register('contactEmail')}
               />
@@ -247,7 +247,7 @@ export function ContactStudio({ studio }: ContactStudioProps) {
                 label="Your Phone (optional)"
                 type="tel"
                 placeholder="+1 (555) 123-4567"
-                error={errors.contactPhone?.message}
+                error={errors.contactPhone?.message || ''}
                 helperText="For urgent inquiries"
                 {...register('contactPhone')}
               />

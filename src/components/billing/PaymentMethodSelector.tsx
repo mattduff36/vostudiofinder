@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
 
 export type PaymentMethod = 'stripe' | 'paypal';
 
@@ -14,7 +13,6 @@ interface PaymentMethodSelectorProps {
 export function PaymentMethodSelector({
   onMethodSelect,
   selectedMethod,
-  isLoading = false,
 }: PaymentMethodSelectorProps) {
   const [selected, setSelected] = useState<PaymentMethod>(selectedMethod || 'stripe');
 
