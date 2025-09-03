@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { StudioType, ServiceType } from '@prisma/client';
-import { MapPin, Globe, Phone, Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
+import { MapPin, Globe, Phone, Trash2, Upload } from 'lucide-react';
 
 interface StudioFormProps {
   initialData?: Partial<CreateStudioInput>;

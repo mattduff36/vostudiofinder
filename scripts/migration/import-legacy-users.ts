@@ -42,16 +42,16 @@ function mapLegacyRole(roleId: number): 'USER' | 'STUDIO_OWNER' | 'ADMIN' {
 }
 
 // Generate username from display name if needed
-function generateUsername(displayName: string, email: string, id: number): string {
+function generateUsername(displayName: string | null, email: string | null, id: number): string {
   // Clean display name
-  let username = displayName
+  let username = (displayName || 'user')
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .substring(0, 20);
   
   if (!username || username.length < 3) {
     // Fallback to email prefix
-    username = email.split('@')[0].replace(/[^a-z0-9]/g, '').substring(0, 15);
+    username = email?.split('@')[0]?.replace(/[^a-z0-9]/g, '')?.substring(0, 15) || 'user';
   }
   
   // Add ID suffix to ensure uniqueness
@@ -67,7 +67,7 @@ async function parseLegacyUsers(): Promise<LegacyUser[]> {
   const sqlContent = fs.readFileSync(sqlFile, 'utf8');
   
   // Extract INSERT INTO users VALUES data
-  const usersMatch = sqlContent.match(/INSERT INTO `users` VALUES (.+);/s);
+  const usersMatch = sqlContent.match(/INSERT INTO `users` VALUES (.+);/);
   if (!usersMatch) {
     throw new Error('Could not find users data in SQL file');
   }

@@ -50,22 +50,13 @@ export function EnhancedImageGallery({
     onImagesChange(updatedItems);
   };
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (_file: File) => {
     // The actual upload is handled by the FileUpload component
     // We just need to wait for it to complete and then refresh
     return { url: '', id: '' }; // Placeholder return
   };
 
-  const addImageFromUpload = (uploadResult: { url: string; id: string }) => {
-    const newImageItem: ImageItem = {
-      id: uploadResult.id,
-      url: uploadResult.url,
-      altText: '',
-      sortOrder: images.length,
-    };
 
-    onImagesChange([...images, newImageItem]);
-  };
 
   const removeImage = async (id: string) => {
     // Optional: Delete from Cloudinary
