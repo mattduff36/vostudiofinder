@@ -54,7 +54,7 @@ export class NotificationService {
       data: data || {},
       read: false,
       createdAt: new Date(),
-      actionUrl,
+      ...(actionUrl && { actionUrl }),
     };
 
     // Store in database (would be implemented with actual DB calls)
