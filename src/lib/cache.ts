@@ -7,13 +7,13 @@ try {
   Redis = null;
 }
 
-// Initialize Redis client (only if available)
-const redis = Redis ? new Redis({
+// Initialize Redis client (only if available and configured)
+const redis = Redis && process.env.REDIS_URL ? new Redis({
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379'),
   password: process.env.REDIS_PASSWORD,
   retryDelayOnFailover: 100,
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: 1, // Reduce retries for faster failure
   lazyConnect: true,
 }) : null;
 

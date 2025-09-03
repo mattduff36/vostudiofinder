@@ -13,7 +13,8 @@ export const authOptions: NextAuthOptions = {
     ...PrismaAdapter(db),
     createUser: async (data: { email?: string; name?: string; image?: string; emailVerified?: Date | null }) => {
       // Generate username from email if not provided
-      const username = data.email?.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.random().toString(36).substring(7);
+      const emailPrefix = data.email?.split('@')[0] || 'user';
+      const username = emailPrefix.replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.random().toString(36).substring(7);
       
       return db.user.create({
         data: {
