@@ -35,6 +35,8 @@ export function ImageGallery({
 
     const items = Array.from(images);
     const [reorderedItem] = items.splice(result.source.index, 1);
+    if (!reorderedItem) return;
+    
     items.splice(result.destination.index, 0, reorderedItem);
 
     // Update sort orders
