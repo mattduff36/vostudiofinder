@@ -99,7 +99,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
               <div className="flex items-center space-x-3 mb-2">
                 <h1 className="text-3xl font-bold text-text-primary">{studio.name}</h1>
                 {studio.isPremium && (
-                  <Crown className="w-6 h-6 text-yellow-500" title="Premium Studio" />
+                  <Crown className="w-6 h-6 text-yellow-500" aria-label="Premium Studio" />
                 )}
                 {studio.isVerified && (
                   <div className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-medium">
