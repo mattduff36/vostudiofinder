@@ -128,7 +128,7 @@ export function StudiosPage() {
               {/* View Mode Toggle */}
               <div className="flex items-center bg-gray-100 rounded-lg p-1">
                 <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  variant={viewMode === 'list' ? 'primary' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
                   className="px-3 py-1"
@@ -137,7 +137,7 @@ export function StudiosPage() {
                   List
                 </Button>
                 <Button
-                  variant={viewMode === 'map' ? 'default' : 'ghost'}
+                  variant={viewMode === 'map' ? 'primary' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('map')}
                   className="px-3 py-1"
