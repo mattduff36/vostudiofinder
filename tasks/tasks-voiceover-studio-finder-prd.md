@@ -87,7 +87,7 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
   - [x] 3.1 Design and implement studio database schema with location and services
   - [x] 3.2 Create studio profile creation form with image upload
   - [x] 3.3 Build image gallery management with drag-and-drop reordering
-  - [ ] 3.4 Integrate Google Maps API for location selection and geocoding
+  - [x] 3.4 Integrate Google Maps API for location selection and geocoding
   - [x] 3.5 Implement service type selection (ISDN, Source Connect, etc.)
   - [ ] 3.6 Create studio profile editing interface with preview mode
   - [ ] 3.7 Build studio verification system for premium features
@@ -99,7 +99,7 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
   - [x] 4.1 Implement location-based search with radius selection
   - [x] 4.2 Create advanced filtering system (studio type, services, rating)
   - [x] 4.3 Build search results page with list and map views
-  - [ ] 4.4 Integrate Google Maps with custom markers for studio locations
+  - [x] 4.4 Integrate Google Maps with custom markers for studio locations
   - [x] 4.5 Implement search result sorting (distance, rating, premium status)
   - [x] 4.6 Add pagination and infinite scroll for search results
   - [ ] 4.7 Create saved search functionality for registered users
@@ -108,14 +108,14 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
   - [ ] 4.10 Optimize search performance with caching and indexing
 
 - [ ] 5.0 Create Premium Subscription and Payment Processing System
-  - [ ] 5.1 Integrate Stripe payment processing with webhook handling
-  - [ ] 5.2 Create subscription plans (£25/year premium studio listing)
-  - [ ] 5.3 Build payment forms and checkout flow
-  - [ ] 5.4 Implement subscription management (upgrade, cancel, renewal)
+  - [x] 5.1 Integrate Stripe payment processing with webhook handling
+  - [x] 5.2 Create subscription plans (£25/year premium studio listing)
+  - [x] 5.3 Build payment forms and checkout flow
+  - [x] 5.4 Implement subscription management (upgrade, cancel, renewal)
   - [ ] 5.5 Create invoice generation and payment history
-  - [ ] 5.6 Add premium feature unlocking (featured listings, enhanced profiles)
+  - [x] 5.6 Add premium feature unlocking (featured listings, enhanced profiles)
   - [ ] 5.7 Implement VAT handling for UK/EU customers
-  - [ ] 5.8 Create admin dashboard for payment monitoring
+  - [x] 5.8 Create admin dashboard for payment monitoring
   - [ ] 5.9 Set up automated email notifications for payment events
   - [ ] 5.10 Add refund processing and dispute handling
 
@@ -132,16 +132,16 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
   - [ ] 6.10 Implement email notifications for important events
 
 - [ ] 7.0 Execute Data Migration and System Deployment
-  - [ ] 7.1 Analyze legacy MySQL database structure and create mapping
-  - [ ] 7.2 Create data migration scripts for users, studios, and content
-  - [ ] 7.3 Implement data validation and cleaning procedures
+  - [x] 7.1 Analyze legacy MySQL database structure and create mapping
+  - [x] 7.2 Create data migration scripts for users, studios, and content
+  - [x] 7.3 Implement data validation and cleaning procedures
   - [ ] 7.4 Set up staging environment for migration testing
   - [ ] 7.5 Execute test migration and validate data integrity
   - [ ] 7.6 Create rollback procedures and backup strategies
-  - [ ] 7.7 Configure production environment on Vercel/Railway
-  - [ ] 7.8 Set up domain DNS and SSL certificates
+  - [x] 7.7 Configure production environment on Vercel/Railway
+  - [x] 7.8 Set up domain DNS and SSL certificates
   - [ ] 7.9 Execute production migration with minimal downtime
-  - [ ] 7.10 Implement monitoring, logging, and performance tracking
+  - [x] 7.10 Implement monitoring, logging, and performance tracking
   - [ ] 7.11 Create 301 redirects for SEO preservation
   - [ ] 7.12 Conduct post-launch testing and bug fixes
 
