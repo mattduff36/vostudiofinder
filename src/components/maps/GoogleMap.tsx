@@ -66,7 +66,7 @@ export function GoogleMap({
   useEffect(() => {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
 
-    const map = new google.maps.Map(mapRef.current, {
+    const map = new window.google.maps.Map(mapRef.current, {
       center: { lat: center.lat, lng: center.lng },
       zoom,
       styles: [
@@ -82,7 +82,7 @@ export function GoogleMap({
 
     // Add click listener for location selection
     if (onLocationSelect) {
-      map.addListener('click', (event: google.maps.MapMouseEvent) => {
+      map.addListener('click', (event: any) => {
         if (event.latLng) {
           onLocationSelect({
             lat: event.latLng.lat(),
@@ -103,13 +103,13 @@ export function GoogleMap({
 
     // Add new markers
     markers.forEach(markerData => {
-      const marker = new google.maps.Marker({
+      const marker = new window.google.maps.Marker({
         position: { lat: markerData.position.lat, lng: markerData.position.lng },
         map: mapInstanceRef.current,
         title: markerData.title,
         icon: {
           url: '/icons/studio-marker.png',
-          scaledSize: new google.maps.Size(32, 32),
+          scaledSize: new window.google.maps.Size(32, 32),
         },
       });
 
