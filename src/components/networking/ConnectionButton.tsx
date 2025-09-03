@@ -82,7 +82,7 @@ export function ConnectionButton({
         return {
           text: 'Connect',
           action: handleConnect,
-          variant: 'default' as const,
+          variant: 'primary' as const,
           icon: '👋',
         };
       case 'pending':
@@ -112,7 +112,7 @@ export function ConnectionButton({
         return {
           text: 'Connect',
           action: handleConnect,
-          variant: 'default' as const,
+          variant: 'primary' as const,
           icon: '👋',
         };
     }
