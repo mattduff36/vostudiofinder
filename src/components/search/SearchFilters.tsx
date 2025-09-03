@@ -207,8 +207,8 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
       {/* Search Button */}
       <Button
         onClick={handleSearch}
-        loading={loading}
-        disabled={loading}
+        loading={loading || false}
+        disabled={loading || false}
         className="w-full"
       >
         {loading ? 'Searching...' : 'Search Studios'}
