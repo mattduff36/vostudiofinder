@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import { loadStripe } from '@stripe/stripe-js';
 
 // Server-side Stripe instance
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
   apiVersion: '2025-08-27.basil',
 });
 
@@ -10,7 +10,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 let stripePromise: ReturnType<typeof loadStripe>;
 export const getStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
   }
   return stripePromise;
 };
@@ -53,6 +53,10 @@ export async function createCheckoutSession({
   successUrl: string;
   cancelUrl: string;
 }) {
+  // Check if Stripe is properly configured
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('Stripe secret key not configured');
+  }
   const planConfig = SUBSCRIPTION_PLANS[plan];
 
   // Create or retrieve Stripe customer
@@ -124,6 +128,10 @@ export async function createBillingPortalSession({
   customerId: string;
   returnUrl: string;
 }) {
+  // Check if Stripe is properly configured
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('Stripe secret key not configured');
+  }
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,
@@ -193,5 +201,9 @@ export function constructWebhookEvent(
   signature: string,
   secret: string
 ) {
+  // Check if Stripe is properly configured
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('Stripe secret key not configured');
+  }
   return stripe.webhooks.constructEvent(body, signature, secret);
 }

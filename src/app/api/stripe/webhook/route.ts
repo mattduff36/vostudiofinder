@@ -5,10 +5,18 @@ import { headers } from 'next/headers';
 import { sendEmail } from '@/lib/email/email-service';
 import { paymentSuccessTemplate, paymentFailedTemplate } from '@/lib/email/templates/payment-success';
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if webhook secret is configured
+    if (!webhookSecret) {
+      return NextResponse.json(
+        { error: 'Stripe webhook not configured' },
+        { status: 500 }
+      );
+    }
+
     const body = await request.text();
     const headersList = await headers();
     const signature = headersList.get('stripe-signature');
