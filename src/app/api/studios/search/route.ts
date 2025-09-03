@@ -3,7 +3,7 @@ import { studioSearchSchema } from '@/lib/validations/studio';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 import { cache } from '@/lib/cache';
-import { Prisma } from '@prisma/client';
+import { Prisma, ServiceType } from '@prisma/client';
 import crypto from 'crypto';
 
 export async function GET(request: NextRequest) {
@@ -45,8 +45,7 @@ export async function GET(request: NextRequest) {
 
     // Enhanced full-text search in name, description, and services
     if (validatedParams.query) {
-      
-      where.AND!.push({
+      (where.AND as Prisma.StudioWhereInput[]).push({
         OR: [
           // Exact name match (highest priority)
           { name: { equals: validatedParams.query, mode: 'insensitive' } },
@@ -58,7 +57,11 @@ export async function GET(request: NextRequest) {
           {
             services: {
               some: {
-                service: { contains: validatedParams.query, mode: 'insensitive' },
+                service: { 
+                  in: Object.values(ServiceType).filter(service => 
+                    service.toLowerCase().includes(validatedParams.query!.toLowerCase())
+                  ) as ServiceType[]
+                },
               },
             },
           },
@@ -70,21 +73,21 @@ export async function GET(request: NextRequest) {
 
     // Location search (basic string matching for now)
     if (validatedParams.location) {
-      where.AND!.push({
+      (where.AND as Prisma.StudioWhereInput[]).push({
         address: { contains: validatedParams.location, mode: 'insensitive' },
       });
     }
 
     // Studio type filter
     if (validatedParams.studioType) {
-      where.AND!.push({
+      (where.AND as Prisma.StudioWhereInput[]).push({
         studioType: validatedParams.studioType as any,
       });
     }
 
     // Services filter
     if (validatedParams.services && validatedParams.services.length > 0) {
-      where.AND!.push({
+      (where.AND as Prisma.StudioWhereInput[]).push({
         services: {
           some: {
             service: {
