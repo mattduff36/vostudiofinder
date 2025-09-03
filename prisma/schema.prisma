@@ -1,0 +1,231 @@
+// VoiceoverStudioFinder Database Schema
+// Modern PostgreSQL schema based on legacy MySQL structure
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String   @unique
+  displayName   String   @map("display_name")
+  avatarUrl     String?  @map("avatar_url")
+  role          Role     @default(USER)
+  emailVerified Boolean  @default(false) @map("email_verified")
+  password      String?  // For email/password auth
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  studios       Studio[]
+  reviews       Review[]
+  reviewsReceived Review[] @relation("StudioOwnerReviews")
+  sentMessages  Message[] @relation("MessageSender")
+  receivedMessages Message[] @relation("MessageReceiver")
+  connections   UserConnection[] @relation("UserConnections")
+  connectedBy   UserConnection[] @relation("ConnectedUser")
+  subscriptions Subscription[]
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Studio {
+  id          String      @id @default(cuid())
+  ownerId     String      @map("owner_id")
+  name        String
+  description String?     @db.Text
+  studioType  StudioType  @map("studio_type")
+  address     String?
+  latitude    Decimal?    @db.Decimal(10, 8)
+  longitude   Decimal?    @db.Decimal(11, 8)
+  websiteUrl  String?     @map("website_url")
+  phone       String?
+  isPremium   Boolean     @default(false) @map("is_premium")
+  isVerified  Boolean     @default(false) @map("is_verified")
+  status      StudioStatus @default(ACTIVE)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  owner       User @relation(fields: [ownerId], references: [id])
+  services    StudioService[]
+  images      StudioImage[]
+  reviews     Review[]
+
+  @@map("studios")
+}
+
+model StudioService {
+  id        String      @id @default(cuid())
+  studioId  String      @map("studio_id")
+  service   ServiceType
+  
+  studio    Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@unique([studioId, service])
+  @@map("studio_services")
+}
+
+model StudioImage {
+  id        String @id @default(cuid())
+  studioId  String @map("studio_id")
+  imageUrl  String @map("image_url")
+  altText   String? @map("alt_text")
+  sortOrder Int    @default(0) @map("sort_order")
+  
+  studio    Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@map("studio_images")
+}
+
+model Review {
+  id          String      @id @default(cuid())
+  studioId    String      @map("studio_id")
+  reviewerId  String      @map("reviewer_id")
+  ownerId     String      @map("owner_id") // For easy queries
+  rating      Int         @db.SmallInt
+  content     String?     @db.Text
+  isAnonymous Boolean     @default(false) @map("is_anonymous")
+  status      ReviewStatus @default(PENDING)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  studio      Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  reviewer    User   @relation(fields: [reviewerId], references: [id])
+  owner       User   @relation("StudioOwnerReviews", fields: [ownerId], references: [id])
+
+  @@map("reviews")
+}
+
+model Message {
+  id         String      @id @default(cuid())
+  senderId   String      @map("sender_id")
+  receiverId String      @map("receiver_id")
+  subject    String?
+  content    String      @db.Text
+  isRead     Boolean     @default(false) @map("is_read")
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  sender     User @relation("MessageSender", fields: [senderId], references: [id])
+  receiver   User @relation("MessageReceiver", fields: [receiverId], references: [id])
+
+  @@map("messages")
+}
+
+model UserConnection {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  connectedUserId String @map("connected_user_id")
+  accepted  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user         User @relation("UserConnections", fields: [userId], references: [id])
+  connectedUser User @relation("ConnectedUser", fields: [connectedUserId], references: [id])
+
+  @@unique([userId, connectedUserId])
+  @@map("user_connections")
+}
+
+model Subscription {
+  id                    String            @id @default(cuid())
+  userId                String            @map("user_id")
+  stripeSubscriptionId  String?           @unique @map("stripe_subscription_id")
+  status                SubscriptionStatus
+  currentPeriodStart    DateTime?         @map("current_period_start")
+  currentPeriodEnd      DateTime?         @map("current_period_end")
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
+}
+
+// Enums
+enum Role {
+  USER
+  STUDIO_OWNER
+  ADMIN
+}
+
+enum StudioType {
+  RECORDING
+  PODCAST
+  HOME
+  PRODUCTION
+  MOBILE
+}
+
+enum ServiceType {
+  ISDN
+  SOURCE_CONNECT
+  SOURCE_CONNECT_NOW
+  CLEANFEED
+  SESSION_LINK_PRO
+  ZOOM
+  SKYPE
+  TEAMS
+}
+
+enum StudioStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+  UNPAID
+  INCOMPLETE
+}
