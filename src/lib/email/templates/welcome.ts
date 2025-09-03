@@ -5,7 +5,7 @@ export interface WelcomeEmailData {
 }
 
 export function getWelcomeEmailTemplate(data: WelcomeEmailData) {
-  const { displayName, email, verificationUrl } = data;
+  const { displayName, email: _email, verificationUrl } = data;
 
   return {
     subject: 'Welcome to VoiceoverStudioFinder - Verify Your Email',
