@@ -10,8 +10,6 @@ import {
   Users, 
   Plus,
   Settings,
-  Crown,
-  Calendar,
   Activity
 } from 'lucide-react';
 
