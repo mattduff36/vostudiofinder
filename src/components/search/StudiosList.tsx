@@ -239,7 +239,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
               return (
                 <Button
                   key={pageNumber}
-                  variant={pageNumber === pagination.page ? 'default' : 'outline'}
+                  variant={pageNumber === pagination.page ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => onPageChange(pageNumber)}
                   className="w-8 h-8 p-0"
