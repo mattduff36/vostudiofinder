@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { BookmarkIcon, BookmarkFilledIcon } from '@/components/ui/Icons';
+import { Bookmark, BookmarkCheck } from 'lucide-react';
 
 interface SaveSearchButtonProps {
   searchParams: {
@@ -63,7 +63,7 @@ export function SaveSearchButton({ searchParams, onSave }: SaveSearchButtonProps
       size="sm"
       className="flex items-center gap-2"
     >
-      {isSaved ? <BookmarkFilledIcon /> : <BookmarkIcon />}
+              {isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
       {isLoading ? 'Saving...' : isSaved ? 'Saved' : 'Save Search'}
     </Button>
   );
