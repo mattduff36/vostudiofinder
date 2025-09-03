@@ -50,7 +50,7 @@ export async function uploadImage(
     };
 
     cloudinary.uploader
-      .upload_stream(uploadOptions, (error, result) => {
+      .upload_stream(uploadOptions, (error: any, result: any) => {
         if (error) {
           reject(error);
         } else if (result) {
