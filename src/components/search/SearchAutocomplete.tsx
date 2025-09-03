@@ -70,7 +70,7 @@ export function SearchAutocomplete({
         break;
       case 'Enter':
         e.preventDefault();
-        if (selectedIndex >= 0) {
+        if (selectedIndex >= 0 && suggestions[selectedIndex]) {
           handleSelect(suggestions[selectedIndex]);
         }
         break;
