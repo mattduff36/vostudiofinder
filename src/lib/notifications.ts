@@ -51,7 +51,7 @@ export class NotificationService {
       type,
       title,
       message,
-      data,
+      data: data || {},
       read: false,
       createdAt: new Date(),
       actionUrl,
