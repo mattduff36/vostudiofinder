@@ -23,7 +23,7 @@ export interface CacheOptions {
 
 export class Cache {
   private static instance: Cache;
-  private redis: Redis;
+  private redis: any;
 
   private constructor() {
     this.redis = redis;
