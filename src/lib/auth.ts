@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/signin',
     error: '/auth/error',
     verifyRequest: '/auth/verify-request',
-    newUser: '/auth/welcome',
+    newUser: '/dashboard', // Redirect new users directly to dashboard
   },
   providers: [
     // Email/Password Provider
