@@ -84,11 +84,11 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
   - [x] 2.10 Implement GDPR compliance features (data export, deletion)
 
 - [ ] 3.0 Build Studio Profile Management and Content System
-  - [ ] 3.1 Design and implement studio database schema with location and services
-  - [ ] 3.2 Create studio profile creation form with image upload
-  - [ ] 3.3 Build image gallery management with drag-and-drop reordering
+  - [x] 3.1 Design and implement studio database schema with location and services
+  - [x] 3.2 Create studio profile creation form with image upload
+  - [x] 3.3 Build image gallery management with drag-and-drop reordering
   - [ ] 3.4 Integrate Google Maps API for location selection and geocoding
-  - [ ] 3.5 Implement service type selection (ISDN, Source Connect, etc.)
+  - [x] 3.5 Implement service type selection (ISDN, Source Connect, etc.)
   - [ ] 3.6 Create studio profile editing interface with preview mode
   - [ ] 3.7 Build studio verification system for premium features
   - [ ] 3.8 Implement studio status management (draft, published, inactive)
@@ -96,12 +96,12 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
   - [ ] 3.10 Add SEO optimization for studio profile pages
 
 - [ ] 4.0 Develop Advanced Search and Discovery Features
-  - [ ] 4.1 Implement location-based search with radius selection
-  - [ ] 4.2 Create advanced filtering system (studio type, services, rating)
-  - [ ] 4.3 Build search results page with list and map views
+  - [x] 4.1 Implement location-based search with radius selection
+  - [x] 4.2 Create advanced filtering system (studio type, services, rating)
+  - [x] 4.3 Build search results page with list and map views
   - [ ] 4.4 Integrate Google Maps with custom markers for studio locations
-  - [ ] 4.5 Implement search result sorting (distance, rating, premium status)
-  - [ ] 4.6 Add pagination and infinite scroll for search results
+  - [x] 4.5 Implement search result sorting (distance, rating, premium status)
+  - [x] 4.6 Add pagination and infinite scroll for search results
   - [ ] 4.7 Create saved search functionality for registered users
   - [ ] 4.8 Implement search autocomplete and suggestions
   - [ ] 4.9 Add full-text search capabilities for studio descriptions
