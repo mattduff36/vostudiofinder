@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
         token.username = user.username;
         token.displayName = user.displayName;
         token.avatarUrl = user.avatarUrl;
-        token.emailVerified = user.emailVerified;
+        token.emailVerified = !!user.emailVerified;
       }
 
       // Handle OAuth account linking
