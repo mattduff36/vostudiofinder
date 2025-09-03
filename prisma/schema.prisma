@@ -38,6 +38,9 @@ model User {
   pendingSubscriptions PendingSubscription[]
   processedRefunds     Refund[]
   notifications        Notification[]
+  reportsMade          ContentReport[] @relation("ReportsMade")
+  reportsReceived      ContentReport[] @relation("ReportsReceived")
+  reportsReviewed      ContentReport[] @relation("ReportsReviewed")
 
   @@map("users")
 }
@@ -278,6 +281,29 @@ model Notification {
   @@map("notifications")
 }
 
+model ContentReport {
+  id             String        @id @default(cuid())
+  reporterId     String        @map("reporter_id")
+  contentType    ContentType   @map("content_type")
+  contentId      String        @map("content_id")
+  reportedUserId String?       @map("reported_user_id")
+  reason         ReportReason
+  customReason   String?       @map("custom_reason")
+  status         ReportStatus  @default(PENDING)
+  reviewedById   String?       @map("reviewed_by_id")
+  reviewedAt     DateTime?     @map("reviewed_at")
+  resolution     String?       @db.Text
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  reporter     User  @relation("ReportsMade", fields: [reporterId], references: [id])
+  reportedUser User? @relation("ReportsReceived", fields: [reportedUserId], references: [id])
+  reviewedBy   User? @relation("ReportsReviewed", fields: [reviewedById], references: [id])
+
+  @@map("content_reports")
+}
+
 // Enums
 enum Role {
   USER
@@ -348,4 +374,28 @@ enum NotificationType {
   PAYMENT_SUCCESS
   PAYMENT_FAILED
   SUBSCRIPTION_EXPIRING
+}
+
+enum ContentType {
+  REVIEW
+  MESSAGE
+  STUDIO
+  USER
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  HATE_SPEECH
+  INAPPROPRIATE
+  FAKE_INFO
+  COPYRIGHT
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
 }
