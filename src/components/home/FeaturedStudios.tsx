@@ -67,7 +67,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                     {studio.name}
                   </h3>
                   <span className="inline-block px-2 py-1 bg-primary-100 text-primary-800 text-xs font-medium rounded">
-                    {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                    {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                   </span>
                 </div>
 
