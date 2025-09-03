@@ -151,12 +151,13 @@ export async function POST(request: NextRequest) {
         
         if (customer && !customer.deleted) {
           // Send payment failed email
+          const retryDate = (invoice as any).next_payment_attempt ? new Date((invoice as any).next_payment_attempt * 1000).toLocaleDateString() : undefined;
           const emailData = {
             customerName: customer.name || customer.email || 'Valued Customer',
             amount: (invoice.amount_due / 100).toFixed(2),
             currency: invoice.currency,
             reason: 'Your payment method was declined. Please check your card details and try again.',
-            retryDate: (invoice as any).next_payment_attempt ? new Date((invoice as any).next_payment_attempt * 1000).toLocaleDateString() : undefined,
+            ...(retryDate && { retryDate }),
           };
 
           await sendEmail({

@@ -45,7 +45,6 @@ export async function GET(request: NextRequest) {
 
     // Enhanced full-text search in name, description, and services
     if (validatedParams.query) {
-      const searchTerms = validatedParams.query.toLowerCase().split(' ').filter(term => term.length > 0);
       
       where.AND!.push({
         OR: [
