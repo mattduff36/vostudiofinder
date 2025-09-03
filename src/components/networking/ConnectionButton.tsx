@@ -13,7 +13,7 @@ interface ConnectionButtonProps {
 
 export function ConnectionButton({
   targetUserId,
-  targetUserName,
+  targetUserName: _targetUserName,
   initialConnectionStatus,
   onConnectionChange,
 }: ConnectionButtonProps) {
@@ -48,7 +48,7 @@ export function ConnectionButton({
     }
   };
 
-  const handleAccept = async () => {
+      const _handleAccept = async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/user/connections', {
