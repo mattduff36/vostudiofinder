@@ -48,31 +48,6 @@ export function ConnectionButton({
     }
   };
 
-      const _handleAccept = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/user/connections', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          targetUserId,
-          action: 'accept',
-        }),
-      });
-
-      if (response.ok) {
-        setConnectionStatus('connected');
-        onConnectionChange?.('connected');
-      }
-    } catch (error) {
-      console.error('Failed to accept connection:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleDisconnect = async () => {
     setIsLoading(true);
     try {
