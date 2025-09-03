@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+
 import { Search, MapPin, Mic, Users } from 'lucide-react';
 
 interface HeroSectionProps {
