@@ -1,11 +1,19 @@
-import { v2 as cloudinary } from 'cloudinary';
+// Optional Cloudinary import - gracefully handle if not available
+let cloudinary: any;
+try {
+  cloudinary = require('cloudinary').v2;
+} catch (error) {
+  console.warn('Cloudinary not available - image uploads will be disabled');
+}
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Configure Cloudinary (only if available)
+if (cloudinary) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+}
 
 export interface ImageUploadResult {
   public_id: string;
@@ -24,6 +32,10 @@ export async function uploadImage(
     public_id?: string;
   } = {}
 ): Promise<ImageUploadResult> {
+  if (!cloudinary) {
+    throw new Error('Cloudinary not available - please install cloudinary package');
+  }
+  
   return new Promise((resolve, reject) => {
     const uploadOptions = {
       folder: options.folder || 'voiceover-studios',

@@ -1,14 +1,20 @@
-import { Redis } from 'ioredis';
+// Optional Redis import - gracefully handle if not available
+let Redis: any;
+try {
+  Redis = require('ioredis').Redis;
+} catch (error) {
+  console.warn('Redis not available - caching will be disabled');
+}
 
-// Initialize Redis client
-const redis = new Redis({
+// Initialize Redis client (only if available)
+const redis = Redis ? new Redis({
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379'),
   password: process.env.REDIS_PASSWORD,
   retryDelayOnFailover: 100,
   maxRetriesPerRequest: 3,
   lazyConnect: true,
-});
+}) : null;
 
 export interface CacheOptions {
   ttl?: number; // Time to live in seconds
@@ -36,6 +42,8 @@ export class Cache {
   }
 
   async get<T>(key: string, options: CacheOptions = {}): Promise<T | null> {
+    if (!this.redis) return null;
+    
     try {
       const fullKey = this.getKey(key, options.prefix);
       const value = await this.redis.get(fullKey);
@@ -56,6 +64,8 @@ export class Cache {
     value: any,
     options: CacheOptions = {}
   ): Promise<boolean> {
+    if (!this.redis) return false;
+    
     try {
       const fullKey = this.getKey(key, options.prefix);
       const serializedValue = JSON.stringify(value);
