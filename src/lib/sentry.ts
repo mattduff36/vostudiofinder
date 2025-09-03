@@ -62,7 +62,7 @@ export function addBreadcrumb(
     message,
     category,
     level,
-    data,
+    data: data || {},
     timestamp: Date.now() / 1000,
   });
 }
