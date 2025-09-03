@@ -138,7 +138,7 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async signIn({ user, account, profile, email, credentials }) {
+    async signIn({ user: _user, account, profile: _profile, email: _email, credentials: _credentials }) {
       // Allow OAuth sign-ins
       if (account?.provider !== 'credentials') {
         return true;
@@ -156,7 +156,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   events: {
-    async signIn({ user, account, profile, isNewUser }) {
+    async signIn({ user, account, profile: _profile, isNewUser: _isNewUser }) {
       console.log('User signed in:', { user: user.email, provider: account?.provider });
     },
     async signOut({ token }) {
