@@ -23,9 +23,9 @@ const nextConfig: NextConfig = {
 
 // Sentry configuration options
 const sentryWebpackPluginOptions = {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
+  org: process.env.SENTRY_ORG || 'default-org',
+  project: process.env.SENTRY_PROJECT || 'default-project',
+  authToken: process.env.SENTRY_AUTH_TOKEN || '',
   silent: true,
   
   // Use hidden-source-map for better performance
