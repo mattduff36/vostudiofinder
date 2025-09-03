@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { uploadImage } from '@/lib/cloudinary';
+import { uploadImage, deleteImage } from '@/lib/cloudinary';
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,6 +61,36 @@ export async function POST(request: NextRequest) {
     console.error('Image upload error:', error);
     return NextResponse.json(
       { error: 'Failed to upload image' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { publicId } = await request.json();
+
+    if (!publicId) {
+      return NextResponse.json({ error: 'No public ID provided' }, { status: 400 });
+    }
+
+    // Delete from Cloudinary
+    await deleteImage(publicId);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Image deleted successfully',
+    });
+  } catch (error) {
+    console.error('Image deletion error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete image' },
       { status: 500 }
     );
   }

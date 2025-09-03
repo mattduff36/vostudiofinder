@@ -10,7 +10,7 @@ export default withAuth(
     const isPublicApiRoute = req.nextUrl.pathname.startsWith('/api/public');
     
     // Define public paths that don't require authentication
-    const publicPaths = ['/', '/about', '/contact', '/studios', '/search'];
+    const publicPaths = ['/', '/about', '/contact', '/studios', '/search', '/test-upload'];
     const isPublicPath = publicPaths.some(path => 
       req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith('/studios/')
     );
