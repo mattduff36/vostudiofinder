@@ -9,8 +9,19 @@ export default withAuth(
     const isApiAuthRoute = req.nextUrl.pathname.startsWith('/api/auth');
     const isPublicApiRoute = req.nextUrl.pathname.startsWith('/api/public');
     
+    // Define public paths that don't require authentication
+    const publicPaths = ['/', '/about', '/contact', '/studios', '/search'];
+    const isPublicPath = publicPaths.some(path => 
+      req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith('/studios/')
+    );
+    
     // Allow API auth routes and public API routes
     if (isApiAuthRoute || isPublicApiRoute) {
+      return NextResponse.next();
+    }
+
+    // Allow public paths without authentication
+    if (isPublicPath) {
       return NextResponse.next();
     }
 
@@ -19,8 +30,8 @@ export default withAuth(
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
-    // Redirect unauthenticated users to sign in
-    if (!isAuthPage && !isAuth) {
+    // Redirect unauthenticated users to sign in for protected routes
+    if (!isAuthPage && !isAuth && !isPublicPath) {
       let from = req.nextUrl.pathname;
       if (req.nextUrl.search) {
         from += req.nextUrl.search;
