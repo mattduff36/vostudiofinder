@@ -7,14 +7,21 @@ import { Button } from '@/components/ui/Button';
 interface Studio {
   id: string;
   name: string;
+  description: string;
   studioType: string;
   location: string;
+  address: string;
   averageRating?: number;
   reviewCount?: number;
+  services?: Array<{ service: string }>;
   images?: Array<{
     imageUrl: string;
     altText?: string;
   }>;
+  _count?: {
+    reviews: number;
+  };
+  isVerified?: boolean;
 }
 
 interface FeaturedStudiosProps {
@@ -121,7 +128,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                 {/* Stats & CTA */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm text-text-secondary">
-                    {studio._count?.reviews > 0 && (
+                    {studio._count?.reviews && studio._count.reviews > 0 && (
                       <div className="flex items-center">
                         <Star className="w-4 h-4 text-yellow-400 mr-1" />
                         <span>{studio._count.reviews} reviews</span>
