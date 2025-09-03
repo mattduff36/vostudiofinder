@@ -22,7 +22,9 @@
     "docker:down": "docker-compose down",
     "setup": "bash scripts/dev-setup.sh",
     "clean": "rm -rf .next node_modules",
-    "test": "echo \"Tests coming soon\" && exit 0"
+    "test": "echo \"Tests coming soon\" && exit 0",
+    "migrate:legacy": "tsx scripts/migration/migrate-data.ts",
+    "migrate:validate": "tsx scripts/migration/validate-legacy-db.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -30,16 +32,20 @@
     "@hookform/resolvers": "^5.2.1",
     "@prisma/client": "^6.15.0",
     "@sentry/nextjs": "^10.8.0",
+    "@stripe/stripe-js": "^7.9.0",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.542.0",
+    "mysql2": "^3.14.4",
     "next": "15.5.2",
     "next-auth": "^4.24.11",
     "prisma": "^6.15.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0",
+    "stripe": "^18.5.0",
     "tailwind-merge": "^3.3.1",
+    "tsx": "^4.20.5",
     "zod": "^4.1.5"
   },
   "devDependencies": {
