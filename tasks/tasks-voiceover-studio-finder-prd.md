@@ -116,8 +116,8 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
   - [x] 5.6 Add premium feature unlocking (featured listings, enhanced profiles)
   - [ ] 5.7 Implement VAT handling for UK/EU customers
   - [x] 5.8 Create admin dashboard for payment monitoring
-  - [ ] 5.9 Set up automated email notifications for payment events
-  - [ ] 5.10 Add refund processing and dispute handling
+  - [x] 5.9 Set up automated email notifications for payment events
+  - [x] 5.10 Add refund processing and dispute handling
 
 - [ ] 6.0 Implement Communication Features (Reviews, Messaging, Social)
   - [x] 6.1 Create review and rating system with moderation

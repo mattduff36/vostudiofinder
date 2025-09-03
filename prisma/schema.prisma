@@ -30,10 +30,12 @@ model User {
   receivedMessages Message[] @relation("MessageReceiver")
   connections   UserConnection[] @relation("UserConnections")
   connectedBy   UserConnection[] @relation("ConnectedUser")
-  subscriptions Subscription[]
-  accounts      Account[]
-  sessions      Session[]
-  savedSearches SavedSearch[]
+  subscriptions        Subscription[]
+  accounts             Account[]
+  sessions             Session[]
+  savedSearches        SavedSearch[]
+  pendingSubscriptions PendingSubscription[]
+  processedRefunds     Refund[]
 
   @@map("users")
 }
@@ -86,10 +88,11 @@ model Studio {
   updatedAt   DateTime    @updatedAt @map("updated_at")
 
   // Relations
-  owner       User @relation(fields: [ownerId], references: [id])
-  services    StudioService[]
-  images      StudioImage[]
-  reviews     Review[]
+  owner                User @relation(fields: [ownerId], references: [id])
+  services             StudioService[]
+  images               StudioImage[]
+  reviews              Review[]
+  pendingSubscriptions PendingSubscription[]
 
   @@map("studios")
 }
@@ -172,9 +175,13 @@ model Subscription {
   id                    String            @id @default(cuid())
   userId                String            @map("user_id")
   stripeSubscriptionId  String?           @unique @map("stripe_subscription_id")
+  stripeCustomerId      String?           @map("stripe_customer_id")
+  paypalSubscriptionId  String?           @unique @map("paypal_subscription_id")
+  paymentMethod         PaymentMethod     @default(STRIPE) @map("payment_method")
   status                SubscriptionStatus
   currentPeriodStart    DateTime?         @map("current_period_start")
   currentPeriodEnd      DateTime?         @map("current_period_end")
+  cancelledAt           DateTime?         @map("cancelled_at")
   createdAt             DateTime          @default(now()) @map("created_at")
   updatedAt             DateTime          @updatedAt @map("updated_at")
 
@@ -196,6 +203,42 @@ model SavedSearch {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("saved_searches")
+}
+
+model PendingSubscription {
+  id                   String        @id @default(cuid())
+  userId               String        @map("user_id")
+  studioId             String        @map("studio_id")
+  paypalSubscriptionId String?       @unique @map("paypal_subscription_id")
+  stripeSessionId      String?       @unique @map("stripe_session_id")
+  status               String        @default("PENDING_APPROVAL")
+  paymentMethod        PaymentMethod @map("payment_method")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@map("pending_subscriptions")
+}
+
+model Refund {
+  id                     String       @id @default(cuid())
+  stripeRefundId         String       @unique @map("stripe_refund_id")
+  stripePaymentIntentId  String       @map("stripe_payment_intent_id")
+  amount                 Int          // Amount in cents
+  currency               String
+  reason                 String?
+  status                 RefundStatus
+  processedBy            String       @map("processed_by")
+  createdAt              DateTime     @default(now()) @map("created_at")
+  updatedAt              DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  processedByUser User @relation(fields: [processedBy], references: [id])
+
+  @@map("refunds")
 }
 
 // Enums
@@ -243,4 +286,17 @@ enum SubscriptionStatus {
   PAST_DUE
   UNPAID
   INCOMPLETE
+  SUSPENDED
+}
+
+enum PaymentMethod {
+  STRIPE
+  PAYPAL
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
 }

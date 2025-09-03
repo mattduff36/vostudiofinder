@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { constructWebhookEvent, handleSubscriptionSuccess, handleSubscriptionCancellation } from '@/lib/stripe';
+import { constructWebhookEvent, handleSubscriptionSuccess, handleSubscriptionCancellation, stripe } from '@/lib/stripe';
 import { db } from '@/lib/db';
 import { headers } from 'next/headers';
+import { sendEmail } from '@/lib/email/email-service';
+import { paymentSuccessTemplate, paymentFailedTemplate } from '@/lib/email/templates/payment-success';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -117,8 +119,26 @@ export async function POST(request: NextRequest) {
         const invoice = event.data.object;
         console.log('Payment succeeded for invoice:', invoice.id);
         
-        // Handle successful payment
-        // You could send confirmation emails here
+        // Get customer details
+        const customer = await stripe.customers.retrieve(invoice.customer as string);
+        
+        if (customer && !customer.deleted) {
+          // Send payment success email
+          const emailData = {
+            customerName: customer.name || customer.email || 'Valued Customer',
+            amount: (invoice.amount_paid / 100).toFixed(2),
+            currency: invoice.currency,
+            invoiceNumber: invoice.number || invoice.id,
+            planName: 'Premium Studio Subscription',
+            nextBillingDate: new Date(invoice.lines.data[0]?.period?.end * 1000 || Date.now()).toLocaleDateString(),
+          };
+
+          await sendEmail({
+            to: customer.email!,
+            subject: 'Payment Confirmation - VoiceoverStudioFinder',
+            html: paymentSuccessTemplate(emailData),
+          });
+        }
         break;
       }
 
@@ -126,8 +146,25 @@ export async function POST(request: NextRequest) {
         const invoice = event.data.object;
         console.log('Payment failed for invoice:', invoice.id);
         
-        // Handle failed payment
-        // You could send notification emails here
+        // Get customer details
+        const customer = await stripe.customers.retrieve(invoice.customer as string);
+        
+        if (customer && !customer.deleted) {
+          // Send payment failed email
+          const emailData = {
+            customerName: customer.name || customer.email || 'Valued Customer',
+            amount: (invoice.amount_due / 100).toFixed(2),
+            currency: invoice.currency,
+            reason: 'Your payment method was declined. Please check your card details and try again.',
+            retryDate: invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000).toLocaleDateString() : undefined,
+          };
+
+          await sendEmail({
+            to: customer.email!,
+            subject: 'Payment Failed - VoiceoverStudioFinder',
+            html: paymentFailedTemplate(emailData),
+          });
+        }
         break;
       }
 
