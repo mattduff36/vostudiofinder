@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
                 stripeSubscriptionId: subscription.id,
                 stripeCustomerId: subscription.customer as string,
                 status: subscription.status.toUpperCase() as any,
-                currentPeriodStart: new Date(subscription.current_period_start * 1000),
-                currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+                currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+                currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
               },
             });
             
@@ -76,8 +76,8 @@ export async function POST(request: NextRequest) {
           where: { stripeSubscriptionId: subscription.id },
           data: {
             status: subscription.status.toUpperCase() as any,
-            currentPeriodStart: new Date(subscription.current_period_start * 1000),
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+            currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
           },
         });
         break;
@@ -128,9 +128,9 @@ export async function POST(request: NextRequest) {
             customerName: customer.name || customer.email || 'Valued Customer',
             amount: (invoice.amount_paid / 100).toFixed(2),
             currency: invoice.currency,
-            invoiceNumber: invoice.number || invoice.id,
+            invoiceNumber: invoice.number || invoice.id || 'N/A',
             planName: 'Premium Studio Subscription',
-            nextBillingDate: new Date(invoice.lines.data[0]?.period?.end * 1000 || Date.now()).toLocaleDateString(),
+            nextBillingDate: new Date((invoice.lines.data[0]?.period?.end || Math.floor(Date.now() / 1000)) * 1000).toLocaleDateString(),
           };
 
           await sendEmail({
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
             amount: (invoice.amount_due / 100).toFixed(2),
             currency: invoice.currency,
             reason: 'Your payment method was declined. Please check your card details and try again.',
-            retryDate: invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000).toLocaleDateString() : undefined,
+            retryDate: (invoice as any).next_payment_attempt ? new Date((invoice as any).next_payment_attempt * 1000).toLocaleDateString() : undefined,
           };
 
           await sendEmail({
