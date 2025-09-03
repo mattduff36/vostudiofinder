@@ -120,7 +120,7 @@ export function SearchAutocomplete({
           {suggestions.map((suggestion, index) => (
             <li
               key={suggestion.id}
-              ref={(el) => (suggestionRefs.current[index] = el)}
+              ref={(el) => { suggestionRefs.current[index] = el; }}
               className={`px-4 py-2 cursor-pointer flex items-center gap-2 ${
                 index === selectedIndex
                   ? 'bg-blue-50 text-blue-900'
