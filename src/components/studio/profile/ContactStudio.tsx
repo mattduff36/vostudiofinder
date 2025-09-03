@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Mail, Phone, Globe, User, Clock } from 'lucide-react';
+import { Mail, Phone, User, Clock } from 'lucide-react';
 
 const contactSchema = z.object({
   subject: z.string().min(5, 'Subject must be at least 5 characters long').max(200),
