@@ -174,7 +174,7 @@ export class VATService {
   static formatVATAmount(amount: number, currency: string = 'GBP'): string {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
-      currency: currency,
+      currency,
     }).format(amount / 100); // Assuming amount is in pence/cents
   }
 

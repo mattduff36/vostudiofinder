@@ -1,10 +1,24 @@
 'use client';
 
 import { MapPin, Star, Users } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 
+interface Studio {
+  id: string;
+  name: string;
+  studioType: string;
+  location: string;
+  averageRating?: number;
+  reviewCount?: number;
+  images?: Array<{
+    imageUrl: string;
+    altText?: string;
+  }>;
+}
+
 interface FeaturedStudiosProps {
-  studios: any[];
+  studios: Studio[];
 }
 
 export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
@@ -46,12 +60,13 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
               className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
             >
               {/* Studio Image */}
-              <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
+              <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
                 {studio.images?.[0]?.imageUrl ? (
-                  <img
+                  <Image
                     src={studio.images[0].imageUrl}
                     alt={studio.images[0].altText || studio.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">

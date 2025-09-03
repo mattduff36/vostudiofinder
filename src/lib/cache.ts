@@ -2,8 +2,9 @@
 let Redis: any;
 try {
   Redis = require('ioredis').Redis;
-} catch (error) {
-  console.warn('Redis not available - caching will be disabled');
+} catch {
+  // Redis not available - caching will be disabled
+  Redis = null;
 }
 
 // Initialize Redis client (only if available)
@@ -53,8 +54,8 @@ export class Cache {
       }
       
       return null;
-    } catch (error) {
-      console.error('Cache get error:', error);
+    } catch {
+      // Cache get error - fallback to no cache
       return null;
     }
   }
@@ -73,8 +74,8 @@ export class Cache {
 
       await this.redis.setex(fullKey, ttl, serializedValue);
       return true;
-    } catch (error) {
-      console.error('Cache set error:', error);
+    } catch {
+      // Cache set error - continue without caching
       return false;
     }
   }
@@ -84,8 +85,8 @@ export class Cache {
       const fullKey = this.getKey(key, options.prefix);
       await this.redis.del(fullKey);
       return true;
-    } catch (error) {
-      console.error('Cache delete error:', error);
+    } catch {
+      // Cache delete error - continue
       return false;
     }
   }
@@ -95,8 +96,8 @@ export class Cache {
       const fullKey = this.getKey(key, options.prefix);
       const result = await this.redis.exists(fullKey);
       return result === 1;
-    } catch (error) {
-      console.error('Cache exists error:', error);
+    } catch {
+      // Cache exists error - return false
       return false;
     }
   }
@@ -109,8 +110,8 @@ export class Cache {
       if (keys.length > 0) {
         await this.redis.del(...keys);
       }
-    } catch (error) {
-      console.error('Cache invalidate pattern error:', error);
+    } catch {
+      // Cache invalidate pattern error - continue
     }
   }
 

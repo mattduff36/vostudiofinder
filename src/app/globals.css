@@ -1,16 +1,13 @@
 @import 'tailwindcss';
-@import url('https://fonts.googleapis.com/css?family=Raleway:300,400,500,600,700');
-
-:root {
-  --background: #ffffff;
-  --foreground: #999999;
-}
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #999999;
 }
 
 /* Original VoiceoverStudioFinder Global Styles */
@@ -22,7 +19,7 @@ body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--font-raleway), sans-serif;
   font-weight: normal;
 }
 
@@ -60,7 +57,7 @@ h6,
 .h4,
 .h5,
 .h6 {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--font-raleway), sans-serif;
   font-weight: 300;
   margin: 30px 0;
   padding: 0;

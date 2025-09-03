@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
 
 export function Footer() {
@@ -36,12 +37,12 @@ export function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm text-gray-300">
-              <li><a href="/studios" className="hover:text-white transition-colors">Browse Studios</a></li>
-              <li><a href="/auth/signup" className="hover:text-white transition-colors">Join Free</a></li>
-              <li><a href="/studio/create" className="hover:text-white transition-colors">Add Your Studio</a></li>
-              <li><a href="/about" className="hover:text-white transition-colors">About Us</a></li>
-              <li><a href="/contact" className="hover:text-white transition-colors">Contact</a></li>
-              <li><a href="/help" className="hover:text-white transition-colors">Help Center</a></li>
+              <li><Link href="/studios" className="hover:text-white transition-colors">Browse Studios</Link></li>
+              <li><Link href="/auth/signup" className="hover:text-white transition-colors">Join Free</Link></li>
+              <li><Link href="/studio/create" className="hover:text-white transition-colors">Add Your Studio</Link></li>
+              <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+              <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
             </ul>
           </div>
 

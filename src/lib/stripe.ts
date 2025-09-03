@@ -60,7 +60,7 @@ export async function createCheckoutSession({
   const planConfig = SUBSCRIPTION_PLANS[plan];
 
   // Create or retrieve Stripe customer
-  let customer = await stripe.customers.list({
+  const customer = await stripe.customers.list({
     limit: 1,
     email: userId, // We'll use user ID as reference for now
   });

@@ -60,7 +60,9 @@ const config: Config = {
         foreground: 'var(--foreground)',
       },
       fontFamily: {
-        raleway: ['Raleway', 'sans-serif'],
+        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'Consolas', 'monospace'],
+        raleway: ['var(--font-raleway)', 'Raleway', 'sans-serif'],
       },
       fontSize: {
         h1: '56px',
