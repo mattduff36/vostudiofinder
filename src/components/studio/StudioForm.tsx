@@ -8,7 +8,7 @@ import { createStudioSchema, type CreateStudioInput } from '@/lib/validations/st
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { StudioType, ServiceType } from '@prisma/client';
-import { MapPin, Globe, Phone, Plus, Trash2, Image } from 'lucide-react';
+import { MapPin, Globe, Phone, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
 
 interface StudioFormProps {
   initialData?: Partial<CreateStudioInput>;
@@ -256,7 +256,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
               <div className="space-y-4">
                 {imageFields.map((field, index) => (
                   <div key={field.id} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
-                    <Image className="w-5 h-5 text-text-secondary mt-2 flex-shrink-0" />
+                    <ImageIcon className="w-5 h-5 text-text-secondary mt-2 flex-shrink-0" />
                     <div className="flex-1 space-y-3">
                       <Input
                         label={`Image URL ${index + 1}`}

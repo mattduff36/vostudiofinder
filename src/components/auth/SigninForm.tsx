@@ -47,7 +47,7 @@ export function SigninForm() {
         router.push(callbackUrl);
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred during sign in');
     } finally {
       setIsLoading(false);
@@ -60,7 +60,7 @@ export function SigninForm() {
 
     try {
       await signIn(provider, { callbackUrl });
-    } catch (err) {
+    } catch {
       setError(`Failed to sign in with ${provider}`);
     } finally {
       setIsLoading(false);

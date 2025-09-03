@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { MapPin, Star, Users, Globe, Phone, Crown } from 'lucide-react';
 
@@ -72,12 +73,13 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
               <div className="flex flex-col lg:flex-row lg:items-start lg:space-x-6">
                 {/* Studio Image */}
                 <div className="flex-shrink-0 mb-4 lg:mb-0">
-                  <div className="w-full lg:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden">
+                  <div className="w-full lg:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden relative">
                     {studio.images?.[0]?.imageUrl ? (
-                      <img
+                      <Image
                         src={studio.images[0].imageUrl}
                         alt={studio.images[0].altText || studio.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -190,11 +192,14 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                       <span className="text-xs mr-2">Owner:</span>
                       <div className="flex items-center">
                         {studio.owner.avatarUrl ? (
-                          <img
-                            src={studio.owner.avatarUrl}
-                            alt={studio.owner.displayName}
-                            className="w-6 h-6 rounded-full mr-2"
-                          />
+                          <div className="relative w-6 h-6 mr-2">
+                            <Image
+                              src={studio.owner.avatarUrl}
+                              alt={studio.owner.displayName}
+                              fill
+                              className="rounded-full object-cover"
+                            />
+                          </div>
                         ) : (
                           <div className="w-6 h-6 bg-gray-300 rounded-full mr-2 flex items-center justify-center">
                             <Users className="w-3 h-3 text-gray-600" />
