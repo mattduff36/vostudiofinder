@@ -49,8 +49,8 @@ export function StudioGallery({ images }: StudioGalleryProps) {
             onClick={() => openLightbox(0)}
           >
             <img
-              src={images[0].imageUrl}
-              alt={images[0].altText || 'Studio image'}
+              src={images[0]?.imageUrl}
+              alt={images[0]?.altText || 'Studio image'}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
             />
           </div>
@@ -118,8 +118,8 @@ export function StudioGallery({ images }: StudioGalleryProps) {
 
             {/* Image */}
             <img
-              src={images[selectedImage].imageUrl}
-              alt={images[selectedImage].altText || 'Studio image'}
+              src={images[selectedImage]?.imageUrl}
+              alt={images[selectedImage]?.altText || 'Studio image'}
               className="max-w-full max-h-full object-contain"
             />
 
