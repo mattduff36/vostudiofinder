@@ -24,16 +24,28 @@ export async function POST(request: NextRequest) {
     const { paymentIntentId, amount, reason, refundApplicationFee } = refundSchema.parse(body);
 
     // Create refund in Stripe
-    const refund = await stripe.refunds.create({
+    const refundParams: any = {
       payment_intent: paymentIntentId,
-      amount: amount, // If not specified, refunds the full amount
-      reason: reason,
-      refund_application_fee: refundApplicationFee,
       metadata: {
         admin_user_id: session.user.id,
         processed_at: new Date().toISOString(),
       },
-    });
+    };
+
+    // Only include amount if specified (otherwise refunds full amount)
+    if (amount !== undefined) {
+      refundParams.amount = amount;
+    }
+    
+    if (reason !== undefined) {
+      refundParams.reason = reason;
+    }
+    
+    if (refundApplicationFee !== undefined) {
+      refundParams.refund_application_fee = refundApplicationFee;
+    }
+
+    const refund = await stripe.refunds.create(refundParams);
 
     // Log the refund in our database
     await db.refund.create({
@@ -43,7 +55,7 @@ export async function POST(request: NextRequest) {
         amount: refund.amount,
         currency: refund.currency,
         reason: reason || 'requested_by_customer',
-        status: refund.status.toUpperCase() as any,
+        status: (refund.status || 'PENDING').toUpperCase() as any,
         processedBy: session.user.id,
       },
     });
