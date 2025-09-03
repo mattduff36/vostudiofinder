@@ -120,8 +120,8 @@ Based on: VOICEOVER_STUDIO_FINDER_PRD.md
   - [ ] 5.10 Add refund processing and dispute handling
 
 - [ ] 6.0 Implement Communication Features (Reviews, Messaging, Social)
-  - [ ] 6.1 Create review and rating system with moderation
-  - [ ] 6.2 Build private messaging system between users
+  - [x] 6.1 Create review and rating system with moderation
+  - [x] 6.2 Build private messaging system between users
   - [ ] 6.3 Implement user connections and networking features
   - [ ] 6.4 Create notification system for messages and reviews
   - [ ] 6.5 Add review response capability for studio owners
