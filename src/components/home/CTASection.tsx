@@ -3,6 +3,7 @@
 import { Session } from 'next-auth';
 import { Button } from '@/components/ui/Button';
 import { Mic, Building, Users } from 'lucide-react';
+import Image from 'next/image';
 
 interface CTASectionProps {
   session: Session | null;
@@ -10,8 +11,22 @@ interface CTASectionProps {
 
 export function CTASection({ session }: CTASectionProps) {
   return (
-    <div className="bg-gradient-to-r from-primary-600 to-primary-800 py-16">
-      <div className="max-w-7xl mx-auto px-6">
+    <div className="relative py-16 overflow-hidden">
+      {/* Background Banner Image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/bottom-banner.jpg"
+          alt="Professional recording studio"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-900/90 to-primary-700/90"></div>
+      </div>
+      
+      {/* Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6">
         <div className="text-center text-white mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Get Started?
