@@ -20,18 +20,18 @@ export default withAuth(
       return NextResponse.next();
     }
 
+    // Allow auth pages without authentication
+    if (isAuthPage) {
+      return NextResponse.next();
+    }
+
     // Allow public paths without authentication
     if (isPublicPath) {
       return NextResponse.next();
     }
 
-    // Redirect authenticated users away from auth pages
-    if (isAuthPage && isAuth) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-
     // Redirect unauthenticated users to sign in for protected routes
-    if (!isAuthPage && !isAuth && !isPublicPath) {
+    if (!isAuth && !isPublicPath) {
       let from = req.nextUrl.pathname;
       if (req.nextUrl.search) {
         from += req.nextUrl.search;
@@ -80,13 +80,14 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        // Allow access to public routes
+        // Allow access to public routes and auth pages
         const publicPaths = ['/', '/about', '/contact', '/studios', '/search'];
         const isPublicPath = publicPaths.some(path => 
           req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith('/studios/')
         );
+        const isAuthPage = req.nextUrl.pathname.startsWith('/auth');
         
-        if (isPublicPath) {
+        if (isPublicPath || isAuthPage) {
           return true;
         }
 
