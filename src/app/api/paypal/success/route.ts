@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { paypal } from '@/lib/paypal';
 import { db } from '@/lib/db';
 import { redirect } from 'next/navigation';

@@ -47,17 +47,12 @@ export async function GET(request: NextRequest) {
       take: 5,
     });
 
-    // Search for services
-    const services = await db.studioService.findMany({
-      where: {
-        service: { contains: searchTerm, mode: 'insensitive' },
-      },
-      select: {
-        service: true,
-      },
-      distinct: ['service'],
-      take: 5,
-    });
+    // Search for services (enum values, so we need to filter manually)
+    const allServiceTypes = ['ISDN', 'SOURCE_CONNECT', 'SOURCE_CONNECT_NOW', 'CLEANFEED', 'SESSION_LINK_PRO', 'ZOOM', 'SKYPE', 'TEAMS'];
+    const matchingServices = allServiceTypes
+      .filter(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
+      .slice(0, 5)
+      .map(service => ({ service }));
 
     const suggestions = [
       // Studio suggestions
@@ -73,7 +68,7 @@ export async function GET(request: NextRequest) {
         type: 'location' as const,
       })),
       // Service suggestions
-      ...services.map((service, index) => ({
+      ...matchingServices.map((service, index) => ({
         id: `service-${index}`,
         text: service.service,
         type: 'service' as const,
@@ -82,13 +77,15 @@ export async function GET(request: NextRequest) {
 
     // Sort by relevance (exact matches first, then partial matches)
     suggestions.sort((a, b) => {
-      const aExact = a.text.toLowerCase().startsWith(searchTerm);
-      const bExact = b.text.toLowerCase().startsWith(searchTerm);
+      const aText = a.text || '';
+      const bText = b.text || '';
+      const aExact = aText.toLowerCase().startsWith(searchTerm);
+      const bExact = bText.toLowerCase().startsWith(searchTerm);
       
       if (aExact && !bExact) return -1;
       if (!aExact && bExact) return 1;
       
-      return a.text.localeCompare(b.text);
+      return aText.localeCompare(bText);
     });
 
     return NextResponse.json({

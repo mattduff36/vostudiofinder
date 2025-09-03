@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
         reporterId: session.user.id,
         contentType: contentType.toUpperCase() as any,
         contentId,
-        reportedUserId,
+        reportedUserId: reportedUserId || null,
         reason: reason.toUpperCase() as any,
-        customReason: reason === 'other' ? customReason : undefined,
+        customReason: reason === 'other' ? (customReason || null) : null,
         status: 'PENDING',
       },
     });
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.issues },
         { status: 400 }
       );
     }

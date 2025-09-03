@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { paypal } from '@/lib/paypal';
+// import { paypal } from '@/lib/paypal';
 import { db } from '@/lib/db';
 import { sendEmail } from '@/lib/email/email-service';
 import { paymentSuccessTemplate, paymentFailedTemplate } from '@/lib/email/templates/payment-success';

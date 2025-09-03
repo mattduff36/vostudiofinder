@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { createCheckoutSession, SubscriptionPlan } from '@/lib/stripe';
 import { db } from '@/lib/db';
-import { VATService } from '@/lib/vat';
+// import { VATService } from '@/lib/vat';
 import { handleApiError } from '@/lib/sentry';
 
 const checkoutSchema = z.object({
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.issues },
         { status: 400 }
       );
     }
