@@ -150,7 +150,7 @@ export class LegacyDatabase {
       }
       
       // Get table counts
-      const counts = {};
+      const counts: Record<string, any> = {};
       for (const table of requiredTables) {
         const [result] = await connection.execute(`SELECT COUNT(*) as count FROM ${table}`);
         counts[table] = (result as any[])[0].count;
