@@ -1,6 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+
+// Google Maps types
+declare global {
+  interface Window {
+    google: any;
+  }
+}
 import { MapLocation } from '@/lib/maps';
 
 interface GoogleMapProps {
@@ -26,8 +33,8 @@ export function GoogleMap({
   className = '',
 }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const mapInstanceRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load Google Maps script
