@@ -87,8 +87,6 @@ export async function withErrorTracking<T>(
   operationName: string,
   context?: Record<string, any>
 ): Promise<T> {
-  const transaction = startTransaction(operationName, 'db.query');
-  
   try {
     addBreadcrumb(`Starting ${operationName}`, 'database', 'info', context);
     const result = await operation();
@@ -108,8 +106,6 @@ export async function withErrorTracking<T>(
     }
     
     throw error;
-  } finally {
-    transaction.finish();
   }
 }
 
