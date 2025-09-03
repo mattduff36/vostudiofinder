@@ -116,7 +116,7 @@ export class NotificationService {
     // This would fetch from database
     // For now, return default preferences
     return {
-      userId,
+      userId: _userId,
       emailNotifications: true,
       pushNotifications: true,
       messageNotifications: true,
