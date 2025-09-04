@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export default async function Home() {
   const session = await getServerSession(authOptions);
   
-  // Fetch some featured studios for the homepage
+  // Fetch featured studios for the homepage (available to all users)
   const featuredStudios = await db.studio.findMany({
     where: {
       status: 'ACTIVE',

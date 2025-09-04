@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 
 import { Search, MapPin, Mic, Users } from 'lucide-react';
+import Image from 'next/image';
 
 interface HeroSectionProps {
   session: Session | null;
@@ -25,7 +26,19 @@ export function HeroSection({ session }: HeroSectionProps) {
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-primary-800 via-primary-700 to-primary-600 text-white">
+    <div className="relative text-white overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/bottom-banner.jpg"
+          alt="Professional recording studio"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-800/90 to-primary-600/90"></div>
+      </div>
       {/* Navigation */}
       <nav className="relative z-10 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -132,7 +145,7 @@ export function HeroSection({ session }: HeroSectionProps) {
           {/* Feature Icons */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto">
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mic className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Professional Studios</h3>
@@ -142,7 +155,7 @@ export function HeroSection({ session }: HeroSectionProps) {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Global Locations</h3>
@@ -152,7 +165,7 @@ export function HeroSection({ session }: HeroSectionProps) {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Direct Contact</h3>

@@ -64,7 +64,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           {studios.map((studio) => (
             <div
               key={studio.id}
-              className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
+              className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-300"
             >
               {/* Studio Image */}
               <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">

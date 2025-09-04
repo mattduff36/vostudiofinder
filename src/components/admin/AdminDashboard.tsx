@@ -120,7 +120,7 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
             </div>
             
             <div className="flex items-center space-x-4">
-              <button className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 flex items-center">
+              <button className="bg-gradient-to-r from-primary-700 to-primary-600 hover:from-primary-800 hover:to-primary-700 text-white px-4 py-2 rounded-lg flex items-center transition-all">
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </button>

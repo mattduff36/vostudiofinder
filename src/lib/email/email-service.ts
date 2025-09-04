@@ -1,4 +1,7 @@
 // Email service for sending notifications and transactional emails
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export interface EmailOptions {
   to: string;
@@ -9,35 +12,38 @@ export interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    // For now, we'll just log the email (placeholder implementation)
-    // In production, this would integrate with Resend, SendGrid, or similar
+    // Validate required environment variable
+    if (!process.env.RESEND_API_KEY) {
+      console.error('❌ RESEND_API_KEY environment variable is not set');
+      return false;
+    }
+
+    // Set default sender if not provided
+    const fromEmail = options.from || 'noreply@voiceoverstudiofinder.com';
     
-    console.log('📧 Email would be sent:', {
+    console.log('📧 Sending email via Resend:', {
       to: options.to,
       subject: options.subject,
-      from: options.from || 'noreply@voiceoverstudiofinder.com',
+      from: fromEmail,
       htmlLength: options.html.length,
     });
 
-    // TODO: Implement actual email sending
-    // Example with Resend:
-    /*
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    
     const result = await resend.emails.send({
-      from: options.from || 'noreply@voiceoverstudiofinder.com',
+      from: fromEmail,
       to: options.to,
       subject: options.subject,
       html: options.html,
     });
-    
-    return result.error === null;
-    */
 
-    // For now, always return true (simulated success)
+    if (result.error) {
+      console.error('❌ Failed to send email via Resend:', result.error);
+      return false;
+    }
+
+    console.log('✅ Email sent successfully via Resend:', result.data?.id);
     return true;
   } catch (error) {
-    console.error('Failed to send email:', error);
+    console.error('❌ Failed to send email:', error);
     return false;
   }
 }

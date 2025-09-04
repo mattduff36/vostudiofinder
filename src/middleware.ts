@@ -7,12 +7,13 @@ export default withAuth(
     const isAuth = !!token;
     const isAuthPage = req.nextUrl.pathname.startsWith('/auth');
     const isApiAuthRoute = req.nextUrl.pathname.startsWith('/api/auth');
-    const isPublicApiRoute = req.nextUrl.pathname.startsWith('/api/public');
+    const isPublicApiRoute = req.nextUrl.pathname.startsWith('/api/public') || 
+                             req.nextUrl.pathname.startsWith('/api/studios/search');
     
     // Define public paths that don't require authentication
-    const publicPaths = ['/', '/about', '/contact', '/studios', '/search', '/test-upload'];
+    const publicPaths = ['/', '/about', '/contact', '/studios', '/search'];
     const isPublicPath = publicPaths.some(path => 
-      req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith('/studios/')
+      req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith('/studio/')
     );
     
     // Allow API auth routes and public API routes
@@ -83,7 +84,7 @@ export default withAuth(
         // Allow access to public routes and auth pages
         const publicPaths = ['/', '/about', '/contact', '/studios', '/search'];
         const isPublicPath = publicPaths.some(path => 
-          req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith('/studios/')
+          req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith('/studio/')
         );
         const isAuthPage = req.nextUrl.pathname.startsWith('/auth');
         

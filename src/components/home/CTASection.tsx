@@ -22,7 +22,7 @@ export function CTASection({ session }: CTASectionProps) {
           priority
         />
         {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-900/90 to-primary-700/90"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-800/90 to-primary-600/90"></div>
       </div>
       
       {/* Content */}
@@ -40,7 +40,7 @@ export function CTASection({ session }: CTASectionProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {/* For Voice Artists */}
           <div className="text-center text-white">
-            <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <Mic className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-semibold mb-3">For Voice Artists</h3>
@@ -54,7 +54,7 @@ export function CTASection({ session }: CTASectionProps) {
 
           {/* For Studio Owners */}
           <div className="text-center text-white">
-            <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <Building className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-semibold mb-3">For Studio Owners</h3>
@@ -68,7 +68,7 @@ export function CTASection({ session }: CTASectionProps) {
 
           {/* For Everyone */}
           <div className="text-center text-white">
-            <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-semibold mb-3">For Everyone</h3>
