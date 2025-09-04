@@ -1,6 +1,7 @@
 'use client';
 
 import { Building, Users, Star, Globe } from 'lucide-react';
+import Image from 'next/image';
 
 interface StatsSectionProps {
   stats: {
@@ -11,8 +12,18 @@ interface StatsSectionProps {
 
 export function StatsSection({ stats }: StatsSectionProps) {
   return (
-    <div className="bg-gray-50 py-16">
-      <div className="max-w-7xl mx-auto px-6">
+    <div className="relative py-16 overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/bakground-images/21920-7.jpg"
+          alt="Stats background texture"
+          fill
+          className="object-cover opacity-5"
+          priority={false}
+        />
+      </div>
+      <div className="relative z-10 max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-text-primary mb-4">
             Trusted by Voice Professionals Worldwide

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/Button';
 import { Map, List, Filter } from 'lucide-react';
@@ -108,9 +109,20 @@ export function StudiosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/bakground-images/21920-3.jpg"
+          alt="Studio search background texture"
+          fill
+          className="object-cover opacity-5"
+          priority={false}
+        />
+      </div>
+      
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -162,7 +174,7 @@ export function StudiosPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
           <div className={`lg:col-span-1 ${showFilters ? 'block' : 'hidden lg:block'}`}>

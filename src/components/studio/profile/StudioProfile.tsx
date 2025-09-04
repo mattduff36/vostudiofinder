@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
+import Image from 'next/image';
 
 import { StudioGallery } from './StudioGallery';
 import { StudioInfo } from './StudioInfo';
@@ -90,9 +91,20 @@ export function StudioProfile({ studio }: StudioProfileProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/bakground-images/21920-4.jpg"
+          alt="Studio profile background texture"
+          fill
+          className="object-cover opacity-5"
+          priority={false}
+        />
+      </div>
+      
       {/* Studio Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
             <div className="flex-1">
@@ -165,7 +177,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
             {[
@@ -190,7 +202,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
