@@ -8,7 +8,9 @@ export default withAuth(
     const isAuthPage = req.nextUrl.pathname.startsWith('/auth');
     const isApiAuthRoute = req.nextUrl.pathname.startsWith('/api/auth');
     const isPublicApiRoute = req.nextUrl.pathname.startsWith('/api/public') || 
+                             req.nextUrl.pathname === '/api/studios/search' ||
                              req.nextUrl.pathname.startsWith('/api/studios/search');
+    
     
     // Define public paths that don't require authentication
     const publicPaths = ['/', '/about', '/contact', '/studios', '/search'];
@@ -81,6 +83,15 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
+        // Allow access to public API routes
+        const isPublicApiRoute = req.nextUrl.pathname.startsWith('/api/public') || 
+                                 req.nextUrl.pathname === '/api/studios/search' ||
+                                 req.nextUrl.pathname.startsWith('/api/studios/search');
+        
+        if (isPublicApiRoute) {
+          return true;
+        }
+        
         // Allow access to public routes and auth pages
         const publicPaths = ['/', '/about', '/contact', '/studios', '/search'];
         const isPublicPath = publicPaths.some(path => 

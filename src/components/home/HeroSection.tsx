@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -15,6 +15,11 @@ interface HeroSectionProps {
 export function HeroSection({ session }: HeroSectionProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,19 +98,25 @@ export function HeroSection({ session }: HeroSectionProps) {
       {/* Hero Content */}
       <div className="relative z-10 px-6 py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
+          <h1 className={`text-5xl md:text-6xl font-bold mb-6 transition-all duration-1000 delay-200 ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}>
             Find Your Perfect
             <br />
             <span className="text-accent-400">Recording Studio</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-primary-100 mb-12 max-w-3xl mx-auto">
+          <p className={`text-xl md:text-2xl text-primary-100 mb-12 max-w-3xl mx-auto transition-all duration-1000 delay-400 ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}>
             Connect with professional voiceover recording studios worldwide. 
             Advanced search, verified locations, and direct studio contact.
           </p>
 
           {/* Search Form */}
-          <form onSubmit={handleSearch} className="max-w-4xl mx-auto">
+          <form onSubmit={handleSearch} className={`max-w-4xl mx-auto transition-all duration-1000 delay-600 ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}>
             <div className="bg-white rounded-lg p-4 shadow-2xl">
               <div className="flex gap-4">
                 <div className="relative flex-1" style={{ width: '75%' }}>
@@ -132,8 +143,10 @@ export function HeroSection({ session }: HeroSectionProps) {
 
           {/* Feature Icons */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className={`text-center transition-all duration-1000 delay-700 ${
+              isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}>
+              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4 transform hover:scale-110 transition-transform duration-300">
                 <Mic className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Professional Studios</h3>
@@ -142,8 +155,10 @@ export function HeroSection({ session }: HeroSectionProps) {
               </p>
             </div>
             
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className={`text-center transition-all duration-1000 delay-800 ${
+              isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}>
+              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4 transform hover:scale-110 transition-transform duration-300">
                 <MapPin className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Global Locations</h3>
@@ -152,8 +167,10 @@ export function HeroSection({ session }: HeroSectionProps) {
               </p>
             </div>
             
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className={`text-center transition-all duration-1000 delay-900 ${
+              isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}>
+              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full flex items-center justify-center mx-auto mb-4 transform hover:scale-110 transition-transform duration-300">
                 <Users className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Direct Contact</h3>
