@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapPin, Star, Users } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
+import { cleanDescription } from '@/lib/utils/text';
 
 interface Studio {
   id: string;
@@ -108,92 +109,92 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {studios.map((studio) => (
-            <div
-              key={studio.id}
-              className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-300"
-            >
-              {/* Studio Image */}
-              <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
-                {studio.images?.[0]?.imageUrl ? (
-                  <Image
-                    src={studio.images[0].imageUrl}
-                    alt={studio.images[0].altText || studio.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <Users className="w-12 h-12" />
+              <div
+                key={studio.id}
+                className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-300 flex flex-col h-full"
+              >
+                {/* Studio Image */}
+                <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
+                  {studio.images?.[0]?.imageUrl ? (
+                    <Image
+                      src={studio.images[0].imageUrl}
+                      alt={studio.images[0].altText || studio.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <Users className="w-12 h-12" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-6 flex flex-col flex-grow">
+                  {/* Studio Name & Type */}
+                  <div className="mb-3">
+                    <h3 className="text-xl font-semibold text-text-primary mb-2 line-clamp-1">
+                      {studio.name}
+                    </h3>
+                    <span className="inline-block px-2 py-1 bg-primary-100 text-primary-800 text-xs font-medium rounded">
+                      {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                    </span>
                   </div>
-                )}
-              </div>
 
-              <div className="p-6">
-                {/* Studio Name & Type */}
-                <div className="mb-3">
-                  <h3 className="text-xl font-semibold text-text-primary mb-1">
-                    {studio.name}
-                  </h3>
-                  <span className="inline-block px-2 py-1 bg-primary-100 text-primary-800 text-xs font-medium rounded">
-                    {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                  </span>
-                </div>
+                  {/* Location */}
+                  <div className="flex items-start text-text-secondary mb-3">
+                    <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm line-clamp-2">{studio.address}</span>
+                  </div>
 
-                {/* Location */}
-                <div className="flex items-center text-text-secondary mb-3">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  <span className="text-sm">{studio.address}</span>
-                </div>
+                  {/* Description */}
+                  <p className="text-text-secondary text-sm mb-4 line-clamp-3 flex-grow">
+                    {cleanDescription(studio.description)}
+                  </p>
 
-                {/* Description */}
-                <p className="text-text-secondary text-sm mb-4 line-clamp-2">
-                  {studio.description}
-                </p>
+                  {/* Services */}
+                  {studio.services && studio.services.length > 0 && (
+                    <div className="mb-4">
+                      <div className="flex flex-wrap gap-1">
+                        {studio.services.slice(0, 2).map((service: any, index: number) => (
+                          <span
+                            key={index}
+                            className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                          >
+                            {service.service.replace(/_/g, ' ')}
+                          </span>
+                        ))}
+                        {studio.services.length > 2 && (
+                          <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                            +{studio.services.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-                {/* Services */}
-                {studio.services && studio.services.length > 0 && (
-                  <div className="mb-4">
-                    <div className="flex flex-wrap gap-1">
-                      {studio.services.slice(0, 3).map((service: any, index: number) => (
-                        <span
-                          key={index}
-                          className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
-                        >
-                          {service.service.replace('_', ' ')}
-                        </span>
-                      ))}
-                      {studio.services.length > 3 && (
-                        <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                          +{studio.services.length - 3} more
-                        </span>
+                  {/* Stats & CTA */}
+                  <div className="flex items-center justify-between mt-auto pt-2">
+                    <div className="flex items-center space-x-3 text-sm text-text-secondary">
+                      {studio._count?.reviews && studio._count.reviews > 0 && (
+                        <div className="flex items-center">
+                          <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                          <span>{studio._count.reviews}</span>
+                        </div>
+                      )}
+                      {studio.isVerified && (
+                        <span className="text-green-600 font-medium text-xs">✓ Verified</span>
                       )}
                     </div>
+                    
+                    <Button
+                      size="sm"
+                      onClick={() => window.location.href = `/${studio.owner?.username}`}
+                    >
+                      View Details
+                    </Button>
                   </div>
-                )}
-
-                {/* Stats & CTA */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm text-text-secondary">
-                    {studio._count?.reviews && studio._count.reviews > 0 && (
-                      <div className="flex items-center">
-                        <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                        <span>{studio._count.reviews} reviews</span>
-                      </div>
-                    )}
-                    {studio.isVerified && (
-                      <span className="text-green-600 font-medium">✓ Verified</span>
-                    )}
-                  </div>
-                  
-                  <Button
-                    size="sm"
-                    onClick={() => window.location.href = `/${studio.owner?.username}`}
-                  >
-                    View Details
-                  </Button>
                 </div>
               </div>
-            </div>
           ))}
         </div>
 

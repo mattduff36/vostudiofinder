@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
+import { cleanDescription } from '@/lib/utils/text';
 
 import { StudioGallery } from './StudioGallery';
 import { StudioInfo } from './StudioInfo';
@@ -139,7 +140,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
                 )}
               </div>
 
-              <p className="text-text-secondary max-w-3xl">{studio.description}</p>
+              <p className="text-text-secondary max-w-3xl">{cleanDescription(studio.description)}</p>
             </div>
 
             <div className="flex items-center space-x-3 mt-6 lg:mt-0 lg:ml-6">

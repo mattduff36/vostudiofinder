@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { MapPin, Star, Users, Globe, Phone, Crown } from 'lucide-react';
+import { cleanDescription } from '@/lib/utils/text';
 
 interface Studio {
   id: string;
@@ -139,7 +140,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
 
                   {/* Description */}
                   <p className="text-text-secondary text-sm mb-4 line-clamp-2">
-                    {studio.description}
+                    {cleanDescription(studio.description)}
                   </p>
 
                   {/* Services */}
