@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Raleway } from 'next/font/google';
 import { getServerSession } from 'next-auth';
 import { SessionProvider } from '@/components/providers/SessionProvider';
+import { Navbar } from '@/components/navigation/Navbar';
 import { authOptions } from '@/lib/auth';
 import './globals.css';
 
@@ -52,7 +53,10 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${raleway.variable} antialiased`}
       >
         <SessionProvider session={session}>
-          {children}
+          <Navbar session={session} />
+          <main className="pt-20">
+            {children}
+          </main>
         </SessionProvider>
       </body>
     </html>

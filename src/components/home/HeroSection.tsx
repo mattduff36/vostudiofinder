@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { GooglePlacesAutocomplete } from '@/components/search/GooglePlacesAutocomplete';
@@ -9,11 +8,7 @@ import { GooglePlacesAutocomplete } from '@/components/search/GooglePlacesAutoco
 import { Mic, Users, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
-interface HeroSectionProps {
-  session: Session | null;
-}
-
-export function HeroSection({ session }: HeroSectionProps) {
+export function HeroSection() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
@@ -53,61 +48,9 @@ export function HeroSection({ session }: HeroSectionProps) {
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-primary-800/90 to-primary-600/90"></div>
       </div>
-      {/* Navigation */}
-      <nav className="relative z-10 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="text-2xl font-bold">
-            VoiceoverStudioFinder
-          </div>
-          
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="/studios" className="hover:text-primary-200 transition-colors">
-              Browse Studios
-            </a>
-            <a href="/about" className="hover:text-primary-200 transition-colors">
-              About
-            </a>
-            <a href="/contact" className="hover:text-primary-200 transition-colors">
-              Contact
-            </a>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {session ? (
-              <>
-                <span className="text-sm">Welcome, {session.user.displayName}</span>
-                <Button
-                  onClick={() => router.push('/dashboard')}
-                  variant="outline"
-                  className="text-white border-white hover:bg-white hover:text-primary-800"
-                >
-                  Dashboard
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  onClick={() => router.push('/auth/signin')}
-                  variant="ghost"
-                  className="text-white hover:bg-primary-700"
-                >
-                  Sign In
-                </Button>
-                <Button
-                  onClick={() => router.push('/auth/signup')}
-                  variant="outline"
-                  className="text-white border-white hover:bg-white hover:text-primary-800"
-                >
-                  List Your Studio
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
 
       {/* Hero Content */}
-      <div className="relative z-10 px-6 py-20">
+      <div className="relative z-10 px-6 pt-32 pb-20">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className={`text-5xl md:text-6xl font-bold mb-6 transition-all duration-1000 delay-200 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'

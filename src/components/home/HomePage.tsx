@@ -18,9 +18,9 @@ interface HomePageProps {
 
 export function HomePage({ session, featuredStudios, stats }: HomePageProps) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white -mt-20">
       {/* Hero Section */}
-      <HeroSection session={session} />
+      <HeroSection />
       
       {/* Stats Section */}
       <StatsSection stats={stats} />
