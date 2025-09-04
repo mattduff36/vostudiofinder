@@ -103,15 +103,6 @@ export default function ContactPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Response Time */}
-              <div className="mt-8 p-4 bg-primary-50 rounded-lg">
-                <h3 className="text-lg font-semibold text-primary-800 mb-2">Response Time</h3>
-                <p className="text-primary-700">
-                  We typically respond to all inquiries within 24 hours during business days. 
-                  For urgent matters, please include "URGENT" in your subject line.
-                </p>
-              </div>
             </div>
 
             {/* Contact Form */}
