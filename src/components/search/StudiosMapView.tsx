@@ -147,7 +147,7 @@ export function StudiosMapView({ studios }: StudiosMapViewProps) {
 
                 <div className="pt-4 border-t border-gray-200">
                   <a
-                    href={`/studio/${selectedStudio.id}`}
+                    href={`/${selectedStudio.owner?.username}`}
                     className="w-full bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors inline-block text-center"
                   >
                     View Studio Details

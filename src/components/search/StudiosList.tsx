@@ -124,7 +124,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                     <div className="flex flex-col items-end space-y-2 ml-4">
                       <Button
                         size="sm"
-                        onClick={() => window.location.href = `/studio/${studio.id}`}
+                        onClick={() => window.location.href = `/${studio.owner?.username}`}
                       >
                         View Details
                       </Button>

@@ -14,9 +14,16 @@ export default withAuth(
     
     // Define public paths that don't require authentication
     const publicPaths = ['/', '/about', '/contact', '/studios', '/search'];
+    const staticRoutes = ['/about', '/admin', '/api', '/auth', '/contact', '/cookies', '/dashboard', '/help', '/privacy', '/profile', '/studio', '/studios', '/terms', '/test-upload', '/unauthorized'];
+    
+    // Check if path matches static routes or public paths
+    const isStaticRoute = staticRoutes.some(route => req.nextUrl.pathname.startsWith(route));
     const isPublicPath = publicPaths.some(path => 
       req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith('/studio/')
     );
+    
+    // Allow username-based routes (any path that doesn't match static routes)
+    const isUsernameRoute = !isStaticRoute && req.nextUrl.pathname !== '/' && !req.nextUrl.pathname.startsWith('/_next');
     
     // Allow API auth routes and public API routes
     if (isApiAuthRoute || isPublicApiRoute) {
@@ -28,8 +35,8 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    // Allow public paths without authentication
-    if (isPublicPath) {
+    // Allow public paths and username routes without authentication
+    if (isPublicPath || isUsernameRoute) {
       return NextResponse.next();
     }
 
@@ -94,12 +101,16 @@ export default withAuth(
         
         // Allow access to public routes and auth pages
         const publicPaths = ['/', '/about', '/contact', '/studios', '/search'];
+        const staticRoutes = ['/about', '/admin', '/api', '/auth', '/contact', '/cookies', '/dashboard', '/help', '/privacy', '/profile', '/studio', '/studios', '/terms', '/test-upload', '/unauthorized'];
+        
+        const isStaticRoute = staticRoutes.some(route => req.nextUrl.pathname.startsWith(route));
         const isPublicPath = publicPaths.some(path => 
           req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith('/studio/')
         );
         const isAuthPage = req.nextUrl.pathname.startsWith('/auth');
+        const isUsernameRoute = !isStaticRoute && req.nextUrl.pathname !== '/' && !req.nextUrl.pathname.startsWith('/_next');
         
-        if (isPublicPath || isAuthPage) {
+        if (isPublicPath || isAuthPage || isUsernameRoute) {
           return true;
         }
 

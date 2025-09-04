@@ -23,6 +23,9 @@ interface Studio {
     reviews: number;
   };
   isVerified?: boolean;
+  owner?: {
+    username: string;
+  };
 }
 
 interface FeaturedStudiosProps {
@@ -184,7 +187,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   
                   <Button
                     size="sm"
-                    onClick={() => window.location.href = `/studio/${studio.id}`}
+                    onClick={() => window.location.href = `/${studio.owner?.username}`}
                   >
                     View Details
                   </Button>
