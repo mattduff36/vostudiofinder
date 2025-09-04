@@ -108,8 +108,12 @@ export function GoogleMap({
         map: mapInstanceRef.current,
         title: markerData.title,
         icon: {
-          url: '/icons/studio-marker.png',
-          scaledSize: new window.google.maps.Size(32, 32),
+          path: window.google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: '#7C3AED',
+          fillOpacity: 1,
+          strokeColor: '#FFFFFF',
+          strokeWeight: 2,
         },
       });
 

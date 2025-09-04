@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { GooglePlacesAutocomplete } from '@/components/search/GooglePlacesAutocomplete';
 
-import { Search, Mic, Users, MapPin } from 'lucide-react';
+import { Mic, Users, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
 interface HeroSectionProps {
@@ -25,6 +26,16 @@ export function HeroSection({ session }: HeroSectionProps) {
     e.preventDefault();
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
+    router.push(`/studios?${params.toString()}`);
+  };
+
+  const handlePlaceSelect = (place: any) => {
+    // Set the search query to the selected place
+    setSearchQuery(place.description);
+    
+    // Immediately perform search with the selected location
+    const params = new URLSearchParams();
+    params.set('location', place.description);
     router.push(`/studios?${params.toString()}`);
   };
 
@@ -119,14 +130,12 @@ export function HeroSection({ session }: HeroSectionProps) {
           }`}>
             <div className="bg-white rounded-lg p-4 shadow-2xl">
               <div className="flex gap-4">
-                <div className="relative flex-1" style={{ width: '75%' }}>
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Search studios, services, equipment, or location..."
+                <div className="flex-1" style={{ width: '75%' }}>
+                  <GooglePlacesAutocomplete
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    onInputChange={setSearchQuery}
+                    onPlaceSelect={handlePlaceSelect}
+                    placeholder="Search studios, services, equipment, or location..."
                   />
                 </div>
                 

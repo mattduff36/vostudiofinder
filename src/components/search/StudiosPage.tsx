@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
+import { StudiosMapView } from './StudiosMapView';
 import Image from 'next/image';
 
 import { Button } from '@/components/ui/Button';
@@ -210,15 +211,7 @@ export function StudiosPage() {
                     onPageChange={handlePageChange}
                   />
                 ) : (
-                  <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                    <Map className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-text-primary mb-2">
-                      Map View Coming Soon
-                    </h3>
-                    <p className="text-text-secondary">
-                      We're working on an interactive map view with Google Maps integration.
-                    </p>
-                  </div>
+                  <StudiosMapView studios={searchResults.studios} />
                 )}
               </>
             ) : (
