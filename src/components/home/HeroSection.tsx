@@ -5,7 +5,7 @@ import { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 
-import { Search, MapPin, Mic, Users } from 'lucide-react';
+import { Search, Mic, Users, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
 interface HeroSectionProps {
@@ -15,13 +15,11 @@ interface HeroSectionProps {
 export function HeroSection({ session }: HeroSectionProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [location, setLocation] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
-    if (location) params.set('location', location);
     router.push(`/studios?${params.toString()}`);
   };
 
@@ -109,32 +107,22 @@ export function HeroSection({ session }: HeroSectionProps) {
           {/* Search Form */}
           <form onSubmit={handleSearch} className="max-w-4xl mx-auto">
             <div className="bg-white rounded-lg p-4 shadow-2xl">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="relative">
+              <div className="flex gap-4">
+                <div className="relative flex-1" style={{ width: '75%' }}>
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
-                    placeholder="Search studios, services, or equipment..."
+                    placeholder="Search studios, services, equipment, or location..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Location (city, state, country)"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 
                 <Button
                   type="submit"
-                  className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold"
+                  className="h-12 px-6 bg-primary-600 hover:bg-primary-700 text-white font-semibold whitespace-nowrap flex items-center justify-center"
+                  style={{ width: '25%' }}
                 >
                   Search Studios
                 </Button>
