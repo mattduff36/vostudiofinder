@@ -68,7 +68,7 @@ export function StudiosPage() {
         const data = await response.json();
         setSearchResults(data);
       } else {
-        console.error('Search failed:', response.statusText);
+        console.error('Search failed:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -79,8 +79,9 @@ export function StudiosPage() {
 
   // Initial search on component mount
   useEffect(() => {
-    performSearch(searchParams);
-  }, [searchParams]);
+    const params = new URLSearchParams(searchParams.toString());
+    performSearch(params);
+  }, [searchParams.toString()]);
 
   const handleSearch = (filters: Record<string, any>) => {
     const params = new URLSearchParams();
