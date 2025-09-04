@@ -98,7 +98,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
           src="/bakground-images/21920-4.jpg"
           alt="Studio profile background texture"
           fill
-          className="object-cover opacity-5"
+          className="object-cover opacity-10"
           priority={false}
         />
       </div>

@@ -19,7 +19,7 @@ export function StatsSection({ stats }: StatsSectionProps) {
           src="/bakground-images/21920-7.jpg"
           alt="Stats background texture"
           fill
-          className="object-cover opacity-5"
+          className="object-cover opacity-10"
           priority={false}
         />
       </div>

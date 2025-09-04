@@ -26,7 +26,7 @@ export default async function SignupPage() {
           src="/bakground-images/21920-5.jpg"
           alt="Signup background texture"
           fill
-          className="object-cover opacity-5"
+          className="object-cover opacity-10"
           priority={false}
         />
       </div>

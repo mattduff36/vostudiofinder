@@ -26,7 +26,7 @@ export default async function SigninPage() {
           src="/bakground-images/21920-6.jpg"
           alt="Signin background texture"
           fill
-          className="object-cover opacity-5"
+          className="object-cover opacity-10"
           priority={false}
         />
       </div>

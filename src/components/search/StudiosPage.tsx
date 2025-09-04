@@ -116,7 +116,7 @@ export function StudiosPage() {
           src="/bakground-images/21920-3.jpg"
           alt="Studio search background texture"
           fill
-          className="object-cover opacity-5"
+          className="object-cover opacity-10"
           priority={false}
         />
       </div>
