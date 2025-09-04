@@ -111,7 +111,8 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           {studios.map((studio) => (
               <div
                 key={studio.id}
-                className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-300 flex flex-col h-full"
+                onClick={() => window.location.href = `/${studio.owner?.username}`}
+                className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col h-full cursor-pointer group"
               >
                 {/* Studio Image */}
                 <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
@@ -147,9 +148,13 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   </div>
 
                   {/* Description */}
-                  <p className="text-text-secondary text-sm mb-4 line-clamp-3 flex-grow">
-                    {cleanDescription(studio.description)}
-                  </p>
+                  <div className="relative mb-4 flex-grow">
+                    <p className="text-text-secondary text-sm line-clamp-3">
+                      {cleanDescription(studio.description)}
+                    </p>
+                    {/* Fade-out gradient overlay */}
+                    <div className="absolute bottom-0 right-0 w-20 h-6 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
+                  </div>
 
                   {/* Services */}
                   {studio.services && studio.services.length > 0 && (
@@ -186,12 +191,9 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                       )}
                     </div>
                     
-                    <Button
-                      size="sm"
-                      onClick={() => window.location.href = `/${studio.owner?.username}`}
-                    >
+                    <div className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded group-hover:bg-primary-700 transition-colors pointer-events-none">
                       View Details
-                    </Button>
+                    </div>
                   </div>
                 </div>
               </div>
