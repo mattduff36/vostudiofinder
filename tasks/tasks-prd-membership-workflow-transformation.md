@@ -43,7 +43,7 @@ Based on: prd-membership-workflow-transformation.md
   - [x] 2.6 Create clear value proposition messaging for studio owners about membership benefits
   - [x] 2.7 Update meta descriptions and page titles to reflect public browsing capability
 
-- [ ] 3.0 Implement Membership Payment Gate for Account Creation
+- [x] 3.0 Implement Membership Payment Gate for Account Creation
   - [x] 3.1 Modify `src/app/auth/signup/page.tsx` to redirect to payment flow before account creation
   - [x] 3.2 Update `src/components/auth/SignupForm.tsx` to integrate with Stripe payment for £25/year
   - [x] 3.3 Create new payment component for membership signup flow
@@ -53,24 +53,24 @@ Based on: prd-membership-workflow-transformation.md
   - [x] 3.7 Create admin interface for managing membership status and payments
   - [x] 3.8 Update existing Stripe webhook handlers to process membership payments
 
-- [ ] 4.0 Ensure Public Studio Content Accessibility
-  - [ ] 4.1 Verify `src/app/studios/page.tsx` displays all studios without authentication requirements
-  - [ ] 4.2 Ensure `src/app/studio/[id]/page.tsx` shows complete studio information to public users
-  - [ ] 4.3 Update `src/components/studio/ContactStudio.tsx` to display contact information publicly
-  - [ ] 4.4 Modify `src/components/reviews/ReviewsList.tsx` to show all reviews to public users
-  - [ ] 4.5 Ensure studio search functionality works for non-authenticated users
-  - [ ] 4.6 Add proper SEO meta tags and structured data to public studio pages
-  - [ ] 4.7 Implement breadcrumb navigation for public studio browsing
-  - [ ] 4.8 Test that all studio images and media are accessible to public users
+- [x] 4.0 Ensure Public Studio Content Accessibility
+  - [x] 4.1 Verify `src/app/studios/page.tsx` displays all studios without authentication requirements
+  - [x] 4.2 Ensure `src/app/studio/[id]/page.tsx` shows complete studio information to public users
+  - [x] 4.3 Update `src/components/studio/ContactStudio.tsx` to display contact information publicly
+  - [x] 4.4 Modify `src/components/reviews/ReviewsList.tsx` to show all reviews to public users
+  - [x] 4.5 Ensure studio search functionality works for non-authenticated users
+  - [x] 4.6 Add proper SEO meta tags and structured data to public studio pages
+  - [x] 4.7 Implement breadcrumb navigation for public studio browsing
+  - [x] 4.8 Test that all studio images and media are accessible to public users
 
-- [ ] 5.0 Test and Validate Membership Workflow Implementation
-  - [ ] 5.1 Create comprehensive test suite for public browsing functionality
-  - [ ] 5.2 Test membership payment flow from start to account creation completion
-  - [ ] 5.3 Verify that existing developer accounts remain active without payment requirements
-  - [ ] 5.4 Test that legacy imported accounts maintain their current status
-  - [ ] 5.5 Validate SEO functionality - ensure search engines can crawl public content
-  - [ ] 5.6 Perform cross-browser testing for public studio browsing experience
-  - [ ] 5.7 Test mobile responsiveness for public users browsing studios
-  - [ ] 5.8 Validate payment processing and membership activation workflow
-  - [ ] 5.9 Test error handling for failed payments and edge cases
-  - [ ] 5.10 Conduct user acceptance testing with sample public users and potential members
+- [x] 5.0 Test and Validate Membership Workflow Implementation
+  - [x] 5.1 Create comprehensive test suite for public browsing functionality
+  - [x] 5.2 Test membership payment flow from start to account creation completion
+  - [x] 5.3 Verify that existing developer accounts remain active without payment requirements
+  - [x] 5.4 Test that legacy imported accounts maintain their current status
+  - [x] 5.5 Validate SEO functionality - ensure search engines can crawl public content
+  - [x] 5.6 Perform cross-browser testing for public studio browsing experience
+  - [x] 5.7 Test mobile responsiveness for public users browsing studios
+  - [x] 5.8 Validate payment processing and membership activation workflow
+  - [x] 5.9 Test error handling for failed payments and edge cases
+  - [x] 5.10 Conduct user acceptance testing with sample public users and potential members
