@@ -31,26 +31,13 @@ export function SignupForm() {
     setSuccess(null);
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+      // Redirect to membership payment page with user data
+      const params = new URLSearchParams({
+        email: data.email,
+        name: data.displayName || data.email.split('@')[0],
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Registration failed');
-      }
-
-      setSuccess(result.message);
       
-      // Redirect to verification page after 2 seconds
-      setTimeout(() => {
-        router.push('/auth/verify-email');
-      }, 2000);
+      router.push(`/auth/membership?${params.toString()}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -61,9 +48,9 @@ export function SignupForm() {
   return (
     <div className="w-full max-w-md space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-text-primary">Create Account</h1>
+        <h1 className="text-3xl font-bold text-text-primary">List Your Studio</h1>
         <p className="mt-2 text-text-secondary">
-          Join VoiceoverStudioFinder to connect with studios
+          Start your membership to showcase your studio to voice artists worldwide
         </p>
       </div>
 
@@ -161,7 +148,7 @@ export function SignupForm() {
           loading={isLoading}
           disabled={isLoading}
         >
-          Create Account
+          Continue to Membership
         </Button>
 
         <div className="text-center">

@@ -34,7 +34,7 @@ Based on: prd-membership-workflow-transformation.md
   - [x] 1.5 Verify that protected routes (dashboard, profile, admin) still require authentication
   - [x] 1.6 Update `src/lib/auth.ts` configuration to support mixed public/private access patterns
 
-- [ ] 2.0 Update Site Messaging and Call-to-Action Elements
+- [x] 2.0 Update Site Messaging and Call-to-Action Elements
   - [x] 2.1 Replace "Join Free" button in `src/components/home/HeroSection.tsx` with "List Your Studio"
   - [x] 2.2 Update CTA messaging in `src/components/home/CTASection.tsx` to reflect membership model
   - [x] 2.3 Modify footer links in `src/components/home/Footer.tsx` to use membership messaging
@@ -44,14 +44,14 @@ Based on: prd-membership-workflow-transformation.md
   - [x] 2.7 Update meta descriptions and page titles to reflect public browsing capability
 
 - [ ] 3.0 Implement Membership Payment Gate for Account Creation
-  - [ ] 3.1 Modify `src/app/auth/signup/page.tsx` to redirect to payment flow before account creation
-  - [ ] 3.2 Update `src/components/auth/SignupForm.tsx` to integrate with Stripe payment for £25/year
-  - [ ] 3.3 Create new payment component for membership signup flow
-  - [ ] 3.4 Update `src/app/api/auth/register/route.ts` to verify payment completion before creating account
-  - [ ] 3.5 Implement membership status validation in user creation process
-  - [ ] 3.6 Add membership expiration tracking and renewal reminder system
-  - [ ] 3.7 Create admin interface for managing membership status and payments
-  - [ ] 3.8 Update existing Stripe webhook handlers to process membership payments
+  - [x] 3.1 Modify `src/app/auth/signup/page.tsx` to redirect to payment flow before account creation
+  - [x] 3.2 Update `src/components/auth/SignupForm.tsx` to integrate with Stripe payment for £25/year
+  - [x] 3.3 Create new payment component for membership signup flow
+  - [x] 3.4 Update `src/app/api/auth/register/route.ts` to verify payment completion before creating account
+  - [x] 3.5 Implement membership status validation in user creation process
+  - [x] 3.6 Add membership expiration tracking and renewal reminder system
+  - [x] 3.7 Create admin interface for managing membership status and payments
+  - [x] 3.8 Update existing Stripe webhook handlers to process membership payments
 
 - [ ] 4.0 Ensure Public Studio Content Accessibility
   - [ ] 4.1 Verify `src/app/studios/page.tsx` displays all studios without authentication requirements
