@@ -26,7 +26,7 @@ Based on: prd-membership-workflow-transformation.md
 
 ## Tasks
 
-- [ ] 1.0 Configure Public Access and Middleware Updates
+- [x] 1.0 Configure Public Access and Middleware Updates
   - [x] 1.1 Update `src/middleware.ts` to remove authentication requirements for `/studios` and `/studio/[id]` routes
   - [x] 1.2 Modify `src/middleware.ts` to allow public access to studio search API (`/api/studios/search`)
   - [x] 1.3 Update `publicPaths` array in middleware to include all studio-related routes
@@ -35,13 +35,13 @@ Based on: prd-membership-workflow-transformation.md
   - [x] 1.6 Update `src/lib/auth.ts` configuration to support mixed public/private access patterns
 
 - [ ] 2.0 Update Site Messaging and Call-to-Action Elements
-  - [ ] 2.1 Replace "Join Free" button in `src/components/home/HeroSection.tsx` with "List Your Studio"
-  - [ ] 2.2 Update CTA messaging in `src/components/home/CTASection.tsx` to reflect membership model
-  - [ ] 2.3 Modify footer links in `src/components/home/Footer.tsx` to use membership messaging
-  - [ ] 2.4 Update navigation menu items to replace free signup links with membership CTAs
-  - [ ] 2.5 Add pricing information display (£25/year) near signup CTAs
-  - [ ] 2.6 Create clear value proposition messaging for studio owners about membership benefits
-  - [ ] 2.7 Update meta descriptions and page titles to reflect public browsing capability
+  - [x] 2.1 Replace "Join Free" button in `src/components/home/HeroSection.tsx` with "List Your Studio"
+  - [x] 2.2 Update CTA messaging in `src/components/home/CTASection.tsx` to reflect membership model
+  - [x] 2.3 Modify footer links in `src/components/home/Footer.tsx` to use membership messaging
+  - [x] 2.4 Update navigation menu items to replace free signup links with membership CTAs
+  - [x] 2.5 Add pricing information display (£25/year) near signup CTAs
+  - [x] 2.6 Create clear value proposition messaging for studio owners about membership benefits
+  - [x] 2.7 Update meta descriptions and page titles to reflect public browsing capability
 
 - [ ] 3.0 Implement Membership Payment Gate for Account Creation
   - [ ] 3.1 Modify `src/app/auth/signup/page.tsx` to redirect to payment flow before account creation

@@ -38,7 +38,7 @@ export function Footer() {
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm text-gray-300">
               <li><Link href="/studios" className="hover:text-white transition-colors">Browse Studios</Link></li>
-              <li><Link href="/auth/signup" className="hover:text-white transition-colors">Join Free</Link></li>
+              <li><Link href="/auth/signup" className="hover:text-white transition-colors">List Your Studio</Link></li>
               <li><Link href="/studio/create" className="hover:text-white transition-colors">Add Your Studio</Link></li>
               <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>

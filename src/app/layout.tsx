@@ -23,19 +23,19 @@ const raleway = Raleway({
 
 export const metadata: Metadata = {
   title: 'VoiceoverStudioFinder - Find Professional Recording Studios',
-  description: 'Connect with professional voiceover recording studios worldwide. Find the perfect studio for your next project.',
+  description: 'Browse professional voiceover recording studios worldwide - no signup required! Find studios, read reviews, and contact directly. Studio owners can list for £25/year.',
   keywords: 'voiceover, recording studio, audio production, voice talent, studio rental',
   authors: [{ name: 'VoiceoverStudioFinder Team' }],
   openGraph: {
     title: 'VoiceoverStudioFinder',
-    description: 'Find Professional Recording Studios for Voiceover Work',
+    description: 'Browse professional voiceover recording studios worldwide - no signup required!',
     type: 'website',
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'VoiceoverStudioFinder',
-    description: 'Find Professional Recording Studios for Voiceover Work',
+    description: 'Browse professional voiceover recording studios worldwide - no signup required!',
   },
 };
 

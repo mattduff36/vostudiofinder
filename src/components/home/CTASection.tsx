@@ -59,10 +59,10 @@ export function CTASection({ session }: CTASectionProps) {
             </div>
             <h3 className="text-xl font-semibold mb-3">For Studio Owners</h3>
             <ul className="text-primary-100 space-y-2 text-sm">
-              <li>• List your studio for free</li>
-              <li>• Showcase your equipment and space</li>
-              <li>• Connect with voice talent globally</li>
-              <li>• Manage bookings and availability</li>
+              <li>• Reach thousands of voice artists worldwide</li>
+              <li>• Professional listing with photos & details</li>
+              <li>• Direct bookings from qualified clients</li>
+              <li>• Only £25/year - exceptional value</li>
             </ul>
           </div>
 
@@ -105,7 +105,7 @@ export function CTASection({ session }: CTASectionProps) {
                 onClick={() => window.location.href = '/auth/signup'}
                 className="bg-white text-primary-800 hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
               >
-                Join Free Today
+                List Your Studio - £25/year
               </Button>
               <Button
                 onClick={() => window.location.href = '/studios'}

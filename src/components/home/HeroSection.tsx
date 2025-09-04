@@ -84,7 +84,7 @@ export function HeroSection({ session }: HeroSectionProps) {
                   variant="outline"
                   className="text-white border-white hover:bg-white hover:text-primary-800"
                 >
-                  Sign Up
+                  List Your Studio
                 </Button>
               </>
             )}
