@@ -152,8 +152,8 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                     <p className="text-text-secondary text-sm line-clamp-3">
                       {cleanDescription(studio.description)}
                     </p>
-                    {/* Vertical fade-out gradient overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                    {/* Vertical fade-out gradient overlay - subtle fade */}
+                    <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"></div>
                   </div>
 
                   {/* Services */}
