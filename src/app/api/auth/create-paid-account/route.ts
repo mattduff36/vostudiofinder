@@ -6,7 +6,7 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
+  apiVersion: '2025-08-27.basil',
 });
 
 export async function POST(request: NextRequest) {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Paid account creation error:', error);
-    handleApiError(error);
+    handleApiError(error, 'Paid account creation failed');
     
     if (error instanceof Error && error.message.includes('validation')) {
       return NextResponse.json(

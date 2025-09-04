@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { handleApiError } from '@/lib/sentry';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
+  apiVersion: '2025-08-27.basil',
 });
 
 export async function POST(request: NextRequest) {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ sessionId: session.id });
   } catch (error) {
     console.error('Stripe checkout error:', error);
-    handleApiError(error);
+    handleApiError(error, 'Stripe checkout failed');
     
     return NextResponse.json(
       { error: 'Failed to create checkout session' },

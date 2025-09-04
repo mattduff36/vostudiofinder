@@ -32,10 +32,9 @@ export function SignupForm() {
 
     try {
       // Redirect to membership payment page with user data
-      const params = new URLSearchParams({
-        email: data.email,
-        name: data.displayName || data.email.split('@')[0],
-      });
+      const params = new URLSearchParams();
+      params.set('email', data.email);
+      params.set('name', data.displayName ?? data.email.split('@')[0]);
       
       router.push(`/auth/membership?${params.toString()}`);
     } catch (err) {

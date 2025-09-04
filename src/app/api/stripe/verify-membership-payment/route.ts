@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { handleApiError } from '@/lib/sentry';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
+  apiVersion: '2025-08-27.basil',
 });
 
 export async function POST(request: NextRequest) {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Payment verification error:', error);
-    handleApiError(error);
+    handleApiError(error, 'Payment verification failed');
     
     return NextResponse.json(
       { error: 'Failed to verify payment' },
