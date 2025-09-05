@@ -331,7 +331,7 @@ export default function NewStylingTestBlackPage() {
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredStudios.map((studio, index) => (
+              {featuredStudios.map((studio) => (
                 <div key={studio.id} className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-xl hover:border-gray-300 hover:scale-[1.02] transition-all duration-300 flex flex-col h-full cursor-pointer group">
                   <div className="aspect-video bg-gray-200 rounded-t-xl overflow-hidden relative">
                     {studio.images?.[0]?.imageUrl ? (
