@@ -134,7 +134,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   
                   {/* Studio Type Badge - moved to bottom right of image */}
                   <div className="absolute bottom-2 right-2">
-                    <span className="inline-block px-2 py-1 text-white text-xs font-medium rounded shadow-lg" style={{ backgroundColor: 'transparent', border: '1px solid #ffffff' }}>
+                    <span className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}>
                       {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                     </span>
                   </div>
