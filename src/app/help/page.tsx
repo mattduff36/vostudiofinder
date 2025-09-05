@@ -2,16 +2,100 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, MessageCircle, Book, Phone, Mail, Users, Building } from 'lucide-react';
+import { Search, MessageCircle, Book, Phone, Mail } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { colors } from '../../components/home/HomePage';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function HelpPage() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [openFAQ, setOpenFAQ] = useState<string | null>(null);
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
+
+  const faqData = [
+    {
+      id: 'what-is-vsf',
+      question: 'What is Voiceover Studio Finder?',
+      answer: 'Voiceover Studio Finder is a platform that connects voice artists with professional recording studios worldwide. If you have a studio or are voiceover talent and want to earn extra money, you can list your services here for improved SEO and more visibility!'
+    },
+    {
+      id: 'who-can-sign-up',
+      question: 'Can anyone sign up?',
+      answer: 'Yes. Anyone with a studio who hires it out for voiceover services can sign up. We also accept voiceover artists looking to create professional profiles.'
+    },
+    {
+      id: 'who-uses-it',
+      question: 'Who is using it?',
+      answer: 'Agencies looking to place an artist into a studio nearby, voice artists searching for professional recording spaces, and studio owners wanting to increase their bookings.'
+    },
+    {
+      id: 'membership-cost',
+      question: 'Why is there a membership fee?',
+      answer: 'To expand and maintain our platform, we charge a small annual fee to keep VoiceoverStudioFinder live and continuously improving our services.'
+    },
+    {
+      id: 'social-media',
+      question: 'Can I add my social media links?',
+      answer: 'Yes, of course. Add all of them to your profile to increase your online presence and make it easier for clients to connect with you.'
+    },
+    {
+      id: 'profile-content',
+      question: 'What should I put on my profile page?',
+      answer: 'A brief description for your heading and then some specifics in your long description. Include details of what you offer, useful services like directing, editing, equipment available, and your unique selling points.'
+    },
+    {
+      id: 'character-limit',
+      question: 'Why is there a character limit to the short description?',
+      answer: 'This is also your meta description, so it has great SEO benefits on search engines. Keeping it concise ensures better search engine optimization.'
+    },
+    {
+      id: 'featured-studio',
+      question: 'What is a Featured Studio?',
+      answer: "It's an option to place your studio on the homepage below the map, giving you premium visibility to potential clients browsing the site."
+    },
+    {
+      id: 'voiceover-profile',
+      question: "I'm a voiceover, can I create a profile?",
+      answer: 'Yes! We now accept voiceovers. A great way to create a unique professional profile and connect with studios and clients.'
+    },
+    {
+      id: 'verified-status',
+      question: "What is 'Verified' status?",
+      answer: 'Verified is for awesome studio profiles! Want to get verified? Contact us and we\'ll review your profile for verification.'
+    },
+    {
+      id: 'contact-studio',
+      question: 'How do I contact a studio or talent?',
+      answer: 'Any messages go direct to the email address they provided, not via the site. You can use our contact forms or reach out directly through their listed contact methods.'
+    },
+    {
+      id: 'bookings',
+      question: 'Do you deal with bookings?',
+      answer: 'No. It is completely up to you to book with the talent or studio. We provide the platform for connection, but all arrangements are made directly between parties.'
+    },
+    {
+      id: 'rates',
+      question: 'Do I need to show my rates?',
+      answer: 'Not at all. You decide what you would like to show on your profile. Many studios prefer to discuss rates directly with clients.'
+    },
+    {
+      id: 'address',
+      question: 'Do I have to show my address?',
+      answer: 'No. You have total control. Show & hide what you want. We respect privacy, especially for home studios.'
+    },
+    {
+      id: 'map-zoom',
+      question: "Why can't I zoom right in on the map?",
+      answer: 'We restrict the zoom so not to reveal exact streets for home studios. If you want to display your full address it\'s up to you, but we protect privacy by default.'
+    }
+  ];
+
+  const toggleFAQ = (id: string) => {
+    setOpenFAQ(openFAQ === id ? null : id);
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -39,197 +123,123 @@ export default function HelpPage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="relative z-10 py-16">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <Link href="/contact" className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow text-center">
-              <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${colors.primary}20` }}>
-                <MessageCircle className="w-8 h-8" style={{ color: colors.primary }} />
-              </div>
-              <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>Contact Support</h3>
-              <p style={{ color: colors.textSecondary }}>Get in touch with our support team for personalized help</p>
-            </Link>
-
-            <Link href="/studios" className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow text-center">
-              <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${colors.primary}20` }}>
-                <Search className="w-8 h-8" style={{ color: colors.primary }} />
-              </div>
-              <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>Browse Studios</h3>
-              <p style={{ color: colors.textSecondary }}>Start exploring our collection of professional recording studios</p>
-            </Link>
-
-            <Link href="/auth/signup" className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow text-center">
-              <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${colors.primary}20` }}>
-                <Building className="w-8 h-8" style={{ color: colors.primary }} />
-              </div>
-              <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>List Your Studio</h3>
-              <p style={{ color: colors.textSecondary }}>Join our community and start earning from your studio space</p>
-            </Link>
-          </div>
-
-          {/* FAQ Section */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-8 md:p-12 shadow-lg">
-            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: colors.textPrimary }}>Frequently Asked Questions</h2>
-            
-            <div className="space-y-8">
-              
-              {/* For Voice Artists */}
-              <section>
-                <h3 className="text-2xl font-semibold mb-6 flex items-center" style={{ color: colors.textPrimary }}>
-                  <Users className="w-6 h-6 mr-3" />
-                  For Voice Artists
-                </h3>
-                <div className="space-y-4">
-                  <div className="border-l-4 border-gray-300 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">How do I find studios near me?</h4>
-                    <p className="text-gray-600">
-                      Use our search feature on the <Link href="/studios" className="transition-colors underline" style={{ color: colors.primary }} onMouseEnter={(e) => e.currentTarget.style.color = colors.primaryHover} onMouseLeave={(e) => e.currentTarget.style.color = colors.primary}>Browse Studios</Link> page. 
-                      You can filter by location, services, equipment, and more to find the perfect studio for your needs.
-                    </p>
-                  </div>
-                  
-                  <div className="border-l-4 border-gray-300 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Do I need to create an account to browse studios?</h4>
-                    <p className="text-gray-600">
-                      No! You can browse all studio profiles, view photos, read descriptions, and see contact information without creating an account. 
-                      This makes it easy to find what you need quickly.
-                    </p>
-                  </div>
-                  
-                  <div className="border-l-4 border-gray-300 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">How do I contact a studio?</h4>
-                    <p className="text-gray-600">
-                      Each studio profile includes contact information such as phone numbers, email addresses, and website links. 
-                      You can contact the studio owner directly to discuss availability and pricing.
-                    </p>
-                  </div>
-                  
-                  <div className="border-l-4 border-gray-300 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Are there any booking fees?</h4>
-                    <p className="text-gray-600">
-                      No, we don't charge any booking fees or commissions. All arrangements and payments are made directly between 
-                      you and the studio owner, so you get the best possible rates.
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              {/* For Studio Owners */}
-              <section>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Building className="w-6 h-6 mr-3" />
-                  For Studio Owners
-                </h3>
-                <div className="space-y-4">
-                  <div className="border-l-4 border-green-200 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">How much does it cost to list my studio?</h4>
-                    <p className="text-gray-600">
-                      Studio listings require a membership of £25 per year. This is a one-time annual fee that covers all administrative costs. 
-                      There are no additional fees or commissions on bookings.
-                    </p>
-                  </div>
-                  
-                  <div className="border-l-4 border-green-200 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">What information should I include in my listing?</h4>
-                    <p className="text-gray-600">
-                      Include details about your equipment (microphones, preamps, monitors), room acoustics, available services 
-                      (recording, mixing, editing), location, rates, and any special features. High-quality photos are essential!
-                    </p>
-                  </div>
-                  
-                  <div className="border-l-4 border-green-200 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">How do I manage inquiries and bookings?</h4>
-                    <p className="text-gray-600">
-                      All inquiries come directly to you via the contact methods you provide in your listing. You have complete control 
-                      over your availability, rates, and who you choose to work with.
-                    </p>
-                  </div>
-                  
-                  <div className="border-l-4 border-green-200 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Can I update my listing after it's published?</h4>
-                    <p className="text-gray-600">
-                      Yes, you can update your studio information, photos, rates, and availability at any time through your account dashboard. 
-                      Changes are reflected immediately on your public listing.
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              {/* General */}
-              <section>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Book className="w-6 h-6 mr-3" />
-                  General Questions
-                </h3>
-                <div className="space-y-4">
-                  <div className="border-l-4 border-blue-200 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">What makes VoiceoverStudioFinder different?</h4>
-                    <p className="text-gray-600">
-                      We're often called the "Airbnb of voiceover studios." Unlike other platforms, we don't take commissions, 
-                      allow public browsing without registration, and focus specifically on the voiceover industry's unique needs.
-                    </p>
-                  </div>
-                  
-                  <div className="border-l-4 border-blue-200 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Is my personal information safe?</h4>
-                    <p className="text-gray-600">
-                      Yes, we take privacy seriously. Please read our <Link href="/privacy" className="transition-colors underline" style={{ color: colors.primary }} onMouseEnter={(e) => e.currentTarget.style.color = colors.primaryHover} onMouseLeave={(e) => e.currentTarget.style.color = colors.primary}>Privacy Policy</Link> 
-                      for detailed information about how we protect and use your data.
-                    </p>
-                  </div>
-                  
-                  <div className="border-l-4 border-blue-200 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">What if I have a dispute with a studio or client?</h4>
-                    <p className="text-gray-600">
-                      Since all arrangements are made directly between users, we encourage clear communication about expectations, 
-                      rates, and policies upfront. For serious issues, please contact our support team.
-                    </p>
-                  </div>
-                  
-                  <div className="border-l-4 border-blue-200 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Do you verify studio listings?</h4>
-                    <p className="text-gray-600">
-                      We review all listings for quality and appropriateness, but users should verify details directly with studio owners. 
-                      We encourage reading reviews and asking questions before booking.
-                    </p>
-                  </div>
-                </div>
-              </section>
-
+      {/* Main Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
+        
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <Link href="/studios" className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow text-center">
+            <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${colors.primary}20` }}>
+              <Search className="w-8 h-8" style={{ color: colors.primary }} />
             </div>
-          </div>
+            <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>Browse Studios</h3>
+            <p style={{ color: colors.textSecondary }}>Start exploring our collection of professional recording studios</p>
+          </Link>
 
-          {/* Contact Information */}
-          <div className="mt-16 rounded-lg p-8 text-center" style={{ backgroundColor: `${colors.primary}10` }}>
-            <h2 className="text-2xl font-bold mb-4" style={{ color: colors.textPrimary }}>Still Need Help?</h2>
-            <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
-              Can't find the answer you're looking for? Our support team is here to help you get the most out of VoiceoverStudioFinder.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-              <div className="flex items-center justify-center space-x-3">
-                <Mail className="w-5 h-5" style={{ color: colors.primary }} />
-                <span style={{ color: colors.textSecondary }}>support@voiceoverstudiofinder.com</span>
-              </div>
-              <div className="flex items-center justify-center space-x-3">
-                <Phone className="w-5 h-5" style={{ color: colors.primary }} />
-                <span style={{ color: colors.textSecondary }}>+1 (555) 123-4567</span>
-              </div>
+          <Link href="/contact" className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow text-center">
+            <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${colors.primary}20` }}>
+              <MessageCircle className="w-8 h-8" style={{ color: colors.primary }} />
             </div>
-            <div className="mt-4">
-              <Link 
-                href="/contact" 
-                className="inline-flex items-center px-6 py-3 text-white rounded-lg transition-colors"
-                style={{ backgroundColor: colors.primary }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryHover}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
+            <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>Contact Support</h3>
+            <p style={{ color: colors.textSecondary }}>Get in touch with our support team for personalized help</p>
+          </Link>
+
+          <Link href="/auth/signup" className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow text-center">
+            <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${colors.primary}20` }}>
+              <Book className="w-8 h-8" style={{ color: colors.primary }} />
+            </div>
+            <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>List Your Studio</h3>
+            <p style={{ color: colors.textSecondary }}>Join our community and start earning from your studio space</p>
+          </Link>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-8 md:p-12 shadow-lg">
+          <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: colors.textPrimary }}>Frequently Asked Questions</h2>
+          <p className="text-center mb-8" style={{ color: colors.textSecondary }}>
+            Frequently asked questions - click the question for the answer
+          </p>
+          
+          <div className="space-y-4">
+            {faqData.map((faq) => (
+              <div 
+                key={faq.id} 
+                className="border border-gray-200 rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md"
               >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Contact Support
-              </Link>
+                <button
+                  onClick={() => toggleFAQ(faq.id)}
+                  className="w-full px-6 py-4 text-left flex items-center justify-between focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{ 
+                    '--tw-ring-color': colors.primary,
+                    backgroundColor: openFAQ === faq.id ? `${colors.primary}10` : 'white'
+                  } as React.CSSProperties}
+                  onMouseEnter={(e) => {
+                    if (openFAQ !== faq.id) {
+                      e.currentTarget.style.backgroundColor = '#f9fafb';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (openFAQ !== faq.id) {
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }
+                  }}
+                >
+                  <span 
+                    className="font-semibold text-lg pr-4"
+                    style={{ color: openFAQ === faq.id ? colors.primary : colors.textPrimary }}
+                  >
+                    {faq.question}
+                  </span>
+                  {openFAQ === faq.id ? (
+                    <ChevronUp className="w-5 h-5 flex-shrink-0" style={{ color: colors.primary }} />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 flex-shrink-0" style={{ color: colors.textSecondary }} />
+                  )}
+                </button>
+                
+                {openFAQ === faq.id && (
+                  <div 
+                    className="px-6 pb-4 border-t border-gray-100 animate-in slide-in-from-top-2 duration-200"
+                    style={{ backgroundColor: `${colors.primary}05` }}
+                  >
+                    <p className="pt-4" style={{ color: colors.textSecondary }}>
+                      {faq.answer}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact Information */}
+        <div className="mt-16 rounded-lg p-8 text-center" style={{ backgroundColor: `${colors.primary}10` }}>
+          <h2 className="text-2xl font-bold mb-4" style={{ color: colors.textPrimary }}>Still Need Help?</h2>
+          <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
+            Can't find the answer you're looking for? Our support team is here to help you get the most out of VoiceoverStudioFinder.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            <div className="flex items-center justify-center space-x-3">
+              <Mail className="w-5 h-5" style={{ color: colors.primary }} />
+              <span style={{ color: colors.textSecondary }}>support@voiceoverstudiofinder.com</span>
+            </div>
+            <div className="flex items-center justify-center space-x-3">
+              <Phone className="w-5 h-5" style={{ color: colors.primary }} />
+              <span style={{ color: colors.textSecondary }}>+1 (555) 123-4567</span>
             </div>
           </div>
-
+          <div className="mt-4">
+            <Link
+              href="/contact"
+              className="inline-flex items-center px-6 py-3 text-white rounded-lg transition-colors"
+              style={{ backgroundColor: colors.primary }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryHover}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Contact Support
+            </Link>
+          </div>
         </div>
       </div>
     </div>

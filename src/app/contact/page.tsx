@@ -215,44 +215,6 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* FAQ Section */}
-          <div className="mt-16 bg-white/80 backdrop-blur-sm rounded-lg p-8 shadow-lg">
-            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: colors.textPrimary }}>Frequently Asked Questions</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">How do I list my studio?</h3>
-                <p className="text-gray-600 mb-4">
-                  Simply create an account, complete your profile, and add your studio details. 
-                  Our team will review and verify your listing within 24-48 hours.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Is there a commission fee?</h3>
-                <p className="text-gray-600 mb-4">
-                  No! We don't take any commission from your bookings. You keep 100% of what you earn 
-                  from studio rentals.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">How do payments work?</h3>
-                <p className="text-gray-600 mb-4">
-                  Payments are handled directly between you and the studio owner. We provide the 
-                  platform for connection, but don't process payments.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Can I cancel a booking?</h3>
-                <p className="text-gray-600 mb-4">
-                  Cancellation policies are set by individual studio owners. Please review the 
-                  studio's specific terms before booking.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
