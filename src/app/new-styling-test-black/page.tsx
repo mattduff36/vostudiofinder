@@ -206,7 +206,7 @@ export default function NewStylingTestBlackPage() {
               </h1>
               <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
                 isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-              }`} style={{ transitionDelay: '0.4s', color: '#d1d5db' }}>
+              }`} style={{ transitionDelay: '0.4s', color: '#ffffff' }}>
                 Connect with professional voiceover recording studios worldwide.<br/>Advanced search, verified locations, and direct studio contact.
               </p>
               
@@ -417,7 +417,7 @@ export default function NewStylingTestBlackPage() {
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
               <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
                 isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-              }`} style={{ transitionDelay: '0.2s', color: '#d1d5db' }}>
+              }`} style={{ transitionDelay: '0.2s', color: '#ffffff' }}>
                 Whether you're a voice artist looking for the perfect studio or a studio owner
                 wanting to connect with talent, VoiceoverStudioFinder has you covered.
               </p>
@@ -433,7 +433,7 @@ export default function NewStylingTestBlackPage() {
                     <section.icon className="w-8 h-8" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">{section.title}</h3>
-                  <ul className="space-y-2 text-sm" style={{ color: '#d1d5db' }}>
+                  <ul className="space-y-2 text-sm" style={{ color: '#ffffff' }}>
                     {section.points.map((point, pointIndex) => (
                       <li key={pointIndex}>• {point}</li>
                     ))}
