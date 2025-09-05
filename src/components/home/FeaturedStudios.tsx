@@ -128,32 +128,38 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                       <Users className="w-12 h-12" />
                     </div>
                   )}
-                </div>
-
-                <div className="p-6 flex flex-col flex-grow">
-                  {/* Studio Name & Type */}
-                  <div className="mb-3">
-                    <h3 className="text-xl font-semibold text-text-primary mb-2 line-clamp-1">
-                      {studio.name}
-                    </h3>
-                    <span className="inline-block px-2 py-1 bg-primary-100 text-primary-800 text-xs font-medium rounded">
+                  
+                  {/* Studio Type Badge - moved to bottom right of image */}
+                  <div className="absolute bottom-2 right-2">
+                    <span className="inline-block px-2 py-1 bg-primary-600 text-white text-xs font-medium rounded shadow-lg">
                       {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                     </span>
                   </div>
+                </div>
 
-                  {/* Location */}
-                  <div className="flex items-start text-text-secondary mb-3">
-                    <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm line-clamp-2">{studio.address}</span>
+                <div className="p-6 flex flex-col flex-grow max-h-[500px]">
+                  {/* Studio Name - badge moved to image */}
+                  <div className="mb-3">
+                    <h3 className="text-xl font-semibold text-text-primary line-clamp-1">
+                      {studio.name}
+                    </h3>
                   </div>
 
-                  {/* Description */}
-                  <div className="relative mb-4 flex-grow">
-                    <p className="text-text-secondary text-sm line-clamp-3">
+                  {/* Location - only show if address exists */}
+                  {studio.address && studio.address.trim() && (
+                    <div className="flex items-start text-text-secondary mb-3">
+                      <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm line-clamp-2">{studio.address}</span>
+                    </div>
+                  )}
+
+                  {/* Description - dynamic height within max constraint */}
+                  <div className="relative flex-grow mb-4 overflow-hidden">
+                    <p className="text-text-secondary text-sm leading-relaxed">
                       {cleanDescription(studio.description)}
                     </p>
-                    {/* Vertical fade-out gradient overlay - subtle fade */}
-                    <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"></div>
+                    {/* Improved vertical fade-out - starts at 50% and gradually fades to 100% at bottom */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
                   </div>
 
                   {/* Services */}
