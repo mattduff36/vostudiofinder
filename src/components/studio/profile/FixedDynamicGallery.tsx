@@ -14,22 +14,14 @@ interface FixedDynamicGalleryProps {
 
 export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
-  const [rightColumnLayout, setRightColumnLayout] = useState<'2x1' | '2x2'>('2x1');
 
-  // Analyze images to determine layout
-  useEffect(() => {
-    if (images.length === 0) return;
+  // Simple logic: if we have 5+ images total (1 main + 4 in grid), use 2x2, otherwise use 2x1
+  const use2x2Layout = images.length >= 5;
+  const rightImages = use2x2Layout ? images.slice(1, 5) : images.slice(1, 3);
+  const remainingCount = Math.max(0, images.length - (rightImages.length + 1));
 
-    // Simple logic: if we have 4+ images, use 2x2, otherwise use 2x1
-    // This avoids the complex image loading that might be causing issues
-    if (images.length >= 4) {
-      setRightColumnLayout('2x2');
-      console.log('Selected 2x2 layout - 4+ images available');
-    } else {
-      setRightColumnLayout('2x1');
-      console.log('Selected 2x1 layout - less than 4 images');
-    }
-  }, [images]);
+  // Console log for debugging
+  console.log(`Selected ${use2x2Layout ? '2x2' : '2x1'} layout - ${images.length} images available`);
 
   if (images.length === 0) return null;
 
@@ -73,101 +65,72 @@ export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
 
         {/* Right column - dynamic layout based on image count */}
         <div className="col-span-1 flex flex-col">
-          {rightColumnLayout === '2x2' ? (
+          {use2x2Layout ? (
             // 2x2 Layout - 4 images in a 2x2 grid
             <>
               {/* Top row */}
               <div className="flex-1 flex">
-                {images[1] && (
-                  <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(1)}>
+                {rightImages.slice(0, 2).map((image, index) => (
+                  <div
+                    key={image.id}
+                    className="flex-1 relative group cursor-pointer"
+                    onClick={() => openLightbox(index + 1)}
+                  >
                     <img
-                      src={images[1].imageUrl}
-                      alt={images[1].altText || 'Studio image'}
+                      src={image.imageUrl}
+                      alt={image.altText || 'Studio image'}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200" />
                   </div>
-                )}
-                {images[2] && (
-                  <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(2)}>
-                    <img
-                      src={images[2].imageUrl}
-                      alt={images[2].altText || 'Studio image'}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </div>
-                )}
+                ))}
               </div>
               
               {/* Bottom row */}
               <div className="flex-1 flex">
-                {images[3] && (
-                  <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(3)}>
+                {rightImages.slice(2, 4).map((image, index) => (
+                  <div
+                    key={image.id}
+                    className="flex-1 relative group cursor-pointer"
+                    onClick={() => openLightbox(index + 3)}
+                  >
                     <img
-                      src={images[3].imageUrl}
-                      alt={images[3].altText || 'Studio image'}
+                      src={image.imageUrl}
+                      alt={image.altText || 'Studio image'}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                  </div>
-                )}
-                {images[4] ? (
-                  <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(4)}>
-                    <img
-                      src={images[4].imageUrl}
-                      alt={images[4].altText || 'Studio image'}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    
-                    {/* Show more images overlay if there are more than 5 */}
-                    {images.length > 5 && (
+                    {index === 1 && remainingCount > 0 && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-lg">
-                        +{images.length - 5} more
+                        +{remainingCount} more
                       </div>
                     )}
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200" />
                   </div>
-                ) : (
-                  // Placeholder if only 4 images
-                  <div className="flex-1 bg-gray-200 flex items-center justify-center text-gray-500">
-                    <Camera className="w-8 h-8" />
-                  </div>
-                )}
+                ))}
               </div>
             </>
           ) : (
-            // 2x1 Layout - 2 images stacked vertically (original Rightmove style)
+            // 2x1 Layout for landscape images
             <>
-              {/* Top right image */}
-              {images[1] && (
-                <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(1)}>
+              {rightImages.map((image, index) => (
+                <div
+                  key={image.id}
+                  className="flex-1 relative group cursor-pointer"
+                  onClick={() => openLightbox(index + 1)}
+                >
                   <img
-                    src={images[1].imageUrl}
-                    alt={images[1].altText || 'Studio image'}
+                    src={image.imageUrl}
+                    alt={image.altText || 'Studio image'}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                </div>
-              )}
-
-              {/* Bottom right image */}
-              {images[2] ? (
-                <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(2)}>
-                  <img
-                    src={images[2].imageUrl}
-                    alt={images[2].altText || 'Studio image'}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  
-                  {/* Show more images overlay if there are more than 3 */}
-                  {images.length > 3 && (
+                  {index === rightImages.length - 1 && remainingCount > 0 && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-lg">
-                      +{images.length - 3} more
+                      +{remainingCount} more
                     </div>
                   )}
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200" />
                 </div>
-              ) : (
-                // Placeholder if only 2 images
-                <div className="flex-1 bg-gray-200 flex items-center justify-center text-gray-500">
-                  <Camera className="w-8 h-8" />
-                </div>
-              )}
+              ))}
             </>
           )}
         </div>

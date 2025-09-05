@@ -118,7 +118,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
 
                 <div className="mb-4">
                   <div className="inline-block">
-                    <span className="text-2xl font-bold text-green-600">Professional Voiceover Services</span>
+                    <span className="text-2xl font-bold" style={{ color: colors.primary }}>Professional Voiceover Services</span>
                     <p className="text-gray-500 text-sm mt-1">Competitive rates • Quick turnaround</p>
                   </div>
                 </div>
@@ -201,27 +201,42 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
               </div>
             )}
 
-            {/* Studio Owner Section - Below Images */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Studio Owner</h3>
-              <div className="flex items-center space-x-4">
-                {studio.owner.avatarUrl ? (
-                  <img
-                    src={studio.owner.avatarUrl}
-                    alt={studio.owner.displayName}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
-                    <Users className="w-8 h-8 text-gray-600" />
+            {/* Studio Owner Section - Facebook-style Profile */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6">
+                <div className="flex items-center space-x-6">
+                  {studio.owner.avatarUrl ? (
+                    <img
+                      src={studio.owner.avatarUrl}
+                      alt={studio.owner.displayName}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                      <Users className="w-12 h-12 text-gray-500" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold text-gray-900">{studio.owner.displayName}</h2>
+                    <p className="text-gray-600 text-lg">@{studio.owner.username}</p>
+                    <div className="flex items-center mt-2 space-x-4">
+                      <span 
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                        style={{ 
+                          backgroundColor: `${colors.primary}15`, 
+                          color: colors.primary 
+                        }}
+                      >
+                        {studio.owner.role.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                      </span>
+                      {studio.isVerified && (
+                        <span className="inline-flex items-center text-sm text-green-600 font-medium">
+                          <Shield className="w-4 h-4 mr-1" />
+                          Verified Owner
+                        </span>
+                      )}
+                    </div>
                   </div>
-                )}
-                <div>
-                  <p className="font-semibold text-gray-900 text-lg">{studio.owner.displayName}</p>
-                  <p className="text-gray-500">@{studio.owner.username}</p>
-                  <p className="text-sm text-blue-600 font-medium mt-1">
-                    {studio.owner.role.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
-                  </p>
                 </div>
               </div>
             </div>
