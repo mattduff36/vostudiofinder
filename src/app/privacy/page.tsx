@@ -26,8 +26,20 @@ export default function PrivacyPage() {
       </div>
 
       {/* Hero Section */}
-      <div className="relative z-10 text-white py-20" style={{ background: `linear-gradient(to right, ${colors.primary}e6, ${colors.primary}cc)` }}>
-        <div className="max-w-7xl mx-auto px-6 text-center">
+      <div className="relative z-10 text-white py-20 overflow-hidden">
+        {/* Background texture */}
+        <div className="absolute inset-0">
+          <Image
+            src="/bakground-images/21920-5.jpg"
+            alt="Hero background texture"
+            fill
+            className="object-cover opacity-20"
+            priority={false}
+          />
+        </div>
+        {/* Red gradient overlay */}
+        <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${colors.primary}e6, ${colors.primary}cc)` }}></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Privacy Policy</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
           <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${

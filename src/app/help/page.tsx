@@ -111,8 +111,20 @@ export default function HelpPage() {
       </div>
 
       {/* Hero Section */}
-      <div className="relative z-10 text-white py-20" style={{ background: `linear-gradient(to right, ${colors.primary}e6, ${colors.primary}cc)` }}>
-        <div className="max-w-7xl mx-auto px-6 text-center">
+      <div className="relative z-10 text-white py-20 overflow-hidden">
+        {/* Background texture */}
+        <div className="absolute inset-0">
+          <Image
+            src="/bakground-images/21920-2.jpg"
+            alt="Hero background texture"
+            fill
+            className="object-cover opacity-20"
+            priority={false}
+          />
+        </div>
+        {/* Red gradient overlay */}
+        <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${colors.primary}e6, ${colors.primary}cc)` }}></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Help Center</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
           <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
@@ -157,7 +169,7 @@ export default function HelpPage() {
         <div className="bg-white/80 backdrop-blur-sm rounded-lg p-8 md:p-12 shadow-lg">
           <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: colors.textPrimary }}>Frequently Asked Questions</h2>
           <p className="text-center mb-8" style={{ color: colors.textSecondary }}>
-            Frequently asked questions - click the question for the answer
+            Click the question for the answer
           </p>
           
           <div className="space-y-4">
