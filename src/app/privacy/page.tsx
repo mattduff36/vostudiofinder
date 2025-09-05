@@ -40,7 +40,9 @@ export default function PrivacyPage() {
         {/* Red gradient overlay */}
         <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${colors.primary}e6, ${colors.primary}cc)` }}></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Privacy Policy</h1>
+          <h1 className={`text-4xl md:text-5xl font-bold mb-4 transition-all duration-1000 ease-out ${
+            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'
+          }`} style={{ transitionDelay: '0.2s' }}>Privacy Policy</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
           <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
