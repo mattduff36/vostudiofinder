@@ -32,7 +32,7 @@ export default function AboutPage() {
             src="/bakground-images/21920-4.jpg"
             alt="Hero background texture"
             fill
-            className="object-cover opacity-20"
+            className="object-cover opacity-40"
             priority={false}
           />
         </div>

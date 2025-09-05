@@ -118,7 +118,7 @@ export default function HelpPage() {
             src="/bakground-images/21920-2.jpg"
             alt="Hero background texture"
             fill
-            className="object-cover opacity-20"
+            className="object-cover opacity-40"
             priority={false}
           />
         </div>

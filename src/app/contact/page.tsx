@@ -63,7 +63,7 @@ export default function ContactPage() {
             src="/bakground-images/21920-3.jpg"
             alt="Hero background texture"
             fill
-            className="object-cover opacity-20"
+            className="object-cover opacity-40"
             priority={false}
           />
         </div>

@@ -33,7 +33,7 @@ export default function PrivacyPage() {
             src="/bakground-images/21920-5.jpg"
             alt="Hero background texture"
             fill
-            className="object-cover opacity-20"
+            className="object-cover opacity-40"
             priority={false}
           />
         </div>

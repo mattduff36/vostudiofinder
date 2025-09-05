@@ -31,7 +31,7 @@ export default function CookiesPage() {
             src="/bakground-images/21920.jpg"
             alt="Hero background texture"
             fill
-            className="object-cover opacity-20"
+            className="object-cover opacity-40"
             priority={false}
           />
         </div>
