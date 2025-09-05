@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Building, Users, Star, Globe } from 'lucide-react';
 import Image from 'next/image';
+import { colors } from './HomePage';
 
 interface StatsSectionProps {
   stats: {
@@ -91,65 +92,39 @@ export function StatsSection({ stats }: StatsSectionProps) {
         <div className={`text-center mb-12 transition-all duration-1000 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
-          <h2 className="text-3xl font-bold text-text-primary mb-4">
+          <h2 className="text-3xl font-bold mb-4" style={{ color: colors.textPrimary }}>
             Trusted by Voice Professionals Worldwide
           </h2>
-          <p className={`text-xl text-text-secondary max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+          <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
             isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.2s' }}>
+          }`} style={{ transitionDelay: '0.2s', color: colors.textSecondary }}>
             Join thousands of voice artists and studio owners who use VoiceoverStudioFinder 
             to connect and collaborate on projects.
           </p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className={`text-center transition-all duration-1000 delay-200 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}>
-            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4 transform hover:scale-110 transition-transform duration-300">
-              <Building className="w-8 h-8 text-primary-600" />
+          {[
+            { icon: Building, number: `${studiosCounter.count.toLocaleString()}+`, label: 'Recording Studios', color: colors.primary },
+            { icon: Users, number: `${usersCounter.count.toLocaleString()}+`, label: 'Registered Users', color: '#ff9800' },
+            { icon: Star, number: `${countriesCounter.count}+`, label: 'Countries', color: '#4caf50' },
+            { icon: Globe, number: '24/7', label: 'Global Access', color: '#2196f3' }
+          ].map((stat, index) => (
+            <div key={index} className={`text-center transition-all duration-1000 ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`} style={{ transitionDelay: `${0.2 + index * 0.2}s` }}>
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transform hover:scale-110 transition-transform duration-300"
+                style={{ backgroundColor: `${stat.color}20` }}
+              >
+                <stat.icon className="w-8 h-8" style={{ color: stat.color }} />
+              </div>
+              <div className="text-3xl font-bold mb-2" style={{ color: colors.textPrimary }}>
+                {stat.number}
+              </div>
+              <div style={{ color: colors.textSecondary }}>{stat.label}</div>
             </div>
-            <div className="text-3xl font-bold text-text-primary mb-2">
-              {studiosCounter.count.toLocaleString()}+
-            </div>
-            <div className="text-text-secondary">Recording Studios</div>
-          </div>
-
-          <div className={`text-center transition-all duration-1000 delay-400 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}>
-            <div className="w-16 h-16 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-4 transform hover:scale-110 transition-transform duration-300">
-              <Users className="w-8 h-8 text-accent-600" />
-            </div>
-            <div className="text-3xl font-bold text-text-primary mb-2">
-              {usersCounter.count.toLocaleString()}+
-            </div>
-            <div className="text-text-secondary">Registered Users</div>
-          </div>
-
-          <div className={`text-center transition-all duration-1000 delay-600 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}>
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 transform hover:scale-110 transition-transform duration-300">
-              <Star className="w-8 h-8 text-green-600" />
-            </div>
-            <div className="text-3xl font-bold text-text-primary mb-2">
-              {countriesCounter.count}+
-            </div>
-            <div className="text-text-secondary">Countries</div>
-          </div>
-
-          <div className={`text-center transition-all duration-1000 delay-800 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}>
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 transform hover:scale-110 transition-transform duration-300">
-              <Globe className="w-8 h-8 text-blue-600" />
-            </div>
-            <div className="text-3xl font-bold text-text-primary mb-2">
-              24/7
-            </div>
-            <div className="text-text-secondary">Global Access</div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

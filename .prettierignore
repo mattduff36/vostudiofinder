@@ -1,13 +1,36 @@
-node_modules
-.next
-.vercel
-dist
-build
-coverage
-*.min.js
-*.min.css
-public
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Legacy files
+public/legacy-images/
+
+# Database and logs
+*.sql
+logs/
+
+# Documentation and tasks
+Documents/
+tasks/
+*.md
+
+# Config files
+*.config.js
+*.config.mjs
+next-env.d.ts
+
+# Prisma migrations
+prisma/migrations/
+
+# Other
+coverage/
 .env*
-*.log
-.git
-.DS_Store
+
+# Temporary utility files
+check-overrides.js
+inspect-styles.js

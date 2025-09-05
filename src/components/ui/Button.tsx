@@ -1,6 +1,16 @@
 import { ButtonHTMLAttributes, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
+// New color palette
+const colors = {
+  primary: '#d42027',
+  primaryHover: '#a1181d',
+  background: '#ffffff',
+  textPrimary: '#000000',
+  textSecondary: '#444444',
+  textSubtle: '#888888',
+};
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
@@ -12,12 +22,51 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', loading, children, disabled, ...props }, ref) => {
     const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background';
     
-    const variants = {
-      primary: 'bg-gradient-to-r from-primary-700 to-primary-600 hover:from-primary-800 hover:to-primary-700 text-white transition-all',
-      secondary: 'bg-secondary-800 hover:bg-secondary-700 text-white',
-      outline: 'border border-primary-300 bg-transparent hover:bg-primary-50 text-primary-700 hover:text-primary-800',
-      ghost: 'hover:bg-primary-100 hover:text-primary-900',
-      danger: 'bg-red-600 hover:bg-red-700 text-white',
+    const getVariantStyles = (variant: string) => {
+      switch (variant) {
+        case 'primary':
+          return {
+            backgroundColor: colors.primary,
+            color: '#ffffff',
+            border: 'none',
+            transition: 'all 0.2s ease',
+            ':hover': { backgroundColor: colors.primaryHover }
+          };
+        case 'secondary':
+          return {
+            backgroundColor: colors.textSecondary,
+            color: '#ffffff',
+            border: 'none',
+            transition: 'all 0.2s ease',
+            ':hover': { backgroundColor: colors.textPrimary }
+          };
+        case 'outline':
+          return {
+            backgroundColor: 'transparent',
+            color: colors.primary,
+            border: `1px solid ${colors.primary}`,
+            transition: 'all 0.2s ease',
+            ':hover': { backgroundColor: `${colors.primary}10`, color: colors.primaryHover }
+          };
+        case 'ghost':
+          return {
+            backgroundColor: 'transparent',
+            color: colors.textSecondary,
+            border: 'none',
+            transition: 'all 0.2s ease',
+            ':hover': { backgroundColor: `${colors.primary}10`, color: colors.primary }
+          };
+        case 'danger':
+          return {
+            backgroundColor: '#dc2626',
+            color: '#ffffff',
+            border: 'none',
+            transition: 'all 0.2s ease',
+            ':hover': { backgroundColor: '#b91c1c' }
+          };
+        default:
+          return {};
+      }
     };
     
     const sizes = {
@@ -26,16 +75,51 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       lg: 'h-11 px-8',
     };
 
+    const variantStyles = getVariantStyles(variant);
+    
     return (
       <button
         className={cn(
           baseStyles,
-          variants[variant],
           sizes[size],
           className
         )}
+        style={{
+          ...variantStyles,
+          ...(props.style || {})
+        }}
         ref={ref}
         disabled={disabled || loading}
+        onMouseEnter={(e) => {
+          if (variant === 'primary') {
+            e.currentTarget.style.backgroundColor = colors.primaryHover;
+          } else if (variant === 'secondary') {
+            e.currentTarget.style.backgroundColor = colors.textPrimary;
+          } else if (variant === 'outline') {
+            e.currentTarget.style.backgroundColor = `${colors.primary}10`;
+            e.currentTarget.style.color = colors.primaryHover;
+          } else if (variant === 'ghost') {
+            e.currentTarget.style.backgroundColor = `${colors.primary}10`;
+            e.currentTarget.style.color = colors.primary;
+          } else if (variant === 'danger') {
+            e.currentTarget.style.backgroundColor = '#b91c1c';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (variant === 'primary') {
+            e.currentTarget.style.backgroundColor = colors.primary;
+          } else if (variant === 'secondary') {
+            e.currentTarget.style.backgroundColor = colors.textSecondary;
+          } else if (variant === 'outline') {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = colors.primary;
+          } else if (variant === 'ghost') {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = colors.textSecondary;
+          } else if (variant === 'danger') {
+            e.currentTarget.style.backgroundColor = '#dc2626';
+          }
+        }}
         {...props}
       >
         {loading && (

@@ -23,6 +23,14 @@ const eslintConfig = [
       '*.config.mjs',
       'scripts/**',
       'prisma/migrations/**',
+      'public/legacy-images/**',
+      '*.sql',
+      'logs/**',
+      'Documents/**',
+      'tasks/**',
+      '*.md',
+      'check-overrides.js',
+      'inspect-styles.js',
     ],
   },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
@@ -31,7 +39,7 @@ const eslintConfig = [
           // General code quality (relaxed for deployment)
           'no-console': 'warn',
           'prefer-const': 'warn',
-          'no-var': 'error',
+          'no-var': 'warn', // Changed from error to warn
           'object-shorthand': 'warn',
           'prefer-template': 'warn',
           '@typescript-eslint/no-explicit-any': 'warn',

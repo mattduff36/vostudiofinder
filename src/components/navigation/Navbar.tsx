@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import { colors } from '../home/HomePage';
 
 interface NavbarProps {
   session: Session | null;
@@ -47,11 +48,16 @@ export function Navbar({ session }: NavbarProps) {
           {/* Logo */}
           <Link 
             href="/" 
-            className={`text-2xl font-bold transition-colors ${
-              isScrolled || !isHomePage 
-                ? 'text-primary-800 hover:text-primary-600' 
-                : 'text-white hover:text-primary-200'
-            }`}
+            className="text-2xl font-bold transition-colors"
+            style={{ 
+              color: isScrolled || !isHomePage ? colors.primary : '#ffffff'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primaryHover : 'rgba(255, 255, 255, 0.8)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : '#ffffff';
+            }}
           >
             VoiceoverStudioFinder
           </Link>
@@ -60,42 +66,62 @@ export function Navbar({ session }: NavbarProps) {
           <div className="hidden md:flex items-center space-x-8">
             <Link 
               href="/studios" 
-              className={`transition-colors ${
-                isScrolled || !isHomePage 
-                  ? 'text-gray-700 hover:text-primary-600' 
-                  : 'text-white hover:text-primary-200'
-              } ${pathname === '/studios' ? 'font-semibold' : ''}`}
+              className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
+              style={{ 
+                color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+              }}
             >
               Browse Studios
             </Link>
             <Link 
               href="/about" 
-              className={`transition-colors ${
-                isScrolled || !isHomePage 
-                  ? 'text-gray-700 hover:text-primary-600' 
-                  : 'text-white hover:text-primary-200'
-              } ${pathname === '/about' ? 'font-semibold' : ''}`}
+              className={`transition-colors ${pathname === '/about' ? 'font-semibold' : ''}`}
+              style={{ 
+                color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+              }}
             >
               About
             </Link>
             <Link 
               href="/contact" 
-              className={`transition-colors ${
-                isScrolled || !isHomePage 
-                  ? 'text-gray-700 hover:text-primary-600' 
-                  : 'text-white hover:text-primary-200'
-              } ${pathname === '/contact' ? 'font-semibold' : ''}`}
+              className={`transition-colors ${pathname === '/contact' ? 'font-semibold' : ''}`}
+              style={{ 
+                color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+              }}
             >
               Contact
             </Link>
             {session && (
               <Link 
                 href="/help" 
-                className={`transition-colors ${
-                  isScrolled || !isHomePage 
-                    ? 'text-gray-700 hover:text-primary-600' 
-                    : 'text-white hover:text-primary-200'
-                } ${pathname === '/help' ? 'font-semibold' : ''}`}
+                className={`transition-colors ${pathname === '/help' ? 'font-semibold' : ''}`}
+                style={{ 
+                  color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+                }}
               >
                 Help
               </Link>
@@ -125,28 +151,49 @@ export function Navbar({ session }: NavbarProps) {
               </>
             ) : (
               <>
-                <Button
+                <button
                   onClick={() => router.push('/auth/signin')}
-                  variant="ghost"
-                  className={
-                    isScrolled || !isHomePage 
-                      ? 'text-gray-700 hover:bg-gray-100' 
-                      : 'text-white hover:bg-primary-700'
-                  }
+                  className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                  style={{
+                    color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff',
+                    backgroundColor: 'transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = isScrolled || !isHomePage ? '#f3f4f6' : 'rgba(255, 255, 255, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
                 >
                   Sign In
-                </Button>
-                <Button
+                </button>
+                <button
                   onClick={() => router.push('/auth/signup')}
-                  variant={isScrolled || !isHomePage ? 'primary' : 'outline'}
-                  className={
-                    isScrolled || !isHomePage 
-                      ? 'bg-primary-600 text-white hover:bg-primary-700' 
-                      : 'text-white border-white hover:bg-white hover:text-primary-800'
-                  }
+                  className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                  style={{
+                    backgroundColor: isScrolled || !isHomePage ? colors.primary : 'transparent',
+                    color: isScrolled || !isHomePage ? '#ffffff' : '#ffffff',
+                    border: isScrolled || !isHomePage ? 'none' : '1px solid #ffffff'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isScrolled || !isHomePage) {
+                      e.currentTarget.style.backgroundColor = colors.primaryHover;
+                    } else {
+                      e.currentTarget.style.backgroundColor = '#ffffff';
+                      e.currentTarget.style.color = colors.primary;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isScrolled || !isHomePage) {
+                      e.currentTarget.style.backgroundColor = colors.primary;
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#ffffff';
+                    }
+                  }}
                 >
                   List Your Studio
-                </Button>
+                </button>
               </>
             )}
           </div>

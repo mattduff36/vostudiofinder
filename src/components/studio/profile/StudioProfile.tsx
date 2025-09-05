@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
 import { cleanDescription } from '@/lib/utils/text';
+import { colors } from '../../home/HomePage';
 
 import { StudioGallery } from './StudioGallery';
 import { StudioInfo } from './StudioInfo';
@@ -110,7 +111,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
-                <h1 className="text-3xl font-bold text-text-primary">{studio.name}</h1>
+                <h1 className="text-3xl font-bold" style={{ color: colors.textPrimary }}>{studio.name}</h1>
                 {studio.isPremium && (
                   <Crown className="w-6 h-6 text-yellow-500" aria-label="Premium Studio" />
                 )}
@@ -121,8 +122,8 @@ export function StudioProfile({ studio }: StudioProfileProps) {
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-4 text-sm text-text-secondary mb-4">
-                <span className="inline-block px-3 py-1 bg-primary-100 text-primary-800 font-medium rounded">
+              <div className="flex flex-wrap items-center gap-4 text-sm mb-4" style={{ color: colors.textSecondary }}>
+                <span className="inline-block px-3 py-1 font-medium rounded" style={{ backgroundColor: `${colors.primary}20`, color: colors.primary }}>
                   {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
                 </span>
                 
@@ -189,11 +190,23 @@ export function StudioProfile({ studio }: StudioProfileProps) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-text-secondary hover:text-text-primary hover:border-gray-300'
-                }`}
+                className="py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200"
+                style={{
+                  borderBottomColor: activeTab === tab.id ? colors.primary : 'transparent',
+                  color: activeTab === tab.id ? colors.primary : colors.textSecondary
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== tab.id) {
+                    e.currentTarget.style.color = colors.textPrimary;
+                    e.currentTarget.style.borderBottomColor = '#d1d5db';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== tab.id) {
+                    e.currentTarget.style.color = colors.textSecondary;
+                    e.currentTarget.style.borderBottomColor = 'transparent';
+                  }
+                }}
               >
                 {tab.label}
               </button>
@@ -222,7 +235,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
               <div className="sticky top-8 space-y-6">
                 {/* Owner Info */}
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-medium text-text-primary mb-4">Studio Owner</h3>
+                  <h3 className="text-lg font-medium mb-4" style={{ color: colors.textPrimary }}>Studio Owner</h3>
                   <div className="flex items-center space-x-3">
                     {studio.owner.avatarUrl ? (
                       <img
@@ -236,22 +249,25 @@ export function StudioProfile({ studio }: StudioProfileProps) {
                       </div>
                     )}
                     <div>
-                      <p className="font-medium text-text-primary">{studio.owner.displayName}</p>
-                      <p className="text-sm text-text-secondary">@{studio.owner.username}</p>
+                      <p className="font-medium" style={{ color: colors.textPrimary }}>{studio.owner.displayName}</p>
+                      <p className="text-sm" style={{ color: colors.textSecondary }}>@{studio.owner.username}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Quick Contact */}
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-medium text-text-primary mb-4">Quick Contact</h3>
+                  <h3 className="text-lg font-medium mb-4" style={{ color: colors.textPrimary }}>Quick Contact</h3>
                   <div className="space-y-3">
                     {studio.websiteUrl && (
                       <a
                         href={studio.websiteUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center text-sm text-text-secondary hover:text-primary-600"
+                        className="flex items-center text-sm transition-colors"
+                        style={{ color: colors.textSecondary }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = colors.primary}
+                        onMouseLeave={(e) => e.currentTarget.style.color = colors.textSecondary}
                       >
                         <Globe className="w-4 h-4 mr-3" />
                         Visit Website
@@ -260,7 +276,10 @@ export function StudioProfile({ studio }: StudioProfileProps) {
                     {studio.phone && (
                       <a
                         href={`tel:${studio.phone}`}
-                        className="flex items-center text-sm text-text-secondary hover:text-primary-600"
+                        className="flex items-center text-sm transition-colors"
+                        style={{ color: colors.textSecondary }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = colors.primary}
+                        onMouseLeave={(e) => e.currentTarget.style.color = colors.textSecondary}
                       >
                         <Phone className="w-4 h-4 mr-3" />
                         {studio.phone}
@@ -268,7 +287,10 @@ export function StudioProfile({ studio }: StudioProfileProps) {
                     )}
                     <button
                       onClick={() => setActiveTab('contact')}
-                      className="flex items-center text-sm text-text-secondary hover:text-primary-600"
+                      className="flex items-center text-sm transition-colors"
+                      style={{ color: colors.textSecondary }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = colors.primary}
+                      onMouseLeave={(e) => e.currentTarget.style.color = colors.textSecondary}
                     >
                       <Mail className="w-4 h-4 mr-3" />
                       Send Message

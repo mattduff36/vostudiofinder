@@ -5,6 +5,7 @@ import { MapPin, Star, Users } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
+import { colors } from './HomePage';
 
 interface Studio {
   id: string;
@@ -68,10 +69,10 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-text-primary mb-4">
+          <h2 className="text-3xl font-bold mb-4" style={{ color: colors.textPrimary }}>
             Featured Studios
           </h2>
-          <p className="text-text-secondary mb-8">
+          <p className="mb-8" style={{ color: colors.textSecondary }}>
             No featured studios available yet. Be the first to add your studio!
           </p>
           <Button onClick={() => window.location.href = '/auth/signup'}>
@@ -98,12 +99,12 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
         <div className={`text-center mb-12 transition-all duration-1000 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
-          <h2 className="text-3xl font-bold text-text-primary mb-4">
+          <h2 className="text-3xl font-bold mb-4" style={{ color: colors.textPrimary }}>
             Featured Recording Studios
           </h2>
-          <p className={`text-xl text-text-secondary max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+          <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
             isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.2s' }}>
+          }`} style={{ transitionDelay: '0.2s', color: colors.textSecondary }}>
             Discover professional recording studios with verified locations, 
             top-rated equipment, and experienced engineers.
           </p>
@@ -133,7 +134,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   
                   {/* Studio Type Badge - moved to bottom right of image */}
                   <div className="absolute bottom-2 right-2">
-                    <span className="inline-block px-2 py-1 bg-primary-600 text-white text-xs font-medium rounded shadow-lg">
+                    <span className="inline-block px-2 py-1 text-white text-xs font-medium rounded shadow-lg" style={{ backgroundColor: 'transparent', border: '1px solid #ffffff' }}>
                       {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                     </span>
                   </div>
@@ -142,14 +143,14 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                 <div className="p-6 flex flex-col flex-grow max-h-[500px]">
                   {/* Studio Name - badge moved to image */}
                   <div className="mb-3">
-                    <h3 className="text-xl font-semibold text-text-primary line-clamp-1">
+                    <h3 className="text-xl font-semibold line-clamp-1" style={{ color: colors.textPrimary }}>
                       {studio.name}
                     </h3>
                   </div>
 
                   {/* Location - only show if address exists */}
                   {studio.address && studio.address.trim() && (
-                    <div className="flex items-start text-text-secondary mb-3">
+                    <div className="flex items-start mb-3" style={{ color: colors.textSecondary }}>
                       <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
                       <span className="text-sm line-clamp-2">{studio.address}</span>
                     </div>
@@ -157,7 +158,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
 
                   {/* Description - dynamic height within max constraint */}
                   <div className="relative flex-grow mb-4 overflow-hidden">
-                    <p className="text-text-secondary text-sm leading-relaxed">
+                    <p className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
                       {cleanDescription(studio.description)}
                     </p>
                     {/* Improved vertical fade-out - starts at 50% and gradually fades to 100% at bottom */}
@@ -171,13 +172,14 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                         {studio.services.slice(0, 2).map((service: any, index: number) => (
                           <span
                             key={index}
-                            className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                            className="inline-block px-2 py-1 bg-gray-100 text-xs rounded"
+                            style={{ color: colors.textSecondary }}
                           >
                             {service.service.replace(/_/g, ' ')}
                           </span>
                         ))}
                         {studio.services.length > 2 && (
-                          <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                          <span className="inline-block px-2 py-1 bg-gray-100 text-xs rounded" style={{ color: colors.textSecondary }}>
                             +{studio.services.length - 2} more
                           </span>
                         )}
@@ -187,7 +189,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
 
                   {/* Stats & CTA */}
                   <div className="flex items-center justify-between mt-auto pt-2">
-                    <div className="flex items-center space-x-3 text-sm text-text-secondary">
+                    <div className="flex items-center space-x-3 text-sm" style={{ color: colors.textSecondary }}>
                       {studio._count?.reviews && studio._count.reviews > 0 && (
                         <div className="flex items-center">
                           <Star className="w-4 h-4 text-yellow-400 mr-1" />
@@ -199,7 +201,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                       )}
                     </div>
                     
-                    <div className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded group-hover:bg-primary-700 transition-colors pointer-events-none">
+                    <div className="px-3 py-1.5 text-white text-sm font-medium rounded transition-colors pointer-events-none" style={{ backgroundColor: colors.primary }}>
                       View Details
                     </div>
                   </div>
@@ -210,13 +212,13 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
 
         {/* View All Studios Button */}
         <div className="text-center mt-12">
-          <Button
+          <button 
             onClick={() => window.location.href = '/studios'}
-            variant="outline"
-            className="px-8"
+            className="px-8 py-3 font-medium rounded-lg transition-all duration-300 hover:shadow-lg" 
+            style={{ border: `1px solid ${colors.primary}`, color: colors.primary, backgroundColor: 'transparent' }}
           >
             View All Studios
-          </Button>
+          </button>
         </div>
       </div>
     </div>

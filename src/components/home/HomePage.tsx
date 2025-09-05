@@ -7,6 +7,16 @@ import { StatsSection } from './StatsSection';
 import { CTASection } from './CTASection';
 import { Footer } from './Footer';
 
+// New color palette
+export const colors = {
+  primary: '#d42027',
+  primaryHover: '#a1181d',
+  background: '#ffffff',
+  textPrimary: '#000000',
+  textSecondary: '#444444',
+  textSubtle: '#888888',
+};
+
 interface HomePageProps {
   session: Session | null;
   featuredStudios: any[];
@@ -18,7 +28,7 @@ interface HomePageProps {
 
 export function HomePage({ session, featuredStudios, stats }: HomePageProps) {
   return (
-    <div className="bg-white -mt-20">
+    <div className="min-h-screen -mt-20" style={{ backgroundColor: colors.background }}>
       {/* Hero Section */}
       <HeroSection />
       

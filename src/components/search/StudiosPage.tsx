@@ -128,7 +128,7 @@ export function StudiosPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-text-primary">Recording Studios</h1>
+              <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>Recording Studios</h1>
               <p className="mt-2 text-text-secondary">
                 {searchResults ? (
                   `${searchResults.pagination.totalCount} studios found`
@@ -200,7 +200,7 @@ export function StudiosPage() {
           <div className="lg:col-span-3">
             {loading ? (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#d42027' }}></div>
                 <p className="mt-4 text-text-secondary">Searching studios...</p>
               </div>
             ) : searchResults ? (
