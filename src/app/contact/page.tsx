@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { colors } from '../../components/home/HomePage';
 
 export default function ContactPage() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -55,13 +56,13 @@ export default function ContactPage() {
       </div>
 
       {/* Hero Section */}
-      <div className="relative z-10 bg-gradient-to-r from-primary-800/90 to-primary-600/90 text-white py-20">
+      <div className="relative z-10 text-white py-20" style={{ background: `linear-gradient(to right, ${colors.primary}e6, ${colors.primary}cc)` }}>
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Get In Touch</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
-          <p className={`text-xl text-primary-100 max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+          <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.4s' }}>
+          }`} style={{ transitionDelay: '0.4s', color: 'rgba(255, 255, 255, 0.9)' }}>
             Contact us using the form below
           </p>
         </div>
@@ -74,12 +75,12 @@ export default function ContactPage() {
             
             {/* Contact Information */}
             <div className="bg-white/80 backdrop-blur-sm rounded-lg p-8 shadow-lg">
-              <h2 className="text-3xl font-bold text-primary-800 mb-8">Contact Information</h2>
+              <h2 className="text-3xl font-bold mb-8" style={{ color: colors.textPrimary }}>Contact Information</h2>
               
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-6 h-6 text-primary-600" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${colors.primary}20` }}>
+                    <Mail className="w-6 h-6" style={{ color: colors.primary }} />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-1">Email Us</h3>
@@ -89,8 +90,8 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-6 h-6 text-primary-600" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${colors.primary}20` }}>
+                    <Phone className="w-6 h-6" style={{ color: colors.primary }} />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-1">Call Us</h3>
@@ -100,8 +101,8 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-primary-600" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${colors.primary}20` }}>
+                    <MapPin className="w-6 h-6" style={{ color: colors.primary }} />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-1">Location</h3>
@@ -114,7 +115,7 @@ export default function ContactPage() {
 
             {/* Contact Form */}
             <div className="bg-white/80 backdrop-blur-sm rounded-lg p-8 shadow-lg">
-              <h2 className="text-3xl font-bold text-primary-800 mb-8">Send us a Message</h2>
+              <h2 className="text-3xl font-bold mb-8" style={{ color: colors.textPrimary }}>Send us a Message</h2>
               
               {submitted ? (
                 <div className="text-center py-8">
@@ -191,7 +192,8 @@ export default function ContactPage() {
                       value={formData.message}
                       onChange={handleChange}
                       placeholder="Please describe your inquiry in detail..."
-                      className="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-vertical"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:border-transparent resize-vertical"
+                      style={{ '--tw-ring-color': colors.primary } as React.CSSProperties}
                     />
                   </div>
 
@@ -215,7 +217,7 @@ export default function ContactPage() {
 
           {/* FAQ Section */}
           <div className="mt-16 bg-white/80 backdrop-blur-sm rounded-lg p-8 shadow-lg">
-            <h2 className="text-3xl font-bold text-primary-800 mb-8 text-center">Frequently Asked Questions</h2>
+            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: colors.textPrimary }}>Frequently Asked Questions</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { colors } from '../../components/home/HomePage';
 
 
 export default function PrivacyPage() {
@@ -25,13 +26,13 @@ export default function PrivacyPage() {
       </div>
 
       {/* Hero Section */}
-      <div className="relative z-10 bg-gradient-to-r from-primary-800/90 to-primary-600/90 text-white py-20">
+      <div className="relative z-10 text-white py-20" style={{ background: `linear-gradient(to right, ${colors.primary}e6, ${colors.primary}cc)` }}>
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Privacy Policy</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
-          <p className={`text-xl text-primary-100 max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+          <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.4s' }}>
+          }`} style={{ transitionDelay: '0.4s', color: 'rgba(255, 255, 255, 0.9)' }}>
             Your privacy is important to us
           </p>
         </div>

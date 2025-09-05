@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { colors } from '../../components/home/HomePage';
 
 export default function AboutPage() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -24,13 +25,13 @@ export default function AboutPage() {
       </div>
 
       {/* Hero Section */}
-      <div className="relative z-10 bg-gradient-to-r from-primary-800/90 to-primary-600/90 text-white py-20">
+      <div className="relative z-10 text-white py-20" style={{ background: `linear-gradient(to right, ${colors.primary}e6, ${colors.primary}cc)` }}>
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">About Us</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
-          <p className={`text-xl text-primary-100 max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+          <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.4s' }}>
+          }`} style={{ transitionDelay: '0.4s', color: 'rgba(255, 255, 255, 0.9)' }}>
             Connecting voice professionals with recording studios worldwide
           </p>
         </div>
@@ -61,9 +62,9 @@ export default function AboutPage() {
             </div>
             <div className="flex justify-center items-center">
               <div className="bg-white/80 backdrop-blur-sm rounded-lg p-8 shadow-lg">
-                <div className="w-full h-64 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
+                <div className="w-full h-64 rounded-lg flex items-center justify-center" style={{ background: `linear-gradient(to bottom right, ${colors.primary}20, ${colors.primary}30)` }}>
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-primary-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: colors.primary }}>
                       <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                       </svg>
