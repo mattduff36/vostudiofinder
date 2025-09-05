@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
 import { colors } from '../../home/HomePage';
@@ -87,8 +88,18 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative bg-white overflow-hidden">
+        {/* Background texture */}
+        <div className="absolute inset-0">
+          <Image
+            src="/bakground-images/21920-7.jpg"
+            alt="Header background texture"
+            fill
+            className="object-cover opacity-10"
+            priority={false}
+          />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
               <div className="flex-1">
@@ -191,7 +202,18 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative py-8 overflow-hidden">
+        {/* Background texture */}
+        <div className="absolute inset-0">
+          <Image
+            src="/bakground-images/21920-7.jpg"
+            alt="Profile background texture"
+            fill
+            className="object-cover opacity-10"
+            priority={false}
+          />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {/* Image Gallery - Rightmove Style - Full Width */}
@@ -369,6 +391,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
         {activeTab === 'contact' && (
           <ContactStudio studio={studio} />
         )}
+        </div>
       </div>
     </div>
   );

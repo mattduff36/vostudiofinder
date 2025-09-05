@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight, X, Camera } from 'lucide-react';
 
 interface FixedDynamicGalleryProps {
@@ -15,15 +15,11 @@ interface FixedDynamicGalleryProps {
 export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
+  if (images.length === 0) return null;
+
   // Simple logic: if we have 5+ images total (1 main + 4 in grid), use 2x2, otherwise use 2x1
   const use2x2Layout = images.length >= 5;
-  const rightImages = use2x2Layout ? images.slice(1, 5) : images.slice(1, 3);
-  const remainingCount = Math.max(0, images.length - (rightImages.length + 1));
-
-  // Console log for debugging
   console.log(`Selected ${use2x2Layout ? '2x2' : '2x1'} layout - ${images.length} images available`);
-
-  if (images.length === 0) return null;
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -56,6 +52,7 @@ export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
             alt={images[0]?.altText || 'Studio main image'}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
+          
           {/* Image counter overlay - positioned like Rightmove */}
           <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-sm font-medium flex items-center">
             <Camera className="w-4 h-4 mr-1" />
@@ -63,74 +60,103 @@ export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
           </div>
         </div>
 
-        {/* Right column - dynamic layout based on image count */}
+        {/* Right column - dynamic layout */}
         <div className="col-span-1 flex flex-col">
           {use2x2Layout ? (
             // 2x2 Layout - 4 images in a 2x2 grid
             <>
-              {/* Top row */}
+              {/* Top row - 2 images side by side */}
               <div className="flex-1 flex">
-                {rightImages.slice(0, 2).map((image, index) => (
-                  <div
-                    key={image.id}
-                    className="flex-1 relative group cursor-pointer"
-                    onClick={() => openLightbox(index + 1)}
-                  >
+                {images[1] && (
+                  <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(1)}>
                     <img
-                      src={image.imageUrl}
-                      alt={image.altText || 'Studio image'}
+                      src={images[1].imageUrl}
+                      alt={images[1].altText || 'Studio image'}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200" />
                   </div>
-                ))}
+                )}
+                {images[2] && (
+                  <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(2)}>
+                    <img
+                      src={images[2].imageUrl}
+                      alt={images[2].altText || 'Studio image'}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                )}
               </div>
               
-              {/* Bottom row */}
+              {/* Bottom row - 2 images side by side */}
               <div className="flex-1 flex">
-                {rightImages.slice(2, 4).map((image, index) => (
-                  <div
-                    key={image.id}
-                    className="flex-1 relative group cursor-pointer"
-                    onClick={() => openLightbox(index + 3)}
-                  >
+                {images[3] && (
+                  <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(3)}>
                     <img
-                      src={image.imageUrl}
-                      alt={image.altText || 'Studio image'}
+                      src={images[3].imageUrl}
+                      alt={images[3].altText || 'Studio image'}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    {index === 1 && remainingCount > 0 && (
+                  </div>
+                )}
+                {images[4] ? (
+                  <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(4)}>
+                    <img
+                      src={images[4].imageUrl}
+                      alt={images[4].altText || 'Studio image'}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    
+                    {/* Show more images overlay if there are more than 5 */}
+                    {images.length > 5 && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-lg">
-                        +{remainingCount} more
+                        +{images.length - 5} more
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200" />
                   </div>
-                ))}
+                ) : (
+                  // Placeholder if only 4 images
+                  <div className="flex-1 bg-gray-200 flex items-center justify-center text-gray-500">
+                    <Camera className="w-8 h-8" />
+                  </div>
+                )}
               </div>
             </>
           ) : (
-            // 2x1 Layout for landscape images
+            // 2x1 Layout - 2 images stacked vertically (original Rightmove style)
             <>
-              {rightImages.map((image, index) => (
-                <div
-                  key={image.id}
-                  className="flex-1 relative group cursor-pointer"
-                  onClick={() => openLightbox(index + 1)}
-                >
+              {/* Top right image */}
+              {images[1] && (
+                <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(1)}>
                   <img
-                    src={image.imageUrl}
-                    alt={image.altText || 'Studio image'}
+                    src={images[1].imageUrl}
+                    alt={images[1].altText || 'Studio image'}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  {index === rightImages.length - 1 && remainingCount > 0 && (
+                </div>
+              )}
+
+              {/* Bottom right image */}
+              {images[2] ? (
+                <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(2)}>
+                  <img
+                    src={images[2].imageUrl}
+                    alt={images[2].altText || 'Studio image'}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  
+                  {/* Show more images overlay if there are more than 3 */}
+                  {images.length > 3 && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-lg">
-                      +{remainingCount} more
+                      +{images.length - 3} more
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200" />
                 </div>
-              ))}
+              ) : (
+                // Placeholder if only 2 images
+                <div className="flex-1 bg-gray-200 flex items-center justify-center text-gray-500">
+                  <Camera className="w-8 h-8" />
+                </div>
+              )}
             </>
           )}
         </div>
@@ -143,31 +169,33 @@ export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
             onClick={closeLightbox}
             className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
           >
-            <X size={32} />
+            <X className="w-8 h-8" />
           </button>
           
           <button
             onClick={prevImage}
-            className="absolute left-4 text-white hover:text-gray-300 z-10"
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 z-10"
           >
-            <ChevronLeft size={48} />
+            <ChevronLeft className="w-12 h-12" />
           </button>
           
           <button
             onClick={nextImage}
-            className="absolute right-4 text-white hover:text-gray-300 z-10"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 z-10"
           >
-            <ChevronRight size={48} />
+            <ChevronRight className="w-12 h-12" />
           </button>
+
+          <div className="max-w-4xl max-h-full p-4">
+            <img
+              src={images[selectedImage]?.imageUrl}
+              alt={images[selectedImage]?.altText || 'Studio image'}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
           
-          <img
-            src={images[selectedImage]?.imageUrl}
-            alt={images[selectedImage]?.altText || 'Studio image'}
-            className="max-w-full max-h-full object-contain"
-          />
-          
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm">
-            {selectedImage + 1} of {images.length}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-lg">
+            {selectedImage + 1} / {images.length}
           </div>
         </div>
       )}
