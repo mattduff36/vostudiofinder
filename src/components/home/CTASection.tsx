@@ -4,12 +4,19 @@ import { Session } from 'next-auth';
 import { Button } from '@/components/ui/Button';
 import { Mic, Building, Users } from 'lucide-react';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 interface CTASectionProps {
   session: Session | null;
 }
 
 export function CTASection({ session }: CTASectionProps) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
   return (
     <div className="relative py-16 overflow-hidden">
       {/* Background Banner Image */}
@@ -31,7 +38,9 @@ export function CTASection({ session }: CTASectionProps) {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
+          <p className={`text-xl text-primary-100 max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+          }`} style={{ transitionDelay: '0.2s' }}>
             Whether you're a voice artist looking for the perfect studio or a studio owner 
             wanting to connect with talent, VoiceoverStudioFinder has you covered.
           </p>

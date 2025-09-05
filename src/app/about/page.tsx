@@ -1,13 +1,15 @@
-import { Metadata } from 'next';
-import Image from 'next/image';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'About Us - VoiceoverStudioFinder',
-  description: 'Learn about VoiceoverStudioFinder - the Airbnb of voiceover studios. Connect voice artists with professional recording studios worldwide.',
-  keywords: 'about voiceover studio finder, how it works, studio rental, voice talent',
-};
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 export default function AboutPage() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Image */}
@@ -26,7 +28,9 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">About Us</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
+          <p className={`text-xl text-primary-100 max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+          }`} style={{ transitionDelay: '0.4s' }}>
             Connecting voice professionals with recording studios worldwide
           </p>
         </div>

@@ -60,10 +60,11 @@ export function HeroSection() {
             <span className="text-accent-400">Recording Studio</span>
           </h1>
           
-          <p className={`text-xl md:text-2xl text-primary-100 mb-12 max-w-3xl mx-auto transition-all duration-1000 delay-400 ${
-            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}>
-            Connect with professional voiceover recording studios worldwide. 
+          <p className={`text-xl text-primary-100 max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+          }`} style={{ transitionDelay: '0.4s' }}>
+            Connect with professional voiceover recording studios worldwide.
+            <br />
             Advanced search, verified locations, and direct studio contact.
           </p>
 

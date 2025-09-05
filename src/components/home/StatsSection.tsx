@@ -94,7 +94,9 @@ export function StatsSection({ stats }: StatsSectionProps) {
           <h2 className="text-3xl font-bold text-text-primary mb-4">
             Trusted by Voice Professionals Worldwide
           </h2>
-          <p className="text-xl text-text-secondary max-w-3xl mx-auto">
+          <p className={`text-xl text-text-secondary max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+          }`} style={{ transitionDelay: '0.2s' }}>
             Join thousands of voice artists and studio owners who use VoiceoverStudioFinder 
             to connect and collaborate on projects.
           </p>

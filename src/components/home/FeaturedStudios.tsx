@@ -101,7 +101,9 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           <h2 className="text-3xl font-bold text-text-primary mb-4">
             Featured Recording Studios
           </h2>
-          <p className="text-xl text-text-secondary max-w-3xl mx-auto">
+          <p className={`text-xl text-text-secondary max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+          }`} style={{ transitionDelay: '0.2s' }}>
             Discover professional recording studios with verified locations, 
             top-rated equipment, and experienced engineers.
           </p>

@@ -1,18 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 
 export default function ContactPage() {
+  const [isLoaded, setIsLoaded] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     message: ''
   });
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -54,7 +59,9 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Get In Touch</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
+          <p className={`text-xl text-primary-100 max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+          }`} style={{ transitionDelay: '0.4s' }}>
             Contact us using the form below
           </p>
         </div>

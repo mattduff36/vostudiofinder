@@ -1,13 +1,16 @@
-import { Metadata } from 'next';
-import Image from 'next/image';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy - VoiceoverStudioFinder',
-  description: 'Our privacy policy explains how we collect, use, and protect your personal information on VoiceoverStudioFinder.',
-  keywords: 'privacy policy, data protection, personal information, cookies',
-};
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
+
 
 export default function PrivacyPage() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Image */}
@@ -26,7 +29,9 @@ export default function PrivacyPage() {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Privacy Policy</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
+          <p className={`text-xl text-primary-100 max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+          }`} style={{ transitionDelay: '0.4s' }}>
             Your privacy is important to us
           </p>
         </div>

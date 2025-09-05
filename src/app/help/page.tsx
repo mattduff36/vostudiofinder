@@ -1,15 +1,17 @@
-import { Metadata } from 'next';
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Search, MessageCircle, Book, Phone, Mail, Users, Building } from 'lucide-react';
-
-export const metadata: Metadata = {
-  title: 'Help Center - VoiceoverStudioFinder',
-  description: 'Get help with VoiceoverStudioFinder. Find answers to common questions and learn how to use our platform.',
-  keywords: 'help center, support, faq, how to use, voice studio finder help',
-};
+import { useState, useEffect } from 'react';
 
 export default function HelpPage() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Image */}
@@ -28,7 +30,9 @@ export default function HelpPage() {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Help Center</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
+          <p className={`text-xl text-primary-100 max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+          }`} style={{ transitionDelay: '0.4s' }}>
             Find answers to your questions and get the most out of VoiceoverStudioFinder
           </p>
         </div>

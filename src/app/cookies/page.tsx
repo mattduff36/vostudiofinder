@@ -1,13 +1,14 @@
-import { Metadata } from 'next';
-import Image from 'next/image';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Cookie Policy - VoiceoverStudioFinder',
-  description: 'Learn about how VoiceoverStudioFinder uses cookies to improve your browsing experience.',
-  keywords: 'cookie policy, cookies, tracking, analytics, user experience',
-};
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 export default function CookiesPage() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Image */}
@@ -26,7 +27,9 @@ export default function CookiesPage() {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Cookie Policy</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
+          <p className={`text-xl text-primary-100 max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+          }`} style={{ transitionDelay: '0.4s' }}>
             How we use cookies to improve your experience
           </p>
         </div>
