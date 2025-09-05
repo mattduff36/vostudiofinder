@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
-import { StudioProfile } from '@/components/studio/profile/StudioProfile';
+import { EnhancedStudioProfile } from '@/components/studio/profile/EnhancedStudioProfile';
 
 interface UsernamePageProps {
   params: Promise<{ username: string }>;
@@ -91,7 +91,12 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
           },
           reviews: {
             where: { status: 'APPROVED' },
-            include: {
+            select: {
+              id: true,
+              rating: true,
+              content: true,
+              isAnonymous: true,
+              createdAt: true,
               reviewer: {
                 select: {
                   displayName: true,
@@ -180,7 +185,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <StudioProfile 
+      <EnhancedStudioProfile 
         studio={{
           id: studio.id,
           name: studio.name,
