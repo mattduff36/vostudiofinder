@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { colors } from '../home/HomePage';
 
 interface NavbarProps {
@@ -48,18 +49,19 @@ export function Navbar({ session }: NavbarProps) {
           {/* Logo */}
           <Link 
             href="/" 
-            className="text-2xl font-bold transition-colors"
-            style={{ 
-              color: isScrolled || !isHomePage ? colors.primary : '#ffffff'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primaryHover : 'rgba(255, 255, 255, 0.8)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : '#ffffff';
-            }}
+            className="transition-opacity hover:opacity-80"
           >
-            VoiceoverStudioFinder
+            <Image
+              src={isScrolled || !isHomePage 
+                ? "/images/voiceover-studio-finder-header-logo2-black.png" 
+                : "/images/voiceover-studio-finder-header-logo2-white.png"
+              }
+              alt="VoiceoverStudioFinder"
+              width={300}
+              height={60}
+              priority
+              className="h-12 w-auto"
+            />
           </Link>
           
           {/* Desktop Navigation */}
@@ -109,23 +111,21 @@ export function Navbar({ session }: NavbarProps) {
             >
               Contact
             </Link>
-            {session && (
-              <Link 
-                href="/help" 
-                className={`transition-colors ${pathname === '/help' ? 'font-semibold' : ''}`}
-                style={{ 
-                  color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-                }}
-              >
-                Help
-              </Link>
-            )}
+            <Link 
+              href="/help" 
+              className={`transition-colors ${pathname === '/help' ? 'font-semibold' : ''}`}
+              style={{ 
+                color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+              }}
+            >
+              Help
+            </Link>
           </div>
           
           {/* Desktop Auth Buttons */}
@@ -249,18 +249,16 @@ export function Navbar({ session }: NavbarProps) {
               >
                 Contact
               </Link>
-              {session && (
-                <Link 
-                  href="/help" 
-                  className={`block py-2 transition-colors ${
-                    isScrolled || !isHomePage 
-                      ? 'text-gray-700 hover:text-primary-600' 
-                      : 'text-white hover:text-primary-200'
-                  } ${pathname === '/help' ? 'font-semibold' : ''}`}
-                >
-                  Help
-                </Link>
-              )}
+              <Link 
+                href="/help" 
+                className={`block py-2 transition-colors ${
+                  isScrolled || !isHomePage 
+                    ? 'text-gray-700 hover:text-primary-600' 
+                    : 'text-white hover:text-primary-200'
+                } ${pathname === '/help' ? 'font-semibold' : ''}`}
+              >
+                Help
+              </Link>
               
               <div className="pt-4 space-y-3">
                 {session ? (
