@@ -18,90 +18,83 @@ interface Studio {
   id: string;
   name: string;
   description: string;
-  studioType: string;
-  address: string;
+  studioType: 'RECORDING' | 'HOME';
+  address?: string;
+  owner: {
+    displayName: string;
+  };
+  services: Array<{
+    service: string;
+  }>;
   images: Array<{
     imageUrl: string;
     altText: string;
   }>;
-  services: Array<{
-    service: string;
-  }>;
-  _count: {
-    reviews: number;
-  };
 }
 
-// Mock data for featured studios
+// Mock data for the test
 const mockStudios: Studio[] = [
   {
     id: '1',
-    name: 'Premier Voice Studios',
-    description: 'State-of-the-art recording facility with industry-leading equipment and acoustically treated rooms. Perfect for voiceover work, audiobooks, and commercial recordings. Our experienced engineers ensure pristine audio quality for every project.',
+    name: 'Mike Cooper',
+    description: 'A great home studio with a view of Mt Pisgah, nestled in Hominy Valley, 25 minutes from downtown Asheville in Pisgah National Forest. I have a broadcast quality phone patch and can connect with all the VOIP codecs.',
     studioType: 'RECORDING',
-    address: 'London, UK',
+    owner: { displayName: 'Mike Cooper' },
+    services: [
+      { service: 'SOURCE_CONNECT' },
+      { service: 'SOURCE_CONNECT_NOW' },
+      { service: 'SKYPE' }
+    ],
     images: [
       {
-        imageUrl: '/studio-1.jpg',
-        altText: 'Premier Voice Studios recording booth'
+        imageUrl: 'https://res.cloudinary.com/dmvaawjnx/image/upload/v1756934833/voiceover-studios/studios/odhrewap60f5si1bxrie.jpg',
+        altText: 'Mike Cooper Voice Studio'
       }
-    ],
-    services: [
-      { service: 'VOICEOVER_RECORDING' },
-      { service: 'AUDIO_EDITING' },
-      { service: 'MASTERING' }
-    ],
-    _count: {
-      reviews: 24
-    }
+    ]
   },
   {
     id: '2',
-    name: 'Urban Sound Lab',
-    description: 'Modern recording studio specializing in voice talent and audio production. Features multiple isolation booths, professional microphones, and real-time collaboration tools for remote clients.',
-    studioType: 'HOME',
-    address: 'New York, USA',
+    name: 'S2Blue',
+    description: 'Over the years we have cultivated an impressive client base, which includes all of the major broadcasters in British media. Our productions have been heard on radio and TV stations across the world.',
+    studioType: 'RECORDING',
+    owner: { displayName: 'S2Blue' },
+    services: [
+      { service: 'ISDN' },
+      { service: 'SKYPE' },
+      { service: 'ZOOM' }
+    ],
     images: [
       {
-        imageUrl: '/studio-2.jpg',
-        altText: 'Urban Sound Lab control room'
+        imageUrl: 'https://res.cloudinary.com/dmvaawjnx/image/upload/v1756934829/voiceover-studios/studios/uxmn2f5lrnw2pfcqewpz.jpg',
+        altText: 'S2Blue Recording Studio'
       }
-    ],
-    services: [
-      { service: 'VOICEOVER_RECORDING' },
-      { service: 'PODCAST_PRODUCTION' },
-      { service: 'SOUND_DESIGN' }
-    ],
-    _count: {
-      reviews: 18
-    }
+    ]
   },
   {
     id: '3',
-    name: 'Crystal Clear Audio',
-    description: 'Boutique recording studio offering personalized service for voice artists. Specializes in commercial voiceovers, narration, and character voices with quick turnaround times.',
-    studioType: 'RECORDING',
-    address: 'Los Angeles, USA',
+    name: 'VoiceoverGuy',
+    description: 'A broadcast quality studio for hire in West Yorkshire in the UK. Suitable for Audiobook voiceover recording, Interviews including down the line interviews connecting with broadcasters worldwide.',
+    studioType: 'HOME',
+    address: '205 Batley Rd, Kirkhamgate, Wakefield WF2 0SH, UK',
+    owner: { displayName: 'VoiceoverGuy' },
+    services: [
+      { service: 'SOURCE_CONNECT_NOW' },
+      { service: 'SESSION_LINK_PRO' },
+      { service: 'ZOOM' }
+    ],
     images: [
       {
-        imageUrl: '/studio-3.jpg',
-        altText: 'Crystal Clear Audio recording setup'
+        imageUrl: 'https://res.cloudinary.com/dmvaawjnx/image/upload/v1756934827/voiceover-studios/studios/focy1crquetwuekkckqf.jpg',
+        altText: 'VoiceoverGuy Professional Studio'
       }
-    ],
-    services: [
-      { service: 'VOICEOVER_RECORDING' },
-      { service: 'CHARACTER_VOICES' },
-      { service: 'COMMERCIAL_RECORDING' }
-    ],
-    _count: {
-      reviews: 31
-    }
+    ]
   }
 ];
 
 export default function NewStylingTestBlackPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [heroOpacity, setHeroOpacity] = useState(0); // Set to 0% opacity
   const [featuredStudios, setFeaturedStudios] = useState<Studio[]>([]);
 
   useEffect(() => {
@@ -120,6 +113,32 @@ export default function NewStylingTestBlackPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: colors.background }}>
+      {/* Opacity Control Panel */}
+      <div className="fixed top-4 right-4 z-[60] bg-white rounded-lg shadow-lg p-4 border border-gray-200">
+        <div className="text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>
+          Hero Background Opacity
+        </div>
+        <div className="flex items-center space-x-3">
+          <span className="text-xs" style={{ color: colors.textSubtle }}>0%</span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={heroOpacity}
+            onChange={(e) => setHeroOpacity(parseFloat(e.target.value))}
+            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${heroOpacity * 100}%, #e5e7eb ${heroOpacity * 100}%, #e5e7eb 100%)`
+            }}
+          />
+          <span className="text-xs" style={{ color: colors.textSubtle }}>100%</span>
+        </div>
+        <div className="text-xs mt-1 text-center" style={{ color: colors.textSecondary }}>
+          {Math.round(heroOpacity * 100)}%
+        </div>
+      </div>
+
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style={{ backgroundColor: colors.background, borderBottom: '1px solid #f0f0f0' }}>
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -159,9 +178,9 @@ export default function NewStylingTestBlackPage() {
       </nav>
 
       <main className="pt-20">
-        {/* Hero Section - No Red Overlay */}
+        {/* Hero Section */}
         <div className="relative text-white overflow-hidden">
-          {/* Background Image - No Overlay */}
+          {/* Background Image */}
           <div className="absolute inset-0">
             <Image
               src="/bottom-banner.jpg"
@@ -170,8 +189,10 @@ export default function NewStylingTestBlackPage() {
               className="object-cover"
               priority
             />
-            {/* Optional: Add subtle dark overlay for better text readability */}
-            <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+            <div 
+              className="absolute inset-0 transition-all duration-300" 
+              style={{ backgroundColor: `${colors.primary}${Math.round(heroOpacity * 255).toString(16).padStart(2, '0')}` }}
+            ></div>
           </div>
 
           {/* Hero Content */}
@@ -179,13 +200,13 @@ export default function NewStylingTestBlackPage() {
             <div className="max-w-4xl mx-auto text-center">
               <h1 className={`text-5xl md:text-6xl font-bold mb-6 transition-all duration-1000 delay-200 ${
                 isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}>
+              }`} style={{ color: '#ffffff' }}>
                 Find Your Perfect<br/>
                 <span style={{ color: colors.primary }}>Recording Studio</span>
               </h1>
               <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
                 isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-              }`} style={{ transitionDelay: '0.4s', color: '#e5e5e5' }}>
+              }`} style={{ transitionDelay: '0.4s', color: '#d1d5db' }}>
                 Connect with professional voiceover recording studios worldwide.<br/>Advanced search, verified locations, and direct studio contact.
               </p>
               
@@ -356,7 +377,7 @@ export default function NewStylingTestBlackPage() {
                     </div>
                     <div className="flex items-center justify-between mt-auto pt-2">
                       <div className="flex items-center space-x-3 text-sm" style={{ color: colors.textSecondary }}>
-                        <span>{studio._count.reviews}</span>
+                        <span>{studio.owner.displayName}</span>
                         <span className="text-green-600 font-medium text-xs">✓ Verified</span>
                       </div>
                       <div className="px-3 py-1.5 text-sm font-medium rounded-lg group-hover:shadow-md transition-all duration-300 pointer-events-none" style={{ backgroundColor: colors.primary, color: colors.background }}>
@@ -375,7 +396,7 @@ export default function NewStylingTestBlackPage() {
           </div>
         </div>
 
-        {/* CTA Section - No Red Overlay */}
+        {/* CTA Section */}
         <div className="relative py-16 overflow-hidden">
           <div className="absolute inset-0">
             <Image
@@ -385,8 +406,10 @@ export default function NewStylingTestBlackPage() {
               className="object-cover"
               priority
             />
-            {/* Optional: Add subtle dark overlay for better text readability */}
-            <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+            <div 
+              className="absolute inset-0 transition-all duration-300" 
+              style={{ backgroundColor: `${colors.primary}${Math.round(heroOpacity * 255).toString(16).padStart(2, '0')}` }}
+            ></div>
           </div>
           
           <div className="relative z-10 max-w-7xl mx-auto px-6">
@@ -394,7 +417,7 @@ export default function NewStylingTestBlackPage() {
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
               <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
                 isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-              }`} style={{ transitionDelay: '0.2s', color: '#e5e5e5' }}>
+              }`} style={{ transitionDelay: '0.2s', color: '#d1d5db' }}>
                 Whether you're a voice artist looking for the perfect studio or a studio owner
                 wanting to connect with talent, VoiceoverStudioFinder has you covered.
               </p>
@@ -410,7 +433,7 @@ export default function NewStylingTestBlackPage() {
                     <section.icon className="w-8 h-8" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">{section.title}</h3>
-                  <ul className="space-y-2 text-sm" style={{ color: '#e5e5e5' }}>
+                  <ul className="space-y-2 text-sm" style={{ color: '#d1d5db' }}>
                     {section.points.map((point, pointIndex) => (
                       <li key={pointIndex}>• {point}</li>
                     ))}
