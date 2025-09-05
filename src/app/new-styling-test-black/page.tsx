@@ -256,7 +256,7 @@ export default function NewStylingTestBlackPage() {
                       <feature.icon className="w-8 h-8 text-white" />
                     </div>
                     <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
-                    <p style={{ color: '#e5e5e5' }}>{feature.description}</p>
+                    <p className="text-white">{feature.description}</p>
                   </div>
                 ))}
               </div>
