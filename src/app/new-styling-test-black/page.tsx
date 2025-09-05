@@ -414,7 +414,7 @@ export default function NewStylingTestBlackPage() {
           
           <div className="relative z-10 max-w-7xl mx-auto px-6">
             <div className="text-center text-white mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Ready to Get Started?</h2>
               <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
                 isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
               }`} style={{ transitionDelay: '0.2s', color: '#ffffff' }}>
@@ -432,7 +432,7 @@ export default function NewStylingTestBlackPage() {
                   <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
                     <section.icon className="w-8 h-8" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">{section.title}</h3>
+                  <h3 className="text-xl font-semibold mb-3 text-white">{section.title}</h3>
                   <ul className="space-y-2 text-sm" style={{ color: '#ffffff' }}>
                     {section.points.map((point, pointIndex) => (
                       <li key={pointIndex}>• {point}</li>
