@@ -183,19 +183,29 @@ export function EnhancedSearchBar({
 
   // Process input with NLP and create tags
   const processInputWithNLP = (input: string) => {
+    console.log('🔍 processInputWithNLP called with:', input);
+    
     if (!input.trim()) {
+      console.log('📝 Empty input, clearing tags');
       setSearchTags([]);
       return;
     }
 
+    console.log('⚡ Starting NLP processing...');
     setIsProcessingNLP(true);
     
     // Add a small delay to show processing state
     setTimeout(() => {
+      console.log('🧠 Parsing multi-criteria search...');
       const criteria = parseMultiCriteriaSearch(input);
+      console.log('📊 Parsed criteria:', criteria);
+      
       const tags = createTagsFromCriteria(criteria);
+      console.log('🏷️ Created tags:', tags);
+      
       setSearchTags(tags);
       setIsProcessingNLP(false);
+      console.log('✅ NLP processing complete');
     }, 300);
   };
 
@@ -259,16 +269,35 @@ export function EnhancedSearchBar({
     }
 
     try {
+      console.log('🔎 fetchSuggestions called with:', searchQuery);
       const type = detectSearchType(searchQuery);
+      console.log('🎯 Detected search type:', type);
       setDetectedType(type);
       
       // Fetch from our API
-      const response = await fetch(`/api/search/suggestions?q=${encodeURIComponent(searchQuery)}`);
+      const url = `/api/search/suggestions?q=${encodeURIComponent(searchQuery)}`;
+      console.log('📡 Making fetch request to:', url);
+      
+      const response = await fetch(url);
+      console.log('📥 Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+      
       let apiSuggestions: SearchSuggestion[] = [];
       
       if (response.ok) {
+        console.log('✅ Response OK, parsing JSON...');
         const data = await response.json();
+        console.log('📋 Parsed data:', data);
         apiSuggestions = data.suggestions || [];
+        console.log('📝 API suggestions:', apiSuggestions.length, 'items');
+      } else {
+        console.error('❌ Response not OK:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('📄 Error response body:', errorText.substring(0, 200));
       }
 
       // If it looks like a location, also try Google Places
@@ -572,14 +601,18 @@ export function EnhancedSearchBar({
                 value={query}
                 onChange={(e) => {
                   const newValue = e.target.value;
+                  console.log('⌨️ Input onChange triggered with:', newValue);
                   setQuery(newValue);
                   
                   // Trigger NLP processing with debounce
                   if (debounceRef.current) {
+                    console.log('⏰ Clearing previous debounce timeout');
                     clearTimeout(debounceRef.current);
                   }
                   
+                  console.log('⏱️ Setting new debounce timeout (500ms)');
                   debounceRef.current = setTimeout(() => {
+                    console.log('🚀 Debounce timeout fired, calling processInputWithNLP');
                     processInputWithNLP(newValue);
                   }, 500); // Slightly longer delay for NLP processing
                 }}
