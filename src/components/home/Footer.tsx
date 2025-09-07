@@ -39,7 +39,6 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-gray-300">
               <li><Link href="/studios" className="hover:text-white transition-colors">Browse Studios</Link></li>
               <li><Link href="/auth/signup" className="hover:text-white transition-colors">List Your Studio</Link></li>
-              <li><Link href="/studio/create" className="hover:text-white transition-colors">Add Your Studio</Link></li>
               <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
@@ -55,7 +54,6 @@ export function Footer() {
               <li><a href="/equipment" className="hover:text-white transition-colors">Equipment Reviews</a></li>
               <li><a href="/community" className="hover:text-white transition-colors">Community</a></li>
               <li><a href="/api" className="hover:text-white transition-colors">API</a></li>
-              <li><a href="/partners" className="hover:text-white transition-colors">Partners</a></li>
             </ul>
           </div>
         </div>

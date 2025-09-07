@@ -32,11 +32,11 @@ export function HomePage({ session, featuredStudios, stats }: HomePageProps) {
       {/* Hero Section */}
       <HeroSection />
       
-      {/* Stats Section */}
-      <StatsSection stats={stats} />
-      
       {/* Featured Studios */}
       <FeaturedStudios studios={featuredStudios} />
+      
+      {/* Stats Section */}
+      <StatsSection stats={stats} />
       
       {/* Call to Action */}
       <CTASection session={session} />

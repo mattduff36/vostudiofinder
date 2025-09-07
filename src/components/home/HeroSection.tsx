@@ -1,26 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { colors } from './HomePage';
+import { EnhancedSearchBar } from '../search/EnhancedSearchBar';
 
-import { Mic, Users, MapPin, Search } from 'lucide-react';
+import { Mic, Users, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
 export function HeroSection() {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (searchQuery) params.set('q', searchQuery);
-    router.push(`/studios?${params.toString()}`);
+  const handleSearch = (query: string, type: string, radius?: number) => {
+    console.log('Search initiated:', { query, type, radius });
   };
 
   return (
@@ -56,37 +51,15 @@ export function HeroSection() {
             Connect with professional voiceover recording studios worldwide.<br/>Advanced search, verified locations, and direct studio contact.
           </p>
 
-          {/* Search Form */}
+          {/* Enhanced Search Form */}
           <div className={`max-w-4xl mx-auto mt-12 transition-all duration-1000 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ transitionDelay: '0.6s' }}>
-            <div className="bg-white rounded-xl p-4 shadow-2xl">
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: colors.textSubtle }} />
-                    <input
-                      type="text"
-                      placeholder="Search studios, services, equipment, or location..."
-                      className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ color: colors.textPrimary, '--tw-ring-color': colors.primary } as React.CSSProperties}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <button
-                  className="h-12 px-6 font-semibold rounded-lg transition-all duration-300 hover:shadow-lg"
-                  style={{ backgroundColor: colors.primary, color: colors.background }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryHover}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
-                  type="submit"
-                  onClick={handleSearch}
-                >
-                  Search Studios
-                </button>
-              </div>
-            </div>
+            <EnhancedSearchBar
+              placeholder="Search studios, services, equipment, or location..."
+              showRadius={true}
+              onSearch={handleSearch}
+            />
           </div>
 
           {/* Feature Icons */}

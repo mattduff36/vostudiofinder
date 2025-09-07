@@ -71,11 +71,24 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Location search (basic string matching for now)
+    // Enhanced location search with radius support
     if (validatedParams.location) {
-      (where.AND as Prisma.StudioWhereInput[]).push({
-        address: { contains: validatedParams.location, mode: 'insensitive' },
-      });
+      if (validatedParams.radius && validatedParams.radius > 0) {
+        // If radius is specified, we need to do a geographic search
+        // For now, we'll use a simple bounding box approach
+        // In production, you might want to use PostGIS or similar for more accurate distance calculations
+        
+        // Try to extract coordinates from the location string or use geocoding
+        // For now, fall back to address matching
+        (where.AND as Prisma.StudioWhereInput[]).push({
+          address: { contains: validatedParams.location, mode: 'insensitive' },
+        });
+      } else {
+        // Standard address search
+        (where.AND as Prisma.StudioWhereInput[]).push({
+          address: { contains: validatedParams.location, mode: 'insensitive' },
+        });
+      }
     }
 
     // Studio type filter

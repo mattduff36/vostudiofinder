@@ -97,21 +97,6 @@ export function Navbar({ session }: NavbarProps) {
               About
             </Link>
             <Link 
-              href="/contact" 
-              className={`transition-colors ${pathname === '/contact' ? 'font-semibold' : ''}`}
-              style={{ 
-                color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-              }}
-            >
-              Contact
-            </Link>
-            <Link 
               href="/help" 
               className={`transition-colors ${pathname === '/help' ? 'font-semibold' : ''}`}
               style={{ 
@@ -238,16 +223,6 @@ export function Navbar({ session }: NavbarProps) {
                 } ${pathname === '/about' ? 'font-semibold' : ''}`}
               >
                 About
-              </Link>
-              <Link 
-                href="/contact" 
-                className={`block py-2 transition-colors ${
-                  isScrolled || !isHomePage 
-                    ? 'text-gray-700 hover:text-primary-600' 
-                    : 'text-white hover:text-primary-200'
-                } ${pathname === '/contact' ? 'font-semibold' : ''}`}
-              >
-                Contact
               </Link>
               <Link 
                 href="/help" 
