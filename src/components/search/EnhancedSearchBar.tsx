@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, Building, Settings, Mic, X } from 'lucide-react';
 import { colors } from '../home/HomePage';
@@ -44,6 +44,7 @@ export function EnhancedSearchBar({
   showRadius = true,
   onSearch
 }: EnhancedSearchBarProps) {
+  console.log('🚀 EnhancedSearchBar component rendered');
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -186,15 +187,20 @@ export function EnhancedSearchBar({
     console.log('🔍 processInputWithNLP called with:', input);
     
     if (!input.trim()) {
-      console.log('📝 Empty input, clearing tags');
+      console.log('📝 Empty input, clearing tags and suggestions');
       setSearchTags([]);
+      setSuggestions([]);
+      setIsOpen(false);
       return;
     }
 
-    console.log('⚡ Starting NLP processing...');
+    console.log('⚡ Starting NLP processing and fetching suggestions...');
     setIsProcessingNLP(true);
     
-    // Add a small delay to show processing state
+    // Fetch suggestions immediately
+    fetchSuggestions(input);
+    
+    // Add a small delay to show processing state for NLP
     setTimeout(() => {
       console.log('🧠 Parsing multi-criteria search...');
       const criteria = parseMultiCriteriaSearch(input);
@@ -376,22 +382,8 @@ export function EnhancedSearchBar({
     });
   };
 
-  // Debounced search
-  useEffect(() => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    
-    debounceRef.current = setTimeout(() => {
-      fetchSuggestions(query);
-    }, 300);
-
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, [query]);
+  // Note: Removed duplicate debounced search useEffect to avoid conflicts
+  // The onChange handler now handles all debouncing and processing
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {

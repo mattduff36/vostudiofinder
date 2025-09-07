@@ -15,6 +15,7 @@ import { Mic, Users, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
 export function HeroSection() {
+  console.log('🏠 HeroSection component rendered');
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
