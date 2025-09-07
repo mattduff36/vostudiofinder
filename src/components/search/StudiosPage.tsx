@@ -177,86 +177,90 @@ export function StudiosPage() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters Section - Full Width */}
-        <div className={`mb-8 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-          <SearchFilters
-            initialFilters={{
-              query: searchParams.get('q') || '',
-              location: searchParams.get('location') || '',
-              studioType: searchParams.get('studioType') || '',
-              services: searchParams.get('services')?.split(',') || [],
-              sortBy: searchParams.get('sortBy') || 'name',
-              sortOrder: searchParams.get('sortOrder') || 'asc',
-              radius: parseInt(searchParams.get('radius') || '25'),
-            }}
-            onSearch={handleSearch}
-            loading={loading}
-          />
-        </div>
-
-        {/* Results Header with Active Filters */}
-        {searchResults && (
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <p className="text-text-secondary">
-                Showing {((searchResults.pagination.page - 1) * searchResults.pagination.limit) + 1}-{Math.min(searchResults.pagination.page * searchResults.pagination.limit, searchResults.pagination.totalCount)} of {searchResults.pagination.totalCount} studios
-              </p>
-              {/* Active Filters Display */}
-              {(searchParams.get('location') || searchParams.get('studioType') || searchParams.get('services') || searchParams.get('radius')) && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-text-secondary">•</span>
-                  <div className="flex flex-wrap gap-2">
-                    {searchParams.get('location') && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        📍 {searchParams.get('location')}
-                      </span>
-                    )}
-                    {searchParams.get('studioType') && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        🎙️ {searchParams.get('studioType')?.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
-                      </span>
-                    )}
-                    {searchParams.get('services') && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        ⚙️ {searchParams.get('services')?.split(',').length} Service{searchParams.get('services')?.split(',').length !== 1 ? 's' : ''}
-                      </span>
-                    )}
-                    {searchParams.get('radius') && searchParams.get('radius') !== '25' && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                        📏 {searchParams.get('radius')} miles
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Filters Sidebar */}
+          <div className={`lg:col-span-1 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+            <div className="sticky top-8">
+              <SearchFilters
+                initialFilters={{
+                  query: searchParams.get('q') || '',
+                  location: searchParams.get('location') || '',
+                  studioType: searchParams.get('studioType') || '',
+                  services: searchParams.get('services')?.split(',') || [],
+                  sortBy: searchParams.get('sortBy') || 'name',
+                  sortOrder: searchParams.get('sortOrder') || 'asc',
+                  radius: parseInt(searchParams.get('radius') || '25'),
+                }}
+                onSearch={handleSearch}
+                loading={loading}
+              />
             </div>
           </div>
-        )}
 
-        {/* Results Area - Full Width */}
-        <div>
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#d42027' }}></div>
-              <p className="mt-4 text-text-secondary">Searching studios...</p>
-            </div>
-          ) : searchResults ? (
-            <>
-              {viewMode === 'list' ? (
-                <StudiosList
-                  studios={searchResults.studios}
-                  pagination={searchResults.pagination}
-                  onPageChange={handlePageChange}
-                />
-              ) : (
-                <StudiosMapView studios={searchResults.studios} />
-              )}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-text-secondary">No results found. Try adjusting your search criteria.</p>
-            </div>
-          )}
+          {/* Results Area */}
+          <div className="lg:col-span-3">
+            {/* Results Header with Active Filters */}
+            {searchResults && (
+              <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <p className="text-text-secondary">
+                    Showing {searchResults.pagination.totalCount === 0 ? '0-0' : `${((searchResults.pagination.page - 1) * searchResults.pagination.limit) + 1}-${Math.min(searchResults.pagination.page * searchResults.pagination.limit, searchResults.pagination.totalCount)}`} of {searchResults.pagination.totalCount} studios
+                  </p>
+                  {/* Active Filters Display */}
+                  {(searchParams.get('location') || searchParams.get('studioType') || searchParams.get('services') || searchParams.get('radius')) && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-text-secondary">•</span>
+                      <div className="flex flex-wrap gap-2">
+                        {searchParams.get('location') && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            📍 {searchParams.get('location')}
+                          </span>
+                        )}
+                        {searchParams.get('studioType') && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            🎙️ {searchParams.get('studioType')?.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
+                          </span>
+                        )}
+                        {searchParams.get('services') && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            ⚙️ {searchParams.get('services')?.split(',').length} Service{searchParams.get('services')?.split(',').length !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                        {searchParams.get('radius') && searchParams.get('radius') !== '25' && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            📏 {searchParams.get('radius')} miles
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#d42027' }}></div>
+                <p className="mt-4 text-text-secondary">Searching studios...</p>
+              </div>
+            ) : searchResults ? (
+              <>
+                {viewMode === 'list' ? (
+                  <StudiosList
+                    studios={searchResults.studios}
+                    pagination={searchResults.pagination}
+                    onPageChange={handlePageChange}
+                  />
+                ) : (
+                  <StudiosMapView studios={searchResults.studios} />
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-text-secondary">No results found. Try adjusting your search criteria.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

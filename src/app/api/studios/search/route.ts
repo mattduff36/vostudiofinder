@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 import { cache } from '@/lib/cache';
 import { Prisma, ServiceType } from '@prisma/client';
+import { geocodeAddress, calculateDistance } from '@/lib/maps';
 import crypto from 'crypto';
 
 export async function GET(request: NextRequest) {
@@ -72,20 +73,36 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Enhanced location search with radius support
+    // Enhanced location search with radius support using Google Maps API
+    let searchCoordinates: { lat: number; lng: number } | null = null;
     if (validatedParams.location) {
       if (validatedParams.radius && validatedParams.radius > 0) {
-        // If radius is specified, we need to do a geographic search
-        // For now, we'll use a simple bounding box approach
-        // In production, you might want to use PostGIS or similar for more accurate distance calculations
-        
-        // Try to extract coordinates from the location string or use geocoding
-        // For now, fall back to address matching
-        (where.AND as Prisma.StudioWhereInput[]).push({
-          address: { contains: validatedParams.location, mode: 'insensitive' },
-        });
+        // Use Google Maps API to geocode the search location
+        try {
+          const geocodeResult = await geocodeAddress(validatedParams.location);
+          if (geocodeResult) {
+            searchCoordinates = { lat: geocodeResult.lat, lng: geocodeResult.lng };
+            console.log(`Geocoded "${validatedParams.location}" to:`, searchCoordinates);
+            
+            // For geographic search, we'll filter studios after fetching them
+            // This allows us to calculate precise distances
+            // Note: For better performance with large datasets, consider using PostGIS or similar
+          } else {
+            console.warn(`Failed to geocode location: ${validatedParams.location}`);
+            // Fall back to text-based address search
+            (where.AND as Prisma.StudioWhereInput[]).push({
+              address: { contains: validatedParams.location, mode: 'insensitive' },
+            });
+          }
+        } catch (error) {
+          console.error('Geocoding error:', error);
+          // Fall back to text-based address search
+          (where.AND as Prisma.StudioWhereInput[]).push({
+            address: { contains: validatedParams.location, mode: 'insensitive' },
+          });
+        }
       } else {
-        // Standard address search
+        // Standard address search without radius
         (where.AND as Prisma.StudioWhereInput[]).push({
           address: { contains: validatedParams.location, mode: 'insensitive' },
         });
@@ -206,12 +223,13 @@ export async function GET(request: NextRequest) {
     const skip = (validatedParams.page - 1) * validatedParams.limit;
 
     // Execute search query
-    const [studios, totalCount] = await Promise.all([
-      db.studio.findMany({
+    let studios: any[];
+    let totalCount: number;
+
+    if (searchCoordinates && validatedParams.radius) {
+      // For geographic search, fetch all matching studios first, then filter by distance
+      const allStudios = await db.studio.findMany({
         where,
-        orderBy,
-        skip,
-        take: validatedParams.limit,
         include: {
           owner: {
             select: {
@@ -240,9 +258,85 @@ export async function GET(request: NextRequest) {
             },
           },
         },
-      }),
-      db.studio.count({ where }),
-    ]);
+      });
+
+      // Filter studios by distance and add distance property
+      const studiosWithDistance = allStudios
+        .map(studio => {
+          if (studio.latitude && studio.longitude) {
+            const distance = calculateDistance(
+              searchCoordinates.lat,
+              searchCoordinates.lng,
+              Number(studio.latitude),
+              Number(studio.longitude)
+            );
+            const distanceInMiles = distance * 0.621371; // Convert km to miles
+            
+            return {
+              ...studio,
+              distance: distanceInMiles,
+            };
+          }
+          return null;
+        })
+        .filter((studio): studio is NonNullable<typeof studio> => 
+          studio !== null && studio.distance <= validatedParams.radius!
+        )
+        .sort((a, b) => {
+          // Sort by premium status first, then by distance
+          if (a.isPremium !== b.isPremium) {
+            return b.isPremium ? 1 : -1;
+          }
+          return a.distance - b.distance;
+        });
+
+      totalCount = studiosWithDistance.length;
+      
+      // Apply pagination to filtered results
+      const skip = (validatedParams.page - 1) * validatedParams.limit;
+      studios = studiosWithDistance.slice(skip, skip + validatedParams.limit);
+
+      console.log(`Found ${totalCount} studios within ${validatedParams.radius} miles of ${validatedParams.location}`);
+    } else {
+      // Standard non-geographic search
+      [studios, totalCount] = await Promise.all([
+        db.studio.findMany({
+          where,
+          orderBy,
+          skip,
+          take: validatedParams.limit,
+          include: {
+            owner: {
+              select: {
+                id: true,
+                displayName: true,
+                username: true,
+                avatarUrl: true,
+              },
+            },
+            services: {
+              select: {
+                service: true,
+              },
+            },
+            images: {
+              take: 1,
+              orderBy: { sortOrder: 'asc' },
+              select: {
+                imageUrl: true,
+                altText: true,
+              },
+            },
+            _count: {
+              select: {
+                reviews: true,
+              },
+            },
+          },
+        }),
+        db.studio.count({ where }),
+      ]);
+    }
 
     // Calculate pagination info
     const totalPages = Math.ceil(totalCount / validatedParams.limit);

@@ -18,7 +18,7 @@ export interface GeocodeResult {
  * Geocode an address to coordinates using Google Maps API
  */
 export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   
   if (!apiKey) {
     console.warn('Google Maps API key not configured');
@@ -70,7 +70,7 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
  * Reverse geocode coordinates to address using Google Maps API
  */
 export async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   
   if (!apiKey) {
     console.warn('Google Maps API key not configured');
