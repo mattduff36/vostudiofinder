@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react';
 import { colors } from './HomePage';
 import { EnhancedSearchBar } from '../search/EnhancedSearchBar';
 
+interface MultiCriteriaSearch {
+  location?: string;
+  studioType?: string;
+  services: string[];
+  equipment: string[];
+}
+
 import { Mic, Users, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
@@ -14,8 +21,8 @@ export function HeroSection() {
     setIsLoaded(true);
   }, []);
 
-  const handleSearch = (query: string, type: string, radius?: number) => {
-    console.log('Search initiated:', { query, type, radius });
+  const handleSearch = (criteria: MultiCriteriaSearch, radius?: number) => {
+    console.log('Multi-criteria search initiated:', { criteria, radius });
   };
 
   return (

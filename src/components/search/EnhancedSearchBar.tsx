@@ -88,7 +88,6 @@ export function EnhancedSearchBar({
   // Smart NLP parsing function for multi-criteria detection
   const parseMultiCriteriaSearch = (input: string): MultiCriteriaSearch => {
     const lowerInput = input.toLowerCase().trim();
-    const words = lowerInput.split(/\s+/);
     
     const criteria: MultiCriteriaSearch = {
       services: [],
@@ -100,7 +99,7 @@ export function EnhancedSearchBar({
       .filter(loc => lowerInput.includes(loc))
       .sort((a, b) => b.length - a.length); // Longer matches first
     
-    if (locationMatches.length > 0) {
+    if (locationMatches.length > 0 && locationMatches[0]) {
       criteria.location = locationMatches[0];
     }
 
@@ -109,7 +108,7 @@ export function EnhancedSearchBar({
       .filter(type => lowerInput.includes(type))
       .sort((a, b) => b.length - a.length);
     
-    if (studioTypeMatches.length > 0) {
+    if (studioTypeMatches.length > 0 && studioTypeMatches[0]) {
       criteria.studioType = studioTypeMatches[0];
     }
 
@@ -494,9 +493,29 @@ export function EnhancedSearchBar({
         params.set('q', searchQuery);
     }
 
-    // Call custom handler if provided
+    // Call custom handler if provided - convert to multi-criteria format
     if (onSearch) {
-      onSearch(searchQuery, searchType, showRadius ? radius : undefined);
+      const criteria: MultiCriteriaSearch = {
+        services: [],
+        equipment: []
+      };
+      
+      switch (searchType) {
+        case 'location':
+          criteria.location = searchQuery;
+          break;
+        case 'studio':
+          criteria.studioType = searchQuery;
+          break;
+        case 'service':
+          criteria.services = [searchQuery];
+          break;
+        case 'equipment':
+          criteria.equipment = [searchQuery];
+          break;
+      }
+      
+      onSearch(criteria, showRadius ? radius : undefined);
     }
 
     // Navigate to studios page
