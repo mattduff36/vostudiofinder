@@ -43,8 +43,9 @@ export const studioSearchSchema = z.object({
   query: z.string().optional(),
   location: z.string().optional(),
   radius: z.number().min(1).max(500).optional(),
-  studioType: z.nativeEnum(StudioType).optional(),
-  services: z.array(z.nativeEnum(ServiceType)).optional(),
+  studioType: z.string().optional(), // Changed to string to handle NLP-detected types
+  services: z.array(z.string()).optional(), // Changed to string array for flexibility
+  equipment: z.array(z.string()).optional(), // New equipment parameter
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(20),
   sortBy: z.enum(['name', 'distance', 'rating', 'createdAt']).default('name'),

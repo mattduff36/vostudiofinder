@@ -15,8 +15,9 @@ export async function GET(request: NextRequest) {
       query: searchParams.get('q') || undefined,
       location: searchParams.get('location') || undefined,
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : undefined,
-      studioType: searchParams.get('studioType') || undefined,
+      studioType: searchParams.get('studioType') || searchParams.get('type') || undefined, // Support both parameters
       services: searchParams.get('services')?.split(',') || undefined,
+      equipment: searchParams.get('equipment')?.split(',') || undefined, // New equipment parameter
       page: parseInt(searchParams.get('page') || '1'),
       limit: parseInt(searchParams.get('limit') || '20'),
       sortBy: searchParams.get('sortBy') || 'name',
@@ -91,23 +92,91 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Studio type filter
+    // Studio type filter - enhanced to handle NLP-detected types
     if (validatedParams.studioType) {
-      (where.AND as Prisma.StudioWhereInput[]).push({
-        studioType: validatedParams.studioType as any,
-      });
+      // Map common NLP terms to database enum values or search in description
+      const studioTypeMapping: { [key: string]: string } = {
+        'podcast': 'PODCAST',
+        'podcasting': 'PODCAST', 
+        'recording': 'RECORDING',
+        'mixing': 'MIXING',
+        'mastering': 'MASTERING',
+        'voice over': 'VOICE_OVER',
+        'voiceover': 'VOICE_OVER',
+        'broadcast': 'BROADCAST',
+        'radio': 'BROADCAST',
+        'tv': 'BROADCAST',
+        'television': 'BROADCAST',
+        'music': 'RECORDING',
+        'rehearsal': 'REHEARSAL',
+        'live': 'LIVE'
+      };
+
+      const mappedType = studioTypeMapping[validatedParams.studioType.toLowerCase()];
+      
+      if (mappedType) {
+        // Use exact enum match if we have a mapping
+        (where.AND as Prisma.StudioWhereInput[]).push({
+          studioType: mappedType as any,
+        });
+      } else {
+        // Search in name and description for the studio type
+        (where.AND as Prisma.StudioWhereInput[]).push({
+          OR: [
+            { name: { contains: validatedParams.studioType, mode: 'insensitive' } },
+            { description: { contains: validatedParams.studioType, mode: 'insensitive' } },
+          ],
+        });
+      }
     }
 
-    // Services filter
+    // Services filter with string-to-enum mapping
     if (validatedParams.services && validatedParams.services.length > 0) {
-      (where.AND as Prisma.StudioWhereInput[]).push({
-        services: {
-          some: {
-            service: {
-              in: validatedParams.services as any[],
+      // Map common service terms to database enum values
+      const serviceMapping: { [key: string]: string } = {
+        'isdn': 'ISDN',
+        'source connect': 'SOURCE_CONNECT',
+        'source connect now': 'SOURCE_CONNECT_NOW',
+        'cleanfeed': 'CLEANFEED',
+        'sessionlinkpro': 'SESSION_LINK_PRO',
+        'session link pro': 'SESSION_LINK_PRO',
+        'skype': 'SKYPE',
+        'zoom': 'ZOOM',
+        'teams': 'TEAMS',
+        'google meet': 'GOOGLE_MEET',
+        'phone patch': 'PHONE_PATCH',
+        'remote recording': 'REMOTE_RECORDING',
+        'live streaming': 'LIVE_STREAMING'
+      };
+
+      const mappedServices = validatedParams.services
+        .map(service => serviceMapping[service.toLowerCase()] || service.toUpperCase())
+        .filter(service => service); // Remove any undefined values
+
+      if (mappedServices.length > 0) {
+        (where.AND as Prisma.StudioWhereInput[]).push({
+          services: {
+            some: {
+              service: {
+                in: mappedServices as any[],
+              },
             },
           },
-        },
+        });
+      }
+    }
+
+    // Equipment filter - search in description and name for equipment keywords
+    if (validatedParams.equipment && validatedParams.equipment.length > 0) {
+      const equipmentConditions = validatedParams.equipment.map(equipment => ({
+        OR: [
+          { name: { contains: equipment, mode: 'insensitive' as const } },
+          { description: { contains: equipment, mode: 'insensitive' as const } },
+        ],
+      }));
+
+      (where.AND as Prisma.StudioWhereInput[]).push({
+        OR: equipmentConditions,
       });
     }
 

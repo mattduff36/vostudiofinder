@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Building, Settings, Mic } from 'lucide-react';
+import { Search, MapPin, Building, Settings, Mic, X } from 'lucide-react';
 import { colors } from '../home/HomePage';
 
 interface SearchSuggestion {
@@ -16,11 +16,26 @@ interface SearchSuggestion {
   };
 }
 
+interface SearchTag {
+  id: string;
+  type: 'location' | 'studioType' | 'service' | 'equipment';
+  value: string;
+  display: string;
+  icon: string;
+}
+
+interface MultiCriteriaSearch {
+  location?: string;
+  studioType?: string;
+  services: string[];
+  equipment: string[];
+}
+
 interface EnhancedSearchBarProps {
   placeholder?: string;
   className?: string;
   showRadius?: boolean;
-  onSearch?: (query: string, type: string, radius?: number) => void;
+  onSearch?: (criteria: MultiCriteriaSearch, radius?: number) => void;
 }
 
 export function EnhancedSearchBar({ 
@@ -37,12 +52,155 @@ export function EnhancedSearchBar({
   const [radius, setRadius] = useState(25);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
   const [detectedType, setDetectedType] = useState<string>('general');
+  const [searchTags, setSearchTags] = useState<SearchTag[]>([]);
+  const [isProcessingNLP, setIsProcessingNLP] = useState(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Detect search type based on input
+  // Comprehensive keyword databases for NLP parsing
+  const keywordDatabase = {
+    locations: [
+      'london', 'manchester', 'birmingham', 'leeds', 'glasgow', 'edinburgh', 'bristol', 'liverpool',
+      'new york', 'los angeles', 'chicago', 'houston', 'philadelphia', 'phoenix', 'san antonio',
+      'toronto', 'vancouver', 'montreal', 'calgary', 'ottawa', 'sydney', 'melbourne', 'brisbane',
+      'uk', 'usa', 'canada', 'australia', 'england', 'scotland', 'wales', 'ireland'
+    ],
+    studioTypes: [
+      'podcast', 'podcasting', 'recording', 'mixing', 'mastering', 'voice over', 'voiceover',
+      'broadcast', 'radio', 'tv', 'television', 'music', 'audio', 'sound', 'production',
+      'rehearsal', 'live', 'streaming', 'dubbing', 'adr', 'foley', 'post production'
+    ],
+    services: [
+      'isdn', 'source connect', 'cleanfeed', 'sessionlinkpro', 'remote recording', 'live streaming',
+      'video conferencing', 'zoom', 'skype', 'teams', 'google meet', 'patch bay', 'monitoring',
+      'headphone distribution', 'talkback', 'cue mix', 'overdub', 'punch and roll'
+    ],
+    equipment: [
+      'pro tools', 'logic', 'cubase', 'reaper', 'ableton', 'studio one', 'nuendo',
+      'neumann', 'akg', 'shure', 'sennheiser', 'rode', 'audio technica', 'electro voice',
+      'ssl', 'neve', 'api', 'focusrite', 'universal audio', 'avid', 'apogee', 'rme',
+      'u47', 'u67', 'u87', 'c12', 'ela m251', 'sm57', 'sm58', 're20', 'md421'
+    ]
+  };
+
+  // Smart NLP parsing function for multi-criteria detection
+  const parseMultiCriteriaSearch = (input: string): MultiCriteriaSearch => {
+    const lowerInput = input.toLowerCase().trim();
+    const words = lowerInput.split(/\s+/);
+    
+    const criteria: MultiCriteriaSearch = {
+      services: [],
+      equipment: []
+    };
+
+    // Location detection (prioritize longer matches)
+    const locationMatches = keywordDatabase.locations
+      .filter(loc => lowerInput.includes(loc))
+      .sort((a, b) => b.length - a.length); // Longer matches first
+    
+    if (locationMatches.length > 0) {
+      criteria.location = locationMatches[0];
+    }
+
+    // Studio type detection
+    const studioTypeMatches = keywordDatabase.studioTypes
+      .filter(type => lowerInput.includes(type))
+      .sort((a, b) => b.length - a.length);
+    
+    if (studioTypeMatches.length > 0) {
+      criteria.studioType = studioTypeMatches[0];
+    }
+
+    // Services detection (can have multiple)
+    keywordDatabase.services.forEach(service => {
+      if (lowerInput.includes(service)) {
+        criteria.services.push(service);
+      }
+    });
+
+    // Equipment detection (can have multiple)
+    keywordDatabase.equipment.forEach(equipment => {
+      if (lowerInput.includes(equipment)) {
+        criteria.equipment.push(equipment);
+      }
+    });
+
+    return criteria;
+  };
+
+  // Convert parsed criteria to visual tags
+  const createTagsFromCriteria = (criteria: MultiCriteriaSearch): SearchTag[] => {
+    const tags: SearchTag[] = [];
+
+    if (criteria.location) {
+      tags.push({
+        id: `location-${Date.now()}`,
+        type: 'location',
+        value: criteria.location,
+        display: criteria.location.charAt(0).toUpperCase() + criteria.location.slice(1),
+        icon: '📍'
+      });
+    }
+
+    if (criteria.studioType) {
+      tags.push({
+        id: `studioType-${Date.now()}`,
+        type: 'studioType',
+        value: criteria.studioType,
+        display: criteria.studioType.charAt(0).toUpperCase() + criteria.studioType.slice(1) + ' Studio',
+        icon: '🎙️'
+      });
+    }
+
+    criteria.services.forEach((service, index) => {
+      tags.push({
+        id: `service-${Date.now()}-${index}`,
+        type: 'service',
+        value: service,
+        display: service.toUpperCase(),
+        icon: '🔧'
+      });
+    });
+
+    criteria.equipment.forEach((equipment, index) => {
+      tags.push({
+        id: `equipment-${Date.now()}-${index}`,
+        type: 'equipment',
+        value: equipment,
+        display: equipment.charAt(0).toUpperCase() + equipment.slice(1),
+        icon: '🎚️'
+      });
+    });
+
+    return tags;
+  };
+
+  // Remove a tag
+  const removeTag = (tagId: string) => {
+    setSearchTags(prev => prev.filter(tag => tag.id !== tagId));
+  };
+
+  // Process input with NLP and create tags
+  const processInputWithNLP = (input: string) => {
+    if (!input.trim()) {
+      setSearchTags([]);
+      return;
+    }
+
+    setIsProcessingNLP(true);
+    
+    // Add a small delay to show processing state
+    setTimeout(() => {
+      const criteria = parseMultiCriteriaSearch(input);
+      const tags = createTagsFromCriteria(criteria);
+      setSearchTags(tags);
+      setIsProcessingNLP(false);
+    }, 300);
+  };
+
+  // Detect search type based on input (legacy function - keeping for compatibility)
   const detectSearchType = (input: string): string => {
     const lowerInput = input.toLowerCase().trim();
     
@@ -253,13 +411,67 @@ export function EnhancedSearchBar({
 
   // Handle search submission
   const handleSearch = () => {
-    if (!query.trim()) return;
-    
-    const type = detectSearchType(query);
-    performSearch(query, type);
+    // If we have tags, use multi-criteria search
+    if (searchTags.length > 0) {
+      performMultiCriteriaSearch();
+    } else if (query.trim()) {
+      // Fallback to legacy single-criteria search
+      const type = detectSearchType(query);
+      performSearch(query, type);
+    }
   };
 
-  // Perform the actual search
+  // Perform multi-criteria search using tags
+  const performMultiCriteriaSearch = () => {
+    // Convert tags back to criteria for search
+    const criteria: MultiCriteriaSearch = {
+      services: [],
+      equipment: []
+    };
+
+    searchTags.forEach(tag => {
+      switch (tag.type) {
+        case 'location':
+          criteria.location = tag.value;
+          break;
+        case 'studioType':
+          criteria.studioType = tag.value;
+          break;
+        case 'service':
+          criteria.services.push(tag.value);
+          break;
+        case 'equipment':
+          criteria.equipment.push(tag.value);
+          break;
+      }
+    });
+
+    const params = new URLSearchParams();
+    
+    // Set parameters based on criteria
+    if (criteria.location) {
+      params.set('location', criteria.location);
+      if (showRadius && radius > 0) {
+        params.set('radius', radius.toString());
+      }
+    }
+    if (criteria.studioType) params.set('type', criteria.studioType);
+    if (criteria.services.length > 0) params.set('services', criteria.services.join(','));
+    if (criteria.equipment.length > 0) params.set('equipment', criteria.equipment.join(','));
+
+    // Call custom handler if provided
+    if (onSearch) {
+      onSearch(criteria, showRadius ? radius : undefined);
+    }
+
+    console.log('Multi-criteria search:', { criteria, params: params.toString() });
+
+    // Navigate to studios page
+    router.push(`/studios?${params.toString()}`);
+    setIsOpen(false);
+  };
+
+  // Perform the actual search (legacy function for backward compatibility)
   const performSearch = (searchQuery: string, searchType: string) => {
     const params = new URLSearchParams();
     
@@ -339,7 +551,19 @@ export function EnhancedSearchBar({
                   '--tw-ring-color': colors.primary 
                 } as React.CSSProperties}
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  setQuery(newValue);
+                  
+                  // Trigger NLP processing with debounce
+                  if (debounceRef.current) {
+                    clearTimeout(debounceRef.current);
+                  }
+                  
+                  debounceRef.current = setTimeout(() => {
+                    processInputWithNLP(newValue);
+                  }, 500); // Slightly longer delay for NLP processing
+                }}
                 onKeyDown={handleKeyDown}
                 autoComplete="off"
               />
@@ -365,6 +589,43 @@ export function EnhancedSearchBar({
           </button>
         </div>
       </div>
+
+      {/* Search Tags Display */}
+      {(searchTags.length > 0 || isProcessingNLP) && (
+        <div className="mt-3 p-3 bg-transparent">
+          <div className="flex flex-wrap gap-2 items-center">
+            {isProcessingNLP && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-full text-white text-sm">
+                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Analyzing...
+              </div>
+            )}
+            
+            {searchTags.map((tag) => (
+              <div
+                key={tag.id}
+                className="flex items-center gap-2 px-3 py-1 bg-white rounded-full text-gray-800 text-sm font-medium shadow-sm"
+              >
+                <span>{tag.icon}</span>
+                <span>{tag.display}</span>
+                <button
+                  onClick={() => removeTag(tag.id)}
+                  className="ml-1 p-0.5 hover:bg-gray-200 rounded-full transition-colors"
+                  aria-label={`Remove ${tag.display} filter`}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+            
+            {searchTags.length > 0 && (
+              <div className="text-white text-xs opacity-75 ml-2">
+                {searchTags.length} filter{searchTags.length !== 1 ? 's' : ''} active
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* Radius Slider - Always Visible with Transparent Background */}
       {showRadius && (
