@@ -14,6 +14,7 @@ interface SearchFiltersProps {
     services: string[];
     sortBy: string;
     sortOrder: string;
+    radius: number;
   };
   onSearch: (filters: Record<string, any>) => void;
   loading?: boolean;
@@ -51,6 +52,7 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
       services: [],
       sortBy: 'name',
       sortOrder: 'asc',
+      radius: 25,
     };
     setFilters(clearedFilters);
     onSearch(clearedFilters);
@@ -82,11 +84,11 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
     { value: 'rating', label: 'Rating' },
   ];
 
-  const hasActiveFilters = filters.query || filters.location || filters.studioType || filters.services.length > 0;
+  const hasActiveFilters = filters.query || filters.location || filters.studioType || filters.services.length > 0 || filters.radius !== 25;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-medium text-text-primary flex items-center">
           <Filter className="w-5 h-5 mr-2" />
           Filters
@@ -104,115 +106,138 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
         )}
       </div>
 
-      {/* Search Query */}
-      <div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search studios, equipment, services..."
-            value={filters.query}
-            onChange={(e) => handleFilterChange('query', e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
+      {/* Horizontal Layout for Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+        {/* Search Query */}
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-2">Search</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Studios, equipment, services..."
+              value={filters.query}
+              onChange={(e) => handleFilterChange('query', e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Location */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-2">
-          Location
-        </label>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="City, state, country..."
-            value={filters.location}
-            onChange={(e) => handleFilterChange('location', e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
+        {/* Location */}
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-2">Location</label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="City, state, country..."
+              value={filters.location}
+              onChange={(e) => handleFilterChange('location', e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Studio Type */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-2">
-          Studio Type
-        </label>
-        <select
-          value={filters.studioType}
-          onChange={(e) => handleFilterChange('studioType', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        >
-          {studioTypeOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Services */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-3">
-          Services & Equipment
-        </label>
-        <div className="space-y-2 max-h-48 overflow-y-auto">
-          {serviceOptions.map(service => (
-            <label
-              key={service.value}
-              className="flex items-center space-x-2 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={filters.services.includes(service.value)}
-                onChange={() => handleServiceToggle(service.value)}
-                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm text-text-primary">{service.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Sort Options */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-2">
-          Sort By
-        </label>
-        <div className="grid grid-cols-2 gap-2">
+        {/* Studio Type */}
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-2">Studio Type</label>
           <select
-            value={filters.sortBy}
-            onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            value={filters.studioType}
+            onChange={(e) => handleFilterChange('studioType', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
-            {sortOptions.map(option => (
+            {studioTypeOptions.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
-          <select
-            value={filters.sortOrder}
-            onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        </div>
+
+        {/* Sort By */}
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-2">Sort By</label>
+          <div className="grid grid-cols-2 gap-1">
+            <select
+              value={filters.sortBy}
+              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+              className="px-2 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              {sortOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filters.sortOrder}
+              onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
+              className="px-2 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="asc">A-Z</option>
+              <option value="desc">Z-A</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Search Button */}
+        <div className="flex items-end">
+          <Button
+            onClick={handleSearch}
+            loading={loading || false}
+            disabled={loading || false}
+            className="w-full"
           >
-            <option value="asc">A-Z</option>
-            <option value="desc">Z-A</option>
-          </select>
+            {loading ? 'Searching...' : 'Search Studios'}
+          </Button>
         </div>
       </div>
 
-      {/* Search Button */}
-      <Button
-        onClick={handleSearch}
-        loading={loading || false}
-        disabled={loading || false}
-        className="w-full"
-      >
-        {loading ? 'Searching...' : 'Search Studios'}
-      </Button>
+      {/* Second Row: Services and Radius */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Services */}
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-3">Services & Equipment</label>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
+            {serviceOptions.map(service => (
+              <label
+                key={service.value}
+                className="flex items-center space-x-2 cursor-pointer text-sm"
+              >
+                <input
+                  type="checkbox"
+                  checked={filters.services.includes(service.value)}
+                  onChange={() => handleServiceToggle(service.value)}
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-text-primary">{service.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Search Radius */}
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-3">
+            Search Radius: {filters.radius} miles
+          </label>
+          <input
+            type="range"
+            min="5"
+            max="200"
+            step="5"
+            value={filters.radius}
+            onChange={(e) => handleFilterChange('radius', parseInt(e.target.value))}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>5mi</span>
+            <span>50mi</span>
+            <span>100mi</span>
+            <span>200mi</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { colors } from './HomePage';
 import { EnhancedSearchBar } from '../search/EnhancedSearchBar';
 
@@ -15,14 +16,57 @@ import Image from 'next/image';
 
 export function HeroSection() {
   console.log('🏠 HeroSection component rendered');
+  const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
+  // Map NLP detected types to enum values
+  const mapStudioTypeToEnum = (nlpType: string): string => {
+    const mapping: { [key: string]: string } = {
+      'podcast': 'PODCAST',
+      'podcasting': 'PODCAST', 
+      'recording': 'RECORDING',
+      'production': 'PRODUCTION',
+      'home': 'HOME',
+      'mobile': 'MOBILE'
+    };
+    
+    return mapping[nlpType.toLowerCase()] || nlpType.toUpperCase();
+  };
+
   const handleSearch = (criteria: MultiCriteriaSearch, radius?: number) => {
     console.log('Multi-criteria search initiated:', { criteria, radius });
+    
+    // Build URL parameters for studios page
+    const params = new URLSearchParams();
+    
+    if (criteria.location) {
+      params.set('location', criteria.location);
+    }
+    
+    if (criteria.studioType) {
+      // Map NLP detected type to enum value
+      const mappedStudioType = mapStudioTypeToEnum(criteria.studioType);
+      params.set('studioType', mappedStudioType);
+    }
+    
+    if (criteria.services && criteria.services.length > 0) {
+      params.set('services', criteria.services.join(','));
+    }
+    
+    if (criteria.equipment && criteria.equipment.length > 0) {
+      params.set('equipment', criteria.equipment.join(','));
+    }
+    
+    if (radius) {
+      params.set('radius', radius.toString());
+    }
+    
+    // Navigate to studios page with parameters
+    router.push(`/studios?${params.toString()}`);
   };
 
   return (
