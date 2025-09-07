@@ -52,7 +52,6 @@ export function EnhancedSearchBar({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [radius, setRadius] = useState(25);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
-  const [detectedType, setDetectedType] = useState<string>('general');
   const [searchTags, setSearchTags] = useState<SearchTag[]>([]);
   const [isProcessingNLP, setIsProcessingNLP] = useState(false);
   
@@ -278,7 +277,6 @@ export function EnhancedSearchBar({
       console.log('🔎 fetchSuggestions called with:', searchQuery);
       const type = detectSearchType(searchQuery);
       console.log('🎯 Detected search type:', type);
-      setDetectedType(type);
       
       // Fetch from our API
       const url = `/api/search/suggestions?q=${encodeURIComponent(searchQuery)}`;
@@ -562,16 +560,6 @@ export function EnhancedSearchBar({
     }
   };
 
-  // Get type indicator color
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'location': return 'text-blue-600 bg-blue-50';
-      case 'studio': return 'text-green-600 bg-green-50';
-      case 'service': return 'text-purple-600 bg-purple-50';
-      case 'equipment': return 'text-orange-600 bg-orange-50';
-      default: return 'text-gray-600 bg-gray-50';
-    }
-  };
 
   return (
     <div className={`relative ${className}`}>
@@ -612,12 +600,6 @@ export function EnhancedSearchBar({
                 autoComplete="off"
               />
               
-              {/* Type Indicator */}
-              {query && detectedType !== 'general' && (
-                <div className={`absolute right-3 top-1/2 transform -translate-y-1/2 px-2 py-1 rounded text-xs font-medium ${getTypeColor(detectedType)}`}>
-                  {detectedType}
-                </div>
-              )}
             </div>
           </div>
           
@@ -725,9 +707,6 @@ export function EnhancedSearchBar({
               {getSuggestionIcon(suggestion.type)}
               <div className="flex-1">
                 <div className="font-medium">{suggestion.text}</div>
-              </div>
-              <div className={`text-xs px-2 py-1 rounded capitalize ${getTypeColor(suggestion.type)}`}>
-                {suggestion.type}
               </div>
             </div>
           ))}

@@ -11,7 +11,6 @@ interface MultiCriteriaSearch {
   equipment: string[];
 }
 
-import { Mic, Users, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
 export function HeroSection() {
@@ -70,24 +69,6 @@ export function HeroSection() {
             />
           </div>
 
-          {/* Feature Icons */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto">
-            {[
-              { icon: Mic, title: 'Professional Studios', description: 'Verified recording studios with professional equipment and acoustics' },
-              { icon: MapPin, title: 'Global Locations', description: 'Find studios worldwide with precise location mapping and directions' },
-              { icon: Users, title: 'Direct Contact', description: 'Connect directly with studio owners and book sessions instantly' }
-            ].map((feature, index) => (
-              <div key={index} className={`text-center transition-all duration-1000 ${
-                isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`} style={{ transitionDelay: `${0.7 + index * 0.1}s` }}>
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transform hover:scale-110 transition-transform duration-300" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                  <feature.icon className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2" style={{ color: '#ffffff' }}>{feature.title}</h3>
-                <p className="text-white">{feature.description}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>
