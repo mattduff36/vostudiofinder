@@ -26,7 +26,6 @@ interface NetworkUser extends User {
 }
 
 interface ProfessionalNetworkProps {
-  currentUser: User;
   connections: (UserConnection & {
     connectedUser: NetworkUser;
   })[];
@@ -40,7 +39,6 @@ interface ProfessionalNetworkProps {
 }
 
 export function ProfessionalNetwork({ 
-  currentUser, 
   connections, 
   suggestedConnections,
   networkStats 

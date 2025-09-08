@@ -4,14 +4,10 @@ import React from 'react';
 import { User, Studio, UserProfile } from '@prisma/client';
 import { 
   Star, 
-  Award, 
   Crown, 
   Zap, 
   TrendingUp, 
   Eye, 
-  Users, 
-  MessageCircle,
-  Calendar,
   BarChart3,
   Shield,
   Sparkles,

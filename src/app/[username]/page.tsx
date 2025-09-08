@@ -186,7 +186,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         <EnhancedStudioProfile 
           studio={{
             ...(() => {
-              const { websiteUrl, phone, latitude, longitude, images, reviews, owner, ...rest } = studio;
+              const { websiteUrl: _, phone: __, latitude: ___, longitude: ____, images: _____, reviews: ______, owner: _______, ...rest } = studio;
               return rest;
             })(),
             description: studio.description || '',
