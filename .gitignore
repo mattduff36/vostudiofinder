@@ -45,3 +45,4 @@ next-env.d.ts
 # migration scripts
 /scripts/migration/
 /backups/
+/src/lib/migration/
