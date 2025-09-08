@@ -7,6 +7,16 @@ import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
 import { colors } from './HomePage';
 
+/*
+SAVED CODE - Fade-out gradient feature for future use:
+<div className="relative flex-grow mb-4 overflow-hidden">
+  <p className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
+    {cleanDescription(studio.description)}
+  </p>
+  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+</div>
+*/
+
 interface Studio {
   id: string;
   name: string;
@@ -95,18 +105,18 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           priority={false}
         />
       </div>
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
+      <div className="relative z-10 py-16 w-full">
+        <div className="max-w-7xl mx-auto px-6">
         <div className={`text-center mb-12 transition-all duration-1000 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
           <h2 className="text-3xl font-bold mb-4" style={{ color: colors.textPrimary }}>
-            Featured Recording Studios
+            Featured Studios
           </h2>
-          <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+          <p className={`text-xl text-center transition-all duration-1000 ease-out ${
             isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.2s', color: colors.textSecondary }}>
-            Discover professional recording studios with verified locations, 
-            top-rated equipment, and experienced engineers.
+          }`} style={{ transitionDelay: '0.2s', color: colors.textSecondary, maxWidth: '768px', margin: '0 auto' }}>
+            These are a handful of some of our favourite studios listed.
           </p>
         </div>
 
@@ -140,29 +150,51 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   </div>
                 </div>
 
-                <div className="p-6 flex flex-col flex-grow max-h-[500px]">
+                <div className="p-6 flex flex-col flex-grow max-h-[340px]">
                   {/* Studio Name - badge moved to image */}
-                  <div className="mb-3">
-                    <h3 className="text-xl font-semibold line-clamp-1" style={{ color: colors.textPrimary }}>
-                      {studio.name}
-                    </h3>
-                  </div>
+                  <h3 className="text-xl font-semibold line-clamp-1 mb-3" style={{ color: colors.textPrimary, margin: '0 0 12px 0' }}>
+                    {studio.name}
+                  </h3>
 
-                  {/* Location - only show if address exists */}
-                  {studio.address && studio.address.trim() && (
-                    <div className="flex items-start mb-3" style={{ color: colors.textSecondary }}>
-                      <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm line-clamp-2">{studio.address}</span>
+                  {/* Location and Description - combined, limited to 4 lines maximum */}
+                  <div className="mb-4">
+                    <div className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
+                      {/* Location */}
+                      {studio.address && studio.address.trim() && (
+                        <div className="flex items-start mb-2">
+                          <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="line-clamp-1">{studio.address}</span>
+                        </div>
+                      )}
+                      
+                      {/* Description with line limit */}
+                      <div 
+                        className="overflow-hidden"
+                        style={{ 
+                          maxHeight: studio.address && studio.address.trim() ? '4.5rem' : '6rem', // 3 or 4 lines at 1.5rem line-height
+                          lineHeight: '1.5rem'
+                        }}
+                        title={cleanDescription(studio.description)}
+                      >
+                        {(() => {
+                          const description = cleanDescription(studio.description);
+                          // Calculate available lines (4 total, minus 1 if location exists)
+                          const availableLines = studio.address && studio.address.trim() ? 3 : 4;
+                          // More conservative character limit per line (roughly 45 chars per line)
+                          const seeMoreText = '..... See More';
+                          const maxChars = (availableLines * 45) - seeMoreText.length;
+                          
+                          if (description.length > maxChars) {
+                            const truncated = description.substring(0, maxChars).trim();
+                            // Find the last complete word to avoid cutting mid-word
+                            const lastSpace = truncated.lastIndexOf(' ');
+                            const finalText = lastSpace > maxChars - 15 ? truncated.substring(0, lastSpace) : truncated;
+                            return finalText + seeMoreText;
+                          }
+                          return description;
+                        })()}
+                      </div>
                     </div>
-                  )}
-
-                  {/* Description - dynamic height within max constraint */}
-                  <div className="relative flex-grow mb-4 overflow-hidden">
-                    <p className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
-                      {cleanDescription(studio.description)}
-                    </p>
-                    {/* Improved vertical fade-out - starts at 50% and gradually fades to 100% at bottom */}
-                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
                   </div>
 
                   {/* Services */}
@@ -219,6 +251,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           >
             View All Studios
           </button>
+        </div>
         </div>
       </div>
     </div>
