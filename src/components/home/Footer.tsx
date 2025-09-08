@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { Facebook, Twitter, Mail } from 'lucide-react';
-import { colors } from './HomePage';
 
 export function Footer() {
   return (
