@@ -2,7 +2,7 @@
 let cloudinary: any;
 try {
   cloudinary = require('cloudinary').v2;
-} catch (error) {
+} catch (_) {
   console.warn('Cloudinary not available - image uploads will be disabled');
 }
 

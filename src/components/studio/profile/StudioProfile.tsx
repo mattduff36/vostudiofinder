@@ -82,7 +82,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
           text: studio.description,
           url: window.location.href,
         });
-      } catch (error) {
+      } catch (_) {
         console.log('Sharing cancelled');
       }
     } else {

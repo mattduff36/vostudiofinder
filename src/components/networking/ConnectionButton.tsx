@@ -13,7 +13,7 @@ interface ConnectionButtonProps {
 
 export function ConnectionButton({
   targetUserId,
-  targetUserName: _targetUserName,
+  targetUserName: _,
   initialConnectionStatus,
   onConnectionChange,
 }: ConnectionButtonProps) {

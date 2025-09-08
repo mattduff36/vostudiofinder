@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Download, Trash2, Shield, AlertTriangle } from 'lucide-react';
 
 export function GDPRSection() {
-  const { data: _session } = useSession();
+  const { data: _ } = useSession();
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

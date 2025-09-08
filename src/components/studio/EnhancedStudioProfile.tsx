@@ -20,7 +20,6 @@ import {
   Mic,
   Settings,
   Camera,
-  Clock,
   Users,
   Headphones,
   Wifi

@@ -1,31 +1,21 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { User, UserProfile, UserMetadata } from '@prisma/client';
-import { colors } from '@/components/home/HomePage';
 import { 
   MapPin, 
   Phone, 
   Mail, 
-  Globe, 
-  Star, 
   Shield, 
-  Award,
   Facebook,
   Twitter,
   Linkedin,
   Instagram,
   Youtube,
   Music,
-  DollarSign,
   Mic,
   Settings,
-  Users,
-  Calendar,
-  Clock,
-  CheckCircle,
-  ExternalLink
+  DollarSign
 } from 'lucide-react';
 
 interface EnhancedUserProfileProps {
@@ -37,12 +27,12 @@ interface EnhancedUserProfileProps {
 
 export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
   const profile = user.profile;
-  const metadata = user.metadata || [];
+  // const metadata = user.metadata || [];
   
   // Helper function to get metadata value
-  const getMetadata = (key: string) => {
-    return metadata.find(m => m.key === key)?.value;
-  };
+  // const getMetadata = (key: string) => {
+  //   return metadata.find(m => m.key === key)?.value;
+  // };
 
   // Social media links
   const socialLinks = [
