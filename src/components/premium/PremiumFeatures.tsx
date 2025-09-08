@@ -21,7 +21,7 @@ import {
 
 interface PremiumUser extends User {
   profile?: UserProfile | null;
-  studios?: Studio[];
+  studios?: { id: string; name: string; studioType: string }[];
 }
 
 interface PremiumFeaturesProps {

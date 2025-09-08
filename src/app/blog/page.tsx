@@ -311,6 +311,10 @@ function StudioLayout({ posts }: { posts: typeof samplePosts }) {
   const featuredPost = posts[0];
   const regularPosts = posts.slice(1);
 
+  if (!featuredPost) {
+    return <div>No posts available</div>;
+  }
+
   return (
     <div>
       {/* Featured Post - Similar to studio detail style */}

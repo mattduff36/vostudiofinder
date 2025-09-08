@@ -250,7 +250,7 @@ async function createConnection(userId: string, targetUserId: string) {
 }
 
 async function acceptConnection(userId: string, targetUserId: string) {
-  const connection = await prisma.userConnection.updateMany({
+  await prisma.userConnection.updateMany({
     where: {
       userId: targetUserId,
       connectedUserId: userId,

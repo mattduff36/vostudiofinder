@@ -185,11 +185,35 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         />
         <EnhancedStudioProfile 
           studio={{
-            ...studio,
+            ...(() => {
+              const { websiteUrl, phone, latitude, longitude, images, reviews, owner, ...rest } = studio;
+              return rest;
+            })(),
             description: studio.description || '',
             address: studio.address || '',
-            ...(studio.websiteUrl && { websiteUrl: studio.websiteUrl }),
-            ...(studio.phone && { phone: studio.phone }),
+            owner: {
+              ...studio.owner,
+              avatarUrl: studio.owner.avatarUrl || '',
+            },
+            ...(studio.websiteUrl ? { websiteUrl: studio.websiteUrl } : {}),
+            ...(studio.phone ? { phone: studio.phone } : {}),
+            ...(studio.latitude ? { latitude: Number(studio.latitude) } : {}),
+            ...(studio.longitude ? { longitude: Number(studio.longitude) } : {}),
+            images: studio.images.map(img => ({
+              id: img.id,
+              imageUrl: img.imageUrl,
+              sortOrder: img.sortOrder,
+              ...(img.altText ? { altText: img.altText } : {}),
+            })),
+            reviews: studio.reviews.map(review => ({
+              id: review.id,
+              rating: review.rating,
+              content: review.content || '',
+              createdAt: review.createdAt,
+              reviewer: {
+                displayName: review.reviewer.displayName,
+              },
+            })),
             averageRating,
           }}
         />
