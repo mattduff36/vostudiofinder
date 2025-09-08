@@ -6,9 +6,10 @@ import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
 import { StudiosMapView } from './StudiosMapView';
 import Image from 'next/image';
+import { colors } from '@/components/home/HomePage';
 
 import { Button } from '@/components/ui/Button';
-import { Map, List, Filter } from 'lucide-react';
+import { Map, List, Filter, Search, MapPin, ChevronDown } from 'lucide-react';
 
 interface Studio {
   id: string;
@@ -111,72 +112,45 @@ export function StudiosPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Background Image */}
+    <div className="min-h-screen bg-white relative overflow-hidden -mt-20">
+      {/* Background Image for main content */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-3.jpg"
-          alt="Studio search background texture"
+          src="/bakground-images/21920-5.jpg"
+          alt="Studios page background texture"
           fill
           className="object-cover opacity-10"
           priority={false}
         />
       </div>
-      
-      {/* Header */}
-      <div className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>Recording Studios</h1>
-              <p className="mt-2 text-text-secondary">
-                {searchResults ? (
-                  `${searchResults.pagination.totalCount} studios found`
-                ) : (
-                  'Discover professional recording studios worldwide'
-                )}
-              </p>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* View Mode Toggle */}
-              <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                <Button
-                  variant={viewMode === 'list' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="px-3 py-1"
-                >
-                  <List className="w-4 h-4 mr-1" />
-                  List
-                </Button>
-                <Button
-                  variant={viewMode === 'map' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('map')}
-                  className="px-3 py-1"
-                >
-                  <Map className="w-4 h-4 mr-1" />
-                  Map
-                </Button>
-              </div>
 
-              {/* Mobile Filter Toggle */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden"
-              >
-                <Filter className="w-4 h-4 mr-1" />
-                Filters
-              </Button>
-            </div>
-          </div>
+      {/* Header Section - Simplified */}
+      <div className="relative overflow-hidden pt-20" style={{ height: '200px' }}>
+        <div className="absolute inset-0">
+          <Image
+            src="/bakground-images/21920-3.jpg"
+            alt="Studio search background texture"
+            fill
+            className="object-cover"
+            priority={false}
+          />
+        </div>
+        {/* Black gradient overlay - 0% transparent left, 60% transparent middle, 0% transparent right */}
+        <div 
+          className="absolute inset-0" 
+          style={{ 
+            background: 'linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 1))' 
+          }}
+        ></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 h-full flex items-center justify-center">
+          <h1 className="text-4xl md:text-5xl font-bold" style={{ color: '#ffffff' }}>
+            Recording Studios
+          </h1>
         </div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
           <div className={`lg:col-span-1 ${showFilters ? 'block' : 'hidden lg:block'}`}>
@@ -234,6 +208,30 @@ export function StudiosPage() {
                       </div>
                     </div>
                   )}
+                </div>
+                
+                {/* View Mode Toggle - Right Side */}
+                <div className="flex items-center bg-white rounded-lg border border-gray-300 p-1">
+                  <Button
+                    variant={viewMode === 'list' ? 'primary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="px-3 py-2"
+                    style={viewMode === 'list' ? { backgroundColor: colors.primary, color: 'white' } : {}}
+                  >
+                    <List className="w-4 h-4 mr-1" />
+                    List
+                  </Button>
+                  <Button
+                    variant={viewMode === 'map' ? 'primary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('map')}
+                    className="px-3 py-2"
+                    style={viewMode === 'map' ? { backgroundColor: colors.primary, color: 'white' } : {}}
+                  >
+                    <Map className="w-4 h-4 mr-1" />
+                    Map
+                  </Button>
                 </div>
               </div>
             )}

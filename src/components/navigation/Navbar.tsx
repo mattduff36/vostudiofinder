@@ -34,7 +34,7 @@ export function Navbar({ session }: NavbarProps) {
     setIsMenuOpen(false);
   }, [pathname]);
 
-  const isHomePage = pathname === '/';
+  const isHomePage = pathname === '/' || pathname === '/studios';
 
   return (
     <nav 
@@ -82,8 +82,8 @@ export function Navbar({ session }: NavbarProps) {
               Browse Studios
             </Link>
             <Link 
-              href="/about" 
-              className={`transition-colors ${pathname === '/about' ? 'font-semibold' : ''}`}
+              href="/blog" 
+              className={`transition-colors ${pathname === '/blog' ? 'font-semibold' : ''}`}
               style={{ 
                 color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
               }}
@@ -94,22 +94,7 @@ export function Navbar({ session }: NavbarProps) {
                 e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
               }}
             >
-              About
-            </Link>
-            <Link 
-              href="/help" 
-              className={`transition-colors ${pathname === '/help' ? 'font-semibold' : ''}`}
-              style={{ 
-                color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-              }}
-            >
-              Help
+              Blog
             </Link>
           </div>
           
@@ -215,24 +200,14 @@ export function Navbar({ session }: NavbarProps) {
                 Browse Studios
               </Link>
               <Link 
-                href="/about" 
+                href="/blog" 
                 className={`block py-2 transition-colors ${
                   isScrolled || !isHomePage 
                     ? 'text-gray-700 hover:text-primary-600' 
                     : 'text-white hover:text-primary-200'
-                } ${pathname === '/about' ? 'font-semibold' : ''}`}
+                } ${pathname === '/blog' ? 'font-semibold' : ''}`}
               >
-                About
-              </Link>
-              <Link 
-                href="/help" 
-                className={`block py-2 transition-colors ${
-                  isScrolled || !isHomePage 
-                    ? 'text-gray-700 hover:text-primary-600' 
-                    : 'text-white hover:text-primary-200'
-                } ${pathname === '/help' ? 'font-semibold' : ''}`}
-              >
-                Help
+                Blog
               </Link>
               
               <div className="pt-4 space-y-3">

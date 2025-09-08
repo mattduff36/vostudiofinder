@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 
-import { Search, MapPin, Filter, X } from 'lucide-react';
+import { X, Search } from 'lucide-react';
+import { LocationAutocomplete } from '@/components/maps/LocationAutocomplete';
 import { StudioType, ServiceType } from '@prisma/client';
 
 interface SearchFiltersProps {
@@ -62,9 +63,7 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
     { value: '', label: 'All Studio Types' },
     { value: StudioType.RECORDING, label: 'Recording Studio' },
     { value: StudioType.PODCAST, label: 'Podcast Studio' },
-    { value: StudioType.HOME, label: 'Home Studio' },
-    { value: StudioType.PRODUCTION, label: 'Production Studio' },
-    { value: StudioType.MOBILE, label: 'Mobile Studio' },
+    { value: 'VOICEOVER', label: 'Voiceover Studio' },
   ];
 
   const serviceOptions = [
@@ -86,14 +85,16 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
 
   const hasActiveFilters = filters.query || filters.location || filters.studioType || filters.services.length > 0 || filters.radius !== 25;
 
+  const handleStudioTypeToggle = (studioType: string) => {
+    const currentTypes = filters.studioType ? [filters.studioType] : [];
+    const updatedType = currentTypes.includes(studioType) ? '' : studioType;
+    handleFilterChange('studioType', updatedType);
+  };
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-text-primary flex items-center">
-          <Filter className="w-5 h-5 mr-2" />
-          Filters
-        </h3>
-        {hasActiveFilters && (
+      {hasActiveFilters && (
+        <div className="flex justify-end">
           <Button
             variant="ghost"
             size="sm"
@@ -101,58 +102,90 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
             className="text-sm"
           >
             <X className="w-4 h-4 mr-1" />
-            Clear
+            Clear All
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Search Query */}
+      {/* Keyword Search */}
       <div>
+        <label className="block text-sm font-medium text-text-primary mb-3">
+          Keyword Search
+        </label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
-            placeholder="Search studios, equipment, services..."
+            placeholder="Search recording studios..."
             value={filters.query}
             onChange={(e) => handleFilterChange('query', e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
       </div>
 
       {/* Location */}
       <div>
-        <label className="block text-sm font-medium text-text-primary mb-2">
+        <label className="block text-sm font-medium text-text-primary mb-3">
           Location
         </label>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="City, state, country..."
+        <div className="space-y-3">
+          <LocationAutocomplete
             value={filters.location}
-            onChange={(e) => handleFilterChange('location', e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            onChange={(value, placeDetails) => {
+              handleFilterChange('location', value);
+              // You can also store place details if needed for more precise location data
+              if (placeDetails) {
+                console.log('Selected place:', placeDetails);
+              }
+            }}
+            placeholder="Enter city, state, or country..."
           />
+          
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">
+              Search Radius: {filters.radius} miles
+            </label>
+            <input
+              type="range"
+              min="5"
+              max="200"
+              step="5"
+              value={filters.radius}
+              onChange={(e) => handleFilterChange('radius', parseInt(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>5mi</span>
+              <span>50mi</span>
+              <span>100mi</span>
+              <span>200mi</span>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Studio Type */}
       <div>
-        <label className="block text-sm font-medium text-text-primary mb-2">
+        <label className="block text-sm font-medium text-text-primary mb-3">
           Studio Type
         </label>
-        <select
-          value={filters.studioType}
-          onChange={(e) => handleFilterChange('studioType', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        >
-          {studioTypeOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
+        <div className="space-y-2">
+          {studioTypeOptions.filter(option => option.value !== '').map(option => (
+            <label
+              key={option.value}
+              className="flex items-center space-x-2 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={filters.studioType === option.value}
+                onChange={() => handleStudioTypeToggle(option.value)}
+                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-text-primary">{option.label}</span>
+            </label>
           ))}
-        </select>
+        </div>
       </div>
 
       {/* Services */}
@@ -160,7 +193,7 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
         <label className="block text-sm font-medium text-text-primary mb-3">
           Services & Equipment
         </label>
-        <div className="space-y-2 max-h-48 overflow-y-auto">
+        <div className="space-y-2">
           {serviceOptions.map(service => (
             <label
               key={service.value}
@@ -178,27 +211,6 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
         </div>
       </div>
 
-      {/* Search Radius */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-3">
-          Search Radius: {filters.radius} miles
-        </label>
-        <input
-          type="range"
-          min="5"
-          max="200"
-          step="5"
-          value={filters.radius}
-          onChange={(e) => handleFilterChange('radius', parseInt(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-        />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>5mi</span>
-          <span>50mi</span>
-          <span>100mi</span>
-          <span>200mi</span>
-        </div>
-      </div>
 
       {/* Sort Options */}
       <div>
