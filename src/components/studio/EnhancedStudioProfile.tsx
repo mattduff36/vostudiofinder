@@ -405,23 +405,25 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
               <section>
                 <h2 className="text-lg font-semibold text-gray-900 mb-3">Follow Studio</h2>
                 <div className="space-y-2">
-                  {socialLinks.map((link, index) => {
-                    const Icon = link.icon;
-                    return (
-                      <a
-                        key={index}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex items-center p-2 rounded-lg hover:bg-gray-50 transition-colors ${link.color}`}
-                      >
-                        <Icon className="w-4 h-4 mr-3" />
-                        <span className="text-gray-700 hover:text-gray-900">
-                          {link.platform}
-                        </span>
-                      </a>
-                    );
-                  })}
+                  {socialLinks
+                    .filter((link) => link.url)
+                    .map((link, index) => {
+                      const Icon = link.icon;
+                      return (
+                        <a
+                          key={index}
+                          href={link.url || undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center p-2 rounded-lg hover:bg-gray-50 transition-colors ${link.color}`}
+                        >
+                          <Icon className="w-4 h-4 mr-3" />
+                          <span className="text-gray-700 hover:text-gray-900">
+                            {link.platform}
+                          </span>
+                        </a>
+                      );
+                    })}
                 </div>
               </section>
             )}

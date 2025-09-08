@@ -58,7 +58,7 @@ export function StudiosPage() {
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const [showFilters, setShowFilters] = useState(false);
+  // const [, setShowFilters] = useState(false);
 
   // Search function
   const performSearch = async (params: URLSearchParams) => {
@@ -153,7 +153,7 @@ export function StudiosPage() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
-          <div className={`lg:col-span-1 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+          <div className="lg:col-span-1 hidden lg:block">
             <div className="sticky top-8">
               <SearchFilters
                 initialFilters={{

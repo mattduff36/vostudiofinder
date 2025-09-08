@@ -83,7 +83,7 @@ export class TursoDatabase {
   /**
    * Get user metadata from Turso database
    */
-  async getUserMeta(userId) {
+  async getUserMeta(userId: string) {
     const client = await this.connect();
     
     const result = await client.execute(`
