@@ -466,6 +466,11 @@ export function EnhancedSearchBar({
 
     const params = new URLSearchParams();
     
+    // Add query text if present
+    if (query.trim()) {
+      params.set('q', query.trim());
+    }
+    
     // Set parameters based on criteria
     if (criteria.location) {
       params.set('location', criteria.location);
@@ -473,7 +478,7 @@ export function EnhancedSearchBar({
         params.set('radius', radius.toString());
       }
     }
-    if (criteria.studioType) params.set('type', criteria.studioType);
+    if (criteria.studioType) params.set('studioType', criteria.studioType);
     if (criteria.services.length > 0) params.set('services', criteria.services.join(','));
     if (criteria.equipment.length > 0) params.set('equipment', criteria.equipment.join(','));
 

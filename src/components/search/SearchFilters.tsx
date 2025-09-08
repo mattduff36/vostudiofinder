@@ -13,6 +13,7 @@ interface SearchFiltersProps {
     location: string;
     studioType: string;
     services: string[];
+    equipment: string[];
     sortBy: string;
     sortOrder: string;
     radius: number;
@@ -41,6 +42,15 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
     handleFilterChange('services', updatedServices);
   };
 
+  const handleEquipmentToggle = (equipment: string) => {
+    const currentEquipment = filters.equipment || [];
+    const updatedEquipment = currentEquipment.includes(equipment)
+      ? currentEquipment.filter(e => e !== equipment)
+      : [...currentEquipment, equipment];
+    
+    handleFilterChange('equipment', updatedEquipment);
+  };
+
   const handleSearch = () => {
     onSearch(filters);
   };
@@ -51,6 +61,7 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
       location: '',
       studioType: '',
       services: [],
+      equipment: [],
       sortBy: 'name',
       sortOrder: 'asc',
       radius: 25,
@@ -77,13 +88,26 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
     { value: ServiceType.TEAMS, label: 'Microsoft Teams' },
   ];
 
+  const equipmentOptions = [
+    { value: 'neumann_u87', label: 'Neumann U87' },
+    { value: 'neumann_tlm103', label: 'Neumann TLM 103' },
+    { value: 'rode_procaster', label: 'Rode Procaster' },
+    { value: 'shure_sm7b', label: 'Shure SM7B' },
+    { value: 'audio_technica_at4040', label: 'Audio-Technica AT4040' },
+    { value: 'focusrite_scarlett', label: 'Focusrite Scarlett' },
+    { value: 'universal_audio', label: 'Universal Audio' },
+    { value: 'pro_tools', label: 'Pro Tools' },
+    { value: 'logic_pro', label: 'Logic Pro' },
+    { value: 'cubase', label: 'Cubase' },
+  ];
+
   const sortOptions = [
     { value: 'name', label: 'Name' },
     { value: 'createdAt', label: 'Recently Added' },
     { value: 'rating', label: 'Rating' },
   ];
 
-  const hasActiveFilters = filters.query || filters.location || filters.studioType || filters.services.length > 0 || filters.radius !== 25;
+  const hasActiveFilters = filters.query || filters.location || filters.studioType || filters.services.length > 0 || filters.equipment.length > 0 || filters.radius !== 25;
 
   const handleStudioTypeToggle = (studioType: string) => {
     const currentTypes = filters.studioType ? [filters.studioType] : [];
@@ -191,7 +215,7 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
       {/* Services */}
       <div>
         <label className="block text-sm font-medium text-text-primary mb-3">
-          Services & Equipment
+          Services
         </label>
         <div className="space-y-2">
           {serviceOptions.map(service => (
@@ -206,6 +230,29 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
                 className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
               <span className="text-sm text-text-primary">{service.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Equipment */}
+      <div>
+        <label className="block text-sm font-medium text-text-primary mb-3">
+          Equipment
+        </label>
+        <div className="space-y-2 max-h-48 overflow-y-auto">
+          {equipmentOptions.map(equipment => (
+            <label
+              key={equipment.value}
+              className="flex items-center space-x-2 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={filters.equipment.includes(equipment.value)}
+                onChange={() => handleEquipmentToggle(equipment.value)}
+                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-text-primary">{equipment.label}</span>
             </label>
           ))}
         </div>

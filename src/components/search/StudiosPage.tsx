@@ -161,6 +161,7 @@ export function StudiosPage() {
                   location: searchParams.get('location') || '',
                   studioType: searchParams.get('studioType') || '',
                   services: searchParams.get('services')?.split(',') || [],
+                  equipment: searchParams.get('equipment')?.split(',') || [],
                   sortBy: searchParams.get('sortBy') || 'name',
                   sortOrder: searchParams.get('sortOrder') || 'asc',
                   radius: parseInt(searchParams.get('radius') || '25'),
