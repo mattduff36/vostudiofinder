@@ -263,22 +263,24 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
                   Connect
                 </h3>
                 <div className="space-y-2">
-                  {socialLinks.map((link) => {
-                    const IconComponent = link.icon;
-                    return (
-                      <a
-                        key={link.platform}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex items-center p-3 rounded-lg border transition-all ${link.color}`}
-                      >
-                        <IconComponent className="w-4 h-4 mr-3" />
-                        <span className="text-sm font-medium">{link.platform}</span>
-                        <ExternalLink className="w-3 h-3 ml-auto" />
-                      </a>
-                    );
-                  })}
+                  {socialLinks
+                    .filter((link) => link.url) // Only show links that have URLs
+                    .map((link) => {
+                      const IconComponent = link.icon;
+                      return (
+                        <a
+                          key={link.platform}
+                          href={link.url || undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center p-3 rounded-lg border transition-all ${link.color}`}
+                        >
+                          <IconComponent className="w-4 h-4 mr-3" />
+                          <span className="text-sm font-medium">{link.platform}</span>
+                          <ExternalLink className="w-3 h-3 ml-auto" />
+                        </a>
+                      );
+                    })}
                 </div>
               </div>
             )}
