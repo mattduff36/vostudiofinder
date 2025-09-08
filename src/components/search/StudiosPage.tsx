@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { colors } from '@/components/home/HomePage';
 
 import { Button } from '@/components/ui/Button';
-import { Map, List, Filter, Search, MapPin, ChevronDown } from 'lucide-react';
+import { Map, List } from 'lucide-react';
 
 interface Studio {
   id: string;

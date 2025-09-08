@@ -127,10 +127,10 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                   </div>
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-4 text-center">
                   <div className="inline-block">
                     <span className="text-2xl font-bold" style={{ color: colors.primary }}>Professional Voiceover Services</span>
-                    <p className="text-gray-500 text-sm mt-1">Competitive rates • Quick turnaround</p>
+                    <p className="text-gray-500 text-sm mt-1 text-center">Competitive rates • Quick turnaround</p>
                   </div>
                 </div>
               </div>

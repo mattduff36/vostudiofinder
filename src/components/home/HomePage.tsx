@@ -3,8 +3,8 @@
 import { Session } from 'next-auth';
 import { HeroSection } from './HeroSection';
 import { FeaturedStudios } from './FeaturedStudios';
-import { StatsSection } from './StatsSection';
-import { CTASection } from './CTASection';
+import { CombinedCTASection } from './CombinedCTASection';
+import { NewCTASection } from './NewCTASection';
 import { Footer } from './Footer';
 
 // New color palette
@@ -35,11 +35,11 @@ export function HomePage({ session, featuredStudios, stats }: HomePageProps) {
       {/* Featured Studios */}
       <FeaturedStudios studios={featuredStudios} />
       
-      {/* Stats Section */}
-      <StatsSection stats={stats} />
+      {/* Combined Stats and CTA Section */}
+      <CombinedCTASection session={session} stats={stats} />
       
-      {/* Call to Action */}
-      <CTASection session={session} />
+      {/* New CTA Section */}
+      <NewCTASection session={session} />
       
       {/* Footer */}
       <Footer />

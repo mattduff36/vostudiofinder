@@ -1,6 +1,3 @@
-// VoiceoverStudioFinder Database Schema
-// Modern PostgreSQL schema based on legacy MySQL structure
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,36 +8,36 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  username      String   @unique
-  displayName   String   @map("display_name")
-  avatarUrl     String?  @map("avatar_url")
-  role          Role     @default(USER)
-  emailVerified Boolean  @default(false) @map("email_verified")
-  password      String?  // For email/password auth
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  studios       Studio[]
-  reviews       Review[]
-  reviewsReceived  Review[] @relation("StudioOwnerReviews")
-  reviewResponses  ReviewResponse[]
-  sentMessages     Message[] @relation("MessageSender")
-  receivedMessages Message[] @relation("MessageReceiver")
-  connections   UserConnection[] @relation("UserConnections")
-  connectedBy   UserConnection[] @relation("ConnectedUser")
-  subscriptions        Subscription[]
+  id                   String                @id @default(cuid())
+  email                String                @unique
+  username             String                @unique
+  displayName          String                @map("display_name")
+  avatarUrl            String?               @map("avatar_url")
+  role                 Role                  @default(USER)
+  emailVerified        Boolean               @default(false) @map("email_verified")
+  password             String?
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @updatedAt @map("updated_at")
   accounts             Account[]
-  sessions             Session[]
-  savedSearches        SavedSearch[]
+  reportsReceived      ContentReport[]       @relation("ReportsReceived")
+  reportsMade          ContentReport[]       @relation("ReportsMade")
+  reportsReviewed      ContentReport[]       @relation("ReportsReviewed")
+  receivedMessages     Message[]             @relation("MessageReceiver")
+  sentMessages         Message[]             @relation("MessageSender")
+  notifications        Notification[]
   pendingSubscriptions PendingSubscription[]
   processedRefunds     Refund[]
-  notifications        Notification[]
-  reportsMade          ContentReport[] @relation("ReportsMade")
-  reportsReceived      ContentReport[] @relation("ReportsReceived")
-  reportsReviewed      ContentReport[] @relation("ReportsReviewed")
+  reviewResponses      ReviewResponse[]
+  reviewsReceived      Review[]              @relation("StudioOwnerReviews")
+  reviews              Review[]
+  savedSearches        SavedSearch[]
+  sessions             Session[]
+  studios              Studio[]
+  subscriptions        Subscription[]
+  connectedBy          UserConnection[]      @relation("ConnectedUser")
+  connections          UserConnection[]      @relation("UserConnections")
+  metadata             UserMetadata[]
+  profile              UserProfile?
 
   @@map("users")
 }
@@ -51,15 +48,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -76,72 +72,66 @@ model Session {
 }
 
 model Studio {
-  id          String      @id @default(cuid())
-  ownerId     String      @map("owner_id")
-  name        String
-  description String?     @db.Text
-  studioType  StudioType  @map("studio_type")
-  address     String?
-  latitude    Decimal?    @db.Decimal(10, 8)
-  longitude   Decimal?    @db.Decimal(11, 8)
-  websiteUrl  String?     @map("website_url")
-  phone       String?
-  isPremium   Boolean     @default(false) @map("is_premium")
-  isVerified  Boolean     @default(false) @map("is_verified")
-  status      StudioStatus @default(ACTIVE)
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-
-  // Relations
-  owner                User @relation(fields: [ownerId], references: [id])
-  services             StudioService[]
-  images               StudioImage[]
-  reviews              Review[]
+  id                   String                @id @default(cuid())
+  ownerId              String                @map("owner_id")
+  name                 String
+  description          String?
+  studioType           StudioType            @map("studio_type")
+  address              String?
+  latitude             Decimal?              @db.Decimal(10, 8)
+  longitude            Decimal?              @db.Decimal(11, 8)
+  websiteUrl           String?               @map("website_url")
+  phone                String?
+  isPremium            Boolean               @default(false) @map("is_premium")
+  isVerified           Boolean               @default(false) @map("is_verified")
+  status               StudioStatus          @default(ACTIVE)
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @updatedAt @map("updated_at")
   pendingSubscriptions PendingSubscription[]
+  reviews              Review[]
+  images               StudioImage[]
+  services             StudioService[]
+  owner                User                  @relation(fields: [ownerId], references: [id])
 
   @@map("studios")
 }
 
 model StudioService {
-  id        String      @id @default(cuid())
-  studioId  String      @map("studio_id")
-  service   ServiceType
-  
-  studio    Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  id       String      @id @default(cuid())
+  studioId String      @map("studio_id")
+  service  ServiceType
+  studio   Studio      @relation(fields: [studioId], references: [id], onDelete: Cascade)
 
   @@unique([studioId, service])
   @@map("studio_services")
 }
 
 model StudioImage {
-  id        String @id @default(cuid())
-  studioId  String @map("studio_id")
-  imageUrl  String @map("image_url")
+  id        String  @id @default(cuid())
+  studioId  String  @map("studio_id")
+  imageUrl  String  @map("image_url")
   altText   String? @map("alt_text")
-  sortOrder Int    @default(0) @map("sort_order")
-  
-  studio    Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  sortOrder Int     @default(0) @map("sort_order")
+  studio    Studio  @relation(fields: [studioId], references: [id], onDelete: Cascade)
 
   @@map("studio_images")
 }
 
 model Review {
-  id          String      @id @default(cuid())
-  studioId    String      @map("studio_id")
-  reviewerId  String      @map("reviewer_id")
-  ownerId     String      @map("owner_id") // For easy queries
-  rating      Int         @db.SmallInt
-  content     String?     @db.Text
-  isAnonymous Boolean     @default(false) @map("is_anonymous")
-  status      ReviewStatus @default(PENDING)
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-
-  // Relations
-  studio   Studio          @relation(fields: [studioId], references: [id], onDelete: Cascade)
-  reviewer User            @relation(fields: [reviewerId], references: [id])
-  owner    User            @relation("StudioOwnerReviews", fields: [ownerId], references: [id])
-  response ReviewResponse?
+  id          String          @id @default(cuid())
+  studioId    String          @map("studio_id")
+  reviewerId  String          @map("reviewer_id")
+  ownerId     String          @map("owner_id")
+  rating      Int             @db.SmallInt
+  content     String?
+  isAnonymous Boolean         @default(false) @map("is_anonymous")
+  status      ReviewStatus    @default(PENDING)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  response    ReviewResponse?
+  owner       User            @relation("StudioOwnerReviews", fields: [ownerId], references: [id])
+  reviewer    User            @relation(fields: [reviewerId], references: [id])
+  studio      Studio          @relation(fields: [studioId], references: [id], onDelete: Cascade)
 
   @@map("reviews")
 }
@@ -150,64 +140,56 @@ model ReviewResponse {
   id        String   @id @default(cuid())
   reviewId  String   @unique @map("review_id")
   authorId  String   @map("author_id")
-  content   String   @db.Text
+  content   String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
   @@map("review_responses")
 }
 
 model Message {
-  id         String      @id @default(cuid())
-  senderId   String      @map("sender_id")
-  receiverId String      @map("receiver_id")
+  id         String   @id @default(cuid())
+  senderId   String   @map("sender_id")
+  receiverId String   @map("receiver_id")
   subject    String?
-  content    String      @db.Text
-  isRead     Boolean     @default(false) @map("is_read")
-  createdAt  DateTime    @default(now()) @map("created_at")
-
-  // Relations
-  sender     User @relation("MessageSender", fields: [senderId], references: [id])
-  receiver   User @relation("MessageReceiver", fields: [receiverId], references: [id])
+  content    String
+  isRead     Boolean  @default(false) @map("is_read")
+  createdAt  DateTime @default(now()) @map("created_at")
+  receiver   User     @relation("MessageReceiver", fields: [receiverId], references: [id])
+  sender     User     @relation("MessageSender", fields: [senderId], references: [id])
 
   @@map("messages")
 }
 
 model UserConnection {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  connectedUserId String @map("connected_user_id")
-  accepted  Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user         User @relation("UserConnections", fields: [userId], references: [id])
-  connectedUser User @relation("ConnectedUser", fields: [connectedUserId], references: [id])
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  connectedUserId String   @map("connected_user_id")
+  accepted        Boolean  @default(false)
+  createdAt       DateTime @default(now()) @map("created_at")
+  connectedUser   User     @relation("ConnectedUser", fields: [connectedUserId], references: [id])
+  user            User     @relation("UserConnections", fields: [userId], references: [id])
 
   @@unique([userId, connectedUserId])
   @@map("user_connections")
 }
 
 model Subscription {
-  id                    String            @id @default(cuid())
-  userId                String            @map("user_id")
-  stripeSubscriptionId  String?           @unique @map("stripe_subscription_id")
-  stripeCustomerId      String?           @map("stripe_customer_id")
-  paypalSubscriptionId  String?           @unique @map("paypal_subscription_id")
-  paymentMethod         PaymentMethod     @default(STRIPE) @map("payment_method")
-  status                SubscriptionStatus
-  currentPeriodStart    DateTime?         @map("current_period_start")
-  currentPeriodEnd      DateTime?         @map("current_period_end")
-  cancelledAt           DateTime?         @map("cancelled_at")
-  createdAt             DateTime          @default(now()) @map("created_at")
-  updatedAt             DateTime          @updatedAt @map("updated_at")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id])
+  id                   String             @id @default(cuid())
+  userId               String             @map("user_id")
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
+  stripeCustomerId     String?            @map("stripe_customer_id")
+  paypalSubscriptionId String?            @unique @map("paypal_subscription_id")
+  paymentMethod        PaymentMethod      @default(STRIPE) @map("payment_method")
+  status               SubscriptionStatus
+  currentPeriodStart   DateTime?          @map("current_period_start")
+  currentPeriodEnd     DateTime?          @map("current_period_end")
+  cancelledAt          DateTime?          @map("cancelled_at")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  user                 User               @relation(fields: [userId], references: [id])
 
   @@map("subscriptions")
 }
@@ -216,12 +198,10 @@ model SavedSearch {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
   name      String
-  filters   String   // JSON string of search filters
+  filters   String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("saved_searches")
 }
@@ -236,75 +216,66 @@ model PendingSubscription {
   paymentMethod        PaymentMethod @map("payment_method")
   createdAt            DateTime      @default(now()) @map("created_at")
   updatedAt            DateTime      @updatedAt @map("updated_at")
-
-  // Relations
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  studio               Studio        @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("pending_subscriptions")
 }
 
 model Refund {
-  id                     String       @id @default(cuid())
-  stripeRefundId         String       @unique @map("stripe_refund_id")
-  stripePaymentIntentId  String       @map("stripe_payment_intent_id")
-  amount                 Int          // Amount in cents
-  currency               String
-  reason                 String?
-  status                 RefundStatus
-  processedBy            String       @map("processed_by")
-  createdAt              DateTime     @default(now()) @map("created_at")
-  updatedAt              DateTime     @updatedAt @map("updated_at")
-
-  // Relations
-  processedByUser User @relation(fields: [processedBy], references: [id])
+  id                    String       @id @default(cuid())
+  stripeRefundId        String       @unique @map("stripe_refund_id")
+  stripePaymentIntentId String       @map("stripe_payment_intent_id")
+  amount                Int
+  currency              String
+  reason                String?
+  status                RefundStatus
+  processedBy           String       @map("processed_by")
+  createdAt             DateTime     @default(now()) @map("created_at")
+  updatedAt             DateTime     @updatedAt @map("updated_at")
+  processedByUser       User         @relation(fields: [processedBy], references: [id])
 
   @@map("refunds")
 }
 
 model Notification {
-  id          String           @id @default(cuid())
-  userId      String           @map("user_id")
-  type        NotificationType
-  title       String
-  message     String           @db.Text
-  data        Json?            // Additional data for the notification
-  read        Boolean          @default(false)
-  readAt      DateTime?        @map("read_at")
-  actionUrl   String?          @map("action_url")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?
+  read      Boolean          @default(false)
+  readAt    DateTime?        @map("read_at")
+  actionUrl String?          @map("action_url")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }
 
 model ContentReport {
-  id             String        @id @default(cuid())
-  reporterId     String        @map("reporter_id")
-  contentType    ContentType   @map("content_type")
-  contentId      String        @map("content_id")
-  reportedUserId String?       @map("reported_user_id")
+  id             String       @id @default(cuid())
+  reporterId     String       @map("reporter_id")
+  contentType    ContentType  @map("content_type")
+  contentId      String       @map("content_id")
+  reportedUserId String?      @map("reported_user_id")
   reason         ReportReason
-  customReason   String?       @map("custom_reason")
-  status         ReportStatus  @default(PENDING)
-  reviewedById   String?       @map("reviewed_by_id")
-  reviewedAt     DateTime?     @map("reviewed_at")
-  resolution     String?       @db.Text
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
-
-  // Relations
-  reporter     User  @relation("ReportsMade", fields: [reporterId], references: [id])
-  reportedUser User? @relation("ReportsReceived", fields: [reportedUserId], references: [id])
-  reviewedBy   User? @relation("ReportsReviewed", fields: [reviewedById], references: [id])
+  customReason   String?      @map("custom_reason")
+  status         ReportStatus @default(PENDING)
+  reviewedById   String?      @map("reviewed_by_id")
+  reviewedAt     DateTime?    @map("reviewed_at")
+  resolution     String?
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  reportedUser   User?        @relation("ReportsReceived", fields: [reportedUserId], references: [id])
+  reporter       User         @relation("ReportsMade", fields: [reporterId], references: [id])
+  reviewedBy     User?        @relation("ReportsReviewed", fields: [reviewedById], references: [id])
 
   @@map("content_reports")
 }
 
-// Enums
 enum Role {
   USER
   STUDIO_OWNER
@@ -398,4 +369,75 @@ enum ReportStatus {
   REVIEWED
   RESOLVED
   DISMISSED
+}
+
+// Enhanced User Metadata Models
+model UserMetadata {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  key       String
+  value     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([userId])
+  @@index([key])
+  @@map("user_metadata")
+}
+
+model UserProfile {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique @map("user_id")
+  
+  // Professional Information
+  firstName              String?  @map("first_name")
+  lastName               String?  @map("last_name")
+  phone                  String?
+  about                  String?
+  shortAbout             String?  @map("short_about")
+  location               String?
+  
+  // Pricing Information
+  rateTier1              String?  @map("rate_tier_1")
+  rateTier2              String?  @map("rate_tier_2")
+  rateTier3              String?  @map("rate_tier_3")
+  showRates              Boolean  @default(false) @map("show_rates")
+  
+  // Social Media Links
+  facebookUrl            String?  @map("facebook_url")
+  twitterUrl             String?  @map("twitter_url")
+  linkedinUrl            String?  @map("linkedin_url")
+  instagramUrl           String?  @map("instagram_url")
+  youtubeUrl             String?  @map("youtube_url")
+  vimeoUrl               String?  @map("vimeo_url")
+  soundcloudUrl          String?  @map("soundcloud_url")
+  
+  // Professional Status
+  isCrbChecked           Boolean  @default(false) @map("is_crb_checked")
+  isFeatured             Boolean  @default(false) @map("is_featured")
+  isSpotlight            Boolean  @default(false) @map("is_spotlight")
+  verificationLevel      String   @default("none") @map("verification_level") // none, basic, verified, premium
+  
+  // Equipment & Studio
+  homeStudioDescription  String?  @map("home_studio_description")
+  equipmentList          String?  @map("equipment_list")
+  servicesOffered        String?  @map("services_offered")
+  
+  // Contact Preferences
+  showEmail              Boolean  @default(false) @map("show_email")
+  showPhone              Boolean  @default(false) @map("show_phone")
+  showAddress            Boolean  @default(false) @map("show_address")
+  
+  // Timestamps
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+  
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([isFeatured])
+  @@index([isSpotlight])
+  @@index([verificationLevel])
+  @@map("user_profiles")
 }

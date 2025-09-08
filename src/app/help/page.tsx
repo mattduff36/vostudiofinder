@@ -129,9 +129,9 @@ export default function HelpPage() {
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'
           }`} style={{ transitionDelay: '0.2s' }}>Help Center</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
-          <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+          <p className={`text-xl text-center transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.4s', color: 'rgba(255, 255, 255, 0.9)' }}>
+          }`} style={{ transitionDelay: '0.4s', color: 'rgba(255, 255, 255, 0.9)', maxWidth: '768px', margin: '0 auto' }}>
             Find answers to your questions and get the most out of VoiceoverStudioFinder
           </p>
         </div>
@@ -229,10 +229,10 @@ export default function HelpPage() {
         {/* Contact Information */}
         <div className="mt-16 rounded-lg p-8 text-center" style={{ backgroundColor: `${colors.primary}10` }}>
           <h2 className="text-2xl font-bold mb-4" style={{ color: colors.textPrimary }}>Still Need Help?</h2>
-          <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
+          <p className="text-gray-700 mb-6 text-center" style={{ maxWidth: '768px', margin: '0 auto' }}>
             Can't find the answer you're looking for? Our support team is here to help you get the most out of VoiceoverStudioFinder.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ maxWidth: '768px', margin: '0 auto' }}>
             <div className="flex items-center justify-center space-x-3">
               <Mail className="w-5 h-5" style={{ color: colors.primary }} />
               <span style={{ color: colors.textSecondary }}>support@voiceoverstudiofinder.com</span>

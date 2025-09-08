@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
 
   // Image optimization
   images: {
-    domains: ['res.cloudinary.com', 'lh3.googleusercontent.com'],
+    domains: ['res.cloudinary.com', 'lh3.googleusercontent.com', 'pbs.twimg.com', 'images.unsplash.com'],
     formats: ['image/webp', 'image/avif'],
   },
 

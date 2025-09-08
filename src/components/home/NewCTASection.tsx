@@ -6,11 +6,11 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { colors } from './HomePage';
 
-interface CTASectionProps {
+interface NewCTASectionProps {
   session: Session | null;
 }
 
-export function CTASection({ }: CTASectionProps) {
+export function NewCTASection({ }: NewCTASectionProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -19,28 +19,25 @@ export function CTASection({ }: CTASectionProps) {
 
   return (
     <div className="relative py-16 overflow-hidden">
-      {/* Background Banner Image */}
+      {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bottom-banner.jpg"
+          src="/bakground-images/21920-3.jpg"
           alt="Professional recording studio"
           fill
-          className="object-cover"
-          priority
+          className="object-cover opacity-10"
+          priority={false}
         />
-        <div
-          className="absolute inset-0 transition-all duration-300"
-          style={{ backgroundColor: `${colors.primary}00` }}
-        ></div>
       </div>
       
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
-        <div className="text-center text-white mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: '#ffffff' }}>Ready to Get Started?</h2>
-          <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+      <div className="relative z-10 py-16 w-full">
+        <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.textPrimary }}>Ready to Get Started? (keeping for future dev)</h2>
+          <p className={`text-xl text-center transition-all duration-1000 ease-out ${
             isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.2s', color: '#ffffff' }}>
+          }`} style={{ transitionDelay: '0.2s', color: colors.textSecondary, maxWidth: '768px', margin: '0 auto' }}>
             Whether you're a voice artist looking for the perfect studio or a studio owner
             wanting to connect with talent, VoiceoverStudioFinder has you covered.
           </p>
@@ -52,12 +49,12 @@ export function CTASection({ }: CTASectionProps) {
             { icon: Building, title: 'For Studio Owners', points: ['Reach thousands of voice artists worldwide', 'Professional listing with photos & details', 'Direct bookings from qualified clients', 'Only £25/year - exceptional value'] },
             { icon: Users, title: 'For Everyone', points: ['Join a global community', 'Network with professionals', 'Share experiences and tips', 'Stay updated on industry trends'] }
           ].map((section, index) => (
-            <div key={index} className="text-center text-white">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                <section.icon className="w-8 h-8" />
+            <div key={index} className="text-center">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${colors.primary}20` }}>
+                <section.icon className="w-8 h-8" style={{ color: colors.primary }} />
               </div>
-              <h3 className="text-xl font-semibold mb-3" style={{ color: '#ffffff' }}>{section.title}</h3>
-              <ul className="space-y-2 text-sm" style={{ color: '#ffffff' }}>
+              <h3 className="text-xl font-semibold mb-3" style={{ color: colors.textPrimary }}>{section.title}</h3>
+              <ul className="space-y-2 text-sm" style={{ color: colors.textSecondary }}>
                 {section.points.map((point, pointIndex) => (
                   <li key={pointIndex}>• {point}</li>
                 ))}
@@ -67,12 +64,13 @@ export function CTASection({ }: CTASectionProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <button className="px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl" style={{ backgroundColor: colors.background, color: colors.primary }}>
+          <button className="px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl" style={{ backgroundColor: colors.primary, color: colors.background }}>
             List Your Studio - £25/year
           </button>
-          <button className="px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl" style={{ border: `1px solid ${colors.background}`, color: colors.background, backgroundColor: 'transparent' }}>
+          <button className="px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl" style={{ border: `1px solid ${colors.primary}`, color: colors.primary, backgroundColor: 'transparent' }}>
             Browse Studios
           </button>
+        </div>
         </div>
       </div>
     </div>

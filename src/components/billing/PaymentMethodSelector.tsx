@@ -64,7 +64,7 @@ export function PaymentMethodSelector({
                     </div>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mt-1">{method.description}</p>
+                <p className="text-sm text-gray-600 mt-1 text-center">{method.description}</p>
                 
                 <ul className="mt-2 space-y-1">
                   {method.features.map((feature, index) => (

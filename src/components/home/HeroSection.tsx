@@ -70,7 +70,7 @@ export function HeroSection() {
   };
 
   return (
-    <div className="relative text-white overflow-hidden">
+    <div className="relative text-white overflow-hidden min-h-screen flex items-center">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -87,18 +87,18 @@ export function HeroSection() {
         </div>
 
       {/* Hero Content */}
-      <div className="relative z-10 px-6 pt-32 pb-20">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className={`text-5xl md:text-6xl font-bold mb-6 transition-all duration-1000 delay-200 ${
+      <div className="relative z-10 py-20 w-full">
+        <div className="max-w-7xl mx-auto px-6">
+          <h1 className={`text-5xl md:text-6xl font-bold mb-6 text-center transition-all duration-1000 delay-200 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ color: '#ffffff' }}>
             Find Your Perfect<br/>
             <span style={{ color: colors.primary }}>Recording Studio</span>
           </h1>
           
-          <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+          <p className={`text-xl text-center transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.4s', color: '#ffffff' }}>
+          }`} style={{ transitionDelay: '0.4s', color: '#ffffff', maxWidth: '768px', margin: '0 auto' }}>
             Connect with professional voiceover recording studios worldwide.<br/>Advanced search, verified locations, and direct studio contact.
           </p>
 

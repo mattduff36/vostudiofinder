@@ -116,7 +116,7 @@ export function EnhancedCheckout({
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="space-y-8" style={{ maxWidth: '768px', margin: '0 auto' }}>
       {/* Plan Summary */}
       <div className="bg-gray-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Plan Summary</h3>

@@ -43,9 +43,9 @@ export default function AboutPage() {
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'
           }`} style={{ transitionDelay: '0.2s' }}>About Us</h1>
           <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
-          <p className={`text-xl max-w-3xl mx-auto transition-all duration-1000 ease-out ${
+          <p className={`text-xl text-center transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.4s', color: 'rgba(255, 255, 255, 0.9)' }}>
+          }`} style={{ transitionDelay: '0.4s', color: 'rgba(255, 255, 255, 0.9)', maxWidth: '768px', margin: '0 auto' }}>
             Connecting voice professionals with recording studios worldwide
           </p>
         </div>

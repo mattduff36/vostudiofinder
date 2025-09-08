@@ -232,7 +232,7 @@ export function NotificationBell() {
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-500 mt-1 text-center">
                         {notification.message}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">

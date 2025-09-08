@@ -24,12 +24,18 @@
     "clean": "rm -rf .next node_modules",
     "test": "echo \"Tests coming soon\" && exit 0",
     "migrate:legacy": "tsx scripts/migration/migrate-data.ts",
-    "migrate:validate": "tsx scripts/migration/validate-legacy-db.ts"
+    "migrate:validate": "tsx scripts/migration/validate-legacy-db.ts",
+    "migrate:turso": "tsx scripts/migration/migrate-from-turso.ts",
+    "migrate:validate-turso": "tsx scripts/migration/validate-turso-db.ts",
+    "migrate:enhanced": "tsx scripts/migration/enhanced-turso-migration.ts",
+    "migrate:backup": "tsx scripts/migration/backup-neon-db.ts",
+    "migrate:populate-metadata": "tsx scripts/migration/populate-user-metadata.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^5.2.1",
+    "@libsql/client": "^0.15.15",
     "@prisma/client": "^6.15.0",
     "@sentry/nextjs": "^10.8.0",
     "@stripe/stripe-js": "^7.9.0",
