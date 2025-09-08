@@ -59,77 +59,94 @@ export function EnhancedSearchBar({
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Comprehensive keyword databases for NLP parsing
-  const keywordDatabase = {
-    locations: [
-      'london', 'manchester', 'birmingham', 'leeds', 'glasgow', 'edinburgh', 'bristol', 'liverpool',
-      'new york', 'los angeles', 'chicago', 'houston', 'philadelphia', 'phoenix', 'san antonio',
-      'toronto', 'vancouver', 'montreal', 'calgary', 'ottawa', 'sydney', 'melbourne', 'brisbane',
-      'uk', 'usa', 'canada', 'australia', 'england', 'scotland', 'wales', 'ireland'
-    ],
-    studioTypes: [
-      'podcast', 'podcasting', 'recording', 'mixing', 'mastering', 'voice over', 'voiceover',
-      'broadcast', 'radio', 'tv', 'television', 'music', 'audio', 'sound', 'production',
-      'rehearsal', 'live', 'streaming', 'dubbing', 'adr', 'foley', 'post production'
-    ],
-    services: [
-      'isdn', 'source connect', 'cleanfeed', 'sessionlinkpro', 'remote recording', 'live streaming',
-      'video conferencing', 'zoom', 'skype', 'teams', 'google meet', 'patch bay', 'monitoring',
-      'headphone distribution', 'talkback', 'cue mix', 'overdub', 'punch and roll'
-    ],
-    equipment: [
-      'pro tools', 'logic', 'cubase', 'reaper', 'ableton', 'studio one', 'nuendo',
-      'neumann', 'akg', 'shure', 'sennheiser', 'rode', 'audio technica', 'electro voice',
-      'ssl', 'neve', 'api', 'focusrite', 'universal audio', 'avid', 'apogee', 'rme',
-      'u47', 'u67', 'u87', 'c12', 'ela m251', 'sm57', 'sm58', 're20', 'md421'
-    ]
+
+
+  // Remove a tag
+  const removeTag = (tagId: string) => {
+    setSearchTags(prev => prev.filter(tag => tag.id !== tagId));
   };
 
-  // Smart NLP parsing function for multi-criteria detection
+  // Parse multi-criteria search input
   const parseMultiCriteriaSearch = (input: string): MultiCriteriaSearch => {
     const lowerInput = input.toLowerCase().trim();
-    
     const criteria: MultiCriteriaSearch = {
       services: [],
       equipment: []
     };
 
-    // Location detection (prioritize longer matches)
-    const locationMatches = keywordDatabase.locations
-      .filter(loc => lowerInput.includes(loc))
-      .sort((a, b) => b.length - a.length); // Longer matches first
-    
-    if (locationMatches.length > 0 && locationMatches[0]) {
-      criteria.location = locationMatches[0];
+    // Location patterns - look for city names and location indicators
+    const locationPatterns = [
+      { pattern: /\bin\s+([a-z\s]+?)(?:\s+with|\s+for|\s*$)/i, group: 1 },
+      { pattern: /([a-z\s]+?)\s+studio/i, group: 1 },
+      { pattern: /\b(london|manchester|birmingham|glasgow|edinburgh|cardiff|belfast|dublin|new york|los angeles|chicago|houston|phoenix|philadelphia|san antonio|san diego|dallas|san jose|austin|jacksonville|fort worth|columbus|charlotte|san francisco|indianapolis|seattle|denver|washington|boston|el paso|detroit|nashville|portland|oklahoma city|las vegas|louisville|baltimore|milwaukee|albuquerque|tucson|fresno|sacramento|mesa|kansas city|atlanta|long beach|colorado springs|raleigh|miami|virginia beach|omaha|oakland|minneapolis|tulsa|arlington|new orleans|wichita|cleveland|tampa|bakersfield|aurora|honolulu|anaheim|santa ana|corpus christi|riverside|lexington|stockton|toledo|st\. paul|newark|greensboro|plano|henderson|lincoln|buffalo|jersey city|chula vista|fort wayne|orlando|st\. petersburg|chandler|laredo|norfolk|durham|madison|lubbock|irvine|winston-salem|glendale|garland|hialeah|reno|chesapeake|gilbert|baton rouge|irving|scottsdale|north las vegas|fremont|boise|richmond|san bernardino|spokane|rochester|des moines|modesto|fayetteville|tacoma|oxnard|fontana|montgomery|moreno valley|shreveport|yonkers|akron|huntington beach|little rock|augusta|amarillo|mobile|grand rapids|salt lake city|tallahassee|huntsville|grand prairie|knoxville|worcester|newport news|brownsville|overland park|santa clarita|providence|garden grove|chattanooga|oceanside|jackson|fort lauderdale|santa rosa|rancho cucamonga|port st\. lucie|tempe|ontario|vancouver|peoria|pembroke pines|salem|cape coral|sioux falls|springfield|lancaster|elk grove|corona|palmdale|salinas|eugene|pasadena|hayward|pomona|cary|rockford|alexandria|escondido|mckinney|joliet|sunnyvale|torrance|bridgeport|lakewood|hollywood|paterson|naperville|syracuse|mesquite|dayton|savannah|clarksville|orange|fullerton|killeen|frisco|hampton|mcallen|warren|west valley city|columbia|olathe|sterling heights|new haven|miramar|waco|thousand oaks|cedar rapids|charleston|sioux city|round rock|fargo|carrollton|roseville|concord|thornton|visalia|beaumont|gainesville|simi valley|coral springs|stamford|westminster)\b/i, group: 0 }
+    ];
+
+    for (const { pattern, group } of locationPatterns) {
+      const match = lowerInput.match(pattern);
+      if (match && match[group]) {
+        criteria.location = match[group].trim();
+        break;
+      }
     }
 
-    // Studio type detection
-    const studioTypeMatches = keywordDatabase.studioTypes
-      .filter(type => lowerInput.includes(type))
-      .sort((a, b) => b.length - a.length);
-    
-    if (studioTypeMatches.length > 0 && studioTypeMatches[0]) {
-      criteria.studioType = studioTypeMatches[0];
+    // Studio type patterns
+    const studioTypePatterns = [
+      { pattern: /\b(recording|record)\s+studio/i, type: 'RECORDING' },
+      { pattern: /\bpodcast\s+studio/i, type: 'PODCAST' },
+      { pattern: /\b(voiceover|voice\s*over|vo)\s+studio/i, type: 'VOICEOVER' },
+      { pattern: /\bhome\s+studio/i, type: 'HOME' },
+      { pattern: /\bmobile\s+studio/i, type: 'MOBILE' },
+      { pattern: /\bproduction\s+studio/i, type: 'PRODUCTION' }
+    ];
+
+    for (const { pattern, type } of studioTypePatterns) {
+      if (pattern.test(lowerInput)) {
+        criteria.studioType = type;
+        break;
+      }
     }
 
-    // Services detection (can have multiple)
-    keywordDatabase.services.forEach(service => {
-      if (lowerInput.includes(service)) {
+    // Service patterns
+    const servicePatterns = [
+      { pattern: /\bisdn\b/i, service: 'ISDN' },
+      { pattern: /\bsource\s*connect(?:\s+now)?\b/i, service: 'SOURCE_CONNECT' },
+      { pattern: /\bcleanfeed\b/i, service: 'CLEANFEED' },
+      { pattern: /\bsession\s*link\s*pro\b/i, service: 'SESSION_LINK_PRO' },
+      { pattern: /\bzoom\b/i, service: 'ZOOM' },
+      { pattern: /\bskype\b/i, service: 'SKYPE' },
+      { pattern: /\b(teams|microsoft\s*teams)\b/i, service: 'TEAMS' }
+    ];
+
+    for (const { pattern, service } of servicePatterns) {
+      if (pattern.test(lowerInput)) {
         criteria.services.push(service);
       }
-    });
+    }
 
-    // Equipment detection (can have multiple)
-    keywordDatabase.equipment.forEach(equipment => {
-      if (lowerInput.includes(equipment)) {
+    // Equipment patterns
+    const equipmentPatterns = [
+      { pattern: /\bneumann\s*u87\b/i, equipment: 'neumann_u87' },
+      { pattern: /\bneumann\s*tlm\s*103\b/i, equipment: 'neumann_tlm103' },
+      { pattern: /\brode\s*procaster\b/i, equipment: 'rode_procaster' },
+      { pattern: /\bshure\s*sm7b\b/i, equipment: 'shure_sm7b' },
+      { pattern: /\baudio[-\s]*technica\s*at4040\b/i, equipment: 'audio_technica_at4040' },
+      { pattern: /\bfocusrite\s*scarlett\b/i, equipment: 'focusrite_scarlett' },
+      { pattern: /\buniversal\s*audio\b/i, equipment: 'universal_audio' },
+      { pattern: /\bpro\s*tools\b/i, equipment: 'pro_tools' },
+      { pattern: /\blogic\s*pro\b/i, equipment: 'logic_pro' },
+      { pattern: /\bcubase\b/i, equipment: 'cubase' }
+    ];
+
+    for (const { pattern, equipment } of equipmentPatterns) {
+      if (pattern.test(lowerInput)) {
         criteria.equipment.push(equipment);
       }
-    });
+    }
 
     return criteria;
   };
 
-  // Convert parsed criteria to visual tags
+  // Create tags from parsed criteria
   const createTagsFromCriteria = (criteria: MultiCriteriaSearch): SearchTag[] => {
     const tags: SearchTag[] = [];
 
@@ -138,47 +155,75 @@ export function EnhancedSearchBar({
         id: `location-${Date.now()}`,
         type: 'location',
         value: criteria.location,
-        display: criteria.location.charAt(0).toUpperCase() + criteria.location.slice(1),
+        display: criteria.location,
         icon: '📍'
       });
     }
 
     if (criteria.studioType) {
+      const studioTypeLabels: { [key: string]: string } = {
+        'RECORDING': 'Recording Studio',
+        'PODCAST': 'Podcast Studio',
+        'VOICEOVER': 'Voiceover Studio',
+        'HOME': 'Home Studio',
+        'MOBILE': 'Mobile Studio',
+        'PRODUCTION': 'Production Studio'
+      };
+
       tags.push({
-        id: `studioType-${Date.now()}`,
+        id: `studio-${Date.now()}`,
         type: 'studioType',
         value: criteria.studioType,
-        display: criteria.studioType.charAt(0).toUpperCase() + criteria.studioType.slice(1) + ' Studio',
-        icon: '🎙️'
+        display: studioTypeLabels[criteria.studioType] || criteria.studioType,
+        icon: '🏢'
       });
     }
 
     criteria.services.forEach((service, index) => {
+      const serviceLabels: { [key: string]: string } = {
+        'ISDN': 'ISDN',
+        'SOURCE_CONNECT': 'Source Connect',
+        'SOURCE_CONNECT_NOW': 'Source Connect Now',
+        'CLEANFEED': 'Cleanfeed',
+        'SESSION_LINK_PRO': 'Session Link Pro',
+        'ZOOM': 'Zoom',
+        'SKYPE': 'Skype',
+        'TEAMS': 'Microsoft Teams'
+      };
+
       tags.push({
         id: `service-${Date.now()}-${index}`,
         type: 'service',
         value: service,
-        display: service.toUpperCase(),
-        icon: '🔧'
+        display: serviceLabels[service] || service,
+        icon: '🔗'
       });
     });
 
     criteria.equipment.forEach((equipment, index) => {
+      const equipmentLabels: { [key: string]: string } = {
+        'neumann_u87': 'Neumann U87',
+        'neumann_tlm103': 'Neumann TLM 103',
+        'rode_procaster': 'Rode Procaster',
+        'shure_sm7b': 'Shure SM7B',
+        'audio_technica_at4040': 'Audio-Technica AT4040',
+        'focusrite_scarlett': 'Focusrite Scarlett',
+        'universal_audio': 'Universal Audio',
+        'pro_tools': 'Pro Tools',
+        'logic_pro': 'Logic Pro',
+        'cubase': 'Cubase'
+      };
+
       tags.push({
         id: `equipment-${Date.now()}-${index}`,
         type: 'equipment',
         value: equipment,
-        display: equipment.charAt(0).toUpperCase() + equipment.slice(1),
-        icon: '🎚️'
+        display: equipmentLabels[equipment] || equipment,
+        icon: '🎤'
       });
     });
 
     return tags;
-  };
-
-  // Remove a tag
-  const removeTag = (tagId: string) => {
-    setSearchTags(prev => prev.filter(tag => tag.id !== tagId));
   };
 
   // Process input with NLP and create tags
