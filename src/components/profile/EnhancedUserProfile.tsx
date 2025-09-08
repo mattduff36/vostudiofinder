@@ -35,9 +35,9 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
   const metadata = user.metadata || [];
   
   // Helper function to get metadata value
-  const getMetadata = (key: string) => {
-    return metadata.find(m => m.key === key)?.value;
-  };
+  // const getMetadata = (key: string) => {
+  //   return metadata.find(m => m.key === key)?.value;
+  // };
 
   // Social media links with proper styling
   const socialLinks = [
