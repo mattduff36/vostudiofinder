@@ -35,19 +35,41 @@ export async function GET(request: NextRequest) {
             firstName: true,
             lastName: true
           }
+        },
+        studios: {
+          select: {
+            address: true,
+            latitude: true,
+            longitude: true
+          },
+          where: {
+            status: 'ACTIVE'
+          },
+          take: 1
         }
       },
       take: 10
     });
 
     // Format users for suggestions
-    const formattedUsers = users.map(user => ({
-      id: user.id,
-      username: user.username,
-      display_name: user.displayName,
-      location: user.profile?.location || null,
-      coordinates: null // We'll need to geocode this if needed
-    }));
+    const formattedUsers = users.map(user => {
+      // Prioritize studio address over profile location
+      const location = user.studios?.[0]?.address || user.profile?.location || null;
+      const coordinates = user.studios?.[0]?.latitude && user.studios?.[0]?.longitude
+        ? { 
+            lat: user.studios[0].latitude.toNumber(), 
+            lng: user.studios[0].longitude.toNumber() 
+          }
+        : null;
+
+      return {
+        id: user.id,
+        username: user.username,
+        display_name: user.displayName,
+        location,
+        coordinates
+      };
+    });
 
     return NextResponse.json({ users: formattedUsers });
   } catch (error) {
