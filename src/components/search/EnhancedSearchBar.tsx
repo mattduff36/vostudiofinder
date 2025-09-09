@@ -357,6 +357,39 @@ export function EnhancedSearchBar({
 
   return (
     <div className={`relative ${className}`}>
+      {/* Radius Slider - Moved Above Search Bar */}
+      {showRadius && (
+        <div className="mb-6 p-4 bg-transparent">
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-medium text-white">Search Radius</label>
+            <span className="text-sm text-white opacity-80">{radius} miles</span>
+          </div>
+          <input
+            type="range"
+            min="5"
+            max="200"
+            step="5"
+            value={radius}
+            onChange={(e) => setRadius(parseInt(e.target.value))}
+            className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider"
+            style={{
+              background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) 100%)`
+            }}
+          />
+          <div className="relative text-xs text-white opacity-70 mt-1">
+            <div className="flex justify-between">
+              <span>5mi</span>
+              <span>200mi</span>
+            </div>
+            <div className="absolute inset-0 flex justify-between pointer-events-none">
+              <span style={{ left: '25%', transform: 'translateX(-50%)', position: 'absolute' }}>50mi</span>
+              <span style={{ left: '50%', transform: 'translateX(-50%)', position: 'absolute' }}>100mi</span>
+              <span style={{ left: '75%', transform: 'translateX(-50%)', position: 'absolute' }} className="hidden sm:block">150mi</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Search Input */}
       <div className="bg-white rounded-xl p-2 shadow-2xl">
         <div className="flex gap-3">
@@ -433,39 +466,6 @@ export function EnhancedSearchBar({
           </div>
         </div>
       )}
-      
-      {/* Radius Slider - Always Visible with Transparent Background */}
-      {showRadius && (
-        <div className="mt-4 p-4 bg-transparent">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-white">Search Radius</label>
-            <span className="text-sm text-white opacity-80">{radius} miles</span>
-          </div>
-          <input
-            type="range"
-            min="5"
-            max="200"
-            step="5"
-            value={radius}
-            onChange={(e) => setRadius(parseInt(e.target.value))}
-            className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider"
-            style={{
-              background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) 100%)`
-            }}
-          />
-          <div className="relative text-xs text-white opacity-70 mt-1">
-            <div className="flex justify-between">
-              <span>5mi</span>
-              <span>200mi</span>
-            </div>
-            <div className="absolute inset-0 flex justify-between pointer-events-none">
-              <span style={{ left: '25%', transform: 'translateX(-50%)', position: 'absolute' }}>50mi</span>
-              <span style={{ left: '50%', transform: 'translateX(-50%)', position: 'absolute' }}>100mi</span>
-              <span style={{ left: '75%', transform: 'translateX(-50%)', position: 'absolute' }} className="hidden sm:block">150mi</span>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Suggestions Dropdown */}
       {isOpen && suggestions.length > 0 && (
@@ -485,14 +485,14 @@ export function EnhancedSearchBar({
               ref={(el) => { suggestionRefs.current[index] = el; }}
               className={`px-4 py-3 cursor-pointer flex items-center gap-3 transition-colors ${
                 index === selectedIndex
-                  ? 'bg-primary-50 text-primary-900'
-                  : 'hover:bg-gray-50'
+                  ? 'bg-blue-50 text-blue-900'
+                  : 'hover:bg-gray-50 text-gray-900'
               }`}
               onClick={() => handleSelect(suggestion)}
             >
               {getSuggestionIcon(suggestion.type)}
               <div className="flex-1">
-                <div className="font-medium">{suggestion.text}</div>
+                <div className="font-medium text-gray-900">{suggestion.text}</div>
               </div>
             </div>
           ))}
