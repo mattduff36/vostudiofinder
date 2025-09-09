@@ -67,17 +67,24 @@ export function StudiosPage() {
 
   // Search function
   const performSearch = async (params: URLSearchParams) => {
+    console.log('🔍 StudiosPage performSearch called with params:', params.toString());
     setLoading(true);
     try {
-      const response = await fetch(`/api/studios/search?${params.toString()}`);
+      const apiUrl = `/api/studios/search?${params.toString()}`;
+      console.log('📡 Making API call to:', apiUrl);
+      
+      const response = await fetch(apiUrl);
+      console.log('📡 API response status:', response.status, response.statusText);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ API response data:', data);
         setSearchResults(data);
       } else {
-        console.error('Search failed:', response.status, response.statusText);
+        console.error('❌ Search failed:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('💥 Search error:', error);
     } finally {
       setLoading(false);
     }
