@@ -101,11 +101,28 @@ export function EnhancedSearchBar({
       
       let allSuggestions: SearchSuggestion[] = [];
 
-      // If it looks like a location, try Google Places
-      if (type === 'location' && window.google?.maps?.places) {
+      // Always search for users (unless it's clearly a postcode/zip)
+      const isPostcode = /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s?[0-9][A-Z]{2}$/i.test(searchQuery.trim()) ||
+                        /^\d{5}(-\d{4})?$/.test(searchQuery.trim());
+      
+      if (!isPostcode) {
+        try {
+          console.log('🔍 Searching for users...');
+          const userSuggestions = await fetchUserSuggestions(searchQuery);
+          console.log('👥 Found user suggestions:', userSuggestions.length);
+          allSuggestions = [...allSuggestions, ...userSuggestions];
+        } catch (error) {
+          console.warn('User search error:', error);
+        }
+      }
+
+      // Also try Google Places for location suggestions
+      if (window.google?.maps?.places) {
         setIsLoadingPlaces(true);
         try {
+          console.log('🗺️ Searching Google Places...');
           const placeSuggestions = await fetchGooglePlaces(searchQuery);
+          console.log('📍 Found place suggestions:', placeSuggestions.length);
           allSuggestions = [...allSuggestions, ...placeSuggestions];
         } catch (error) {
           console.warn('Google Places error:', error);
@@ -114,20 +131,12 @@ export function EnhancedSearchBar({
         }
       }
 
-      // If it looks like a username, search for users
-      if (type === 'user') {
-        try {
-          const userSuggestions = await fetchUserSuggestions(searchQuery);
-          allSuggestions = [...allSuggestions, ...userSuggestions];
-        } catch (error) {
-          console.warn('User search error:', error);
-        }
-      }
-
       // Deduplicate suggestions
       const uniqueSuggestions = allSuggestions.filter((suggestion, index, self) => 
         index === self.findIndex(s => s.text.toLowerCase() === suggestion.text.toLowerCase())
       );
+
+      console.log('📋 All suggestions before sorting:', uniqueSuggestions);
 
       // Sort by relevance
       uniqueSuggestions.sort((a, b) => {
@@ -137,11 +146,19 @@ export function EnhancedSearchBar({
         if (aExact && !bExact) return -1;
         if (!aExact && bExact) return 1;
         
+        // Then prioritize users over locations
+        if (a.type === 'user' && b.type !== 'user') return -1;
+        if (a.type !== 'user' && b.type === 'user') return 1;
+        
         return a.text.localeCompare(b.text);
       });
 
-      setSuggestions(uniqueSuggestions.slice(0, 8));
-      setIsOpen(true);
+      const finalSuggestions = uniqueSuggestions.slice(0, 8);
+      console.log('✅ Final suggestions to display:', finalSuggestions);
+      console.log('🔓 Setting isOpen to:', finalSuggestions.length > 0);
+      
+      setSuggestions(finalSuggestions);
+      setIsOpen(finalSuggestions.length > 0);
       setSelectedIndex(-1);
     } catch (error) {
       console.error('Failed to fetch suggestions:', error);
