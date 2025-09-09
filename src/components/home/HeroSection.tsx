@@ -5,12 +5,6 @@ import { useRouter } from 'next/navigation';
 import { colors } from './HomePage';
 import { EnhancedSearchBar } from '../search/EnhancedSearchBar';
 
-interface MultiCriteriaSearch {
-  location?: string;
-  studioType?: string;
-  services: string[];
-  equipment: string[];
-}
 
 import Image from 'next/image';
 
@@ -23,44 +17,23 @@ export function HeroSection() {
     setIsLoaded(true);
   }, []);
 
-  // Map NLP detected types to enum values
-  const mapStudioTypeToEnum = (nlpType: string): string => {
-    const mapping: { [key: string]: string } = {
-      'podcast': 'PODCAST',
-      'podcasting': 'PODCAST', 
-      'recording': 'RECORDING',
-      'production': 'PRODUCTION',
-      'home': 'HOME',
-      'mobile': 'MOBILE'
-    };
-    
-    return mapping[nlpType.toLowerCase()] || nlpType.toUpperCase();
-  };
 
-  const handleSearch = (criteria: MultiCriteriaSearch, radius?: number) => {
-    console.log('Multi-criteria search initiated:', { criteria, radius });
+  const handleSearch = (location: string, coordinates?: { lat: number; lng: number }, radius?: number) => {
+    console.log('Location search initiated:', { location, coordinates, radius });
     
     // Build URL parameters for studios page
     const params = new URLSearchParams();
     
-    if (criteria.location) {
-      params.set('location', criteria.location);
+    // Set location parameter
+    params.set('location', location);
+    
+    // Set coordinates if available
+    if (coordinates) {
+      params.set('lat', coordinates.lat.toString());
+      params.set('lng', coordinates.lng.toString());
     }
     
-    if (criteria.studioType) {
-      // Map NLP detected type to enum value
-      const mappedStudioType = mapStudioTypeToEnum(criteria.studioType);
-      params.set('studioType', mappedStudioType);
-    }
-    
-    if (criteria.services && criteria.services.length > 0) {
-      params.set('services', criteria.services.join(','));
-    }
-    
-    if (criteria.equipment && criteria.equipment.length > 0) {
-      params.set('equipment', criteria.equipment.join(','));
-    }
-    
+    // Set radius if provided
     if (radius) {
       params.set('radius', radius.toString());
     }
@@ -107,7 +80,7 @@ export function HeroSection() {
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ transitionDelay: '0.6s' }}>
             <EnhancedSearchBar
-              placeholder="Search studios, services, equipment, or location..."
+              placeholder="Search by location, postcode, or username..."
               showRadius={true}
               onSearch={handleSearch}
             />

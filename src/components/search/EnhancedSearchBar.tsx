@@ -2,44 +2,29 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Building, Settings, Mic, X } from 'lucide-react';
+import { Search, MapPin, Building, X } from 'lucide-react';
 import { colors } from '../home/HomePage';
 
 interface SearchSuggestion {
   id: string;
   text: string;
-  type: 'location' | 'studio' | 'service' | 'equipment';
+  type: 'location' | 'user';
   metadata?: {
     place_id?: string;
-    studio_id?: string;
+    user_id?: string;
     coordinates?: { lat: number; lng: number };
   };
-}
-
-interface SearchTag {
-  id: string;
-  type: 'location' | 'studioType' | 'service' | 'equipment';
-  value: string;
-  display: string;
-  icon: string;
-}
-
-interface MultiCriteriaSearch {
-  location?: string;
-  studioType?: string;
-  services: string[];
-  equipment: string[];
 }
 
 interface EnhancedSearchBarProps {
   placeholder?: string;
   className?: string;
   showRadius?: boolean;
-  onSearch?: (criteria: MultiCriteriaSearch, radius?: number) => void;
+  onSearch?: (location: string, coordinates?: { lat: number; lng: number }, radius?: number) => void;
 }
 
 export function EnhancedSearchBar({ 
-  placeholder = "Search studios, services, equipment, or location...",
+  placeholder = "Search by location, postcode, or username...",
   className = "",
   showRadius = true,
   onSearch
@@ -52,8 +37,10 @@ export function EnhancedSearchBar({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [radius, setRadius] = useState(25);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
-  const [searchTags, setSearchTags] = useState<SearchTag[]>([]);
-  const [isProcessingNLP, setIsProcessingNLP] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    name: string;
+    coordinates?: { lat: number; lng: number };
+  } | null>(null);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -61,253 +48,41 @@ export function EnhancedSearchBar({
 
 
 
-  // Remove a tag
-  const removeTag = (tagId: string) => {
-    setSearchTags(prev => prev.filter(tag => tag.id !== tagId));
+  // Clear selected location
+  const clearLocation = () => {
+    setSelectedLocation(null);
+    setQuery('');
   };
 
-  // Parse multi-criteria search input
-  const parseMultiCriteriaSearch = (input: string): MultiCriteriaSearch => {
-    const lowerInput = input.toLowerCase().trim();
-    const criteria: MultiCriteriaSearch = {
-      services: [],
-      equipment: []
-    };
-
-    // Location patterns - look for city names and location indicators
-    const locationPatterns = [
-      { pattern: /\bin\s+([a-z\s]+?)(?:\s+with|\s+for|\s*$)/i, group: 1 },
-      { pattern: /([a-z\s]+?)\s+studio/i, group: 1 },
-      { pattern: /\b(london|manchester|birmingham|glasgow|edinburgh|cardiff|belfast|dublin|new york|los angeles|chicago|houston|phoenix|philadelphia|san antonio|san diego|dallas|san jose|austin|jacksonville|fort worth|columbus|charlotte|san francisco|indianapolis|seattle|denver|washington|boston|el paso|detroit|nashville|portland|oklahoma city|las vegas|louisville|baltimore|milwaukee|albuquerque|tucson|fresno|sacramento|mesa|kansas city|atlanta|long beach|colorado springs|raleigh|miami|virginia beach|omaha|oakland|minneapolis|tulsa|arlington|new orleans|wichita|cleveland|tampa|bakersfield|aurora|honolulu|anaheim|santa ana|corpus christi|riverside|lexington|stockton|toledo|st\. paul|newark|greensboro|plano|henderson|lincoln|buffalo|jersey city|chula vista|fort wayne|orlando|st\. petersburg|chandler|laredo|norfolk|durham|madison|lubbock|irvine|winston-salem|glendale|garland|hialeah|reno|chesapeake|gilbert|baton rouge|irving|scottsdale|north las vegas|fremont|boise|richmond|san bernardino|spokane|rochester|des moines|modesto|fayetteville|tacoma|oxnard|fontana|montgomery|moreno valley|shreveport|yonkers|akron|huntington beach|little rock|augusta|amarillo|mobile|grand rapids|salt lake city|tallahassee|huntsville|grand prairie|knoxville|worcester|newport news|brownsville|overland park|santa clarita|providence|garden grove|chattanooga|oceanside|jackson|fort lauderdale|santa rosa|rancho cucamonga|port st\. lucie|tempe|ontario|vancouver|peoria|pembroke pines|salem|cape coral|sioux falls|springfield|lancaster|elk grove|corona|palmdale|salinas|eugene|pasadena|hayward|pomona|cary|rockford|alexandria|escondido|mckinney|joliet|sunnyvale|torrance|bridgeport|lakewood|hollywood|paterson|naperville|syracuse|mesquite|dayton|savannah|clarksville|orange|fullerton|killeen|frisco|hampton|mcallen|warren|west valley city|columbia|olathe|sterling heights|new haven|miramar|waco|thousand oaks|cedar rapids|charleston|sioux city|round rock|fargo|carrollton|roseville|concord|thornton|visalia|beaumont|gainesville|simi valley|coral springs|stamford|westminster)\b/i, group: 0 }
-    ];
-
-    for (const { pattern, group } of locationPatterns) {
-      const match = lowerInput.match(pattern);
-      if (match && match[group]) {
-        criteria.location = match[group].trim();
-        break;
-      }
-    }
-
-    // Studio type patterns
-    const studioTypePatterns = [
-      { pattern: /\b(recording|record)\s+studio/i, type: 'RECORDING' },
-      { pattern: /\bpodcast\s+studio/i, type: 'PODCAST' },
-      { pattern: /\b(voiceover|voice\s*over|vo)\s+studio/i, type: 'VOICEOVER' },
-      { pattern: /\bhome\s+studio/i, type: 'HOME' },
-      { pattern: /\bmobile\s+studio/i, type: 'MOBILE' },
-      { pattern: /\bproduction\s+studio/i, type: 'PRODUCTION' }
-    ];
-
-    for (const { pattern, type } of studioTypePatterns) {
-      if (pattern.test(lowerInput)) {
-        criteria.studioType = type;
-        break;
-      }
-    }
-
-    // Service patterns
-    const servicePatterns = [
-      { pattern: /\bisdn\b/i, service: 'ISDN' },
-      { pattern: /\bsource\s*connect(?:\s+now)?\b/i, service: 'SOURCE_CONNECT' },
-      { pattern: /\bcleanfeed\b/i, service: 'CLEANFEED' },
-      { pattern: /\bsession\s*link\s*pro\b/i, service: 'SESSION_LINK_PRO' },
-      { pattern: /\bzoom\b/i, service: 'ZOOM' },
-      { pattern: /\bskype\b/i, service: 'SKYPE' },
-      { pattern: /\b(teams|microsoft\s*teams)\b/i, service: 'TEAMS' }
-    ];
-
-    for (const { pattern, service } of servicePatterns) {
-      if (pattern.test(lowerInput)) {
-        criteria.services.push(service);
-      }
-    }
-
-    // Equipment patterns
-    const equipmentPatterns = [
-      { pattern: /\bneumann\s*u87\b/i, equipment: 'neumann_u87' },
-      { pattern: /\bneumann\s*tlm\s*103\b/i, equipment: 'neumann_tlm103' },
-      { pattern: /\brode\s*procaster\b/i, equipment: 'rode_procaster' },
-      { pattern: /\bshure\s*sm7b\b/i, equipment: 'shure_sm7b' },
-      { pattern: /\baudio[-\s]*technica\s*at4040\b/i, equipment: 'audio_technica_at4040' },
-      { pattern: /\bfocusrite\s*scarlett\b/i, equipment: 'focusrite_scarlett' },
-      { pattern: /\buniversal\s*audio\b/i, equipment: 'universal_audio' },
-      { pattern: /\bpro\s*tools\b/i, equipment: 'pro_tools' },
-      { pattern: /\blogic\s*pro\b/i, equipment: 'logic_pro' },
-      { pattern: /\bcubase\b/i, equipment: 'cubase' }
-    ];
-
-    for (const { pattern, equipment } of equipmentPatterns) {
-      if (pattern.test(lowerInput)) {
-        criteria.equipment.push(equipment);
-      }
-    }
-
-    return criteria;
-  };
-
-  // Create tags from parsed criteria
-  const createTagsFromCriteria = (criteria: MultiCriteriaSearch): SearchTag[] => {
-    const tags: SearchTag[] = [];
-
-    if (criteria.location) {
-      tags.push({
-        id: `location-${Date.now()}`,
-        type: 'location',
-        value: criteria.location,
-        display: criteria.location,
-        icon: '📍'
-      });
-    }
-
-    if (criteria.studioType) {
-      const studioTypeLabels: { [key: string]: string } = {
-        'RECORDING': 'Recording Studio',
-        'PODCAST': 'Podcast Studio',
-        'VOICEOVER': 'Voiceover Studio',
-        'HOME': 'Home Studio',
-        'MOBILE': 'Mobile Studio',
-        'PRODUCTION': 'Production Studio'
-      };
-
-      tags.push({
-        id: `studio-${Date.now()}`,
-        type: 'studioType',
-        value: criteria.studioType,
-        display: studioTypeLabels[criteria.studioType] || criteria.studioType,
-        icon: '🏢'
-      });
-    }
-
-    criteria.services.forEach((service, index) => {
-      const serviceLabels: { [key: string]: string } = {
-        'ISDN': 'ISDN',
-        'SOURCE_CONNECT': 'Source Connect',
-        'SOURCE_CONNECT_NOW': 'Source Connect Now',
-        'CLEANFEED': 'Cleanfeed',
-        'SESSION_LINK_PRO': 'Session Link Pro',
-        'ZOOM': 'Zoom',
-        'SKYPE': 'Skype',
-        'TEAMS': 'Microsoft Teams'
-      };
-
-      tags.push({
-        id: `service-${Date.now()}-${index}`,
-        type: 'service',
-        value: service,
-        display: serviceLabels[service] || service,
-        icon: '🔗'
-      });
-    });
-
-    criteria.equipment.forEach((equipment, index) => {
-      const equipmentLabels: { [key: string]: string } = {
-        'neumann_u87': 'Neumann U87',
-        'neumann_tlm103': 'Neumann TLM 103',
-        'rode_procaster': 'Rode Procaster',
-        'shure_sm7b': 'Shure SM7B',
-        'audio_technica_at4040': 'Audio-Technica AT4040',
-        'focusrite_scarlett': 'Focusrite Scarlett',
-        'universal_audio': 'Universal Audio',
-        'pro_tools': 'Pro Tools',
-        'logic_pro': 'Logic Pro',
-        'cubase': 'Cubase'
-      };
-
-      tags.push({
-        id: `equipment-${Date.now()}-${index}`,
-        type: 'equipment',
-        value: equipment,
-        display: equipmentLabels[equipment] || equipment,
-        icon: '🎤'
-      });
-    });
-
-    return tags;
-  };
-
-  // Process input with NLP and create tags
-  const processInputWithNLP = (input: string) => {
-    console.log('🔍 processInputWithNLP called with:', input);
-    
-    if (!input.trim()) {
-      console.log('📝 Empty input, clearing tags and suggestions');
-      setSearchTags([]);
-      setSuggestions([]);
-      setIsOpen(false);
-      return;
-    }
-
-    console.log('⚡ Starting NLP processing and fetching suggestions...');
-    setIsProcessingNLP(true);
-    
-    // Fetch suggestions immediately
-    fetchSuggestions(input);
-    
-    // Add a small delay to show processing state for NLP
-    setTimeout(() => {
-      console.log('🧠 Parsing multi-criteria search...');
-      const criteria = parseMultiCriteriaSearch(input);
-      console.log('📊 Parsed criteria:', criteria);
-      
-      const tags = createTagsFromCriteria(criteria);
-      console.log('🏷️ Created tags:', tags);
-      
-      setSearchTags(tags);
-      setIsProcessingNLP(false);
-      console.log('✅ NLP processing complete');
-    }, 300);
-  };
-
-  // Detect search type based on input (legacy function - keeping for compatibility)
-  const detectSearchType = (input: string): string => {
+  // Detect search type - location or user
+  const detectSearchType = (input: string): 'location' | 'user' => {
     const lowerInput = input.toLowerCase().trim();
     
-    // Location patterns
-    const locationPatterns = [
-      /^[a-z\s]+,\s*[a-z\s]+$/i, // City, Country/State
-      /^[a-z\s]+\s+\d{5}$/i, // City ZIP
-      /^\d{5}$/i, // ZIP code only
-      /^[a-z]{1,2}\d{1,2}\s*\d[a-z]{2}$/i, // UK postcode
-      /\b(london|manchester|birmingham|glasgow|edinburgh|cardiff|belfast|dublin|new york|los angeles|chicago|houston|phoenix|philadelphia|san antonio|san diego|dallas|san jose|austin|jacksonville|fort worth|columbus|charlotte|san francisco|indianapolis|seattle|denver|washington|boston|el paso|detroit|nashville|portland|oklahoma city|las vegas|louisville|baltimore|milwaukee|albuquerque|tucson|fresno|sacramento|mesa|kansas city|atlanta|long beach|colorado springs|raleigh|miami|virginia beach|omaha|oakland|minneapolis|tulsa|arlington|new orleans|wichita|cleveland|tampa|bakersfield|aurora|honolulu|anaheim|santa ana|corpus christi|riverside|lexington|stockton|toledo|st. paul|newark|greensboro|plano|henderson|lincoln|buffalo|jersey city|chula vista|fort wayne|orlando|st. petersburg|chandler|laredo|norfolk|durham|madison|lubbock|irvine|winston-salem|glendale|garland|hialeah|reno|chesapeake|gilbert|baton rouge|irving|scottsdale|north las vegas|fremont|boise|richmond|san bernardino|birmingham|spokane|rochester|des moines|modesto|fayetteville|tacoma|oxnard|fontana|columbus|montgomery|moreno valley|shreveport|aurora|yonkers|akron|huntington beach|little rock|augusta|amarillo|glendale|mobile|grand rapids|salt lake city|tallahassee|huntsville|grand prairie|knoxville|worcester|newport news|brownsville|overland park|santa clarita|providence|garden grove|chattanooga|oceanside|jackson|fort lauderdale|santa rosa|rancho cucamonga|port st. lucie|tempe|ontario|vancouver|peoria|pembroke pines|salem|cape coral|sioux falls|springfield|peoria|lancaster|elk grove|corona|palmdale|salinas|eugene|pasadena|hayward|pomona|cary|rockford|alexandria|escondido|mckinney|kansas city|joliet|sunnyvale|torrance|bridgeport|lakewood|hollywood|paterson|naperville|syracuse|mesquite|dayton|savannah|clarksville|orange|pasadena|fullerton|killeen|frisco|hampton|mcallen|warren|west valley city|columbia|olathe|sterling heights|new haven|miramar|waco|thousand oaks|cedar rapids|charleston|sioux city|round rock|fargo|carrollton|roseville|concord|thornton|visalia|beaumont|gainesville|simi valley|coral springs|stamford|westminster|sitka|juneau|anchorage|fairbanks|phoenix|tucson|mesa|chandler|glendale|scottsdale|gilbert|tempe|peoria|surprise|yuma|avondale|flagstaff|goodyear|buckeye|casa grande|sierra vista|maricopa|oro valley|prescott|apache junction|marana|el mirage|kingman|bullhead city|prescott valley|florence|somerton|tolleson|youngtown|paradise valley|fountain hills|cave creek|carefree|guadalupe|litchfield park|wickenburg|clarkdale|jerome|sedona|page|winslow|holbrook|show low|payson|globe|superior|mammoth|kearny|hayden|clifton|safford|thatcher|benson|willcox|tombstone|bisbee|douglas|nogales|patagonia|sonoita|tubac|sahuarita|vail|corona de tucson|catalina foothills|casas adobes|flowing wells|tanque verde|oro valley|marana|picture rocks|avra valley|three points|tucson estates|valencia west|drexel heights|summit|catalina|oracle|mammoth|san manuel|winkelman|hayden|kearny|superior|globe|miami|claypool|central heights-midland city|cutter|peridot|bylas|fort thomas|pima|thatcher|safford|solomon|duncan|clifton|morenci|york|franklin|greenlee|alpine|nutrioso|greer|springerville|eagar|st. johns|concho|snowflake|taylor|show low|pinetop-lakeside|whiteriver|mcnary|hon-dah|cibecue|carrizo|cedar creek|forestdale|seven mile|turkey creek|canyon day|east fork|north fork|salt river|tonto basin|young|strawberry|pine|payson|star valley|tonto village|kohls ranch|christopher creek|woods canyon lake|heber-overgaard|clay springs|pinedale|lakeside|pinetop|vernon|greer|eager|springerville|st. johns|concho|snowflake|taylor|show low|whiteriver|mcnary|hon-dah|cibecue|carrizo|cedar creek|forestdale|seven mile|turkey creek|canyon day|east fork|north fork|salt river|tonto basin|young|strawberry|pine|payson|star valley|tonto village|kohls ranch|christopher creek|woods canyon lake|heber-overgaard|clay springs|pinedale)\b/i
+    // UK Postcode patterns
+    const postcodePatterns = [
+      /^[a-z]{1,2}\d{1,2}\s*\d[a-z]{2}$/i, // UK postcode (e.g., SW1A 1AA, M1 1AA)
+      /^[a-z]{1,2}\d[a-z]\s*\d[a-z]{2}$/i, // UK postcode with letter (e.g., W1A 0AX)
     ];
     
-    // Studio name patterns (common studio naming conventions)
-    const studioPatterns = [
-      /\b(studio|studios|recording|audio|sound|voice|vocal|booth|production|media|creative)\b/i,
-      /^[a-z0-9]+\s*(studio|recording|audio|sound|voice|vocal|booth|production|media|creative)/i,
-      /^(a1|a-1|studio\s*\d+|room\s*\d+)/i
+    // US ZIP code patterns
+    const zipPatterns = [
+      /^\d{5}$/i, // 5-digit ZIP
+      /^\d{5}-\d{4}$/i, // ZIP+4
     ];
     
-    // Service/Equipment patterns
-    const servicePatterns = [
-      /\b(isdn|source\s*connect|cleanfeed|session\s*link|zoom|skype|teams|pro\s*tools|logic|cubase|reaper|audacity|neumann|shure|akg|rode|focusrite|universal\s*audio|apollo|scarlett|ssl|neve|api|avalon|tube-tech|la-2a|1176|dbx|lexicon|tc\s*electronic|eventide|waves|plugin|vst|aax|rtas|tdm|midi|xlr|trs|usb|thunderbolt|firewire|adat|spdif|aes|ebu|wordclock|phantom\s*power|preamp|compressor|eq|equalizer|reverb|delay|chorus|flanger|phaser|distortion|overdrive|fuzz|gate|limiter|expander|de-esser|vocal\s*strip|channel\s*strip|console|mixer|interface|converter|monitor|speaker|headphone|microphone|mic|condenser|dynamic|ribbon|pop\s*filter|shock\s*mount|boom|stand|cable|patch\s*bay|di\s*box|direct\s*box|splitter|switcher|router|patchbay|talkback|cue\s*mix|fold\s*back|monitor\s*mix|headphone\s*mix|control\s*room|live\s*room|isolation\s*booth|vocal\s*booth|drum\s*room|piano\s*room|amp\s*room|machine\s*room|server\s*room|patch\s*room|storage|lounge|kitchen|bathroom|parking|wifi|internet|ethernet|fiber|broadband|dsl|cable|satellite|cellular|4g|5g|lte)\b/i
-    ];
-
-    // Check patterns in order of specificity
-    if (locationPatterns.some(pattern => pattern.test(lowerInput))) {
+    // Check if it's a postcode/ZIP first
+    if (postcodePatterns.some(pattern => pattern.test(lowerInput)) || 
+        zipPatterns.some(pattern => pattern.test(lowerInput))) {
       return 'location';
     }
     
-    if (studioPatterns.some(pattern => pattern.test(lowerInput))) {
-      return 'studio';
+    // If it's a short alphanumeric string without spaces, likely a username
+    if (/^[a-z0-9_-]{3,20}$/i.test(lowerInput) && !lowerInput.includes(' ')) {
+      return 'user';
     }
     
-    if (servicePatterns.some(pattern => pattern.test(lowerInput))) {
-      return 'service';
-    }
-    
-    // If it's a short alphanumeric string, likely a studio name
-    if (/^[a-z0-9]{2,15}$/i.test(lowerInput)) {
-      return 'studio';
-    }
-    
-    // If it contains numbers and letters mixed, could be equipment model
-    if (/[a-z]+\d+|[a-z]+[-_]\d+|\d+[a-z]+/i.test(lowerInput)) {
-      return 'equipment';
-    }
-    
-    return 'general';
+    // Everything else is treated as a location (city, area, etc.)
+    return 'location';
   };
 
   // Fetch suggestions from multiple sources
@@ -323,38 +98,14 @@ export function EnhancedSearchBar({
       const type = detectSearchType(searchQuery);
       console.log('🎯 Detected search type:', type);
       
-      // Fetch from our API
-      const url = `/api/search/suggestions?q=${encodeURIComponent(searchQuery)}`;
-      console.log('📡 Making fetch request to:', url);
-      
-      const response = await fetch(url);
-      console.log('📥 Response received:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
-      });
-      
-      let apiSuggestions: SearchSuggestion[] = [];
-      
-      if (response.ok) {
-        console.log('✅ Response OK, parsing JSON...');
-        const data = await response.json();
-        console.log('📋 Parsed data:', data);
-        apiSuggestions = data.suggestions || [];
-        console.log('📝 API suggestions:', apiSuggestions.length, 'items');
-      } else {
-        console.error('❌ Response not OK:', response.status, response.statusText);
-        const errorText = await response.text();
-        console.error('📄 Error response body:', errorText.substring(0, 200));
-      }
+      let allSuggestions: SearchSuggestion[] = [];
 
-      // If it looks like a location, also try Google Places
-      let placeSuggestions: SearchSuggestion[] = [];
+      // If it looks like a location, try Google Places
       if (type === 'location' && window.google?.maps?.places) {
         setIsLoadingPlaces(true);
         try {
-          placeSuggestions = await fetchGooglePlaces(searchQuery);
+          const placeSuggestions = await fetchGooglePlaces(searchQuery);
+          allSuggestions = [...allSuggestions, ...placeSuggestions];
         } catch (error) {
           console.warn('Google Places error:', error);
         } finally {
@@ -362,19 +113,24 @@ export function EnhancedSearchBar({
         }
       }
 
-      // Combine and deduplicate suggestions
-      const allSuggestions = [...placeSuggestions, ...apiSuggestions];
+      // If it looks like a username, search for users
+      if (type === 'user') {
+        try {
+          const userSuggestions = await fetchUserSuggestions(searchQuery);
+          allSuggestions = [...allSuggestions, ...userSuggestions];
+        } catch (error) {
+          console.warn('User search error:', error);
+        }
+      }
+
+      // Deduplicate suggestions
       const uniqueSuggestions = allSuggestions.filter((suggestion, index, self) => 
         index === self.findIndex(s => s.text.toLowerCase() === suggestion.text.toLowerCase())
       );
 
-      // Sort by relevance and type
+      // Sort by relevance
       uniqueSuggestions.sort((a, b) => {
-        // Prioritize by detected type
-        if (a.type === type && b.type !== type) return -1;
-        if (a.type !== type && b.type === type) return 1;
-        
-        // Then by exact matches
+        // Prioritize exact matches
         const aExact = a.text.toLowerCase().startsWith(searchQuery.toLowerCase());
         const bExact = b.text.toLowerCase().startsWith(searchQuery.toLowerCase());
         if (aExact && !bExact) return -1;
@@ -403,7 +159,7 @@ export function EnhancedSearchBar({
       service.getPlacePredictions(
         {
           input: searchQuery,
-          types: ['(cities)'],
+          types: ['(cities)', 'postal_code', 'sublocality', 'locality'],
           componentRestrictions: { country: ['us', 'gb', 'ca', 'au'] }
         },
         (predictions: any[], status: any) => {
@@ -423,6 +179,30 @@ export function EnhancedSearchBar({
         }
       );
     });
+  };
+
+  // Fetch user suggestions by username
+  const fetchUserSuggestions = async (searchQuery: string): Promise<SearchSuggestion[]> => {
+    try {
+      const response = await fetch(`/api/search/users?q=${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) {
+        return [];
+      }
+      
+      const data = await response.json();
+      return (data.users || []).map((user: any) => ({
+        id: `user-${user.id}`,
+        text: `${user.username} (${user.display_name || user.username})`,
+        type: 'user' as const,
+        metadata: {
+          user_id: user.id,
+          coordinates: user.coordinates
+        }
+      }));
+    } catch (error) {
+      console.error('Error fetching user suggestions:', error);
+      return [];
+    }
   };
 
   // Note: Removed duplicate debounced search useEffect to avoid conflicts
@@ -464,134 +244,102 @@ export function EnhancedSearchBar({
 
   // Handle suggestion selection
   const handleSelect = (suggestion: SearchSuggestion) => {
-    setQuery(suggestion.text);
+    if (suggestion.type === 'location') {
+      setSelectedLocation({
+        name: suggestion.text,
+        ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
+      });
+      setQuery(suggestion.text);
+    } else if (suggestion.type === 'user') {
+      // For users, we'll use their location
+      setSelectedLocation({
+        name: suggestion.text,
+        ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
+      });
+      setQuery(suggestion.text);
+    }
+    
     setIsOpen(false);
     setSelectedIndex(-1);
     
-    // Perform search with the selected suggestion
-    performSearch(suggestion.text, suggestion.type);
+    // Perform search immediately
+    performLocationSearch(suggestion.text, suggestion.metadata?.coordinates);
   };
 
   // Handle search submission
   const handleSearch = () => {
-    // If we have tags, use multi-criteria search
-    if (searchTags.length > 0) {
-      performMultiCriteriaSearch();
-    } else if (query.trim()) {
-      // Fallback to legacy single-criteria search
-      const type = detectSearchType(query);
-      performSearch(query, type);
+    if (query.trim()) {
+      if (selectedLocation) {
+        performLocationSearch(selectedLocation.name, selectedLocation.coordinates);
+      } else {
+        // Try to geocode the query
+        performLocationSearch(query);
+      }
     }
   };
 
-  // Perform multi-criteria search using tags
-  const performMultiCriteriaSearch = () => {
-    // Convert tags back to criteria for search
-    const criteria: MultiCriteriaSearch = {
-      services: [],
-      equipment: []
-    };
-
-    searchTags.forEach(tag => {
-      switch (tag.type) {
-        case 'location':
-          criteria.location = tag.value;
-          break;
-        case 'studioType':
-          criteria.studioType = tag.value;
-          break;
-        case 'service':
-          criteria.services.push(tag.value);
-          break;
-        case 'equipment':
-          criteria.equipment.push(tag.value);
-          break;
-      }
-    });
-
+  // Perform location-based search
+  const performLocationSearch = async (locationName: string, coordinates?: { lat: number; lng: number }) => {
     const params = new URLSearchParams();
     
-    // Add query text if present
-    if (query.trim()) {
-      params.set('q', query.trim());
+    // Set location parameter
+    params.set('location', locationName);
+    
+    // Set radius if enabled
+    if (showRadius && radius > 0) {
+      params.set('radius', radius.toString());
     }
     
-    // Set parameters based on criteria
-    if (criteria.location) {
-      params.set('location', criteria.location);
-      if (showRadius && radius > 0) {
-        params.set('radius', radius.toString());
+    // If we have coordinates, add them
+    if (coordinates) {
+      params.set('lat', coordinates.lat.toString());
+      params.set('lng', coordinates.lng.toString());
+    } else if (window.google?.maps?.places) {
+      // Try to geocode the location to get coordinates
+      try {
+        const geocodedCoords = await geocodeLocation(locationName);
+        if (geocodedCoords) {
+          params.set('lat', geocodedCoords.lat.toString());
+          params.set('lng', geocodedCoords.lng.toString());
+        }
+      } catch (error) {
+        console.warn('Geocoding failed:', error);
       }
     }
-    if (criteria.studioType) params.set('studioType', criteria.studioType);
-    if (criteria.services.length > 0) params.set('services', criteria.services.join(','));
-    if (criteria.equipment.length > 0) params.set('equipment', criteria.equipment.join(','));
 
     // Call custom handler if provided
     if (onSearch) {
-      onSearch(criteria, showRadius ? radius : undefined);
+      onSearch(locationName, coordinates, showRadius ? radius : undefined);
     }
 
-    console.log('Multi-criteria search:', { criteria, params: params.toString() });
+    console.log('Location search:', { locationName, coordinates, params: params.toString() });
 
     // Navigate to studios page
     router.push(`/studios?${params.toString()}`);
     setIsOpen(false);
   };
 
-  // Perform the actual search (legacy function for backward compatibility)
-  const performSearch = (searchQuery: string, searchType: string) => {
-    const params = new URLSearchParams();
-    
-    // Set parameters based on detected type
-    switch (searchType) {
-      case 'location':
-        params.set('location', searchQuery);
-        if (showRadius && radius > 0) {
-          params.set('radius', radius.toString());
-        }
-        break;
-      case 'studio':
-        params.set('q', searchQuery);
-        break;
-      case 'service':
-      case 'equipment':
-        params.set('services', searchQuery);
-        break;
-      default:
-        params.set('q', searchQuery);
-    }
-
-    // Call custom handler if provided - convert to multi-criteria format
-    if (onSearch) {
-      const criteria: MultiCriteriaSearch = {
-        services: [],
-        equipment: []
-      };
-      
-      switch (searchType) {
-        case 'location':
-          criteria.location = searchQuery;
-          break;
-        case 'studio':
-          criteria.studioType = searchQuery;
-          break;
-        case 'service':
-          criteria.services = [searchQuery];
-          break;
-        case 'equipment':
-          criteria.equipment = [searchQuery];
-          break;
+  // Geocode a location to get coordinates
+  const geocodeLocation = (locationName: string): Promise<{ lat: number; lng: number } | null> => {
+    return new Promise((resolve) => {
+      if (!window.google?.maps) {
+        resolve(null);
+        return;
       }
-      
-      onSearch(criteria, showRadius ? radius : undefined);
-    }
 
-    // Navigate to studios page
-    router.push(`/studios?${params.toString()}`);
-    
-    // Close suggestions
-    setIsOpen(false);
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode({ address: locationName }, (results: any[], status: any) => {
+        if (status === 'OK' && results && results[0]) {
+          const location = results[0].geometry.location;
+          resolve({
+            lat: location.lat(),
+            lng: location.lng()
+          });
+        } else {
+          resolve(null);
+        }
+      });
+    });
   };
 
   // Get icon for suggestion type
@@ -599,12 +347,8 @@ export function EnhancedSearchBar({
     switch (type) {
       case 'location':
         return <MapPin className="w-4 h-4 text-blue-500" />;
-      case 'studio':
+      case 'user':
         return <Building className="w-4 h-4 text-green-500" />;
-      case 'service':
-        return <Settings className="w-4 h-4 text-purple-500" />;
-      case 'equipment':
-        return <Mic className="w-4 h-4 text-orange-500" />;
       default:
         return <Search className="w-4 h-4 text-gray-500" />;
     }
@@ -634,17 +378,19 @@ export function EnhancedSearchBar({
                   console.log('⌨️ Input onChange triggered with:', newValue);
                   setQuery(newValue);
                   
-                  // Trigger NLP processing with debounce
+                  // Clear selected location if user is typing something new
+                  if (selectedLocation && newValue !== selectedLocation.name) {
+                    setSelectedLocation(null);
+                  }
+                  
+                  // Trigger suggestions with debounce
                   if (debounceRef.current) {
-                    console.log('⏰ Clearing previous debounce timeout');
                     clearTimeout(debounceRef.current);
                   }
                   
-                  console.log('⏱️ Setting new debounce timeout (500ms)');
                   debounceRef.current = setTimeout(() => {
-                    console.log('🚀 Debounce timeout fired, calling processInputWithNLP');
-                    processInputWithNLP(newValue);
-                  }, 500); // Slightly longer delay for NLP processing
+                    fetchSuggestions(newValue);
+                  }, 300);
                 }}
                 onKeyDown={handleKeyDown}
                 autoComplete="off"
@@ -666,39 +412,24 @@ export function EnhancedSearchBar({
         </div>
       </div>
 
-      {/* Search Tags Display */}
-      {(searchTags.length > 0 || isProcessingNLP) && (
+      {/* Selected Location Display */}
+      {selectedLocation && (
         <div className="mt-3 p-3 bg-transparent">
-          <div className="flex flex-wrap gap-2 items-center">
-            {isProcessingNLP && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-full text-white text-sm">
-                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Analyzing...
-              </div>
-            )}
-            
-            {searchTags.map((tag) => (
-              <div
-                key={tag.id}
-                className="flex items-center gap-2 px-3 py-1 bg-white rounded-full text-gray-800 text-sm font-medium shadow-sm"
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-full text-gray-800 text-sm font-medium shadow-sm">
+              <MapPin className="w-3 h-3 text-blue-500" />
+              <span>{selectedLocation.name}</span>
+              <button
+                onClick={clearLocation}
+                className="ml-1 p-0.5 hover:bg-gray-200 rounded-full transition-colors"
+                aria-label="Clear location"
               >
-                <span>{tag.icon}</span>
-                <span>{tag.display}</span>
-                <button
-                  onClick={() => removeTag(tag.id)}
-                  className="ml-1 p-0.5 hover:bg-gray-200 rounded-full transition-colors"
-                  aria-label={`Remove ${tag.display} filter`}
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-            
-            {searchTags.length > 0 && (
-              <div className="text-white text-xs opacity-75 ml-2">
-                {searchTags.length} filter{searchTags.length !== 1 ? 's' : ''} active
-              </div>
-            )}
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="text-white text-xs opacity-75">
+              Location selected
+            </div>
           </div>
         </div>
       )}
