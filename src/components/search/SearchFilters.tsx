@@ -132,13 +132,11 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
             }}
             onEnterKey={() => {
               // Trigger search when Enter is pressed
-              console.log('⌨️ Enter key pressed in location search, triggering search with filters:', filters);
               const newFilters = { ...filters };
               onSearch(newFilters);
             }}
             onSearch={() => {
               // Trigger search when search button is clicked
-              console.log('🔴 Search button clicked in location search, triggering search with filters:', filters);
               const newFilters = { ...filters };
               onSearch(newFilters);
             }}

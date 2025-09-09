@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { Navbar } from '@/components/navigation/Navbar';
 import { authOptions } from '@/lib/auth';
+import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script';
 import './globals.css';
 
@@ -67,6 +68,7 @@ export default async function RootLayout({
             {children}
           </main>
         </SessionProvider>
+        <Analytics />
       </body>
     </html>
   );

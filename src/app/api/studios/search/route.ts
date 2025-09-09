@@ -11,8 +11,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    console.log('🔍 Studios search API called with URL:', request.url);
-    
     // Parse and validate search parameters
     const params = {
       query: searchParams.get('q') || undefined,
@@ -26,8 +24,6 @@ export async function GET(request: NextRequest) {
       sortBy: searchParams.get('sortBy') || 'name',
       sortOrder: searchParams.get('sortOrder') || 'asc',
     };
-
-    console.log('📋 Parsed search parameters:', params);
 
     const validatedParams = studioSearchSchema.parse(params);
 
@@ -80,31 +76,26 @@ export async function GET(request: NextRequest) {
     // Enhanced location search with radius support using Google Maps API
     let searchCoordinates: { lat: number; lng: number } | null = null;
     if (validatedParams.location) {
-      console.log('🌍 Location search requested:', { location: validatedParams.location, radius: validatedParams.radius });
-      
       if (validatedParams.radius && validatedParams.radius > 0) {
-        console.log('📍 Starting geocoding process for location-based search...');
         // Use Google Maps API to geocode the search location
         try {
           const geocodeResult = await geocodeAddress(validatedParams.location);
           if (geocodeResult) {
             searchCoordinates = { lat: geocodeResult.lat, lng: geocodeResult.lng };
-            console.log(`✅ Geocoded "${validatedParams.location}" to:`, searchCoordinates);
+            console.log(`Geocoded "${validatedParams.location}" to:`, searchCoordinates);
             
             // For geographic search, we'll filter studios after fetching them
             // This allows us to calculate precise distances
             // Note: For better performance with large datasets, consider using PostGIS or similar
           } else {
-            console.warn(`❌ Failed to geocode location: ${validatedParams.location}`);
-            console.log('🔄 Falling back to text-based address search...');
+            console.warn(`Failed to geocode location: ${validatedParams.location}`);
             // Fall back to text-based address search
             (where.AND as Prisma.StudioWhereInput[]).push({
               address: { contains: validatedParams.location, mode: 'insensitive' },
             });
           }
         } catch (error) {
-          console.error('💥 Geocoding error:', error);
-          console.log('🔄 Falling back to text-based address search...');
+          console.error('Geocoding error:', error);
           // Fall back to text-based address search
           (where.AND as Prisma.StudioWhereInput[]).push({
             address: { contains: validatedParams.location, mode: 'insensitive' },
