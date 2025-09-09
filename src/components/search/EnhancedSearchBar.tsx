@@ -252,26 +252,29 @@ export function EnhancedSearchBar({
         ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
       });
       setQuery(suggestion.text);
+      // Perform search immediately with location name
+      performLocationSearch(suggestion.text, suggestion.metadata?.coordinates);
     } else if (suggestion.type === 'user') {
-      // For users, we'll use their location
+      // For users, use their actual location address, not the username
+      const actualLocation = suggestion.location || suggestion.text;
       setSelectedLocation({
-        name: suggestion.text,
+        name: actualLocation,
         ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
       });
-      setQuery(suggestion.text);
+      setQuery(suggestion.text); // Keep the username in the search box for display
+      // Perform search with the actual location, not the username
+      performLocationSearch(actualLocation, suggestion.metadata?.coordinates);
     }
     
     setIsOpen(false);
     setSelectedIndex(-1);
-    
-    // Perform search immediately
-    performLocationSearch(suggestion.text, suggestion.metadata?.coordinates);
   };
 
   // Handle search submission
   const handleSearch = () => {
     if (query.trim()) {
       if (selectedLocation) {
+        // Use the selected location (which is the actual address for users)
         performLocationSearch(selectedLocation.name, selectedLocation.coordinates);
       } else {
         // Try to geocode the query
