@@ -106,7 +106,8 @@ export function StudiosPage() {
         const sidebarElement = filterSidebarRef.current;
         if (sidebarElement) {
           const sidebarRect = sidebarElement.getBoundingClientRect();
-          const sidebarLeft = sidebarElement.offsetLeft;
+          // Use the current left position from getBoundingClientRect to maintain alignment
+          const sidebarLeft = sidebarRect.left;
           
           setStickyStyles({
             width: sidebarRect.width,
@@ -205,13 +206,14 @@ export function StudiosPage() {
               ref={filterSidebarRef}
               className={`transition-all duration-200 ${
                 isFilterSticky 
-                  ? 'fixed top-20 z-30' 
+                  ? 'fixed z-30' 
                   : 'sticky top-8'
               }`}
               style={isFilterSticky && stickyStyles ? { 
                 width: `${stickyStyles.width}px`,
                 left: `${stickyStyles.left}px`,
-                maxHeight: 'calc(100vh - 5rem)',
+                top: '112px', // 80px navbar + 32px padding (same as top-8)
+                maxHeight: 'calc(100vh - 7rem)', // Adjusted for the extra top space
                 overflowY: 'auto'
               } : {}}
             >
