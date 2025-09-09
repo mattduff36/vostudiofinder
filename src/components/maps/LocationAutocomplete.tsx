@@ -109,13 +109,13 @@ export function LocationAutocomplete({
         value={value}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        className={`w-full pl-10 ${onSearch ? 'pr-12' : 'pr-4'} py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${className}`}
+        className={`w-full pl-10 ${onSearch ? 'pr-14' : 'pr-4'} py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${className}`}
       />
       {onSearch && (
         <button
           type="button"
           onClick={onSearch}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500 hover:text-red-600 transition-colors"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white rounded-md p-1.5 transition-colors"
           aria-label="Search"
         >
           <Search className="w-4 h-4" />
