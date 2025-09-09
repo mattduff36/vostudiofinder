@@ -91,36 +91,47 @@ export function StudiosPage() {
 
   // Handle sticky filter sidebar
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
-      if (!heroSectionRef.current || !filterSidebarRef.current) return;
-      
-      const heroSection = heroSectionRef.current;
-      const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
-      const navbarHeight = 80; // Approximate navbar height
-      const scrollPosition = window.scrollY + navbarHeight;
-      
-      const shouldBeSticky = scrollPosition >= heroBottom;
-      
-      if (shouldBeSticky && !isFilterSticky) {
-        // Calculate the exact dimensions and position when becoming sticky
-        const sidebarElement = filterSidebarRef.current;
-        if (sidebarElement) {
-          const sidebarRect = sidebarElement.getBoundingClientRect();
-          // Use the current left position from getBoundingClientRect to maintain alignment
-          const sidebarLeft = sidebarRect.left;
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          if (!heroSectionRef.current || !filterSidebarRef.current) {
+            ticking = false;
+            return;
+          }
           
-          setStickyStyles({
-            width: sidebarRect.width,
-            left: sidebarLeft
-          });
-        }
+          const heroSection = heroSectionRef.current;
+          const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+          const navbarHeight = 80; // Approximate navbar height
+          const scrollPosition = window.scrollY + navbarHeight;
+          
+          const shouldBeSticky = scrollPosition >= heroBottom;
+          
+          // Calculate dimensions when transitioning to sticky
+          if (shouldBeSticky && !isFilterSticky) {
+            const sidebarElement = filterSidebarRef.current;
+            if (sidebarElement) {
+              const sidebarRect = sidebarElement.getBoundingClientRect();
+              const sidebarLeft = sidebarRect.left;
+              
+              setStickyStyles({
+                width: sidebarRect.width,
+                left: sidebarLeft
+              });
+            }
+          }
+          
+          // Update sticky state
+          setIsFilterSticky(shouldBeSticky);
+          ticking = false;
+        });
+        ticking = true;
       }
-      
-      setIsFilterSticky(shouldBeSticky);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', handleScroll); // Recalculate on resize
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
     handleScroll(); // Check initial position
     
     return () => {
