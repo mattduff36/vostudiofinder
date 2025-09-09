@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Building, X } from 'lucide-react';
+import { Search, MapPin, Building } from 'lucide-react';
 import { colors } from '../home/HomePage';
 
 interface SearchSuggestion {
@@ -49,11 +49,6 @@ export function EnhancedSearchBar({
 
 
 
-  // Clear selected location
-  const clearLocation = () => {
-    setSelectedLocation(null);
-    setQuery('');
-  };
 
   // Detect search type - location or user
   const detectSearchType = (input: string): 'location' | 'user' => {
