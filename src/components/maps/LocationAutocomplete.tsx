@@ -13,6 +13,7 @@ declare global {
 interface LocationAutocompleteProps {
   value: string;
   onChange: (value: string, placeDetails?: any) => void;
+  onEnterKey?: () => void;
   placeholder?: string;
   className?: string;
 }
@@ -20,6 +21,7 @@ interface LocationAutocompleteProps {
 export function LocationAutocomplete({
   value,
   onChange,
+  onEnterKey,
   placeholder = "Enter city, state, or country...",
   className = ""
 }: LocationAutocompleteProps) {
@@ -87,6 +89,14 @@ export function LocationAutocomplete({
     onChange(e.target.value);
   };
 
+  // Handle Enter key press
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && onEnterKey) {
+      e.preventDefault();
+      onEnterKey();
+    }
+  };
+
   return (
     <div className="relative">
       <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -96,6 +106,7 @@ export function LocationAutocomplete({
         placeholder={placeholder}
         value={value}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
         className={`w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${className}`}
       />
     </div>

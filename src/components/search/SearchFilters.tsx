@@ -122,11 +122,20 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
           <LocationAutocomplete
             value={filters.location}
             onChange={(value, placeDetails) => {
-              handleFilterChange('location', value);
-              // You can also store place details if needed for more precise location data
+              // Update the location value in state without triggering search
+              setFilters(prev => ({ ...prev, location: value }));
+              
+              // Only trigger search when a place is actually selected from dropdown
               if (placeDetails) {
                 console.log('Selected place:', placeDetails);
+                const newFilters = { ...filters, location: value };
+                onSearch(newFilters);
               }
+            }}
+            onEnterKey={() => {
+              // Trigger search when Enter is pressed
+              const newFilters = { ...filters };
+              onSearch(newFilters);
             }}
             placeholder="Enter city, state, or country..."
           />
