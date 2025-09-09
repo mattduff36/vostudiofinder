@@ -125,15 +125,18 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
               // Update the location value in state without triggering search
               setFilters(prev => ({ ...prev, location: value }));
               
-              // Only trigger search when a place is actually selected from dropdown
+              // Log selected place for debugging but don't trigger search
               if (placeDetails) {
                 console.log('Selected place:', placeDetails);
-                const newFilters = { ...filters, location: value };
-                onSearch(newFilters);
               }
             }}
             onEnterKey={() => {
               // Trigger search when Enter is pressed
+              const newFilters = { ...filters };
+              onSearch(newFilters);
+            }}
+            onSearch={() => {
+              // Trigger search when search button is clicked
               const newFilters = { ...filters };
               onSearch(newFilters);
             }}

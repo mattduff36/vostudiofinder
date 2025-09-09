@@ -289,8 +289,7 @@ export function EnhancedSearchBar({
         ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
       });
       setQuery(suggestion.text);
-      // Perform search immediately with location name
-      performLocationSearch(suggestion.text, suggestion.metadata?.coordinates);
+      // Don't perform search immediately - wait for Enter key or search button click
     } else if (suggestion.type === 'user') {
       // For users, use their actual location address, not the username
       const actualLocation = suggestion.location || suggestion.text;
@@ -299,8 +298,7 @@ export function EnhancedSearchBar({
         ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
       });
       setQuery(suggestion.text); // Keep the username in the search box for display
-      // Perform search with the actual location, not the username
-      performLocationSearch(actualLocation, suggestion.metadata?.coordinates);
+      // Don't perform search immediately - wait for Enter key or search button click
     }
     
     setIsOpen(false);

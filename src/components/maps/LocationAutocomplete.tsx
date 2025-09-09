@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 
 // Google Maps types
 declare global {
@@ -14,6 +14,7 @@ interface LocationAutocompleteProps {
   value: string;
   onChange: (value: string, placeDetails?: any) => void;
   onEnterKey?: () => void;
+  onSearch?: () => void;
   placeholder?: string;
   className?: string;
 }
@@ -22,6 +23,7 @@ export function LocationAutocomplete({
   value,
   onChange,
   onEnterKey,
+  onSearch,
   placeholder = "Enter city, state, or country...",
   className = ""
 }: LocationAutocompleteProps) {
@@ -107,8 +109,18 @@ export function LocationAutocomplete({
         value={value}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        className={`w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${className}`}
+        className={`w-full pl-10 ${onSearch ? 'pr-12' : 'pr-4'} py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${className}`}
       />
+      {onSearch && (
+        <button
+          type="button"
+          onClick={onSearch}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500 hover:text-red-600 transition-colors"
+          aria-label="Search"
+        >
+          <Search className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 }
