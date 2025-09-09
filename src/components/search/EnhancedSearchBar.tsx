@@ -452,64 +452,9 @@ export function EnhancedSearchBar({
         </div>
       </div>
 
-      {/* Radius Slider - Moved Below Search Bar */}
-      {showRadius && (
-        <div className="mt-6 p-4 bg-transparent">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-white">Search Radius</label>
-            <span className="text-sm text-white opacity-80">{radius} miles</span>
-          </div>
-          <input
-            type="range"
-            min="5"
-            max="200"
-            step="5"
-            value={radius}
-            onChange={(e) => setRadius(parseInt(e.target.value))}
-            className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider"
-            style={{
-              background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) 100%)`
-            }}
-          />
-          <div className="relative text-xs text-white opacity-70 mt-1">
-            <div className="flex justify-between">
-              <span>5mi</span>
-              <span>200mi</span>
-            </div>
-            <div className="absolute inset-0 flex justify-between pointer-events-none">
-              <span style={{ left: '25%', transform: 'translateX(-50%)', position: 'absolute' }}>50mi</span>
-              <span style={{ left: '50%', transform: 'translateX(-50%)', position: 'absolute' }}>100mi</span>
-              <span style={{ left: '75%', transform: 'translateX(-50%)', position: 'absolute' }} className="hidden sm:block">150mi</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Selected Location Display */}
-      {selectedLocation && (
-        <div className="mt-3 p-3 bg-transparent">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-full text-gray-800 text-sm font-medium shadow-sm">
-              <MapPin className="w-3 h-3 text-blue-500" />
-              <span>{selectedLocation.name}</span>
-              <button
-                onClick={clearLocation}
-                className="ml-1 p-0.5 hover:bg-gray-200 rounded-full transition-colors"
-                aria-label="Clear location"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-            <div className="text-white text-xs opacity-75">
-              Location selected
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Suggestions Dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-auto">
+        <div className="absolute z-[60] w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-80 overflow-auto">
           {isLoadingPlaces && (
             <div className="px-4 py-2 text-sm text-gray-500 border-b">
               <div className="flex items-center gap-2">
@@ -545,6 +490,40 @@ export function EnhancedSearchBar({
           ))}
         </div>
       )}
+
+      {/* Radius Slider - Moved Below Search Bar */}
+      {showRadius && (
+        <div className="mt-6 p-4 bg-transparent">
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-medium text-white">Search Radius</label>
+            <span className="text-sm text-white opacity-80">{radius} miles</span>
+          </div>
+          <input
+            type="range"
+            min="5"
+            max="200"
+            step="5"
+            value={radius}
+            onChange={(e) => setRadius(parseInt(e.target.value))}
+            className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider"
+            style={{
+              background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) 100%)`
+            }}
+          />
+          <div className="relative text-xs text-white opacity-70 mt-1">
+            <div className="flex justify-between">
+              <span>5mi</span>
+              <span>200mi</span>
+            </div>
+            <div className="absolute inset-0 flex justify-between pointer-events-none">
+              <span style={{ left: '25%', transform: 'translateX(-50%)', position: 'absolute' }}>50mi</span>
+              <span style={{ left: '50%', transform: 'translateX(-50%)', position: 'absolute' }}>100mi</span>
+              <span style={{ left: '75%', transform: 'translateX(-50%)', position: 'absolute' }} className="hidden sm:block">150mi</span>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
