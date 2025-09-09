@@ -204,7 +204,7 @@ export function StudiosPage() {
             
             <div 
               ref={filterSidebarRef}
-              className={`transition-all duration-200 ${
+              className={`${
                 isFilterSticky 
                   ? 'fixed z-30' 
                   : 'sticky top-8'
