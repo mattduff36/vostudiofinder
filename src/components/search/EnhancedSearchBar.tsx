@@ -8,6 +8,7 @@ import { colors } from '../home/HomePage';
 interface SearchSuggestion {
   id: string;
   text: string;
+  location?: string;
   type: 'location' | 'user';
   metadata?: {
     place_id?: string;
@@ -193,6 +194,7 @@ export function EnhancedSearchBar({
       return (data.users || []).map((user: any) => ({
         id: `user-${user.id}`,
         text: `${user.username} (${user.display_name || user.username})`,
+        location: user.location,
         type: 'user' as const,
         metadata: {
           user_id: user.id,
@@ -492,7 +494,14 @@ export function EnhancedSearchBar({
             >
               {getSuggestionIcon(suggestion.type)}
               <div className="flex-1">
-                <div className="font-medium text-gray-900">{suggestion.text}</div>
+                <div className="font-medium text-gray-900">
+                  {suggestion.text}
+                  {suggestion.location && (
+                    <span className="text-gray-500 font-normal ml-1">
+                      {suggestion.location}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           ))}

@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       id: user.id,
       username: user.username,
       display_name: user.displayName,
-      location: user.profile?.location,
+      location: user.profile?.location || null,
       coordinates: null // We'll need to geocode this if needed
     }));
 
