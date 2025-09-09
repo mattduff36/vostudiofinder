@@ -10,7 +10,8 @@ export default withAuth(
     const isPublicApiRoute = req.nextUrl.pathname.startsWith('/api/public') || 
                              req.nextUrl.pathname === '/api/studios/search' ||
                              req.nextUrl.pathname.startsWith('/api/studios/search') ||
-                             req.nextUrl.pathname.startsWith('/api/search/suggestions');
+                             req.nextUrl.pathname.startsWith('/api/search/suggestions') ||
+                             req.nextUrl.pathname.startsWith('/api/search/users');
     
     
     // Define public paths that don't require authentication
@@ -95,7 +96,8 @@ export default withAuth(
         const isPublicApiRoute = req.nextUrl.pathname.startsWith('/api/public') || 
                                  req.nextUrl.pathname === '/api/studios/search' ||
                                  req.nextUrl.pathname.startsWith('/api/studios/search') ||
-                                 req.nextUrl.pathname.startsWith('/api/search/suggestions');
+                                 req.nextUrl.pathname.startsWith('/api/search/suggestions') ||
+                                 req.nextUrl.pathname.startsWith('/api/search/users');
         
         if (isPublicApiRoute) {
           return true;

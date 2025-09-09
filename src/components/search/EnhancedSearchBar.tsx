@@ -101,19 +101,14 @@ export function EnhancedSearchBar({
       
       let allSuggestions: SearchSuggestion[] = [];
 
-      // Always search for users (unless it's clearly a postcode/zip)
-      const isPostcode = /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s?[0-9][A-Z]{2}$/i.test(searchQuery.trim()) ||
-                        /^\d{5}(-\d{4})?$/.test(searchQuery.trim());
-      
-      if (!isPostcode) {
-        try {
-          console.log('🔍 Searching for users...');
-          const userSuggestions = await fetchUserSuggestions(searchQuery);
-          console.log('👥 Found user suggestions:', userSuggestions.length);
-          allSuggestions = [...allSuggestions, ...userSuggestions];
-        } catch (error) {
-          console.warn('User search error:', error);
-        }
+      // Always search for users
+      try {
+        console.log('🔍 Searching for users...');
+        const userSuggestions = await fetchUserSuggestions(searchQuery);
+        console.log('👥 Found user suggestions:', userSuggestions.length);
+        allSuggestions = [...allSuggestions, ...userSuggestions];
+      } catch (error) {
+        console.warn('User search error:', error);
       }
 
       // Also try Google Places for location suggestions
@@ -167,36 +162,61 @@ export function EnhancedSearchBar({
 
   // Fetch Google Places suggestions
   const fetchGooglePlaces = async (searchQuery: string): Promise<SearchSuggestion[]> => {
-    return new Promise((resolve) => {
-      if (!window.google?.maps?.places) {
-        resolve([]);
-        return;
-      }
+    if (!window.google?.maps?.places) {
+      return [];
+    }
 
-      const service = new window.google.maps.places.AutocompleteService();
-      service.getPlacePredictions(
-        {
-          input: searchQuery,
-          types: ['(cities)', 'postal_code', 'sublocality', 'locality'],
-          componentRestrictions: { country: ['us', 'gb', 'ca', 'au'] }
-        },
-        (predictions: any[], status: any) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
-            const placeSuggestions = predictions.slice(0, 5).map((prediction) => ({
-              id: `place-${prediction.place_id}`,
-              text: prediction.description,
-              type: 'location' as const,
-              metadata: {
-                place_id: prediction.place_id,
-              }
-            }));
-            resolve(placeSuggestions);
-          } else {
-            resolve([]);
+    const service = new window.google.maps.places.AutocompleteService();
+
+    // Define different search types to try
+    const searchTypes = [
+      ['(cities)'], // Cities, towns, neighborhoods
+      ['postal_code'], // Postcodes/zip codes
+      ['sublocality'], // Neighborhoods, districts
+      ['locality'], // Cities and towns
+    ];
+
+    // Make parallel requests for different types
+    const promises = searchTypes.map((types) => {
+      return new Promise<SearchSuggestion[]>((resolve) => {
+        service.getPlacePredictions(
+          {
+            input: searchQuery,
+            types: types,
+            componentRestrictions: { country: ['us', 'gb', 'ca', 'au'] }
+          },
+          (predictions: any[], status: any) => {
+            if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+              const suggestions = predictions.slice(0, 3).map((prediction) => ({
+                id: `place-${prediction.place_id}`,
+                text: prediction.description,
+                type: 'location' as const,
+                metadata: {
+                  place_id: prediction.place_id,
+                }
+              }));
+              resolve(suggestions);
+            } else {
+              resolve([]);
+            }
           }
-        }
-      );
+        );
+      });
     });
+
+    try {
+      const results = await Promise.all(promises);
+      // Flatten and deduplicate results
+      const flatResults = results.flat();
+      const uniqueResults = flatResults.filter((suggestion, index, self) => 
+        index === self.findIndex(s => s.text.toLowerCase() === suggestion.text.toLowerCase())
+      );
+      
+      return uniqueResults.slice(0, 5); // Limit to 5 total suggestions
+    } catch (error) {
+      console.warn('Error fetching Google Places suggestions:', error);
+      return [];
+    }
   };
 
   // Fetch user suggestions by username
