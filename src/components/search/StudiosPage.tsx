@@ -59,8 +59,10 @@ export function StudiosPage() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [isFilterSticky, setIsFilterSticky] = useState(false);
+  const [stickyStyles, setStickyStyles] = useState<{width: number; left: number} | null>(null);
   const heroSectionRef = useRef<HTMLDivElement>(null);
   const filterSidebarRef = useRef<HTMLDivElement>(null);
+  const filterContainerRef = useRef<HTMLDivElement>(null);
   // const [, setShowFilters] = useState(false);
 
   // Search function
@@ -90,22 +92,39 @@ export function StudiosPage() {
   // Handle sticky filter sidebar
   useEffect(() => {
     const handleScroll = () => {
-      if (!heroSectionRef.current) return;
+      if (!heroSectionRef.current || !filterContainerRef.current) return;
       
       const heroSection = heroSectionRef.current;
+      const filterContainer = filterContainerRef.current;
       const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
       const navbarHeight = 80; // Approximate navbar height
       const scrollPosition = window.scrollY + navbarHeight;
       
-      // Make sticky when scroll position reaches the bottom of hero section
-      setIsFilterSticky(scrollPosition >= heroBottom);
+      const shouldBeSticky = scrollPosition >= heroBottom;
+      
+      if (shouldBeSticky && !isFilterSticky) {
+        // Calculate the exact dimensions and position when becoming sticky
+        const containerRect = filterContainer.getBoundingClientRect();
+        const containerLeft = filterContainer.offsetLeft;
+        
+        setStickyStyles({
+          width: containerRect.width,
+          left: containerLeft
+        });
+      }
+      
+      setIsFilterSticky(shouldBeSticky);
     };
 
     window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll); // Recalculate on resize
     handleScroll(); // Check initial position
     
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [isFilterSticky]);
 
   const handleSearch = (filters: Record<string, any>) => {
     const params = new URLSearchParams();
@@ -176,7 +195,7 @@ export function StudiosPage() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
-          <div className="lg:col-span-1 hidden lg:block">
+          <div ref={filterContainerRef} className="lg:col-span-1 hidden lg:block">
             {/* Placeholder to maintain layout when filter becomes fixed */}
             {isFilterSticky && <div style={{ height: '600px' }} />}
             
@@ -184,10 +203,12 @@ export function StudiosPage() {
               ref={filterSidebarRef}
               className={`transition-all duration-200 ${
                 isFilterSticky 
-                  ? 'fixed top-20 w-80 z-30' 
+                  ? 'fixed top-20 z-30' 
                   : 'sticky top-8'
               }`}
-              style={isFilterSticky ? { 
+              style={isFilterSticky && stickyStyles ? { 
+                width: `${stickyStyles.width}px`,
+                left: `${stickyStyles.left}px`,
                 maxHeight: 'calc(100vh - 5rem)',
                 overflowY: 'auto'
               } : {}}
