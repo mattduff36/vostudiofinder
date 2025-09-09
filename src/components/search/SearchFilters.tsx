@@ -3,26 +3,23 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 
-import { X, Search } from 'lucide-react';
+import { X } from 'lucide-react';
 import { LocationAutocomplete } from '@/components/maps/LocationAutocomplete';
 import { StudioType, ServiceType } from '@prisma/client';
 
 interface SearchFiltersProps {
   initialFilters: {
-    query: string;
     location: string;
     studioType: string;
     services: string[];
-    equipment: string[];
     sortBy: string;
     sortOrder: string;
     radius: number;
   };
   onSearch: (filters: Record<string, any>) => void;
-  loading?: boolean;
 }
 
-export function SearchFilters({ initialFilters, onSearch, loading }: SearchFiltersProps) {
+export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) {
   const [filters, setFilters] = useState(initialFilters);
 
   useEffect(() => {
@@ -30,7 +27,10 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
   }, [initialFilters]);
 
   const handleFilterChange = (key: string, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    // Apply filters instantly
+    onSearch(newFilters);
   };
 
   const handleServiceToggle = (service: string) => {
@@ -39,29 +39,19 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
       ? currentServices.filter(s => s !== service)
       : [...currentServices, service];
     
-    handleFilterChange('services', updatedServices);
+    const newFilters = { ...filters, services: updatedServices };
+    setFilters(newFilters);
+    // Apply filters instantly
+    onSearch(newFilters);
   };
 
-  const handleEquipmentToggle = (equipment: string) => {
-    const currentEquipment = filters.equipment || [];
-    const updatedEquipment = currentEquipment.includes(equipment)
-      ? currentEquipment.filter(e => e !== equipment)
-      : [...currentEquipment, equipment];
-    
-    handleFilterChange('equipment', updatedEquipment);
-  };
 
-  const handleSearch = () => {
-    onSearch(filters);
-  };
 
   const clearFilters = () => {
     const clearedFilters = {
-      query: '',
       location: '',
       studioType: '',
       services: [],
-      equipment: [],
       sortBy: 'name',
       sortOrder: 'asc',
       radius: 25,
@@ -88,18 +78,6 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
     { value: ServiceType.TEAMS, label: 'Microsoft Teams' },
   ];
 
-  const equipmentOptions = [
-    { value: 'neumann_u87', label: 'Neumann U87' },
-    { value: 'neumann_tlm103', label: 'Neumann TLM 103' },
-    { value: 'rode_procaster', label: 'Rode Procaster' },
-    { value: 'shure_sm7b', label: 'Shure SM7B' },
-    { value: 'audio_technica_at4040', label: 'Audio-Technica AT4040' },
-    { value: 'focusrite_scarlett', label: 'Focusrite Scarlett' },
-    { value: 'universal_audio', label: 'Universal Audio' },
-    { value: 'pro_tools', label: 'Pro Tools' },
-    { value: 'logic_pro', label: 'Logic Pro' },
-    { value: 'cubase', label: 'Cubase' },
-  ];
 
   const sortOptions = [
     { value: 'name', label: 'Name' },
@@ -107,12 +85,15 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
     { value: 'rating', label: 'Rating' },
   ];
 
-  const hasActiveFilters = filters.query || filters.location || filters.studioType || filters.services.length > 0 || filters.equipment.length > 0 || filters.radius !== 25;
+  const hasActiveFilters = filters.location || filters.studioType || filters.services.length > 0 || filters.radius !== 25;
 
   const handleStudioTypeToggle = (studioType: string) => {
     const currentTypes = filters.studioType ? [filters.studioType] : [];
     const updatedType = currentTypes.includes(studioType) ? '' : studioType;
-    handleFilterChange('studioType', updatedType);
+    const newFilters = { ...filters, studioType: updatedType };
+    setFilters(newFilters);
+    // Apply filters instantly
+    onSearch(newFilters);
   };
 
   return (
@@ -131,22 +112,6 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
         </div>
       )}
 
-      {/* Keyword Search */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-3">
-          Keyword Search
-        </label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search recording studios..."
-            value={filters.query}
-            onChange={(e) => handleFilterChange('query', e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-        </div>
-      </div>
 
       {/* Location */}
       <div>
@@ -235,28 +200,6 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
         </div>
       </div>
 
-      {/* Equipment */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-3">
-          Equipment
-        </label>
-        <div className="space-y-2 max-h-48 overflow-y-auto">
-          {equipmentOptions.map(equipment => (
-            <label
-              key={equipment.value}
-              className="flex items-center space-x-2 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={filters.equipment.includes(equipment.value)}
-                onChange={() => handleEquipmentToggle(equipment.value)}
-                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm text-text-primary">{equipment.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
 
 
       {/* Sort Options */}
@@ -287,15 +230,6 @@ export function SearchFilters({ initialFilters, onSearch, loading }: SearchFilte
         </div>
       </div>
 
-      {/* Search Button */}
-      <Button
-        onClick={handleSearch}
-        loading={loading || false}
-        disabled={loading || false}
-        className="w-full"
-      >
-        {loading ? 'Searching...' : 'Search Studios'}
-      </Button>
     </div>
   );
 }

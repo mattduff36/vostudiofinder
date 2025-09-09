@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
@@ -58,6 +58,9 @@ export function StudiosPage() {
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [isFilterSticky, setIsFilterSticky] = useState(false);
+  const heroSectionRef = useRef<HTMLDivElement>(null);
+  const filterSidebarRef = useRef<HTMLDivElement>(null);
   // const [, setShowFilters] = useState(false);
 
   // Search function
@@ -83,6 +86,26 @@ export function StudiosPage() {
     const params = new URLSearchParams(searchParams.toString());
     performSearch(params);
   }, [searchParams.toString()]);
+
+  // Handle sticky filter sidebar
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!heroSectionRef.current) return;
+      
+      const heroSection = heroSectionRef.current;
+      const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+      const navbarHeight = 80; // Approximate navbar height
+      const scrollPosition = window.scrollY + navbarHeight;
+      
+      // Make sticky when scroll position reaches the bottom of hero section
+      setIsFilterSticky(scrollPosition >= heroBottom);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial position
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSearch = (filters: Record<string, any>) => {
     const params = new URLSearchParams();
@@ -125,7 +148,7 @@ export function StudiosPage() {
       </div>
 
       {/* Header Section - Simplified */}
-      <div className="relative overflow-hidden pt-20" style={{ height: '200px' }}>
+      <div ref={heroSectionRef} className="relative overflow-hidden pt-20" style={{ height: '200px' }}>
         <div className="absolute inset-0">
           <Image
             src="/bakground-images/21920-3.jpg"
@@ -154,20 +177,31 @@ export function StudiosPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1 hidden lg:block">
-            <div className="sticky top-8">
+            {/* Placeholder to maintain layout when filter becomes fixed */}
+            {isFilterSticky && <div style={{ height: '600px' }} />}
+            
+            <div 
+              ref={filterSidebarRef}
+              className={`transition-all duration-200 ${
+                isFilterSticky 
+                  ? 'fixed top-20 w-80 z-30' 
+                  : 'sticky top-8'
+              }`}
+              style={isFilterSticky ? { 
+                maxHeight: 'calc(100vh - 5rem)',
+                overflowY: 'auto'
+              } : {}}
+            >
               <SearchFilters
                 initialFilters={{
-                  query: searchParams.get('q') || '',
                   location: searchParams.get('location') || '',
                   studioType: searchParams.get('studioType') || '',
                   services: searchParams.get('services')?.split(',') || [],
-                  equipment: searchParams.get('equipment')?.split(',') || [],
                   sortBy: searchParams.get('sortBy') || 'name',
                   sortOrder: searchParams.get('sortOrder') || 'asc',
                   radius: parseInt(searchParams.get('radius') || '25'),
                 }}
                 onSearch={handleSearch}
-                loading={loading}
               />
             </div>
           </div>
