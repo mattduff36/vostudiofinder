@@ -92,10 +92,9 @@ export function StudiosPage() {
   // Handle sticky filter sidebar
   useEffect(() => {
     const handleScroll = () => {
-      if (!heroSectionRef.current || !filterContainerRef.current) return;
+      if (!heroSectionRef.current || !filterSidebarRef.current) return;
       
       const heroSection = heroSectionRef.current;
-      const filterContainer = filterContainerRef.current;
       const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
       const navbarHeight = 80; // Approximate navbar height
       const scrollPosition = window.scrollY + navbarHeight;
@@ -104,13 +103,16 @@ export function StudiosPage() {
       
       if (shouldBeSticky && !isFilterSticky) {
         // Calculate the exact dimensions and position when becoming sticky
-        const containerRect = filterContainer.getBoundingClientRect();
-        const containerLeft = filterContainer.offsetLeft;
-        
-        setStickyStyles({
-          width: containerRect.width,
-          left: containerLeft
-        });
+        const sidebarElement = filterSidebarRef.current;
+        if (sidebarElement) {
+          const sidebarRect = sidebarElement.getBoundingClientRect();
+          const sidebarLeft = sidebarElement.offsetLeft;
+          
+          setStickyStyles({
+            width: sidebarRect.width,
+            left: sidebarLeft
+          });
+        }
       }
       
       setIsFilterSticky(shouldBeSticky);
