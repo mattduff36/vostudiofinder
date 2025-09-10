@@ -128,6 +128,14 @@ export function GoogleMap({
         }
       });
     }
+
+    // Add zoom change listener to update clustering
+    map.addListener('zoom_changed', () => {
+      // Force re-render of clusterer when zoom changes
+      if (markerClustererRef.current) {
+        markerClustererRef.current.render();
+      }
+    });
   }, [isLoaded, center, zoom, onLocationSelect, markers]);
 
   // Create custom marker icon based on studio properties
@@ -212,9 +220,9 @@ export function GoogleMap({
         map: mapInstanceRef.current,
         renderer: {
           render: ({ count, position }) => {
-            // Don't cluster at high zoom levels (15+) to ensure all markers are selectable
+            // Don't cluster at high zoom levels (13+) to ensure all markers are selectable
             const currentZoom = mapInstanceRef.current?.getZoom() || 0;
-            if (currentZoom >= 15) {
+            if (currentZoom >= 13) {
               return null; // No clustering at high zoom
             }
             
