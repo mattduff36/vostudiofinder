@@ -26,6 +26,7 @@ interface GoogleMapProps {
   searchCenter?: MapLocation | null;
   searchRadius?: number | null;
   onLocationSelect?: (location: MapLocation) => void;
+  onClusterClick?: (position: MapLocation) => void;
   height?: string;
   className?: string;
   selectedMarkerId?: string | null;
@@ -38,6 +39,7 @@ export function GoogleMap({
   searchCenter,
   searchRadius,
   onLocationSelect,
+  onClusterClick,
   height = '400px',
   className = '',
   selectedMarkerId,
@@ -227,7 +229,7 @@ export function GoogleMap({
             }
             
             // Custom cluster styling
-            return new window.google.maps.Marker({
+            const clusterMarker = new window.google.maps.Marker({
               position,
               icon: {
                 url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
@@ -241,6 +243,15 @@ export function GoogleMap({
               },
               title: `${count} studios in this area`,
             });
+
+            // Add click handler to cluster marker
+            if (onClusterClick) {
+              clusterMarker.addListener('click', () => {
+                onClusterClick({ lat: position.lat(), lng: position.lng() });
+              });
+            }
+
+            return clusterMarker;
           },
         },
       });

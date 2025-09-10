@@ -39,7 +39,7 @@ interface StudiosMapViewProps {
 
 export function StudiosMapView({ studios, searchCoordinates, searchRadius }: StudiosMapViewProps) {
   const searchParams = useSearchParams();
-  const [selectedStudio, setSelectedStudio] = useState<Studio | null>(null);
+  const [selectedStudios, setSelectedStudios] = useState<Studio[]>([]);
   const [mapCenter, setMapCenter] = useState<MapLocation>({ lat: 51.5074, lng: -0.1278 }); // Default to London
   const [mapZoom, setMapZoom] = useState<number>(6);
 
@@ -85,8 +85,17 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
       title: studio.name,
       studioType: studio.studioType,
       isVerified: studio.isVerified,
-      onClick: () => setSelectedStudio(studio),
+      onClick: () => setSelectedStudios([studio]),
     }));
+
+  // Handle cluster clicks - find all studios at the same location
+  const handleClusterClick = (clusterPosition: { lat: number; lng: number }) => {
+    const studiosAtLocation = studios.filter(studio => 
+      Math.abs((studio.latitude || 0) - clusterPosition.lat) < 0.0001 &&
+      Math.abs((studio.longitude || 0) - clusterPosition.lng) < 0.0001
+    );
+    setSelectedStudios(studiosAtLocation);
+  };
 
   return (
     <div className="h-full space-y-6">
@@ -101,7 +110,8 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
             lng: parseFloat(searchParams.get('lng')!)
           } : null)}
           searchRadius={searchRadius || (searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : null)}
-          selectedMarkerId={selectedStudio?.id || null}
+          selectedMarkerId={selectedStudios[0]?.id || null}
+          onClusterClick={handleClusterClick}
           height="100%"
           className="rounded-lg border border-gray-200"
         />
@@ -109,18 +119,21 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
 
       {/* Selected Studio Details - Full Width Under Map */}
       <div>
-        {selectedStudio ? (
-          <div 
-            className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-300 flex overflow-hidden h-[280px] cursor-pointer"
-            onClick={() => window.location.href = `/${selectedStudio.owner?.username}`}
-          >
+        {selectedStudios.length > 0 ? (
+          <div className="space-y-4">
+            {selectedStudios.map((studio) => (
+              <div 
+                key={studio.id}
+                className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-300 flex overflow-hidden h-[280px] cursor-pointer"
+                onClick={() => window.location.href = `/${studio.owner?.username}`}
+              >
             {/* Studio Image - 50% width, square aspect ratio */}
             <div className="w-1/2 relative bg-gray-200 flex items-center justify-center">
               <div className="w-full h-full relative">
-                {selectedStudio.images.length > 0 && selectedStudio.images[0] ? (
+                {studio.images.length > 0 && studio.images[0] ? (
                   <img
-                    src={selectedStudio.images[0].imageUrl}
-                    alt={selectedStudio.images[0].altText || selectedStudio.name}
+                    src={studio.images[0].imageUrl}
+                    alt={studio.images[0].altText || studio.name}
                     className="w-full h-full object-cover rounded-l-lg"
                   />
                 ) : (
@@ -134,7 +147,7 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
                 {/* Studio Type Badge - Bottom Right of Image */}
                 <div className="absolute bottom-2 right-2">
                   <span className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg bg-gray-100 text-black">
-                    {selectedStudio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                    {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                   </span>
                 </div>
               </div>
@@ -144,17 +157,17 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
             <div className="w-1/2 p-4 flex flex-col relative">
               {/* Studio Name - Fixed positioning */}
               <h3 className="text-xl font-semibold line-clamp-1 mb-3" style={{ color: colors.textPrimary, margin: '0 0 12px 0' }}>
-                {selectedStudio.name}
+                {studio.name}
               </h3>
               
               {/* Location and Description */}
               <div className="mb-4">
                 <div className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
                   {/* Location */}
-                  {selectedStudio.address && selectedStudio.address.trim() && (
+                  {studio.address && studio.address.trim() && (
                     <div className="flex items-start mb-2">
                       <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-                      <span className="line-clamp-1">{selectedStudio.address}</span>
+                      <span className="line-clamp-1">{studio.address}</span>
                     </div>
                   )}
                   
@@ -162,14 +175,14 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
                   <div 
                     className="overflow-hidden"
                     style={{ 
-                      maxHeight: selectedStudio.address && selectedStudio.address.trim() ? '4.5rem' : '6rem',
+                      maxHeight: studio.address && studio.address.trim() ? '4.5rem' : '6rem',
                       lineHeight: '1.5rem'
                     }}
-                    title={cleanDescription(selectedStudio.description)}
+                    title={cleanDescription(studio.description)}
                   >
                     {(() => {
-                      const description = cleanDescription(selectedStudio.description);
-                      const availableLines = selectedStudio.address && selectedStudio.address.trim() ? 3 : 4;
+                      const description = cleanDescription(studio.description);
+                      const availableLines = studio.address && studio.address.trim() ? 3 : 4;
                       const seeMoreText = '..... See More';
                       const maxChars = (availableLines * 45) - seeMoreText.length;
                       
@@ -186,9 +199,9 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
               </div>
               
               {/* Services */}
-              {selectedStudio.services.length > 0 && (
+              {studio.services.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {selectedStudio.services.slice(0, 3).map((service, index) => (
+                  {studio.services.slice(0, 3).map((service, index) => (
                     <span
                       key={index}
                       className="inline-block px-2 py-1 text-xs font-medium rounded"
@@ -197,12 +210,12 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
                       {service.service.replace(/_/g, ' ')}
                     </span>
                   ))}
-                  {selectedStudio.services.length > 3 && (
+                  {studio.services.length > 3 && (
                     <span
                       className="inline-block px-2 py-1 text-xs font-medium rounded"
                       style={{ backgroundColor: '#f3f4f6', color: '#000000' }}
                     >
-                      +{selectedStudio.services.length - 3} more
+                      +{studio.services.length - 3} more
                     </span>
                   )}
                 </div>
@@ -212,7 +225,7 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
               <div className="flex items-center justify-between mt-auto">
                 {/* Verified Badge - Bottom Left - Same styling as list cards */}
                 <div>
-                  {selectedStudio.isVerified && (
+                  {studio.isVerified && (
                     <span className="text-green-600 font-medium text-xs">✓ Verified</span>
                   )}
                 </div>
@@ -226,6 +239,8 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
                 </div>
               </div>
             </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
