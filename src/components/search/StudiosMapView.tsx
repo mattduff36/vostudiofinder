@@ -110,7 +110,10 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
       {/* Selected Studio Details - Full Width Under Map */}
       <div>
         {selectedStudio ? (
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-300 flex overflow-hidden h-[280px]">
+          <div 
+            className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-300 flex overflow-hidden h-[280px] cursor-pointer"
+            onClick={() => window.location.href = `/${selectedStudio.owner?.username}`}
+          >
             {/* Studio Image - 50% width, square aspect ratio */}
             <div className="w-1/2 relative bg-gray-200 flex items-center justify-center">
               <div className="w-full h-full relative">
@@ -215,22 +218,12 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
                 </div>
                 
                 {/* View Details Button - Bottom Right */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.location.href = `/${selectedStudio.owner?.username}`;
-                  }}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
-                  style={{ backgroundColor: '#d42027' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#a1181d';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#d42027';
-                  }}
+                <div
+                  className="px-3 py-1.5 text-white text-sm font-medium rounded transition-colors pointer-events-none"
+                  style={{ backgroundColor: colors.primary }}
                 >
                   View Details
-                </button>
+                </div>
               </div>
             </div>
           </div>
