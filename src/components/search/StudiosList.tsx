@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
-import { MapPin, Star, Users, Crown } from 'lucide-react';
+import { MapPin, Star, Users } from 'lucide-react';
 import { cleanDescription } from '@/lib/utils/text';
 import { colors } from '@/components/home/HomePage';
 
@@ -88,15 +88,6 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                 </span>
               </div>
 
-              {/* Premium Badge */}
-              {studio.isPremium && (
-                <div className="absolute top-2 left-2">
-                  <div className="flex items-center bg-yellow-500 text-white px-2 py-1 rounded text-xs font-medium">
-                    <Crown className="w-3 h-3 mr-1" />
-                    Premium
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="p-6 flex flex-col flex-grow max-h-[340px]">

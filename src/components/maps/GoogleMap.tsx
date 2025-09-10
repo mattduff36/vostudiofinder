@@ -199,6 +199,30 @@ export function GoogleMap({
         bottom: 50,
         left: 50
       });
+    } else if (markers.length > 0) {
+      // No search center - fit all studios comfortably in view
+      const bounds = new window.google.maps.LatLngBounds();
+      
+      // Add all studio markers to the bounds
+      markers.forEach(marker => {
+        bounds.extend(new window.google.maps.LatLng(marker.position.lat, marker.position.lng));
+      });
+      
+      // Fit the map to show all studios with comfortable padding
+      mapInstanceRef.current.fitBounds(bounds, {
+        top: 80,
+        right: 80,
+        bottom: 80,
+        left: 80
+      });
+      
+      // Ensure minimum zoom level for better UX (don't zoom out too far)
+      window.google.maps.event.addListenerOnce(mapInstanceRef.current, 'bounds_changed', () => {
+        const currentZoom = mapInstanceRef.current?.getZoom();
+        if (currentZoom && currentZoom < 2) {
+          mapInstanceRef.current?.setZoom(2);
+        }
+      });
     }
   }, [searchCenter, searchRadius, markers]);
 
