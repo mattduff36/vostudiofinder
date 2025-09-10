@@ -81,6 +81,7 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
       position: { lat: studio.latitude!, lng: studio.longitude! },
       title: studio.name,
       studioType: studio.studioType,
+      isVerified: studio.isVerified,
       onClick: () => setSelectedStudio(studio),
     }));
 
@@ -97,6 +98,7 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
             lng: parseFloat(searchParams.get('lng')!)
           } : null)}
           searchRadius={searchRadius || (searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : null)}
+          selectedMarkerId={selectedStudio?.id || null}
           height="100%"
           className="rounded-lg border border-gray-200"
         />

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { MarkerClusterer } from '@googlemaps/markerclusterer';
 
 // Google Maps types
 declare global {
@@ -19,6 +20,7 @@ interface GoogleMapProps {
     position: MapLocation;
     title: string;
     studioType?: string;
+    isVerified?: boolean;
     onClick?: () => void;
   }>;
   searchCenter?: MapLocation | null;
@@ -26,6 +28,7 @@ interface GoogleMapProps {
   onLocationSelect?: (location: MapLocation) => void;
   height?: string;
   className?: string;
+  selectedMarkerId?: string | null;
 }
 
 export function GoogleMap({
@@ -37,13 +40,16 @@ export function GoogleMap({
   onLocationSelect,
   height = '400px',
   className = '',
+  selectedMarkerId,
 }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const markerClustererRef = useRef<MarkerClusterer | null>(null);
   const circleRef = useRef<any>(null);
   const centerMarkerRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hoveredMarkerId, setHoveredMarkerId] = useState<string | null>(null);
 
   // Load Google Maps script
   useEffect(() => {
@@ -82,11 +88,29 @@ export function GoogleMap({
       center: { lat: center.lat, lng: center.lng },
       zoom,
       maxZoom,
+      // Enable smooth animations
+      gestureHandling: 'cooperative',
+      zoomControl: true,
+      zoomControlOptions: {
+        position: window.google.maps.ControlPosition.RIGHT_BOTTOM,
+      },
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: true,
+      fullscreenControlOptions: {
+        position: window.google.maps.ControlPosition.RIGHT_TOP,
+      },
+      // Custom styling
       styles: [
         {
           featureType: 'poi',
           elementType: 'labels',
           stylers: [{ visibility: 'off' }],
+        },
+        {
+          featureType: 'transit',
+          elementType: 'labels',
+          stylers: [{ visibility: 'simplified' }],
         },
       ],
     });
@@ -106,37 +130,109 @@ export function GoogleMap({
     }
   }, [isLoaded, center, zoom, onLocationSelect, markers]);
 
-  // Update markers
+  // Create custom marker icon based on studio properties
+  const createMarkerIcon = useCallback((markerData: any) => {
+    const isSelected = selectedMarkerId === markerData.id;
+    const isHovered = hoveredMarkerId === markerData.id;
+    const isVerified = markerData.isVerified;
+    const isHome = markerData.studioType === 'HOME';
+    
+    // Determine colors and size
+    const fillColor = colors.primary; // Default red
+    let strokeColor = '#FFFFFF';
+    const scale = isSelected ? 14 : isHovered ? 12 : 10;
+    
+    if (isVerified) {
+      strokeColor = '#10B981'; // Green stroke for verified
+    }
+    
+    // Different shape for home studios
+    const path = isHome 
+      ? window.google.maps.SymbolPath.BACKWARD_CLOSED_ARROW 
+      : window.google.maps.SymbolPath.CIRCLE;
+    
+    return {
+      path,
+      scale,
+      fillColor,
+      fillOpacity: 0.9,
+      strokeColor,
+      strokeWeight: isVerified ? 4 : 3,
+    };
+  }, [selectedMarkerId, hoveredMarkerId]);
+
+  // Update markers with clustering and enhanced features
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    // Clear existing markers
+    // Clear existing markers and clusterer
+    if (markerClustererRef.current) {
+      markerClustererRef.current.clearMarkers();
+      markerClustererRef.current = null;
+    }
     markersRef.current.forEach(marker => marker.setMap(null));
     markersRef.current = [];
 
-    // Add new markers with site colors
-    markers.forEach(markerData => {
+    // Create new markers with enhanced features
+    const newMarkers = markers.map(markerData => {
       const marker = new window.google.maps.Marker({
         position: { lat: markerData.position.lat, lng: markerData.position.lng },
-        map: mapInstanceRef.current,
         title: markerData.title,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 10,
-          fillColor: colors.primary,
-          fillOpacity: 0.9,
-          strokeColor: '#FFFFFF',
-          strokeWeight: 3,
-        },
+        icon: createMarkerIcon(markerData),
       });
 
+      // Add hover effects
+      marker.addListener('mouseover', () => {
+        setHoveredMarkerId(markerData.id);
+        marker.setIcon(createMarkerIcon({ ...markerData, id: markerData.id }));
+      });
+
+      marker.addListener('mouseout', () => {
+        setHoveredMarkerId(null);
+        marker.setIcon(createMarkerIcon(markerData));
+      });
+
+      // Add click handler
       if (markerData.onClick) {
-        marker.addListener('click', markerData.onClick);
+        marker.addListener('click', () => {
+          markerData.onClick?.();
+          // Smooth pan to marker
+          mapInstanceRef.current?.panTo(marker.getPosition());
+        });
       }
 
-      markersRef.current.push(marker);
+      return marker;
     });
-  }, [markers]);
+
+    markersRef.current = newMarkers;
+
+    // Create marker clusterer for better performance
+    if (newMarkers.length > 0) {
+      markerClustererRef.current = new MarkerClusterer({
+        markers: newMarkers,
+        map: mapInstanceRef.current,
+        renderer: {
+          render: ({ count, position }) => {
+            // Custom cluster styling
+            return new window.google.maps.Marker({
+              position,
+              icon: {
+                url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+                    <circle cx="20" cy="20" r="18" fill="${colors.primary}" stroke="#fff" stroke-width="2"/>
+                    <text x="20" y="25" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">${count}</text>
+                  </svg>
+                `)}`,
+                scaledSize: new window.google.maps.Size(40, 40),
+                anchor: new window.google.maps.Point(20, 20),
+              },
+              title: `${count} studios in this area`,
+            });
+          },
+        },
+      });
+    }
+  }, [markers, selectedMarkerId, hoveredMarkerId]);
 
   // Update search radius circle and center marker
   useEffect(() => {
@@ -192,13 +288,25 @@ export function GoogleMap({
         bounds.extend(new window.google.maps.LatLng(marker.position.lat, marker.position.lng));
       });
       
-      // Fit the map to these bounds with padding
+      // Fit the map to these bounds with padding and smooth animation
       mapInstanceRef.current.fitBounds(bounds, {
         top: 50,
         right: 50,
         bottom: 50,
         left: 50
       });
+      
+      // Add smooth animation after bounds are set
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.panToBounds(bounds, {
+            top: 50,
+            right: 50,
+            bottom: 50,
+            left: 50
+          });
+        }
+      }, 100);
     } else if (markers.length > 0) {
       // No search center - fit all studios comfortably in view
       const bounds = new window.google.maps.LatLngBounds();
@@ -208,13 +316,25 @@ export function GoogleMap({
         bounds.extend(new window.google.maps.LatLng(marker.position.lat, marker.position.lng));
       });
       
-      // Fit the map to show all studios with comfortable padding
+      // Fit the map to show all studios with comfortable padding and smooth animation
       mapInstanceRef.current.fitBounds(bounds, {
         top: 80,
         right: 80,
         bottom: 80,
         left: 80
       });
+      
+      // Add smooth animation for global view
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.panToBounds(bounds, {
+            top: 80,
+            right: 80,
+            bottom: 80,
+            left: 80
+          });
+        }
+      }, 100);
       
       // Ensure minimum zoom level for better UX (don't zoom out too far)
       window.google.maps.event.addListenerOnce(mapInstanceRef.current, 'bounds_changed', () => {
