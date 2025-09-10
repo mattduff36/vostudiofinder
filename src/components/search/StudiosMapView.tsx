@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 import { MapLocation } from '@/lib/maps';
+import { MapPin } from 'lucide-react';
+import { colors } from '@/components/home/HomePage';
+import { cleanDescription } from '@/lib/utils/text';
 
 interface Studio {
   id: string;
@@ -136,32 +139,47 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
             
             {/* Studio Info - 50% width */}
             <div className="w-1/2 p-4 flex flex-col relative">
-              {/* Studio Name */}
-              <h3 className="text-lg font-semibold text-black line-clamp-1 mb-1">
+              {/* Studio Name - Fixed positioning */}
+              <h3 className="text-xl font-semibold line-clamp-1 mb-3" style={{ color: colors.textPrimary, margin: '0 0 12px 0' }}>
                 {selectedStudio.name}
               </h3>
               
-              {/* Owner */}
-              <p className="text-sm text-gray-600 mb-2">
-                by {selectedStudio.owner.displayName}
-              </p>
-              
-              {/* Address */}
-              {selectedStudio.address && (
-                <div className="flex items-start mb-2">
-                  <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="text-sm text-gray-600 line-clamp-1">{selectedStudio.address}</span>
+              {/* Location and Description */}
+              <div className="mb-4">
+                <div className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
+                  {/* Location */}
+                  {selectedStudio.address && selectedStudio.address.trim() && (
+                    <div className="flex items-start mb-2">
+                      <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="line-clamp-1">{selectedStudio.address}</span>
+                    </div>
+                  )}
+                  
+                  {/* Description with 4-line limit and "... See More" - exactly like list cards */}
+                  <div 
+                    className="overflow-hidden"
+                    style={{ 
+                      maxHeight: selectedStudio.address && selectedStudio.address.trim() ? '4.5rem' : '6rem',
+                      lineHeight: '1.5rem'
+                    }}
+                    title={cleanDescription(selectedStudio.description)}
+                  >
+                    {(() => {
+                      const description = cleanDescription(selectedStudio.description);
+                      const availableLines = selectedStudio.address && selectedStudio.address.trim() ? 3 : 4;
+                      const seeMoreText = '..... See More';
+                      const maxChars = (availableLines * 45) - seeMoreText.length;
+                      
+                      if (description.length > maxChars) {
+                        const truncated = description.substring(0, maxChars).trim();
+                        const lastSpace = truncated.lastIndexOf(' ');
+                        const finalText = lastSpace > maxChars - 15 ? truncated.substring(0, lastSpace) : truncated;
+                        return finalText + seeMoreText;
+                      }
+                      return description;
+                    })()}
+                  </div>
                 </div>
-              )}
-              
-              {/* Description */}
-              <div className="mb-3 flex-1">
-                <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                  {selectedStudio.description}
-                </p>
               </div>
               
               {/* Services */}
@@ -189,15 +207,10 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
               
               {/* Bottom Row - Verified Badge and View Details Button */}
               <div className="flex items-center justify-between mt-auto">
-                {/* Verified Badge - Bottom Left */}
+                {/* Verified Badge - Bottom Left - Same styling as list cards */}
                 <div>
                   {selectedStudio.isVerified && (
-                    <div className="flex items-center bg-green-500 text-white px-2 py-1 rounded text-xs font-medium">
-                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Verified
-                    </div>
+                    <span className="text-green-600 font-medium text-xs">✓ Verified</span>
                   )}
                 </div>
                 

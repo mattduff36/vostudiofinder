@@ -196,8 +196,7 @@ export function GoogleMap({
       if (markerData.onClick) {
         marker.addListener('click', () => {
           markerData.onClick?.();
-          // Smooth pan to marker
-          mapInstanceRef.current?.panTo(marker.getPosition());
+          // Don't change zoom or pan - keep current view
         });
       }
 
@@ -213,6 +212,12 @@ export function GoogleMap({
         map: mapInstanceRef.current,
         renderer: {
           render: ({ count, position }) => {
+            // Don't cluster at high zoom levels (15+) to ensure all markers are selectable
+            const currentZoom = mapInstanceRef.current?.getZoom() || 0;
+            if (currentZoom >= 15) {
+              return null; // No clustering at high zoom
+            }
+            
             // Custom cluster styling
             return new window.google.maps.Marker({
               position,
