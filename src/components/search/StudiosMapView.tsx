@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 import { MapLocation } from '@/lib/maps';
 
@@ -29,22 +30,54 @@ interface Studio {
 
 interface StudiosMapViewProps {
   studios: Studio[];
+  searchCoordinates?: { lat: number; lng: number } | null | undefined;
+  searchRadius?: number | null | undefined;
 }
 
-export function StudiosMapView({ studios }: StudiosMapViewProps) {
+export function StudiosMapView({ studios, searchCoordinates, searchRadius }: StudiosMapViewProps) {
+  const searchParams = useSearchParams();
   const [selectedStudio, setSelectedStudio] = useState<Studio | null>(null);
   const [mapCenter, setMapCenter] = useState<MapLocation>({ lat: 51.5074, lng: -0.1278 }); // Default to London
+  const [mapZoom, setMapZoom] = useState<number>(6);
 
-  // Calculate map center based on studios with coordinates
+  // Set map center based on search center or studios
   useEffect(() => {
-    const studiosWithCoords = studios.filter(studio => studio.latitude && studio.longitude);
+    // Try to get coordinates from API response first, then fall back to URL params
+    let coords = searchCoordinates;
+    let radius = searchRadius;
     
-    if (studiosWithCoords.length > 0) {
-      const avgLat = studiosWithCoords.reduce((sum, studio) => sum + (studio.latitude || 0), 0) / studiosWithCoords.length;
-      const avgLng = studiosWithCoords.reduce((sum, studio) => sum + (studio.longitude || 0), 0) / studiosWithCoords.length;
-      setMapCenter({ lat: avgLat, lng: avgLng });
+    if (!coords) {
+      // Fall back to URL parameters (for backward compatibility)
+      const lat = searchParams.get('lat');
+      const lng = searchParams.get('lng');
+      if (lat && lng) {
+        coords = { lat: parseFloat(lat), lng: parseFloat(lng) };
+      }
     }
-  }, [studios]);
+    
+    if (!radius) {
+      const urlRadius = searchParams.get('radius');
+      if (urlRadius) {
+        radius = parseInt(urlRadius);
+      }
+    }
+    
+    if (coords) {
+      // Use search center if available
+      setMapCenter({ lat: coords.lat, lng: coords.lng });
+      setMapZoom(10); // Default zoom, will be overridden by fitBounds in GoogleMap
+    } else {
+      // Fall back to calculating center from studios
+      const studiosWithCoords = studios.filter(studio => studio.latitude && studio.longitude);
+      
+      if (studiosWithCoords.length > 0) {
+        const avgLat = studiosWithCoords.reduce((sum, studio) => sum + (studio.latitude || 0), 0) / studiosWithCoords.length;
+        const avgLng = studiosWithCoords.reduce((sum, studio) => sum + (studio.longitude || 0), 0) / studiosWithCoords.length;
+        setMapCenter({ lat: avgLat, lng: avgLng });
+        setMapZoom(10);
+      }
+    }
+  }, [studios, searchCoordinates, searchRadius, searchParams]);
 
   // Create markers for studios with coordinates
   const markers = studios
@@ -53,6 +86,7 @@ export function StudiosMapView({ studios }: StudiosMapViewProps) {
       id: studio.id,
       position: { lat: studio.latitude!, lng: studio.longitude! },
       title: studio.name,
+      studioType: studio.studioType,
       onClick: () => setSelectedStudio(studio),
     }));
 
@@ -63,8 +97,13 @@ export function StudiosMapView({ studios }: StudiosMapViewProps) {
         <div className="lg:col-span-2">
           <GoogleMap
             center={mapCenter}
-            zoom={6}
+            zoom={mapZoom}
             markers={markers}
+            searchCenter={searchCoordinates || (searchParams.get('lat') && searchParams.get('lng') ? {
+              lat: parseFloat(searchParams.get('lat')!),
+              lng: parseFloat(searchParams.get('lng')!)
+            } : null)}
+            searchRadius={searchRadius || (searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : null)}
             height="100%"
             className="rounded-lg border border-gray-200"
           />

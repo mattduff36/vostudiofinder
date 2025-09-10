@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { MapPin, Search } from 'lucide-react';
+import { colors } from '@/components/home/HomePage';
 
 // Google Maps types
 declare global {
@@ -115,7 +116,16 @@ export function LocationAutocomplete({
         <button
           type="button"
           onClick={onSearch}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white rounded-md p-1.5 transition-colors"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white rounded-md p-1.5 transition-colors"
+          style={{ 
+            backgroundColor: colors.primary,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = colors.primaryHover;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = colors.primary;
+          }}
           aria-label="Search"
         >
           <Search className="w-4 h-4" />

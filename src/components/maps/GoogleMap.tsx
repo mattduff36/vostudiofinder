@@ -9,6 +9,7 @@ declare global {
   }
 }
 import { MapLocation } from '@/lib/maps';
+import { colors } from '@/components/home/HomePage';
 
 interface GoogleMapProps {
   center: MapLocation;
@@ -17,8 +18,11 @@ interface GoogleMapProps {
     id: string;
     position: MapLocation;
     title: string;
+    studioType?: string;
     onClick?: () => void;
   }>;
+  searchCenter?: MapLocation | null;
+  searchRadius?: number | null;
   onLocationSelect?: (location: MapLocation) => void;
   height?: string;
   className?: string;
@@ -28,6 +32,8 @@ export function GoogleMap({
   center,
   zoom = 13,
   markers = [],
+  searchCenter,
+  searchRadius,
   onLocationSelect,
   height = '400px',
   className = '',
@@ -35,6 +41,8 @@ export function GoogleMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const circleRef = useRef<any>(null);
+  const centerMarkerRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load Google Maps script
@@ -66,9 +74,14 @@ export function GoogleMap({
   useEffect(() => {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
 
+    // Check if any markers are HOME studios to determine max zoom
+    const hasHomeStudios = markers.some(marker => marker.studioType === 'HOME');
+    const maxZoom = hasHomeStudios ? 15 : 20; // Limit zoom for privacy when HOME studios are present
+
     const map = new window.google.maps.Map(mapRef.current, {
       center: { lat: center.lat, lng: center.lng },
       zoom,
+      maxZoom,
       styles: [
         {
           featureType: 'poi',
@@ -91,7 +104,7 @@ export function GoogleMap({
         }
       });
     }
-  }, [isLoaded, center, zoom, onLocationSelect]);
+  }, [isLoaded, center, zoom, onLocationSelect, markers]);
 
   // Update markers
   useEffect(() => {
@@ -101,7 +114,7 @@ export function GoogleMap({
     markersRef.current.forEach(marker => marker.setMap(null));
     markersRef.current = [];
 
-    // Add new markers
+    // Add new markers with site colors
     markers.forEach(markerData => {
       const marker = new window.google.maps.Marker({
         position: { lat: markerData.position.lat, lng: markerData.position.lng },
@@ -109,11 +122,11 @@ export function GoogleMap({
         title: markerData.title,
         icon: {
           path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#7C3AED',
-          fillOpacity: 1,
+          scale: 10,
+          fillColor: colors.primary,
+          fillOpacity: 0.9,
           strokeColor: '#FFFFFF',
-          strokeWeight: 2,
+          strokeWeight: 3,
         },
       });
 
@@ -124,6 +137,70 @@ export function GoogleMap({
       markersRef.current.push(marker);
     });
   }, [markers]);
+
+  // Update search radius circle and center marker
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    // Clear existing circle and center marker
+    if (circleRef.current) {
+      circleRef.current.setMap(null);
+      circleRef.current = null;
+    }
+    if (centerMarkerRef.current) {
+      centerMarkerRef.current.setMap(null);
+      centerMarkerRef.current = null;
+    }
+
+    // Add new circle and center marker if we have search center and radius
+    if (searchCenter && searchRadius) {
+      // Add the search radius circle
+      const circle = new window.google.maps.Circle({
+        strokeColor: colors.primary,
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: colors.primary,
+        fillOpacity: 0.15,
+        map: mapInstanceRef.current,
+        center: { lat: searchCenter.lat, lng: searchCenter.lng },
+        radius: searchRadius * 1609.34, // Convert miles to meters
+      });
+
+      // Add the center pin (standard Google Maps red pin)
+      const centerMarker = new window.google.maps.Marker({
+        position: { lat: searchCenter.lat, lng: searchCenter.lng },
+        map: mapInstanceRef.current,
+        title: 'Search Center',
+        // Use default Google Maps red pin (no custom icon needed)
+      });
+
+      circleRef.current = circle;
+      centerMarkerRef.current = centerMarker;
+
+      // Fit the map to show the entire circle and all markers with some padding
+      const bounds = new window.google.maps.LatLngBounds();
+      const radiusInDegrees = searchRadius / 69; // Rough conversion: 1 degree ≈ 69 miles
+      
+      // Add points around the circle to the bounds
+      bounds.extend(new window.google.maps.LatLng(searchCenter.lat + radiusInDegrees, searchCenter.lng));
+      bounds.extend(new window.google.maps.LatLng(searchCenter.lat - radiusInDegrees, searchCenter.lng));
+      bounds.extend(new window.google.maps.LatLng(searchCenter.lat, searchCenter.lng + radiusInDegrees));
+      bounds.extend(new window.google.maps.LatLng(searchCenter.lat, searchCenter.lng - radiusInDegrees));
+      
+      // Also include all studio markers in the bounds
+      markers.forEach(marker => {
+        bounds.extend(new window.google.maps.LatLng(marker.position.lat, marker.position.lng));
+      });
+      
+      // Fit the map to these bounds with padding
+      mapInstanceRef.current.fitBounds(bounds, {
+        top: 50,
+        right: 50,
+        bottom: 50,
+        left: 50
+      });
+    }
+  }, [searchCenter, searchRadius, markers]);
 
   // Update center when prop changes
   useEffect(() => {

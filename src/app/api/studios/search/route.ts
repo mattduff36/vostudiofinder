@@ -366,6 +366,8 @@ export async function GET(request: NextRequest) {
         studioType: validatedParams.studioType,
         services: validatedParams.services,
       },
+      searchCoordinates: searchCoordinates,
+      searchRadius: validatedParams.radius,
     };
 
     // Cache the results for 5 minutes

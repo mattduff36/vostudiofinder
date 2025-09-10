@@ -153,6 +153,9 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
               value={filters.radius}
               onChange={(e) => handleFilterChange('radius', parseInt(e.target.value))}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              style={{
+                background: `linear-gradient(to right, #d42027 0%, #d42027 ${(filters.radius - 5) / 195 * 100}%, #e5e7eb ${(filters.radius - 5) / 195 * 100}%, #e5e7eb 100%)`
+              }}
             />
             <div className="flex justify-between text-xs text-gray-500 mt-1">
               <span>5mi</span>

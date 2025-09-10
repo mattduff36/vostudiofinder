@@ -50,6 +50,8 @@ interface SearchResponse {
     studioType?: string;
     services?: string[];
   };
+  searchCoordinates?: { lat: number; lng: number } | null;
+  searchRadius?: number | null;
 }
 
 export function StudiosPage() {
@@ -154,6 +156,17 @@ export function StudiosPage() {
         }
       }
     });
+
+    // Preserve existing lat/lng coordinates if the location hasn't changed
+    const currentLocation = searchParams.get('location');
+    const currentLat = searchParams.get('lat');
+    const currentLng = searchParams.get('lng');
+    
+    if (filters.location === currentLocation && currentLat && currentLng) {
+      // Location hasn't changed, preserve coordinates
+      params.set('lat', currentLat);
+      params.set('lng', currentLng);
+    }
 
     // Reset to first page when searching
     params.set('page', '1');
@@ -321,7 +334,11 @@ export function StudiosPage() {
                     onPageChange={handlePageChange}
                   />
                 ) : (
-                  <StudiosMapView studios={searchResults.studios} />
+                  <StudiosMapView 
+                    studios={searchResults.studios} 
+                    searchCoordinates={searchResults.searchCoordinates}
+                    searchRadius={searchResults.searchRadius}
+                  />
                 )}
               </>
             ) : (
