@@ -88,14 +88,6 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
       onClick: () => setSelectedStudios([studio]),
     }));
 
-  // Handle cluster clicks - find all studios at the same location
-  const handleClusterClick = (clusterPosition: { lat: number; lng: number }) => {
-    const studiosAtLocation = studios.filter(studio => 
-      Math.abs((studio.latitude || 0) - clusterPosition.lat) < 0.0001 &&
-      Math.abs((studio.longitude || 0) - clusterPosition.lng) < 0.0001
-    );
-    setSelectedStudios(studiosAtLocation);
-  };
 
   return (
     <div className="h-full space-y-6">
@@ -111,7 +103,6 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
           } : null)}
           searchRadius={searchRadius || (searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : null)}
           selectedMarkerId={selectedStudios[0]?.id || null}
-          onClusterClick={handleClusterClick}
           height="100%"
           className="rounded-lg border border-gray-200"
         />

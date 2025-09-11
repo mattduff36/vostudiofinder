@@ -6,7 +6,6 @@ import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 import Image from 'next/image';
-import { colors } from '@/components/home/HomePage';
 
 interface Studio {
   id: string;
@@ -266,8 +265,10 @@ export function StudiosPage() {
                   sortBy: searchParams.get('sortBy') || 'name',
                   sortOrder: searchParams.get('sortOrder') || 'asc',
                   radius: parseInt(searchParams.get('radius') || '25'),
-                  lat: searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : undefined,
-                  lng: searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : undefined,
+                  ...(searchParams.get('lat') && searchParams.get('lng') ? {
+                    lat: parseFloat(searchParams.get('lat')!),
+                    lng: parseFloat(searchParams.get('lng')!)
+                  } : {})
                 }}
                 onSearch={handleSearch}
               />
@@ -321,7 +322,7 @@ export function StudiosPage() {
                           }
                         },
                       }))}
-                    searchCenter={searchResults.searchCoordinates}
+                    searchCenter={searchResults.searchCoordinates || null}
                     searchRadius={parseInt(searchParams.get('radius') || '25')}
                     selectedMarkerId={null}
                     height="100%"

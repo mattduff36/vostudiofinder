@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 
 import { X } from 'lucide-react';
@@ -80,8 +80,6 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
       sortBy: 'name',
       sortOrder: 'asc',
       radius: 25,
-      lat: undefined,
-      lng: undefined,
     };
     setFilters(clearedFilters);
     onSearch(clearedFilters);

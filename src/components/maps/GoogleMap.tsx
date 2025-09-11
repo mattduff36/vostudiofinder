@@ -338,6 +338,9 @@ export function GoogleMap({
     } else {
       console.log('❌ Not creating circle - missing searchCenter or searchRadius:', { searchCenter, searchRadius });
     }
+    
+    // No cleanup needed for this effect
+    return;
   }, [searchCenter, searchRadius, markers]);
 
   // Auto-zoom to fit search radius circle and all studio markers
