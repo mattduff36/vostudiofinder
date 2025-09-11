@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
       query: searchParams.get('q') || undefined,
       location: searchParams.get('location') || undefined,
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : undefined,
+      lat: searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : undefined,
+      lng: searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : undefined,
       studioType: searchParams.get('studioType') || searchParams.get('type') || undefined, // Support both parameters
       services: searchParams.get('services')?.split(',') || undefined,
       equipment: searchParams.get('equipment')?.split(',') || undefined, // New equipment parameter
@@ -77,30 +79,36 @@ export async function GET(request: NextRequest) {
     let searchCoordinates: { lat: number; lng: number } | null = null;
     if (validatedParams.location) {
       if (validatedParams.radius && validatedParams.radius > 0) {
-        // Use Google Maps API to geocode the search location
-        try {
-          const geocodeResult = await geocodeAddress(validatedParams.location);
-          if (geocodeResult) {
-            searchCoordinates = { lat: geocodeResult.lat, lng: geocodeResult.lng };
-            console.log(`Geocoded "${validatedParams.location}" to:`, searchCoordinates);
-            
-            // For geographic search, we'll filter studios after fetching them
-            // This allows us to calculate precise distances
-            // Note: For better performance with large datasets, consider using PostGIS or similar
-          } else {
-            console.warn(`Failed to geocode location: ${validatedParams.location}`);
+        // First check if we already have coordinates from URL parameters
+        if (validatedParams.lat && validatedParams.lng) {
+          searchCoordinates = { lat: validatedParams.lat, lng: validatedParams.lng };
+          console.log(`Using existing coordinates for "${validatedParams.location}":`, searchCoordinates);
+        } else {
+          // Use Google Maps API to geocode the search location
+          try {
+            const geocodeResult = await geocodeAddress(validatedParams.location);
+            if (geocodeResult) {
+              searchCoordinates = { lat: geocodeResult.lat, lng: geocodeResult.lng };
+              console.log(`Geocoded "${validatedParams.location}" to:`, searchCoordinates);
+            } else {
+              console.warn(`Failed to geocode location: ${validatedParams.location}`);
+              // Fall back to text-based address search
+              (where.AND as Prisma.StudioWhereInput[]).push({
+                address: { contains: validatedParams.location, mode: 'insensitive' },
+              });
+            }
+          } catch (error) {
+            console.error('Geocoding error:', error);
             // Fall back to text-based address search
             (where.AND as Prisma.StudioWhereInput[]).push({
               address: { contains: validatedParams.location, mode: 'insensitive' },
             });
           }
-        } catch (error) {
-          console.error('Geocoding error:', error);
-          // Fall back to text-based address search
-          (where.AND as Prisma.StudioWhereInput[]).push({
-            address: { contains: validatedParams.location, mode: 'insensitive' },
-          });
         }
+        
+        // For geographic search, we'll filter studios after fetching them
+        // This allows us to calculate precise distances
+        // Note: For better performance with large datasets, consider using PostGIS or similar
       } else {
         // Standard address search without radius
         (where.AND as Prisma.StudioWhereInput[]).push({

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 
 import { X } from 'lucide-react';
@@ -15,6 +15,8 @@ interface SearchFiltersProps {
     sortBy: string;
     sortOrder: string;
     radius: number;
+    lat?: number;
+    lng?: number;
   };
   onSearch: (filters: Record<string, any>) => void;
 }
@@ -23,13 +25,29 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
   const [filters, setFilters] = useState(initialFilters);
 
   useEffect(() => {
+    console.log('Updating filters with initialFilters:', initialFilters);
     setFilters(initialFilters);
   }, [initialFilters]);
 
   const handleFilterChange = (key: string, value: any) => {
+    console.log(`HandleFilterChange called - key: ${key}, value: ${value}`);
+    console.log('Current filters state:', filters);
+    
     const newFilters = { ...filters, [key]: value };
+    
+    // Always preserve coordinates if they exist (except when explicitly changing location without coordinates)
+    if (filters.lat && filters.lng) {
+      newFilters.lat = filters.lat;
+      newFilters.lng = filters.lng;
+      console.log('Preserving coordinates:', { lat: filters.lat, lng: filters.lng });
+    } else {
+      console.log('No coordinates to preserve - filters.lat:', filters.lat, 'filters.lng:', filters.lng);
+    }
+    
+    console.log('Final newFilters being sent to onSearch:', newFilters);
+    
     setFilters(newFilters);
-    // Apply filters instantly
+    // Apply filters instantly - this should trigger immediate search
     onSearch(newFilters);
   };
 
@@ -40,6 +58,13 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
       : [...currentServices, service];
     
     const newFilters = { ...filters, services: updatedServices };
+    
+    // Preserve coordinates if they exist
+    if (filters.lat && filters.lng) {
+      newFilters.lat = filters.lat;
+      newFilters.lng = filters.lng;
+    }
+    
     setFilters(newFilters);
     // Apply filters instantly
     onSearch(newFilters);
@@ -55,6 +80,8 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
       sortBy: 'name',
       sortOrder: 'asc',
       radius: 25,
+      lat: undefined,
+      lng: undefined,
     };
     setFilters(clearedFilters);
     onSearch(clearedFilters);
@@ -89,6 +116,13 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
     const currentTypes = filters.studioType ? [filters.studioType] : [];
     const updatedType = currentTypes.includes(studioType) ? '' : studioType;
     const newFilters = { ...filters, studioType: updatedType };
+    
+    // Preserve coordinates if they exist
+    if (filters.lat && filters.lng) {
+      newFilters.lat = filters.lat;
+      newFilters.lng = filters.lng;
+    }
+    
     setFilters(newFilters);
     // Apply filters instantly
     onSearch(newFilters);
@@ -120,22 +154,56 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
           <LocationAutocomplete
             value={filters.location}
             onChange={(value, placeDetails) => {
-              // Update the location value in state without triggering search
-              setFilters(prev => ({ ...prev, location: value }));
+              // Update the location value in state
+              const newFilters = { ...filters, location: value };
               
-              // Log selected place for debugging but don't trigger search
-              if (placeDetails) {
-                console.log('Selected place:', placeDetails);
+              // If this is a selection from the dropdown (placeDetails exists), 
+              // extract coordinates and add them to the filters
+              if (placeDetails && placeDetails.geometry?.location) {
+                const lat = typeof placeDetails.geometry.location.lat === 'function' 
+                  ? placeDetails.geometry.location.lat() 
+                  : placeDetails.geometry.location.lat;
+                const lng = typeof placeDetails.geometry.location.lng === 'function' 
+                  ? placeDetails.geometry.location.lng() 
+                  : placeDetails.geometry.location.lng;
+                
+                newFilters.lat = lat;
+                newFilters.lng = lng;
+                
+                console.log('Location selected - coordinates extracted:', { lat, lng });
+                console.log('New filters with coordinates:', newFilters);
+                
+                // Set state first, then immediately trigger search
+                setFilters(newFilters);
+                onSearch(newFilters);
+              } else {
+                console.log('Just typing location, no coordinates - not searching');
+                // Just typing, update state but don't search
+                setFilters(newFilters);
               }
             }}
             onEnterKey={() => {
               // Trigger search when Enter is pressed
               const newFilters = { ...filters };
+              // Preserve coordinates if they exist
+              if (filters.lat && filters.lng) {
+                newFilters.lat = filters.lat;
+                newFilters.lng = filters.lng;
+              }
+              console.log('Enter key pressed - triggering search with coordinates:', 
+                          filters.lat && filters.lng ? { lat: filters.lat, lng: filters.lng } : 'none');
               onSearch(newFilters);
             }}
             onSearch={() => {
-              // Trigger search when search button is clicked
+              // Trigger search when search button is clicked  
               const newFilters = { ...filters };
+              // Preserve coordinates if they exist
+              if (filters.lat && filters.lng) {
+                newFilters.lat = filters.lat;
+                newFilters.lng = filters.lng;
+              }
+              console.log('Search button clicked - triggering search with coordinates:', 
+                          filters.lat && filters.lng ? { lat: filters.lat, lng: filters.lng } : 'none');
               onSearch(newFilters);
             }}
             placeholder="Enter city, state, or country..."
@@ -151,7 +219,11 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
               max="200"
               step="5"
               value={filters.radius}
-              onChange={(e) => handleFilterChange('radius', parseInt(e.target.value))}
+              onChange={(e) => {
+                const newRadius = parseInt(e.target.value);
+                console.log(`Radius changed to ${newRadius} - triggering immediate search`);
+                handleFilterChange('radius', newRadius);
+              }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               style={{
                 background: `linear-gradient(to right, #d42027 0%, #d42027 ${(filters.radius - 5) / 195 * 100}%, #e5e7eb ${(filters.radius - 5) / 195 * 100}%, #e5e7eb 100%)`

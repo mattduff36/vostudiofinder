@@ -63,6 +63,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
         {studios.map((studio) => (
           <div
             key={studio.id}
+            id={`studio-${studio.id}`}
             onClick={() => window.location.href = `/${studio.owner?.username}`}
             className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col h-full cursor-pointer group"
           >

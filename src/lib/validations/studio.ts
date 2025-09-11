@@ -43,6 +43,8 @@ export const studioSearchSchema = z.object({
   query: z.string().optional(),
   location: z.string().optional(),
   radius: z.number().min(1).max(500).optional(),
+  lat: z.number().min(-90).max(90).optional(), // Latitude coordinate
+  lng: z.number().min(-180).max(180).optional(), // Longitude coordinate
   studioType: z.string().optional(), // Changed to string to handle NLP-detected types
   services: z.array(z.string()).optional(), // Changed to string array for flexibility
   equipment: z.array(z.string()).optional(), // New equipment parameter
