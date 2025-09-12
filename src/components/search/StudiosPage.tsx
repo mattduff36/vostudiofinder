@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
@@ -196,6 +196,7 @@ export function StudiosPage() {
     router.push(`/studios?${params.toString()}`);
   };
 
+
   return (
     <div className="min-h-screen bg-white relative overflow-hidden -mt-20">
       {/* Background Image for main content */}
@@ -258,7 +259,7 @@ export function StudiosPage() {
               } : {}}
             >
               <SearchFilters
-                initialFilters={{
+                initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
                   studioType: searchParams.get('studioType') || '',
                   services: searchParams.get('services')?.split(',') || [],
@@ -269,7 +270,7 @@ export function StudiosPage() {
                     lat: parseFloat(searchParams.get('lat')!),
                     lng: parseFloat(searchParams.get('lng')!)
                   } : {})
-                }}
+                }), [searchParams])}
                 onSearch={handleSearch}
               />
             </div>
@@ -286,14 +287,6 @@ export function StudiosPage() {
               <div className="space-y-6">
                 {/* Map Section - Always shown at top */}
                 <div className="h-[400px]">
-                  {/* Debug info */}
-                  {process.env.NODE_ENV === 'development' && (
-                    <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-100 rounded">
-                      🗺️ Map Debug: searchCenter={searchResults.searchCoordinates ? `${searchResults.searchCoordinates.lat}, ${searchResults.searchCoordinates.lng}` : 'null'}, 
-                      searchRadius={parseInt(searchParams.get('radius') || '25')}, 
-                      hasLocation={!!searchParams.get('location')}
-                    </div>
-                  )}
                   <GoogleMap
                     key={`map-${searchResults.searchCoordinates ? `${searchResults.searchCoordinates.lat}-${searchResults.searchCoordinates.lng}` : 'global'}`}
                     center={searchResults.searchCoordinates 
@@ -356,7 +349,7 @@ export function StudiosPage() {
                               ⚙️ {searchParams.get('services')?.split(',').length} Service{searchParams.get('services')?.split(',').length !== 1 ? 's' : ''}
                             </span>
                           )}
-                          {searchParams.get('radius') && searchParams.get('radius') !== '25' && (
+                          {searchParams.get('radius') && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                               📏 {searchParams.get('radius')} miles
                             </span>

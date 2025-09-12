@@ -43,6 +43,7 @@ export function GoogleMap({
   selectedMarkerId,
 }: GoogleMapProps) {
   
+  
   // Debug logging
   useEffect(() => {
     console.log('🗺️ GoogleMap props:', {
@@ -52,6 +53,15 @@ export function GoogleMap({
       hasSearchRadius: !!searchRadius
     });
   }, [searchCenter, searchRadius]);
+
+  // Reset user interaction state when new search parameters are provided
+  useEffect(() => {
+    if (searchCenter && searchRadius) {
+      console.log('🔄 New search parameters detected - resetting user interaction state');
+      setHasUserInteracted(false);
+      setMarkersReady(false); // Reset markers ready state for new search
+    }
+  }, [searchCenter, searchRadius]);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -59,6 +69,9 @@ export function GoogleMap({
   const circleRef = useRef<any>(null);
   const centerMarkerRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [markersReady, setMarkersReady] = useState(false);
+
 
   // Helper function to create circle and marker
   const createCircleAndMarker = useCallback((mapInstance: any, center: MapLocation, radius: number) => {
@@ -106,18 +119,15 @@ export function GoogleMap({
   const createStudioMarkers = useCallback((mapInstance: any, markerData: any[]) => {
     console.log('🏭 Creating studio markers:', markerData.length);
     
-    // Create new markers with simple red dots
+    // Create new markers with custom marker image
     const newMarkers = markerData.map(data => {
       const marker = new window.google.maps.Marker({
         position: { lat: data.position.lat, lng: data.position.lng },
         title: data.title,
         icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 6,
-          fillColor: colors.primary,
-          fillOpacity: 0.9,
-          strokeColor: '#FFFFFF',
-          strokeWeight: 2,
+          url: '/images/marker.png',
+          scaledSize: new window.google.maps.Size(32, 32), // Adjust size as needed
+          anchor: new window.google.maps.Point(16, 32), // Anchor point (center bottom)
         },
         map: mapInstance,
         optimized: false, // Ensure markers render immediately
@@ -133,38 +143,121 @@ export function GoogleMap({
 
     markersRef.current = newMarkers;
 
-    // Create marker clusterer for grouping
+    // Create marker clusterer for grouping with custom cluster marker
     if (newMarkers.length > 0) {
       markerClustererRef.current = new MarkerClusterer({
         markers: newMarkers,
         map: mapInstance,
         renderer: {
           render: ({ count, position }) => {
-            return new window.google.maps.Marker({
+            console.log('🔢 Creating cluster marker for', count, 'studios at', position);
+            
+            // Create a canvas to combine the marker2 image with custom text
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const size = 40;
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            if (ctx) {
+              // Create the marker with the canvas-based icon
+              const img = new Image();
+              img.onload = () => {
+                // Clear canvas
+                ctx.clearRect(0, 0, size, size);
+                
+                // Draw the marker2 background image
+                ctx.drawImage(img, 0, 0, size, size);
+                
+                // Draw white circular background for the number
+                // Position it in the center of the transparent circle in marker2
+                const circleX = size / 2; // Center horizontally  
+                const circleY = size / 2 - 6; // Move up a bit more from center for perfect alignment
+                const circleRadius = 9; // Size of the white circle
+                
+                ctx.beginPath();
+                ctx.arc(circleX, circleY, circleRadius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#FFFFFF'; // White background
+                ctx.fill();
+                
+                // Draw the count number in brand red
+                ctx.fillStyle = '#d42027'; // Brand red color
+                ctx.font = 'bold 12px Arial'; // Increased font size from 11px to 12px
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(count.toString(), circleX, circleY);
+                
+                // Update the marker icon with the new canvas
+                marker.setIcon({
+                  url: canvas.toDataURL(),
+                  scaledSize: new window.google.maps.Size(40, 40),
+                  anchor: new window.google.maps.Point(20, 40),
+                });
+              };
+              img.src = '/images/marker2.png';
+            }
+            
+            // Create the marker initially with just the base image
+            const marker = new window.google.maps.Marker({
               position,
               icon: {
-                path: window.google.maps.SymbolPath.CIRCLE,
-                scale: Math.min(count * 2 + 10, 30),
-                fillColor: colors.primary,
-                fillOpacity: 0.8,
-                strokeColor: '#FFFFFF',
-                strokeWeight: 2,
-              },
-              label: {
-                text: count.toString(),
-                color: 'white',
-                fontSize: '12px',
-                fontWeight: 'bold',
+                url: '/images/marker2.png',
+                scaledSize: new window.google.maps.Size(40, 40),
+                anchor: new window.google.maps.Point(20, 40),
               },
               title: `${count} studios`,
             });
+            
+            console.log('✅ Cluster marker created successfully');
+            return marker;
           },
         },
       });
     }
     
     console.log('🎯 Studio markers created successfully!');
-  }, []);
+    
+    // Trigger auto-zoom after markers are created
+    if (searchCenter && searchRadius && markerData.length > 0 && !hasUserInteracted) {
+      console.log('🔍 Triggering auto-zoom from marker creation');
+      setTimeout(() => {
+        if (mapInstance && !hasUserInteracted) {
+          const bounds = new window.google.maps.LatLngBounds();
+          
+          // Center the map on the search location
+          bounds.extend(new window.google.maps.LatLng(searchCenter.lat, searchCenter.lng));
+          
+          // Include ALL studio markers to ensure they're all visible (this is the priority)
+          markerData.forEach(marker => {
+            bounds.extend(new window.google.maps.LatLng(marker.position.lat, marker.position.lng));
+          });
+          
+          console.log('🔍 Auto-zooming to fit all studios within search radius (from marker creation)');
+          mapInstance.fitBounds(bounds, {
+            top: 50,
+            right: 50,
+            bottom: 50,
+            left: 50
+          });
+          
+          // Force map refresh and ensure reasonable zoom levels
+          setTimeout(() => {
+            if (mapInstance) {
+              window.google.maps.event.trigger(mapInstance, 'resize');
+              
+              const currentZoom = mapInstance?.getZoom();
+              if (currentZoom && currentZoom > 15) {
+                mapInstance?.setZoom(15); // Don't zoom in too much for privacy
+              } else if (currentZoom && currentZoom < 6) {
+                mapInstance?.setZoom(6); // Don't zoom out too much
+              }
+            }
+          }, 100);
+        }
+      }, 200); // Small delay to ensure markers are fully rendered
+    }
+  }, [searchCenter, searchRadius, hasUserInteracted]);
 
   // Load Google Maps script
   useEffect(() => {
@@ -203,8 +296,9 @@ export function GoogleMap({
       center: { lat: center.lat, lng: center.lng },
       zoom,
       maxZoom,
-      // Enable smooth animations
-      gestureHandling: 'cooperative',
+      // Enable smooth animations with proper scroll wheel behavior
+      gestureHandling: 'greedy', // Allow all gestures without requiring Ctrl key
+      scrollwheel: true, // Enable scroll wheel zoom when hovering over map
       zoomControl: true,
       zoomControlOptions: {
         position: window.google.maps.ControlPosition.RIGHT_BOTTOM,
@@ -231,6 +325,53 @@ export function GoogleMap({
     });
 
     mapInstanceRef.current = map;
+
+    // Add user interaction listeners to track when user manipulates the map
+    let isUserInitiated = false;
+    
+    const handleUserInteraction = () => {
+      if (!hasUserInteracted && isUserInitiated) {
+        console.log('👤 User interaction detected - disabling auto-zoom');
+        setHasUserInteracted(true);
+      }
+    };
+
+    // Listen for user-initiated interactions only
+    map.addListener('dragstart', () => {
+      isUserInitiated = true;
+      handleUserInteraction();
+    });
+    
+    map.addListener('zoom_changed', () => {
+      // Only count as user interaction if it's not programmatic
+      if (isUserInitiated) {
+        handleUserInteraction();
+      }
+    });
+    
+    map.addListener('center_changed', () => {
+      // Only count as user interaction if it's not programmatic
+      if (isUserInitiated) {
+        handleUserInteraction();
+      }
+    });
+    
+    // Reset the flag after a short delay to allow for programmatic changes
+    map.addListener('idle', () => {
+      setTimeout(() => {
+        isUserInitiated = false;
+      }, 100);
+    });
+    
+    // Track mouse interactions
+    map.addListener('mousedown', () => {
+      isUserInitiated = true;
+    });
+    
+    map.addListener('wheel', () => {
+      isUserInitiated = true;
+      handleUserInteraction();
+    });
 
     // Add click listener for location selection
     if (onLocationSelect) {
@@ -294,6 +435,9 @@ export function GoogleMap({
     }
     markersRef.current.forEach(marker => marker.setMap(null));
     markersRef.current = [];
+    
+    // Reset markers ready state when clearing
+    setMarkersReady(false);
 
     // If no markers, return early
     if (markers.length === 0) {
@@ -303,9 +447,12 @@ export function GoogleMap({
     
     createStudioMarkers(mapInstanceRef.current, markers);
     
+    // Set markers as ready after creation
+    setMarkersReady(true);
+    
     // No cleanup needed for this effect
     return;
-  }, [markers, selectedMarkerId, createStudioMarkers]);
+  }, [markers, selectedMarkerId]);
 
   // Update search radius circle and center marker
   useEffect(() => {
@@ -343,51 +490,38 @@ export function GoogleMap({
     return;
   }, [searchCenter, searchRadius, markers]);
 
-  // Auto-zoom to fit search radius circle and all studio markers
+  // Auto-zoom to fit all studios within search radius optimally (Rules 1 & 2)
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
+    if (!mapInstanceRef.current) {
+      console.log('🚫 Auto-zoom skipped: No map instance');
+      return;
+    }
     
     console.log('🔍 Auto-zoom effect called:', { 
       hasSearchCenter: !!searchCenter, 
       searchRadius, 
       markersCount: markers.length,
       hasCircle: !!circleRef.current,
-      hasMarkers: markersRef.current.length > 0
+      hasMarkers: markersRef.current.length > 0,
+      hasUserInteracted,
+      markersReady
     });
 
-    // Always auto-zoom to show both search radius circle and all studio markers
-    if (searchCenter && searchRadius) {
+    // RULE 1 & 2: When location search is performed, show all studios within search radius, zoomed as close as possible
+    // Center the search location on the map, don't worry about fitting the entire circle
+    // IMPORTANT: Only auto-zoom when there's actually a search center (location search performed) AND user hasn't interacted AND markers are ready
+    if (searchCenter && searchRadius && markers.length > 0 && !hasUserInteracted && markersReady) {
       const bounds = new window.google.maps.LatLngBounds();
       
-      // Convert radius from miles to degrees more accurately
-      // 1 degree latitude ≈ 69 miles everywhere
-      const latRadiusInDegrees = searchRadius / 69;
+      // Center the map on the search location
+      bounds.extend(new window.google.maps.LatLng(searchCenter.lat, searchCenter.lng));
       
-      // 1 degree longitude varies by latitude: 69 * cos(latitude)
-      const lngRadiusInDegrees = searchRadius / (69 * Math.cos(searchCenter.lat * Math.PI / 180));
-      
-      // Add points around the circle to ensure the ENTIRE search radius is visible
-      // Use the larger radius to ensure the full circle fits
-      const maxRadiusInDegrees = Math.max(latRadiusInDegrees, lngRadiusInDegrees);
-      
-      // Add points at the extremes of the circle (north, south, east, west)
-      bounds.extend(new window.google.maps.LatLng(searchCenter.lat + maxRadiusInDegrees, searchCenter.lng)); // North
-      bounds.extend(new window.google.maps.LatLng(searchCenter.lat - maxRadiusInDegrees, searchCenter.lng)); // South  
-      bounds.extend(new window.google.maps.LatLng(searchCenter.lat, searchCenter.lng + maxRadiusInDegrees)); // East
-      bounds.extend(new window.google.maps.LatLng(searchCenter.lat, searchCenter.lng - maxRadiusInDegrees)); // West
-      
-      // Also add diagonal points to ensure the full circle is captured
-      bounds.extend(new window.google.maps.LatLng(searchCenter.lat + latRadiusInDegrees, searchCenter.lng + lngRadiusInDegrees));
-      bounds.extend(new window.google.maps.LatLng(searchCenter.lat - latRadiusInDegrees, searchCenter.lng - lngRadiusInDegrees));
-      bounds.extend(new window.google.maps.LatLng(searchCenter.lat + latRadiusInDegrees, searchCenter.lng - lngRadiusInDegrees));
-      bounds.extend(new window.google.maps.LatLng(searchCenter.lat - latRadiusInDegrees, searchCenter.lng + lngRadiusInDegrees));
-      
-      // Also include all studio markers to ensure they're all visible
+      // Include ALL studio markers to ensure they're all visible (this is the priority)
       markers.forEach(marker => {
         bounds.extend(new window.google.maps.LatLng(marker.position.lat, marker.position.lng));
       });
       
-      console.log('🔍 Auto-zooming to fit search radius and markers');
+      console.log('🔍 Auto-zooming to fit all studios within search radius (prioritizing studio visibility)');
       mapInstanceRef.current.fitBounds(bounds, {
         top: 50,
         right: 50,
@@ -403,15 +537,17 @@ export function GoogleMap({
           
           const currentZoom = mapInstanceRef.current?.getZoom();
           if (currentZoom && currentZoom > 15) {
-            mapInstanceRef.current?.setZoom(15); // Don't zoom in too much
+            mapInstanceRef.current?.setZoom(15); // Don't zoom in too much for privacy
           } else if (currentZoom && currentZoom < 6) {
             mapInstanceRef.current?.setZoom(6); // Don't zoom out too much
           }
+          
+          // Auto-zoom completed
         }
       }, 100);
       
-    } else if (markers.length > 0) {
-      // No search center - fit all studios comfortably in view
+    } else if (markers.length > 0 && !hasUserInteracted && markersReady) {
+      // No search center - fit all studios comfortably in view (only if user hasn't interacted and markers are ready)
       const bounds = new window.google.maps.LatLngBounds();
       
       markers.forEach(marker => {
@@ -442,14 +578,17 @@ export function GoogleMap({
     
     // No cleanup needed for this effect
     return;
-  }, [searchCenter, searchRadius, markers, circleRef.current, markersRef.current]);
+  }, [searchCenter, searchRadius, markers, circleRef.current, markersRef.current, hasUserInteracted, markersReady]);
 
-  // Update center when prop changes
+  // Update center when prop changes (only if user hasn't interacted)
   useEffect(() => {
-    if (mapInstanceRef.current) {
+    if (mapInstanceRef.current && !hasUserInteracted) {
+      console.log('🎯 Updating map center to:', center);
       mapInstanceRef.current.setCenter({ lat: center.lat, lng: center.lng });
+    } else if (hasUserInteracted) {
+      console.log('🚫 Skipping center update - user has interacted with map');
     }
-  }, [center]);
+  }, [center, hasUserInteracted]);
 
   if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
     return (
@@ -484,7 +623,14 @@ export function GoogleMap({
     <div 
       ref={mapRef}
       className={`rounded-lg overflow-hidden ${className}`}
-      style={{ height }}
+      style={{ 
+        height,
+        position: 'relative',
+        zIndex: 1,
+        // Ensure map captures mouse events properly
+        pointerEvents: 'auto'
+      }}
+      data-testid="google-map"
     />
   );
 }

@@ -47,8 +47,14 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
     console.log('Final newFilters being sent to onSearch:', newFilters);
     
     setFilters(newFilters);
-    // Apply filters instantly - this should trigger immediate search
-    onSearch(newFilters);
+    
+    // RULE: Only trigger search if there's a location (except for location changes themselves)
+    if (key === 'location' || (newFilters.location && newFilters.location.trim() !== '')) {
+      console.log('✅ Triggering search - location exists or location is being changed');
+      onSearch(newFilters);
+    } else {
+      console.log('🚫 Skipping search - no location provided');
+    }
   };
 
   const handleServiceToggle = (service: string) => {
@@ -66,8 +72,14 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
     }
     
     setFilters(newFilters);
-    // Apply filters instantly
-    onSearch(newFilters);
+    
+    // RULE: Only trigger search if there's a location
+    if (newFilters.location && newFilters.location.trim() !== '') {
+      console.log('✅ Service toggle triggering search - location exists');
+      onSearch(newFilters);
+    } else {
+      console.log('🚫 Service toggle skipping search - no location provided');
+    }
   };
 
 
