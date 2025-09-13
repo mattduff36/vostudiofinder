@@ -34,6 +34,22 @@ export function Navbar({ session }: NavbarProps) {
     setIsMenuOpen(false);
   }, [pathname]);
 
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMenuOpen && !(event.target as Element).closest('nav')) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+    
+    return undefined;
+  }, [isMenuOpen]);
+
   const isHomePage = pathname === '/' || pathname === '/studios';
 
   return (
@@ -171,89 +187,73 @@ export function Navbar({ session }: NavbarProps) {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`md:hidden p-2 rounded-md ${
-              isScrolled || !isHomePage 
-                ? 'text-gray-700 hover:bg-gray-100' 
-                : 'text-white hover:bg-primary-700'
-            }`}
+            className="md:hidden p-2 rounded-md transition-all duration-200 hover:bg-red-50"
+            style={{ 
+              color: colors.primary,
+              border: `1px solid ${colors.primary}`
+            }}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMenuOpen}
           >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Dropdown */}
         {isMenuOpen && (
-          <div className={`md:hidden mt-4 py-4 border-t ${
-            isScrolled || !isHomePage 
-              ? 'border-gray-200 bg-white' 
-              : 'border-white/20 bg-primary-800/90'
-          }`}>
-            <div className="space-y-4">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+            <div className="px-6 py-4 space-y-3">
               <Link 
                 href="/studios" 
-                className={`block py-2 transition-colors ${
-                  isScrolled || !isHomePage 
-                    ? 'text-gray-700 hover:text-primary-600' 
-                    : 'text-white hover:text-primary-200'
-                } ${pathname === '/studios' ? 'font-semibold' : ''}`}
+                className={`block py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                  pathname === '/studios' 
+                    ? 'text-white' 
+                    : 'text-gray-700 hover:text-white hover:bg-red-500'
+                }`}
+                style={pathname === '/studios' ? { backgroundColor: colors.primary } : {}}
               >
                 Browse Studios
               </Link>
               <Link 
                 href="/blog" 
-                className={`block py-2 transition-colors ${
-                  isScrolled || !isHomePage 
-                    ? 'text-gray-700 hover:text-primary-600' 
-                    : 'text-white hover:text-primary-200'
-                } ${pathname === '/blog' ? 'font-semibold' : ''}`}
+                className={`block py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                  pathname === '/blog' 
+                    ? 'text-white' 
+                    : 'text-gray-700 hover:text-white hover:bg-red-500'
+                }`}
+                style={pathname === '/blog' ? { backgroundColor: colors.primary } : {}}
               >
                 Blog
               </Link>
               
-              <div className="pt-4 space-y-3">
+              <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
                 {session ? (
                   <>
-                    <div className={`text-sm ${
-                      isScrolled || !isHomePage ? 'text-gray-600' : 'text-white/80'
-                    }`}>
+                    <div className="text-xs text-gray-500 px-3">
                       Welcome, {session.user.displayName}
                     </div>
-                    <Button
+                    <button
                       onClick={() => router.push('/dashboard')}
-                      variant={isScrolled || !isHomePage ? 'outline' : 'outline'}
-                      className={`w-full ${
-                        isScrolled || !isHomePage 
-                          ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white' 
-                          : 'text-white border-white hover:bg-white hover:text-primary-800'
-                      }`}
+                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-700 hover:text-white hover:bg-red-500 transition-colors"
                     >
                       Dashboard
-                    </Button>
+                    </button>
                   </>
                 ) : (
                   <>
-                    <Button
+                    <button
                       onClick={() => router.push('/auth/signin')}
-                      variant="ghost"
-                      className={`w-full ${
-                        isScrolled || !isHomePage 
-                          ? 'text-gray-700 hover:bg-gray-100' 
-                          : 'text-white hover:bg-primary-700'
-                      }`}
+                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-700 hover:text-white hover:bg-red-500 transition-colors"
                     >
                       Sign In
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                       onClick={() => router.push('/auth/signup')}
-                      variant={isScrolled || !isHomePage ? 'primary' : 'outline'}
-                      className={`w-full ${
-                        isScrolled || !isHomePage 
-                          ? 'bg-primary-600 text-white hover:bg-primary-700' 
-                          : 'text-white border-white hover:bg-white hover:text-primary-800'
-                      }`}
+                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white transition-colors"
+                      style={{ backgroundColor: colors.primary }}
                     >
                       List Your Studio
-                    </Button>
+                    </button>
                   </>
                 )}
               </div>

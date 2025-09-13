@@ -57,10 +57,11 @@ export function StudiosPage() {
   const [loading, setLoading] = useState(true);
   const [isFilterSticky, setIsFilterSticky] = useState(false);
   const [stickyStyles, setStickyStyles] = useState<{width: number; left: number} | null>(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
   const heroSectionRef = useRef<HTMLDivElement>(null);
   const filterSidebarRef = useRef<HTMLDivElement>(null);
   const filterContainerRef = useRef<HTMLDivElement>(null);
-  // const [, setShowFilters] = useState(false);
 
   // Search function
   const performSearch = async (params: URLSearchParams) => {
@@ -196,6 +197,30 @@ export function StudiosPage() {
     router.push(`/studios?${params.toString()}`);
   };
 
+  // Count active filters for mobile badge
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (searchParams.get('location')) count++;
+    if (searchParams.get('studioType')) count++;
+    if (searchParams.get('services')) count++;
+    if (searchParams.get('radius') && searchParams.get('radius') !== '25') count++;
+    return count;
+  };
+
+  // Move useMemo outside conditional render to maintain hook order
+  const mobileFiltersInitialState = useMemo(() => ({
+    location: searchParams.get('location') || '',
+    studioType: searchParams.get('studioType') || '',
+    services: searchParams.get('services')?.split(',') || [],
+    sortBy: searchParams.get('sortBy') || 'name',
+    sortOrder: searchParams.get('sortOrder') || 'asc',
+    radius: parseInt(searchParams.get('radius') || '25'),
+    ...(searchParams.get('lat') && searchParams.get('lng') ? {
+      lat: parseFloat(searchParams.get('lat')!),
+      lng: parseFloat(searchParams.get('lng')!)
+    } : {})
+  }), [searchParams]);
+
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden -mt-20">
@@ -235,6 +260,117 @@ export function StudiosPage() {
         </div>
       </div>
 
+
+      {/* Mobile Controls */}
+      <div className="lg:hidden sticky top-20 z-30 bg-white border-b border-gray-200 px-6 py-3">
+        <div className="flex space-x-3">
+          {/* Filter Button */}
+          <button
+            onClick={() => setShowMobileFilters(true)}
+            className="flex items-center justify-center flex-1 py-3 px-4 bg-white border-2 border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200 relative"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+            </svg>
+            Filters
+            {getActiveFilterCount() > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                {getActiveFilterCount()}
+              </span>
+            )}
+          </button>
+
+          {/* View Toggle */}
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setMobileView('list')}
+              className={`flex items-center justify-center px-3 py-2 rounded-md font-medium text-sm transition-all duration-200 ${
+                mobileView === 'list'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+              List
+            </button>
+            <button
+              onClick={() => setMobileView('map')}
+              className={`flex items-center justify-center px-3 py-2 rounded-md font-medium text-sm transition-all duration-200 ${
+                mobileView === 'map'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              Map
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Filter Modal */}
+      {showMobileFilters && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowMobileFilters(false)}
+          />
+          
+          {/* Modal Content */}
+          <div className="relative h-full bg-white">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+              <button
+                onClick={() => setShowMobileFilters(false)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <SearchFilters
+                initialFilters={mobileFiltersInitialState}
+                onSearch={(filters) => {
+                  handleSearch(filters);
+                  setShowMobileFilters(false);
+                }}
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-gray-200 p-4">
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    router.push('/studios');
+                    setShowMobileFilters(false);
+                  }}
+                  className="flex-1 py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={() => setShowMobileFilters(false)}
+                  className="flex-1 py-3 px-4 rounded-lg font-medium text-white transition-colors"
+                  style={{ backgroundColor: '#d42027' }}
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -285,8 +421,8 @@ export function StudiosPage() {
               </div>
             ) : searchResults ? (
               <div className="space-y-6">
-                {/* Map Section - Always shown at top */}
-                <div className="h-[400px]">
+                {/* Desktop: Map Section - Always shown at top */}
+                <div className="hidden lg:block h-[400px]">
                   <GoogleMap
                     key={`map-${searchResults.searchCoordinates ? `${searchResults.searchCoordinates.lat}-${searchResults.searchCoordinates.lng}` : 'global'}`}
                     center={searchResults.searchCoordinates 
@@ -322,6 +458,48 @@ export function StudiosPage() {
                     className="rounded-lg border border-gray-200"
                   />
                 </div>
+
+                {/* Mobile: Conditional Map View */}
+                {mobileView === 'map' && (
+                  <div className="lg:hidden h-[500px]">
+                    <GoogleMap
+                      key={`mobile-map-${searchResults.searchCoordinates ? `${searchResults.searchCoordinates.lat}-${searchResults.searchCoordinates.lng}` : 'global'}`}
+                      center={searchResults.searchCoordinates 
+                        ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
+                        : { lat: 20, lng: 0 }
+                      }
+                      zoom={searchResults.searchCoordinates ? 10 : 2}
+                      markers={searchResults.studios
+                        .filter(studio => studio.latitude && studio.longitude)
+                        .map(studio => ({
+                          id: studio.id,
+                          position: { lat: studio.latitude!, lng: studio.longitude! },
+                          title: studio.name,
+                          studioType: studio.studioType,
+                          isVerified: studio.isVerified,
+                          onClick: () => {
+                            // Switch to list view and scroll to studio
+                            setMobileView('list');
+                            setTimeout(() => {
+                              const element = document.getElementById(`studio-${studio.id}`);
+                              if (element) {
+                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                element.classList.add('ring-2', 'ring-primary-300');
+                                setTimeout(() => {
+                                  element.classList.remove('ring-2', 'ring-primary-300');
+                                }, 2000);
+                              }
+                            }, 100);
+                          },
+                        }))}
+                      searchCenter={searchResults.searchCoordinates || null}
+                      searchRadius={parseInt(searchParams.get('radius') || '25')}
+                      selectedMarkerId={null}
+                      height="100%"
+                      className="rounded-lg border border-gray-200"
+                    />
+                  </div>
+                )}
 
                 {/* Results Header with Active Filters - Below map, above cards */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -360,12 +538,14 @@ export function StudiosPage() {
                   </div>
                 </div>
 
-                {/* List Section - Always shown below results header */}
-                <StudiosList
-                  studios={searchResults.studios}
-                  pagination={searchResults.pagination}
-                  onPageChange={handlePageChange}
-                />
+                {/* Studios List - Desktop: Always shown, Mobile: Only in list view */}
+                <div className={`${mobileView === 'map' ? 'hidden lg:block' : 'block'}`}>
+                  <StudiosList
+                    studios={searchResults.studios}
+                    pagination={searchResults.pagination}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
               </div>
             ) : (
               <div className="text-center py-12">

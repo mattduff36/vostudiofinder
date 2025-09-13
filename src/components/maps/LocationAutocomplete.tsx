@@ -25,7 +25,7 @@ export function LocationAutocomplete({
   onChange,
   onEnterKey,
   onSearch,
-  placeholder = "Enter city, state, or country...",
+  placeholder = "Search...",
   className = ""
 }: LocationAutocompleteProps) {
   const inputRef = useRef<HTMLInputElement>(null);

@@ -1,0 +1,155 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [active]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - navigation [ref=e7]:
+          - button "previous" [disabled] [ref=e8]:
+            - img "previous" [ref=e9]
+          - generic [ref=e11]:
+            - generic [ref=e12]: 1/
+            - generic [ref=e13]: "2"
+          - button "next" [ref=e14] [cursor=pointer]:
+            - img "next" [ref=e15] [cursor=pointer]
+        - link "Next.js 15.5.2 (stale) Turbopack" [ref=e18] [cursor=pointer]:
+          - /url: https://nextjs.org/docs/messages/version-staleness
+          - img [ref=e19] [cursor=pointer]
+          - generic "There is a newer version (15.5.3) available, upgrade recommended!" [ref=e21] [cursor=pointer]: Next.js 15.5.2 (stale)
+          - generic [ref=e22] [cursor=pointer]: Turbopack
+      - generic [ref=e23]:
+        - dialog "Console Error" [ref=e24]:
+          - generic [ref=e27]:
+            - generic [ref=e28]:
+              - generic [ref=e29]:
+                - generic [ref=e31]: Console Error
+                - generic [ref=e32]:
+                  - button "Copy Error Info" [ref=e33] [cursor=pointer]:
+                    - img [ref=e34] [cursor=pointer]
+                  - link "Go to related documentation" [ref=e36] [cursor=pointer]:
+                    - /url: https://react.dev/link/rules-of-hooks
+                    - img [ref=e37] [cursor=pointer]
+                  - link "Learn more about enabling Node.js inspector for server code with Chrome DevTools" [ref=e39] [cursor=pointer]:
+                    - /url: https://nextjs.org/docs/app/building-your-application/configuring/debugging#server-side-code
+                    - img [ref=e40] [cursor=pointer]
+              - generic [ref=e48]:
+                - paragraph [ref=e49]: "React has detected a change in the order of Hooks called by StudiosPage. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks Previous render Next render ------------------------------------------------------ 1. useContext useContext 2. useContext useContext 3. useMemo useMemo 4. useState useState 5. useState useState 6. useState useState 7. useState useState 8. useState useState 9. useState useState 10. useRef useRef 11. useRef useRef 12. useRef useRef 13. useEffect useEffect 14. useEffect useEffect 15. useMemo useMemo 16. undefined useMemo ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+                - button "Show More" [ref=e51] [cursor=pointer]
+            - generic [ref=e52]:
+              - generic [ref=e53]:
+                - paragraph [ref=e55]:
+                  - img [ref=e57]
+                  - generic [ref=e60]: src/components/search/StudiosPage.tsx (400:40) @ StudiosPage
+                  - button "Open in editor" [ref=e61] [cursor=pointer]:
+                    - img [ref=e63] [cursor=pointer]
+                - generic [ref=e66]:
+                  - generic [ref=e67]:
+                    - generic [ref=e69]: 398 |
+                    - generic [ref=e71]: ">"
+                  - generic [ref=e72]:
+                    - generic [ref=e74]: 399 |
+                    - generic [ref=e76]: <
+                    - generic [ref=e77]: SearchFilters
+                  - generic [ref=e78]:
+                    - generic [ref=e79]: ">"
+                    - generic [ref=e80]: 400 |
+                    - generic [ref=e81]: initialFilters
+                    - generic [ref=e82]: =
+                    - generic [ref=e83]: "{useMemo(()"
+                    - generic [ref=e84]: =>
+                    - generic [ref=e85]: "({"
+                  - generic [ref=e86]:
+                    - generic [ref=e88]: "|"
+                    - generic [ref=e90]: ^
+                  - generic [ref=e91]:
+                    - generic [ref=e93]: 401 |
+                    - generic [ref=e94]: location
+                    - generic [ref=e95]: ":"
+                    - generic [ref=e96]: searchParams
+                    - generic [ref=e97]: .
+                    - generic [ref=e98]: get
+                    - generic [ref=e99]: (
+                    - generic [ref=e100]: "'location'"
+                    - generic [ref=e101]: )
+                    - generic [ref=e102]: "||"
+                    - generic [ref=e104]: "''"
+                    - generic [ref=e105]: ","
+                  - generic [ref=e106]:
+                    - generic [ref=e108]: 402 |
+                    - generic [ref=e109]: studioType
+                    - generic [ref=e110]: ":"
+                    - generic [ref=e111]: searchParams
+                    - generic [ref=e112]: .
+                    - generic [ref=e113]: get
+                    - generic [ref=e114]: (
+                    - generic [ref=e115]: "'studioType'"
+                    - generic [ref=e116]: )
+                    - generic [ref=e117]: "||"
+                    - generic [ref=e119]: "''"
+                    - generic [ref=e120]: ","
+                  - generic [ref=e121]:
+                    - generic [ref=e123]: 403 |
+                    - generic [ref=e124]: services
+                    - generic [ref=e125]: ":"
+                    - generic [ref=e126]: searchParams
+                    - generic [ref=e127]: .
+                    - generic [ref=e128]: get
+                    - generic [ref=e129]: (
+                    - generic [ref=e130]: "'services'"
+                    - generic [ref=e131]: )
+                    - generic [ref=e132]: "?"
+                    - generic [ref=e133]: .
+                    - generic [ref=e134]: split(
+                    - generic [ref=e135]: "','"
+                    - generic [ref=e136]: )
+                    - generic [ref=e137]: "||"
+                    - generic [ref=e138]: "[]"
+                    - generic [ref=e139]: ","
+              - generic [ref=e140]:
+                - generic [ref=e141]:
+                  - paragraph [ref=e142]:
+                    - text: Call Stack
+                    - generic [ref=e143]: "21"
+                  - button "Show 19 ignore-listed frame(s)" [ref=e144] [cursor=pointer]:
+                    - text: Show 19 ignore-listed frame(s)
+                    - img [ref=e145] [cursor=pointer]
+                - generic [ref=e147]:
+                  - generic [ref=e148]:
+                    - text: StudiosPage
+                    - button "Open StudiosPage in editor" [ref=e149] [cursor=pointer]:
+                      - img [ref=e150] [cursor=pointer]
+                  - generic [ref=e152]: src/components/search/StudiosPage.tsx (400:40)
+                - generic [ref=e153]:
+                  - generic [ref=e154]:
+                    - text: Studios
+                    - button "Open Studios in editor" [ref=e155] [cursor=pointer]:
+                      - img [ref=e156] [cursor=pointer]
+                  - generic [ref=e158]: src\app\studios\page.tsx (14:7)
+          - generic [ref=e159]:
+            - generic [ref=e160]: "1"
+            - generic [ref=e161]: "2"
+        - contentinfo [ref=e162]:
+          - region "Error feedback" [ref=e163]:
+            - paragraph [ref=e164]:
+              - link "Was this helpful?" [ref=e165] [cursor=pointer]:
+                - /url: https://nextjs.org/telemetry#error-feedback
+            - button "Mark as helpful" [ref=e166] [cursor=pointer]:
+              - img [ref=e167] [cursor=pointer]
+            - button "Mark as not helpful" [ref=e170] [cursor=pointer]:
+              - img [ref=e171] [cursor=pointer]
+    - generic [ref=e177] [cursor=pointer]:
+      - button "Open Next.js Dev Tools" [ref=e178] [cursor=pointer]:
+        - img [ref=e179] [cursor=pointer]
+      - generic [ref=e182] [cursor=pointer]:
+        - button "Open issues overlay" [ref=e183] [cursor=pointer]:
+          - generic [ref=e184] [cursor=pointer]:
+            - generic [ref=e185] [cursor=pointer]: "1"
+            - generic [ref=e186] [cursor=pointer]: "2"
+          - generic [ref=e187] [cursor=pointer]:
+            - text: Issue
+            - generic [ref=e188] [cursor=pointer]: s
+        - button "Collapse issues badge" [ref=e189] [cursor=pointer]:
+          - img [ref=e190] [cursor=pointer]
+  - 'heading "Application error: a client-side exception has occurred while loading localhost (see the browser console for more information)." [level=2] [ref=e194]'
+```

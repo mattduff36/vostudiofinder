@@ -59,7 +59,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
     <div className="space-y-6">
 
       {/* Studios Grid - Using FeaturedStudios card design */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {studios.map((studio) => (
           <div
             key={studio.id}
@@ -91,9 +91,9 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
 
             </div>
 
-            <div className="p-6 flex flex-col flex-grow max-h-[340px]">
+            <div className="p-4 sm:p-6 flex flex-col flex-grow max-h-[340px]">
               {/* Studio Name */}
-              <h3 className="text-xl font-semibold line-clamp-1 mb-3" style={{ color: colors.textPrimary, margin: '0 0 12px 0' }}>
+              <h3 className="text-lg sm:text-xl font-semibold line-clamp-1 mb-2 sm:mb-3" style={{ color: colors.textPrimary, margin: '0 0 8px 0' }}>
                 {studio.name}
               </h3>
 
@@ -182,24 +182,31 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center space-x-2 mt-8">
+        <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-8">
           <Button
             variant="outline"
             size="sm"
             onClick={() => onPageChange(pagination.page - 1)}
             disabled={!pagination.hasPrevPage}
+            className="px-3 py-2 min-w-[44px] min-h-[44px] sm:min-w-auto sm:min-h-auto"
           >
-            Previous
+            <span className="hidden sm:inline">Previous</span>
+            <span className="sm:hidden">‹</span>
           </Button>
           
+          {/* Show fewer page numbers on mobile */}
           {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-            const pageNum = i + 1;
+            const startPage = Math.max(1, pagination.page - Math.floor(5 / 2));
+            const pageNum = startPage + i;
+            if (pageNum > pagination.totalPages) return null;
+            
             return (
               <Button
                 key={pageNum}
                 variant={pageNum === pagination.page ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => onPageChange(pageNum)}
+                className="min-w-[44px] min-h-[44px] sm:min-w-auto sm:min-h-auto"
                 style={pageNum === pagination.page ? { backgroundColor: colors.primary, color: 'white' } : {}}
               >
                 {pageNum}
@@ -212,8 +219,10 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
             size="sm"
             onClick={() => onPageChange(pagination.page + 1)}
             disabled={!pagination.hasNextPage}
+            className="px-3 py-2 min-w-[44px] min-h-[44px] sm:min-w-auto sm:min-h-auto"
           >
-            Next
+            <span className="hidden sm:inline">Next</span>
+            <span className="sm:hidden">›</span>
           </Button>
         </div>
       )}

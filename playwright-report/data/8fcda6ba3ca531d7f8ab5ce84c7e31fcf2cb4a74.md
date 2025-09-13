@@ -1,0 +1,63 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "VoiceoverStudioFinder" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "VoiceoverStudioFinder" [ref=e6] [cursor=pointer]
+      - button "Open menu" [ref=e7]:
+        - img [ref=e8]
+  - main [ref=e9]:
+    - generic [ref=e10]:
+      - img "Studios page background texture" [ref=e12]
+      - generic [ref=e13]:
+        - img "Studio search background texture" [ref=e15]
+        - heading "Recording Studios" [level=1] [ref=e18]
+      - generic [ref=e20]:
+        - button "Filters" [ref=e21]:
+          - img [ref=e22]
+          - text: Filters
+        - generic [ref=e24]:
+          - button "List" [ref=e25]:
+            - img [ref=e26]
+            - text: List
+          - button "Map" [active] [ref=e28]:
+            - img [ref=e29]
+            - text: Map
+      - generic [ref=e34]:
+        - generic [ref=e38]:
+          - generic:
+            - button "Keyboard shortcuts"
+          - region "Map" [ref=e39]
+          - generic [ref=e40]:
+            - generic [ref=e69]:
+              - generic:
+                - generic:
+                  - button "STLAudio" [ref=e71] [cursor=pointer]
+                  - button "17 studios" [ref=e72] [cursor=pointer]
+                  - button "2 studios" [ref=e73] [cursor=pointer]
+            - iframe [ref=e74]:
+              
+            - button "Toggle fullscreen view" [ref=e75] [cursor=pointer]
+            - generic:
+              - generic:
+                - button "Map camera controls" [ref=e77] [cursor=pointer]
+                - generic [ref=e79] [cursor=pointer]:
+                  - button "Zoom in" [ref=e80] [cursor=pointer]
+                  - button "Zoom out" [ref=e82] [cursor=pointer]
+            - link "Open this area in Google Maps (opens a new window)" [ref=e84] [cursor=pointer]:
+              - /url: https://maps.google.com/maps?ll=20,0&z=2&t=m&hl=en-US&gl=US&mapclient=apiv3
+              - img "Google" [ref=e86] [cursor=pointer]
+            - generic [ref=e87]:
+              - button "Keyboard shortcuts" [ref=e93] [cursor=pointer]
+              - generic [ref=e99]: Map data ©2025
+              - link "Terms (opens in new tab)" [ref=e104] [cursor=pointer]:
+                - /url: https://www.google.com/intl/en-US_US/help/terms_maps.html
+                - text: Terms
+        - paragraph [ref=e107]: Showing 1-20 of 62 studios
+  - button "Open Next.js Dev Tools" [ref=e113] [cursor=pointer]:
+    - img [ref=e114] [cursor=pointer]
+  - alert [ref=e117]
+```

@@ -60,23 +60,27 @@ export function HeroSection() {
         </div>
 
       {/* Hero Content */}
-      <div className="relative z-10 py-20 w-full">
-        <div className="max-w-7xl mx-auto px-6">
-          <h1 className={`text-5xl md:text-6xl font-bold mb-6 text-center transition-all duration-1000 delay-200 ${
+      <div className="relative z-10 py-12 sm:py-16 md:py-20 w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-center transition-all duration-1000 delay-200 leading-tight ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ color: '#ffffff' }}>
-            Find Your Perfect<br/>
+            Find Your Perfect<br className="hidden sm:block"/>
+            <span className="sm:hidden"> </span>
             <span style={{ color: colors.primary }}>Recording Studio</span>
           </h1>
           
-          <p className={`text-xl text-center transition-all duration-1000 ease-out ${
+          <p className={`text-base sm:text-lg md:text-xl text-center transition-all duration-1000 ease-out px-4 ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.4s', color: '#ffffff', maxWidth: '768px', margin: '0 auto' }}>
-            Connect with professional voiceover recording studios worldwide.<br/>Advanced search, verified locations, and direct studio contact.
+            Connect with professional voiceover recording studios worldwide.
+            <br className="hidden sm:block"/>
+            <span className="sm:hidden"> </span>
+            Advanced search, verified locations, and direct studio contact.
           </p>
 
           {/* Enhanced Search Form */}
-          <div className={`max-w-4xl mx-auto mt-12 transition-all duration-1000 ${
+          <div className={`max-w-4xl mx-auto mt-8 sm:mt-10 md:mt-12 px-4 transition-all duration-1000 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ transitionDelay: '0.6s' }}>
             <EnhancedSearchBar
