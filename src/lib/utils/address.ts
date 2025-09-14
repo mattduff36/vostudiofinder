@@ -21,7 +21,7 @@ export function abbreviateAddress(fullAddress: string): string {
 
   // If only one part, check if it's just a postcode/zip and return as is
   if (parts.length === 1) {
-    return abbreviatePostalCode(parts[0]);
+    return abbreviatePostalCode(parts[0] || '');
   }
 
   // Remove the first part (street address/house number)
@@ -30,7 +30,7 @@ export function abbreviateAddress(fullAddress: string): string {
   // Process the last part to abbreviate postal codes
   if (addressWithoutStreet.length > 0) {
     const lastIndex = addressWithoutStreet.length - 1;
-    addressWithoutStreet[lastIndex] = abbreviatePostalCode(addressWithoutStreet[lastIndex]);
+    addressWithoutStreet[lastIndex] = abbreviatePostalCode(addressWithoutStreet[lastIndex] || '');
   }
 
   return addressWithoutStreet.join(', ');
