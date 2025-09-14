@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, MapPin, Building } from 'lucide-react';
+import { Search, MapPin } from 'lucide-react';
 import { colors } from '../home/HomePage';
-import { formatUserSuggestion, calculateDistance } from '@/lib/utils/address';
+import { formatUserSuggestion, calculateDistance, abbreviateAddress } from '@/lib/utils/address';
 import { getCurrentLocation } from '@/lib/maps';
 
 interface SearchSuggestion {
@@ -21,34 +20,30 @@ interface SearchSuggestion {
   };
 }
 
-interface EnhancedSearchBarProps {
+interface EnhancedLocationFilterProps {
+  value: string;
+  onChange: (value: string, placeDetails?: any) => void;
+  onEnterKey?: () => void;
   placeholder?: string;
   className?: string;
-  showRadius?: boolean;
-  onSearch?: (location: string, coordinates?: { lat: number; lng: number }, radius?: number) => void;
 }
 
-export function EnhancedSearchBar({ 
+export function EnhancedLocationFilter({ 
+  value,
+  onChange,
+  onEnterKey,
   placeholder = "Search by location, postcode, or username...",
-  className = "",
-  showRadius = true,
-  onSearch
-}: EnhancedSearchBarProps) {
-  console.log('🚀 EnhancedSearchBar component rendered');
-  const router = useRouter();
-  const [query, setQuery] = useState('');
+  className = ""
+}: EnhancedLocationFilterProps) {
+  const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [radius, setRadius] = useState(25);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<{
-    name: string;
-    coordinates?: { lat: number; lng: number };
-  } | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -58,7 +53,7 @@ export function EnhancedSearchBar({
       try {
         const location = await getCurrentLocation();
         setUserLocation(location);
-        console.log('🌍 User location obtained:', location);
+        console.log('🌍 User location obtained for filters:', location);
       } catch (error) {
         console.warn('Could not get user location for distance sorting:', error);
       }
@@ -67,6 +62,15 @@ export function EnhancedSearchBar({
     getUserLocation();
   }, []);
 
+  // Update internal query when value prop changes
+  React.useEffect(() => {
+    // If the value looks like a full address (contains commas and is long), abbreviate it for display
+    if (value && value.includes(',') && value.length > 30) {
+      setQuery(abbreviateAddress(value));
+    } else {
+      setQuery(value);
+    }
+  }, [value]);
 
   // Detect search type - location or user
   const detectSearchType = (input: string): 'location' | 'user' => {
@@ -141,6 +145,18 @@ export function EnhancedSearchBar({
         }
       }
 
+      // If no Google Places suggestions and it looks like a location search, add a fallback
+      const hasLocationSuggestions = allSuggestions.some(s => s.type === 'location');
+      if (!hasLocationSuggestions && type === 'location' && searchQuery.length >= 3) {
+        console.log('🔄 Adding fallback location suggestion for:', searchQuery);
+        allSuggestions.push({
+          id: `fallback-${searchQuery}`,
+          text: searchQuery,
+          type: 'location' as const,
+          metadata: {}
+        });
+      }
+
       // Deduplicate suggestions
       const uniqueSuggestions = allSuggestions.filter((suggestion, index, self) => 
         index === self.findIndex(s => s.text.toLowerCase() === suggestion.text.toLowerCase())
@@ -191,8 +207,11 @@ export function EnhancedSearchBar({
   // Fetch Google Places suggestions with coordinates for distance calculation
   const fetchGooglePlaces = async (searchQuery: string): Promise<SearchSuggestion[]> => {
     if (!window.google?.maps?.places) {
+      console.warn('🚫 Google Maps Places API not available');
       return [];
     }
+    
+    console.log('🗺️ Google Places API available, fetching suggestions for:', searchQuery);
 
     const autocompleteService = new window.google.maps.places.AutocompleteService();
     const placesService = new window.google.maps.places.PlacesService(document.createElement('div'));
@@ -283,11 +302,11 @@ export function EnhancedSearchBar({
                             place_id: place.place_id,
                             ...(place.geometry?.location ? {
                               coordinates: {
-                                lat: typeof place.geometry.location.lat === 'function' 
-                                  ? place.geometry.location.lat() 
+                                lat: typeof place.geometry.location.lat === 'function'
+                                  ? place.geometry.location.lat()
                                   : place.geometry.location.lat,
-                                lng: typeof place.geometry.location.lng === 'function' 
-                                  ? place.geometry.location.lng() 
+                                lng: typeof place.geometry.location.lng === 'function'
+                                  ? place.geometry.location.lng()
                                   : place.geometry.location.lng
                               }
                             } : {})
@@ -372,14 +391,28 @@ export function EnhancedSearchBar({
     }
   };
 
-  // Note: Removed duplicate debounced search useEffect to avoid conflicts
-  // The onChange handler now handles all debouncing and processing
+  // Handle input changes with debouncing
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setQuery(newValue);
+    
+    // Clear existing debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
+    // Debounce the suggestion fetching
+    debounceRef.current = setTimeout(() => {
+      fetchSuggestions(newValue);
+    }, 300);
+  };
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen || suggestions.length === 0) {
-      if (e.key === 'Enter') {
-        handleSearch();
+      if (e.key === 'Enter' && onEnterKey) {
+        e.preventDefault();
+        onEnterKey();
       }
       return;
     }
@@ -397,8 +430,8 @@ export function EnhancedSearchBar({
         e.preventDefault();
         if (selectedIndex >= 0 && suggestions[selectedIndex]) {
           handleSelect(suggestions[selectedIndex]);
-        } else {
-          handleSearch();
+        } else if (onEnterKey) {
+          onEnterKey();
         }
         break;
       case 'Escape':
@@ -411,184 +444,118 @@ export function EnhancedSearchBar({
 
   // Handle suggestion selection
   const handleSelect = (suggestion: SearchSuggestion) => {
+    console.log('🎯 Suggestion selected:', suggestion);
+    
     if (suggestion.type === 'location') {
-      setSelectedLocation({
-        name: suggestion.text,
-        ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
-      });
       setQuery(suggestion.text);
-      // Don't perform search immediately - wait for Enter key or search button click
+      // For location suggestions, pass the place details if available
+      const placeDetails = suggestion.metadata?.coordinates ? {
+        geometry: {
+          location: {
+            lat: () => suggestion.metadata?.coordinates?.lat || 0,
+            lng: () => suggestion.metadata?.coordinates?.lng || 0
+          }
+        },
+        formatted_address: suggestion.location || suggestion.text,
+        place_id: suggestion.metadata?.place_id
+      } : undefined;
+      
+      console.log('📍 Location selected, calling onChange with:', suggestion.text, placeDetails);
+      onChange(suggestion.text, placeDetails);
     } else if (suggestion.type === 'user') {
-      // For users, use their actual location address from metadata, not the formatted text
+      // For users, use their actual location address from metadata
       const actualLocation = suggestion.metadata?.full_location || suggestion.text;
-      setSelectedLocation({
-        name: actualLocation,
-        ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
-      });
-      setQuery(suggestion.text); // Keep the formatted username in the search box for display
-      // Don't perform search immediately - wait for Enter key or search button click
+      setQuery(actualLocation);
+      
+      const placeDetails = suggestion.metadata?.coordinates ? {
+        geometry: {
+          location: {
+            lat: () => suggestion.metadata?.coordinates?.lat || 0,
+            lng: () => suggestion.metadata?.coordinates?.lng || 0
+          }
+        },
+        formatted_address: actualLocation
+      } : undefined;
+      
+      console.log('👤 User selected, calling onChange with:', actualLocation, placeDetails);
+      onChange(actualLocation, placeDetails);
     }
     
     setIsOpen(false);
     setSelectedIndex(-1);
   };
 
-  // Handle search submission
-  const handleSearch = () => {
-    if (query.trim()) {
-      if (selectedLocation) {
-        // Use the selected location (which is the actual address for users)
-        performLocationSearch(selectedLocation.name, selectedLocation.coordinates);
-      } else {
-        // Try to geocode the query
-        performLocationSearch(query);
-      }
-    }
-  };
 
-  // Perform location-based search
-  const performLocationSearch = async (locationName: string, coordinates?: { lat: number; lng: number }) => {
-    const params = new URLSearchParams();
-    
-    // Set location parameter
-    params.set('location', locationName);
-    
-    // Set radius if enabled
-    if (showRadius && radius > 0) {
-      params.set('radius', radius.toString());
-    }
-    
-    // If we have coordinates, add them
-    if (coordinates) {
-      params.set('lat', coordinates.lat.toString());
-      params.set('lng', coordinates.lng.toString());
-    } else if (window.google?.maps?.places) {
-      // Try to geocode the location to get coordinates
-      try {
-        const geocodedCoords = await geocodeLocation(locationName);
-        if (geocodedCoords) {
-          params.set('lat', geocodedCoords.lat.toString());
-          params.set('lng', geocodedCoords.lng.toString());
-        }
-      } catch (error) {
-        console.warn('Geocoding failed:', error);
-      }
-    }
-
-    // Call custom handler if provided
-    if (onSearch) {
-      onSearch(locationName, coordinates, showRadius ? radius : undefined);
-    }
-
-    console.log('Location search:', { locationName, coordinates, params: params.toString() });
-
-    // Navigate to studios page
-    router.push(`/studios?${params.toString()}`);
-    setIsOpen(false);
-  };
-
-  // Geocode a location to get coordinates
-  const geocodeLocation = (locationName: string): Promise<{ lat: number; lng: number } | null> => {
-    return new Promise((resolve) => {
-      if (!window.google?.maps) {
-        resolve(null);
-        return;
-      }
-
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ address: locationName }, (results: any[], status: any) => {
-        if (status === 'OK' && results && results[0]) {
-          const location = results[0].geometry.location;
-          resolve({
-            lat: location.lat(),
-            lng: location.lng()
-          });
-        } else {
-          resolve(null);
-        }
+  // Handle clicks outside to close suggestions
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const clickedInsideInput = inputRef.current && inputRef.current.contains(target);
+      const clickedInsideDropdown = dropdownRef.current && dropdownRef.current.contains(target);
+      
+      console.log('🖱️ Click outside check:', {
+        clickedInsideInput,
+        clickedInsideDropdown,
+        willClose: !clickedInsideInput && !clickedInsideDropdown
       });
-    });
-  };
+      
+      if (!clickedInsideInput && !clickedInsideDropdown) {
+        console.log('🚪 Closing dropdown due to outside click');
+        setIsOpen(false);
+        setSelectedIndex(-1);
+      }
+    };
 
-  // Get icon for suggestion type
-  const getSuggestionIcon = (type: SearchSuggestion['type']) => {
-    switch (type) {
-      case 'location':
-        return <MapPin className="w-4 h-4 text-blue-500" />;
-      case 'user':
-        return <Building className="w-4 h-4 text-green-500" />;
-      default:
-        return <Search className="w-4 h-4 text-gray-500" />;
-    }
-  };
-
+    document.addEventListener('mouseup', handleClickOutside);
+    return () => {
+      document.removeEventListener('mouseup', handleClickOutside);
+    };
+  }, []);
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Main Search Input */}
-      <div className="bg-white rounded-xl p-2 shadow-2xl">
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: colors.textSubtle }} />
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder={placeholder}
-                className="w-full h-10 pl-8 pr-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-transparent"
-                style={{ 
-                  color: colors.textPrimary, 
-                  '--tw-ring-color': colors.primary 
-                } as React.CSSProperties}
-                value={query}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  console.log('⌨️ Input onChange triggered with:', newValue);
-                  setQuery(newValue);
-                  
-                  // Clear selected location if user is typing something new
-                  if (selectedLocation && newValue !== selectedLocation.name) {
-                    setSelectedLocation(null);
-                  }
-                  
-                  // Trigger suggestions with debounce
-                  if (debounceRef.current) {
-                    clearTimeout(debounceRef.current);
-                  }
-                  
-                  debounceRef.current = setTimeout(() => {
-                    fetchSuggestions(newValue);
-                  }, 300);
-                }}
-                onKeyDown={handleKeyDown}
-                autoComplete="off"
-              />
-              
-            </div>
-          </div>
-          
-          {/* Search Button */}
-          <button
-            className="h-10 px-4 font-semibold rounded-lg transition-all duration-300 hover:shadow-lg"
-            style={{ backgroundColor: colors.primary, color: colors.background }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryHover}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
-            onClick={handleSearch}
-          >
-            Search
-          </button>
-        </div>
-      </div>
+    <div className="relative">
+      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+      <input
+        ref={inputRef}
+        type="text"
+        placeholder={placeholder}
+        value={query}
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
+        className={`w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${className}`}
+        autoComplete="off"
+      />
+      
+      {/* Search Button */}
+      <button
+        type="button"
+        onClick={() => {
+          if (onEnterKey) {
+            onEnterKey();
+          }
+        }}
+        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white rounded-md p-1.5 transition-colors"
+        style={{ 
+          backgroundColor: colors.primary,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = colors.primaryHover;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = colors.primary;
+        }}
+        aria-label="Search"
+      >
+        <Search className="w-4 h-4" />
+      </button>
 
       {/* Suggestions Dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-[60] w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-80 overflow-auto">
+        <div ref={dropdownRef} className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
           {isLoadingPlaces && (
-            <div className="px-4 py-2 text-sm text-gray-500 border-b">
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-400"></div>
-                Loading location suggestions...
-              </div>
+            <div className="px-3 py-2 text-xs text-gray-500 flex items-center gap-2">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-500"></div>
+              Loading places...
             </div>
           )}
           
@@ -596,62 +563,30 @@ export function EnhancedSearchBar({
             <div
               key={suggestion.id}
               ref={(el) => { suggestionRefs.current[index] = el; }}
-              className={`px-4 py-3 cursor-pointer flex items-center gap-3 transition-colors ${
+              className={`px-3 py-2 cursor-pointer transition-colors ${
                 index === selectedIndex
                   ? 'bg-blue-50 text-blue-900'
                   : 'hover:bg-gray-50 text-gray-900'
               }`}
-              onClick={() => handleSelect(suggestion)}
+              onMouseDown={(e) => {
+                console.log('🖱️ Suggestion mouse down:', suggestion.text);
+                e.preventDefault();
+                e.stopPropagation();
+                handleSelect(suggestion);
+              }}
+              onClick={(e) => {
+                console.log('🖱️ Suggestion clicked:', suggestion.text);
+                e.preventDefault();
+                e.stopPropagation();
+              }}
             >
-              {getSuggestionIcon(suggestion.type)}
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">
-                  {suggestion.text}
-                  {suggestion.location && (
-                    <span className="text-gray-500 font-normal ml-1">
-                      {suggestion.location}
-                    </span>
-                  )}
-                </div>
+              <div className="text-xs font-medium text-gray-900">
+                {suggestion.text}
               </div>
             </div>
           ))}
         </div>
       )}
-
-      {/* Radius Slider - Moved Below Search Bar */}
-      {showRadius && (
-        <div className="mt-6 p-4 bg-transparent">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-white">Search Radius</label>
-            <span className="text-sm text-white opacity-80">{radius} miles</span>
-          </div>
-          <input
-            type="range"
-            min="5"
-            max="200"
-            step="5"
-            value={radius}
-            onChange={(e) => setRadius(parseInt(e.target.value))}
-            className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider"
-            style={{
-              background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) 100%)`
-            }}
-          />
-          <div className="relative text-xs text-white opacity-70 mt-1">
-            <div className="flex justify-between">
-              <span>5mi</span>
-              <span>200mi</span>
-            </div>
-            <div className="absolute inset-0 flex justify-between pointer-events-none">
-              <span style={{ left: '25%', transform: 'translateX(-50%)', position: 'absolute' }}>50mi</span>
-              <span style={{ left: '50%', transform: 'translateX(-50%)', position: 'absolute' }}>100mi</span>
-              <span style={{ left: '75%', transform: 'translateX(-50%)', position: 'absolute' }} className="hidden sm:block">150mi</span>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { calculateDistance } from '@/lib/utils/address';
 
 // Enhanced search type detection
 function detectSearchType(input: string): string {
@@ -38,6 +39,11 @@ function detectSearchType(input: string): string {
     return 'service';
   }
   
+  // Check if it looks like a username (alphanumeric, possibly with underscores/hyphens)
+  if (/^[a-z0-9_-]{3,20}$/i.test(lowerInput) && !lowerInput.includes(' ')) {
+    return 'user';
+  }
+  
   if (/^[a-z0-9]{2,15}$/i.test(lowerInput)) {
     return 'studio';
   }
@@ -53,6 +59,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
+    const userLat = searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : undefined;
+    const userLng = searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : undefined;
 
     if (!query || query.length < 2) {
       return NextResponse.json({ suggestions: [] });
@@ -64,7 +72,11 @@ export async function GET(request: NextRequest) {
     // Prioritize searches based on detected type
     let suggestions: any[] = [];
 
-    if (searchType === 'location') {
+    if (searchType === 'user') {
+      // For user searches, don't return studio suggestions to avoid duplicates
+      // The EnhancedSearchBar will handle user suggestions directly
+      suggestions = [];
+    } else if (searchType === 'location') {
       // Prioritize location searches
       const locations = await db.studio.findMany({
         where: {
@@ -190,17 +202,31 @@ export async function GET(request: NextRequest) {
             address: studio.address
           }
         })),
-        ...locations.map((location, index) => ({
-          id: `location-${index}`,
-          text: location.address,
-          type: 'location' as const,
-          metadata: {
-            coordinates: location.latitude && location.longitude ? {
-              lat: Number(location.latitude),
-              lng: Number(location.longitude)
-            } : undefined
+        ...locations.map((location, index) => {
+          // Calculate distance if user location is available
+          let distance: number | undefined;
+          if (userLat && userLng && location.latitude && location.longitude) {
+            distance = calculateDistance(
+              userLat,
+              userLng,
+              Number(location.latitude),
+              Number(location.longitude)
+            );
           }
-        })),
+
+          return {
+            id: `location-${index}`,
+            text: location.address,
+            type: 'location' as const,
+            distance,
+            metadata: {
+              coordinates: location.latitude && location.longitude ? {
+                lat: Number(location.latitude),
+                lng: Number(location.longitude)
+              } : undefined
+            }
+          };
+        }),
         ...services.map((service, index) => ({
           id: `service-${index}`,
           text: service.service.replace(/_/g, ' '),
@@ -209,7 +235,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Sort by relevance and type priority
+    // Sort by relevance, type priority, and distance
     suggestions.sort((a, b) => {
       // Prioritize by detected type
       if (a.type === searchType && b.type !== searchType) return -1;
@@ -224,6 +250,18 @@ export async function GET(request: NextRequest) {
       if (aExact && !bExact) return -1;
       if (!aExact && bExact) return 1;
       
+      // For items of the same type, sort by distance if available
+      if (a.type === b.type) {
+        // If both have distance, sort by distance (closest first)
+        if (a.distance !== undefined && b.distance !== undefined) {
+          return a.distance - b.distance;
+        }
+        // If only one has distance, prioritize it
+        if (a.distance !== undefined && b.distance === undefined) return -1;
+        if (a.distance === undefined && b.distance !== undefined) return 1;
+      }
+      
+      // Fallback to alphabetical sorting
       return aText.localeCompare(bText);
     });
 

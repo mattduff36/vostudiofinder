@@ -301,7 +301,7 @@ export function StudiosNewDesign3() {
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-gray-900 text-lg group-hover:text-red-600 transition-colors">
+                        <h3 className="font-bold text-gray-900 text-sm sm:text-base md:text-lg group-hover:text-red-600 transition-colors">
                           {studio.name}
                         </h3>
                         {studio.verified && (

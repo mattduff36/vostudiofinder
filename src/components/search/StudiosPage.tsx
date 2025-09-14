@@ -5,7 +5,45 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
 import { GoogleMap } from '@/components/maps/GoogleMap';
+import { abbreviateAddress } from '@/lib/utils/address';
 import Image from 'next/image';
+
+// Custom hook for dynamic text sizing
+function useDynamicTextSize(text: string, containerWidth: number, maxFontSize: number = 48) {
+  const [fontSize, setFontSize] = useState(maxFontSize);
+  const measureRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!measureRef.current || !containerWidth || containerWidth === 0) return;
+
+    const measureElement = measureRef.current;
+    let currentSize = maxFontSize;
+    
+    // Binary search for optimal font size
+    let minSize = 12;
+    let maxSize = maxFontSize;
+    
+    while (minSize <= maxSize) {
+      currentSize = Math.floor((minSize + maxSize) / 2);
+      measureElement.style.fontSize = `${currentSize}px`;
+      measureElement.style.fontWeight = 'bold';
+      measureElement.textContent = text;
+      
+      const textWidth = measureElement.scrollWidth;
+      const availableWidth = containerWidth - 48; // Account for padding
+      
+      if (textWidth <= availableWidth) {
+        minSize = currentSize + 1;
+      } else {
+        maxSize = currentSize - 1;
+      }
+    }
+    
+    setFontSize(Math.max(maxSize, 16)); // Minimum 16px
+  }, [text, containerWidth, maxFontSize]);
+
+  return { fontSize, measureRef };
+}
 
 interface Studio {
   id: string;
@@ -57,7 +95,77 @@ export function StudiosPage() {
   const [loading, setLoading] = useState(true);
   const [isFilterSticky, setIsFilterSticky] = useState(false);
   const [stickyStyles, setStickyStyles] = useState<{width: number; left: number} | null>(null);
+  const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const titleContainerRef = useRef<HTMLDivElement>(null);
+
+  // Use dynamic text sizing hook
+  const { fontSize, measureRef } = useDynamicTextSize('Available Studios', containerWidth, 48);
+
+  // Track container width and mobile state for dynamic text sizing
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (titleContainerRef.current) {
+        setContainerWidth(titleContainerRef.current.offsetWidth);
+      }
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    // Initial measurement
+    updateDimensions();
+
+    // Set up resize observer
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    if (titleContainerRef.current) {
+      resizeObserver.observe(titleContainerRef.current);
+    }
+
+    // Also listen to window resize as fallback
+    window.addEventListener('resize', updateDimensions);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, []);
+
+  // Function to clear previous studio selection outline
+  const clearPreviousSelection = () => {
+    if (selectedStudioId) {
+      const previousElement = document.getElementById(`studio-${selectedStudioId}`);
+      if (previousElement) {
+        previousElement.style.outline = '';
+        previousElement.style.outlineOffset = '';
+        previousElement.classList.remove('animate-bounce-once');
+      }
+    }
+  };
+
+  // Function to select a studio and add persistent outline
+  const selectStudio = (studioId: string) => {
+    clearPreviousSelection();
+    setSelectedStudioId(studioId);
+    
+    const element = document.getElementById(`studio-${studioId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Wait for scroll to complete, then add bounce animation and red outline
+      setTimeout(() => {
+        // Add red outline and bounce animation
+        element.style.outline = '2px solid #dc2626'; // red-600
+        element.style.outlineOffset = '2px';
+        element.classList.add('animate-bounce-once');
+        
+        // Remove only the bounce animation after it completes, keep the outline
+        setTimeout(() => {
+          element.classList.remove('animate-bounce-once');
+        }, 1000); // 1 second for bounce animation
+      }, 800); // Wait for scroll to complete
+    }
+  };
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
   const heroSectionRef = useRef<HTMLDivElement>(null);
   const filterSidebarRef = useRef<HTMLDivElement>(null);
@@ -148,8 +256,18 @@ export function StudiosPage() {
     };
   }, [isFilterSticky]);
 
+  // Clear selection when search parameters change (new search from URL)
+  useEffect(() => {
+    clearPreviousSelection();
+    setSelectedStudioId(null);
+  }, [searchParams.toString()]);
+
   const handleSearch = (filters: Record<string, any>) => {
     console.log('🔍 HandleSearch called with filters:', filters);
+    
+    // Clear any selected studio when performing a new search
+    clearPreviousSelection();
+    setSelectedStudioId(null);
     
     const params = new URLSearchParams();
     
@@ -178,10 +296,14 @@ export function StudiosPage() {
     const currentLng = searchParams.get('lng');
     
     // If filters don't include coordinates, but we have them in URL, preserve them
-    if (!filters.lat && !filters.lng && currentLat && currentLng) {
+    // BUT only if coordinates weren't explicitly cleared (undefined means explicitly cleared)
+    if (!filters.lat && !filters.lng && currentLat && currentLng && 
+        !filters.hasOwnProperty('lat') && !filters.hasOwnProperty('lng')) {
       params.set('lat', currentLat);
       params.set('lng', currentLng);
       console.log('📍 Preserved coordinates from URL:', { lat: currentLat, lng: currentLng });
+    } else if (filters.hasOwnProperty('lat') && filters.lat === undefined) {
+      console.log('📍 Coordinates explicitly cleared - not preserving from URL');
     }
 
     // Reset to first page when searching
@@ -253,10 +375,28 @@ export function StudiosPage() {
             background: 'linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 1))' 
           }}
         ></div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 h-full flex items-center justify-center">
-          <h1 className="text-4xl md:text-5xl font-bold" style={{ color: '#ffffff' }}>
-            Recording Studios
+        <div ref={titleContainerRef} className="relative z-10 max-w-7xl mx-auto px-6 flex items-center justify-center" style={{ height: '120px' }}>
+          <h1 
+            className="font-bold whitespace-nowrap sm:text-3xl md:text-4xl lg:text-5xl" 
+            style={{ 
+              color: '#ffffff',
+              fontSize: isMobile ? `${fontSize}px` : undefined
+            }}
+          >
+            Available Studios
           </h1>
+          {/* Hidden measurement element */}
+          <span 
+            ref={measureRef}
+            style={{
+              position: 'absolute',
+              visibility: 'hidden',
+              whiteSpace: 'nowrap',
+              fontSize: '48px',
+              fontWeight: 'bold'
+            }}
+            aria-hidden="true"
+          />
         </div>
       </div>
 
@@ -439,16 +579,7 @@ export function StudiosPage() {
                         studioType: studio.studioType,
                         isVerified: studio.isVerified,
                         onClick: () => {
-                          // Scroll to the studio in the list below
-                          const element = document.getElementById(`studio-${studio.id}`);
-                          if (element) {
-                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            // Add a brief highlight effect
-                            element.classList.add('ring-2', 'ring-primary-300');
-                            setTimeout(() => {
-                              element.classList.remove('ring-2', 'ring-primary-300');
-                            }, 2000);
-                          }
+                          selectStudio(studio.id);
                         },
                       }))}
                     searchCenter={searchResults.searchCoordinates || null}
@@ -514,7 +645,7 @@ export function StudiosPage() {
                         <div className="flex flex-wrap gap-2">
                           {searchParams.get('location') && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              📍 {searchParams.get('location')}
+                              📍 {abbreviateAddress(searchParams.get('location')!)}
                             </span>
                           )}
                           {searchParams.get('studioType') && (

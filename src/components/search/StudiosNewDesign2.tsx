@@ -288,7 +288,7 @@ export function StudiosNewDesign2() {
                   {/* Studio Info */}
                   <div className="space-y-2">
                     <div className="flex items-start justify-between">
-                      <h3 className="font-semibold text-gray-900 text-sm leading-tight">
+                      <h3 className="font-semibold text-gray-900 text-xs sm:text-sm leading-tight">
                         {studio.name}
                       </h3>
                       <button className="text-gray-400 hover:text-gray-600">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +8,27 @@ import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
+
+// Custom hook for dynamic logo sizing with aspect ratio preservation
+function useDynamicLogoSize(containerWidth: number, originalWidth: number = 300, originalHeight: number = 60, maxWidth: number = 300) {
+  const [logoSize, setLogoSize] = useState({ width: maxWidth, height: (maxWidth * originalHeight) / originalWidth });
+
+  useEffect(() => {
+    if (!containerWidth || containerWidth === 0) return;
+
+    // Calculate available width (accounting for padding and other elements)
+    const availableWidth = Math.min(containerWidth * 0.4, maxWidth); // Use max 40% of container width
+    const aspectRatio = originalHeight / originalWidth;
+    
+    // Calculate new dimensions maintaining aspect ratio
+    const newWidth = Math.max(Math.min(availableWidth, maxWidth), 150); // Minimum 150px width
+    const newHeight = newWidth * aspectRatio;
+    
+    setLogoSize({ width: newWidth, height: newHeight });
+  }, [containerWidth, originalWidth, originalHeight, maxWidth]);
+
+  return logoSize;
+}
 
 interface NavbarProps {
   session: Session | null;
@@ -18,6 +39,11 @@ export function Navbar({ session }: NavbarProps) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const navContainerRef = useRef<HTMLDivElement>(null);
+
+  // Use dynamic logo sizing hook
+  const logoSize = useDynamicLogoSize(containerWidth, 300, 60, 300);
 
   // Handle scroll effect
   useEffect(() => {
@@ -27,6 +53,32 @@ export function Navbar({ session }: NavbarProps) {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Track container width for dynamic logo sizing
+  useEffect(() => {
+    const updateWidth = () => {
+      if (navContainerRef.current) {
+        setContainerWidth(navContainerRef.current.offsetWidth);
+      }
+    };
+
+    // Initial measurement
+    updateWidth();
+
+    // Set up resize observer
+    const resizeObserver = new ResizeObserver(updateWidth);
+    if (navContainerRef.current) {
+      resizeObserver.observe(navContainerRef.current);
+    }
+
+    // Also listen to window resize as fallback
+    window.addEventListener('resize', updateWidth);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateWidth);
+    };
   }, []);
 
   // Close mobile menu when pathname changes
@@ -60,7 +112,7 @@ export function Navbar({ session }: NavbarProps) {
           : 'bg-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 py-4">
+      <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link 
@@ -73,10 +125,14 @@ export function Navbar({ session }: NavbarProps) {
                 : "/images/voiceover-studio-finder-header-logo2-white.png"
               }
               alt="VoiceoverStudioFinder"
-              width={300}
-              height={60}
+              width={logoSize.width}
+              height={logoSize.height}
               priority
-              className="h-12 w-auto"
+              style={{
+                width: `${logoSize.width}px`,
+                height: `${logoSize.height}px`,
+                maxWidth: '100%'
+              }}
             />
           </Link>
           

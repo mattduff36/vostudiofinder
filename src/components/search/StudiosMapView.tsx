@@ -147,7 +147,7 @@ export function StudiosMapView({ studios, searchCoordinates, searchRadius }: Stu
             {/* Studio Info - 50% width */}
             <div className="w-1/2 p-4 flex flex-col relative">
               {/* Studio Name - Fixed positioning */}
-              <h3 className="text-xl font-semibold line-clamp-1 mb-3" style={{ color: colors.textPrimary, margin: '0 0 12px 0' }}>
+              <h3 className="text-sm sm:text-base md:text-lg font-semibold line-clamp-1 mb-3" style={{ color: colors.textPrimary, margin: '0 0 12px 0' }}>
                 {studio.name}
               </h3>
               

@@ -105,7 +105,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           priority={false}
         />
       </div>
-      <div className="relative z-10 py-12 sm:py-16 w-full">
+      <div className="relative z-10 pt-0 pb-12 sm:py-16 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className={`text-center mb-8 sm:mb-12 transition-all duration-1000 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -152,7 +152,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
 
                 <div className="p-4 sm:p-6 flex flex-col flex-grow max-h-[340px]">
                   {/* Studio Name - badge moved to image */}
-                  <h3 className="text-lg sm:text-xl font-semibold line-clamp-1 mb-2 sm:mb-3" style={{ color: colors.textPrimary, margin: '0 0 8px 0' }}>
+                  <h3 className="text-sm sm:text-base md:text-lg font-semibold line-clamp-1 mb-2 sm:mb-3" style={{ color: colors.textPrimary, margin: '0 0 8px 0' }}>
                     {studio.name}
                   </h3>
 

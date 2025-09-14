@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { abbreviateAddress } from '@/lib/utils/address';
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,7 +55,8 @@ export async function GET(request: NextRequest) {
     // Format users for suggestions
     const formattedUsers = users.map(user => {
       // Prioritize studio address over profile location
-      const location = user.studios?.[0]?.address || user.profile?.location || null;
+      const fullLocation = user.studios?.[0]?.address || user.profile?.location || null;
+      const abbreviatedLocation = fullLocation ? abbreviateAddress(fullLocation) : null;
       const coordinates = user.studios?.[0]?.latitude && user.studios?.[0]?.longitude
         ? { 
             lat: user.studios[0].latitude.toNumber(), 
@@ -66,7 +68,8 @@ export async function GET(request: NextRequest) {
         id: user.id,
         username: user.username,
         display_name: user.displayName,
-        location,
+        location: abbreviatedLocation,
+        full_location: fullLocation, // Keep full location for geocoding if needed
         coordinates
       };
     });

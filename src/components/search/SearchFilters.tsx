@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 
 import { X } from 'lucide-react';
-import { LocationAutocomplete } from '@/components/maps/LocationAutocomplete';
+import { EnhancedLocationFilter } from './EnhancedLocationFilter';
 import { StudioType, ServiceType } from '@prisma/client';
 
 interface SearchFiltersProps {
@@ -91,7 +91,8 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
       services: [],
       sortBy: 'name',
       sortOrder: 'asc',
-      radius: 25,
+      radius: 25, // Keep radius for internal state consistency
+      // Clear coordinates to remove the radius circle from the map - omit lat/lng properties
     };
     setFilters(clearedFilters);
     onSearch(clearedFilters);
@@ -161,7 +162,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
           Location
         </label>
         <div className="space-y-3">
-          <LocationAutocomplete
+          <EnhancedLocationFilter
             value={filters.location}
             onChange={(value, placeDetails) => {
               // Update the location value in state
@@ -204,19 +205,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
                           filters.lat && filters.lng ? { lat: filters.lat, lng: filters.lng } : 'none');
               onSearch(newFilters);
             }}
-            onSearch={() => {
-              // Trigger search when search button is clicked  
-              const newFilters = { ...filters };
-              // Preserve coordinates if they exist
-              if (filters.lat && filters.lng) {
-                newFilters.lat = filters.lat;
-                newFilters.lng = filters.lng;
-              }
-              console.log('Search button clicked - triggering search with coordinates:', 
-                          filters.lat && filters.lng ? { lat: filters.lat, lng: filters.lng } : 'none');
-              onSearch(newFilters);
-            }}
-            placeholder="Enter city, state, or country..."
+            placeholder="Search by location, postcode, or username..."
           />
           
           <div>

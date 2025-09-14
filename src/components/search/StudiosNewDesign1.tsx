@@ -240,10 +240,12 @@ export function StudiosNewDesign1() {
               <div className="flex items-end">
                 <Button
                   variant="outline"
-                  onClick={() => setFilters({
-                    query: '', location: '', studioType: '', services: [],
-                    sortBy: 'name', sortOrder: 'asc', radius: 25
-                  })}
+        onClick={() => setFilters({
+          query: '', location: '', studioType: '', services: [],
+          sortBy: 'name', sortOrder: 'asc',
+          radius: 25, // Keep radius for internal state consistency
+          // Clear coordinates by omitting lat/lng properties
+        })}
                   className="w-full"
                 >
                   Clear All Filters
