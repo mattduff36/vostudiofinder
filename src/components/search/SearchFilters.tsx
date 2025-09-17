@@ -214,9 +214,9 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
             </label>
             <input
               type="range"
-              min="5"
-              max="200"
-              step="5"
+              min="1"
+              max="50"
+              step="1"
               value={filters.radius}
               onChange={(e) => {
                 const newRadius = parseInt(e.target.value);
@@ -225,14 +225,13 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
               }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               style={{
-                background: `linear-gradient(to right, #d42027 0%, #d42027 ${(filters.radius - 5) / 195 * 100}%, #e5e7eb ${(filters.radius - 5) / 195 * 100}%, #e5e7eb 100%)`
+                background: `linear-gradient(to right, #d42027 0%, #d42027 ${(filters.radius - 1) / 49 * 100}%, #e5e7eb ${(filters.radius - 1) / 49 * 100}%, #e5e7eb 100%)`
               }}
             />
             <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>5mi</span>
+              <span>1mi</span>
+              <span>25mi</span>
               <span>50mi</span>
-              <span>100mi</span>
-              <span>200mi</span>
             </div>
           </div>
         </div>

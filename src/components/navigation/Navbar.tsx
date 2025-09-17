@@ -9,25 +9,23 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
 
-// Custom hook for dynamic logo sizing with aspect ratio preservation
-function useDynamicLogoSize(containerWidth: number, originalWidth: number = 300, originalHeight: number = 60, maxWidth: number = 300) {
-  const [logoSize, setLogoSize] = useState({ width: maxWidth, height: (maxWidth * originalHeight) / originalWidth });
-
-  useEffect(() => {
-    if (!containerWidth || containerWidth === 0) return;
-
-    // Calculate available width (accounting for padding and other elements)
-    const availableWidth = Math.min(containerWidth * 0.4, maxWidth); // Use max 40% of container width
+// Calculate logo dimensions with proper aspect ratio
+function calculateLogoDimensions(containerWidth: number, originalWidth: number = 384, originalHeight: number = 60, maxWidth: number = 300) {
+  if (!containerWidth || containerWidth === 0) {
+    // Default dimensions for SSR and initial render
     const aspectRatio = originalHeight / originalWidth;
-    
-    // Calculate new dimensions maintaining aspect ratio
-    const newWidth = Math.max(Math.min(availableWidth, maxWidth), 150); // Minimum 150px width
-    const newHeight = newWidth * aspectRatio;
-    
-    setLogoSize({ width: newWidth, height: newHeight });
-  }, [containerWidth, originalWidth, originalHeight, maxWidth]);
+    return { width: maxWidth, height: Math.round(maxWidth * aspectRatio * 100) / 100 };
+  }
 
-  return logoSize;
+  // Calculate available width (accounting for padding and other elements)
+  const availableWidth = Math.min(containerWidth * 0.4, maxWidth); // Use max 40% of container width
+  const aspectRatio = originalHeight / originalWidth;
+  
+  // Calculate new dimensions maintaining aspect ratio
+  const newWidth = Math.max(Math.min(availableWidth, maxWidth), 150); // Minimum 150px width
+  const newHeight = Math.round(newWidth * aspectRatio * 100) / 100; // Round to avoid floating point precision issues
+  
+  return { width: newWidth, height: newHeight };
 }
 
 interface NavbarProps {
@@ -40,10 +38,16 @@ export function Navbar({ session }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [isClient, setIsClient] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
 
-  // Use dynamic logo sizing hook
-  const logoSize = useDynamicLogoSize(containerWidth, 300, 60, 300);
+  // Calculate logo dimensions
+  const logoSize = calculateLogoDimensions(isClient ? containerWidth : 0, 384, 60, 300);
+
+  // Handle client-side hydration
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Handle scroll effect
   useEffect(() => {
@@ -55,8 +59,10 @@ export function Navbar({ session }: NavbarProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Track container width for dynamic logo sizing
+  // Track container width for dynamic logo sizing (client-side only)
   useEffect(() => {
+    if (!isClient) return;
+
     const updateWidth = () => {
       if (navContainerRef.current) {
         setContainerWidth(navContainerRef.current.offsetWidth);
@@ -79,7 +85,7 @@ export function Navbar({ session }: NavbarProps) {
       resizeObserver.disconnect();
       window.removeEventListener('resize', updateWidth);
     };
-  }, []);
+  }, [isClient]);
 
   // Close mobile menu when pathname changes
   useEffect(() => {

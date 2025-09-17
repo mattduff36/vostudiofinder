@@ -628,26 +628,20 @@ export function EnhancedSearchBar({
           </div>
           <input
             type="range"
-            min="5"
-            max="200"
-            step="5"
+            min="1"
+            max="50"
+            step="1"
             value={radius}
             onChange={(e) => setRadius(parseInt(e.target.value))}
             className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider"
             style={{
-              background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) ${(radius - 5) / 195 * 100}%, rgba(255, 255, 255, 0.3) 100%)`
+              background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${(radius - 1) / 49 * 100}%, rgba(255, 255, 255, 0.3) ${(radius - 1) / 49 * 100}%, rgba(255, 255, 255, 0.3) 100%)`
             }}
           />
-          <div className="relative text-xs text-white opacity-70 mt-1">
-            <div className="flex justify-between">
-              <span>5mi</span>
-              <span>200mi</span>
-            </div>
-            <div className="absolute inset-0 flex justify-between pointer-events-none">
-              <span style={{ left: '25%', transform: 'translateX(-50%)', position: 'absolute' }}>50mi</span>
-              <span style={{ left: '50%', transform: 'translateX(-50%)', position: 'absolute' }}>100mi</span>
-              <span style={{ left: '75%', transform: 'translateX(-50%)', position: 'absolute' }} className="hidden sm:block">150mi</span>
-            </div>
+          <div className="flex justify-between text-xs text-white opacity-70 mt-1">
+            <span>1mi</span>
+            <span>25mi</span>
+            <span>50mi</span>
           </div>
         </div>
       )}

@@ -210,14 +210,14 @@ export function StudiosNewDesign1() {
                 </label>
                 <input
                   type="range"
-                  min="5"
-                  max="200"
-                  step="5"
+                  min="1"
+                  max="50"
+                  step="1"
                   value={filters.radius}
                   onChange={(e) => setFilters(prev => ({ ...prev, radius: parseInt(e.target.value) }))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                   style={{
-                    background: `linear-gradient(to right, #d42027 0%, #d42027 ${(filters.radius - 5) / 195 * 100}%, #e5e7eb ${(filters.radius - 5) / 195 * 100}%, #e5e7eb 100%)`
+                    background: `linear-gradient(to right, #d42027 0%, #d42027 ${(filters.radius - 1) / 49 * 100}%, #e5e7eb ${(filters.radius - 1) / 49 * 100}%, #e5e7eb 100%)`
                   }}
                 />
               </div>
