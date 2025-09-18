@@ -152,10 +152,60 @@ export function StudiosPage() {
   };
 
   // Function to select a studio and add persistent outline
-  const selectStudio = (studioId: string) => {
+  const selectStudio = async (studioId: string) => {
     clearPreviousSelection();
     setSelectedStudioId(studioId);
     
+    // Check if the studio is on the current page
+    const currentPageStudios = searchResults?.studios || [];
+    const studioOnCurrentPage = currentPageStudios.find(studio => studio.id === studioId);
+    
+    if (!studioOnCurrentPage && searchResults) {
+      // Studio is not on current page - need to find which page it's on
+      // Make an API call to find the studio's position in the paginated result set
+      try {
+        const params = new URLSearchParams(searchParams);
+        // Use a reasonable limit to find the studio efficiently
+        const maxLimit = Math.min(searchResults.pagination.totalCount, 500);
+        params.set('limit', maxLimit.toString());
+        params.delete('page'); // Remove page to get results from the beginning
+        
+        const response = await fetch(`/api/studios/search?${params.toString()}`);
+        const data = await response.json();
+        
+        if (data.studios) {
+          // Find the studio's index in the full result set
+          const studioIndex = data.studios.findIndex((studio: any) => studio.id === studioId);
+          
+          if (studioIndex !== -1) {
+            // Calculate which page the studio is on
+            const studiosPerPage = searchResults.pagination.limit;
+            const targetPage = Math.floor(studioIndex / studiosPerPage) + 1;
+            
+            // Only navigate if we're not already on the target page
+            if (targetPage !== searchResults.pagination.page) {
+              // Navigate to the correct page
+              const newParams = new URLSearchParams(searchParams);
+              newParams.set('page', targetPage.toString());
+              router.push(`/studios?${newParams.toString()}`);
+              
+              // Store the studio ID to select after navigation
+              sessionStorage.setItem('pendingStudioSelection', studioId);
+              return;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error finding studio page:', error);
+      }
+    }
+    
+    // Studio is on current page or fallback - select it directly
+    selectStudioOnCurrentPage(studioId);
+  };
+
+  // Helper function to select studio on current page
+  const selectStudioOnCurrentPage = (studioId: string) => {
     const element = document.getElementById(`studio-${studioId}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -269,6 +319,22 @@ export function StudiosPage() {
     clearPreviousSelection();
     setSelectedStudioId(null);
   }, [searchParams.toString()]);
+
+  // Handle pending studio selection after navigation
+  useEffect(() => {
+    const pendingStudioId = sessionStorage.getItem('pendingStudioSelection');
+    if (pendingStudioId && searchResults?.studios) {
+      // Check if the pending studio is now on the current page
+      const studioOnCurrentPage = searchResults.studios.find(studio => studio.id === pendingStudioId);
+      if (studioOnCurrentPage) {
+        // Clear the pending selection and select the studio
+        sessionStorage.removeItem('pendingStudioSelection');
+        setTimeout(() => {
+          selectStudioOnCurrentPage(pendingStudioId);
+        }, 100);
+      }
+    }
+  }, [searchResults?.studios]);
 
   const handleSearch = (filters: Record<string, any>) => {
     console.log('🔍 HandleSearch called with filters:', filters);
@@ -617,17 +683,10 @@ export function StudiosPage() {
                           studioType: studio.studioType,
                           isVerified: studio.isVerified,
                           onClick: () => {
-                            // Switch to list view and scroll to studio
+                            // Switch to list view and select studio (with page navigation if needed)
                             setMobileView('list');
                             setTimeout(() => {
-                              const element = document.getElementById(`studio-${studio.id}`);
-                              if (element) {
-                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                element.classList.add('ring-2', 'ring-primary-300');
-                                setTimeout(() => {
-                                  element.classList.remove('ring-2', 'ring-primary-300');
-                                }, 2000);
-                              }
+                              selectStudio(studio.id);
                             }, 100);
                           },
                         }))}
