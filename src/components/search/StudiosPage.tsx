@@ -162,41 +162,58 @@ export function StudiosPage() {
     
     if (!studioOnCurrentPage && searchResults) {
       // Studio is not on current page - need to find which page it's on
-      // Make an API call to find the studio's position in the paginated result set
+      // Since we have mapMarkers with all studios, we can search through pages more efficiently
       try {
-        const params = new URLSearchParams(searchParams);
-        // Use a reasonable limit to find the studio efficiently
-        const maxLimit = Math.min(searchResults.pagination.totalCount, 500);
-        params.set('limit', maxLimit.toString());
-        params.delete('page'); // Remove page to get results from the beginning
+        console.log('🔍 Studio not on current page, searching for:', studioId);
         
-        const response = await fetch(`/api/studios/search?${params.toString()}`);
-        const data = await response.json();
+        const studiosPerPage = searchResults.pagination.limit;
+        const totalPages = searchResults.pagination.totalPages;
         
-        if (data.studios) {
-          // Find the studio's index in the full result set
-          const studioIndex = data.studios.findIndex((studio: any) => studio.id === studioId);
+        // Search through pages to find the studio (limit to first 10 pages for performance)
+        let foundPage = null;
+        
+        for (let page = 1; page <= Math.min(totalPages, 10); page++) {
+          const params = new URLSearchParams(searchParams);
+          params.set('page', page.toString());
+          params.set('limit', studiosPerPage.toString()); // Use same limit as current pagination
           
-          if (studioIndex !== -1) {
-            // Calculate which page the studio is on
-            const studiosPerPage = searchResults.pagination.limit;
-            const targetPage = Math.floor(studioIndex / studiosPerPage) + 1;
-            
-            // Only navigate if we're not already on the target page
-            if (targetPage !== searchResults.pagination.page) {
-              // Navigate to the correct page
-              const newParams = new URLSearchParams(searchParams);
-              newParams.set('page', targetPage.toString());
-              router.push(`/studios?${newParams.toString()}`);
-              
-              // Store the studio ID to select after navigation
-              sessionStorage.setItem('pendingStudioSelection', studioId);
-              return;
+          console.log(`🔍 Checking page ${page} for studio ${studioId}`);
+          
+          const response = await fetch(`/api/studios/search?${params.toString()}`);
+          if (!response.ok) {
+            console.error('API request failed:', response.status);
+            break;
+          }
+          
+          const data = await response.json();
+          
+          if (data.studios) {
+            const studioFound = data.studios.find((studio: any) => studio.id === studioId);
+            if (studioFound) {
+              foundPage = page;
+              console.log(`✅ Found studio on page ${page}`);
+              break;
             }
           }
         }
+        
+        if (foundPage && foundPage !== searchResults.pagination.page) {
+          console.log(`🚀 Navigating to page ${foundPage}`);
+          // Navigate to the correct page
+          const newParams = new URLSearchParams(searchParams);
+          newParams.set('page', foundPage.toString());
+          router.push(`/studios?${newParams.toString()}`);
+          
+          // Store the studio ID to select after navigation
+          sessionStorage.setItem('pendingStudioSelection', studioId);
+          return;
+        }
+        
+        // If not found in first 10 pages, fall back to direct selection
+        console.log('⚠️ Studio not found in first 10 pages, selecting on current page if possible');
+        
       } catch (error) {
-        console.error('Error finding studio page:', error);
+        console.error('❌ Error finding studio page:', error);
       }
     }
     
