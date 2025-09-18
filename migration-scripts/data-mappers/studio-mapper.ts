@@ -34,13 +34,13 @@ export interface MappedStudio {
   id: string;
   ownerId: string;
   name: string;
-  description?: string;
-  studioType: 'HOME_STUDIO' | 'COMMERCIAL_STUDIO' | 'MOBILE_STUDIO';
-  address?: string;
-  latitude?: number;
-  longitude?: number;
-  websiteUrl?: string;
-  phone?: string;
+  description: string | null;
+  studioType: 'RECORDING' | 'PODCAST' | 'HOME' | 'PRODUCTION' | 'MOBILE';
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  websiteUrl: string | null;
+  phone: string | null;
   isPremium: boolean;
   isVerified: boolean;
   status: 'ACTIVE' | 'INACTIVE' | 'PENDING';
@@ -126,17 +126,21 @@ export class StudioMapper {
     }
 
     // Determine studio type
-    let studioType: 'HOME_STUDIO' | 'COMMERCIAL_STUDIO' | 'MOBILE_STUDIO' = 'HOME_STUDIO';
+    let studioType: 'RECORDING' | 'PODCAST' | 'HOME' | 'PRODUCTION' | 'MOBILE' = 'HOME';
     const descriptionLower = description.toLowerCase();
-    if (descriptionLower.includes('commercial') || descriptionLower.includes('professional studio')) {
-      studioType = 'COMMERCIAL_STUDIO';
+    if (descriptionLower.includes('podcast') || descriptionLower.includes('podcasting')) {
+      studioType = 'PODCAST';
+    } else if (descriptionLower.includes('production') || descriptionLower.includes('commercial')) {
+      studioType = 'PRODUCTION';
+    } else if (descriptionLower.includes('recording studio') || descriptionLower.includes('professional studio')) {
+      studioType = 'RECORDING';
     } else if (descriptionLower.includes('mobile') || descriptionLower.includes('on-location')) {
-      studioType = 'MOBILE_STUDIO';
+      studioType = 'MOBILE';
     }
 
     // Clean coordinates
-    let latitude: number | undefined;
-    let longitude: number | undefined;
+    let latitude: number | null = null;
+    let longitude: number | null = null;
     if (profile.latitude && profile.longitude) {
       latitude = Number(profile.latitude);
       longitude = Number(profile.longitude);
@@ -144,8 +148,8 @@ export class StudioMapper {
       if (isNaN(latitude) || isNaN(longitude) || 
           latitude < -90 || latitude > 90 || 
           longitude < -180 || longitude > 180) {
-        latitude = undefined;
-        longitude = undefined;
+        latitude = null;
+        longitude = null;
       }
     }
 
@@ -157,15 +161,15 @@ export class StudioMapper {
       id: newId,
       ownerId: newUserId,
       name: studioName,
-      description: description || undefined,
+      description: description || null,
       studioType,
-      address: profile.address || undefined,
+      address: profile.address || null,
       latitude,
       longitude,
       websiteUrl: this.sanitizeUrl(profile.url),
-      phone: profile.phone || undefined,
-      isPremium: profile.featured === true || profile.featured === 1,
-      isVerified: profile.verified === true || profile.verified === 1,
+      phone: profile.phone || null,
+      isPremium: Boolean(profile.featured),
+      isVerified: Boolean(profile.verified),
       status: 'ACTIVE',
       createdAt,
       updatedAt,
@@ -187,8 +191,9 @@ export class StudioMapper {
           mappedStudios.push(mappedStudio);
         }
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         migrationLogger.error(`Failed to map studio for profile ${profile.user_id}`, 'STUDIO_MAPPER', {
-          error: error.message,
+          error: errorMessage,
           profile: { user_id: profile.user_id }
         });
       }
@@ -237,8 +242,9 @@ export class StudioMapper {
         
       } catch (error) {
         errorCount++;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         migrationLogger.error(`Failed to migrate studio ${studio.id}`, 'STUDIO_MAPPER', {
-          error: error.message,
+          error: errorMessage,
           studio: { id: studio.id, ownerId: studio.ownerId, name: studio.name }
         });
       }
@@ -260,9 +266,11 @@ export class StudioMapper {
    */
   getStudioStatistics(mappedStudios: MappedStudio[]): Record<string, number> {
     const stats = {
-      HOME_STUDIO: 0,
-      COMMERCIAL_STUDIO: 0,
-      MOBILE_STUDIO: 0,
+      RECORDING: 0,
+      PODCAST: 0,
+      HOME: 0,
+      PRODUCTION: 0,
+      MOBILE: 0,
       verified: 0,
       premium: 0,
       withLocation: 0,
@@ -281,11 +289,11 @@ export class StudioMapper {
   /**
    * Sanitize URL to ensure it's valid
    */
-  private sanitizeUrl(url?: string): string | undefined {
-    if (!url) return undefined;
+  private sanitizeUrl(url?: string): string | null {
+    if (!url) return null;
     
     url = url.trim();
-    if (!url) return undefined;
+    if (!url) return null;
     
     // Add protocol if missing
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -298,7 +306,7 @@ export class StudioMapper {
       return url;
     } catch {
       migrationLogger.warn(`Invalid studio URL sanitized`, 'STUDIO_MAPPER', { originalUrl: url });
-      return undefined;
+      return null;
     }
   }
 

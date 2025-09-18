@@ -23,7 +23,7 @@ export interface MappedStudioImage {
   id: string;
   studioId: string;
   imageUrl: string;
-  altText?: string;
+  altText: string | null;
   sortOrder: number;
 }
 

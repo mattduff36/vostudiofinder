@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
-import { migrationLogger, LogLevel } from './utils/logger';
+import { migrationLogger } from './utils/logger';
 import { tursoClient } from './utils/turso-client';
-import { idGenerator } from './utils/id-generator';
 import { db } from '../src/lib/db';
 
 /**
@@ -49,8 +48,9 @@ export class TursoPrismaMigrator {
       this.printSummary();
 
     } catch (error) {
-      migrationLogger.error('Migration failed', 'MIGRATOR', { error: error.message });
-      console.error('\n💥 Migration failed:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error('Migration failed', 'MIGRATOR', { error: errorMessage });
+      console.error('\n💥 Migration failed:', errorMessage);
       throw error;
     } finally {
       await this.cleanup();
@@ -76,7 +76,8 @@ export class TursoPrismaMigrator {
       await db.$queryRaw`SELECT 1`;
       migrationLogger.info('✅ Prisma database connection successful', 'CHECK');
     } catch (error) {
-      throw new Error(`Failed to connect to Prisma database: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to connect to Prisma database: ${errorMessage}`);
     }
 
     // Get source data statistics
@@ -173,7 +174,8 @@ export class TursoPrismaMigrator {
       await db.$disconnect();
       migrationLogger.info('✅ Database connections closed', 'CLEANUP');
     } catch (error) {
-      migrationLogger.warn('Error during cleanup', 'CLEANUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.warn('Error during cleanup', 'CLEANUP', { error: errorMessage });
     }
   }
 
@@ -214,10 +216,10 @@ async function main() {
   const args = process.argv.slice(2);
   
   // Parse command line arguments
-  let logLevel = LogLevel.INFO;
-  if (args.includes('--debug')) logLevel = LogLevel.DEBUG;
-  if (args.includes('--verbose')) logLevel = LogLevel.DEBUG;
-  if (args.includes('--quiet')) logLevel = LogLevel.WARN;
+  // let logLevel = LogLevel.INFO;
+  // if (args.includes('--debug')) logLevel = LogLevel.DEBUG;
+  // if (args.includes('--verbose')) logLevel = LogLevel.DEBUG;
+  // if (args.includes('--quiet')) logLevel = LogLevel.WARN;
 
   if (args.includes('--help') || args.includes('-h')) {
     console.log(`
@@ -243,7 +245,8 @@ Environment Variables:
     await migrator.migrate();
     process.exit(0);
   } catch (error) {
-    console.error('Migration failed:', error.message);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Migration failed:', errorMessage);
     process.exit(1);
   }
 }

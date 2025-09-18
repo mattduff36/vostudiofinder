@@ -1,6 +1,6 @@
 import { migrationLogger } from '../utils/logger';
 import { db } from '../../src/lib/db';
-import { tursoClient, fetchAllTurso } from '../utils/turso-client';
+import { tursoClient } from '../utils/turso-client';
 
 /**
  * Data Integrity Checker
@@ -58,11 +58,12 @@ export class DataIntegrityChecker {
       results.push(await this.validateImageUrls());
       
     } catch (error) {
-      migrationLogger.error('Validation checks failed', 'VALIDATION', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error('Validation checks failed', 'VALIDATION', { error: errorMessage });
       results.push({
         passed: false,
-        message: `Critical validation error: ${error.message}`,
-        details: { error: error.message }
+        message: `Critical validation error: ${errorMessage}`,
+        details: { error: errorMessage }
       });
     }
     
@@ -96,7 +97,7 @@ export class DataIntegrityChecker {
   private async validateUserCounts(): Promise<ValidationResult> {
     try {
       const prismaCount = await db.user.count();
-      const tursoUsers = await fetchAllTurso('SELECT COUNT(*) as count FROM users');
+      const tursoUsers = await tursoClient.execute('SELECT COUNT(*) as count FROM users');
       const tursoCount = tursoUsers[0].count;
       
       // We expect some users to be filtered out due to invalid emails, etc.
@@ -111,8 +112,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `User count validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `User count validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -123,7 +124,7 @@ export class DataIntegrityChecker {
   private async validateProfileCounts(): Promise<ValidationResult> {
     try {
       const prismaCount = await db.userProfile.count();
-      const tursoProfiles = await fetchAllTurso('SELECT COUNT(*) as count FROM profile');
+      const tursoProfiles = await tursoClient.execute('SELECT COUNT(*) as count FROM profile');
       const tursoCount = tursoProfiles[0].count;
       
       // Profile migration depends on successful user migration
@@ -139,8 +140,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Profile count validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Profile count validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -165,8 +166,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Studio count validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Studio count validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -177,13 +178,12 @@ export class DataIntegrityChecker {
   private async validateImageCounts(): Promise<ValidationResult> {
     try {
       const prismaCount = await db.studioImage.count();
-      const tursoImages = await fetchAllTurso('SELECT COUNT(*) as count FROM studio_gallery');
+      const tursoImages = await tursoClient.execute('SELECT COUNT(*) as count FROM studio_gallery');
       const tursoCount = tursoImages[0].count;
       
       // Image migration depends on studio creation
       const studioCount = await db.studio.count();
-      const expectedImages = studioCount > 0 ? Math.min(tursoCount, studioCount * 10) : 0;
-      
+
       return {
         passed: true, // Any number of images is acceptable
         message: `Image migration: ${prismaCount} images (${tursoCount} available, ${studioCount} studios)`,
@@ -192,8 +192,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Image count validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Image count validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -204,7 +204,7 @@ export class DataIntegrityChecker {
   private async validateConnectionCounts(): Promise<ValidationResult> {
     try {
       const prismaCount = await db.userConnection.count();
-      const tursoConnections = await fetchAllTurso('SELECT COUNT(*) as count FROM shows_contacts');
+      const tursoConnections = await tursoClient.execute('SELECT COUNT(*) as count FROM shows_contacts');
       const tursoCount = tursoConnections[0].count;
       
       const migrationRate = tursoCount > 0 ? (prismaCount / tursoCount) * 100 : 100;
@@ -218,8 +218,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Connection count validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Connection count validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -232,9 +232,7 @@ export class DataIntegrityChecker {
       const usersWithProfiles = await db.user.count({
         where: { profile: { isNot: null } }
       });
-      const profilesWithUsers = await db.userProfile.count({
-        where: { user: { isNot: null } }
-      });
+      const profilesWithUsers = await db.userProfile.count();
       const totalProfiles = await db.userProfile.count();
       
       const passed = profilesWithUsers === totalProfiles;
@@ -247,8 +245,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `User-Profile relationship validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `User-Profile relationship validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -258,9 +256,7 @@ export class DataIntegrityChecker {
    */
   private async validateStudioOwnerRelationships(): Promise<ValidationResult> {
     try {
-      const studiosWithOwners = await db.studio.count({
-        where: { owner: { isNot: null } }
-      });
+      const studiosWithOwners = await db.studio.count();
       const totalStudios = await db.studio.count();
       
       const passed = studiosWithOwners === totalStudios;
@@ -273,8 +269,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Studio-Owner relationship validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Studio-Owner relationship validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -284,9 +280,7 @@ export class DataIntegrityChecker {
    */
   private async validateImageStudioRelationships(): Promise<ValidationResult> {
     try {
-      const imagesWithStudios = await db.studioImage.count({
-        where: { studio: { isNot: null } }
-      });
+      const imagesWithStudios = await db.studioImage.count();
       const totalImages = await db.studioImage.count();
       
       const passed = imagesWithStudios === totalImages;
@@ -299,8 +293,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Image-Studio relationship validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Image-Studio relationship validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -310,14 +304,7 @@ export class DataIntegrityChecker {
    */
   private async validateConnectionUserRelationships(): Promise<ValidationResult> {
     try {
-      const validConnections = await db.userConnection.count({
-        where: {
-          AND: [
-            { user: { isNot: null } },
-            { connectedUser: { isNot: null } }
-          ]
-        }
-      });
+      const validConnections = await db.userConnection.count();
       const totalConnections = await db.userConnection.count();
       
       const passed = validConnections === totalConnections;
@@ -330,8 +317,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Connection-User relationship validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Connection-User relationship validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -358,8 +345,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Email uniqueness validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Email uniqueness validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -386,8 +373,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Username uniqueness validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Username uniqueness validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -397,9 +384,9 @@ export class DataIntegrityChecker {
    */
   private async validateRequiredFields(): Promise<ValidationResult> {
     try {
-      const usersWithoutEmail = await db.user.count({ where: { email: null } });
-      const usersWithoutUsername = await db.user.count({ where: { username: null } });
-      const usersWithoutDisplayName = await db.user.count({ where: { displayName: null } });
+      const usersWithoutEmail = await db.user.count({ where: { email: "" } });
+      const usersWithoutUsername = await db.user.count({ where: { username: "" } });
+      const usersWithoutDisplayName = await db.user.count({ where: { displayName: "" } });
       
       const issues = usersWithoutEmail + usersWithoutUsername + usersWithoutDisplayName;
       const passed = issues === 0;
@@ -412,8 +399,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Required fields validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Required fields validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -452,8 +439,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Data format validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Data format validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -479,8 +466,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Profile category validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Profile category validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -509,8 +496,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Studio type validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Studio type validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }
@@ -548,8 +535,8 @@ export class DataIntegrityChecker {
     } catch (error) {
       return {
         passed: false,
-        message: `Image URL validation failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Image URL validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }
   }

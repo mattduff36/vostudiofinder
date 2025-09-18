@@ -35,10 +35,10 @@ export interface MappedUser {
   email: string;
   username: string;
   displayName: string;
-  avatarUrl?: string;
+  avatarUrl: string | null;
   role: 'USER' | 'ADMIN';
   emailVerified: boolean;
-  password?: string;
+  password: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,7 +54,7 @@ export class UserMapper {
     this.legacyIdMap.set(legacyUser.id, newId);
 
     // Generate username if not provided
-    let username = legacyUser.username || legacyUser.email.split('@')[0];
+    let username = legacyUser.username || legacyUser.email.split('@')[0] || 'user';
     
     // Ensure username is unique and valid
     username = this.sanitizeUsername(username);
@@ -83,10 +83,10 @@ export class UserMapper {
       email: legacyUser.email.toLowerCase().trim(),
       username,
       displayName,
-      avatarUrl: legacyUser.avatar_url || undefined,
+      avatarUrl: legacyUser.avatar_url || null,
       role,
       emailVerified,
-      password: legacyUser.password, // Will be handled separately
+      password: legacyUser.password || null, // Will be handled separately
       createdAt,
       updatedAt,
     };
@@ -130,8 +130,9 @@ export class UserMapper {
         mappedUsers.push(mappedUser);
         
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         migrationLogger.error(`Failed to map user ${legacyUser.id}`, 'USER_MAPPER', {
-          error: error.message,
+          error: errorMessage,
           legacyUser: { id: legacyUser.id, email: legacyUser.email }
         });
       }
@@ -153,7 +154,7 @@ export class UserMapper {
     for (const user of mappedUsers) {
       try {
         // Hash password if it exists
-        let hashedPassword = undefined;
+        let hashedPassword: string | null = null;
         if (user.password) {
           // Check if password is already hashed (bcrypt hashes start with $2a$, $2b$, etc.)
           if (user.password.startsWith('$2')) {
@@ -186,8 +187,9 @@ export class UserMapper {
         
       } catch (error) {
         errorCount++;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         migrationLogger.error(`Failed to migrate user ${user.id}`, 'USER_MAPPER', {
-          error: error.message,
+          error: errorMessage,
           user: { id: user.id, email: user.email, username: user.username }
         });
       }
@@ -241,24 +243,6 @@ export class UserMapper {
     return sanitized;
   }
 
-  /**
-   * Validate mapped user data
-   */
-  private validateMappedUser(user: MappedUser): boolean {
-    if (!user.email || !user.email.includes('@')) {
-      return false;
-    }
-    
-    if (!user.username || user.username.length < 3) {
-      return false;
-    }
-    
-    if (!user.displayName) {
-      return false;
-    }
-    
-    return true;
-  }
 
   /**
    * Clean up legacy user data before mapping

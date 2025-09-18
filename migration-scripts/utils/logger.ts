@@ -55,7 +55,7 @@ export class MigrationLogger {
     return `${timestamp} ${levelStr} ${contextStr}${message}${dataStr}`;
   }
 
-  private bigIntReplacer(key: string, value: any): any {
+  private bigIntReplacer(_key: string, value: any): any {
     if (typeof value === 'bigint') {
       return value.toString();
     }
@@ -69,7 +69,7 @@ export class MigrationLogger {
       timestamp: new Date().toISOString(),
       level,
       message,
-      context,
+      context: context || '',
       data,
     };
 
