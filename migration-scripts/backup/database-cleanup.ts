@@ -70,7 +70,8 @@ export class DatabaseCleanup {
       });
 
     } catch (error) {
-      migrationLogger.error('Database cleanup failed', 'CLEANUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error('Database cleanup failed', 'CLEANUP', { error: errorMessage });
       throw error;
     }
   }
@@ -155,7 +156,8 @@ export class DatabaseCleanup {
       migrationLogger.info(`✅ Deleted ${deleteCount} records from ${tableName}`, 'CLEANUP');
 
     } catch (error) {
-      migrationLogger.error(`Failed to delete from ${tableName}`, 'CLEANUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error(`Failed to delete from ${tableName}`, 'CLEANUP', { error: errorMessage });
       throw error;
     }
   }
@@ -168,7 +170,8 @@ export class DatabaseCleanup {
       const result = await db.$queryRawUnsafe(`SELECT COUNT(*) as count FROM "${tableName}"`);
       return parseInt((result as any)[0].count.toString());
     } catch (error) {
-      migrationLogger.warn(`Could not get count for ${tableName}`, 'CLEANUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.warn(`Could not get count for ${tableName}`, 'CLEANUP', { error: errorMessage });
       return 0;
     }
   }
@@ -201,7 +204,8 @@ export class DatabaseCleanup {
 
       return counts;
     } catch (error) {
-      migrationLogger.error('Failed to get database counts', 'CLEANUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error('Failed to get database counts', 'CLEANUP', { error: errorMessage });
       throw error;
     }
   }
@@ -243,12 +247,14 @@ export class DatabaseCleanup {
         return true;
 
       } catch (error) {
-        migrationLogger.error('Schema functionality test failed', 'CLEANUP', { error: error.message });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        migrationLogger.error('Schema functionality test failed', 'CLEANUP', { error: errorMessage });
         return false;
       }
 
     } catch (error) {
-      migrationLogger.error('Schema verification failed', 'CLEANUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error('Schema verification failed', 'CLEANUP', { error: errorMessage });
       return false;
     }
   }
@@ -296,7 +302,8 @@ Make sure you have created a backup before running this command.
     console.log('   All data has been removed while preserving the schema.');
     
   } catch (error) {
-    console.error('\n❌ Database cleanup failed:', error.message);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('\n❌ Database cleanup failed:', errorMessage);
     process.exit(1);
   }
 }

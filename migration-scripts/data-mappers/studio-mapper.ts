@@ -1,4 +1,4 @@
-import { generateCuid } from '../utils/id-generator';
+import { idGenerator } from '../utils/id-generator';
 import { migrationLogger } from '../utils/logger';
 import { db } from '../../src/lib/db';
 
@@ -89,7 +89,7 @@ export class StudioMapper {
       return null;
     }
 
-    const newId = generateCuid();
+    const newId = idGenerator.generateId();
 
     // Generate studio name
     let studioName = '';
@@ -320,4 +320,4 @@ export class StudioMapper {
   }
 }
 
-export { StudioMapper };
+// StudioMapper is already exported above

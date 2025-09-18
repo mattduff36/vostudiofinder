@@ -106,7 +106,8 @@ export class PrismaBackup {
       return backupPath;
 
     } catch (error) {
-      migrationLogger.error(`Failed to create Prisma data backup`, 'BACKUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error(`Failed to create Prisma data backup`, 'BACKUP', { error: errorMessage });
       throw error;
     }
   }
@@ -167,7 +168,8 @@ export class PrismaBackup {
       return backupPath;
 
     } catch (error) {
-      migrationLogger.error(`Failed to create SQL export`, 'BACKUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error(`Failed to create SQL export`, 'BACKUP', { error: errorMessage });
       throw error;
     }
   }
@@ -196,9 +198,10 @@ export class PrismaBackup {
         FROM pg_stat_user_tables;
       `;
 
-      return { tables: stats, summary: totalRows?.[0] };
+      return { tables: stats, summary: Array.isArray(totalRows) && totalRows.length > 0 ? totalRows[0] : null };
     } catch (error) {
-      migrationLogger.error('Failed to gather database statistics', 'BACKUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error('Failed to gather database statistics', 'BACKUP', { error: errorMessage });
       throw error;
     }
   }
@@ -246,7 +249,8 @@ export class PrismaBackup {
 
       return true;
     } catch (error) {
-      migrationLogger.error(`Backup validation failed`, 'BACKUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error(`Backup validation failed`, 'BACKUP', { error: errorMessage });
       return false;
     }
   }

@@ -1,4 +1,4 @@
-import { generateCuid } from '../utils/id-generator';
+import { idGenerator } from '../utils/id-generator';
 import { migrationLogger } from '../utils/logger';
 import { db } from '../../src/lib/db';
 
@@ -52,30 +52,30 @@ export interface LegacyProfile {
 export interface MappedProfile {
   id: string;
   userId: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  about?: string;
-  shortAbout?: string;
-  location?: string;
-  rateTier1?: number;
-  rateTier2?: number;
-  rateTier3?: number;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  about: string | null;
+  shortAbout: string | null;
+  location: string | null;
+  rateTier1: string | null;
+  rateTier2: string | null;
+  rateTier3: string | null;
   showRates: boolean;
-  facebookUrl?: string;
-  twitterUrl?: string;
-  linkedinUrl?: string;
-  instagramUrl?: string;
-  youtubeUrl?: string;
-  vimeoUrl?: string;
-  soundcloudUrl?: string;
+  facebookUrl: string | null;
+  twitterUrl: string | null;
+  linkedinUrl: string | null;
+  instagramUrl: string | null;
+  youtubeUrl: string | null;
+  vimeoUrl: string | null;
+  soundcloudUrl: string | null;
   isCrbChecked: boolean;
   isFeatured: boolean;
   isSpotlight: boolean;
-  verificationLevel: number;
-  homeStudioDescription?: string;
-  equipmentList?: string;
-  servicesOffered?: string;
+  verificationLevel: string;
+  homeStudioDescription: string | null;
+  equipmentList: string | null;
+  servicesOffered: string | null;
   showEmail: boolean;
   showPhone: boolean;
   showAddress: boolean;
@@ -105,7 +105,7 @@ export class ProfileMapper {
       return null;
     }
 
-    const newId = generateCuid();
+    const newId = idGenerator.generateId();
 
     // Combine bio and about fields
     let about = legacyProfile.about || legacyProfile.bio;
@@ -132,15 +132,15 @@ export class ProfileMapper {
     return {
       id: newId,
       userId: newUserId,
-      firstName: legacyProfile.firstname || undefined,
-      lastName: legacyProfile.lastname || undefined,
-      phone: legacyProfile.phone || undefined,
-      about: about || undefined,
-      shortAbout: legacyProfile.short_about || undefined,
-      location: legacyProfile.location || undefined,
-      rateTier1: legacyProfile.rate1 || undefined,
-      rateTier2: legacyProfile.rate2 || undefined,
-      rateTier3: legacyProfile.rate3 || undefined,
+      firstName: legacyProfile.firstname || null,
+      lastName: legacyProfile.lastname || null,
+      phone: legacyProfile.phone || null,
+      about: about || null,
+      shortAbout: legacyProfile.short_about || null,
+      location: legacyProfile.location || null,
+      rateTier1: legacyProfile.rate1 ? String(legacyProfile.rate1) : null,
+      rateTier2: legacyProfile.rate2 ? String(legacyProfile.rate2) : null,
+      rateTier3: legacyProfile.rate3 ? String(legacyProfile.rate3) : null,
       showRates: legacyProfile.show_rates === 1,
       facebookUrl: this.sanitizeUrl(legacyProfile.facebook),
       twitterUrl: this.sanitizeUrl(legacyProfile.twitter),
@@ -152,10 +152,10 @@ export class ProfileMapper {
       isCrbChecked: legacyProfile.crb_checked === 1,
       isFeatured: legacyProfile.featured === 1,
       isSpotlight: legacyProfile.spotlight === 1,
-      verificationLevel: legacyProfile.verification_level || 0,
-      homeStudioDescription: homeStudioDescription || undefined,
-      equipmentList: legacyProfile.equipment || undefined,
-      servicesOffered: legacyProfile.services || undefined,
+      verificationLevel: this.mapVerificationLevel(legacyProfile.verification_level || 0),
+      homeStudioDescription: homeStudioDescription || null,
+      equipmentList: legacyProfile.equipment || null,
+      servicesOffered: legacyProfile.services || null,
       showEmail: legacyProfile.show_email === 1,
       showPhone: legacyProfile.show_phone === 1,
       showAddress: legacyProfile.show_address === 1,
@@ -179,8 +179,9 @@ export class ProfileMapper {
           mappedProfiles.push(mappedProfile);
         }
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         migrationLogger.error(`Failed to map profile ${legacyProfile.id}`, 'PROFILE_MAPPER', {
-          error: error.message,
+          error: errorMessage,
           legacyProfile: { id: legacyProfile.id, user_id: legacyProfile.user_id }
         });
       }
@@ -245,8 +246,9 @@ export class ProfileMapper {
         
       } catch (error) {
         errorCount++;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         migrationLogger.error(`Failed to migrate profile ${profile.id}`, 'PROFILE_MAPPER', {
-          error: error.message,
+          error: errorMessage,
           profile: { id: profile.id, userId: profile.userId }
         });
       }
@@ -300,11 +302,11 @@ export class ProfileMapper {
   /**
    * Sanitize URL to ensure it's valid
    */
-  private sanitizeUrl(url?: string): string | undefined {
-    if (!url) return undefined;
+  private sanitizeUrl(url?: string): string | null {
+    if (!url) return null;
     
     url = url.trim();
-    if (!url) return undefined;
+    if (!url) return null;
     
     // Add protocol if missing
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -317,7 +319,25 @@ export class ProfileMapper {
       return url;
     } catch {
       migrationLogger.warn(`Invalid URL sanitized`, 'PROFILE_MAPPER', { originalUrl: url });
-      return undefined;
+      return null;
+    }
+  }
+
+  /**
+   * Map numeric verification level to string
+   */
+  private mapVerificationLevel(level: number): string {
+    switch (level) {
+      case 0:
+        return 'none';
+      case 1:
+        return 'basic';
+      case 2:
+        return 'verified';
+      case 3:
+        return 'premium';
+      default:
+        return 'none';
     }
   }
 
@@ -358,4 +378,4 @@ export class ProfileMapper {
   }
 }
 
-export { ProfileMapper };
+// ProfileMapper is already exported above

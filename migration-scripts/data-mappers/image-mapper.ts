@@ -1,4 +1,4 @@
-import { generateCuid } from '../utils/id-generator';
+import { idGenerator } from '../utils/id-generator';
 import { migrationLogger } from '../utils/logger';
 import { db } from '../../src/lib/db';
 
@@ -89,7 +89,7 @@ export class ImageMapper {
       sortOrder = 0; // Primary images get first position
     }
 
-    const newId = generateCuid();
+    const newId = idGenerator.generateId();
 
     return {
       id: newId,
@@ -115,8 +115,9 @@ export class ImageMapper {
           mappedImages.push(mappedImage);
         }
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         migrationLogger.error(`Failed to map image ${legacyImage.id}`, 'IMAGE_MAPPER', {
-          error: error.message,
+          error: errorMessage,
           legacyImage: { id: legacyImage.id, user_id: legacyImage.user_id }
         });
       }
@@ -150,7 +151,7 @@ export class ImageMapper {
             id: image.id,
             studioId: image.studioId,
             imageUrl: image.imageUrl,
-            altText: image.altText,
+            altText: image.altText || null,
             sortOrder: image.sortOrder,
           }
         });
@@ -163,8 +164,9 @@ export class ImageMapper {
         
       } catch (error) {
         errorCount++;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         migrationLogger.error(`Failed to migrate image ${image.id}`, 'IMAGE_MAPPER', {
-          error: error.message,
+          error: errorMessage,
           image: { id: image.id, studioId: image.studioId, imageUrl: image.imageUrl }
         });
       }
@@ -271,4 +273,4 @@ export class ImageMapper {
   }
 }
 
-export { ImageMapper };
+// ImageMapper is already exported above

@@ -107,7 +107,7 @@ export class DatabaseBackup {
       // Create pg_dump command for data only
       const dumpCommand = `pg_dump -h ${host} -p ${port} -U ${username} -d ${database} --no-password --data-only --verbose > "${backupPath}"`;
 
-      const { stdout, stderr } = await execAsync(dumpCommand, { env });
+      const { stderr } = await execAsync(dumpCommand, { env });
 
       if (stderr && !stderr.includes('NOTICE')) {
         migrationLogger.warn('Data backup completed with warnings', 'BACKUP', { stderr });
@@ -123,7 +123,8 @@ export class DatabaseBackup {
       return backupPath;
 
     } catch (error) {
-      migrationLogger.error(`Failed to create data backup`, 'BACKUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error(`Failed to create data backup`, 'BACKUP', { error: errorMessage });
       throw error;
     }
   }
@@ -167,7 +168,8 @@ export class DatabaseBackup {
       return true;
 
     } catch (error) {
-      migrationLogger.error(`Backup validation failed`, 'BACKUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error(`Backup validation failed`, 'BACKUP', { error: errorMessage });
       return false;
     }
   }
@@ -198,15 +200,16 @@ export class DatabaseBackup {
         FROM pg_stat_user_tables;
       `;
 
-      migrationLogger.info('Database statistics collected', 'BACKUP', { 
+      migrationLogger.info('Database statistics collected', 'BACKUP', {
         tables: Array.isArray(stats) ? stats.length : 0,
-        totalRows: totalRows?.[0]?.total_rows || 0
+        totalRows: Array.isArray(totalRows) && totalRows.length > 0 ? (totalRows[0] as any)?.total_rows || 0 : 0
       });
 
-      return { tables: stats, summary: totalRows?.[0] };
+      return { tables: stats, summary: Array.isArray(totalRows) && totalRows.length > 0 ? totalRows[0] : null };
 
     } catch (error) {
-      migrationLogger.error('Failed to gather database statistics', 'BACKUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error('Failed to gather database statistics', 'BACKUP', { error: errorMessage });
       throw error;
     }
   }
@@ -226,7 +229,8 @@ export class DatabaseBackup {
 
       return files.map(file => path.join(this.backupDir, file));
     } catch (error) {
-      migrationLogger.error('Failed to list backups', 'BACKUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error('Failed to list backups', 'BACKUP', { error: errorMessage });
       return [];
     }
   }
@@ -253,7 +257,8 @@ export class DatabaseBackup {
       migrationLogger.info(`Cleaned up ${toDelete.length} old backups`, 'BACKUP');
 
     } catch (error) {
-      migrationLogger.error('Failed to cleanup old backups', 'BACKUP', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      migrationLogger.error('Failed to cleanup old backups', 'BACKUP', { error: errorMessage });
     }
   }
 }

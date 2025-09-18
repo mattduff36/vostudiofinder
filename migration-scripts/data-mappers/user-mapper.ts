@@ -1,4 +1,4 @@
-import { generateCuid } from '../utils/id-generator';
+import { idGenerator } from '../utils/id-generator';
 import { migrationLogger } from '../utils/logger';
 import { db } from '../../src/lib/db';
 import bcrypt from 'bcryptjs';
@@ -50,7 +50,7 @@ export class UserMapper {
    * Map a single legacy user to Prisma format
    */
   mapUser(legacyUser: LegacyUser): MappedUser {
-    const newId = generateCuid();
+    const newId = idGenerator.generateId();
     this.legacyIdMap.set(legacyUser.id, newId);
 
     // Generate username if not provided
