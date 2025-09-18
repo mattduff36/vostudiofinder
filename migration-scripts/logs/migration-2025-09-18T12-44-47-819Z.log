@@ -1,0 +1,30 @@
+2025-09-18T12:44:47.821Z INFO  [LOGGER] Migration logger initialized | {"logFile":"D:\\Websites\\vostudiofinder\\migration-scripts\\logs\\migration-2025-09-18T12-44-47-819Z.log"}
+2025-09-18T12:44:48.169Z INFO  [MIGRATOR] 🚀 Turso to Prisma Migration Started
+2025-09-18T12:44:48.170Z INFO  [PHASE] 🚀 Starting Migration Process | {"description":"Complete data migration from Turso to Prisma"}
+2025-09-18T12:44:48.170Z INFO  [PHASE] 🚀 Starting Pre-migration Checks | {}
+2025-09-18T12:44:48.171Z INFO  [CHECK] Testing Turso database connection...
+2025-09-18T12:44:48.455Z INFO  [CHECK] Testing Prisma database connection...
+2025-09-18T12:44:48.691Z INFO  [CHECK] ✅ Prisma database connection successful
+2025-09-18T12:44:48.886Z INFO  [CHECK] Source Data Statistics | {"tables":33,"users":753,"profiles":725,"gallery":237,"messages":30529,"contacts":403}
+2025-09-18T12:44:48.887Z INFO  [PHASE] ✅ Completed Pre-migration Checks
+2025-09-18T12:44:48.888Z INFO  [PHASE] 🚀 Starting Database Preparation | {}
+2025-09-18T12:44:48.888Z INFO  [PREP] Database backup will be implemented in Phase 2
+2025-09-18T12:44:48.889Z INFO  [PREP] Database cleanup will be implemented in Phase 2
+2025-09-18T12:44:48.889Z INFO  [PHASE] ✅ Completed Database Preparation
+2025-09-18T12:44:48.890Z INFO  [PHASE] 🚀 Starting Core Data Migration | {}
+2025-09-18T12:44:48.890Z INFO  [CORE] User migration will be implemented in Phase 3
+2025-09-18T12:44:48.890Z INFO  [CORE] Profile migration will be implemented in Phase 3
+2025-09-18T12:44:48.891Z INFO  [PHASE] ✅ Completed Core Data Migration
+2025-09-18T12:44:48.891Z INFO  [PHASE] 🚀 Starting Extended Data Migration | {}
+2025-09-18T12:44:48.892Z INFO  [EXTENDED] Studio migration will be implemented in Phase 4
+2025-09-18T12:44:48.892Z INFO  [EXTENDED] Image migration will be implemented in Phase 4
+2025-09-18T12:44:48.893Z INFO  [EXTENDED] Message migration will be implemented in Phase 4
+2025-09-18T12:44:48.894Z INFO  [EXTENDED] Connection migration will be implemented in Phase 4
+2025-09-18T12:44:48.894Z INFO  [PHASE] ✅ Completed Extended Data Migration
+2025-09-18T12:44:48.894Z INFO  [PHASE] 🚀 Starting Post-migration Validation | {}
+2025-09-18T12:44:48.895Z INFO  [VALIDATION] Validation checks will be implemented in Phase 5
+2025-09-18T12:44:48.895Z INFO  [PHASE] ✅ Completed Post-migration Validation
+2025-09-18T12:44:48.896Z INFO  [PHASE] ✅ Completed Migration Process | {"duration":"0m 0s","summary":{"totalEntries":26,"errorCount":0,"warningCount":0,"logFile":"D:\\Websites\\vostudiofinder\\migration-scripts\\logs\\migration-2025-09-18T12-44-47-819Z.log","duration":"0m 1s"}}
+2025-09-18T12:44:48.898Z INFO  [EXPORT] Logs exported to D:\Websites\vostudiofinder\migration-scripts\logs\migration-2025-09-18T12-44-47-819Z.json
+2025-09-18T12:44:48.899Z INFO  [CLEANUP] Cleaning up resources...
+2025-09-18T12:44:48.902Z INFO  [CLEANUP] ✅ Database connections closed
