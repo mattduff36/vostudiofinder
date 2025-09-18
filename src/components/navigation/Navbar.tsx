@@ -157,7 +157,7 @@ export function Navbar({ session }: NavbarProps) {
                 e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
               }}
             >
-              Browse Studios
+              Studios
             </Link>
             <Link 
               href="/blog" 
@@ -274,7 +274,7 @@ export function Navbar({ session }: NavbarProps) {
                 }`}
                 style={pathname === '/studios' ? { backgroundColor: colors.primary } : {}}
               >
-                Browse Studios
+                Studios
               </Link>
               <Link 
                 href="/blog" 
