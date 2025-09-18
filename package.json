@@ -2,6 +2,7 @@
   "name": "voiceover-studio-finder",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Modern platform for finding and connecting voiceover professionals with recording studios",
   "scripts": {
     "dev": "next dev --turbopack",

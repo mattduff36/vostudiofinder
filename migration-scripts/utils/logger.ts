@@ -50,9 +50,16 @@ export class MigrationLogger {
     const timestamp = new Date().toISOString();
     const levelStr = LogLevel[level].padEnd(5);
     const contextStr = context ? `[${context}] ` : '';
-    const dataStr = data ? ` | ${JSON.stringify(data)}` : '';
+    const dataStr = data ? ` | ${JSON.stringify(data, this.bigIntReplacer)}` : '';
     
     return `${timestamp} ${levelStr} ${contextStr}${message}${dataStr}`;
+  }
+
+  private bigIntReplacer(key: string, value: any): any {
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    return value;
   }
 
   private log(level: LogLevel, message: string, context?: string, data?: any): void {
@@ -81,7 +88,7 @@ export class MigrationLogger {
   private getConsoleMessage(level: LogLevel, message: string, context?: string, data?: any): string {
     const timestamp = new Date().toLocaleTimeString();
     const contextStr = context ? `[${context}] ` : '';
-    const dataStr = data ? ` | ${JSON.stringify(data, null, 2)}` : '';
+    const dataStr = data ? ` | ${JSON.stringify(data, this.bigIntReplacer, 2)}` : '';
     
     let emoji = '';
     let color = '';

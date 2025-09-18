@@ -1,0 +1,5 @@
+2025-09-18T12:52:30.041Z INFO  [LOGGER] Migration logger initialized | {"logFile":"D:\\Websites\\vostudiofinder\\migration-scripts\\logs\\migration-2025-09-18T12-52-30-039Z.log"}
+2025-09-18T12:52:30.146Z INFO  [PHASE] 🚀 Starting Pre-Migration Database Backup | {}
+2025-09-18T12:52:30.147Z INFO  [BACKUP] Gathering database statistics
+2025-09-18T12:52:30.790Z ERROR [BACKUP] Failed to gather database statistics | {"error":"\nInvalid `prisma.$queryRaw()` invocation:\n\n\nRaw query failed. Code: `42703`. Message: `column \"tablename\" does not exist`"}
+2025-09-18T12:52:30.791Z ERROR [BACKUP] Pre-migration backup failed | {"error":"\nInvalid `prisma.$queryRaw()` invocation:\n\n\nRaw query failed. Code: `42703`. Message: `column \"tablename\" does not exist`"}

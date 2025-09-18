@@ -1,0 +1,214 @@
+# Product Requirements Document (PRD): Home Page and Studios Search Page
+
+## Introduction/Overview
+
+This PRD defines the requirements for creating a comprehensive voiceover studio finder platform with two core pages: a Home page that introduces users to the platform and showcases featured studios, and a Studios page that provides advanced search and filtering capabilities for finding recording studios worldwide. The platform connects voice artists with professional recording studios, enabling discovery, comparison, and direct contact.
+
+**Problem Statement:** Voice artists struggle to find suitable recording studios that meet their specific needs (location, equipment, services), while studio owners lack an effective platform to showcase their facilities to potential clients.
+
+**Goal:** Create an intuitive, feature-rich platform that serves as the primary hub for voiceover studio discovery and booking, with a compelling home page that drives user engagement and a powerful search interface that delivers relevant results.
+
+## Goals
+
+1. **User Acquisition:** Create an engaging home page that clearly communicates the platform's value proposition and converts visitors into registered users
+2. **Studio Discovery:** Provide comprehensive search and filtering capabilities to help users find studios that match their specific requirements
+3. **Trust Building:** Display verified studios, reviews, and professional credentials to build user confidence
+4. **Global Reach:** Support location-based search with radius filtering for both local and international studio discovery
+5. **Mobile Optimization:** Ensure seamless experience across all device types
+6. **Performance:** Deliver fast page load times and responsive search results
+
+## User Stories
+
+### Home Page User Stories
+- **As a voice artist**, I want to immediately understand what the platform offers so that I can decide if it meets my needs
+- **As a voice artist**, I want to see featured studios on the homepage so that I can quickly browse high-quality options
+- **As a studio owner**, I want to see clear pricing and benefits for listing my studio so that I can make an informed decision
+- **As a new visitor**, I want to see platform statistics (number of studios, users, countries) so that I can trust the platform's credibility
+- **As a mobile user**, I want the homepage to be fully responsive so that I can browse comfortably on any device
+
+### Studios Page User Stories
+- **As a voice artist**, I want to search for studios by location so that I can find nearby options
+- **As a voice artist**, I want to filter studios by services (Source Connect, Cleanfeed, etc.) so that I can find studios with my required technology
+- **As a voice artist**, I want to filter by studio type (Recording, Podcast, Voiceover) so that I can find specialized facilities
+- **As a voice artist**, I want to adjust search radius so that I can control how far I'm willing to travel
+- **As a voice artist**, I want to sort results by name, date added, or rating so that I can prioritize results based on my preferences
+- **As a voice artist**, I want to see studio images, descriptions, and key details so that I can evaluate options before contacting
+- **As a voice artist**, I want to see verified badges and review counts so that I can trust the studio's credibility
+
+## Functional Requirements
+
+### Home Page Requirements
+
+1. **Hero Section**
+   - Display compelling headline: "Find Your Perfect Recording Studio"
+   - Include professional background image with overlay
+   - Feature prominent search bar with location input and "Search Studios" button
+   - Implement smooth fade-in animations for text elements
+   - Ensure full responsiveness across all screen sizes
+
+2. **Featured Studios Section**
+   - Display 6 featured studios in a responsive grid (1 column mobile, 2 tablet, 3 desktop)
+   - Show studio image, name, location, description (truncated), services, and verification status
+   - Include "View All Studios" button linking to /studios page
+   - Implement hover effects and smooth transitions
+   - Handle empty state with appropriate messaging
+
+3. **Statistics Section**
+   - Display animated counters for total studios, users, and countries
+   - Include descriptive bullet points for each statistic
+   - Use professional background image with overlay
+   - Implement intersection observer for animation triggers
+
+4. **Call-to-Action Sections**
+   - Primary CTA: "List Your Studio - £25/year" button
+   - Secondary CTA: "Browse Studios" button
+   - Include value propositions for both voice artists and studio owners
+
+5. **Footer**
+   - Include essential links and contact information
+   - Maintain consistent styling with overall design
+
+### Studios Page Requirements
+
+6. **Page Header**
+   - Display "Available Studios" title with dynamic font sizing
+   - Include professional background image with gradient overlay
+   - Ensure title remains readable across all screen sizes
+
+7. **Search and Filter System**
+   - **Location Filter:**
+     - Google Places API integration for location autocomplete
+     - Coordinate extraction for precise location-based search
+     - Search radius slider (1-50 miles) with visual feedback
+     - Support for postcode, city, and username searches
+   
+   - **Studio Type Filter:**
+     - Checkbox options: Recording Studio, Podcast Studio, Voiceover Studio
+     - Single selection mode (radio button behavior)
+   
+   - **Services Filter:**
+     - Multiple selection checkboxes for: Source Connect, Source Connect Now, Cleanfeed, Session Link Pro, Zoom, Microsoft Teams
+     - Dynamic filtering based on selected services
+   
+   - **Sort Options:**
+     - Sort by: Name, Recently Added, Rating
+     - Sort order: A-Z, Z-A
+
+8. **Filter Behavior**
+   - Sticky sidebar on desktop (becomes fixed when scrolling)
+   - Mobile: Collapsible filter panel with toggle button
+   - "Clear All" functionality to reset all filters
+   - Real-time search updates (no submit button required)
+   - Preserve coordinates when filters change
+
+9. **Results Display**
+   - Responsive grid layout for studio cards
+   - Each card displays: image, name, location, description, services, verification status, review count
+   - "View Details" button linking to studio profile
+   - Loading states during search operations
+   - Empty state messaging when no results found
+
+10. **Mobile Optimization**
+    - Responsive design for all screen sizes
+    - Touch-friendly interface elements
+    - Optimized filter panel for mobile devices
+    - Proper viewport handling
+
+## Non-Goals (Out of Scope)
+
+- **User Authentication:** Login/signup functionality is not included in this PRD
+- **Studio Profile Pages:** Individual studio detail pages are separate features
+- **Booking System:** Direct booking functionality is not part of this scope
+- **Payment Processing:** Payment handling for studio listings is separate
+- **Review System:** User review submission and management is out of scope
+- **Real-time Chat:** Communication features between users and studios
+- **Advanced Analytics:** Detailed user behavior tracking and reporting
+- **Multi-language Support:** Internationalization features
+- **API Development:** Backend API endpoints are separate requirements
+
+## Design Considerations
+
+### Visual Design
+- **Color Palette:**
+  - Primary: #d42027 (red)
+  - Primary Hover: #a1181d
+  - Background: #ffffff
+  - Text Primary: #000000
+  - Text Secondary: #444444
+  - Text Subtle: #888888
+
+- **Typography:** Clean, professional fonts with proper hierarchy
+- **Images:** High-quality background images with appropriate overlays
+- **Animations:** Smooth transitions and fade-in effects for enhanced UX
+- **Responsive Breakpoints:** Mobile-first approach with tablet and desktop optimizations
+
+### User Experience
+- **Loading States:** Clear indicators during data fetching
+- **Error Handling:** Graceful error messages for failed operations
+- **Accessibility:** Proper ARIA labels, keyboard navigation, and screen reader support
+- **Performance:** Optimized images, lazy loading, and efficient rendering
+
+## Technical Considerations
+
+### Frontend Framework
+- **Next.js 13+** with App Router
+- **React 18+** with modern hooks and patterns
+- **TypeScript** for type safety
+- **Tailwind CSS** for styling
+
+### Key Dependencies
+- **Prisma** for database operations
+- **NextAuth.js** for session management
+- **Google Places API** for location services
+- **Lucide React** for icons
+- **Next/Image** for optimized image handling
+
+### Database Schema
+- Studios table with fields: name, description, studioType, address, coordinates, services, verification status
+- Users table for session management
+- Services junction table for studio-service relationships
+- Images table for studio photos
+
+### Performance Requirements
+- **Page Load Time:** < 3 seconds on 3G connection
+- **Search Response Time:** < 1 second for filter updates
+- **Image Loading:** Progressive loading with placeholders
+- **Mobile Performance:** Optimized for mobile devices
+
+## Success Metrics
+
+### Home Page Metrics
+- **Bounce Rate:** < 40% for homepage visitors
+- **Conversion Rate:** > 15% of visitors click "Browse Studios" or search
+- **Time on Page:** > 30 seconds average
+- **Mobile Usage:** > 60% of traffic from mobile devices
+
+### Studios Page Metrics
+- **Search Usage:** > 80% of users perform at least one search
+- **Filter Engagement:** > 50% of users apply at least one filter
+- **Results Interaction:** > 30% click-through rate on studio cards
+- **Search Success Rate:** > 70% of searches return relevant results
+
+### Technical Metrics
+- **Page Speed Score:** > 90 on Google PageSpeed Insights
+- **Core Web Vitals:** All metrics in "Good" range
+- **Error Rate:** < 1% of page loads result in errors
+- **API Response Time:** < 500ms average for search requests
+
+## Open Questions
+
+1. **Search Algorithm:** Should search results prioritize proximity, premium listings, or user ratings?
+2. **Caching Strategy:** How long should search results be cached to balance performance and data freshness?
+3. **Featured Studios Selection:** What criteria should determine which studios appear in the featured section?
+4. **Mobile Filter UX:** Should mobile filters be in a modal, slide-out panel, or expandable section?
+5. **Image Optimization:** What image sizes and formats should be used for optimal performance?
+6. **Analytics Integration:** Which user interactions should be tracked for product optimization?
+7. **SEO Considerations:** How should the pages be optimized for search engine visibility?
+8. **Accessibility Compliance:** What level of WCAG compliance is required?
+
+---
+
+**Document Version:** 1.0  
+**Created:** September 2025  
+**Target Audience:** Junior to Mid-level Developers  
+**Estimated Development Time:** 4-6 weeks for both pages
