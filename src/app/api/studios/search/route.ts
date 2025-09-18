@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       services: searchParams.get('services')?.split(',') || undefined,
       equipment: searchParams.get('equipment')?.split(',') || undefined, // New equipment parameter
       page: parseInt(searchParams.get('page') || '1'),
-      limit: parseInt(searchParams.get('limit') || '20'),
+      limit: parseInt(searchParams.get('limit') || '50'),
       sortBy: searchParams.get('sortBy') || 'name',
       sortOrder: searchParams.get('sortOrder') || 'asc',
     };

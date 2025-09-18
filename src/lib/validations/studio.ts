@@ -49,7 +49,7 @@ export const studioSearchSchema = z.object({
   services: z.array(z.string()).optional(), // Changed to string array for flexibility
   equipment: z.array(z.string()).optional(), // New equipment parameter
   page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(50).default(20),
+  limit: z.number().min(1).max(50).default(50),
   sortBy: z.enum(['name', 'distance', 'rating', 'createdAt']).default('name'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });
