@@ -358,8 +358,49 @@ export async function GET(request: NextRequest) {
       longitude: studio.longitude ? Number(studio.longitude) : null,
     }));
 
+    // Get ALL studios for map markers (not paginated)
+    // Only include basic info needed for map pins to keep response size reasonable
+    const hasActiveFilters = validatedParams.query || validatedParams.location || validatedParams.studioType || validatedParams.services?.length || validatedParams.equipment?.length;
+    
+    let mapMarkers;
+    if (hasActiveFilters) {
+      // If there are active filters, use the same filtered results for map
+      mapMarkers = await db.studio.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          latitude: true,
+          longitude: true,
+          studioType: true,
+          isVerified: true,
+        },
+      });
+    } else {
+      // No filters - show ALL active studios on map
+      mapMarkers = await db.studio.findMany({
+        where: { status: 'ACTIVE' },
+        select: {
+          id: true,
+          name: true,
+          latitude: true,
+          longitude: true,
+          studioType: true,
+          isVerified: true,
+        },
+      });
+    }
+
+    // Serialize map markers
+    const serializedMapMarkers = mapMarkers.map(studio => ({
+      ...studio,
+      latitude: studio.latitude ? Number(studio.latitude) : null,
+      longitude: studio.longitude ? Number(studio.longitude) : null,
+    }));
+
     const response = {
       studios: serializedStudios,
+      mapMarkers: serializedMapMarkers, // Separate data for map pins
       pagination: {
         page: validatedParams.page,
         limit: validatedParams.limit,

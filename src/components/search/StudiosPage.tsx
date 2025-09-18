@@ -70,6 +70,14 @@ interface Studio {
 
 interface SearchResponse {
   studios: Studio[];
+  mapMarkers?: Array<{
+    id: string;
+    name: string;
+    latitude: number | null;
+    longitude: number | null;
+    studioType: string;
+    isVerified: boolean;
+  }>;
   pagination: {
     page: number;
     limit: number;
@@ -570,7 +578,7 @@ export function StudiosPage() {
                       : { lat: 20, lng: 0 }
                     }
                     zoom={searchResults.searchCoordinates ? 10 : 2}
-                    markers={searchResults.studios
+                    markers={(searchResults.mapMarkers || searchResults.studios)
                       .filter(studio => studio.latitude && studio.longitude)
                       .map(studio => ({
                         id: studio.id,
@@ -600,7 +608,7 @@ export function StudiosPage() {
                         : { lat: 20, lng: 0 }
                       }
                       zoom={searchResults.searchCoordinates ? 10 : 2}
-                      markers={searchResults.studios
+                      markers={(searchResults.mapMarkers || searchResults.studios)
                         .filter(studio => studio.latitude && studio.longitude)
                         .map(studio => ({
                           id: studio.id,
