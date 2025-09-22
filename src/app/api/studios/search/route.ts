@@ -358,13 +358,57 @@ export async function GET(request: NextRequest) {
       longitude: studio.longitude ? Number(studio.longitude) : null,
     }));
 
-    // Get ALL studios for map markers (not paginated)
-    // Only include basic info needed for map pins to keep response size reasonable
-    const hasActiveFilters = validatedParams.query || validatedParams.location || validatedParams.studioType || validatedParams.services?.length || validatedParams.equipment?.length;
+    // Get map markers based on search criteria
+    // For location-based searches, only show studios that match the search criteria
+    // For general searches, show all active studios
+    const hasLocationSearch = validatedParams.location && validatedParams.radius;
+    const hasOtherFilters = validatedParams.query || validatedParams.studioType || validatedParams.services?.length || validatedParams.equipment?.length;
     
     let mapMarkers;
-    if (hasActiveFilters) {
-      // If there are active filters, use the same filtered results for map
+    if (hasLocationSearch) {
+      // For location searches, only show studios within the search radius
+      // Use the same filtering logic as the main query
+      if (searchCoordinates && validatedParams.radius) {
+        // Get all studios that match the search criteria (not just paginated results)
+        mapMarkers = await db.studio.findMany({
+          where,
+          select: {
+            id: true,
+            name: true,
+            latitude: true,
+            longitude: true,
+            studioType: true,
+            isVerified: true,
+          },
+        });
+        
+        // Filter by distance for location searches
+        mapMarkers = mapMarkers.filter(studio => {
+          if (!studio.latitude || !studio.longitude) return false;
+          const distance = calculateDistance(
+            searchCoordinates.lat,
+            searchCoordinates.lng,
+            Number(studio.latitude),
+            Number(studio.longitude)
+          );
+          return distance <= validatedParams.radius!;
+        });
+      } else {
+        // Fallback to filtered results
+        mapMarkers = await db.studio.findMany({
+          where,
+          select: {
+            id: true,
+            name: true,
+            latitude: true,
+            longitude: true,
+            studioType: true,
+            isVerified: true,
+          },
+        });
+      }
+    } else if (hasOtherFilters) {
+      // For other filters, show all matching studios
       mapMarkers = await db.studio.findMany({
         where,
         select: {
@@ -391,12 +435,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Serialize map markers
-    const serializedMapMarkers = mapMarkers.map(studio => ({
-      ...studio,
-      latitude: studio.latitude ? Number(studio.latitude) : null,
-      longitude: studio.longitude ? Number(studio.longitude) : null,
-    }));
+    // Serialize map markers - filter out studios without coordinates
+    const serializedMapMarkers = mapMarkers
+      .filter(studio => studio.latitude !== null && studio.longitude !== null)
+      .map(studio => ({
+        ...studio,
+        latitude: Number(studio.latitude),
+        longitude: Number(studio.longitude),
+      }));
 
     const response = {
       studios: serializedStudios,
