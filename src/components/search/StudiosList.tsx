@@ -93,7 +93,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
 
             <div className="p-4 sm:p-6 flex flex-col flex-grow max-h-[340px]">
               {/* Studio Name */}
-              <h3 className="text-sm sm:text-base md:text-lg font-semibold line-clamp-1 mb-2 sm:mb-3" style={{ color: colors.textPrimary, margin: '0 0 8px 0' }}>
+              <h3 className="studio-card-title" style={{ color: colors.textPrimary }}>
                 {studio.name}
               </h3>
 
