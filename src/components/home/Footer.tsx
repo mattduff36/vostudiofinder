@@ -58,7 +58,7 @@ export function Footer() {
             </div>
 
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm" style={{ color: '#cccccc' }}>
-              <span>© 2025 VoiceoverStudioFinder & MPDEE Development. All rights reserved.</span>
+              <span>© 2025 VoiceoverGuy & MPDEE Development. All rights reserved.</span>
               <div className="flex space-x-4">
                 <a href="/privacy" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Privacy Policy</a>
                 <a href="/terms" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Terms of Service</a>

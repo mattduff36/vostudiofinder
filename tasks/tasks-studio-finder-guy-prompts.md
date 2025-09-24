@@ -48,14 +48,14 @@
   - [x] 3.4 Ensure slider functionality remains the same with live updates as user drags
   - [x] 3.5 Test that the display updates correctly when slider value changes
 
-- [ ] 4.0 Fix Text Colors on Studios Page
+- [x] 4.0 Fix Text Colors on Studios Page
   - [x] 4.1 Change "Showing 1–50 of X studios" text color from grey to black
   - [x] 4.2 Change "Search Radius: X miles" text color from grey to black
   - [x] 4.3 Verify text remains readable and accessible with new black color
   - [x] 4.4 Test across different themes/backgrounds to ensure proper contrast
 
 - [ ] 5.0 Adjust Homepage Layout and Footer Content
-  - [ ] 5.1 Reduce top/bottom padding above "Featured Studios" section to sit closer to search area
-  - [ ] 5.2 Update footer copyright text from "© 2025 VoiceoverStudioFinder & MPDEE Development. All rights reserved" to "© 2025 VoiceoverGuy & MPDEE Development. All rights reserved"
-  - [ ] 5.3 Test homepage layout changes on different screen sizes to ensure proper spacing
-  - [ ] 5.4 Verify footer text change is applied consistently across all pages
+  - [x] 5.1 Reduce top/bottom padding above "Featured Studios" section to sit closer to search area
+  - [x] 5.2 Update footer copyright text from "© 2025 VoiceoverStudioFinder & MPDEE Development. All rights reserved" to "© 2025 VoiceoverGuy & MPDEE Development. All rights reserved"
+  - [x] 5.3 Test homepage layout changes on different screen sizes to ensure proper spacing
+  - [x] 5.4 Verify footer text change is applied consistently across all pages

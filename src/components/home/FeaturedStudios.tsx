@@ -94,7 +94,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
   }
 
   return (
-    <div ref={sectionRef} className="relative py-16 overflow-hidden">
+    <div ref={sectionRef} className="relative py-8 overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -105,7 +105,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           priority={false}
         />
       </div>
-      <div className="relative z-10 pt-0 pb-12 sm:py-16 w-full">
+      <div className="relative z-10 pt-0 pb-6 sm:py-8 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className={`text-center mb-8 sm:mb-12 transition-all duration-1000 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
