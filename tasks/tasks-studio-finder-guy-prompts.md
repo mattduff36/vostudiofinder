@@ -41,7 +41,7 @@
   - [x] 2.7 Ensure only one popup is open at a time (close previous when opening new)
   - [x] 2.8 Maintain current red border highlight on matching studio card when pin is clicked
 
-- [ ] 3.0 Update Homepage Search Radius Display
+- [x] 3.0 Update Homepage Search Radius Display
   - [x] 3.1 Move miles value from right side of slider to appear next to "Search Radius" label on left
   - [x] 3.2 Display miles value in bold formatting
   - [x] 3.3 Show full word "miles" instead of abbreviated form (e.g., "Search Radius: 25 miles")
@@ -49,10 +49,10 @@
   - [x] 3.5 Test that the display updates correctly when slider value changes
 
 - [ ] 4.0 Fix Text Colors on Studios Page
-  - [ ] 4.1 Change "Showing 1–50 of X studios" text color from grey to black
-  - [ ] 4.2 Change "Search Radius: X miles" text color from grey to black
-  - [ ] 4.3 Verify text remains readable and accessible with new black color
-  - [ ] 4.4 Test across different themes/backgrounds to ensure proper contrast
+  - [x] 4.1 Change "Showing 1–50 of X studios" text color from grey to black
+  - [x] 4.2 Change "Search Radius: X miles" text color from grey to black
+  - [x] 4.3 Verify text remains readable and accessible with new black color
+  - [x] 4.4 Test across different themes/backgrounds to ensure proper contrast
 
 - [ ] 5.0 Adjust Homepage Layout and Footer Content
   - [ ] 5.1 Reduce top/bottom padding above "Featured Studios" section to sit closer to search area

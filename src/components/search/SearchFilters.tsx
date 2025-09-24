@@ -209,7 +209,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
           />
           
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">
+            <label className="block text-sm font-medium text-black mb-2">
               Search Radius: {filters.radius} miles
             </label>
             <input

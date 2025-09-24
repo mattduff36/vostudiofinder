@@ -731,7 +731,7 @@ export function StudiosPage() {
                 {/* Results Header with Active Filters - Below map, above cards */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <p className="text-text-secondary">
+                    <p className="text-black">
                       Showing {searchResults.pagination.totalCount === 0 ? '0-0' : `${((searchResults.pagination.page - 1) * searchResults.pagination.limit) + 1}-${Math.min(searchResults.pagination.page * searchResults.pagination.limit, searchResults.pagination.totalCount)}`} of {searchResults.pagination.totalCount} studios
                     </p>
                     {/* Active Filters Display */}
