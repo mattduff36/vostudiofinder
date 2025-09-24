@@ -115,11 +115,6 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
   ];
 
 
-  const sortOptions = [
-    { value: 'name', label: 'Name' },
-    { value: 'createdAt', label: 'Recently Added' },
-    { value: 'rating', label: 'Rating' },
-  ];
 
   const hasActiveFilters = filters.location || filters.studioType || filters.services.length > 0 || filters.radius !== 25;
 

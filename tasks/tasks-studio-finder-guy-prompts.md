@@ -2,20 +2,15 @@
 
 ## Relevant Files
 
-- `src/components/search/StudiosList.tsx` - Main component for studio cards display, needs height standardization and text clamping
-- `src/components/search/StudiosList.test.tsx` - Unit tests for StudiosList component
-- `src/components/maps/GoogleMap.tsx` - Map component that needs enhanced tooltips and info windows
-- `src/components/maps/GoogleMap.test.tsx` - Unit tests for GoogleMap component
-- `src/components/maps/StudioMarkerTooltip.tsx` - New component for enhanced studio marker tooltips (to be created)
-- `src/components/maps/StudioMarkerTooltip.test.tsx` - Unit tests for StudioMarkerTooltip component
-- `src/components/search/EnhancedSearchBar.tsx` - Homepage search component needing radius display updates
-- `src/components/search/EnhancedSearchBar.test.tsx` - Unit tests for EnhancedSearchBar component
-- `src/components/search/StudiosPage.tsx` - Studios page component needing text color updates
-- `src/components/search/StudiosPage.test.tsx` - Unit tests for StudiosPage component
-- `src/components/home/FeaturedStudios.tsx` - Featured studios section needing padding adjustments
-- `src/components/home/FeaturedStudios.test.tsx` - Unit tests for FeaturedStudios component
-- `src/components/home/Footer.tsx` - Footer component needing copyright text update
-- `src/components/home/Footer.test.tsx` - Unit tests for Footer component
+- `src/components/search/StudiosList.tsx` - Modified to standardize studio card heights, implement line-clamp-4 for text, and set fixed image heights
+- `src/components/maps/GoogleMap.tsx` - Enhanced with info window functionality and React component integration for tooltips
+- `src/components/maps/StudioMarkerTooltip.tsx` - Created new component for enhanced studio marker tooltips with compact design
+- `src/components/search/EnhancedSearchBar.tsx` - Updated homepage search radius display to show miles value next to label in bold
+- `src/components/search/StudiosPage.tsx` - Modified to pass studio data to map markers and updated text colors from grey to black
+- `src/components/search/SearchFilters.tsx` - Updated search radius text color from grey to black
+- `src/components/home/FeaturedStudios.tsx` - Reduced padding above Featured Studios section for closer spacing to search area
+- `src/components/home/Footer.tsx` - Updated copyright text from VoiceoverStudioFinder to VoiceoverGuy
+- `tasks/tasks-studio-finder-guy-prompts.md` - Task tracking file for implementation progress
 
 ### Notes
 
@@ -54,7 +49,7 @@
   - [x] 4.3 Verify text remains readable and accessible with new black color
   - [x] 4.4 Test across different themes/backgrounds to ensure proper contrast
 
-- [ ] 5.0 Adjust Homepage Layout and Footer Content
+- [x] 5.0 Adjust Homepage Layout and Footer Content
   - [x] 5.1 Reduce top/bottom padding above "Featured Studios" section to sit closer to search area
   - [x] 5.2 Update footer copyright text from "© 2025 VoiceoverStudioFinder & MPDEE Development. All rights reserved" to "© 2025 VoiceoverGuy & MPDEE Development. All rights reserved"
   - [x] 5.3 Test homepage layout changes on different screen sizes to ensure proper spacing

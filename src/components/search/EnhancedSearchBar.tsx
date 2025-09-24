@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, Building } from 'lucide-react';
 import { colors } from '../home/HomePage';
-import { formatUserSuggestion, calculateDistance, abbreviateAddress } from '@/lib/utils/address';
+import { formatUserSuggestion, calculateDistance } from '@/lib/utils/address';
 import { getCurrentLocation } from '@/lib/maps';
 
 interface SearchSuggestion {
@@ -29,27 +29,6 @@ interface EnhancedSearchBarProps {
   onSearch?: (location: string, coordinates?: { lat: number; lng: number }, radius?: number) => void;
 }
 
-// Function to abbreviate location names for search dropdown
-const abbreviateLocationName = (fullAddress: string): string => {
-  // Use the existing abbreviateAddress function but with more aggressive abbreviation
-  const abbreviated = abbreviateAddress(fullAddress);
-  
-  // Further simplify for search dropdown display
-  // Remove country if it's obvious (UK, US, etc.)
-  let result = abbreviated
-    .replace(/, United Kingdom$/, ', UK')
-    .replace(/, United States$/, ', US')
-    .replace(/, Australia$/, ', AU');
-  
-  // For very long addresses, take only the most relevant parts
-  const parts = result.split(', ');
-  if (parts.length > 3) {
-    // Keep first part (city/area) and last part (country/state)
-    result = `${parts[0]}, ${parts[parts.length - 1]}`;
-  }
-  
-  return result;
-};
 
 export function EnhancedSearchBar({ 
   placeholder = "Search by location, postcode, or username...",
