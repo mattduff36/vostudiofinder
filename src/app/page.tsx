@@ -38,6 +38,11 @@ export default async function Home() {
           displayName: true,
           username: true,
           avatarUrl: true,
+          profile: {
+            select: {
+              shortAbout: true,
+            },
+          },
         },
       },
       services: true,
@@ -62,9 +67,10 @@ export default async function Home() {
     db.user.count(),
   ]);
 
-  // Convert Decimal fields to numbers for client components
+  // Convert Decimal fields to numbers and map shortAbout to description for client components
   const serializedStudios = featuredStudios.map(studio => ({
     ...studio,
+    description: studio.owner?.profile?.shortAbout || '', // Use shortAbout as description
     latitude: studio.latitude ? Number(studio.latitude) : null,
     longitude: studio.longitude ? Number(studio.longitude) : null,
   }));

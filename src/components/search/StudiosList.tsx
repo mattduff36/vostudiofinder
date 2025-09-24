@@ -108,30 +108,36 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                     </div>
                   )}
                   
-                  {/* Description with line limit */}
-                  <div 
-                    className="overflow-hidden"
-                    style={{ 
-                      maxHeight: studio.address && studio.address.trim() ? '4.5rem' : '6rem',
-                      lineHeight: '1.5rem'
-                    }}
-                    title={cleanDescription(studio.description)}
-                  >
-                    {(() => {
-                      const description = cleanDescription(studio.description);
-                      const availableLines = studio.address && studio.address.trim() ? 3 : 4;
-                      const seeMoreText = '..... See More';
-                      const maxChars = (availableLines * 45) - seeMoreText.length;
-                      
-                      if (description.length > maxChars) {
-                        const truncated = description.substring(0, maxChars).trim();
-                        const lastSpace = truncated.lastIndexOf(' ');
-                        const finalText = lastSpace > maxChars - 15 ? truncated.substring(0, lastSpace) : truncated;
-                        return finalText + seeMoreText;
-                      }
-                      return description;
-                    })()}
-                  </div>
+                  {/* Description with line limit - only show if content exists */}
+                  {(() => {
+                    const description = cleanDescription(studio.description);
+                    if (!description) return null;
+                    
+                    const availableLines = studio.address && studio.address.trim() ? 3 : 4;
+                    const seeMoreText = '..... See More';
+                    const maxChars = (availableLines * 45) - seeMoreText.length;
+                    
+                    return (
+                      <div 
+                        className="overflow-hidden"
+                        style={{ 
+                          maxHeight: studio.address && studio.address.trim() ? '4.5rem' : '6rem',
+                          lineHeight: '1.5rem'
+                        }}
+                        title={description}
+                      >
+                        {(() => {
+                          if (description.length > maxChars) {
+                            const truncated = description.substring(0, maxChars).trim();
+                            const lastSpace = truncated.lastIndexOf(' ');
+                            const finalText = lastSpace > maxChars - 15 ? truncated.substring(0, lastSpace) : truncated;
+                            return finalText + seeMoreText;
+                          }
+                          return description;
+                        })()}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 

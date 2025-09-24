@@ -152,7 +152,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
 
                 <div className="p-4 sm:p-6 flex flex-col flex-grow max-h-[340px]">
                   {/* Studio Name - badge moved to image */}
-                  <h3 className="studio-card-title" style={{ color: colors.textPrimary }}>
+                  <h3 className="studio-card-title-featured" style={{ color: colors.textPrimary }}>
                     {studio.name}
                   </h3>
 
@@ -167,33 +167,39 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                         </div>
                       )}
                       
-                      {/* Description with line limit */}
-                      <div 
-                        className="overflow-hidden"
-                        style={{ 
-                          maxHeight: studio.address && studio.address.trim() ? '4.5rem' : '6rem', // 3 or 4 lines at 1.5rem line-height
-                          lineHeight: '1.5rem'
-                        }}
-                        title={cleanDescription(studio.description)}
-                      >
-                        {(() => {
-                          const description = cleanDescription(studio.description);
-                          // Calculate available lines (4 total, minus 1 if location exists)
-                          const availableLines = studio.address && studio.address.trim() ? 3 : 4;
-                          // More conservative character limit per line (roughly 45 chars per line)
-                          const seeMoreText = '..... See More';
-                          const maxChars = (availableLines * 45) - seeMoreText.length;
-                          
-                          if (description.length > maxChars) {
-                            const truncated = description.substring(0, maxChars).trim();
-                            // Find the last complete word to avoid cutting mid-word
-                            const lastSpace = truncated.lastIndexOf(' ');
-                            const finalText = lastSpace > maxChars - 15 ? truncated.substring(0, lastSpace) : truncated;
-                            return finalText + seeMoreText;
-                          }
-                          return description;
-                        })()}
-                      </div>
+                      {/* Description with line limit - only show if content exists */}
+                      {(() => {
+                        const description = cleanDescription(studio.description);
+                        if (!description) return null;
+                        
+                        // Calculate available lines (4 total, minus 1 if location exists)
+                        const availableLines = studio.address && studio.address.trim() ? 3 : 4;
+                        // More conservative character limit per line (roughly 45 chars per line)
+                        const seeMoreText = '..... See More';
+                        const maxChars = (availableLines * 45) - seeMoreText.length;
+                        
+                        return (
+                          <div 
+                            className="overflow-hidden"
+                            style={{ 
+                              maxHeight: studio.address && studio.address.trim() ? '4.5rem' : '6rem', // 3 or 4 lines at 1.5rem line-height
+                              lineHeight: '1.5rem'
+                            }}
+                            title={description}
+                          >
+                            {(() => {
+                              if (description.length > maxChars) {
+                                const truncated = description.substring(0, maxChars).trim();
+                                // Find the last complete word to avoid cutting mid-word
+                                const lastSpace = truncated.lastIndexOf(' ');
+                                const finalText = lastSpace > maxChars - 15 ? truncated.substring(0, lastSpace) : truncated;
+                                return finalText + seeMoreText;
+                              }
+                              return description;
+                            })()}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 

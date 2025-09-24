@@ -245,6 +245,11 @@ export async function GET(request: NextRequest) {
               displayName: true,
               username: true,
               avatarUrl: true,
+              profile: {
+                select: {
+                  shortAbout: true,
+                },
+              },
             },
           },
           services: {
@@ -320,6 +325,11 @@ export async function GET(request: NextRequest) {
                 displayName: true,
                 username: true,
                 avatarUrl: true,
+                profile: {
+                  select: {
+                    shortAbout: true,
+                  },
+                },
               },
             },
             services: {
@@ -351,9 +361,10 @@ export async function GET(request: NextRequest) {
     const hasNextPage = validatedParams.page < totalPages;
     const hasPrevPage = validatedParams.page > 1;
 
-    // Serialize Decimal fields for JSON response
+    // Serialize Decimal fields and map shortAbout to description for JSON response
     const serializedStudios = studios.map(studio => ({
       ...studio,
+      description: studio.owner?.profile?.shortAbout || '', // Use shortAbout as description
       latitude: studio.latitude ? Number(studio.latitude) : null,
       longitude: studio.longitude ? Number(studio.longitude) : null,
     }));

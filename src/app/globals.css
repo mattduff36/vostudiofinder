@@ -189,6 +189,18 @@ h6,
   overflow: hidden !important;
 }
 
+/* Homepage featured studio card title - 1px larger than search page cards */
+.studio-card-title-featured {
+  font-size: 15px !important; /* 1px larger than regular studio cards */
+  font-weight: 700 !important; /* font-bold equivalent */
+  margin: 0 0 8px 0 !important; /* mb-2 sm:mb-3 equivalent */
+  line-height: 1.25 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 1 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
 p {
   margin: 0;
   padding-bottom: 8px;
