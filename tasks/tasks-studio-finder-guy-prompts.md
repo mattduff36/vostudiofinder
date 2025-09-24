@@ -24,7 +24,7 @@
 
 ## Tasks
 
-- [ ] 1.0 Standardize Studio Cards Layout and Content
+- [x] 1.0 Standardize Studio Cards Layout and Content
   - [x] 1.1 Set fixed height for all studio cards to ensure uniform appearance across the grid
   - [x] 1.2 Implement line-clamp-4 or equivalent CSS to limit shortAbout text to maximum 4 lines
   - [x] 1.3 Set fixed height for card images so all images align cleanly across cards
@@ -32,14 +32,14 @@
   - [x] 1.5 Test responsive behavior on different screen sizes to ensure cards remain uniform
 
 - [ ] 2.0 Enhance Map Marker Tooltips and Info Windows
-  - [ ] 2.1 Create StudioMarkerTooltip component with compact design (logo left, text right)
-  - [ ] 2.2 Add studio image/logo thumbnail to tooltip using existing image field from database
-  - [ ] 2.3 Display studio name (studioName field) in tooltip
-  - [ ] 2.4 Add clickable link to studio profile page in tooltip
-  - [ ] 2.5 Implement popup/info window functionality when user clicks studio pin
-  - [ ] 2.6 Add close 'X' button to popup and implement click-outside-to-close behavior
-  - [ ] 2.7 Ensure only one popup is open at a time (close previous when opening new)
-  - [ ] 2.8 Maintain current red border highlight on matching studio card when pin is clicked
+  - [x] 2.1 Create StudioMarkerTooltip component with compact design (logo left, text right)
+  - [x] 2.2 Add studio image/logo thumbnail to tooltip using existing image field from database
+  - [x] 2.3 Display studio name (studioName field) in tooltip
+  - [x] 2.4 Add clickable link to studio profile page in tooltip
+  - [x] 2.5 Implement popup/info window functionality when user clicks studio pin
+  - [x] 2.6 Add close 'X' button to popup and implement click-outside-to-close behavior
+  - [x] 2.7 Ensure only one popup is open at a time (close previous when opening new)
+  - [x] 2.8 Maintain current red border highlight on matching studio card when pin is clicked
 
 - [ ] 3.0 Update Homepage Search Radius Display
   - [ ] 3.1 Move miles value from right side of slider to appear next to "Search Radius" label on left

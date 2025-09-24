@@ -672,6 +672,12 @@ export function StudiosPage() {
                         onClick: () => {
                           selectStudio(studio.id);
                         },
+                        studio: {
+                          id: studio.id,
+                          name: studio.name,
+                          owner: studio.owner,
+                          images: studio.images,
+                        },
                       }))}
                     searchCenter={searchResults.searchCoordinates || null}
                     searchRadius={parseInt(searchParams.get('radius') || '25')}
@@ -705,6 +711,12 @@ export function StudiosPage() {
                             setTimeout(() => {
                               selectStudio(studio.id);
                             }, 100);
+                          },
+                          studio: {
+                            id: studio.id,
+                            name: studio.name,
+                            owner: studio.owner,
+                            images: studio.images,
                           },
                         }))}
                       searchCenter={searchResults.searchCoordinates || null}

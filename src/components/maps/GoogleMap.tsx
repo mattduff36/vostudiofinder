@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
+import { createRoot } from 'react-dom/client';
+import { StudioMarkerTooltip } from './StudioMarkerTooltip';
 
 // Google Maps types
 declare global {
@@ -22,6 +24,17 @@ interface GoogleMapProps {
     studioType?: string;
     isVerified?: boolean;
     onClick?: () => void;
+    studio?: {
+      id: string;
+      name: string;
+      owner?: {
+        username: string;
+      };
+      images?: Array<{
+        imageUrl: string;
+        altText?: string;
+      }>;
+    };
   }>;
   searchCenter?: MapLocation | null;
   searchRadius?: number | null;
@@ -71,6 +84,7 @@ export function GoogleMap({
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [markersReady, setMarkersReady] = useState(false);
+  const [activeInfoWindow, setActiveInfoWindow] = useState<any>(null);
 
 
   // Helper function to create circle and marker
@@ -133,9 +147,50 @@ export function GoogleMap({
         optimized: false, // Ensure markers render immediately
       });
 
-      // Add click listener
+      // Add click listener for card selection
       if (data.onClick) {
         marker.addListener('click', data.onClick);
+      }
+
+      // Add click listener for info window
+      if (data.studio) {
+        marker.addListener('click', () => {
+          // Close existing info window
+          if (activeInfoWindow) {
+            activeInfoWindow.close();
+          }
+
+          // Create new info window
+          const infoWindow = new window.google.maps.InfoWindow();
+          
+          // Create container for React component
+          const container = document.createElement('div');
+          const root = createRoot(container);
+          
+          // Render the tooltip component
+          root.render(
+            <StudioMarkerTooltip 
+              studio={data.studio!}
+              showCloseButton={true}
+              isPopup={true}
+              onClose={() => {
+                infoWindow.close();
+                setActiveInfoWindow(null);
+              }}
+            />
+          );
+          
+          infoWindow.setContent(container);
+          infoWindow.open(mapInstance, marker);
+          
+          // Update active info window state
+          setActiveInfoWindow(infoWindow);
+          
+          // Add listener to clear state when info window is closed
+          infoWindow.addListener('closeclick', () => {
+            setActiveInfoWindow(null);
+          });
+        });
       }
 
       return marker;
@@ -373,17 +428,22 @@ export function GoogleMap({
       handleUserInteraction();
     });
 
-    // Add click listener for location selection
-    if (onLocationSelect) {
-      map.addListener('click', (event: any) => {
-        if (event.latLng) {
-          onLocationSelect({
-            lat: event.latLng.lat(),
-            lng: event.latLng.lng(),
-          });
-        }
-      });
-    }
+    // Add click listener for location selection and info window closing
+    map.addListener('click', (event: any) => {
+      // Close active info window when clicking on map
+      if (activeInfoWindow) {
+        activeInfoWindow.close();
+        setActiveInfoWindow(null);
+      }
+      
+      // Handle location selection
+      if (onLocationSelect && event.latLng) {
+        onLocationSelect({
+          lat: event.latLng.lat(),
+          lng: event.latLng.lng(),
+        });
+      }
+    });
 
     // Add zoom change listener to update clustering
     map.addListener('zoom_changed', () => {
