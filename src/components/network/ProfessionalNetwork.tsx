@@ -93,8 +93,8 @@ export function ProfessionalNetwork({
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-medium text-gray-900 truncate">
-                  {user.profile?.firstName && user.profile?.lastName 
-                    ? `${user.profile.firstName} ${user.profile.lastName}`
+                  {user.profile?.studioName && user.profile?.lastName 
+                    ? `${user.profile.studioName} ${user.profile.lastName}`
                     : user.displayName
                   }
                 </h3>

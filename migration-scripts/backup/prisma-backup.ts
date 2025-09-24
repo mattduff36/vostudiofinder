@@ -149,8 +149,8 @@ export class PrismaBackup {
       if (profiles.length > 0) {
         sqlContent += `-- User Profiles (${profiles.length} records)\n`;
         for (const profile of profiles) {
-          sqlContent += `INSERT INTO user_profiles (id, user_id, first_name, last_name, phone, about, short_about, location, created_at, updated_at) VALUES `;
-          sqlContent += `('${profile.id}', '${profile.userId}', ${profile.firstName ? `'${profile.firstName.replace(/'/g, "''")}'` : 'NULL'}, ${profile.lastName ? `'${profile.lastName.replace(/'/g, "''")}'` : 'NULL'}, ${profile.phone ? `'${profile.phone}'` : 'NULL'}, ${profile.about ? `'${profile.about.replace(/'/g, "''")}'` : 'NULL'}, ${profile.shortAbout ? `'${profile.shortAbout.replace(/'/g, "''")}'` : 'NULL'}, ${profile.location ? `'${profile.location.replace(/'/g, "''")}'` : 'NULL'}, '${profile.createdAt.toISOString()}', '${profile.updatedAt.toISOString()}');\n`;
+          sqlContent += `INSERT INTO user_profiles (id, user_id, studio_name, last_name, phone, about, short_about, location, created_at, updated_at) VALUES `;
+          sqlContent += `('${profile.id}', '${profile.userId}', ${profile.studioName ? `'${profile.studioName.replace(/'/g, "''")}'` : 'NULL'}, ${profile.lastName ? `'${profile.lastName.replace(/'/g, "''")}'` : 'NULL'}, ${profile.phone ? `'${profile.phone}'` : 'NULL'}, ${profile.about ? `'${profile.about.replace(/'/g, "''")}'` : 'NULL'}, ${profile.shortAbout ? `'${profile.shortAbout.replace(/'/g, "''")}'` : 'NULL'}, ${profile.location ? `'${profile.location.replace(/'/g, "''")}'` : 'NULL'}, '${profile.createdAt.toISOString()}', '${profile.updatedAt.toISOString()}');\n`;
         }
         sqlContent += `\n`;
       }

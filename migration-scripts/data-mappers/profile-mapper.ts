@@ -52,7 +52,7 @@ export interface LegacyProfile {
 export interface MappedProfile {
   id: string;
   userId: string;
-  firstName: string | null;
+  studioName: string | null;
   lastName: string | null;
   phone: string | null;
   about: string | null;
@@ -132,7 +132,7 @@ export class ProfileMapper {
     return {
       id: newId,
       userId: newUserId,
-      firstName: legacyProfile.firstname || null,
+      studioName: legacyProfile.firstname || null,
       lastName: legacyProfile.lastname || null,
       phone: legacyProfile.phone || null,
       about: about || null,
@@ -206,7 +206,7 @@ export class ProfileMapper {
           data: {
             id: profile.id,
             userId: profile.userId,
-            firstName: profile.firstName,
+            studioName: profile.studioName,
             lastName: profile.lastName,
             phone: profile.phone,
             about: profile.about,

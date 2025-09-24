@@ -106,12 +106,12 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
           
           <div className="flex-1 min-w-0">
             <h1 className="text-3xl font-bold">
-              {profile?.firstName && profile?.lastName 
-                ? `${profile.firstName} ${profile.lastName}`
+              {profile?.studioName && profile?.lastName 
+                ? `${profile.studioName} ${profile.lastName}`
                 : user.displayName
               }
             </h1>
-            {user.displayName !== `${profile?.firstName} ${profile?.lastName}` && (
+            {user.displayName !== `${profile?.studioName} ${profile?.lastName}` && (
               <p className="text-primary-100 text-lg">@{user.username}</p>
             )}
             

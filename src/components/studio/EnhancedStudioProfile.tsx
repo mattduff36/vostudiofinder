@@ -143,8 +143,8 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                 />
               )}
               <span className="text-primary-100">
-                Owned by {ownerProfile?.firstName && ownerProfile?.lastName 
-                  ? `${ownerProfile.firstName} ${ownerProfile.lastName}`
+                Owned by {ownerProfile?.studioName && ownerProfile?.lastName 
+                  ? `${ownerProfile.studioName} ${ownerProfile.lastName}`
                   : studio.owner.displayName
                 }
               </span>

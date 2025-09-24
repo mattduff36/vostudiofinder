@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         profile: {
           select: {
             location: true,
-            firstName: true,
+            studioName: true,
             lastName: true
           }
         },

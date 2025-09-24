@@ -126,8 +126,8 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
             {/* Profile Info */}
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-                {profile?.firstName && profile?.lastName 
-                  ? `${profile.firstName} ${profile.lastName}` 
+                {profile?.studioName && profile?.lastName 
+                  ? `${profile.studioName} ${profile.lastName}` 
                   : user.displayName
                 }
               </h1>
