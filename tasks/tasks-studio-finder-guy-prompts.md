@@ -31,7 +31,7 @@
   - [x] 1.4 Ensure cards maintain equal height even when text content is shorter than 4 lines
   - [x] 1.5 Test responsive behavior on different screen sizes to ensure cards remain uniform
 
-- [ ] 2.0 Enhance Map Marker Tooltips and Info Windows
+- [x] 2.0 Enhance Map Marker Tooltips and Info Windows
   - [x] 2.1 Create StudioMarkerTooltip component with compact design (logo left, text right)
   - [x] 2.2 Add studio image/logo thumbnail to tooltip using existing image field from database
   - [x] 2.3 Display studio name (studioName field) in tooltip
@@ -42,11 +42,11 @@
   - [x] 2.8 Maintain current red border highlight on matching studio card when pin is clicked
 
 - [ ] 3.0 Update Homepage Search Radius Display
-  - [ ] 3.1 Move miles value from right side of slider to appear next to "Search Radius" label on left
-  - [ ] 3.2 Display miles value in bold formatting
-  - [ ] 3.3 Show full word "miles" instead of abbreviated form (e.g., "Search Radius: 25 miles")
-  - [ ] 3.4 Ensure slider functionality remains the same with live updates as user drags
-  - [ ] 3.5 Test that the display updates correctly when slider value changes
+  - [x] 3.1 Move miles value from right side of slider to appear next to "Search Radius" label on left
+  - [x] 3.2 Display miles value in bold formatting
+  - [x] 3.3 Show full word "miles" instead of abbreviated form (e.g., "Search Radius: 25 miles")
+  - [x] 3.4 Ensure slider functionality remains the same with live updates as user drags
+  - [x] 3.5 Test that the display updates correctly when slider value changes
 
 - [ ] 4.0 Fix Text Colors on Studios Page
   - [ ] 4.1 Change "Showing 1–50 of X studios" text color from grey to black

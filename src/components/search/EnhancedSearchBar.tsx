@@ -640,8 +640,10 @@ export function EnhancedSearchBar({
       {showRadius && (
         <div className="mt-6 p-4 bg-transparent">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-white">Search Radius</label>
-            <span className="text-sm text-white opacity-80">{radius} miles</span>
+            <label className="text-sm font-medium text-white">
+              Search Radius: <span className="font-bold">{radius} miles</span>
+            </label>
+            <span></span>
           </div>
           <input
             type="range"
