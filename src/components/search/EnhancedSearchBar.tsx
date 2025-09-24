@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, Building } from 'lucide-react';
 import { colors } from '../home/HomePage';
-import { formatUserSuggestion, calculateDistance } from '@/lib/utils/address';
+import { formatUserSuggestion, calculateDistance, abbreviateAddress } from '@/lib/utils/address';
 import { getCurrentLocation } from '@/lib/maps';
 
 interface SearchSuggestion {
@@ -18,6 +18,7 @@ interface SearchSuggestion {
     user_id?: string;
     coordinates?: { lat: number; lng: number };
     full_location?: string;
+    full_address?: string;
   };
 }
 
@@ -27,6 +28,28 @@ interface EnhancedSearchBarProps {
   showRadius?: boolean;
   onSearch?: (location: string, coordinates?: { lat: number; lng: number }, radius?: number) => void;
 }
+
+// Function to abbreviate location names for search dropdown
+const abbreviateLocationName = (fullAddress: string): string => {
+  // Use the existing abbreviateAddress function but with more aggressive abbreviation
+  const abbreviated = abbreviateAddress(fullAddress);
+  
+  // Further simplify for search dropdown display
+  // Remove country if it's obvious (UK, US, etc.)
+  let result = abbreviated
+    .replace(/, United Kingdom$/, ', UK')
+    .replace(/, United States$/, ', US')
+    .replace(/, Australia$/, ', AU');
+  
+  // For very long addresses, take only the most relevant parts
+  const parts = result.split(', ');
+  if (parts.length > 3) {
+    // Keep first part (city/area) and last part (country/state)
+    result = `${parts[0]}, ${parts[parts.length - 1]}`;
+  }
+  
+  return result;
+};
 
 export function EnhancedSearchBar({ 
   placeholder = "Search by location, postcode, or username...",
@@ -262,25 +285,22 @@ export function EnhancedSearchBar({
                           types: place.types 
                         });
                         
-                        if (place.name && place.formatted_address && place.name !== place.formatted_address) {
-                          // It's a business/establishment - show "Business Name - Address"
-                          displayText = place.name;
-                          locationText = place.formatted_address;
-                          console.log('✅ Business/establishment detected:', displayText, '-', locationText);
-                        } else {
-                          // It's just a location - show address only
-                          displayText = place.formatted_address || place.name || prediction.description;
-                          console.log('📍 General location detected:', displayText);
-                        }
+                        const fullAddress = place.formatted_address || place.name || prediction.description;
+                        
+                        // Always use the full formatted address as the display text
+                        displayText = fullAddress;
+                        locationText = ''; // Don't use location text since we're showing everything in main text
+                        console.log('📍 Location suggestion:', displayText);
 
                         detailResolve({
                           id: `place-${place.place_id}`,
-                          text: displayText,
-                          location: locationText, // This will show in grey text for businesses
+                          text: displayText, // Abbreviated for dropdown display
+                          location: locationText,
                           type: 'location' as const,
                           distance: distance || 0,
                           metadata: {
                             place_id: place.place_id,
+                            full_address: fullAddress, // Store full address for input box
                             ...(place.geometry?.location ? {
                               coordinates: {
                                 lat: typeof place.geometry.location.lat === 'function' 
@@ -356,7 +376,7 @@ export function EnhancedSearchBar({
         return {
           id: `user-${user.id}`,
           text: formatUserSuggestion(user.username, user.display_name),
-          location: user.location, // Abbreviated location will show in grey text
+          location: user.location || '', // Full location
           type: 'user' as const,
           distance,
           metadata: {
@@ -412,11 +432,13 @@ export function EnhancedSearchBar({
   // Handle suggestion selection
   const handleSelect = (suggestion: SearchSuggestion) => {
     if (suggestion.type === 'location') {
+      // For locations, use the full address (now stored in suggestion.text)
+      const fullAddress = suggestion.metadata?.full_address || suggestion.text;
       setSelectedLocation({
-        name: suggestion.text,
+        name: fullAddress,
         ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
       });
-      setQuery(suggestion.text);
+      setQuery(fullAddress); // Put full address in input box
       // Don't perform search immediately - wait for Enter key or search button click
     } else if (suggestion.type === 'user') {
       // For users, use their actual location address from metadata, not the formatted text
@@ -605,13 +627,8 @@ export function EnhancedSearchBar({
             >
               {getSuggestionIcon(suggestion.type)}
               <div className="flex-1">
-                <div className="font-medium text-gray-900">
+                <div className="font-medium text-black">
                   {suggestion.text}
-                  {suggestion.location && (
-                    <span className="text-gray-500 font-normal ml-1">
-                      {suggestion.location}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>

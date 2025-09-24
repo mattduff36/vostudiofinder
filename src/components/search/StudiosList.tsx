@@ -65,10 +65,10 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
             key={studio.id}
             id={`studio-${studio.id}`}
             onClick={() => window.location.href = `/${studio.owner?.username}`}
-            className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col h-full cursor-pointer group"
+            className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col cursor-pointer group h-[480px]"
           >
             {/* Studio Image */}
-            <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
+            <div className="h-48 bg-gray-200 rounded-t-lg overflow-hidden relative">
               {studio.images?.[0]?.imageUrl ? (
                 <Image
                   src={studio.images[0].imageUrl}
@@ -91,7 +91,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
 
             </div>
 
-            <div className="p-4 sm:p-6 flex flex-col flex-grow max-h-[340px]">
+            <div className="p-4 sm:p-6 flex flex-col flex-grow">
               {/* Studio Name */}
               <h3 className="studio-card-title" style={{ color: colors.textPrimary }}>
                 {studio.name}
@@ -113,28 +113,13 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                     const description = cleanDescription(studio.description);
                     if (!description) return null;
                     
-                    const availableLines = studio.address && studio.address.trim() ? 3 : 4;
-                    const seeMoreText = '..... See More';
-                    const maxChars = (availableLines * 45) - seeMoreText.length;
-                    
                     return (
                       <div 
-                        className="overflow-hidden"
-                        style={{ 
-                          maxHeight: studio.address && studio.address.trim() ? '4.5rem' : '6rem',
-                          lineHeight: '1.5rem'
-                        }}
+                        className="line-clamp-4 text-sm leading-relaxed"
+                        style={{ color: 'inherit' }}
                         title={description}
                       >
-                        {(() => {
-                          if (description.length > maxChars) {
-                            const truncated = description.substring(0, maxChars).trim();
-                            const lastSpace = truncated.lastIndexOf(' ');
-                            const finalText = lastSpace > maxChars - 15 ? truncated.substring(0, lastSpace) : truncated;
-                            return finalText + seeMoreText;
-                          }
-                          return description;
-                        })()}
+                        {description}
                       </div>
                     );
                   })()}

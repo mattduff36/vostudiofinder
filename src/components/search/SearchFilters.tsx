@@ -285,33 +285,6 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
 
 
 
-      {/* Sort Options */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-2">
-          Sort By
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          <select
-            value={filters.sortBy}
-            onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          >
-            {sortOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.sortOrder}
-            onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          >
-            <option value="asc">A-Z</option>
-            <option value="desc">Z-A</option>
-          </select>
-        </div>
-      </div>
 
     </div>
   );

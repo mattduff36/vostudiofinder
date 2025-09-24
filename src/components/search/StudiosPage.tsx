@@ -728,7 +728,7 @@ export function StudiosPage() {
                         <span className="text-sm text-text-secondary">•</span>
                         <div className="flex flex-wrap gap-2">
                           {searchParams.get('location') && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black">
                               📍 {abbreviateAddress(searchParams.get('location')!)}
                             </span>
                           )}
