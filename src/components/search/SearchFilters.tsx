@@ -209,22 +209,28 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
             </label>
             <input
               type="range"
-              min="1"
-              max="50"
+              min="0"
+              max="4"
               step="1"
-              value={filters.radius}
+              value={[1, 5, 10, 25, 50].indexOf(filters.radius)}
               onChange={(e) => {
-                const newRadius = parseInt(e.target.value);
-                console.log(`Radius changed to ${newRadius} - triggering immediate search`);
-                handleFilterChange('radius', newRadius);
+                const radiusValues = [1, 5, 10, 25, 50];
+                const index = parseInt(e.target.value);
+                const newRadius = radiusValues[index];
+                if (newRadius !== undefined) {
+                  console.log(`Radius changed to ${newRadius} - triggering immediate search`);
+                  handleFilterChange('radius', newRadius);
+                }
               }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               style={{
-                background: `linear-gradient(to right, #d42027 0%, #d42027 ${(filters.radius - 1) / 49 * 100}%, #e5e7eb ${(filters.radius - 1) / 49 * 100}%, #e5e7eb 100%)`
+                background: `linear-gradient(to right, #d42027 0%, #d42027 ${([1, 5, 10, 25, 50].indexOf(filters.radius)) / 4 * 100}%, #e5e7eb ${([1, 5, 10, 25, 50].indexOf(filters.radius)) / 4 * 100}%, #e5e7eb 100%)`
               }}
             />
             <div className="flex justify-between text-xs text-gray-500 mt-1">
               <span>1mi</span>
+              <span>5mi</span>
+              <span>10mi</span>
               <span>25mi</span>
               <span>50mi</span>
             </div>
