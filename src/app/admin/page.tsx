@@ -86,9 +86,14 @@ export default async function AdminPage() {
     premiumStudios,
   };
 
+  // Serialize Decimal fields for client components
   const recentActivity = {
     users: recentUsers,
-    studios: recentStudios,
+    studios: recentStudios.map(studio => ({
+      ...studio,
+      latitude: studio.latitude ? Number(studio.latitude) : null,
+      longitude: studio.longitude ? Number(studio.longitude) : null,
+    })),
     reviews: recentReviews,
   };
 

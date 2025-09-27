@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { signOut } from 'next-auth/react';
 import { 
   Users, 
   Building, 
@@ -11,7 +12,11 @@ import {
   TrendingUp,
   Settings,
   Shield,
-  MessageSquare
+  MessageSquare,
+  Globe,
+  Search,
+  FileText,
+  LogOut
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -129,30 +134,44 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
+      {/* Admin Navigation Tabs */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
-            {[
-              { id: 'overview', label: 'Overview', icon: TrendingUp },
-              { id: 'users', label: 'Users', icon: Users },
-              { id: 'studios', label: 'Studios', icon: Building },
-              { id: 'reviews', label: 'Reviews', icon: Star },
-              { id: 'settings', label: 'Settings', icon: Settings },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-text-secondary hover:text-text-primary hover:border-gray-300'
-                }`}
+          <nav className="flex space-x-8 justify-between">
+            <div className="flex space-x-8">
+              {[
+                { id: 'overview', label: 'Overview', icon: TrendingUp, href: '/admin' },
+                { id: 'studios', label: 'Studios', icon: Building, href: '/admin/studios' },
+                { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
+                { id: 'network', label: 'Network', icon: Globe, href: '/admin/network' },
+                { id: 'query', label: 'Query', icon: Search, href: '/admin/query' },
+                { id: 'schema', label: 'Schema', icon: FileText, href: '/admin/schema' },
+                { id: 'venues', label: 'Venues', icon: Building, href: '/admin/venues' },
+                { id: 'faq', label: 'FAQ', icon: MessageSquare, href: '/admin/faq' },
+              ].map((tab) => (
+                <a
+                  key={tab.id}
+                  href={tab.href}
+                  className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'border-primary-500 text-primary-600'
+                      : 'border-transparent text-text-secondary hover:text-text-primary hover:border-gray-300'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4 mr-2" />
+                  {tab.label}
+                </a>
+              ))}
+            </div>
+            <div className="flex items-center">
+              <button 
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center transition-all"
               >
-                <tab.icon className="w-4 h-4 mr-2" />
-                {tab.label}
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
               </button>
-            ))}
+            </div>
           </nav>
         </div>
       </div>

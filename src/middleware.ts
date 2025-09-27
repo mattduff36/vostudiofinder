@@ -15,8 +15,8 @@ export default withAuth(
     
     
     // Define public paths that don't require authentication
-    const publicPaths = ['/', '/about', '/contact', '/studios', '/search', '/help', '/studios-new-design-1-temp', '/studios-new-design-2-temp', '/studios-new-design-3-temp'];
-    const staticRoutes = ['/about', '/admin', '/api', '/auth', '/contact', '/cookies', '/dashboard', '/help', '/privacy', '/profile', '/studio', '/studios', '/terms', '/test-upload', '/unauthorized'];
+    const publicPaths = ['/', '/about', '/contact', '/studios', '/search', '/help', '/studios-new-design-1-temp', '/studios-new-design-2-temp', '/studios-new-design-3-temp', '/unauthorized'];
+    const staticRoutes = ['/about', '/admin', '/api', '/auth', '/contact', '/cookies', '/dashboard', '/help', '/privacy', '/profile', '/studio', '/studios', '/terms', '/test-upload'];
     
     // Check if path matches static routes or public paths
     const isStaticRoute = staticRoutes.some(route => req.nextUrl.pathname.startsWith(route));
@@ -104,8 +104,8 @@ export default withAuth(
         }
         
         // Allow access to public routes and auth pages
-        const publicPaths = ['/', '/about', '/contact', '/studios', '/search', '/help', '/studios-new-design-1-temp', '/studios-new-design-2-temp', '/studios-new-design-3-temp'];
-        const staticRoutes = ['/about', '/admin', '/api', '/auth', '/contact', '/cookies', '/dashboard', '/help', '/privacy', '/profile', '/studio', '/studios', '/terms', '/test-upload', '/unauthorized'];
+        const publicPaths = ['/', '/about', '/contact', '/studios', '/search', '/help', '/studios-new-design-1-temp', '/studios-new-design-2-temp', '/studios-new-design-3-temp', '/unauthorized'];
+        const staticRoutes = ['/about', '/admin', '/api', '/auth', '/contact', '/cookies', '/dashboard', '/help', '/privacy', '/profile', '/studio', '/studios', '/terms', '/test-upload'];
         
         const isStaticRoute = staticRoutes.some(route => req.nextUrl.pathname.startsWith(route));
         const isPublicPath = publicPaths.some(path => 

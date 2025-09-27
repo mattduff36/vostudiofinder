@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateProfileSchema, type UpdateProfileInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { User, Camera, Save, X } from 'lucide-react';
+import { User, Camera, Save, X, LogOut } from 'lucide-react';
 
 interface ProfileFormProps {
   initialData?: {
@@ -83,6 +83,10 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
     reset();
     setError(null);
     setSuccess(null);
+  };
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' });
   };
 
   return (
@@ -197,24 +201,35 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           </div>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
             <Button
               type="button"
-              variant="ghost"
-              onClick={handleCancel}
-              disabled={isLoading || !isDirty}
+              variant="outline"
+              onClick={handleLogout}
+              className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
             >
-              <X className="w-4 h-4 mr-2" />
-              Cancel
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
             </Button>
-            <Button
-              type="submit"
-              loading={isLoading}
-              disabled={isLoading || !isDirty}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
-            </Button>
+            <div className="flex items-center space-x-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleCancel}
+                disabled={isLoading || !isDirty}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                loading={isLoading}
+                disabled={isLoading || !isDirty}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </Button>
+            </div>
           </div>
         </form>
       </div>

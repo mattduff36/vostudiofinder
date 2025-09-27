@@ -58,8 +58,15 @@ export async function GET(request: NextRequest) {
 
     const hasMore = offset + limit < total;
 
+    // Serialize Decimal fields for JSON response
+    const serializedStudios = studios.map(studio => ({
+      ...studio,
+      latitude: studio.latitude ? Number(studio.latitude) : null,
+      longitude: studio.longitude ? Number(studio.longitude) : null,
+    }));
+
     return NextResponse.json({
-      studios,
+      studios: serializedStudios,
       pagination: {
         total,
         hasMore

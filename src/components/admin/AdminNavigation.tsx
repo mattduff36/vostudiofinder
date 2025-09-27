@@ -6,15 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: '📊' },
-  { name: 'Studios', href: '/admin/studios', icon: '🏢' },
-  { name: 'Analytics', href: '/admin/analytics', icon: '📈' },
-  { name: 'Network', href: '/admin/network', icon: '🌐' },
-  { name: 'Query', href: '/admin/query', icon: '🔍' },
-  { name: 'Schema', href: '/admin/schema', icon: '🗃️' },
-  { name: 'Venues', href: '/admin/venues', icon: '📍' },
-  { name: 'FAQ', href: '/admin/faq', icon: '❓' },
-  { name: 'Browse', href: '/admin/browse', icon: '👀' },
+  { name: 'Dashboard', href: '/admin', icon: '📊' },
 ];
 
 export default function AdminNavigation() {

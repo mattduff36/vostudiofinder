@@ -1,11 +1,7 @@
-import { Metadata } from 'next';
+'use client';
+
 import { Shield, ArrowLeft, Home } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-
-export const metadata: Metadata = {
-  title: 'Access Denied - VoiceoverStudioFinder',
-  description: 'You do not have permission to access this resource',
-};
 
 export default function UnauthorizedPage() {
   return (

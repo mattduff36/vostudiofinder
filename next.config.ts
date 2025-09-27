@@ -8,7 +8,24 @@ const nextConfig: NextConfig = {
 
   // Image optimization
   images: {
-    domains: ['res.cloudinary.com', 'lh3.googleusercontent.com', 'pbs.twimg.com', 'images.unsplash.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pbs.twimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
     formats: ['image/webp', 'image/avif'],
   },
 
@@ -72,7 +89,9 @@ const nextConfig: NextConfig = {
   // Experimental features for admin functionality
   experimental: {
     // Enable server actions for admin forms
-    serverActions: true,
+    serverActions: {
+      allowedOrigins: ['localhost:3000'],
+    },
   },
 };
 
