@@ -28,13 +28,13 @@ describe('Admin Authentication', () => {
 
   describe('Admin Route Protection', () => {
     it('should allow access to admin routes for ADMIN users', async () => {
-      const mockRequest = new NextRequest('http://localhost:3000/admin/dashboard');
+      // const _mockRequest = new NextRequest('http://localhost:3000/admin/dashboard');
       const mockToken = { role: 'ADMIN', id: 'admin-user-id' };
       
       // Mock the middleware to return success for admin users
       (withAuth as jest.Mock).mockImplementation((handler) => {
         return (req: NextRequest) => {
-          req.nextauth = { token: mockToken };
+          (req as any).nextauth = { token: mockToken };
           return handler(req);
         };
       });
@@ -44,13 +44,13 @@ describe('Admin Authentication', () => {
     });
 
     it('should deny access to admin routes for non-ADMIN users', async () => {
-      const mockRequest = new NextRequest('http://localhost:3000/admin/dashboard');
+      // const _mockRequest = new NextRequest('http://localhost:3000/admin/dashboard');
       const mockToken = { role: 'USER', id: 'regular-user-id' };
       
       // Mock the middleware to redirect non-admin users
       (withAuth as jest.Mock).mockImplementation((handler) => {
         return (req: NextRequest) => {
-          req.nextauth = { token: mockToken };
+          (req as any).nextauth = { token: mockToken };
           if (req.nextUrl.pathname.startsWith('/admin') && mockToken.role !== 'ADMIN') {
             return new Response(null, { status: 403 });
           }
@@ -63,13 +63,13 @@ describe('Admin Authentication', () => {
     });
 
     it('should redirect unauthenticated users to signin', async () => {
-      const mockRequest = new NextRequest('http://localhost:3000/admin/dashboard');
+      // const _mockRequest = new NextRequest('http://localhost:3000/admin/dashboard');
       
       // Mock the middleware to redirect unauthenticated users
       (withAuth as jest.Mock).mockImplementation((handler) => {
         return (req: NextRequest) => {
-          req.nextauth = { token: null };
-          if (!req.nextauth.token) {
+          (req as any).nextauth = { token: null };
+          if (!(req as any).nextauth.token) {
             return new Response(null, { 
               status: 302, 
               headers: { Location: '/auth/signin' } 
@@ -86,7 +86,7 @@ describe('Admin Authentication', () => {
 
   describe('Admin API Protection', () => {
     it('should allow access to admin API endpoints for ADMIN users', async () => {
-      const mockRequest = new NextRequest('http://localhost:3000/api/admin/dashboard');
+      // const mockRequest = new NextRequest('http://localhost:3000/api/admin/dashboard');
       const mockToken = { role: 'ADMIN', id: 'admin-user-id' };
       
       // Test admin API access
@@ -94,7 +94,7 @@ describe('Admin Authentication', () => {
     });
 
     it('should deny access to admin API endpoints for non-ADMIN users', async () => {
-      const mockRequest = new NextRequest('http://localhost:3000/api/admin/dashboard');
+      // const mockRequest = new NextRequest('http://localhost:3000/api/admin/dashboard');
       const mockToken = { role: 'USER', id: 'regular-user-id' };
       
       // Test non-admin API access denial

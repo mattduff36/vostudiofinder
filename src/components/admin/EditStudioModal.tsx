@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Save, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface Studio {
   id: string;

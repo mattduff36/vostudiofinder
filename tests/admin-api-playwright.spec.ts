@@ -233,7 +233,7 @@ test.describe('Admin API Endpoints', () => {
     ];
 
     for (const endpoint of adminEndpoints) {
-      const response = await request[endpoint.method.toLowerCase()](`http://localhost:3000${endpoint.path}`, {
+      const response = await (request as any)[endpoint.method.toLowerCase()](`http://localhost:3000${endpoint.path}`, {
         headers: {
           'Cookie': `next-auth.session-token=${authCookie}`
         }

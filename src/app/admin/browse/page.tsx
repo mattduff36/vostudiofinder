@@ -223,7 +223,7 @@ export default function AdminBrowsePage() {
                     </span>
                     <button
                       onClick={() => handlePageChange(page + 1)}
-                      disabled={page >= Math.ceil(tableData.total / limit)}
+                      disabled={page >= Math.ceil((tableData as any).total / limit)}
                       className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                     >
                       Next

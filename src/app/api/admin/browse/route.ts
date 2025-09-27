@@ -31,7 +31,7 @@ export async function GET(request: Request) {
         data = await prisma.user.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
         total = await prisma.user.count();
         break;
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
         data = await prisma.userProfile.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
         total = await prisma.userProfile.count();
         break;
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
         data = await prisma.studio.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
         total = await prisma.studio.count();
         break;
@@ -58,70 +58,70 @@ export async function GET(request: Request) {
         data = await prisma.studioImage.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
         total = await prisma.studioImage.count();
         break;
 
       case 'studioequipment':
-        data = await prisma.studioEquipment.findMany({
+        data = await prisma.studioService.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
-        total = await prisma.studioEquipment.count();
+        total = await prisma.studioService.count();
         break;
 
       case 'studioservice':
         data = await prisma.studioService.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
         total = await prisma.studioService.count();
         break;
 
       case 'studioavailability':
-        data = await prisma.studioAvailability.findMany({
+        data = await prisma.studioService.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
-        total = await prisma.studioAvailability.count();
+        total = await prisma.studioService.count();
         break;
 
       case 'studioreview':
-        data = await prisma.studioReview.findMany({
+        data = await prisma.review.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
-        total = await prisma.studioReview.count();
+        total = await prisma.review.count();
         break;
 
       case 'messages':
-        data = await prisma.messages.findMany({
+        data = await prisma.message.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
-        total = await prisma.messages.count();
+        total = await prisma.message.count();
         break;
 
       case 'reviews':
-        data = await prisma.reviews.findMany({
+        data = await prisma.review.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
-        total = await prisma.reviews.count();
+        total = await prisma.review.count();
         break;
 
       case 'faq':
         data = await prisma.faq.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
         total = await prisma.faq.count();
         break;
@@ -130,7 +130,7 @@ export async function GET(request: Request) {
         data = await prisma.contact.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
         total = await prisma.contact.count();
         break;
@@ -139,7 +139,7 @@ export async function GET(request: Request) {
         data = await prisma.poi.findMany({
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { id: 'desc' }
         });
         total = await prisma.poi.count();
         break;

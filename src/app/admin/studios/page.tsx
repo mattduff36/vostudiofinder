@@ -184,7 +184,7 @@ export default function AdminStudiosPage() {
       // Refresh the studios list
       fetchStudios();
     } catch (error) {
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

@@ -61,7 +61,7 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'studios' | 'reviews' | 'settings'>('overview');
+  const [activeTab] = useState<'overview' | 'users' | 'studios' | 'reviews' | 'settings'>('overview');
 
   const statCards = [
     {

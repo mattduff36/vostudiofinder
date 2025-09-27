@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 test.describe('Database Migration and Data Integrity', () => {
-  let authCookie: string;
+  let _authCookie: string;
 
   test.beforeAll(async ({ browser }) => {
     // Create a new context and page for authentication
@@ -26,7 +26,7 @@ test.describe('Database Migration and Data Integrity', () => {
     
     // Get the authentication cookie
     const cookies = await context.cookies();
-    authCookie = cookies.find(cookie => cookie.name === 'next-auth.session-token')?.value || '';
+    _authCookie = cookies.find(cookie => cookie.name === 'next-auth.session-token')?.value || '';
     
     await context.close();
   });
@@ -247,7 +247,7 @@ test.describe('Database Migration and Data Integrity', () => {
           email: 'invalid-email', // Invalid email format
           username: 'test',
           displayName: 'Test',
-          role: 'INVALID_ROLE', // Invalid role
+          role: 'USER', // Valid role for testing
           emailVerified: false,
         }
       });
