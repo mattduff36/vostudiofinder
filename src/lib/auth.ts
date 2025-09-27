@@ -164,7 +164,12 @@ export const authOptions: NextAuthOptions = {
       // For credentials provider, user is already validated in authorize()
       return true;
     },
-    async redirect({ url, baseUrl }) {
+    async redirect({ url, baseUrl, token }) {
+      // Admin users redirect to admin dashboard after login
+      if (token?.role === 'ADMIN' && url === baseUrl) {
+        return `${baseUrl}/admin/dashboard`;
+      }
+      
       // Allows relative callback URLs
       if (url.startsWith('/')) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin

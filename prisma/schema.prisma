@@ -441,3 +441,40 @@ model UserProfile {
   @@index([verificationLevel])
   @@map("user_profiles")
 }
+
+// Admin-specific models from vosf-old-site
+model Faq {
+  id         String @id @default(cuid())
+  question   String
+  answer     String
+  sortOrder  Int?   @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("faq")
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  user1     String
+  user2     String
+  accepted  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("contacts")
+}
+
+model Poi {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  latitude    Decimal? @db.Decimal(10, 8)
+  longitude   Decimal? @db.Decimal(11, 8)
+  address     String?
+  category    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("poi")
+}

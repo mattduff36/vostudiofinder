@@ -1,6 +1,37 @@
 version: '3.8'
 
 services:
+  # VoiceoverStudioFinder Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vostudiofinder-app
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/vostudiofinder_dev
+      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_PREFIX=vsf
+    env_file:
+      - .env.local
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./public:/app/public:ro
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
