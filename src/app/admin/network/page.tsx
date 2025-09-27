@@ -102,7 +102,7 @@ export default function AdminNetworkPage() {
             </div>
           </div>
           <div className="text-3xl font-bold text-blue-700">
-            {/* @ts-ignore */}
+            {/* @ts-expect-error - Type assertion needed for dynamic data */}
             {networkData.statistics?.total || 0}
           </div>
           <p className="text-blue-600 text-sm">All partnership requests</p>
@@ -118,7 +118,7 @@ export default function AdminNetworkPage() {
             </div>
           </div>
           <div className="text-3xl font-bold text-green-700">
-            {/* @ts-ignore */}
+            {/* @ts-expect-error - Type assertion needed for dynamic data */}
             {networkData.statistics?.active || 0}
           </div>
           <p className="text-green-600 text-sm">Confirmed connections</p>
@@ -134,7 +134,7 @@ export default function AdminNetworkPage() {
             </div>
           </div>
           <div className="text-3xl font-bold text-yellow-700">
-            {/* @ts-ignore */}
+            {/* @ts-expect-error - Type assertion needed for dynamic data */}
             {networkData.statistics?.pending || 0}
           </div>
           <p className="text-yellow-600 text-sm">Awaiting approval</p>
@@ -142,7 +142,7 @@ export default function AdminNetworkPage() {
       </div>
 
       {/* Top Connected Studios */}
-      {/* @ts-ignore */}
+      {/* @ts-expect-error - Type assertion needed for dynamic data */}
       {networkData.topStudios && networkData.topStudios.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg">
           <div className="p-6 border-b border-gray-200">
@@ -150,7 +150,7 @@ export default function AdminNetworkPage() {
             <p className="text-gray-600 mt-1">Studios with the most active partnerships</p>
           </div>
           <div className="divide-y divide-gray-200">
-            {/* @ts-ignore */}
+            {/* @ts-expect-error - Type assertion needed for dynamic data */}
             {networkData.topStudios.map((studio: any, index: number) => (
               <div key={studio.username || studio.id} className="p-4 hover:bg-gray-50">
                 <div className="flex items-center justify-between">
@@ -192,7 +192,7 @@ export default function AdminNetworkPage() {
           </p>
         </div>
         <div className="divide-y divide-gray-200">
-          {/* @ts-ignore */}
+          {/* @ts-expect-error - Type assertion needed for dynamic data */}
           {(networkData.connections || []).map((connection: any) => (
             <div key={connection.id} className="p-4 hover:bg-gray-50">
               <div className="flex items-center justify-between">
@@ -270,7 +270,7 @@ export default function AdminNetworkPage() {
         )}
 
         {/* No Results */}
-        {/* @ts-ignore */}
+        {/* @ts-expect-error - Type assertion needed for dynamic data */}
         {(!networkData.connections || networkData.connections.length === 0) && !loading && (
           <div className="text-center py-12">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

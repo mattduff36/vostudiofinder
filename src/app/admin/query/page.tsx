@@ -153,20 +153,20 @@ export default function AdminQueryPage() {
           <div className="p-4 border-b border-gray-200">
             <h3 className="text-lg font-medium text-gray-900">Query Results</h3>
             <p className="text-sm text-gray-500 mt-1">
-              {/* @ts-ignore */}
+              {/* @ts-expect-error - Type assertion needed for dynamic data */}
               {queryResults.data?.length || 0} rows returned
-              {/* @ts-ignore */}
+              {/* @ts-expect-error - Type assertion needed for dynamic data */}
               {queryResults.executionTime && ` in ${queryResults.executionTime}ms`}
             </p>
           </div>
           
-          {/* @ts-ignore */}
+          {/* @ts-expect-error - Type assertion needed for dynamic data */}
           {queryResults.data && queryResults.data.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {/* @ts-ignore */}
+                    {/* @ts-expect-error - Type assertion needed for dynamic data */}
                     {Object.keys(queryResults.data[0]).map((column) => (
                       <th
                         key={column}
@@ -178,7 +178,7 @@ export default function AdminQueryPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {/* @ts-ignore */}
+                  {/* @ts-expect-error - Type assertion needed for dynamic data */}
                   {queryResults.data.map((row: any, index: number) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       {Object.values(row).map((value: any, cellIndex: number) => (

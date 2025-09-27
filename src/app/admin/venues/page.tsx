@@ -88,7 +88,7 @@ export default function AdminVenuesPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">📍 London Recording Venues</h1>
         <p className="text-gray-600 mt-1">
-          {/* @ts-ignore */}
+          {/* @ts-expect-error - Type assertion needed for dynamic data */}
           {venueData.statistics?.total || venueData.venues?.length || 0} professional recording venues in London
         </p>
       </div>
@@ -130,13 +130,13 @@ export default function AdminVenuesPage() {
             <div className="text-6xl mb-4">🗺️</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Interactive Map</h3>
             <p className="text-gray-600 mb-4">
-              {/* @ts-ignore */}
+              {/* @ts-expect-error - Type assertion needed for dynamic data */}
               Map showing {venueData.statistics?.total || venueData.venues?.length || 0} venues centered around London
             </p>
-            {/* @ts-ignore */}
+            {/* @ts-expect-error - Type assertion needed for dynamic data */}
             {venueData.statistics?.center && (
               <p className="text-sm text-gray-500">
-                {/* @ts-ignore */}
+                {/* @ts-expect-error - Type assertion needed for dynamic data */}
                 Center: {formatCoordinate(venueData.statistics.center.lat)}, {formatCoordinate(venueData.statistics.center.lon)}
               </p>
             )}
@@ -159,7 +159,7 @@ export default function AdminVenuesPage() {
 
       {/* Venue Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* @ts-ignore */}
+        {/* @ts-expect-error - Type assertion needed for dynamic data */}
         {(venueData.venues || []).map((venue: any) => (
           <div key={venue.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-4">
@@ -261,7 +261,7 @@ export default function AdminVenuesPage() {
       </div>
 
       {/* No Results */}
-      {/* @ts-ignore */}
+      {/* @ts-expect-error - Type assertion needed for dynamic data */}
       {(!venueData.venues || venueData.venues.length === 0) && !loading && (
         <div className="text-center py-12">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,7 +280,7 @@ export default function AdminVenuesPage() {
         <h2 className="text-lg font-bold text-gray-900 mb-4">📊 Venue Statistics</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center">
-            {/* @ts-ignore */}
+            {/* @ts-expect-error - Type assertion needed for dynamic data */}
             <div className="text-2xl font-bold text-blue-600">{venueData.statistics?.total || venueData.venues?.length || 0}</div>
             <div className="text-sm text-gray-600">Total Venues</div>
           </div>

@@ -48,9 +48,9 @@ export default function AdminFAQPage() {
   };
 
   const expandAll = () => {
-    // @ts-ignore
+    // @ts-expect-error - Type assertion needed for dynamic data
     if (faqData?.faqs) {
-      // @ts-ignore
+      // @ts-expect-error - Type assertion needed for dynamic data
       setExpandedItems(new Set(faqData.faqs.map((faq: any) => faq.id)));
     }
   };
@@ -90,7 +90,7 @@ export default function AdminFAQPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">❓ VOSF Knowledge Base</h1>
         <p className="text-gray-600 mt-1">
-          {/* @ts-ignore */}
+          {/* @ts-expect-error - Type assertion needed for dynamic data */}
           {faqData.statistics?.total || faqData.faqs?.length || 0} frequently asked questions and user inquiries
         </p>
       </div>
@@ -138,7 +138,7 @@ export default function AdminFAQPage() {
 
       {/* FAQ List */}
       <div className="space-y-4">
-        {/* @ts-ignore */}
+        {/* @ts-expect-error - Type assertion needed for dynamic data */}
         {(faqData.faqs || []).map((faq: any, index: number) => {
           const isExpanded = expandedItems.has(faq.id);
           return (
@@ -213,7 +213,7 @@ export default function AdminFAQPage() {
       </div>
 
       {/* No Results */}
-      {/* @ts-ignore */}
+      {/* @ts-expect-error - Type assertion needed for dynamic data */}
       {(!faqData.faqs || faqData.faqs.length === 0) && !loading && (
         <div className="text-center py-12">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,7 +231,7 @@ export default function AdminFAQPage() {
         <h2 className="text-lg font-bold text-gray-900 mb-4">📊 Knowledge Base Statistics</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center">
-            {/* @ts-ignore */}
+            {/* @ts-expect-error - Type assertion needed for dynamic data */}
             <div className="text-2xl font-bold text-blue-600">{faqData.statistics?.total || faqData.faqs?.length || 0}</div>
             <div className="text-sm text-gray-600">Total Questions</div>
           </div>
@@ -241,7 +241,7 @@ export default function AdminFAQPage() {
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-purple-600">
-              {/* @ts-ignore */}
+              {/* @ts-expect-error - Type assertion needed for dynamic data */}
               {search ? (faqData.faqs?.length || 0) : (faqData.statistics?.total || faqData.faqs?.length || 0)}
             </div>
             <div className="text-sm text-gray-600">

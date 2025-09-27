@@ -153,11 +153,11 @@ export default function AdminBrowsePage() {
                 <h2 className="text-lg font-bold text-gray-900">Table: {selectedTable}</h2>
                 {tableData && (
                   <p className="text-sm text-gray-500 mt-1">
-                    {/* @ts-ignore */}
+                    {/* @ts-expect-error - Type assertion needed for dynamic data */}
                     Showing {tableData.data?.length || 0} rows
-                    {/* @ts-ignore */}
+                    {/* @ts-expect-error - Type assertion needed for dynamic data */}
                     {tableData.total && ` of ${tableData.total} total`}
-                    {/* @ts-ignore */}
+                    {/* @ts-expect-error - Type assertion needed for dynamic data */}
                     {tableData.page && ` (Page ${tableData.page})`}
                   </p>
                 )}
@@ -168,14 +168,14 @@ export default function AdminBrowsePage() {
             </div>
           </div>
 
-          {/* @ts-ignore */}
+          {/* @ts-expect-error - Type assertion needed for dynamic data */}
           {tableData && tableData.data && tableData.data.length > 0 ? (
             <>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      {/* @ts-ignore */}
+                      {/* @ts-expect-error - Type assertion needed for dynamic data */}
                       {Object.keys(tableData.data[0]).map((column) => (
                         <th
                           key={column}
@@ -187,7 +187,7 @@ export default function AdminBrowsePage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {/* @ts-ignore */}
+                    {/* @ts-expect-error - Type assertion needed for dynamic data */}
                     {tableData.data.map((row: any, index: number) => (
                       <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         {Object.values(row).map((value: any, cellIndex: number) => (
@@ -202,11 +202,11 @@ export default function AdminBrowsePage() {
               </div>
 
               {/* Pagination */}
-              {/* @ts-ignore */}
+              {/* @ts-expect-error - Type assertion needed for dynamic data */}
               {tableData.total && tableData.total > limit && (
                 <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                   <div className="text-sm text-gray-700">
-                    {/* @ts-ignore */}
+                    {/* @ts-expect-error - Type assertion needed for dynamic data */}
                     Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, tableData.total)} of {tableData.total} results
                   </div>
                   <div className="flex space-x-2">
@@ -218,7 +218,7 @@ export default function AdminBrowsePage() {
                       Previous
                     </button>
                     <span className="px-3 py-1 text-sm text-gray-700">
-                      {/* @ts-ignore */}
+                      {/* @ts-expect-error - Type assertion needed for dynamic data */}
                       Page {page} of {Math.ceil(tableData.total / limit)}
                     </span>
                     <button
