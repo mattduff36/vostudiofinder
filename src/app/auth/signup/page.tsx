@@ -23,7 +23,7 @@ export default async function SignupPage() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-5.jpg"
+          src="/background-images/21920-5.jpg"
           alt="Signup background texture"
           fill
           className="object-cover opacity-10"

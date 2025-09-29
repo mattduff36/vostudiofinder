@@ -15,7 +15,7 @@ export default function TermsPage() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-4.jpg"
+          src="/background-images/21920-4.jpg"
           alt="Terms of service background texture"
           fill
           className="object-cover opacity-10"
@@ -28,7 +28,7 @@ export default function TermsPage() {
         {/* Background texture */}
         <div className="absolute inset-0">
           <Image
-            src="/bakground-images/21920-7.jpg"
+            src="/background-images/21920-7.jpg"
             alt="Hero background texture"
             fill
             className="object-cover opacity-40"

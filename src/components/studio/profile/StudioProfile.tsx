@@ -97,7 +97,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-4.jpg"
+          src="/background-images/21920-4.jpg"
           alt="Studio profile background texture"
           fill
           className="object-cover opacity-10"

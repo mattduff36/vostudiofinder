@@ -440,7 +440,7 @@ export function StudiosPage() {
       {/* Background Image for main content */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-5.jpg"
+          src="/background-images/21920-5.jpg"
           alt="Studios page background texture"
           fill
           className="object-cover opacity-10"
@@ -452,7 +452,7 @@ export function StudiosPage() {
       <div ref={heroSectionRef} className="relative overflow-hidden pt-20" style={{ height: '200px' }}>
         <div className="absolute inset-0">
           <Image
-            src="/bakground-images/21920-3.jpg"
+            src="/background-images/21920-3.jpg"
             alt="Studio search background texture"
             fill
             className="object-cover"

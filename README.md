@@ -179,7 +179,7 @@ vostudiofinder/
 ├── prisma/                           # Database schema
 │   └── schema.prisma                 # Prisma schema definition
 ├── public/                           # Static assets
-│   ├── bakground-images/             # Textured backgrounds
+│   ├── background-images/             # Textured backgrounds
 │   └── bottom-banner.jpg             # Hero section background
 ├── docker-compose.yml                # Docker configuration
 ├── Dockerfile                        # Docker image definition

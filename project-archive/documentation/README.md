@@ -51,7 +51,7 @@ A comprehensive Next.js platform connecting voiceover professionals with clients
 - **Database migration scripts** for username updates, description cleaning, and VoiceoverGuy profile import
 - **Build optimization** with successful production deployments and TypeScript error resolution
 - **Responsive design improvements** across mobile and desktop breakpoints
-- **Textured background system** using /bakground-images/21920-7.jpg across profile sections
+- **Textured background system** using /background-images/21920-7.jpg across profile sections
 
 #### ✅ **Professional Workflow & Business Logic**
 - **Membership payment system** with Stripe checkout and account creation
@@ -169,7 +169,7 @@ vostudiofinder/
 ├── prisma/                           # Database schema
 │   └── schema.prisma                 # Prisma schema definition
 ├── public/                           # Static assets
-│   ├── bakground-images/             # Textured backgrounds
+│   ├── background-images/             # Textured backgrounds
 │   └── bottom-banner.jpg             # Hero section background
 └── package.json                      # Dependencies
 ```

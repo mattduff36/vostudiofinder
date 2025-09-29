@@ -15,7 +15,7 @@ export default function CookiesPage() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-5.jpg"
+          src="/background-images/21920-5.jpg"
           alt="Cookie policy background texture"
           fill
           className="object-cover opacity-10"
@@ -28,7 +28,7 @@ export default function CookiesPage() {
         {/* Background texture */}
         <div className="absolute inset-0">
           <Image
-            src="/bakground-images/21920.jpg"
+            src="/background-images/21920.jpg"
             alt="Hero background texture"
             fill
             className="object-cover opacity-40"
