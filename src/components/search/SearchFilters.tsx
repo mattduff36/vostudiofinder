@@ -210,21 +210,47 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
             <input
               type="range"
               min="0"
-              max="4"
+              max="100"
               step="1"
-              value={[1, 5, 10, 25, 50].indexOf(filters.radius)}
+              value={(() => {
+                // Convert radius to slider position (0-100)
+                if (filters.radius <= 5) return ((filters.radius - 1) / 4) * 25; // 1-5 maps to 0-25%
+                if (filters.radius <= 10) return 25 + ((filters.radius - 5) / 5) * 25; // 5-10 maps to 25-50%
+                if (filters.radius <= 25) return 50 + ((filters.radius - 10) / 15) * 25; // 10-25 maps to 50-75%
+                return 75 + ((filters.radius - 25) / 25) * 25; // 25-50 maps to 75-100%
+              })()}
               onChange={(e) => {
-                const radiusValues = [1, 5, 10, 25, 50];
-                const index = parseInt(e.target.value);
-                const newRadius = radiusValues[index];
-                if (newRadius !== undefined) {
-                  console.log(`Radius changed to ${newRadius} - triggering immediate search`);
-                  handleFilterChange('radius', newRadius);
+                const sliderValue = parseInt(e.target.value);
+                let newRadius;
+                
+                // Convert slider position (0-100) to radius
+                if (sliderValue <= 25) {
+                  newRadius = Math.round(1 + (sliderValue / 25) * 4); // 0-25% maps to 1-5
+                } else if (sliderValue <= 50) {
+                  newRadius = Math.round(5 + ((sliderValue - 25) / 25) * 5); // 25-50% maps to 5-10
+                } else if (sliderValue <= 75) {
+                  newRadius = Math.round(10 + ((sliderValue - 50) / 25) * 15); // 50-75% maps to 10-25
+                } else {
+                  newRadius = Math.round(25 + ((sliderValue - 75) / 25) * 25); // 75-100% maps to 25-50
                 }
+                
+                console.log(`Radius changed to ${newRadius} - triggering immediate search`);
+                handleFilterChange('radius', newRadius);
               }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               style={{
-                background: `linear-gradient(to right, #d42027 0%, #d42027 ${([1, 5, 10, 25, 50].indexOf(filters.radius)) / 4 * 100}%, #e5e7eb ${([1, 5, 10, 25, 50].indexOf(filters.radius)) / 4 * 100}%, #e5e7eb 100%)`
+                background: `linear-gradient(to right, #d42027 0%, #d42027 ${(() => {
+                  // Convert radius to percentage for visual progress bar
+                  if (filters.radius <= 5) return ((filters.radius - 1) / 4) * 25;
+                  if (filters.radius <= 10) return 25 + ((filters.radius - 5) / 5) * 25;
+                  if (filters.radius <= 25) return 50 + ((filters.radius - 10) / 15) * 25;
+                  return 75 + ((filters.radius - 25) / 25) * 25;
+                })()}%, #e5e7eb ${(() => {
+                  if (filters.radius <= 5) return ((filters.radius - 1) / 4) * 25;
+                  if (filters.radius <= 10) return 25 + ((filters.radius - 5) / 5) * 25;
+                  if (filters.radius <= 25) return 50 + ((filters.radius - 10) / 15) * 25;
+                  return 75 + ((filters.radius - 25) / 25) * 25;
+                })()}%, #e5e7eb 100%)`
               }}
             />
             <div className="flex justify-between text-xs text-gray-500 mt-1">

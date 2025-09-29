@@ -42,7 +42,7 @@ export function EnhancedSearchBar({
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [radius, setRadius] = useState(25);
+  const [radius, setRadius] = useState(10);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{
     name: string;
@@ -627,20 +627,46 @@ export function EnhancedSearchBar({
           <input
             type="range"
             min="0"
-            max="4"
+            max="100"
             step="1"
-            value={[1, 5, 10, 25, 50].indexOf(radius)}
+            value={(() => {
+              // Convert radius to slider position (0-100)
+              if (radius <= 5) return ((radius - 1) / 4) * 25; // 1-5 maps to 0-25%
+              if (radius <= 10) return 25 + ((radius - 5) / 5) * 25; // 5-10 maps to 25-50%
+              if (radius <= 25) return 50 + ((radius - 10) / 15) * 25; // 10-25 maps to 50-75%
+              return 75 + ((radius - 25) / 25) * 25; // 25-50 maps to 75-100%
+            })()}
             onChange={(e) => {
-              const radiusValues = [1, 5, 10, 25, 50];
-              const index = parseInt(e.target.value);
-              const newRadius = radiusValues[index];
-              if (newRadius !== undefined) {
-                setRadius(newRadius);
+              const sliderValue = parseInt(e.target.value);
+              let newRadius;
+              
+              // Convert slider position (0-100) to radius
+              if (sliderValue <= 25) {
+                newRadius = Math.round(1 + (sliderValue / 25) * 4); // 0-25% maps to 1-5
+              } else if (sliderValue <= 50) {
+                newRadius = Math.round(5 + ((sliderValue - 25) / 25) * 5); // 25-50% maps to 5-10
+              } else if (sliderValue <= 75) {
+                newRadius = Math.round(10 + ((sliderValue - 50) / 25) * 15); // 50-75% maps to 10-25
+              } else {
+                newRadius = Math.round(25 + ((sliderValue - 75) / 25) * 25); // 75-100% maps to 25-50
               }
+              
+              setRadius(newRadius);
             }}
             className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider"
             style={{
-              background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${([1, 5, 10, 25, 50].indexOf(radius)) / 4 * 100}%, rgba(255, 255, 255, 0.3) ${([1, 5, 10, 25, 50].indexOf(radius)) / 4 * 100}%, rgba(255, 255, 255, 0.3) 100%)`
+              background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${(() => {
+                // Convert radius to percentage for visual progress bar
+                if (radius <= 5) return ((radius - 1) / 4) * 25;
+                if (radius <= 10) return 25 + ((radius - 5) / 5) * 25;
+                if (radius <= 25) return 50 + ((radius - 10) / 15) * 25;
+                return 75 + ((radius - 25) / 25) * 25;
+              })()}%, rgba(255, 255, 255, 0.3) ${(() => {
+                if (radius <= 5) return ((radius - 1) / 4) * 25;
+                if (radius <= 10) return 25 + ((radius - 5) / 5) * 25;
+                if (radius <= 25) return 50 + ((radius - 10) / 15) * 25;
+                return 75 + ((radius - 25) / 25) * 25;
+              })()}%, rgba(255, 255, 255, 0.3) 100%)`
             }}
           />
           <div className="flex justify-between text-xs text-white opacity-70 mt-1">
