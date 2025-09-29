@@ -416,7 +416,7 @@ export function StudiosPage() {
     if (searchParams.get('location')) count++;
     if (searchParams.get('studioType')) count++;
     if (searchParams.get('services')) count++;
-    if (searchParams.get('radius') && searchParams.get('radius') !== '25') count++;
+    if (searchParams.get('radius') && searchParams.get('radius') !== '10') count++;
     return count;
   };
 
@@ -427,7 +427,7 @@ export function StudiosPage() {
     services: searchParams.get('services')?.split(',') || [],
     sortBy: searchParams.get('sortBy') || 'name',
     sortOrder: searchParams.get('sortOrder') || 'asc',
-    radius: parseInt(searchParams.get('radius') || '25'),
+    radius: parseInt(searchParams.get('radius') || '10'),
     ...(searchParams.get('lat') && searchParams.get('lng') ? {
       lat: parseFloat(searchParams.get('lat')!),
       lng: parseFloat(searchParams.get('lng')!)
@@ -632,7 +632,7 @@ export function StudiosPage() {
                   services: searchParams.get('services')?.split(',') || [],
                   sortBy: searchParams.get('sortBy') || 'name',
                   sortOrder: searchParams.get('sortOrder') || 'asc',
-                  radius: parseInt(searchParams.get('radius') || '25'),
+                  radius: parseInt(searchParams.get('radius') || '10'),
                   ...(searchParams.get('lat') && searchParams.get('lng') ? {
                     lat: parseFloat(searchParams.get('lat')!),
                     lng: parseFloat(searchParams.get('lng')!)
@@ -682,7 +682,7 @@ export function StudiosPage() {
                         } : {}),
                       }))}
                     searchCenter={searchResults.searchCoordinates || null}
-                    searchRadius={parseInt(searchParams.get('radius') || '25')}
+                    searchRadius={parseInt(searchParams.get('radius') || '10')}
                     selectedMarkerId={null}
                     height="100%"
                     className="rounded-lg border border-gray-200"
@@ -724,7 +724,7 @@ export function StudiosPage() {
                           } : {}),
                         }))}
                       searchCenter={searchResults.searchCoordinates || null}
-                      searchRadius={parseInt(searchParams.get('radius') || '25')}
+                      searchRadius={parseInt(searchParams.get('radius') || '10')}
                       selectedMarkerId={null}
                       height="100%"
                       className="rounded-lg border border-gray-200"
