@@ -47,7 +47,7 @@ export default function ContactPage() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-2.jpg"
+          src="/background-images/21920-2.jpg"
           alt="Contact page background texture"
           fill
           className="object-cover opacity-10"
@@ -60,7 +60,7 @@ export default function ContactPage() {
         {/* Background texture */}
         <div className="absolute inset-0">
           <Image
-            src="/bakground-images/21920-3.jpg"
+            src="/background-images/21920-3.jpg"
             alt="Hero background texture"
             fill
             className="object-cover opacity-40"

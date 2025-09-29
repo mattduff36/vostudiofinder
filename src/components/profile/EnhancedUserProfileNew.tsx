@@ -91,7 +91,7 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
       <div className="relative py-16 overflow-hidden" style={{ background: `linear-gradient(to right, ${colors.primary}e6, ${colors.primary}cc)` }}>
         <div className="absolute inset-0 opacity-10">
           <Image
-            src="/bakground-images/21920-2.jpg"
+            src="/background-images/21920-2.jpg"
             alt="Profile background"
             fill
             className="object-cover"

@@ -92,7 +92,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
         {/* Background texture */}
         <div className="absolute inset-0">
           <Image
-            src="/bakground-images/21920-7.jpg"
+            src="/background-images/21920-7.jpg"
             alt="Header background texture"
             fill
             className="object-cover opacity-10"
@@ -206,7 +206,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
         {/* Background texture */}
         <div className="absolute inset-0">
           <Image
-            src="/bakground-images/21920-7.jpg"
+            src="/background-images/21920-7.jpg"
             alt="Profile background texture"
             fill
             className="object-cover opacity-10"

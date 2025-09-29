@@ -16,7 +16,7 @@ export default function AboutPage() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920.jpg"
+          src="/background-images/21920.jpg"
           alt="About page background texture"
           fill
           className="object-cover opacity-10"
@@ -29,7 +29,7 @@ export default function AboutPage() {
         {/* Background texture */}
         <div className="absolute inset-0">
           <Image
-            src="/bakground-images/21920-4.jpg"
+            src="/background-images/21920-4.jpg"
             alt="Hero background texture"
             fill
             className="object-cover opacity-40"

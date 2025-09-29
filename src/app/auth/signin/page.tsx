@@ -23,7 +23,7 @@ export default async function SigninPage() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-6.jpg"
+          src="/background-images/21920-6.jpg"
           alt="Signin background texture"
           fill
           className="object-cover opacity-10"

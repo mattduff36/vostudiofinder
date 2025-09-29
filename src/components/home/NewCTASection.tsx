@@ -22,7 +22,7 @@ export function NewCTASection({ }: NewCTASectionProps) {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-3.jpg"
+          src="/background-images/21920-3.jpg"
           alt="Professional recording studio"
           fill
           className="object-cover opacity-10"

@@ -71,7 +71,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/bakground-images/21920-2.jpg"
+            src="/background-images/21920-2.jpg"
             alt="Studio background texture"
             fill
             className="object-cover opacity-10"
@@ -98,7 +98,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-2.jpg"
+          src="/background-images/21920-2.jpg"
           alt="Studio background texture"
           fill
           className="object-cover opacity-10"

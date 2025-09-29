@@ -46,3 +46,11 @@ next-env.d.ts
 /scripts/migration/
 /backups/
 /src/lib/migration/
+
+# Test artifacts
+/playwright-report/
+/test-results/
+*.tsbuildinfo
+
+# Migration artifacts (historical)
+/migration-scripts/

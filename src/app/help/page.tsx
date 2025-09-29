@@ -102,7 +102,7 @@ export default function HelpPage() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-6.jpg"
+          src="/background-images/21920-6.jpg"
           alt="Help center background texture"
           fill
           className="object-cover opacity-10"
@@ -115,7 +115,7 @@ export default function HelpPage() {
         {/* Background texture */}
         <div className="absolute inset-0">
           <Image
-            src="/bakground-images/21920-2.jpg"
+            src="/background-images/21920-2.jpg"
             alt="Hero background texture"
             fill
             className="object-cover opacity-40"

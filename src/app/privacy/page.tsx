@@ -17,7 +17,7 @@ export default function PrivacyPage() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/bakground-images/21920-3.jpg"
+          src="/background-images/21920-3.jpg"
           alt="Privacy policy background texture"
           fill
           className="object-cover opacity-10"
@@ -30,7 +30,7 @@ export default function PrivacyPage() {
         {/* Background texture */}
         <div className="absolute inset-0">
           <Image
-            src="/bakground-images/21920-5.jpg"
+            src="/background-images/21920-5.jpg"
             alt="Hero background texture"
             fill
             className="object-cover opacity-40"
