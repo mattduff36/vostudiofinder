@@ -202,6 +202,15 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           <p className="text-xs text-gray-500 mt-1">This is used in URLs and should be unique</p>
         </div>
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input
+            type="email"
+            value={profile?.email || ''}
+            onChange={(e) => handleBasicChange('email', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Studio Name</label>
           <input
             type="text"
@@ -223,13 +232,18 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input
-            type="email"
-            value={profile?.email || ''}
-            onChange={(e) => handleBasicChange('email', e.target.value)}
+          <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+          <select
+            value={profile?.studioType || ''}
+            onChange={(e) => handleBasicChange('studioType', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          >
+            <option value="">Select Studio Type</option>
+            <option value="voiceover">Voiceover</option>
+            <option value="recording">Recording</option>
+            <option value="podcast">Podcast</option>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">Select the type of studio</p>
         </div>
       </div>
 
@@ -595,17 +609,17 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               <div className="sticky bottom-0 bg-white border-t-2 border-gray-300 px-6 py-4 flex justify-end">
                 <div className="flex gap-3">
                   <button
-                    onClick={handleViewProfile}
-                    className="px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700 shadow-md"
-                  >
-                    View
-                  </button>
-                  <button
                     onClick={handleSaveOnly}
                     disabled={saving}
                     className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 shadow-md"
                   >
                     {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    onClick={handleViewProfile}
+                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    View
                   </button>
                   <button
                     onClick={handleSaveAndClose}
