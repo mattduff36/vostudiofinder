@@ -45,7 +45,8 @@ export async function GET(request: NextRequest) {
           owner: {
             select: {
               displayName: true,
-              email: true
+              email: true,
+              username: true
             }
           }
         },
