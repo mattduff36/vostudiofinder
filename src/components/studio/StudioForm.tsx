@@ -92,7 +92,13 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
       }
 
       // Redirect to studio profile or management page
-      router.push(`/studio/${result.studio.id}`);
+      if (isEditing) {
+        // For editing, redirect back to the profile page
+        router.push(`/${initialData?.owner?.username || result.studio.owner?.username}`);
+      } else {
+        // For creation, redirect to the new studio profile
+        router.push(`/${result.studio.owner?.username}`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

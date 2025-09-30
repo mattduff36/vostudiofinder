@@ -96,7 +96,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     }));
   };
 
-  const handleSave = async () => {
+  const handleSaveAndClose = async () => {
     if (!profile) return;
     
     setSaving(true);
@@ -124,6 +124,47 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSaveOnly = async () => {
+    if (!profile) return;
+    
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/admin/studios/${studio?.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...profile,
+          meta: profile._meta
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save profile');
+      }
+
+      onSave();
+      // Don't close the modal - just show success message
+      alert('Changes saved successfully!');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleViewProfile = () => {
+    if (!profile?.username) {
+      alert('No username available for this studio');
+      return;
+    }
+    
+    // Open the profile page in a new tab
+    window.open(`/${profile.username}`, '_blank');
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -550,15 +591,30 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 )}
               </div>
 
-              {/* Sticky Save Button */}
+              {/* Sticky Action Buttons */}
               <div className="sticky bottom-0 bg-white border-t-2 border-gray-300 px-6 py-4 flex justify-end">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-6 py-3 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 shadow-lg"
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleViewProfile}
+                    className="px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700 shadow-md"
+                  >
+                    View
+                  </button>
+                  <button
+                    onClick={handleSaveOnly}
+                    disabled={saving}
+                    className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 shadow-md"
+                  >
+                    {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    onClick={handleSaveAndClose}
+                    disabled={saving}
+                    className="px-4 py-2 bg-purple-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50 shadow-md"
+                  >
+                    {saving ? 'Saving...' : 'Save & Close'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
