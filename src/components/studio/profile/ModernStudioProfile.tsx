@@ -521,7 +521,7 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                   Message Studio
                 </Button>
                 <p className="text-xs text-gray-500 text-center">
-                  Member of Studio Finder since: {new Date(studio.createdAt).toLocaleDateString('MMMM yyyy')}
+                  Member of Studio Finder since: {new Date(studio.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
                 </p>
               </div>
             </div>
