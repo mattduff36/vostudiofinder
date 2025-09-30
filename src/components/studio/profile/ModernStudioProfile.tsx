@@ -4,25 +4,22 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
-import { colors } from '../../home/HomePage';
 import clsx from 'clsx';
 
 import { 
   MapPin, 
   Star, 
-  Users, 
   Globe, 
   Phone, 
   Mail, 
   Crown,
   Share2,
-  Clock,
-  CheckCircle,
-  Mic,
-  Award,
   Shield,
   ExternalLink,
   MessageCircle,
+  ChevronLeft,
+  ChevronRight,
+  Mic,
   Facebook,
   Twitter,
   Linkedin,
@@ -431,6 +428,14 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                     </p>
                   </div>
                 )}
+                {profile?.homeStudioDescription && (
+                  <div className="mt-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Home Studio</h3>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                      {profile.homeStudioDescription}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -558,10 +563,10 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                     <div className="flex items-center space-x-3">
                       <Mail className="w-5 h-5 text-gray-400" />
                       <a
-                        href={`mailto:${studio.owner.username}@example.com`}
+                        href={`mailto:${studio.owner.email}`}
                         className="text-sm text-blue-600 hover:text-blue-800"
                       >
-                        Contact Studio
+                        {studio.owner.email}
                       </a>
                     </div>
                   )}
