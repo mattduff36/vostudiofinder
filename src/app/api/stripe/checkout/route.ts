@@ -36,6 +36,11 @@ export async function POST(request: NextRequest) {
         id: true,
         name: true,
         isPremium: true,
+        owner: {
+          select: {
+            username: true,
+          },
+        },
       },
     });
     
@@ -58,8 +63,8 @@ export async function POST(request: NextRequest) {
       plan: plan as SubscriptionPlan,
       userId: session.user.id,
       studioId,
-      successUrl: `${process.env.NEXTAUTH_URL}/studio/${studioId}?payment=success`,
-      cancelUrl: `${process.env.NEXTAUTH_URL}/studio/${studioId}?payment=cancelled`,
+      successUrl: `${process.env.NEXTAUTH_URL}/${studio.owner.username}?payment=success`,
+      cancelUrl: `${process.env.NEXTAUTH_URL}/${studio.owner.username}?payment=cancelled`,
     });
     
     return NextResponse.json({
