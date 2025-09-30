@@ -12,7 +12,11 @@ import { StudioType, ServiceType } from '@prisma/client';
 import { MapPin, Globe, Phone, Trash2, Upload } from 'lucide-react';
 
 interface StudioFormProps {
-  initialData?: Partial<CreateStudioInput>;
+  initialData?: Partial<CreateStudioInput> & {
+    owner?: {
+      username: string;
+    };
+  };
   isEditing?: boolean;
 }
 
