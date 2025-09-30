@@ -106,6 +106,7 @@ model StudioService {
   @@map("studio_services")
 }
 
+
 model StudioImage {
   id        String  @id @default(cuid())
   studioId  String  @map("studio_id")
@@ -288,6 +289,7 @@ enum StudioType {
   PODCAST
   PRODUCTION
   MOBILE
+  HOME
 }
 
 enum ServiceType {

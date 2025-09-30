@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import EditStudioModal from '@/components/admin/EditStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
 
@@ -395,12 +394,12 @@ export default function AdminStudiosPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
-                          <Link
-                            href={`/${studio.owner.username}`}
+                          <button
+                            onClick={() => window.open(`/${studio.owner.username}`, '_blank')}
                             className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                           >
                             View
-                          </Link>
+                          </button>
                           <button 
                             onClick={() => handleEditStudio(studio)}
                             className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

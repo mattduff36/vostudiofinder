@@ -68,6 +68,35 @@ interface ModernStudioProfileProps {
       username: string;
       role: string;
       avatarUrl?: string;
+      profile?: {
+        studioName?: string;
+        lastName?: string;
+        phone?: string;
+        about?: string;
+        shortAbout?: string;
+        location?: string;
+        rateTier1?: string;
+        rateTier2?: string;
+        rateTier3?: string;
+        showRates?: boolean;
+        facebookUrl?: string;
+        twitterUrl?: string;
+        linkedinUrl?: string;
+        instagramUrl?: string;
+        youtubeUrl?: string;
+        vimeoUrl?: string;
+        soundcloudUrl?: string;
+        isCrbChecked?: boolean;
+        isFeatured?: boolean;
+        isSpotlight?: boolean;
+        verificationLevel?: string;
+        homeStudioDescription?: string;
+        equipmentList?: string;
+        servicesOffered?: string;
+        showEmail?: boolean;
+        showPhone?: boolean;
+        showAddress?: boolean;
+      };
     };
     createdAt: Date;
     updatedAt: Date;
@@ -108,52 +137,67 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
     'TEAMS': 'Microsoft Teams'
   };
 
-  // Social media links from owner profile (assuming they exist in the data)
+  // Social media links from owner profile
+  const profile = studio.owner.profile;
   const socialLinks = [
     { 
       platform: 'Facebook', 
-      url: '#', // Placeholder - would come from owner profile
+      url: profile?.facebookUrl, 
       icon: Facebook, 
       color: 'text-blue-600 hover:text-blue-800' 
     },
     { 
       platform: 'Twitter', 
-      url: '#', // Placeholder - would come from owner profile
+      url: profile?.twitterUrl, 
       icon: Twitter, 
       color: 'text-sky-500 hover:text-sky-700' 
     },
     { 
       platform: 'LinkedIn', 
-      url: '#', // Placeholder - would come from owner profile
+      url: profile?.linkedinUrl, 
       icon: Linkedin, 
       color: 'text-blue-700 hover:text-blue-900' 
     },
     { 
       platform: 'Instagram', 
-      url: '#', // Placeholder - would come from owner profile
+      url: profile?.instagramUrl, 
       icon: Instagram, 
       color: 'text-pink-600 hover:text-pink-800' 
     },
     { 
       platform: 'YouTube', 
-      url: '#', // Placeholder - would come from owner profile
+      url: profile?.youtubeUrl, 
       icon: Youtube, 
       color: 'text-red-600 hover:text-red-800' 
     },
     { 
+      platform: 'Vimeo', 
+      url: profile?.vimeoUrl, 
+      icon: Globe, 
+      color: 'text-green-600 hover:text-green-800' 
+    },
+    { 
       platform: 'SoundCloud', 
-      url: '#', // Placeholder - would come from owner profile
+      url: profile?.soundcloudUrl, 
       icon: Music, 
       color: 'text-orange-500 hover:text-orange-700' 
     }
-  ].filter(link => link.url !== '#');
+  ].filter(link => link.url);
 
-  // Mock rates data - would come from studio data
-  const rates = [
-    { duration: '15 minutes', price: '£80' },
-    { duration: '30 minutes', price: '£100' },
-    { duration: '60 minutes', price: '£125' }
-  ];
+  // Rates from profile data
+  const rates = [];
+  if (profile?.rateTier1) rates.push({ duration: '15 minutes', price: profile.rateTier1 });
+  if (profile?.rateTier2) rates.push({ duration: '30 minutes', price: profile.rateTier2 });
+  if (profile?.rateTier3) rates.push({ duration: '60 minutes', price: profile.rateTier3 });
+  
+  // Fallback rates if none are set
+  if (rates.length === 0) {
+    rates.push(
+      { duration: '15 minutes', price: '£80' },
+      { duration: '30 minutes', price: '£100' },
+      { duration: '60 minutes', price: '£125' }
+    );
+  }
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => 
@@ -277,6 +321,30 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                           Verified
                         </span>
                       )}
+                      {profile?.isCrbChecked && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                          <Shield className="w-4 h-4 mr-1" />
+                          CRB Checked
+                        </span>
+                      )}
+                      {profile?.isFeatured && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                          <Star className="w-4 h-4 mr-1" />
+                          Featured
+                        </span>
+                      )}
+                      {profile?.isSpotlight && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                          <Star className="w-4 h-4 mr-1" />
+                          Spotlight
+                        </span>
+                      )}
+                      {profile?.verificationLevel && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                          <Shield className="w-4 h-4 mr-1" />
+                          {profile.verificationLevel}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -345,8 +413,24 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">About this studio</h2>
               <div className="prose prose-gray max-w-none">
                 <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                  {cleanDescription(studio.description)}
+                  {cleanDescription(profile?.about || profile?.shortAbout || studio.description)}
                 </p>
+                {profile?.equipmentList && (
+                  <div className="mt-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Equipment</h3>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                      {profile.equipmentList}
+                    </p>
+                  </div>
+                )}
+                {profile?.servicesOffered && (
+                  <div className="mt-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Services Offered</h3>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                      {profile.servicesOffered}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -428,22 +512,27 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                 
                 <div className="space-y-4">
                   {/* Address */}
-                  <div className="flex items-start space-x-3">
-                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-600">{studio.address}</p>
+                  {(profile?.showAddress !== false) && studio.address && (
+                    <div className="flex items-start space-x-3">
+                      <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-600">{studio.address}</p>
+                        {profile?.location && (
+                          <p className="text-xs text-gray-500 mt-1">{profile.location}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Phone */}
-                  {studio.phone && (
+                  {(profile?.showPhone !== false) && (profile?.phone || studio.phone) && (
                     <div className="flex items-center space-x-3">
                       <Phone className="w-5 h-5 text-gray-400" />
                       <a
-                        href={`tel:${studio.phone}`}
+                        href={`tel:${profile?.phone || studio.phone}`}
                         className="text-sm text-blue-600 hover:text-blue-800"
                       >
-                        {studio.phone}
+                        {profile?.phone || studio.phone}
                       </a>
                     </div>
                   )}
@@ -465,30 +554,34 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                   )}
 
                   {/* Email */}
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-gray-400" />
-                    <a
-                      href={`mailto:${studio.owner.username}@example.com`}
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      Contact Studio
-                    </a>
-                  </div>
+                  {(profile?.showEmail !== false) && (
+                    <div className="flex items-center space-x-3">
+                      <Mail className="w-5 h-5 text-gray-400" />
+                      <a
+                        href={`mailto:${studio.owner.username}@example.com`}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        Contact Studio
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Rates Card */}
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Rates</h3>
-                <div className="space-y-3">
-                  {rates.map((rate, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">{rate.duration}</span>
-                      <span className="font-semibold text-gray-900">{rate.price}</span>
-                    </div>
-                  ))}
+              {profile?.showRates !== false && rates.length > 0 && (
+                <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Rates</h3>
+                  <div className="space-y-3">
+                    {rates.map((rate, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">{rate.duration}</span>
+                        <span className="font-semibold text-gray-900">{rate.price}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Map Card */}
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 mb-6">

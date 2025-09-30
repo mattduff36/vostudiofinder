@@ -239,9 +239,12 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select Studio Type</option>
-            <option value="voiceover">Voiceover</option>
-            <option value="recording">Recording</option>
-            <option value="podcast">Podcast</option>
+            <option value="VOICEOVER">Voiceover</option>
+            <option value="RECORDING">Recording</option>
+            <option value="PODCAST">Podcast</option>
+            <option value="PRODUCTION">Production</option>
+            <option value="MOBILE">Mobile</option>
+            <option value="HOME">Home</option>
           </select>
           <p className="text-xs text-gray-500 mt-1">Select the type of studio</p>
         </div>
