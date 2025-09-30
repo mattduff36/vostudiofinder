@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
-import { EnhancedStudioProfile } from '@/components/studio/profile/EnhancedStudioProfile';
+import { ModernStudioProfile } from '@/components/studio/profile/ModernStudioProfile';
 import { EnhancedUserProfile } from '@/components/profile/EnhancedUserProfile';
 
 interface UsernamePageProps {
@@ -183,7 +183,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
-        <EnhancedStudioProfile 
+        <ModernStudioProfile 
           studio={{
             ...(() => {
               const { websiteUrl: _, phone: __, latitude: ___, longitude: ____, images: _____, reviews: ______, owner: _______, ...rest } = studio;

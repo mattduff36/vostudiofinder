@@ -283,9 +283,9 @@ enum Role {
 }
 
 enum StudioType {
+  VOICEOVER
   RECORDING
   PODCAST
-  HOME
   PRODUCTION
   MOBILE
 }
