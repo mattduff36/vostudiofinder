@@ -157,7 +157,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
               {isOwner && (
                 <Button
                   size="sm"
-                  onClick={() => window.location.href = `/studio/${studio.id}/edit`}
+                  onClick={() => window.location.href = `/${studio.owner.username}/edit`}
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Studio
