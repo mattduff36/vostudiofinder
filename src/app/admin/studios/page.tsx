@@ -16,6 +16,7 @@ interface Studio {
   owner: {
     displayName: string;
     email: string;
+    username: string;
   };
   createdAt: string;
   updatedAt: string;
@@ -208,7 +209,7 @@ export default function AdminStudiosPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -395,7 +396,7 @@ export default function AdminStudiosPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           <Link
-                            href={`/studio/${studio.id}`}
+                            href={`/${studio.owner.username}`}
                             className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                           >
                             View

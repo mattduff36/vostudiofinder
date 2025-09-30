@@ -227,7 +227,8 @@ export class NotificationService {
     studioOwnerId: string,
     reviewerName: string,
     rating: number,
-    studioId: string
+    studioId: string,
+    studioOwnerUsername: string
   ): Promise<void> {
     await this.createNotification(
       studioOwnerId,
@@ -235,7 +236,7 @@ export class NotificationService {
       'New Review Received',
       `${reviewerName} left a ${rating}-star review for your studio`,
       { studioId, rating },
-      `/studio/${studioId}#reviews`
+      `/${studioOwnerUsername}#reviews`
     );
   }
 
@@ -272,7 +273,8 @@ export class NotificationService {
   static async notifyStudioVerified(
     studioOwnerId: string,
     studioName: string,
-    studioId: string
+    studioId: string,
+    studioOwnerUsername: string
   ): Promise<void> {
     await this.createNotification(
       studioOwnerId,
@@ -280,7 +282,7 @@ export class NotificationService {
       'Studio Verified',
       `Your studio "${studioName}" has been verified`,
       { studioId },
-      `/studio/${studioId}`
+      `/${studioOwnerUsername}`
     );
   }
 
