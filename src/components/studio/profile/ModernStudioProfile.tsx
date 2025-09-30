@@ -17,8 +17,6 @@ import {
   Shield,
   ExternalLink,
   MessageCircle,
-  ChevronLeft,
-  ChevronRight,
   Mic,
   Facebook,
   Twitter,
@@ -63,37 +61,38 @@ interface ModernStudioProfileProps {
       id: string;
       displayName: string;
       username: string;
+      email: string;
       role: string;
       avatarUrl?: string;
       profile?: {
-        studioName?: string;
-        lastName?: string;
-        phone?: string;
-        about?: string;
-        shortAbout?: string;
-        location?: string;
-        rateTier1?: string;
-        rateTier2?: string;
-        rateTier3?: string;
-        showRates?: boolean;
-        facebookUrl?: string;
-        twitterUrl?: string;
-        linkedinUrl?: string;
-        instagramUrl?: string;
-        youtubeUrl?: string;
-        vimeoUrl?: string;
-        soundcloudUrl?: string;
-        isCrbChecked?: boolean;
-        isFeatured?: boolean;
-        isSpotlight?: boolean;
-        verificationLevel?: string;
-        homeStudioDescription?: string;
-        equipmentList?: string;
-        servicesOffered?: string;
-        showEmail?: boolean;
-        showPhone?: boolean;
-        showAddress?: boolean;
-      };
+        studioName?: string | null;
+        lastName?: string | null;
+        phone?: string | null;
+        about?: string | null;
+        shortAbout?: string | null;
+        location?: string | null;
+        rateTier1?: string | null;
+        rateTier2?: string | null;
+        rateTier3?: string | null;
+        showRates?: boolean | null;
+        facebookUrl?: string | null;
+        twitterUrl?: string | null;
+        linkedinUrl?: string | null;
+        instagramUrl?: string | null;
+        youtubeUrl?: string | null;
+        vimeoUrl?: string | null;
+        soundcloudUrl?: string | null;
+        isCrbChecked?: boolean | null;
+        isFeatured?: boolean | null;
+        isSpotlight?: boolean | null;
+        verificationLevel?: string | null;
+        homeStudioDescription?: string | null;
+        equipmentList?: string | null;
+        servicesOffered?: string | null;
+        showEmail?: boolean | null;
+        showPhone?: boolean | null;
+        showAddress?: boolean | null;
+      } | null;
     };
     createdAt: Date;
     updatedAt: Date;
@@ -224,8 +223,8 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
           {studio.images.length > 0 ? (
             <>
               <Image
-                src={studio.images[currentImageIndex].imageUrl}
-                alt={studio.images[currentImageIndex].altText || studio.name}
+                src={studio.images[currentImageIndex]?.imageUrl || ''}
+                alt={studio.images[currentImageIndex]?.altText || studio.name}
                 fill
                 className="object-cover"
                 priority
@@ -449,7 +448,7 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                     return (
                       <a
                         key={index}
-                        href={link.url}
+                        href={link.url || '#'}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={clsx(

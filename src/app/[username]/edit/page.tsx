@@ -33,6 +33,16 @@ export default async function EditStudioPage({ params }: EditStudioPageProps) {
     include: {
       studios: {
         where: { status: 'ACTIVE' },
+        include: {
+          images: {
+            orderBy: { sortOrder: 'asc' },
+          },
+          services: {
+            select: {
+              service: true,
+            },
+          },
+        },
         take: 1,
       },
     },
@@ -52,7 +62,7 @@ export default async function EditStudioPage({ params }: EditStudioPageProps) {
     redirect('/studio/create');
   }
 
-  const studio = user.studios[0];
+  const studio = user.studios[0]!; // We know this exists because we checked length > 0
 
   // Prepare initial data for the form
   const initialData = {
@@ -67,7 +77,7 @@ export default async function EditStudioPage({ params }: EditStudioPageProps) {
     longitude: studio.longitude ? Number(studio.longitude) : null,
     images: studio.images?.map(img => ({
       id: img.id,
-      imageUrl: img.imageUrl,
+      url: img.imageUrl,
       altText: img.altText || '',
       sortOrder: img.sortOrder,
     })) || [],

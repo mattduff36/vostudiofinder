@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { createStudioSchema } from '@/lib/validations/studio';
+import { updateStudioSchema } from '@/lib/validations/studio';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     
     // Validate the input
-    const validatedData = createStudioSchema.parse(body);
+    const validatedData = updateStudioSchema.parse(body);
 
     // Get the studio ID from the request body
     const { id, ...updateData } = validatedData;
@@ -45,31 +45,42 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    // Build update data object with only provided fields
+    const updateFields: any = {};
+    
+    if (updateData.name !== undefined) updateFields.name = updateData.name;
+    if (updateData.description !== undefined) updateFields.description = updateData.description;
+    if (updateData.studioType !== undefined) updateFields.studioType = updateData.studioType;
+    if (updateData.address !== undefined) updateFields.address = updateData.address;
+    if (updateData.websiteUrl !== undefined) updateFields.websiteUrl = updateData.websiteUrl;
+    if (updateData.phone !== undefined) updateFields.phone = updateData.phone;
+    if (updateData.latitude !== undefined) updateFields.latitude = updateData.latitude;
+    if (updateData.longitude !== undefined) updateFields.longitude = updateData.longitude;
+
+    // Handle services update if provided
+    if (updateData.services !== undefined) {
+      updateFields.services = {
+        deleteMany: {}, // Remove existing services
+        create: updateData.services.map(service => ({ service })),
+      };
+    }
+
+    // Handle images update if provided
+    if (updateData.images !== undefined) {
+      updateFields.images = {
+        deleteMany: {}, // Remove existing images
+        create: updateData.images.map((image, index) => ({
+          imageUrl: image.url,
+          altText: image.altText || '',
+          sortOrder: index,
+        })),
+      };
+    }
+
     // Update the studio
     const updatedStudio = await db.studio.update({
       where: { id },
-      data: {
-        name: updateData.name,
-        description: updateData.description,
-        studioType: updateData.studioType,
-        address: updateData.address,
-        websiteUrl: updateData.websiteUrl,
-        phone: updateData.phone,
-        latitude: updateData.latitude,
-        longitude: updateData.longitude,
-        services: {
-          deleteMany: {}, // Remove existing services
-          create: updateData.services.map(service => ({ service })),
-        },
-        images: {
-          deleteMany: {}, // Remove existing images
-          create: updateData.images.map((image, index) => ({
-            imageUrl: image.imageUrl,
-            altText: image.altText || '',
-            sortOrder: index,
-          })),
-        },
-      },
+      data: updateFields,
       include: {
         owner: {
           select: {

@@ -37,7 +37,48 @@ export const createStudioSchema = z.object({
     .optional(),
 });
 
-export const updateStudioSchema = createStudioSchema.partial();
+export const updateStudioSchema = z.object({
+  id: z.string().cuid('Invalid studio ID'),
+  name: z
+    .string()
+    .min(2, 'Studio name must be at least 2 characters long')
+    .max(100, 'Studio name must be less than 100 characters')
+    .optional(),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters long')
+    .max(2000, 'Description must be less than 2000 characters')
+    .optional(),
+  studioType: z.nativeEnum(StudioType).optional(),
+  address: z
+    .string()
+    .min(5, 'Address must be at least 5 characters long')
+    .max(255, 'Address must be less than 255 characters')
+    .optional(),
+  websiteUrl: z
+    .string()
+    .url('Please enter a valid website URL')
+    .optional()
+    .or(z.literal('')),
+  phone: z
+    .string()
+    .regex(/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number')
+    .optional()
+    .or(z.literal('')),
+  latitude: z.number().optional().nullable(),
+  longitude: z.number().optional().nullable(),
+  services: z
+    .array(z.nativeEnum(ServiceType))
+    .min(1, 'Please select at least one service')
+    .optional(),
+  images: z
+    .array(z.object({
+      url: z.string().url('Please enter a valid image URL'),
+      altText: z.string().optional(),
+    }))
+    .max(10, 'Maximum 10 images allowed')
+    .optional(),
+});
 
 export const studioSearchSchema = z.object({
   query: z.string().optional(),
