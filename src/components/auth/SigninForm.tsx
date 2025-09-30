@@ -44,7 +44,12 @@ export function SigninForm() {
       }
 
       if (result?.ok) {
-        router.push(callbackUrl);
+        // Special redirect for admin@mpdee.co.uk
+        if (data.email === 'admin@mpdee.co.uk') {
+          router.push('/admin');
+        } else {
+          router.push(callbackUrl);
+        }
         router.refresh();
       }
     } catch {
@@ -59,7 +64,8 @@ export function SigninForm() {
     setError(null);
 
     try {
-      await signIn(provider, { callbackUrl });
+      // For OAuth, redirect to callback page to handle admin-specific routing
+      await signIn(provider, { callbackUrl: '/auth/callback' });
     } catch {
       setError(`Failed to sign in with ${provider}`);
     } finally {

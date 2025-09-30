@@ -165,9 +165,9 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async redirect({ url, baseUrl }) {
-      // Admin users redirect to admin dashboard after login
+      // For base URL redirects, check if it's the admin user
       if (url === baseUrl) {
-        return `${baseUrl}/admin/dashboard`;
+        return `${baseUrl}/dashboard`;
       }
       
       // Allows relative callback URLs
