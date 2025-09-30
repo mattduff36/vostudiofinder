@@ -12,9 +12,14 @@ export const metadata: Metadata = {
 export default async function MembershipSuccessPage() {
   const session = await getServerSession(authOptions);
 
-  // If already authenticated, redirect to dashboard
+  // If already authenticated, redirect based on user type
   if (session) {
-    redirect('/dashboard');
+    // Special redirect for admin@mpdee.co.uk
+    if (session.user?.email === 'admin@mpdee.co.uk') {
+      redirect('/admin');
+    } else {
+      redirect('/dashboard');
+    }
   }
 
   return <MembershipSuccess />;
