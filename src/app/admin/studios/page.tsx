@@ -9,6 +9,7 @@ interface Studio {
   name: string;
   description?: string;
   studioType: string;
+  studioTypes?: Array<{ studioType: string }>;
   status: string;
   isVerified: boolean;
   isPremium: boolean;
@@ -350,16 +351,25 @@ export default function AdminStudiosPage() {
                             <div className="text-sm font-medium text-gray-900">
                               {studio.name}
                             </div>
-                            {studio.description && (
-                              <div className="text-sm text-gray-500 max-w-xs truncate">
-                                {studio.description}
-                              </div>
-                            )}
+                            <div className="text-sm text-gray-500 max-w-xs truncate">
+                              {studio.owner.username}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">{studio.studioType}</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {studio.studioTypes && studio.studioTypes.length > 0 
+                            ? studio.studioTypes
+                                .map(st => {
+                                  const type = st.studioType;
+                                  if (type === 'VO_COACH') return 'C';
+                                  return type.charAt(0);
+                                })
+                                .join('')
+                            : '-'
+                          }
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{studio.owner.displayName}</div>

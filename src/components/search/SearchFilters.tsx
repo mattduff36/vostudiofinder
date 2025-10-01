@@ -10,7 +10,7 @@ import { StudioType, ServiceType } from '@prisma/client';
 interface SearchFiltersProps {
   initialFilters: {
     location: string;
-    studioType: string;
+    studioTypes: string[];
     services: string[];
     sortBy: string;
     sortOrder: string;
@@ -87,7 +87,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
   const clearFilters = () => {
     const clearedFilters = {
       location: '',
-      studioType: '',
+      studioTypes: [],
       services: [],
       sortBy: 'name',
       sortOrder: 'asc',
@@ -99,10 +99,9 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
   };
 
   const studioTypeOptions = [
-    { value: '', label: 'All Studio Types' },
+    { value: StudioType.VOICEOVER, label: 'Voiceover Studio' },
     { value: StudioType.RECORDING, label: 'Recording Studio' },
     { value: StudioType.PODCAST, label: 'Podcast Studio' },
-    { value: 'VOICEOVER', label: 'Voiceover Studio' },
   ];
 
   const serviceOptions = [
@@ -116,12 +115,15 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
 
 
 
-  const hasActiveFilters = filters.location || filters.studioType || filters.services.length > 0 || filters.radius !== 25;
+  const hasActiveFilters = filters.location || filters.studioTypes.length > 0 || filters.services.length > 0 || filters.radius !== 25;
 
   const handleStudioTypeToggle = (studioType: string) => {
-    const currentTypes = filters.studioType ? [filters.studioType] : [];
-    const updatedType = currentTypes.includes(studioType) ? '' : studioType;
-    const newFilters = { ...filters, studioType: updatedType };
+    const currentTypes = filters.studioTypes || [];
+    const updatedTypes = currentTypes.includes(studioType)
+      ? currentTypes.filter(type => type !== studioType)
+      : [...currentTypes, studioType];
+    
+    const newFilters = { ...filters, studioTypes: updatedTypes };
     
     // Preserve coordinates if they exist
     if (filters.lat && filters.lng) {
@@ -264,20 +266,20 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
         </div>
       </div>
 
-      {/* Studio Type */}
+      {/* Studio Types */}
       <div>
         <label className="block text-sm font-medium text-text-primary mb-3">
-          Studio Type
+          Studio Types
         </label>
         <div className="space-y-2">
-          {studioTypeOptions.filter(option => option.value !== '').map(option => (
+          {studioTypeOptions.map(option => (
             <label
               key={option.value}
               className="flex items-center space-x-2 cursor-pointer"
             >
               <input
                 type="checkbox"
-                checked={filters.studioType === option.value}
+                checked={filters.studioTypes.includes(option.value)}
                 onChange={() => handleStudioTypeToggle(option.value)}
                 className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />

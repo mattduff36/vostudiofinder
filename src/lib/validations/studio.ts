@@ -10,7 +10,9 @@ export const createStudioSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters long')
     .max(2000, 'Description must be less than 2000 characters'),
-  studioType: z.nativeEnum(StudioType),
+  studioTypes: z
+    .array(z.nativeEnum(StudioType))
+    .min(1, 'Please select at least one studio type'),
   address: z
     .string()
     .min(5, 'Address must be at least 5 characters long')
@@ -49,7 +51,10 @@ export const updateStudioSchema = z.object({
     .min(10, 'Description must be at least 10 characters long')
     .max(2000, 'Description must be less than 2000 characters')
     .optional(),
-  studioType: z.nativeEnum(StudioType).optional(),
+  studioTypes: z
+    .array(z.nativeEnum(StudioType))
+    .min(1, 'Please select at least one studio type')
+    .optional(),
   address: z
     .string()
     .min(5, 'Address must be at least 5 characters long')
@@ -86,7 +91,7 @@ export const studioSearchSchema = z.object({
   radius: z.number().min(1).max(500).optional(),
   lat: z.number().min(-90).max(90).optional(), // Latitude coordinate
   lng: z.number().min(-180).max(180).optional(), // Longitude coordinate
-  studioType: z.string().optional(), // Changed to string to handle NLP-detected types
+  studioTypes: z.array(z.string()).optional(), // Changed to string array to handle multiple types and NLP-detected types
   services: z.array(z.string()).optional(), // Changed to string array for flexibility
   equipment: z.array(z.string()).optional(), // New equipment parameter
   page: z.number().min(1).default(1),

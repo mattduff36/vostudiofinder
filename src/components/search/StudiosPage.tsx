@@ -49,7 +49,7 @@ interface Studio {
   id: string;
   name: string;
   description: string;
-  studioType: string;
+  studioTypes: Array<{ studioType: string }>;
   address: string;
   websiteUrl?: string;
   phone?: string;
@@ -75,7 +75,7 @@ interface SearchResponse {
     name: string;
     latitude: number | null;
     longitude: number | null;
-    studioType: string;
+    studioTypes: Array<{ studioType: string }>;
     isVerified: boolean;
   }>;
   pagination: {
@@ -89,7 +89,7 @@ interface SearchResponse {
   filters: {
     query?: string;
     location?: string;
-    studioType?: string;
+    studioTypes?: string[];
     services?: string[];
   };
   searchCoordinates?: { lat: number; lng: number } | null;
@@ -423,7 +423,7 @@ export function StudiosPage() {
   // Move useMemo outside conditional render to maintain hook order
   const mobileFiltersInitialState = useMemo(() => ({
     location: searchParams.get('location') || '',
-    studioType: searchParams.get('studioType') || '',
+    studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studioType')?.split(',') || [],
     services: searchParams.get('services')?.split(',') || [],
     sortBy: searchParams.get('sortBy') || 'name',
     sortOrder: searchParams.get('sortOrder') || 'asc',
@@ -628,7 +628,7 @@ export function StudiosPage() {
               <SearchFilters
                 initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
-                  studioType: searchParams.get('studioType') || '',
+                  studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studioType')?.split(',') || [],
                   services: searchParams.get('services')?.split(',') || [],
                   sortBy: searchParams.get('sortBy') || 'name',
                   sortOrder: searchParams.get('sortOrder') || 'asc',

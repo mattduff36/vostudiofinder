@@ -46,6 +46,11 @@ export default async function Home() {
         },
       },
       services: true,
+      studioTypes: {
+        select: {
+          studioType: true,
+        },
+      },
       images: {
         take: 1,
         orderBy: { sortOrder: 'asc' },

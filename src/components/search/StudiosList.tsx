@@ -10,7 +10,7 @@ interface Studio {
   id: string;
   name: string;
   description: string;
-  studioType: string;
+  studioTypes: Array<{ studioType: string }>;
   address: string;
   websiteUrl?: string;
   phone?: string;
@@ -82,11 +82,25 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                 </div>
               )}
               
-              {/* Studio Type Badge */}
-              <div className="absolute bottom-2 right-2">
-                <span className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}>
-                  {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                </span>
+              {/* Studio Types Badges */}
+              <div className="absolute bottom-2 right-2 flex flex-wrap gap-1">
+                {studio.studioTypes.slice(0, 2).map((type, index) => (
+                  <span 
+                    key={index}
+                    className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" 
+                    style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}
+                  >
+                    {type.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                  </span>
+                ))}
+                {studio.studioTypes.length > 2 && (
+                  <span 
+                    className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" 
+                    style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}
+                  >
+                    +{studio.studioTypes.length - 2}
+                  </span>
+                )}
               </div>
 
             </div>

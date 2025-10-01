@@ -68,13 +68,6 @@
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/admin",
-      "destination": "/admin/dashboard",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/health",

@@ -42,5 +42,5 @@
     "src/**/*",
     "prisma/**/*"
   ],
-  "exclude": ["node_modules", ".next", "dist", "build", "coverage", "scripts/migration", "backups", "src/lib/migration", "project-archive"]
+  "exclude": ["node_modules", ".next", "dist", "build", "coverage", "scripts", "backups", "src/lib/migration", "project-archive"]
 }

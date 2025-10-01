@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : undefined,
       lat: searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : undefined,
       lng: searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : undefined,
-      studioType: searchParams.get('studioType') || searchParams.get('type') || undefined, // Support both parameters
+      studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studioType')?.split(',') || searchParams.get('type')?.split(',') || undefined, // Support multiple parameters
       services: searchParams.get('services')?.split(',') || undefined,
       equipment: searchParams.get('equipment')?.split(',') || undefined, // New equipment parameter
       page: parseInt(searchParams.get('page') || '1'),
@@ -117,40 +117,39 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Studio type filter - enhanced to handle NLP-detected types
-    if (validatedParams.studioType) {
-      // Map common NLP terms to database enum values or search in description
+    // Studio types filter - enhanced to handle multiple types and NLP-detected types
+    if (validatedParams.studioTypes && validatedParams.studioTypes.length > 0) {
+      // Map common NLP terms to database enum values
       const studioTypeMapping: { [key: string]: string } = {
         'podcast': 'PODCAST',
         'podcasting': 'PODCAST', 
         'recording': 'RECORDING',
-        'mixing': 'MIXING',
-        'mastering': 'MASTERING',
-        'voice over': 'VOICE_OVER',
-        'voiceover': 'VOICE_OVER',
-        'broadcast': 'BROADCAST',
-        'radio': 'BROADCAST',
-        'tv': 'BROADCAST',
-        'television': 'BROADCAST',
+        'voice over': 'VOICEOVER',
+        'voiceover': 'VOICEOVER',
+        'voice over studio': 'VOICEOVER',
+        'voiceover studio': 'VOICEOVER',
+        'broadcast': 'VOICEOVER',
+        'radio': 'VOICEOVER',
+        'tv': 'VOICEOVER',
+        'television': 'VOICEOVER',
         'music': 'RECORDING',
-        'rehearsal': 'REHEARSAL',
-        'live': 'LIVE'
+        'audio': 'RECORDING',
+        'sound': 'RECORDING'
       };
 
-      const mappedType = studioTypeMapping[validatedParams.studioType.toLowerCase()];
-      
-      if (mappedType) {
-        // Use exact enum match if we have a mapping
+      const mappedTypes = validatedParams.studioTypes
+        .map(type => studioTypeMapping[type.toLowerCase()] || type.toUpperCase())
+        .filter(type => type); // Remove any undefined values
+
+      if (mappedTypes.length > 0) {
         (where.AND as Prisma.StudioWhereInput[]).push({
-          studioType: mappedType as any,
-        });
-      } else {
-        // Search in name and description for the studio type
-        (where.AND as Prisma.StudioWhereInput[]).push({
-          OR: [
-            { name: { contains: validatedParams.studioType, mode: 'insensitive' } },
-            { description: { contains: validatedParams.studioType, mode: 'insensitive' } },
-          ],
+          studioTypes: {
+            some: {
+              studioType: {
+                in: mappedTypes as any[],
+              },
+            },
+          },
         });
       }
     }
@@ -252,6 +251,11 @@ export async function GET(request: NextRequest) {
               },
             },
           },
+          studioTypes: {
+            select: {
+              studioType: true,
+            },
+          },
           services: {
             select: {
               service: true,
@@ -330,6 +334,11 @@ export async function GET(request: NextRequest) {
                     shortAbout: true,
                   },
                 },
+              },
+            },
+            studioTypes: {
+              select: {
+                studioType: true,
               },
             },
             services: {
