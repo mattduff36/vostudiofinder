@@ -29,6 +29,7 @@ interface StudioProfileProps {
     name: string;
     description: string;
     studioType: string;
+    studioTypes?: Array<{ studioType: string }>;
     address: string;
     websiteUrl?: string;
     phone?: string;

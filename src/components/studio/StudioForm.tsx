@@ -29,7 +29,6 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
     register,
     handleSubmit,
     control,
-    watch,
     formState: { errors },
   } = useForm<CreateStudioInput>({
     resolver: zodResolver(createStudioSchema),

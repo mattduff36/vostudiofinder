@@ -32,6 +32,7 @@ interface EnhancedStudioProfileProps {
     };
     images: StudioImage[];
     services: StudioService[];
+    studioTypes?: Array<{ studioType: string }>;
     reviews?: any[];
   };
 }
@@ -120,11 +121,13 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
         )}
         
         {/* Studio Type Badge */}
-        <div className="absolute top-4 right-4">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/90 text-gray-800">
-            {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
-          </span>
-        </div>
+        {studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] && (
+          <div className="absolute top-4 right-4">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/90 text-gray-800">
+              {studio.studioTypes[0].studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Header Section */}
@@ -339,12 +342,14 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
             <section className="bg-gray-50 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Quick Info</h2>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Studio Type:</span>
-                  <span className="font-medium capitalize">
-                    {studio.studioType.replace('_', ' ').toLowerCase()}
-                  </span>
-                </div>
+                {studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Studio Type:</span>
+                    <span className="font-medium capitalize">
+                      {studio.studioTypes[0].studioType.replace('_', ' ').toLowerCase()}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status:</span>
                   <span className="font-medium text-green-600">Active</span>
