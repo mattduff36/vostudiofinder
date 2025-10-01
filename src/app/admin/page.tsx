@@ -57,6 +57,11 @@ export default async function AdminPage() {
             displayName: true,
           },
         },
+        studioTypes: {
+          select: {
+            studioType: true,
+          },
+        },
       },
     }),
     db.review.findMany({
@@ -90,9 +95,13 @@ export default async function AdminPage() {
   const recentActivity = {
     users: recentUsers,
     studios: recentStudios.map(studio => ({
-      ...studio,
-      latitude: studio.latitude ? Number(studio.latitude) : null,
-      longitude: studio.longitude ? Number(studio.longitude) : null,
+      id: studio.id,
+      name: studio.name,
+      studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
+      createdAt: studio.createdAt,
+      owner: {
+        displayName: studio.owner.displayName,
+      },
     })),
     reviews: recentReviews,
   };

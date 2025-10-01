@@ -382,7 +382,7 @@ export async function GET(request: NextRequest) {
     // For location-based searches, only show studios that match the search criteria
     // For general searches, show all active studios
     const hasLocationSearch = validatedParams.location && validatedParams.radius;
-    const hasOtherFilters = validatedParams.query || validatedParams.studioType || validatedParams.services?.length || validatedParams.equipment?.length;
+    const hasOtherFilters = validatedParams.query || validatedParams.studioTypes?.length || validatedParams.services?.length || validatedParams.equipment?.length;
     
     let mapMarkers;
     if (hasLocationSearch) {
@@ -397,7 +397,11 @@ export async function GET(request: NextRequest) {
             name: true,
             latitude: true,
             longitude: true,
-            studioType: true,
+            studioTypes: {
+              select: {
+                studioType: true,
+              },
+            },
             isVerified: true,
           },
         });
@@ -422,7 +426,11 @@ export async function GET(request: NextRequest) {
             name: true,
             latitude: true,
             longitude: true,
-            studioType: true,
+            studioTypes: {
+              select: {
+                studioType: true,
+              },
+            },
             isVerified: true,
           },
         });
@@ -436,7 +444,11 @@ export async function GET(request: NextRequest) {
           name: true,
           latitude: true,
           longitude: true,
-          studioType: true,
+          studioTypes: {
+            select: {
+              studioType: true,
+            },
+          },
           isVerified: true,
         },
       });
@@ -449,7 +461,11 @@ export async function GET(request: NextRequest) {
           name: true,
           latitude: true,
           longitude: true,
-          studioType: true,
+          studioTypes: {
+            select: {
+              studioType: true,
+            },
+          },
           isVerified: true,
         },
       });
@@ -478,7 +494,7 @@ export async function GET(request: NextRequest) {
       filters: {
         query: validatedParams.query,
         location: validatedParams.location,
-        studioType: validatedParams.studioType,
+        studioTypes: validatedParams.studioTypes,
         services: validatedParams.services,
       },
       searchCoordinates: searchCoordinates,
