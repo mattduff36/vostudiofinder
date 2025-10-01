@@ -37,7 +37,15 @@ async function getFeaturedUsers() {
       profile: true,
       studios: {
         where: { status: 'ACTIVE' },
-        select: { id: true, name: true, studioType: true }
+        select: { 
+          id: true, 
+          name: true,
+          studioTypes: {
+            select: {
+              studioType: true
+            }
+          }
+        }
       }
     },
     orderBy: [
@@ -61,7 +69,15 @@ async function getSpotlightUsers() {
       profile: true,
       studios: {
         where: { status: 'ACTIVE' },
-        select: { id: true, name: true, studioType: true }
+        select: { 
+          id: true, 
+          name: true,
+          studioTypes: {
+            select: {
+              studioType: true
+            }
+          }
+        }
       }
     },
     orderBy: {
@@ -240,7 +256,17 @@ export async function POST(request: NextRequest) {
         profile: true,
         studios: {
           where: { status: 'ACTIVE' },
-          select: { id: true, name: true, studioType: true, isPremium: true, isVerified: true }
+          select: { 
+          id: true, 
+          name: true,
+          studioTypes: {
+            select: {
+              studioType: true
+            }
+          },
+          isPremium: true, 
+          isVerified: true 
+        }
         }
       },
       orderBy: [

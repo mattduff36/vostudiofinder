@@ -24,6 +24,11 @@ export async function GET(request: NextRequest) {
             services: true,
             images: true,
             reviews: true,
+            studioTypes: {
+              select: {
+                studioType: true,
+              },
+            },
           },
         },
         reviews: true,
@@ -73,7 +78,7 @@ export async function GET(request: NextRequest) {
         id: studio.id,
         name: studio.name,
         description: studio.description,
-        studioType: studio.studioType,
+        studioTypes: studio.studioTypes?.map(st => st.studioType) || [],
         address: studio.address,
         latitude: studio.latitude,
         longitude: studio.longitude,

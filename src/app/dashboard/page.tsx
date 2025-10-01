@@ -28,6 +28,11 @@ export default async function DashboardPage() {
           take: 1,
           orderBy: { sortOrder: 'asc' },
         },
+        studioTypes: {
+          select: {
+            studioType: true,
+          },
+        },
         _count: {
           select: { reviews: true },
         },
@@ -125,7 +130,17 @@ export default async function DashboardPage() {
       ...(session.user.avatarUrl && { avatarUrl: session.user.avatarUrl }),
     },
     stats,
-    studios: userStudios,
+    studios: userStudios.map(studio => ({
+      id: studio.id,
+      name: studio.name,
+      studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
+      status: studio.status,
+      isPremium: studio.isPremium,
+      createdAt: studio.createdAt,
+      _count: {
+        reviews: studio._count.reviews,
+      },
+    })),
     reviews: userReviews.map(review => ({
       id: review.id,
       rating: review.rating,

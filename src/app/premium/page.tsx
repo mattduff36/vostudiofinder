@@ -20,7 +20,15 @@ async function getPremiumData() {
       profile: true,
       studios: {
         where: { status: 'ACTIVE' },
-        select: { id: true, name: true, studioType: true }
+        select: { 
+          id: true, 
+          name: true,
+          studioTypes: {
+            select: {
+              studioType: true
+            }
+          }
+        }
       }
     },
     orderBy: [
@@ -41,7 +49,15 @@ async function getPremiumData() {
       profile: true,
       studios: {
         where: { status: 'ACTIVE' },
-        select: { id: true, name: true, studioType: true }
+        select: { 
+          id: true, 
+          name: true,
+          studioTypes: {
+            select: {
+              studioType: true
+            }
+          }
+        }
       }
     },
     orderBy: {

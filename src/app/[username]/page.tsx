@@ -80,6 +80,11 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               service: true,
             },
           },
+          studioTypes: {
+            select: {
+              studioType: true,
+            },
+          },
           images: {
             orderBy: { sortOrder: 'asc' },
           },
@@ -186,11 +191,12 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         <ModernStudioProfile 
           studio={{
             ...(() => {
-              const { websiteUrl: _, phone: __, latitude: ___, longitude: ____, images: _____, reviews: ______, owner: _______, ...rest } = studio;
+              const { websiteUrl: _, phone: __, latitude: ___, longitude: ____, images: _____, reviews: ______, owner: _______, studioTypes: ________, ...rest } = studio;
               return rest;
             })(),
             description: studio.description || '',
             address: studio.address || '',
+            studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
             owner: {
               ...studio.owner,
               avatarUrl: studio.owner.avatarUrl || '',
