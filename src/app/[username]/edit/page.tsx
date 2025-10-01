@@ -42,6 +42,11 @@ export default async function EditStudioPage({ params }: EditStudioPageProps) {
               service: true,
             },
           },
+          studioTypes: {
+            select: {
+              studioType: true,
+            },
+          },
         },
         take: 1,
       },
@@ -69,7 +74,7 @@ export default async function EditStudioPage({ params }: EditStudioPageProps) {
     id: studio.id,
     name: studio.name,
     description: studio.description || '',
-    studioType: studio.studioType,
+    studioTypes: studio.studioTypes?.map(st => st.studioType) || [],
     address: studio.address || '',
     websiteUrl: studio.websiteUrl || '',
     phone: studio.phone || '',
