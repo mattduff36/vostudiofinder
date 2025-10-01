@@ -38,7 +38,7 @@ export async function GET(
       );
     }
 
-    const studioId = params.id;
+    const studioId = (await params).id;
     
     // Get studio with owner and profile data using Prisma
     const studio = await prisma.studio.findUnique({
@@ -47,6 +47,11 @@ export async function GET(
         owner: {
           include: {
             profile: true
+          }
+        },
+        studioTypes: {
+          select: {
+            studioType: true
           }
         }
       }
@@ -100,6 +105,7 @@ export async function GET(
       email: studioData.email,
       status: studioData.status,
       joined: studioData.joined,
+      studioTypes: studio.studioTypes || [],
       
       // All profile fields go in _meta for frontend compatibility
       _meta: {
@@ -154,7 +160,7 @@ export async function PUT(
       );
     }
 
-    const studioId = params.id;
+    const studioId = (await params).id;
     const body = await request.json();
 
     // Check if studio exists
@@ -226,6 +232,24 @@ export async function PUT(
         });
       }
 
+      // Update studio types if provided
+      if (body.studioTypes !== undefined) {
+        // Delete existing studio types
+        await tx.studioStudioType.deleteMany({
+          where: { studioId: studioId }
+        });
+
+        // Create new studio types
+        if (Array.isArray(body.studioTypes) && body.studioTypes.length > 0) {
+          await tx.studioStudioType.createMany({
+            data: body.studioTypes.map((st: any) => ({
+              studioId: studioId,
+              studioType: st.studioType
+            }))
+          });
+        }
+      }
+
       // Update profile if there are profile changes
       if (Object.keys(profileUpdateData).length > 0) {
         await tx.userProfile.upsert({
@@ -264,7 +288,7 @@ export async function DELETE(
       );
     }
 
-    const studioId = params.id;
+    const studioId = (await params).id;
 
     // Delete the studio
     await prisma.studio.delete({

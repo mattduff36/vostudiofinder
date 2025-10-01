@@ -7,7 +7,7 @@ interface StudioInfoProps {
     id: string;
     name: string;
     description: string;
-    studioType: string;
+    studioTypes: Array<{ studioType: string }>;
     services: Array<{ service: string }>;
     createdAt: Date;
   };
@@ -65,11 +65,18 @@ export function StudioInfo({ studio }: StudioInfoProps) {
         <h3 className="text-lg font-medium text-text-primary mb-4">Studio Details</h3>
         
         <div className="space-y-4">
-          <div className="flex items-center text-sm">
-            <span className="font-medium text-text-primary w-24">Type:</span>
-            <span className="text-text-secondary">
-              {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
-            </span>
+          <div className="flex items-start text-sm">
+            <span className="font-medium text-text-primary w-24">Types:</span>
+            <div className="flex flex-wrap gap-1">
+              {studio.studioTypes.map((type, index) => (
+                <span 
+                  key={index}
+                  className="inline-block px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700"
+                >
+                  {type.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                </span>
+              ))}
+            </div>
           </div>
           
           <div className="flex items-center text-sm">

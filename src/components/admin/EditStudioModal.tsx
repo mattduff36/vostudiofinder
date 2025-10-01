@@ -8,6 +8,7 @@ interface Studio {
   name: string;
   description?: string;
   studioType: string;
+  studioTypes?: Array<{ studioType: string }>;
   status: string;
   isVerified: boolean;
   isPremium: boolean;
@@ -232,21 +233,48 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-          <select
-            value={profile?.studioType || ''}
-            onChange={(e) => handleBasicChange('studioType', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Select Studio Type</option>
-            <option value="VOICEOVER">Voiceover</option>
-            <option value="RECORDING">Recording</option>
-            <option value="PODCAST">Podcast</option>
-            <option value="PRODUCTION">Production</option>
-            <option value="MOBILE">Mobile</option>
-            <option value="HOME">Home</option>
-          </select>
-          <p className="text-xs text-gray-500 mt-1">Select the type of studio</p>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Studio Types</label>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
+            {[
+              { value: 'HOME', label: 'Home' },
+              { value: 'EDITING', label: 'Editing' },
+              { value: 'RECORDING', label: 'Recording' },
+              { value: 'VO_COACH', label: 'VO-Coach' },
+              { value: 'PODCAST', label: 'Podcast' },
+              { value: 'VOICEOVER', label: 'Voiceover' }
+            ].map((type) => {
+              const selectedTypes = profile?.studioTypes || [];
+              const isChecked = selectedTypes.some((st: any) => st.studioType === type.value);
+              
+              return (
+                <label key={type.value} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={(e) => {
+                      const currentTypes = profile?.studioTypes || [];
+                      let newTypes;
+                      
+                      if (e.target.checked) {
+                        // Add the type
+                        newTypes = [...currentTypes, { studioType: type.value }];
+                      } else {
+                        // Remove the type
+                        newTypes = currentTypes.filter((st: any) => st.studioType !== type.value);
+                      }
+                      
+                      handleBasicChange('studioTypes', newTypes);
+                    }}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    {type.label}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Select one or more studio types</p>
         </div>
       </div>
 

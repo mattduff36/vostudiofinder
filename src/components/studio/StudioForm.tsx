@@ -29,13 +29,14 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors },
   } = useForm<CreateStudioInput>({
     resolver: zodResolver(createStudioSchema),
     defaultValues: {
       name: initialData?.name || '',
       description: initialData?.description || '',
-      studioType: initialData?.studioType || StudioType.RECORDING,
+      studioTypes: initialData?.studioTypes || [StudioType.RECORDING],
       address: initialData?.address || '',
       websiteUrl: initialData?.websiteUrl || '',
       phone: initialData?.phone || '',
@@ -111,11 +112,9 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
   };
 
   const studioTypeOptions = [
+    { value: StudioType.VOICEOVER, label: 'Voiceover Studio' },
     { value: StudioType.RECORDING, label: 'Recording Studio' },
     { value: StudioType.PODCAST, label: 'Podcast Studio' },
-    { value: StudioType.HOME, label: 'Home Studio' },
-    { value: StudioType.PRODUCTION, label: 'Production Studio' },
-    { value: StudioType.MOBILE, label: 'Mobile Studio' },
   ];
 
   const serviceOptions = [
@@ -163,21 +162,27 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
               />
 
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Studio Type
+                <label className="block text-sm font-medium text-text-primary mb-3">
+                  Studio Types
                 </label>
-                <select
-                  className="flex h-46 w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus"
-                  {...register('studioType')}
-                >
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {studioTypeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
+                    <label
+                      key={option.value}
+                      className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
+                    >
+                      <input
+                        type="checkbox"
+                        value={option.value}
+                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        {...register('studioTypes')}
+                      />
+                      <span className="text-sm text-text-primary">{option.label}</span>
+                    </label>
                   ))}
-                </select>
-                {errors.studioType && (
-                  <p className="mt-1 text-sm text-red-600">{errors.studioType.message}</p>
+                </div>
+                {errors.studioTypes && (
+                  <p className="mt-1 text-sm text-red-600">{errors.studioTypes.message}</p>
                 )}
               </div>
             </div>

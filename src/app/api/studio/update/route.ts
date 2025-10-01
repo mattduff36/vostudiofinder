@@ -50,12 +50,19 @@ export async function PUT(request: NextRequest) {
     
     if (updateData.name !== undefined) updateFields.name = updateData.name;
     if (updateData.description !== undefined) updateFields.description = updateData.description;
-    if (updateData.studioType !== undefined) updateFields.studioType = updateData.studioType;
     if (updateData.address !== undefined) updateFields.address = updateData.address;
     if (updateData.websiteUrl !== undefined) updateFields.websiteUrl = updateData.websiteUrl;
     if (updateData.phone !== undefined) updateFields.phone = updateData.phone;
     if (updateData.latitude !== undefined) updateFields.latitude = updateData.latitude;
     if (updateData.longitude !== undefined) updateFields.longitude = updateData.longitude;
+
+    // Handle studio types update if provided
+    if (updateData.studioTypes !== undefined) {
+      updateFields.studioTypes = {
+        deleteMany: {}, // Remove existing studio types
+        create: updateData.studioTypes.map(studioType => ({ studioType })),
+      };
+    }
 
     // Handle services update if provided
     if (updateData.services !== undefined) {
@@ -82,6 +89,11 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: updateFields,
       include: {
+        studioTypes: true,
+        services: true,
+        images: {
+          orderBy: { sortOrder: 'asc' },
+        },
         owner: {
           select: {
             username: true,

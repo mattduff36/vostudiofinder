@@ -76,7 +76,6 @@ model Studio {
   ownerId              String                @map("owner_id")
   name                 String
   description          String?
-  studioType           StudioType            @map("studio_type")
   address              String?
   latitude             Decimal?              @db.Decimal(10, 8)
   longitude            Decimal?              @db.Decimal(11, 8)
@@ -91,6 +90,7 @@ model Studio {
   reviews              Review[]
   images               StudioImage[]
   services             StudioService[]
+  studioTypes          StudioStudioType[]
   owner                User                  @relation(fields: [ownerId], references: [id])
 
   @@map("studios")
@@ -104,6 +104,16 @@ model StudioService {
 
   @@unique([studioId, service])
   @@map("studio_services")
+}
+
+model StudioStudioType {
+  id        String     @id @default(cuid())
+  studioId  String     @map("studio_id")
+  studioType StudioType @map("studio_type")
+  studio    Studio     @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@unique([studioId, studioType])
+  @@map("studio_studio_types")
 }
 
 
@@ -284,12 +294,12 @@ enum Role {
 }
 
 enum StudioType {
-  VOICEOVER
-  RECORDING
-  PODCAST
-  PRODUCTION
-  MOBILE
   HOME
+  RECORDING
+  VO_COACH
+  EDITING
+  PODCAST
+  VOICEOVER
 }
 
 enum ServiceType {

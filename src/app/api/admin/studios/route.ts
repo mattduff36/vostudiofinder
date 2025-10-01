@@ -48,6 +48,11 @@ export async function GET(request: NextRequest) {
               email: true,
               username: true
             }
+          },
+          studioTypes: {
+            select: {
+              studioType: true
+            }
           }
         },
         orderBy: { updatedAt: 'desc' },

@@ -21,7 +21,7 @@ interface Studio {
   id: string;
   name: string;
   description: string;
-  studioType: string;
+  studioTypes: Array<{ studioType: string }>;
   location: string;
   address: string;
   averageRating?: number;
@@ -143,11 +143,13 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   )}
                   
                   {/* Studio Type Badge - moved to bottom right of image */}
-                  <div className="absolute bottom-2 right-2">
-                    <span className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}>
-                      {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                    </span>
-                  </div>
+                  {studio.studioTypes && studio.studioTypes.length > 0 && (
+                    <div className="absolute bottom-2 right-2">
+                      <span className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}>
+                        {studio.studioTypes[0].studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4 sm:p-6 flex flex-col flex-grow max-h-[340px]">

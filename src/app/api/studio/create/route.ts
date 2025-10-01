@@ -38,13 +38,22 @@ export async function POST(request: NextRequest) {
           ownerId: session.user.id,
           name: validatedData.name,
           description: validatedData.description,
-          studioType: validatedData.studioType,
           address: validatedData.address,
           websiteUrl: validatedData.websiteUrl || null,
           phone: validatedData.phone || null,
           status: 'ACTIVE',
         },
       });
+      
+      // Add studio types
+      if (validatedData.studioTypes && validatedData.studioTypes.length > 0) {
+        await tx.studioStudioType.createMany({
+          data: validatedData.studioTypes.map(studioType => ({
+            studioId: newStudio.id,
+            studioType,
+          })),
+        });
+      }
       
       // Add services
       if (validatedData.services && validatedData.services.length > 0) {
@@ -75,6 +84,7 @@ export async function POST(request: NextRequest) {
     const completeStudio = await db.studio.findUnique({
       where: { id: studio.id },
       include: {
+        studioTypes: true,
         services: true,
         images: {
           orderBy: { sortOrder: 'asc' },
