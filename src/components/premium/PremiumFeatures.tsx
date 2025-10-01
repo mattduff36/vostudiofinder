@@ -17,13 +17,18 @@ import {
 
 interface PremiumUser extends User {
   profile?: UserProfile | null;
-  studios?: { id: string; name: string; studioType: string }[];
+  studios?: { id: string; name: string; studioTypes: Array<{ studioType: string }> }[];
+}
+
+interface PremiumStudio extends Studio {
+  owner: PremiumUser;
+  studioTypes?: Array<{ studioType: string }>;
 }
 
 interface PremiumFeaturesProps {
   featuredUsers: PremiumUser[];
   spotlightUsers: PremiumUser[];
-  premiumStudios: (Studio & { owner: PremiumUser })[];
+  premiumStudios: PremiumStudio[];
   premiumStats: {
     totalFeatured: number;
     totalSpotlight: number;
@@ -153,7 +158,7 @@ export function PremiumFeatures({
     );
   };
 
-  const PremiumStudioCard = ({ studio }: { studio: Studio & { owner: PremiumUser } }) => (
+  const PremiumStudioCard = ({ studio }: { studio: PremiumStudio }) => (
     <div className="relative bg-white rounded-lg border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 hover:shadow-lg transition-all duration-300">
       {/* Premium Badge */}
       <div className="absolute -top-2 -right-2">
@@ -167,7 +172,10 @@ export function PremiumFeatures({
           <div>
             <h3 className="text-lg font-semibold text-gray-900">{studio.name}</h3>
             <p className="text-sm text-gray-600">
-              {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
+              {studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0]
+                ? studio.studioTypes[0].studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
+                : 'Studio'
+              }
             </p>
           </div>
           

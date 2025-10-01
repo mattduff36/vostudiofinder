@@ -667,7 +667,7 @@ export function StudiosPage() {
                         id: studio.id,
                         position: { lat: studio.latitude!, lng: studio.longitude! },
                         title: studio.name,
-                        studioType: studio.studioType,
+                        studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
                         isVerified: studio.isVerified,
                         onClick: () => {
                           selectStudio(studio.id);
@@ -702,14 +702,14 @@ export function StudiosPage() {
                       markers={(searchResults.mapMarkers || searchResults.studios)
                         .filter(studio => studio.latitude && studio.longitude)
                         .map(studio => ({
-                          id: studio.id,
-                          position: { lat: studio.latitude!, lng: studio.longitude! },
-                          title: studio.name,
-                          studioType: studio.studioType,
-                          isVerified: studio.isVerified,
-                          onClick: () => {
-                            // Switch to list view and select studio (with page navigation if needed)
-                            setMobileView('list');
+                        id: studio.id,
+                        position: { lat: studio.latitude!, lng: studio.longitude! },
+                        title: studio.name,
+                        studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
+                        isVerified: studio.isVerified,
+                        onClick: () => {
+                          // Switch to list view and select studio (with page navigation if needed)
+                          setMobileView('list');
                             setTimeout(() => {
                               selectStudio(studio.id);
                             }, 100);

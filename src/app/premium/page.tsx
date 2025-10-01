@@ -90,6 +90,11 @@ async function getPremiumData() {
         include: {
           profile: true
         }
+      },
+      studioTypes: {
+        select: {
+          studioType: true
+        }
       }
     },
     orderBy: [
