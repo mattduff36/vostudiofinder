@@ -145,24 +145,36 @@ h6,
 .h6 {
   font-family: var(--font-raleway), sans-serif;
   font-weight: 300;
-  margin: 30px 0;
+  margin: 16px 0; /* Reduced from 30px for smaller header sizes */
   padding: 0;
   color: #27292b;
 }
 
+/* Homepage hero h1 - maintains original large size */
+.hp1 {
+  font-size: 56px;
+  font-family: var(--font-raleway), sans-serif;
+  font-weight: 300;
+  margin: 30px 0;
+  padding: 0;
+  color: #27292b;
+  position: relative;
+}
+
+/* Standard h1, h2, h3 - reduced by 50% for better hierarchy */
 h1,
 .h1 {
-  font-size: 56px;
+  font-size: 28px;
   position: relative;
 }
 h2,
 .h2 {
-  font-size: 48px;
+  font-size: 24px;
   position: relative;
 }
 h3,
 .h3 {
-  font-size: 36px;
+  font-size: 18px;
 }
 h4,
 .h4 {

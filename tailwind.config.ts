@@ -65,9 +65,10 @@ const config: Config = {
         raleway: ['var(--font-raleway)', 'Raleway', 'sans-serif'],
       },
       fontSize: {
-        h1: '56px',
-        h2: '48px',
-        h3: '36px',
+        hp1: '56px', // Homepage hero - unchanged
+        h1: '28px',  // Reduced by 50%
+        h2: '24px',  // Reduced by 50%
+        h3: '18px',  // Reduced by 50%
         h4: '30px',
         h5: '24px',
         h6: '16px',

@@ -93,7 +93,11 @@ export async function GET(
       rates1: decodeHtmlEntities(studio.owner?.profile?.rateTier1 || ''),
       rates2: decodeHtmlEntities(studio.owner?.profile?.rateTier2 || ''),
       rates3: decodeHtmlEntities(studio.owner?.profile?.rateTier3 || ''),
-      showrates: studio.owner?.profile?.showRates || false
+      showrates: studio.owner?.profile?.showRates || false,
+      // Contact preferences
+      showemail: studio.owner?.profile?.showEmail || false,
+      showphone: studio.owner?.profile?.showPhone || false,
+      showaddress: studio.owner?.profile?.showAddress || false
     };
     
     // Structure the data to match what the frontend expects
@@ -134,7 +138,11 @@ export async function GET(
         rates1: studioData.rates1,
         rates2: studioData.rates2,
         rates3: studioData.rates3,
-        showrates: studioData.showrates ? '1' : '0'
+        showrates: studioData.showrates ? '1' : '0',
+        // Contact preferences
+        showemail: studioData.showemail ? '1' : '0',
+        showphone: studioData.showphone ? '1' : '0',
+        showaddress: studioData.showaddress ? '1' : '0'
       }
     };
 
@@ -213,6 +221,11 @@ export async function PUT(
     if (body._meta?.rates2 !== undefined) profileUpdateData.rateTier2 = body._meta.rates2;
     if (body._meta?.rates3 !== undefined) profileUpdateData.rateTier3 = body._meta.rates3;
     if (body._meta?.showrates !== undefined) profileUpdateData.showRates = body._meta.showrates === '1' || body._meta.showrates === true;
+    
+    // Contact preferences
+    if (body._meta?.showemail !== undefined) profileUpdateData.showEmail = body._meta.showemail === '1' || body._meta.showemail === true;
+    if (body._meta?.showphone !== undefined) profileUpdateData.showPhone = body._meta.showphone === '1' || body._meta.showphone === true;
+    if (body._meta?.showaddress !== undefined) profileUpdateData.showAddress = body._meta.showaddress === '1' || body._meta.showaddress === true;
 
     // Perform updates using Prisma transactions
     await prisma.$transaction(async (tx) => {
