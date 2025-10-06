@@ -62,7 +62,7 @@ export function HeroSection() {
       {/* Hero Content */}
       <div className="relative z-10 py-12 sm:py-16 md:py-20 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-center transition-all duration-1000 delay-200 leading-tight ${
+          <h1 className={`hp1 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-center transition-all duration-1000 delay-200 leading-tight ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ color: '#ffffff' }}>
             Find Your Perfect<br className="hidden sm:block"/>

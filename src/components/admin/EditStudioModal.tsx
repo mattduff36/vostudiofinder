@@ -371,7 +371,10 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       </div>
 
       <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-3">Display Settings</h4>
+        <h4 className="font-medium text-gray-900 mb-2">Display Settings</h4>
+        <p className="text-xs text-gray-600 mb-3">
+          🔒 Email addresses are protected from bots. The "Message Studio" button uses secure mailto links with anti-bot measures.
+        </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <label className="flex items-center">
             <input

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
-import { ModernStudioProfile } from '@/components/studio/profile/ModernStudioProfile';
+import { ModernStudioProfileV3 } from '@/components/studio/profile/ModernStudioProfileV3';
 import { EnhancedUserProfile } from '@/components/profile/EnhancedUserProfile';
 
 interface UsernamePageProps {
@@ -188,7 +188,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
-        <ModernStudioProfile 
+        <ModernStudioProfileV3 
           studio={{
             ...(() => {
               const { websiteUrl: _, phone: __, latitude: ___, longitude: ____, images: _____, reviews: ______, owner: _______, studioTypes: ________, ...rest } = studio;
@@ -196,7 +196,9 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             })(),
             description: studio.description || '',
             address: studio.address || '',
-            studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
+            studioTypes: studio.studioTypes && studio.studioTypes.length > 0 
+              ? studio.studioTypes.map(st => st.studioType) 
+              : ['VOICEOVER'],
             owner: {
               ...studio.owner,
               avatarUrl: studio.owner.avatarUrl || '',
