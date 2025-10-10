@@ -273,9 +273,11 @@ async function acceptConnection(user_id: string, targetUserId: string) {
       }
     },
     create: {
+      id: randomBytes(12).toString('base64url'), // Generate unique ID
       user_id: user_id,
       connected_user_id: targetUserId,
-      accepted: true
+      accepted: true,
+      created_at: new Date() // Add required timestamp
     },
     update: {
       accepted: true
