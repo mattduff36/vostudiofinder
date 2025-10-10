@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Find pending subscription in database
-    const pendingSubscription = await db.pendingSubscription.findUnique({
+    const pendingSubscription = await db.pending_subscriptions.findUnique({
       where: { paypalSubscriptionId: subscriptionId },
     });
 
@@ -60,3 +60,4 @@ export async function GET(request: NextRequest) {
     return redirect('/billing?error=processing_failed');
   }
 }
+

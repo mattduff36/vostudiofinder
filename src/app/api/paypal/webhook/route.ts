@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
         const subscriptionId = resource.id;
         
         // Update subscription status in database
-        await db.subscription.update({
+        await db.subscriptions.update({
           where: { paypalSubscriptionId: subscriptionId },
           data: { 
             status: 'ACTIVE',
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Send confirmation email
-        const subscription = await db.subscription.findUnique({
+        const subscription = await db.subscriptions.findUnique({
           where: { paypalSubscriptionId: subscriptionId },
           include: { user: true },
         });
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       case 'BILLING.SUBSCRIPTION.SUSPENDED': {
         const subscriptionId = resource.id;
         
-        await db.subscription.update({
+        await db.subscriptions.update({
           where: { paypalSubscriptionId: subscriptionId },
           data: { status: 'SUSPENDED' },
         });
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         const subscriptionId = resource.billing_agreement_id;
         
         if (subscriptionId) {
-          const subscription = await db.subscription.findUnique({
+          const subscription = await db.subscriptions.findUnique({
             where: { paypalSubscriptionId: subscriptionId },
             include: { user: true },
           });
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
         const subscriptionId = resource.billing_agreement_id;
         
         if (subscriptionId) {
-          const subscription = await db.subscription.findUnique({
+          const subscription = await db.subscriptions.findUnique({
             where: { paypalSubscriptionId: subscriptionId },
             include: { user: true },
           });
@@ -148,3 +148,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
