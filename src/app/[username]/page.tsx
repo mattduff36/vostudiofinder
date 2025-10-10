@@ -255,9 +255,9 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               id: review.id,
               rating: review.rating,
               content: review.content || '',
-              createdAt: review.created_at,
+              created_at: review.created_at,
               reviewer: {
-                displayName: review.users_reviews_reviewer_idTousers.display_name,
+                display_name: review.users_reviews_reviewer_idTousers.display_name,
               },
             })),
             averageRating,
