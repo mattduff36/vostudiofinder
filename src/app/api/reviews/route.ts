@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if user has already reviewed this studio
-    const existingReview = await db.review.findFirst({
+    const existingReview = await db.reviews.findFirst({
       where: {
         studioId: validatedData.studioId,
         reviewerId: session.user.id,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Create the review
-    const review = await db.review.create({
+    const review = await db.reviews.create({
       data: {
         studioId: validatedData.studioId,
         reviewerId: session.user.id,
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
     
     const [reviews, totalCount] = await Promise.all([
-      db.review.findMany({
+      db.reviews.findMany({
         where: {
           studioId,
           status: 'APPROVED',
@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
       }),
-      db.review.count({
+      db.reviews.count({
         where: {
           studioId,
           status: 'APPROVED',
@@ -185,3 +185,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+

@@ -41,7 +41,7 @@ export default async function DashboardPage() {
     }),
     
     // User's reviews
-    db.review.findMany({
+    db.reviews.findMany({
       where: { reviewerId: session.user.id },
       include: {
         studio: {
@@ -183,3 +183,4 @@ export default async function DashboardPage() {
 
   return <UserDashboard data={dashboardData} />;
 }
+
