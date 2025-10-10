@@ -174,9 +174,9 @@ export async function GET(request: NextRequest) {
       await db.messages.updateMany({
         where: {
           receiver_id: session.user.id,
-          isRead: false,
+          is_read: false,
         },
-        data: { isRead: true },
+        data: { is_read: true },
       });
     }
     
