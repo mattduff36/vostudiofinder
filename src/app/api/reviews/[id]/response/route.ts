@@ -25,12 +25,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { content } = responseSchema.parse(body);
 
     // Get the review and verify ownership
-    const review = await db.review.findUnique({
+    const review = await db.reviews.findUnique({
       where: { id: reviewId },
       include: {
-        studio: {
+        studios: {
           select: {
-            ownerId: true,
+            owner_id: true,
           },
         },
       },
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Only studio owner can respond
-    if (review.studio.ownerId !== session.user.id) {
+    if (review.studios.owner_id !== session.user.id) {
       return NextResponse.json(
         { error: 'Only the studio owner can respond to reviews' },
         { status: 403 }
@@ -49,8 +49,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check if response already exists
-    const existingResponse = await db.reviewResponse.findUnique({
-      where: { reviewId },
+    const existingResponse = await db.review_responses.findUnique({
+      where: { review_id: reviewId },
     });
 
     if (existingResponse) {
@@ -61,11 +61,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Create the response
-    const response = await db.reviewResponse.create({
+    const response = await db.review_responses.create({
       data: {
-        reviewId,
+        review_id: reviewId,
         content,
-        authorId: session.user.id,
+        author_id: session.user.id,
       },
     });
 
