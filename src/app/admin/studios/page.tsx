@@ -13,7 +13,7 @@ interface Studio {
   status: string;
   is_verified: boolean;
   is_premium: boolean;
-  owner: {
+  users: {
     display_name: string;
     email: string;
     username: string;
