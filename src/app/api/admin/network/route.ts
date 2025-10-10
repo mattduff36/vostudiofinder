@@ -24,8 +24,8 @@ export async function GET(request: Request) {
       orderBy: { created_at: 'desc' },
     });
 
-    const totalConnections = await prisma.contact.count();
-    const activeConnections = await prisma.contact.count({
+    const totalConnections = await prisma.contacts.count();
+    const activeConnections = await prisma.contacts.count({
       where: { accepted: 1 }
     });
     const pendingConnections = await prisma.contact.count({
