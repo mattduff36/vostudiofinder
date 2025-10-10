@@ -36,10 +36,11 @@ export async function createUser(data: {
   email: string;
   password: string;
   displayName: string;
+  username?: string;
   role?: Role;
 }) {
   const hashedPassword = await hashPassword(data.password);
-  const username = await generateUniqueUsername(data.email);
+  const username = data.username || await generateUniqueUsername(data.email);
 
   return db.user.create({
     data: {
