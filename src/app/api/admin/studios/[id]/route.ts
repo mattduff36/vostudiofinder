@@ -41,17 +41,17 @@ export async function GET(
     const studioId = (await params).id;
     
     // Get studio with owner and profile data using Prisma
-    const studio = await prisma.studio.findUnique({
+    const studio = await prisma.studios.findUnique({
       where: { id: studioId },
       include: {
-        owner: {
+        users: {
           include: {
-            profile: true
+            user_profiles: true
           }
         },
-        studioTypes: {
+        studio_studio_types: {
           select: {
-            studioType: true
+            studio_type: true
           }
         }
       }
@@ -64,49 +64,49 @@ export async function GET(
     // Transform to match expected format for the frontend
     const studioData = {
       id: studio.id,
-      username: studio.owner?.username, // Use actual username for URLs
-      display_name: studio.owner?.username, // Use actual username for display
-      email: studio.owner?.email,
+      username: studio.users?.username, // Use actual username for URLs
+      display_name: studio.users?.username, // Use actual username for display
+      email: studio.users?.email,
       status: studio.status?.toLowerCase(),
-      joined: studio.createdAt,
-      last_name: decodeHtmlEntities(studio.owner?.profile?.lastName || ''),
-      location: studio.owner?.profile?.location || '',
+      joined: studio.created_at,
+      last_name: decodeHtmlEntities(studio.users?.user_profiles?.last_name || ''),
+      location: studio.users?.user_profiles?.location || '',
       address: studio.address || '',
       phone: studio.phone || '',
-      url: studio.websiteUrl || '',
-      instagram: studio.owner?.profile?.instagramUrl || '',
-      youtubepage: studio.owner?.profile?.youtubeUrl || '',
-      about: decodeHtmlEntities(studio.owner?.profile?.about || ''),
+      url: studio.website_url || '',
+      instagram: studio.users?.user_profiles?.instagram_url || '',
+      youtubepage: studio.users?.user_profiles?.youtube_url || '',
+      about: decodeHtmlEntities(studio.users?.user_profiles?.about || ''),
       latitude: studio.latitude ? parseFloat(studio.latitude.toString()) : null,
       longitude: studio.longitude ? parseFloat(studio.longitude.toString()) : null,
-      shortabout: decodeHtmlEntities(studio.owner?.profile?.shortAbout || ''),
+      shortabout: decodeHtmlEntities(studio.users?.user_profiles?.short_about || ''),
       category: '', // Not in new schema
-      facebook: studio.owner?.profile?.facebookUrl || '',
-      twitter: studio.owner?.profile?.twitterUrl || '',
-      linkedin: studio.owner?.profile?.linkedinUrl || '',
-      soundcloud: studio.owner?.profile?.soundcloudUrl || '',
-      vimeo: studio.owner?.profile?.vimeoUrl || '',
-      verified: studio.isVerified,
-      featured: studio.owner?.profile?.isFeatured || false,
-      avatar_image: studio.owner?.avatarUrl || '',
+      facebook: studio.users?.user_profiles?.facebook_url || '',
+      twitter: studio.users?.user_profiles?.twitter_url || '',
+      linkedin: studio.users?.user_profiles?.linkedin_url || '',
+      soundcloud: studio.users?.user_profiles?.soundcloud_url || '',
+      vimeo: studio.users?.user_profiles?.vimeo_url || '',
+      verified: studio.is_verified,
+      featured: studio.users?.user_profiles?.is_featured || false,
+      avatar_image: studio.users?.avatar_url || '',
       // Rate data from profile (decode HTML entities)
-      rates1: decodeHtmlEntities(studio.owner?.profile?.rateTier1 || ''),
-      rates2: decodeHtmlEntities(studio.owner?.profile?.rateTier2 || ''),
-      rates3: decodeHtmlEntities(studio.owner?.profile?.rateTier3 || ''),
-      showrates: studio.owner?.profile?.showRates || false,
+      rates1: decodeHtmlEntities(studio.users?.user_profiles?.rate_tier_1 || ''),
+      rates2: decodeHtmlEntities(studio.users?.user_profiles?.rate_tier_2 || ''),
+      rates3: decodeHtmlEntities(studio.users?.user_profiles?.rate_tier_3 || ''),
+      showrates: studio.users?.user_profiles?.show_rates || false,
       // Contact preferences
-      showemail: studio.owner?.profile?.showEmail || false,
-      showphone: studio.owner?.profile?.showPhone || false,
-      showaddress: studio.owner?.profile?.showAddress || false,
+      showemail: studio.users?.user_profiles?.show_email || false,
+      showphone: studio.users?.user_profiles?.show_phone || false,
+      showaddress: studio.users?.user_profiles?.show_address || false,
       // Connection types
-      connection1: studio.owner?.profile?.connection1 || '',
-      connection2: studio.owner?.profile?.connection2 || '',
-      connection3: studio.owner?.profile?.connection3 || '',
-      connection4: studio.owner?.profile?.connection4 || '',
-      connection5: studio.owner?.profile?.connection5 || '',
-      connection6: studio.owner?.profile?.connection6 || '',
-      connection7: studio.owner?.profile?.connection7 || '',
-      connection8: studio.owner?.profile?.connection8 || ''
+      connection1: studio.users?.user_profiles?.connection1 || '',
+      connection2: studio.users?.user_profiles?.connection2 || '',
+      connection3: studio.users?.user_profiles?.connection3 || '',
+      connection4: studio.users?.user_profiles?.connection4 || '',
+      connection5: studio.users?.user_profiles?.connection5 || '',
+      connection6: studio.users?.user_profiles?.connection6 || '',
+      connection7: studio.users?.user_profiles?.connection7 || '',
+      connection8: studio.users?.user_profiles?.connection8 || ''
     };
     
     // Structure the data to match what the frontend expects
@@ -118,7 +118,7 @@ export async function GET(
       email: studioData.email,
       status: studioData.status,
       joined: studioData.joined,
-      studioTypes: studio.studioTypes || [],
+      studioTypes: studio.studio_studio_types || [],
       
       // All profile fields go in _meta for frontend compatibility
       _meta: {
@@ -190,12 +190,12 @@ export async function PUT(
     const body = await request.json();
 
     // Check if studio exists
-    const existingStudio = await prisma.studio.findUnique({
+    const existingStudio = await prisma.studios.findUnique({
       where: { id: studioId },
       include: {
-        owner: {
+        users: {
           include: {
-            profile: true
+            user_profiles: true
           }
         }
       }
@@ -215,35 +215,35 @@ export async function PUT(
     if (body._meta?.studio_name !== undefined) studioUpdateData.name = body._meta.studio_name; // Studio name field
     if (body._meta?.address !== undefined) studioUpdateData.address = body._meta.address;
     if (body._meta?.phone !== undefined) studioUpdateData.phone = body._meta.phone;
-    if (body._meta?.url !== undefined) studioUpdateData.websiteUrl = body._meta.url;
+    if (body._meta?.url !== undefined) studioUpdateData.website_url = body._meta.url;
     if (body._meta?.latitude !== undefined) studioUpdateData.latitude = parseFloat(body._meta.latitude) || null;
     if (body._meta?.longitude !== undefined) studioUpdateData.longitude = parseFloat(body._meta.longitude) || null;
-    if (body._meta?.verified !== undefined) studioUpdateData.isVerified = body._meta.verified === '1' || body._meta.verified === true;
+    if (body._meta?.verified !== undefined) studioUpdateData.is_verified = body._meta.verified === '1' || body._meta.verified === true;
 
     // Prepare profile updates
     const profileUpdateData: any = {};
-    if (body._meta?.last_name !== undefined) profileUpdateData.lastName = body._meta.last_name;
+    if (body._meta?.last_name !== undefined) profileUpdateData.last_name = body._meta.last_name;
     if (body._meta?.location !== undefined) profileUpdateData.location = body._meta.location;
     if (body._meta?.about !== undefined) profileUpdateData.about = body._meta.about;
-    if (body._meta?.shortabout !== undefined) profileUpdateData.shortAbout = body._meta.shortabout;
-    if (body._meta?.facebook !== undefined) profileUpdateData.facebookUrl = body._meta.facebook;
-    if (body._meta?.twitter !== undefined) profileUpdateData.twitterUrl = body._meta.twitter;
-    if (body._meta?.linkedin !== undefined) profileUpdateData.linkedinUrl = body._meta.linkedin;
-    if (body._meta?.instagram !== undefined) profileUpdateData.instagramUrl = body._meta.instagram;
-    if (body._meta?.youtubepage !== undefined) profileUpdateData.youtubeUrl = body._meta.youtubepage;
-    if (body._meta?.soundcloud !== undefined) profileUpdateData.soundcloudUrl = body._meta.soundcloud;
-    if (body._meta?.vimeo !== undefined) profileUpdateData.vimeoUrl = body._meta.vimeo;
-    if (body._meta?.featured !== undefined) profileUpdateData.isFeatured = body._meta.featured === '1' || body._meta.featured === true;
+    if (body._meta?.shortabout !== undefined) profileUpdateData.short_about = body._meta.shortabout;
+    if (body._meta?.facebook !== undefined) profileUpdateData.facebook_url = body._meta.facebook;
+    if (body._meta?.twitter !== undefined) profileUpdateData.twitter_url = body._meta.twitter;
+    if (body._meta?.linkedin !== undefined) profileUpdateData.linkedin_url = body._meta.linkedin;
+    if (body._meta?.instagram !== undefined) profileUpdateData.instagram_url = body._meta.instagram;
+    if (body._meta?.youtubepage !== undefined) profileUpdateData.youtube_url = body._meta.youtubepage;
+    if (body._meta?.soundcloud !== undefined) profileUpdateData.soundcloud_url = body._meta.soundcloud;
+    if (body._meta?.vimeo !== undefined) profileUpdateData.vimeo_url = body._meta.vimeo;
+    if (body._meta?.featured !== undefined) profileUpdateData.is_featured = body._meta.featured === '1' || body._meta.featured === true;
     // Rate updates
-    if (body._meta?.rates1 !== undefined) profileUpdateData.rateTier1 = body._meta.rates1;
-    if (body._meta?.rates2 !== undefined) profileUpdateData.rateTier2 = body._meta.rates2;
-    if (body._meta?.rates3 !== undefined) profileUpdateData.rateTier3 = body._meta.rates3;
-    if (body._meta?.showrates !== undefined) profileUpdateData.showRates = body._meta.showrates === '1' || body._meta.showrates === true;
+    if (body._meta?.rates1 !== undefined) profileUpdateData.rate_tier_1 = body._meta.rates1;
+    if (body._meta?.rates2 !== undefined) profileUpdateData.rate_tier_2 = body._meta.rates2;
+    if (body._meta?.rates3 !== undefined) profileUpdateData.rate_tier_3 = body._meta.rates3;
+    if (body._meta?.showrates !== undefined) profileUpdateData.show_rates = body._meta.showrates === '1' || body._meta.showrates === true;
     
     // Contact preferences
-    if (body._meta?.showemail !== undefined) profileUpdateData.showEmail = body._meta.showemail === '1' || body._meta.showemail === true;
-    if (body._meta?.showphone !== undefined) profileUpdateData.showPhone = body._meta.showphone === '1' || body._meta.showphone === true;
-    if (body._meta?.showaddress !== undefined) profileUpdateData.showAddress = body._meta.showaddress === '1' || body._meta.showaddress === true;
+    if (body._meta?.showemail !== undefined) profileUpdateData.show_email = body._meta.showemail === '1' || body._meta.showemail === true;
+    if (body._meta?.showphone !== undefined) profileUpdateData.show_phone = body._meta.showphone === '1' || body._meta.showphone === true;
+    if (body._meta?.showaddress !== undefined) profileUpdateData.show_address = body._meta.showaddress === '1' || body._meta.showaddress === true;
     
     // Connection types
     if (body._meta?.connection1 !== undefined) profileUpdateData.connection1 = body._meta.connection1;
@@ -259,15 +259,15 @@ export async function PUT(
     await prisma.$transaction(async (tx) => {
       // Update user if there are user changes
       if (Object.keys(userUpdateData).length > 0) {
-        await tx.user.update({
-          where: { id: existingStudio.ownerId },
+        await tx.users.update({
+          where: { id: existingStudio.owner_id },
           data: userUpdateData
         });
       }
 
       // Update studio if there are studio changes
       if (Object.keys(studioUpdateData).length > 0) {
-        await tx.studio.update({
+        await tx.studios.update({
           where: { id: studioId },
           data: studioUpdateData
         });
@@ -276,16 +276,16 @@ export async function PUT(
       // Update studio types if provided
       if (body.studioTypes !== undefined) {
         // Delete existing studio types
-        await tx.studioStudioType.deleteMany({
-          where: { studioId: studioId }
+        await tx.studio_studio_types.deleteMany({
+          where: { studio_id: studioId }
         });
 
         // Create new studio types
         if (Array.isArray(body.studioTypes) && body.studioTypes.length > 0) {
-          await tx.studioStudioType.createMany({
+          await tx.studio_studio_types.createMany({
             data: body.studioTypes.map((st: any) => ({
-              studioId: studioId,
-              studioType: st.studioType
+              studio_id: studioId,
+              studio_type: st.studioType
             }))
           });
         }
@@ -293,11 +293,11 @@ export async function PUT(
 
       // Update profile if there are profile changes
       if (Object.keys(profileUpdateData).length > 0) {
-        await tx.userProfile.upsert({
-          where: { userId: existingStudio.ownerId },
+        await tx.user_profiles.upsert({
+          where: { user_id: existingStudio.owner_id },
           update: profileUpdateData,
           create: {
-            userId: existingStudio.ownerId,
+            user_id: existingStudio.owner_id,
             ...profileUpdateData
           }
         });
@@ -332,7 +332,7 @@ export async function DELETE(
     const studioId = (await params).id;
 
     // Delete the studio
-    await prisma.studio.delete({
+    await prisma.studios.delete({
       where: { id: studioId },
     });
 
