@@ -2,8 +2,6 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { colors } from '../../components/home/HomePage';
-import Link from 'next/link';
 
 export default function PrivacyPage() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -61,13 +59,13 @@ export default function PrivacyPage() {
             <p className="text-gray-500 mb-8">
               Please check back soon or contact us if you have any questions about how we handle your data.
             </p>
-            <Link 
-              href="/"
-              className="inline-block bg-[#d42027] hover:bg-[#b91c23] text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+            <button 
+              onClick={() => window.close()}
+              className="inline-block bg-[#d42027] hover:bg-[#b91c23] text-white font-semibold px-8 py-3 rounded-lg transition-colors cursor-pointer"
               style={{ color: '#ffffff' }}
             >
-              Return to Home
-            </Link>
+              Close
+            </button>
           </div>
         </div>
       </div>
