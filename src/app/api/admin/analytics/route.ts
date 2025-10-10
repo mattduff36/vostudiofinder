@@ -81,7 +81,7 @@ export async function GET() {
       }),
       
       // Connection status distribution
-      db.contact.groupBy({
+      db.contacts.groupBy({
         by: ['accepted'],
         _count: { accepted: true }
       }),
