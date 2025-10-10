@@ -23,7 +23,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const savedSearches = await db.savedSearch.findMany({
+    const savedSearches = await db.saved_searches.findMany({
       where: { userId: session.user.id },
       orderBy: { created_at: 'desc' },
     });
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, filters } = saveSearchSchema.parse(body);
 
-    const savedSearch = await db.savedSearch.create({
+    const savedSearch = await db.saved_searches.create({
       data: {
         userId: session.user.id,
         name,
@@ -73,3 +73,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if connection already exists
-    const existingConnection = await db.userConnection.findFirst({
+    const existingConnection = await db.user_connections.findFirst({
       where: {
         OR: [
           { userId: session.user.id, connectedUserId: targetUserId },
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'connect': {
         // Send connection request
-        const connection = await db.userConnection.create({
+        const connection = await db.user_connections.create({
           data: {
             userId: session.user.id,
             connectedUserId: targetUserId,
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const updatedConnection = await db.userConnection.update({
+        const updatedConnection = await db.user_connections.update({
           where: { id: existingConnection.id },
           data: {
             accepted: true,
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        await db.userConnection.delete({
+        await db.user_connections.delete({
           where: { id: existingConnection.id },
         });
 
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       case 'block': {
         // Block user (delete existing connection and create block record)
         if (existingConnection) {
-          await db.userConnection.delete({
+          await db.user_connections.delete({
             where: { id: existingConnection.id },
           });
         }
@@ -204,7 +204,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [connections, totalCount] = await Promise.all([
-      db.userConnection.findMany({
+      db.user_connections.findMany({
         where,
         skip,
         take: limit,
@@ -230,7 +230,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      db.userConnection.count({ where }),
+      db.user_connections.count({ where }),
     ]);
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -267,7 +267,7 @@ export async function DELETE(request: NextRequest) {
     const { targetUserId } = connectionDeleteSchema.parse(body);
 
     // Find and delete connection
-    const connection = await db.userConnection.findFirst({
+    const connection = await db.user_connections.findFirst({
       where: {
         OR: [
           { userId: session.user.id, connectedUserId: targetUserId },
@@ -283,7 +283,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await db.userConnection.delete({
+    await db.user_connections.delete({
       where: { id: connection.id },
     });
 
@@ -304,4 +304,5 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
 

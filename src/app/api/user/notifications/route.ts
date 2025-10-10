@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       where.read = false;
     }
 
-    const notifications = await db.notification.findMany({
+    const notifications = await db.notifications.findMany({
       where,
       orderBy: { created_at: 'desc' },
       take: limit,
@@ -42,3 +42,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
