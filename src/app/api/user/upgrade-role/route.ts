@@ -13,7 +13,7 @@ export async function POST() {
     }
 
     // For testing purposes, allow users to upgrade to STUDIO_OWNER
-    const updatedUser = await db.user.update({
+    const updatedUser = await db.users.update({
       where: { id: session.user.id },
       data: { role: Role.STUDIO_OWNER },
     });
@@ -35,3 +35,4 @@ export async function POST() {
     );
   }
 }
+

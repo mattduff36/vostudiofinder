@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const validatedData = forgotPasswordSchema.parse(body);
     
     // Check if user exists
-    const user = await db.user.findUnique({
+    const user = await db.users.findUnique({
       where: { email: validatedData.email },
     });
     
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     // const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
     
     // Save reset token to database
-    await db.user.update({
+    await db.users.update({
       where: { id: user.id },
       data: {
         // TODO: Add resetToken and resetTokenExpiry fields to User model
@@ -63,3 +63,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+

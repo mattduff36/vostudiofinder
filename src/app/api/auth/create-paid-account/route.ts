@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await db.user.findUnique({
+    const existingUser = await db.users.findUnique({
       where: { email: validatedData.email },
     });
     
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // Check if username is already taken (if provided)
     if (username) {
-      const existingUsername = await db.user.findUnique({
+      const existingUsername = await db.users.findUnique({
         where: { username },
       });
       
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Store membership information
-    await db.user.update({
+    await db.users.update({
       where: { id: user.id },
       data: {
         role: 'STUDIO_OWNER', // Paid members are studio owners
@@ -128,3 +128,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

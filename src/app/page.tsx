@@ -27,7 +27,7 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
   
   // Fetch featured studios for the homepage (available to all users)
-  const featuredStudios = await db.studio.findMany({
+  const featuredStudios = await db.studios.findMany({
     where: {
       status: 'ACTIVE',
       isVerified: true,
@@ -68,8 +68,8 @@ export default async function Home() {
 
   // Get total counts for stats
   const [totalStudios, totalUsers] = await Promise.all([
-    db.studio.count({ where: { status: 'ACTIVE' } }),
-    db.user.count(),
+    db.studios.count({ where: { status: 'ACTIVE' } }),
+    db.users.count(),
   ]);
 
   // Convert Decimal fields to numbers and map shortAbout to description for client components
@@ -91,3 +91,4 @@ export default async function Home() {
     />
   );
 }
+

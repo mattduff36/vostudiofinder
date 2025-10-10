@@ -22,14 +22,14 @@ export async function GET() {
       totalFaqs,
       totalUsers
     ] = await Promise.all([
-      db.studio.count(),
-      db.studio.count({
+      db.studios.count(),
+      db.studios.count({
         where: {
           status: 'ACTIVE'
         }
       }),
       db.faq.count(),
-      db.user.count()
+      db.users.count()
     ]);
 
     const dashboardData = {
@@ -55,3 +55,4 @@ export async function GET() {
     );
   }
 }
+

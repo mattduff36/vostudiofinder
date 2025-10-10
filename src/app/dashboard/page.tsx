@@ -20,7 +20,7 @@ export default async function DashboardPage() {
     userConnections,
   ] = await Promise.all([
     // User's studios (if they're a studio owner)
-    db.studio.findMany({
+    db.studios.findMany({
       where: { ownerId: session.user.id },
       include: {
         services: true,

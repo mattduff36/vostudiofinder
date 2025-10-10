@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const validatedData = createReviewSchema.parse(body);
     
     // Check if studio exists and is active
-    const studio = await db.studio.findUnique({
+    const studio = await db.studios.findUnique({
       where: { 
         id: validatedData.studioId,
         status: 'ACTIVE',

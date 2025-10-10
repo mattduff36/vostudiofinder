@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Collect all user data from various tables
-    const userData = await db.user.findUnique({
+    const userData = await db.users.findUnique({
       where: { id: session.user.id },
       include: {
         studios: {
@@ -162,3 +162,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+

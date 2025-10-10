@@ -28,7 +28,7 @@ export default async function EditStudioPage({ params }: EditStudioPageProps) {
   }
 
   // Find user by username and get their studio
-  const user = await db.user.findUnique({
+  const user = await db.users.findUnique({
     where: { username },
     include: {
       studios: {

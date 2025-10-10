@@ -18,7 +18,7 @@ export default async function ProfilePage() {
   }
 
   // Fetch fresh user data
-  const user = await db.user.findUnique({
+  const user = await db.users.findUnique({
     where: { id: session.user.id },
     select: {
       displayName: true,
@@ -48,3 +48,4 @@ export default async function ProfilePage() {
     </div>
   );
 }
+

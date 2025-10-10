@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if target user exists
-    const targetUser = await db.user.findUnique({
+    const targetUser = await db.users.findUnique({
       where: { id: targetUserId },
     });
 
@@ -304,3 +304,4 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     // Get studios with pagination
     const [studios, total] = await Promise.all([
-      db.studio.findMany({
+      db.studios.findMany({
         where,
         include: {
           owner: {
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         take: limit,
         skip: offset
       }),
-      db.studio.count({ where })
+      db.studios.count({ where })
     ]);
 
     const hasMore = offset + limit < total;

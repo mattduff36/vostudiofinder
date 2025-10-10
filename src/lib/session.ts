@@ -14,7 +14,7 @@ export async function getEnhancedSession() {
   }
 
   // Fetch additional user data that might not be in the JWT
-  const userData = await db.user.findUnique({
+  const userData = await db.users.findUnique({
     where: { id: session.user.id },
     select: {
       id: true,
@@ -47,7 +47,7 @@ export async function getEnhancedSession() {
  */
 export async function validateSession(sessionUserId: string) {
   try {
-    const user = await db.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: sessionUserId },
       select: {
         id: true,
@@ -121,3 +121,4 @@ export function applySecurityHeaders(headers: Headers) {
     headers.set(key, value);
   });
 }
+

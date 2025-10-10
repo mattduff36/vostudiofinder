@@ -235,7 +235,7 @@ export async function GET(request: NextRequest) {
 
     if (searchCoordinates && validatedParams.radius) {
       // For geographic search, fetch all matching studios first, then filter by distance
-      const allStudios = await db.studio.findMany({
+      const allStudios = await db.studios.findMany({
         where,
         include: {
           owner: {
@@ -317,7 +317,7 @@ export async function GET(request: NextRequest) {
     } else {
       // Standard non-geographic search
       [studios, totalCount] = await Promise.all([
-        db.studio.findMany({
+        db.studios.findMany({
           where,
           orderBy,
           skip,
@@ -361,7 +361,7 @@ export async function GET(request: NextRequest) {
             },
           },
         }),
-        db.studio.count({ where }),
+        db.studios.count({ where }),
       ]);
     }
 
@@ -390,7 +390,7 @@ export async function GET(request: NextRequest) {
       // Use the same filtering logic as the main query
       if (searchCoordinates && validatedParams.radius) {
         // Get all studios that match the search criteria (not just paginated results)
-        mapMarkers = await db.studio.findMany({
+        mapMarkers = await db.studios.findMany({
           where,
           select: {
             id: true,
@@ -419,7 +419,7 @@ export async function GET(request: NextRequest) {
         });
       } else {
         // Fallback to filtered results
-        mapMarkers = await db.studio.findMany({
+        mapMarkers = await db.studios.findMany({
           where,
           select: {
             id: true,
@@ -437,7 +437,7 @@ export async function GET(request: NextRequest) {
       }
     } else if (hasOtherFilters) {
       // For other filters, show all matching studios
-      mapMarkers = await db.studio.findMany({
+      mapMarkers = await db.studios.findMany({
         where,
         select: {
           id: true,
@@ -454,7 +454,7 @@ export async function GET(request: NextRequest) {
       });
     } else {
       // No filters - show ALL active studios on map
-      mapMarkers = await db.studio.findMany({
+      mapMarkers = await db.studios.findMany({
         where: { status: 'ACTIVE' },
         select: {
           id: true,
