@@ -8,7 +8,7 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    const { displayName, username } = await request.json();
+    const { display_name, username } = await request.json();
 
     // If checking a specific username
     if (username) {
@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate suggestions from display name
-    if (displayName) {
-      const baseSuggestions = generateUsernameSuggestions(displayName);
+    if (display_name) {
+      const baseSuggestions = generateUsernameSuggestions(display_name);
       const suggestions: { username: string; available: boolean }[] = [];
 
       // Check availability of base suggestions
@@ -107,12 +107,12 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         suggestions: suggestions.slice(0, 6), // Return top 6 suggestions
-        displayName,
+        display_name,
       });
     }
 
     return NextResponse.json(
-      { error: 'Either displayName or username is required' },
+      { error: 'Either display_name or username is required' },
       { status: 400 }
     );
   } catch (error) {

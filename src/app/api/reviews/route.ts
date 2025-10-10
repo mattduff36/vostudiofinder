@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
       include: {
         reviewer: {
           select: {
-            displayName: true,
-            avatarUrl: true,
+            display_name: true,
+            avatar_url: true,
           },
         },
         studio: {
@@ -149,8 +149,8 @@ export async function GET(request: NextRequest) {
         include: {
           reviewer: {
             select: {
-              displayName: true,
-              avatarUrl: true,
+              display_name: true,
+              avatar_url: true,
             },
           },
         },

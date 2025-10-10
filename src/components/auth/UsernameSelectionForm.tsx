@@ -14,7 +14,7 @@ interface UsernameSuggestion {
 export function UsernameSelectionForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const displayName = searchParams?.get('displayName') || '';
+  const display_name = searchParams?.get('display_name') || '';
 
   const [suggestions, setSuggestions] = useState<UsernameSuggestion[]>([]);
   const [selectedUsername, setSelectedUsername] = useState('');
@@ -25,10 +25,10 @@ export function UsernameSelectionForm() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (displayName) {
+    if (display_name) {
       fetchSuggestions();
     }
-  }, [displayName]);
+  }, [display_name]);
 
   const fetchSuggestions = async () => {
     try {
@@ -36,7 +36,7 @@ export function UsernameSelectionForm() {
       const response = await fetch('/api/auth/check-username', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayName }),
+        body: JSON.stringify({ display_name }),
       });
 
       const data = await response.json();
@@ -111,7 +111,7 @@ export function UsernameSelectionForm() {
     const data = JSON.parse(signupData);
     const params = new URLSearchParams();
     params.set('email', data.email);
-    params.set('name', data.displayName);
+    params.set('name', data.display_name);
     params.set('username', selectedUsername);
 
     router.push(`/auth/membership?${params.toString()}`);

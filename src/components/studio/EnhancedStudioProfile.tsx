@@ -32,7 +32,7 @@ interface EnhancedStudioProfileProps {
     };
     images: StudioImage[];
     services: StudioService[];
-    studioTypes?: Array<{ studioType: string }>;
+    studioTypes?: Array<{ studio_type: string }>;
     reviews?: any[];
   };
 }
@@ -108,7 +108,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
               <div key={image.id} className={`relative ${index === 0 ? 'md:col-span-2' : ''}`}>
                 <img
                   src={image.imageUrl}
-                  alt={image.altText || `${studio.name} studio image`}
+                  alt={image.alt_text || `${studio.name} studio image`}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -124,7 +124,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
         {studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] && (
           <div className="absolute top-4 right-4">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/90 text-gray-800">
-              {studio.studioTypes[0].studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
+              {studio.studioTypes[0].studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
             </span>
           </div>
         )}
@@ -138,17 +138,17 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
             
             {/* Owner Info */}
             <div className="flex items-center space-x-3 mb-3">
-              {studio.owner.avatarUrl && (
+              {studio.owner.avatar_url && (
                 <img
-                  src={studio.owner.avatarUrl}
-                  alt={studio.owner.displayName}
+                  src={studio.owner.avatar_url}
+                  alt={studio.owner.display_name}
                   className="w-8 h-8 rounded-full border-2 border-white/50"
                 />
               )}
               <span className="text-primary-100">
                 Owned by {ownerProfile?.studioName && ownerProfile?.lastName 
                   ? `${ownerProfile.studioName} ${ownerProfile.lastName}`
-                  : studio.owner.displayName
+                  : studio.owner.display_name
                 }
               </span>
             </div>
@@ -326,7 +326,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                     <div key={image.id} className="aspect-video bg-gray-200 rounded-lg overflow-hidden">
                       <img
                         src={image.imageUrl}
-                        alt={image.altText || `${studio.name} studio image`}
+                        alt={image.alt_text || `${studio.name} studio image`}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                       />
                     </div>
@@ -346,7 +346,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Studio Type:</span>
                     <span className="font-medium capitalize">
-                      {studio.studioTypes[0].studioType.replace('_', ' ').toLowerCase()}
+                      {studio.studioTypes[0].studio_type.replace('_', ' ').toLowerCase()}
                     </span>
                   </div>
                 )}

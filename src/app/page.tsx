@@ -33,14 +33,14 @@ export default async function Home() {
       is_verified: true,
     },
     include: {
-      owner: {
+      users: {
         select: {
-          displayName: true,
+          display_name: true,
           username: true,
-          avatarUrl: true,
+          avatar_url: true,
           profile: {
             select: {
-              shortAbout: true,
+              short_about: true,
             },
           },
         },
@@ -48,12 +48,12 @@ export default async function Home() {
       services: true,
       studioTypes: {
         select: {
-          studioType: true,
+          studio_type: true,
         },
       },
       images: {
         take: 1,
-        orderBy: { sortOrder: 'asc' },
+        orderBy: { sort_order: 'asc' },
       },
       _count: {
         select: { reviews: true },
@@ -72,10 +72,10 @@ export default async function Home() {
     db.users.count(),
   ]);
 
-  // Convert Decimal fields to numbers and map shortAbout to description for client components
+  // Convert Decimal fields to numbers and map short_about to description for client components
   const serializedStudios = featuredStudios.map(studio => ({
     ...studio,
-    description: studio.owner?.profile?.shortAbout || '', // Use shortAbout as description
+    description: studio.owner?.profile?.short_about || '', // Use short_about as description
     latitude: studio.latitude ? Number(studio.latitude) : null,
     longitude: studio.longitude ? Number(studio.longitude) : null,
   }));

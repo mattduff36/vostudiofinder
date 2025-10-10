@@ -183,7 +183,7 @@ export function Navbar({ session }: NavbarProps) {
                 <span className={`text-sm ${
                   isScrolled || !isHomePage ? 'text-gray-600' : 'text-white'
                 }`}>
-                  Welcome, {session.user.displayName}
+                  Welcome, {session.user.display_name}
                 </span>
                 <Button
                   onClick={() => router.push('/dashboard')}
@@ -292,7 +292,7 @@ export function Navbar({ session }: NavbarProps) {
                 {session ? (
                   <>
                     <div className="text-xs text-gray-500 px-3">
-                      Welcome, {session.user.displayName}
+                      Welcome, {session.user.display_name}
                     </div>
                     <button
                       onClick={() => router.push('/dashboard')}

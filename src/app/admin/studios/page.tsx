@@ -8,13 +8,13 @@ interface Studio {
   id: string;
   name: string;
   description?: string;
-  studioType: string;
-  studioTypes?: Array<{ studioType: string }>;
+  studio_type: string;
+  studioTypes?: Array<{ studio_type: string }>;
   status: string;
   is_verified: boolean;
   is_premium: boolean;
   owner: {
-    displayName: string;
+    display_name: string;
     email: string;
     username: string;
   };
@@ -362,7 +362,7 @@ export default function AdminStudiosPage() {
                           {studio.studioTypes && studio.studioTypes.length > 0 
                             ? studio.studioTypes
                                 .map(st => {
-                                  const type = st.studioType;
+                                  const type = st.studio_type;
                                   if (type === 'VO_COACH') return 'C';
                                   return type.charAt(0);
                                 })
@@ -372,7 +372,7 @@ export default function AdminStudiosPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{studio.owner.displayName}</div>
+                        <div className="text-sm text-gray-900">{studio.owner.display_name}</div>
                         <div className="text-sm text-gray-500">{studio.owner.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

@@ -13,7 +13,7 @@ export const signupSchema = z.object({
     .regex(/\d/, 'Password must contain at least one number')
     .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
-  displayName: z
+  display_name: z
     .string()
     .min(2, 'Display name must be at least 2 characters long')
     .max(50, 'Display name must be less than 50 characters'),
@@ -57,7 +57,7 @@ export const resetPasswordSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  displayName: z
+  display_name: z
     .string()
     .min(2, 'Display name must be at least 2 characters long')
     .max(50, 'Display name must be less than 50 characters'),
@@ -66,7 +66,7 @@ export const updateProfileSchema = z.object({
     .min(3, 'Username must be at least 3 characters long')
     .max(20, 'Username must be less than 20 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
-  avatarUrl: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
+  avatar_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
 });
 
 export type SignupInput = z.infer<typeof signupSchema>;

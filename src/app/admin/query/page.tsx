@@ -213,7 +213,7 @@ export default function AdminQueryPage() {
             <h4 className="font-medium text-gray-700 mb-2">User Information</h4>
             <div className="space-y-2">
               <button
-                onClick={() => setQuery('SELECT username, "displayName", email, status FROM "User" WHERE status = 1 ORDER BY "created_at" DESC LIMIT 10;')}
+                onClick={() => setQuery('SELECT username, "display_name", email, status FROM "User" WHERE status = 1 ORDER BY "created_at" DESC LIMIT 10;')}
                 className="block w-full text-left p-2 text-xs bg-white border border-gray-200 rounded hover:bg-gray-50 font-mono"
               >
                 Active users (recent)

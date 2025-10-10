@@ -40,8 +40,8 @@ interface ModernStudioProfileV3Props {
     images: Array<{
       id: string;
       imageUrl: string;
-      altText?: string;
-      sortOrder: number;
+      alt_text?: string;
+      sort_order: number;
     }>;
     services: Array<{
       service: string;
@@ -52,22 +52,22 @@ interface ModernStudioProfileV3Props {
       content: string;
       created_at: Date;
       reviewer: {
-        displayName: string;
+        display_name: string;
       };
     }>;
     owner: {
       id: string;
-      displayName: string;
+      display_name: string;
       username: string;
       email: string;
       role: string;
-      avatarUrl?: string;
+      avatar_url?: string;
       profile?: {
         studioName?: string | null;
         lastName?: string | null;
         phone?: string | null;
         about?: string | null;
-        shortAbout?: string | null;
+        short_about?: string | null;
         location?: string | null;
         rateTier1?: string | null;
         rateTier2?: string | null;
@@ -269,7 +269,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 <div className="relative h-96 bg-gray-200 rounded-lg overflow-hidden mb-4">
                   <Image
                     src={displayImages[0]?.imageUrl || ''}
-                    alt={displayImages[0]?.altText || studio.name}
+                    alt={displayImages[0]?.alt_text || studio.name}
                     fill
                     className="object-cover"
                     priority
@@ -287,7 +287,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                       >
                         <Image
                           src={image.imageUrl}
-                          alt={image.altText || studio.name}
+                          alt={image.alt_text || studio.name}
                           fill
                           className="object-cover"
                         />
@@ -342,7 +342,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             <div className="mb-6">
               <div className="prose prose-gray max-w-none">
                 <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                  {cleanDescription(profile?.about || profile?.shortAbout || studio.description)}
+                  {cleanDescription(profile?.about || profile?.short_about || studio.description)}
                 </p>
                 {profile?.equipmentList && (
                   <div className="mt-4">
@@ -422,10 +422,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                         <div className="flex items-center space-x-2">
                           <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
                             <span className="text-sm font-medium text-gray-600">
-                              {review.reviewer.displayName.charAt(0)}
+                              {review.reviewer.display_name.charAt(0)}
                             </span>
                           </div>
-                          <span className="font-medium text-gray-900">{review.reviewer.displayName}</span>
+                          <span className="font-medium text-gray-900">{review.reviewer.display_name}</span>
                         </div>
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (

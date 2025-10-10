@@ -50,7 +50,7 @@ export function ProfessionalNetwork({
   // Filter connections based on search and type
   const filteredConnections = connections.filter(conn => {
     const user = conn.connectedUser;
-    const matchesSearch = user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = user.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (user.profile?.location && user.profile.location.toLowerCase().includes(searchTerm.toLowerCase()));
     
@@ -73,16 +73,16 @@ export function ProfessionalNetwork({
         <div className="flex items-start space-x-4">
           {/* Avatar */}
           <div className="flex-shrink-0">
-            {user.avatarUrl ? (
+            {user.avatar_url ? (
               <img
-                src={user.avatarUrl}
-                alt={user.displayName}
+                src={user.avatar_url}
+                alt={user.display_name}
                 className="w-12 h-12 rounded-full"
               />
             ) : (
               <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
                 <span className="text-lg font-medium text-gray-600">
-                  {user.displayName.charAt(0).toUpperCase()}
+                  {user.display_name.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
@@ -95,7 +95,7 @@ export function ProfessionalNetwork({
                 <h3 className="text-lg font-medium text-gray-900 truncate">
                   {user.profile?.studioName && user.profile?.lastName 
                     ? `${user.profile.studioName} ${user.profile.lastName}`
-                    : user.displayName
+                    : user.display_name
                   }
                 </h3>
                 <p className="text-sm text-gray-500 text-center">@{user.username}</p>
@@ -130,9 +130,9 @@ export function ProfessionalNetwork({
             )}
 
             {/* Short Bio */}
-            {user.profile?.shortAbout && (
+            {user.profile?.short_about && (
               <p className="mt-2 text-sm text-gray-700 line-clamp-2">
-                {user.profile.shortAbout}
+                {user.profile.short_about}
               </p>
             )}
 

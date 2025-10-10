@@ -31,7 +31,7 @@ interface ModernStudioProfileProps {
     id: string;
     name: string;
     description: string;
-    studioType: string;
+    studio_type: string;
     address: string;
     website_url?: string;
     phone?: string;
@@ -42,8 +42,8 @@ interface ModernStudioProfileProps {
     images: Array<{
       id: string;
       imageUrl: string;
-      altText?: string;
-      sortOrder: number;
+      alt_text?: string;
+      sort_order: number;
     }>;
     services: Array<{
       service: string;
@@ -54,22 +54,22 @@ interface ModernStudioProfileProps {
       content: string;
       created_at: Date;
       reviewer: {
-        displayName: string;
+        display_name: string;
       };
     }>;
     owner: {
       id: string;
-      displayName: string;
+      display_name: string;
       username: string;
       email: string;
       role: string;
-      avatarUrl?: string;
+      avatar_url?: string;
       profile?: {
         studioName?: string | null;
         lastName?: string | null;
         phone?: string | null;
         about?: string | null;
-        shortAbout?: string | null;
+        short_about?: string | null;
         location?: string | null;
         rateTier1?: string | null;
         rateTier2?: string | null;
@@ -224,7 +224,7 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
             <>
               <Image
                 src={studio.images[currentImageIndex]?.imageUrl || ''}
-                alt={studio.images[currentImageIndex]?.altText || studio.name}
+                alt={studio.images[currentImageIndex]?.alt_text || studio.name}
                 fill
                 className="object-cover"
                 priority
@@ -303,7 +303,7 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                     {/* Studio Type Badges */}
                     <div className="flex flex-wrap gap-2">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        {studioTypeLabels[studio.studioType as keyof typeof studioTypeLabels] || studio.studioType}
+                        {studioTypeLabels[studio.studio_type as keyof typeof studioTypeLabels] || studio.studio_type}
                       </span>
                       {studio.is_premium && (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
@@ -409,7 +409,7 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">About this studio</h2>
               <div className="prose prose-gray max-w-none">
                 <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                  {cleanDescription(profile?.about || profile?.shortAbout || studio.description)}
+                  {cleanDescription(profile?.about || profile?.short_about || studio.description)}
                 </p>
                 {profile?.equipmentList && (
                   <div className="mt-4">
@@ -477,10 +477,10 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                         <div className="flex items-center space-x-2">
                           <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
                             <span className="text-sm font-medium text-gray-600">
-                              {review.reviewer.displayName.charAt(0)}
+                              {review.reviewer.display_name.charAt(0)}
                             </span>
                           </div>
-                          <span className="font-medium text-gray-900">{review.reviewer.displayName}</span>
+                          <span className="font-medium text-gray-900">{review.reviewer.display_name}</span>
                         </div>
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (

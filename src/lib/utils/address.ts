@@ -102,9 +102,9 @@ function toRadians(degrees: number): number {
 /**
  * Formats a user's display name for search suggestions (name only, location will be separate)
  * @param username - User's username
- * @param displayName - User's display name
+ * @param display_name - User's display name
  * @returns Formatted string for display (e.g., "VoiceoverGuy")
  */
-export function formatUserSuggestion(username: string, displayName: string): string {
-  return displayName || username;
+export function formatUserSuggestion(username: string, display_name: string): string {
+  return display_name || username;
 }

@@ -126,7 +126,7 @@ export async function DELETE(request: NextRequest) {
     // TODO: Send account deletion confirmation email
     // await emailService.sendAccountDeletionConfirmation({
     //   email: user.email,
-    //   displayName: session.user.displayName,
+    //   display_name: session.user.display_name,
     // });
     
     return NextResponse.json(

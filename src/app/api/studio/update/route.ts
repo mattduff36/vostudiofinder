@@ -28,7 +28,7 @@ export async function PUT(request: NextRequest) {
     const existingStudio = await db.studios.findUnique({
       where: { id },
       include: {
-        owner: {
+        users: {
           select: {
             id: true,
             username: true,
@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest) {
     if (updateData.studioTypes !== undefined) {
       updateFields.studioTypes = {
         deleteMany: {}, // Remove existing studio types
-        create: updateData.studioTypes.map(studioType => ({ studioType })),
+        create: updateData.studioTypes.map(studio_type => ({ studio_type })),
       };
     }
 
@@ -78,8 +78,8 @@ export async function PUT(request: NextRequest) {
         deleteMany: {}, // Remove existing images
         create: updateData.images.map((image, index) => ({
           imageUrl: image.url,
-          altText: image.altText || '',
-          sortOrder: index,
+          alt_text: image.alt_text || '',
+          sort_order: index,
         })),
       };
     }
@@ -92,7 +92,7 @@ export async function PUT(request: NextRequest) {
         studioTypes: true,
         services: true,
         images: {
-          orderBy: { sortOrder: 'asc' },
+          orderBy: { sort_order: 'asc' },
         },
         owner: {
           select: {

@@ -25,7 +25,7 @@ async function getPremiumData() {
           name: true,
           studioTypes: {
             select: {
-              studioType: true
+              studio_type: true
             }
           }
         }
@@ -54,7 +54,7 @@ async function getPremiumData() {
           name: true,
           studioTypes: {
             select: {
-              studioType: true
+              studio_type: true
             }
           }
         }
@@ -86,14 +86,14 @@ async function getPremiumData() {
       status: 'ACTIVE'
     },
     include: {
-      owner: {
+      users: {
         include: {
           profile: true
         }
       },
       studioTypes: {
         select: {
-          studioType: true
+          studio_type: true
         }
       }
     },

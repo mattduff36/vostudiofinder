@@ -7,7 +7,7 @@ interface StudioInfoProps {
     id: string;
     name: string;
     description: string;
-    studioTypes?: Array<{ studioType: string }>;
+    studioTypes?: Array<{ studio_type: string }>;
     services: Array<{ service: string }>;
     created_at: Date;
   };
@@ -74,7 +74,7 @@ export function StudioInfo({ studio }: StudioInfoProps) {
                     key={index}
                     className="inline-block px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700"
                   >
-                    {type.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                    {type.studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
                   </span>
                 ))}
               </div>

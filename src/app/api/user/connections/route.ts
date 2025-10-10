@@ -213,18 +213,18 @@ export async function GET(request: NextRequest) {
           user: {
             select: {
               id: true,
-              displayName: true,
+              display_name: true,
               username: true,
-              avatarUrl: true,
+              avatar_url: true,
               role: true,
             },
           },
           connectedUser: {
             select: {
               id: true,
-              displayName: true,
+              display_name: true,
               username: true,
-              avatarUrl: true,
+              avatar_url: true,
               role: true,
             },
           },

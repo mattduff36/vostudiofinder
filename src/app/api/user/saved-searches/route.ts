@@ -10,7 +10,7 @@ const saveSearchSchema = z.object({
     location: z.string().optional(),
     radius: z.number().optional(),
     services: z.array(z.string()).optional(),
-    studioType: z.string().optional(),
+    studio_type: z.string().optional(),
     minRating: z.number().optional(),
   }),
 });

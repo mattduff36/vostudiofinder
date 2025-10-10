@@ -17,12 +17,12 @@ import {
 
 interface PremiumUser extends User {
   profile?: UserProfile | null;
-  studios?: { id: string; name: string; studioTypes: Array<{ studioType: string }> }[];
+  studios?: { id: string; name: string; studioTypes: Array<{ studio_type: string }> }[];
 }
 
 interface PremiumStudio extends Studio {
   owner: PremiumUser;
-  studioTypes?: Array<{ studioType: string }>;
+  studioTypes?: Array<{ studio_type: string }>;
 }
 
 interface PremiumFeaturesProps {
@@ -70,16 +70,16 @@ export function PremiumFeatures({
                 ? 'bg-gradient-to-r from-purple-400 to-pink-400' 
                 : 'bg-gradient-to-r from-yellow-400 to-orange-400'
             }`}>
-              {user.avatarUrl ? (
+              {user.avatar_url ? (
                 <img
-                  src={user.avatarUrl}
-                  alt={user.displayName}
+                  src={user.avatar_url}
+                  alt={user.display_name}
                   className="w-16 h-16 rounded-full bg-white p-0.5"
                 />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
                   <span className="text-xl font-bold text-gray-600">
-                    {user.displayName.charAt(0).toUpperCase()}
+                    {user.display_name.charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
@@ -93,7 +93,7 @@ export function PremiumFeatures({
                 <h3 className="text-lg font-semibold text-gray-900">
                   {user.profile?.studioName && user.profile?.lastName 
                     ? `${user.profile.studioName} ${user.profile.lastName}`
-                    : user.displayName
+                    : user.display_name
                   }
                 </h3>
                 <p className="text-sm text-gray-600">@{user.username}</p>
@@ -127,9 +127,9 @@ export function PremiumFeatures({
             )}
 
             {/* Short Bio */}
-            {user.profile?.shortAbout && (
+            {user.profile?.short_about && (
               <p className="text-sm text-gray-700 mt-2 line-clamp-2 text-center">
-                {user.profile.shortAbout}
+                {user.profile.short_about}
               </p>
             )}
 
@@ -173,7 +173,7 @@ export function PremiumFeatures({
             <h3 className="text-lg font-semibold text-gray-900">{studio.name}</h3>
             <p className="text-sm text-gray-600">
               {studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0]
-                ? studio.studioTypes[0].studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
+                ? studio.studioTypes[0].studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
                 : 'Studio'
               }
             </p>
@@ -197,15 +197,15 @@ export function PremiumFeatures({
 
         {/* Owner Info */}
         <div className="flex items-center space-x-2">
-          {studio.owner.avatarUrl && (
+          {studio.owner.avatar_url && (
             <img
-              src={studio.owner.avatarUrl}
-              alt={studio.owner.displayName}
+              src={studio.owner.avatar_url}
+              alt={studio.owner.display_name}
               className="w-6 h-6 rounded-full"
             />
           )}
           <span className="text-sm text-gray-600">
-            Owned by {studio.owner.displayName}
+            Owned by {studio.owner.display_name}
           </span>
         </div>
 

@@ -1,11 +1,11 @@
 export interface WelcomeEmailData {
-  displayName: string;
+  display_name: string;
   email: string;
   verificationUrl: string;
 }
 
 export function getWelcomeEmailTemplate(data: WelcomeEmailData) {
-  const { displayName, email: _, verificationUrl } = data;
+  const { display_name, email: _, verificationUrl } = data;
 
   return {
     subject: 'Welcome to VoiceoverStudioFinder - Verify Your Email',
@@ -71,7 +71,7 @@ export function getWelcomeEmailTemplate(data: WelcomeEmailData) {
 <body>
     <div class="header">
         <div class="logo">VoiceoverStudioFinder</div>
-        <h1>Welcome ${displayName}!</h1>
+        <h1>Welcome ${display_name}!</h1>
     </div>
     
     <div class="content">
@@ -107,7 +107,7 @@ export function getWelcomeEmailTemplate(data: WelcomeEmailData) {
 </body>
 </html>`,
     text: `
-Welcome to VoiceoverStudioFinder, ${displayName}!
+Welcome to VoiceoverStudioFinder, ${display_name}!
 
 Thank you for joining our community of voice professionals and recording studios.
 

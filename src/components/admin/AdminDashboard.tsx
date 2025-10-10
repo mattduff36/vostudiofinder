@@ -31,7 +31,7 @@ interface AdminDashboardProps {
   recentActivity: {
     users: Array<{
       id: string;
-      displayName: string;
+      display_name: string;
       email: string;
       role: string;
       created_at: Date;
@@ -39,10 +39,10 @@ interface AdminDashboardProps {
     studios: Array<{
       id: string;
       name: string;
-      studioType: string;
+      studio_type: string;
       created_at: Date;
       owner: {
-        displayName: string;
+        display_name: string;
       };
     }>;
     reviews: Array<{
@@ -51,7 +51,7 @@ interface AdminDashboardProps {
       status: string;
       created_at: Date;
       reviewer: {
-        displayName: string;
+        display_name: string;
       };
       studio: {
         name: string;
@@ -220,7 +220,7 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
                     <div key={user.id} className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-text-primary">{user.displayName}</p>
+                          <p className="font-medium text-text-primary">{user.display_name}</p>
                           <p className="text-sm text-text-secondary">{user.email}</p>
                           <p className="text-xs text-text-secondary mt-1">
                             {user.role} • {new Date(user.created_at).toLocaleDateString()}
@@ -243,9 +243,9 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-text-primary">{studio.name}</p>
-                          <p className="text-sm text-text-secondary">by {studio.owner.displayName}</p>
+                          <p className="text-sm text-text-secondary">by {studio.owner.display_name}</p>
                           <p className="text-xs text-text-secondary mt-1">
-                            {studio.studioType} • {new Date(studio.created_at).toLocaleDateString()}
+                            {studio.studio_type} • {new Date(studio.created_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
@@ -289,7 +289,7 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
                           </div>
                           <p className="text-sm text-text-primary">{review.studio.name}</p>
                           <p className="text-xs text-text-secondary">
-                            by {review.reviewer.displayName} • {new Date(review.created_at).toLocaleDateString()}
+                            by {review.reviewer.display_name} • {new Date(review.created_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>

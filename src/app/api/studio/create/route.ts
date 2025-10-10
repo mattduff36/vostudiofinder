@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
       // Add studio types
       if (validatedData.studioTypes && validatedData.studioTypes.length > 0) {
         await tx.studioStudioType.createMany({
-          data: validatedData.studioTypes.map(studioType => ({
+          data: validatedData.studioTypes.map(studio_type => ({
             studioId: newStudio.id,
-            studioType,
+            studio_type,
           })),
         });
       }
@@ -71,8 +71,8 @@ export async function POST(request: NextRequest) {
           data: validatedData.images.map((image, index) => ({
             studioId: newStudio.id,
             imageUrl: image.url,
-            altText: image.altText || null,
-            sortOrder: index,
+            alt_text: image.alt_text || null,
+            sort_order: index,
           })),
         });
       }
@@ -87,14 +87,14 @@ export async function POST(request: NextRequest) {
         studioTypes: true,
         services: true,
         images: {
-          orderBy: { sortOrder: 'asc' },
+          orderBy: { sort_order: 'asc' },
         },
         owner: {
           select: {
             id: true,
-            displayName: true,
+            display_name: true,
             username: true,
-            avatarUrl: true,
+            avatar_url: true,
           },
         },
       },

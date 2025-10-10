@@ -35,7 +35,7 @@ export function generateUsername(email: string): string {
 export async function createUser(data: {
   email: string;
   password: string;
-  displayName: string;
+  display_name: string;
   username?: string;
   role?: Role;
 }) {
@@ -47,9 +47,9 @@ export async function createUser(data: {
       email: data.email,
       password: hashedPassword,
       username,
-      displayName: data.displayName,
+      display_name: data.display_name,
       role: data.role || Role.USER,
-      emailVerified: false,
+      email_verified: false,
     },
   });
 }

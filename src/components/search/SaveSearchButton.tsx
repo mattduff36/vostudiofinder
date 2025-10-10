@@ -10,7 +10,7 @@ interface SaveSearchButtonProps {
     location?: string;
     radius?: number;
     services?: string[];
-    studioType?: string;
+    studio_type?: string;
     minRating?: number;
   };
   onSave?: () => void;

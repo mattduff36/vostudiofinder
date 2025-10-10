@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { StudioType, ServiceType } from '@prisma/client';
+import { studio_type, ServiceType } from '@prisma/client';
 
 export const createStudioSchema = z.object({
   name: z
@@ -11,7 +11,7 @@ export const createStudioSchema = z.object({
     .min(10, 'Description must be at least 10 characters long')
     .max(2000, 'Description must be less than 2000 characters'),
   studioTypes: z
-    .array(z.nativeEnum(StudioType))
+    .array(z.nativeEnum(studio_type))
     .min(1, 'Please select at least one studio type'),
   address: z
     .string()
@@ -33,7 +33,7 @@ export const createStudioSchema = z.object({
   images: z
     .array(z.object({
       url: z.string().url('Please enter a valid image URL'),
-      altText: z.string().optional(),
+      alt_text: z.string().optional(),
     }))
     .max(10, 'Maximum 10 images allowed')
     .optional(),
@@ -52,7 +52,7 @@ export const updateStudioSchema = z.object({
     .max(2000, 'Description must be less than 2000 characters')
     .optional(),
   studioTypes: z
-    .array(z.nativeEnum(StudioType))
+    .array(z.nativeEnum(studio_type))
     .min(1, 'Please select at least one studio type')
     .optional(),
   address: z
@@ -79,7 +79,7 @@ export const updateStudioSchema = z.object({
   images: z
     .array(z.object({
       url: z.string().url('Please enter a valid image URL'),
-      altText: z.string().optional(),
+      alt_text: z.string().optional(),
     }))
     .max(10, 'Maximum 10 images allowed')
     .optional(),
@@ -97,7 +97,7 @@ export const studioSearchSchema = z.object({
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(50),
   sortBy: z.enum(['name', 'distance', 'rating', 'created_at']).default('name'),
-  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  sort_order: z.enum(['asc', 'desc']).default('asc'),
 });
 
 export type CreateStudioInput = z.infer<typeof createStudioSchema>;

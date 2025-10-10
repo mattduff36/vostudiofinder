@@ -18,8 +18,8 @@ interface StudioReviewsProps {
       isAnonymous: boolean;
       created_at: Date;
       reviewer: {
-        displayName: string;
-        avatarUrl?: string;
+        display_name: string;
+        avatar_url?: string;
       };
     }>;
     _count: { reviews: number };

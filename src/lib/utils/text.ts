@@ -1,6 +1,6 @@
 /**
  * Clean studio description text by removing escaped characters and HTML entities
- * For shortAbout fields, return empty string if no valid content exists
+ * For short_about fields, return empty string if no valid content exists
  */
 export function cleanDescription(description: string | null | undefined): string {
   if (!description) return '';
@@ -23,12 +23,12 @@ export function cleanDescription(description: string | null | undefined): string
   // Check if the cleaned description is only numbers and whitespace/newlines
   const numbersOnly = cleaned.replace(/[\s\n\r]+/g, ''); // Remove all whitespace
   if (/^\d+$/.test(numbersOnly) || /^\d+\.\d+$/.test(numbersOnly)) {
-    return ''; // Return empty string instead of placeholder for shortAbout fields
+    return ''; // Return empty string instead of placeholder for short_about fields
   }
   
   // If description is very short and seems like placeholder data, return empty
   if (cleaned.length < 10 && /^[\d\s\n\r.,-]+$/.test(cleaned)) {
-    return ''; // Return empty string instead of placeholder for shortAbout fields
+    return ''; // Return empty string instead of placeholder for short_about fields
   }
   
   return cleaned;

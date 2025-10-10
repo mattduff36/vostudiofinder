@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
         include: {
           processedByUser: {
             select: {
-              displayName: true,
+              display_name: true,
               email: true,
             },
           },

@@ -26,11 +26,11 @@ export default async function DashboardPage() {
         services: true,
         images: {
           take: 1,
-          orderBy: { sortOrder: 'asc' },
+          orderBy: { sort_order: 'asc' },
         },
         studioTypes: {
           select: {
-            studioType: true,
+            studio_type: true,
           },
         },
         _count: {
@@ -66,14 +66,14 @@ export default async function DashboardPage() {
       include: {
         sender: {
           select: {
-            displayName: true,
-            avatarUrl: true,
+            display_name: true,
+            avatar_url: true,
           },
         },
         receiver: {
           select: {
-            displayName: true,
-            avatarUrl: true,
+            display_name: true,
+            avatar_url: true,
           },
         },
       },
@@ -94,15 +94,15 @@ export default async function DashboardPage() {
         user: {
           select: {
             id: true,
-            displayName: true,
-            avatarUrl: true,
+            display_name: true,
+            avatar_url: true,
           },
         },
         connectedUser: {
           select: {
             id: true,
-            displayName: true,
-            avatarUrl: true,
+            display_name: true,
+            avatar_url: true,
           },
         },
       },
@@ -123,17 +123,17 @@ export default async function DashboardPage() {
   const dashboardData = {
     user: {
       id: session.user.id,
-      displayName: session.user.displayName,
+      display_name: session.user.display_name,
       email: session.user.email,
       username: session.user.username,
       role: session.user.role as string,
-      ...(session.user.avatarUrl && { avatarUrl: session.user.avatarUrl }),
+      ...(session.user.avatar_url && { avatar_url: session.user.avatar_url }),
     },
     stats,
     studios: userStudios.map(studio => ({
       id: studio.id,
       name: studio.name,
-      studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
+      studio_type: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studio_type : 'VOICEOVER',
       status: studio.status,
       is_premium: studio.is_premium,
       created_at: studio.created_at,
@@ -156,12 +156,12 @@ export default async function DashboardPage() {
       senderId: message.senderId,
       receiverId: message.receiverId,
       sender: {
-        displayName: message.sender.displayName,
-        ...(message.sender.avatarUrl && { avatarUrl: message.sender.avatarUrl }),
+        display_name: message.sender.display_name,
+        ...(message.sender.avatar_url && { avatar_url: message.sender.avatar_url }),
       },
       receiver: {
-        displayName: message.receiver.displayName,
-        ...(message.receiver.avatarUrl && { avatarUrl: message.receiver.avatarUrl }),
+        display_name: message.receiver.display_name,
+        ...(message.receiver.avatar_url && { avatar_url: message.receiver.avatar_url }),
       },
     })),
     connections: userConnections.map(connection => ({
@@ -170,13 +170,13 @@ export default async function DashboardPage() {
       connectedUserId: connection.connectedUserId,
       user: {
         id: connection.user.id,
-        displayName: connection.user.displayName,
-        ...(connection.user.avatarUrl && { avatarUrl: connection.user.avatarUrl }),
+        display_name: connection.user.display_name,
+        ...(connection.user.avatar_url && { avatar_url: connection.user.avatar_url }),
       },
       connectedUser: {
         id: connection.connectedUser.id,
-        displayName: connection.connectedUser.displayName,
-        ...(connection.connectedUser.avatarUrl && { avatarUrl: connection.connectedUser.avatarUrl }),
+        display_name: connection.connectedUser.display_name,
+        ...(connection.connectedUser.avatar_url && { avatar_url: connection.connectedUser.avatar_url }),
       },
     })),
   };

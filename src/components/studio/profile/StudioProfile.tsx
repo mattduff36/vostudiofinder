@@ -28,8 +28,8 @@ interface StudioProfileProps {
     id: string;
     name: string;
     description: string;
-    studioType: string;
-    studioTypes?: Array<{ studioType: string }>;
+    studio_type: string;
+    studioTypes?: Array<{ studio_type: string }>;
     address: string;
     website_url?: string;
     phone?: string;
@@ -41,17 +41,17 @@ interface StudioProfileProps {
     updated_at: Date;
     owner: {
       id: string;
-      displayName: string;
+      display_name: string;
       username: string;
-      avatarUrl?: string;
+      avatar_url?: string;
       role: string;
     };
     services: Array<{ service: string }>;
     images: Array<{
       id: string;
       imageUrl: string;
-      altText?: string;
-      sortOrder: number;
+      alt_text?: string;
+      sort_order: number;
     }>;
     reviews: Array<{
       id: string;
@@ -60,8 +60,8 @@ interface StudioProfileProps {
       isAnonymous: boolean;
       created_at: Date;
       reviewer: {
-        displayName: string;
-        avatarUrl?: string;
+        display_name: string;
+        avatar_url?: string;
       };
     }>;
     _count: { reviews: number };
@@ -125,7 +125,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
 
               <div className="flex flex-wrap items-center gap-4 text-sm mb-4" style={{ color: colors.textSecondary }}>
                 <span className="inline-block px-3 py-1 font-medium rounded" style={{ backgroundColor: `${colors.primary}20`, color: colors.primary }}>
-                  {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                  {studio.studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
                 </span>
                 
                 <div className="flex items-center">
@@ -238,10 +238,10 @@ export function StudioProfile({ studio }: StudioProfileProps) {
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <h3 className="text-lg font-medium mb-4" style={{ color: colors.textPrimary }}>Studio Owner</h3>
                   <div className="flex items-center space-x-3">
-                    {studio.owner.avatarUrl ? (
+                    {studio.owner.avatar_url ? (
                       <img
-                        src={studio.owner.avatarUrl}
-                        alt={studio.owner.displayName}
+                        src={studio.owner.avatar_url}
+                        alt={studio.owner.display_name}
                         className="w-12 h-12 rounded-full"
                       />
                     ) : (
@@ -250,7 +250,7 @@ export function StudioProfile({ studio }: StudioProfileProps) {
                       </div>
                     )}
                     <div>
-                      <p className="font-medium" style={{ color: colors.textPrimary }}>{studio.owner.displayName}</p>
+                      <p className="font-medium" style={{ color: colors.textPrimary }}>{studio.owner.display_name}</p>
                       <p className="text-sm" style={{ color: colors.textSecondary }}>@{studio.owner.username}</p>
                     </div>
                   </div>

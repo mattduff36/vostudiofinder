@@ -102,11 +102,11 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             {/* Profile Image */}
             <div className="relative">
-              {user.avatarUrl ? (
+              {user.avatar_url ? (
                 <div className="relative w-32 h-32">
                   <Image
-                    src={user.avatarUrl}
-                    alt={user.displayName}
+                    src={user.avatar_url}
+                    alt={user.display_name}
                     fill
                     className="rounded-full border-4 border-white shadow-lg object-cover"
                   />
@@ -116,7 +116,7 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
                   <Users className="w-12 h-12 text-gray-600" />
                 </div>
               )}
-              {user.emailVerified && (
+              {user.email_verified && (
                 <div className="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full border-2 border-white flex items-center justify-center">
                   <CheckCircle className="w-4 h-4 text-white" />
                 </div>
@@ -128,14 +128,14 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
                 {profile?.studioName && profile?.lastName 
                   ? `${profile.studioName} ${profile.lastName}` 
-                  : user.displayName
+                  : user.display_name
                 }
               </h1>
               <div className="w-24 h-1 bg-white mx-auto md:mx-0 mb-4"></div>
               <p className="text-xl text-white/90 mb-2">@{user.username}</p>
-              {profile?.shortAbout && (
+              {profile?.short_about && (
                 <p className="text-lg text-white/80 mb-4 max-w-2xl">
-                  {profile.shortAbout}
+                  {profile.short_about}
                 </p>
               )}
               {profile?.location && (

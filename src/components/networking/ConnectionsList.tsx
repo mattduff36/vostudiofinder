@@ -11,16 +11,16 @@ interface Connection {
   initiatedBy: string;
   user: {
     id: string;
-    displayName: string;
+    display_name: string;
     username: string;
-    avatarUrl?: string;
+    avatar_url?: string;
     role: string;
   };
   connectedUser: {
     id: string;
-    displayName: string;
+    display_name: string;
     username: string;
-    avatarUrl?: string;
+    avatar_url?: string;
     role: string;
   };
 }
@@ -154,22 +154,22 @@ export function ConnectionsList({
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                    {displayUser.avatarUrl ? (
+                    {displayUser.avatar_url ? (
                       <img
-                        src={displayUser.avatarUrl}
-                        alt={displayUser.displayName}
+                        src={displayUser.avatar_url}
+                        alt={displayUser.display_name}
                         className="w-12 h-12 rounded-full object-cover"
                       />
                     ) : (
                       <span className="text-gray-600 font-semibold">
-                        {displayUser.displayName.charAt(0)}
+                        {displayUser.display_name.charAt(0)}
                       </span>
                     )}
                   </div>
                   
                   <div>
                     <h3 className="font-medium text-gray-900">
-                      {displayUser.displayName}
+                      {displayUser.display_name}
                     </h3>
                     <p className="text-sm text-gray-500">@{displayUser.username}</p>
                     <p className="text-xs text-gray-400 capitalize">

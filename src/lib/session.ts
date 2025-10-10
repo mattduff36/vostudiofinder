@@ -20,10 +20,10 @@ export async function getEnhancedSession() {
       id: true,
       email: true,
       username: true,
-      displayName: true,
-      avatarUrl: true,
+      display_name: true,
+      avatar_url: true,
       role: true,
-      emailVerified: true,
+      email_verified: true,
       created_at: true,
       updated_at: true,
     },
@@ -53,7 +53,7 @@ export async function validateSession(sessionUserId: string) {
         id: true,
         email: true,
         role: true,
-        emailVerified: true,
+        email_verified: true,
       },
     });
 

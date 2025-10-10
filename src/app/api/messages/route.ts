@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     // Verify receiver exists
     const receiver = await db.users.findUnique({
       where: { id: validatedData.receiverId },
-      select: { id: true, displayName: true, email: true },
+      select: { id: true, display_name: true, email: true },
     });
     
     if (!receiver) {
@@ -75,13 +75,13 @@ export async function POST(request: NextRequest) {
       include: {
         sender: {
           select: {
-            displayName: true,
+            display_name: true,
             email: true,
           },
         },
         receiver: {
           select: {
-            displayName: true,
+            display_name: true,
             email: true,
           },
         },
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
     // TODO: Send email notification to receiver
     // await emailService.sendMessageNotification({
     //   recipientEmail: receiver.email,
-    //   recipientName: receiver.displayName,
-    //   senderName: session.user.displayName,
+    //   recipientName: receiver.display_name,
+    //   senderName: session.user.display_name,
     //   subject: validatedData.subject,
     //   messagePreview: validatedData.message.substring(0, 100),
     // });
@@ -148,15 +148,15 @@ export async function GET(request: NextRequest) {
           sender: {
             select: {
               id: true,
-              displayName: true,
-              avatarUrl: true,
+              display_name: true,
+              avatar_url: true,
             },
           },
           receiver: {
             select: {
               id: true,
-              displayName: true,
-              avatarUrl: true,
+              display_name: true,
+              avatar_url: true,
             },
           },
         },

@@ -24,6 +24,6 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(({
   );
 });
 
-Textarea.displayName = 'Textarea';
+Textarea.display_name = 'Textarea';
 
 export default Textarea;

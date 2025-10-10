@@ -9,8 +9,8 @@ import { Plus, Trash2, Edit2, Move, Image as ImageIcon } from 'lucide-react';
 interface ImageItem {
   id: string;
   url: string;
-  altText?: string;
-  sortOrder: number;
+  alt_text?: string;
+  sort_order: number;
 }
 
 interface ImageGalleryProps {
@@ -27,7 +27,7 @@ export function ImageGallery({
   isEditing = false 
 }: ImageGalleryProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [newImage, setNewImage] = useState({ url: '', altText: '' });
+  const [newImage, setNewImage] = useState({ url: '', alt_text: '' });
   const [showAddForm, setShowAddForm] = useState(false);
 
   const handleDragEnd = (result: any) => {
@@ -42,7 +42,7 @@ export function ImageGallery({
     // Update sort orders
     const updatedItems = items.map((item, index) => ({
       ...item,
-      sortOrder: index,
+      sort_order: index,
     }));
 
     onImagesChange(updatedItems);
@@ -54,19 +54,19 @@ export function ImageGallery({
     const newImageItem: ImageItem = {
       id: `temp-${Date.now()}`,
       url: newImage.url,
-      altText: newImage.altText,
-      sortOrder: images.length,
+      alt_text: newImage.alt_text,
+      sort_order: images.length,
     };
 
     onImagesChange([...images, newImageItem]);
-    setNewImage({ url: '', altText: '' });
+    setNewImage({ url: '', alt_text: '' });
     setShowAddForm(false);
   };
 
   const removeImage = (id: string) => {
     const updatedImages = images
       .filter(img => img.id !== id)
-      .map((img, index) => ({ ...img, sortOrder: index }));
+      .map((img, index) => ({ ...img, sort_order: index }));
     onImagesChange(updatedImages);
   };
 
@@ -111,8 +111,8 @@ export function ImageGallery({
             <Input
               label="Alt Text (optional)"
               placeholder="Describe the image for accessibility"
-              value={newImage.altText}
-              onChange={(e) => setNewImage({ ...newImage, altText: e.target.value })}
+              value={newImage.alt_text}
+              onChange={(e) => setNewImage({ ...newImage, alt_text: e.target.value })}
             />
             <div className="flex space-x-2">
               <Button
@@ -129,7 +129,7 @@ export function ImageGallery({
                 size="sm"
                 onClick={() => {
                   setShowAddForm(false);
-                  setNewImage({ url: '', altText: '' });
+                  setNewImage({ url: '', alt_text: '' });
                 }}
               >
                 Cancel
@@ -178,7 +178,7 @@ export function ImageGallery({
                         <div className="aspect-video bg-gray-100 relative">
                           <img
                             src={image.url}
-                            alt={image.altText || 'Studio image'}
+                            alt={image.alt_text || 'Studio image'}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -200,8 +200,8 @@ export function ImageGallery({
                             <div className="space-y-2">
                               <input
                                 type="text"
-                                value={image.altText || ''}
-                                onChange={(e) => updateImage(image.id, { altText: e.target.value })}
+                                value={image.alt_text || ''}
+                                onChange={(e) => updateImage(image.id, { alt_text: e.target.value })}
                                 placeholder="Alt text"
                                 className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
                               />
@@ -219,7 +219,7 @@ export function ImageGallery({
                           ) : (
                             <div>
                               <p className="text-sm text-text-secondary truncate">
-                                {image.altText || 'No description'}
+                                {image.alt_text || 'No description'}
                               </p>
                               {isEditing && (
                                 <div className="flex items-center justify-between mt-2">

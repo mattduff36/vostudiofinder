@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
-        { owner: { displayName: { contains: search, mode: 'insensitive' } } },
+        { owner: { display_name: { contains: search, mode: 'insensitive' } } },
         { owner: { email: { contains: search, mode: 'insensitive' } } }
       ];
     }
@@ -42,16 +42,16 @@ export async function GET(request: NextRequest) {
       db.studios.findMany({
         where,
         include: {
-          owner: {
+          users: {
             select: {
-              displayName: true,
+              display_name: true,
               email: true,
               username: true
             }
           },
           studioTypes: {
             select: {
-              studioType: true
+              studio_type: true
             }
           }
         },

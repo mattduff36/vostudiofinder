@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         const exportResult = await prisma.studio.findMany({
           where: { id: { in: studioIds } },
           include: {
-            owner: {
+            users: {
               include: {
                 profile: true
               }
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
           email: studio.owner?.email || '',
           status: studio.status.toLowerCase(),
           joined: studio.created_at,
-          avatar_url: studio.owner?.avatarUrl || ''
+          avatar_url: studio.owner?.avatar_url || ''
         })));
         
         return new NextResponse(csvData, {

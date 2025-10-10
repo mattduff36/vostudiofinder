@@ -92,7 +92,7 @@ export async function GET() {
         orderBy: { created_at: 'desc' },
         select: {
           id: true,
-          displayName: true,
+          display_name: true,
           created_at: true,
           role: true
         }
@@ -145,7 +145,7 @@ export async function GET() {
       },
       recentActivity: recentActivity.map(activity => ({
         id: activity.id,
-        name: activity.displayName || 'Unknown User',
+        name: activity.display_name || 'Unknown User',
         date: activity.created_at.toISOString(),
         status: activity.role
       }))
