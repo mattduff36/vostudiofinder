@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
         
         // Update subscription status in database
         await db.subscriptions.update({
-          where: { paypalSubscriptionId: subscriptionId },
+          where: { paypal_subscription_id: subscriptionId },
           data: { 
             status: 'ACTIVE',
             currentPeriodStart: new Date(),
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
         // Send confirmation email
         const subscription = await db.subscriptions.findUnique({
-          where: { paypalSubscriptionId: subscriptionId },
+          where: { paypal_subscription_id: subscriptionId },
           include: { user: true },
         });
 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         // Update subscription and studio status
         await db.$transaction(async (tx) => {
           const subscription = await tx.subscription.update({
-            where: { paypalSubscriptionId: subscriptionId },
+            where: { paypal_subscription_id: subscriptionId },
             data: {
               status: 'CANCELLED',
               cancelledAt: new Date(),
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         const subscriptionId = resource.id;
         
         await db.subscriptions.update({
-          where: { paypalSubscriptionId: subscriptionId },
+          where: { paypal_subscription_id: subscriptionId },
           data: { status: 'SUSPENDED' },
         });
         break;
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         
         if (subscriptionId) {
           const subscription = await db.subscriptions.findUnique({
-            where: { paypalSubscriptionId: subscriptionId },
+            where: { paypal_subscription_id: subscriptionId },
             include: { user: true },
           });
 
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         
         if (subscriptionId) {
           const subscription = await db.subscriptions.findUnique({
-            where: { paypalSubscriptionId: subscriptionId },
+            where: { paypal_subscription_id: subscriptionId },
             include: { user: true },
           });
 

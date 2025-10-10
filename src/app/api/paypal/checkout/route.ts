@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       data: {
         user_id: session.user.id,
         studioId,
-        paypalSubscriptionId: subscription.id,
+        paypal_subscription_id: subscription.id,
         status: 'PENDING_APPROVAL',
         paymentMethod: 'PAYPAL',
       },

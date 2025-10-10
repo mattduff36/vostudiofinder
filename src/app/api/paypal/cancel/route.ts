@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     if (subscriptionId) {
       // Clean up pending subscription if exists
       await db.pending_subscriptions.deleteMany({
-        where: { paypalSubscriptionId: subscriptionId },
+        where: { paypal_subscription_id: subscriptionId },
       });
     }
 
