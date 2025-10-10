@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { z } from 'zod';
+import { randomBytes } from 'crypto';
 
 const reportSchema = z.object({
   contentType: z.enum(['review', 'message', 'studio', 'user']),
@@ -42,6 +43,7 @@ export async function POST(request: NextRequest) {
     // Create the report
     const report = await db.content_reports.create({
       data: {
+        id: randomBytes(12).toString('base64url'),
         reporter_id: session.user.id,
         content_type: contentType.toUpperCase() as any,
         content_id: contentId,
@@ -49,6 +51,7 @@ export async function POST(request: NextRequest) {
         reason: reason.toUpperCase() as any,
         custom_reason: reason === 'other' ? (customReason || null) : null,
         status: 'PENDING',
+        updated_at: new Date(),
       },
     });
 
