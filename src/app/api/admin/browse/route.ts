@@ -118,12 +118,12 @@ export async function GET(request: Request) {
         break;
 
       case 'faq':
-        data = await prisma.faqs.findMany({
+        data = await prisma.faq.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.faqs.count();
+        total = await prisma.faq.count();
         break;
 
       case 'contact':
