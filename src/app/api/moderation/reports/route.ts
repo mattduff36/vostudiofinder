@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
     // Check if user has already reported this content
     const existingReport = await db.content_reports.findFirst({
       where: {
-        reporterId: session.user.id,
-        contentType: contentType.toUpperCase() as any,
-        contentId,
+        reporter_id: session.user.id,
+        content_type: contentType.toUpperCase() as any,
+        content_id: contentId,
       },
     });
 
@@ -42,12 +42,12 @@ export async function POST(request: NextRequest) {
     // Create the report
     const report = await db.content_reports.create({
       data: {
-        reporterId: session.user.id,
-        contentType: contentType.toUpperCase() as any,
-        contentId,
-        reportedUserId: reportedUserId || null,
+        reporter_id: session.user.id,
+        content_type: contentType.toUpperCase() as any,
+        content_id: contentId,
+        reported_user_id: reportedUserId || null,
         reason: reason.toUpperCase() as any,
-        customReason: reason === 'other' ? (customReason || null) : null,
+        custom_reason: reason === 'other' ? (customReason || null) : null,
         status: 'PENDING',
       },
     });
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
 
     const where: any = {};
     if (status) where.status = status;
-    if (contentType) where.contentType = contentType;
+    if (contentType) where.content_type = contentType;
 
     const [reports, totalCount] = await Promise.all([
       db.content_reports.findMany({
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
         take: limit,
         orderBy: { created_at: 'desc' },
         include: {
-          reporter: {
+          users_content_reports_reporter_idTousers: {
             select: {
               id: true,
               display_name: true,
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
               email: true,
             },
           },
-          reportedUser: {
+          users_content_reports_reported_user_idTousers: {
             select: {
               id: true,
               display_name: true,
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
               email: true,
             },
           },
-          reviewedBy: {
+          users_content_reports_reviewed_by_idTousers: {
             select: {
               id: true,
               display_name: true,
