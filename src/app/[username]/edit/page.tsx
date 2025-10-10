@@ -80,13 +80,13 @@ export default async function EditStudioPage({ params }: EditStudioPageProps) {
     phone: studio.phone || '',
     latitude: studio.latitude ? Number(studio.latitude) : null,
     longitude: studio.longitude ? Number(studio.longitude) : null,
-    images: studio.images?.map(img => ({
+    images: studio.studio_images?.map(img => ({
       id: img.id,
-      url: img.imageUrl,
-      altText: img.altText || '',
-      sortOrder: img.sortOrder,
+      url: img.image_url,
+      altText: img.alt_text || '',
+      sortOrder: img.sort_order,
     })) || [],
-    services: studio.services?.map(s => s.service) || [],
+    services: studio.studio_services?.map(s => s.service) || [],
     owner: {
       username: user.username,
     },
