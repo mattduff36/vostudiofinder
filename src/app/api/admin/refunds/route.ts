@@ -50,13 +50,13 @@ export async function POST(request: NextRequest) {
     // Log the refund in our database
     await db.refunds.create({
       data: {
-        stripeRefundId: refund.id,
-        stripePaymentIntentId: paymentIntentId,
+        stripe_refund_id: refund.id,
+        stripe_payment_intent_id: paymentIntentId,
         amount: refund.amount,
         currency: refund.currency,
         reason: reason || 'requested_by_customer',
         status: (refund.status || 'PENDING').toUpperCase() as any,
-        processedBy: session.user.id,
+        processed_by: session.user.id,
       },
     });
 
