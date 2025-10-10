@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 
   try {
     // Get all contacts (connections)
-    const connections = await prisma.contact.findMany({
+    const connections = await prisma.contacts.findMany({
       take: limit,
       skip: offset,
       orderBy: { created_at: 'desc' },
