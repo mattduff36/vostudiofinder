@@ -201,7 +201,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               : ['VOICEOVER'],
             owner: {
               ...studio.users,
-              avatarUrl: studio.users.avatar_url || '',
+              avatar_url: studio.users.avatar_url || '',
             profile: studio.users.user_profiles ? {
               studioName: studio.users.user_profiles.studio_name,
               lastName: studio.users.user_profiles.last_name,
