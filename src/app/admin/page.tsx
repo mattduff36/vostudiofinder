@@ -103,7 +103,18 @@ export default async function AdminPage() {
         display_name: studio.users.display_name,
       },
     })),
-    reviews: recentReviews,
+    reviews: recentReviews.map(review => ({
+      id: review.id,
+      rating: review.rating,
+      status: review.status as string,
+      created_at: review.created_at,
+      reviewer: {
+        display_name: review.users_reviews_reviewer_idTousers.display_name,
+      },
+      studio: {
+        name: review.studios.name,
+      },
+    })),
   };
 
   return (
