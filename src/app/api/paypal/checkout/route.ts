@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const subscription = await paypal.createSubscription({
       planId,
       user_id: session.user.id,
-      studioId,
+      studio_id: studioId,
     });
 
     // Find approval URL
