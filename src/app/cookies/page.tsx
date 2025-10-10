@@ -1,15 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { PageHero } from '@/components/common/PageHero';
 import { colors } from '../../components/home/HomePage';
 
 export default function CookiesPage() {
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Image */}
@@ -24,29 +19,11 @@ export default function CookiesPage() {
       </div>
 
       {/* Hero Section */}
-      <div className="relative z-10 text-white py-20 overflow-hidden">
-        {/* Background texture */}
-        <div className="absolute inset-0">
-          <Image
-            src="/background-images/21920.jpg"
-            alt="Hero background texture"
-            fill
-            className="object-cover opacity-40"
-            priority={false}
-          />
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          <h1 className={`text-4xl md:text-5xl font-bold mb-4 transition-all duration-1000 ease-out ${
-            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'
-          }`} style={{ transitionDelay: '0.2s' }}>Cookie Policy</h1>
-          <div className="w-24 h-1 bg-[#d42027] mx-auto mb-6"></div>
-          <p className={`text-xl text-center transition-all duration-1000 ease-out ${
-            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.4s', color: 'rgba(255, 255, 255, 0.9)', maxWidth: '768px', margin: '0 auto' }}>
-            How we use cookies to improve your experience
-          </p>
-        </div>
-      </div>
+      <PageHero
+        title="Cookie Policy"
+        description="How we use cookies to improve your experience"
+        backgroundImage="/background-images/21920.jpg"
+      />
 
       {/* Content */}
       <div className="relative z-10 py-16">

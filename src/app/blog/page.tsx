@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Clock, User, Tag } from 'lucide-react';
 import Image from 'next/image';
+import { PageHero } from '@/components/common/PageHero';
 
 // Color scheme from the site
 const colors = {
@@ -100,23 +101,26 @@ export default function BlogPage() {
   const [selectedLayout, setSelectedLayout] = useState<'clean' | 'minimal' | 'studio'>('clean');
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#f9fafb' }}>
-      {/* Header - Similar to home page style */}
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-3" style={{ color: colors.textPrimary }}>
-              Voice Over Studio Blog
-            </h1>
-            <p className="text-lg text-center" style={{ color: colors.textSecondary, maxWidth: '768px', margin: '0 auto' }}>
-              Insights, tips, and industry news for voice over professionals
-            </p>
-          </div>
-        </div>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/background-images/21920-4.jpg"
+          alt="Blog background texture"
+          fill
+          className="object-cover opacity-10"
+          priority={false}
+        />
       </div>
 
-      {/* Layout Selector - More subtle */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      {/* Hero Section */}
+      <PageHero
+        title="Voice Over Studio Blog"
+        description="Insights, tips, and industry news for voice over professionals"
+      />
+
+      {/* Content Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-6">
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
           <div className="flex items-center justify-between">
             <div>
