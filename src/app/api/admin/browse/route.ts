@@ -136,12 +136,12 @@ export async function GET(request: Request) {
         break;
 
       case 'poi':
-        data = await prisma.pois.findMany({
+        data = await prisma.poi.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.pois.count();
+        total = await prisma.poi.count();
         break;
 
       default:
