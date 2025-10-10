@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { randomBytes } from 'crypto';
 
 // Helper function to decode HTML entities
 function decodeHtmlEntities(str: string) {
@@ -282,10 +283,12 @@ export async function PUT(
 
         // Create new studio types
         if (Array.isArray(body.studioTypes) && body.studioTypes.length > 0) {
-          // Use create instead of createMany to let Prisma auto-generate IDs
+          // Generate IDs manually since schema doesn't have @default
           for (const st of body.studioTypes) {
+            const id = randomBytes(12).toString('base64url'); // Generate unique ID
             await tx.studio_studio_types.create({
               data: {
+                id,
                 studio_id: studioId,
                 studio_type: st.studio_type || st.studioType // Accept both formats
               }
