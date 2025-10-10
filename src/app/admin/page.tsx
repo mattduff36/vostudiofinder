@@ -97,10 +97,10 @@ export default async function AdminPage() {
     studios: recentStudios.map(studio => ({
       id: studio.id,
       name: studio.name,
-      studio_type: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studio_type : 'VOICEOVER',
+      studio_type: studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] ? studio.studio_studio_types[0].studio_type : 'VOICEOVER',
       created_at: studio.created_at,
       owner: {
-        display_name: studio.owner.display_name,
+        display_name: studio.users.display_name,
       },
     })),
     reviews: recentReviews,
