@@ -27,8 +27,8 @@ export default async function AdminPage() {
   ] = await Promise.all([
     db.users.count(),
     db.studios.count({ where: { status: 'ACTIVE' } }),
-    db.review.count(),
-    db.review.count({ where: { status: 'PENDING' } }),
+    db.reviews.count(),
+    db.reviews.count({ where: { status: 'PENDING' } }),
     db.users.count({
       where: {
         updated_at: {
@@ -64,7 +64,7 @@ export default async function AdminPage() {
         },
       },
     }),
-    db.review.findMany({
+    db.reviews.findMany({
       take: 5,
       orderBy: { created_at: 'desc' },
       include: {
@@ -113,4 +113,5 @@ export default async function AdminPage() {
     />
   );
 }
+
 
