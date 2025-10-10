@@ -150,6 +150,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 
-Button.display_name = 'Button';
+Button.displayName = 'Button';
 
 export { Button };
