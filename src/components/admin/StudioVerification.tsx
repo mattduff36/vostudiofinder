@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 
 interface StudioVerificationProps {
-  studioId: string;
+  studio_id: string;
   studioName: string;
   currentStatus: 'pending' | 'verified' | 'rejected';
-  onStatusChange: (studioId: string, status: 'verified' | 'rejected') => void;
+  onStatusChange: (studio_id: string, status: 'verified' | 'rejected') => void;
 }
 
 export function StudioVerification({
@@ -76,3 +76,4 @@ export function StudioVerification({
     </div>
   );
 }
+

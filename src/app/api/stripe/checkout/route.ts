@@ -9,7 +9,7 @@ import { handleApiError } from '@/lib/sentry';
 
 const checkoutSchema = z.object({
   plan: z.enum(['PREMIUM_YEARLY']),
-  studioId: z.string().cuid(),
+  studio_id: z.string().cuid(),
 });
 
 export async function POST(request: NextRequest) {
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     // Create Stripe checkout session
     const checkoutSession = await createCheckoutSession({
       plan: plan as SubscriptionPlan,
-      userId: session.user.id,
+      user_id: session.user.id,
       studioId,
       successUrl: `${process.env.NEXTAUTH_URL}/${studio.owner.username}?payment=success`,
       cancelUrl: `${process.env.NEXTAUTH_URL}/${studio.owner.username}?payment=cancelled`,
@@ -85,3 +85,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+

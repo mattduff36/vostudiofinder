@@ -6,8 +6,8 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 
 const sendMessageSchema = z.object({
-  receiverId: z.string().cuid(),
-  studioId: z.string().cuid().optional(),
+  receiver_id: z.string().cuid(),
+  studio_id: z.string().cuid().optional(),
   subject: z.string().min(5).max(200),
   message: z.string().min(10).max(2000),
   contactEmail: z.string().email().optional(),
@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
     // Create the message
     const message = await db.messages.create({
       data: {
-        senderId: session.user.id,
-        receiverId: validatedData.receiverId,
+        sender_id: session.user.id,
+        receiver_id: validatedData.receiverId,
         subject: validatedData.subject,
         content: validatedData.message,
       },
@@ -138,8 +138,8 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
     
     const where = type === 'sent' 
-      ? { senderId: session.user.id }
-      : { receiverId: session.user.id };
+      ? { sender_id: session.user.id }
+      : { receiver_id: session.user.id };
     
     const [messages, totalCount] = await Promise.all([
       db.messages.findMany({
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
     if (type === 'received') {
       await db.messages.updateMany({
         where: {
-          receiverId: session.user.id,
+          receiver_id: session.user.id,
           isRead: false,
         },
         data: { isRead: true },
@@ -197,5 +197,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+
 
 

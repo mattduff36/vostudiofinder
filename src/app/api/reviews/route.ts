@@ -6,7 +6,7 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 
 const createReviewSchema = z.object({
-  studioId: z.string().cuid(),
+  studio_id: z.string().cuid(),
   rating: z.number().min(1).max(5),
   content: z.string().min(10).max(2000),
   isAnonymous: z.boolean(),
@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
     // Check if user has already reviewed this studio
     const existingReview = await db.reviews.findFirst({
       where: {
-        studioId: validatedData.studioId,
-        reviewerId: session.user.id,
+        studio_id: validatedData.studioId,
+        reviewer_id: session.user.id,
       },
     });
     
@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
     // Create the review
     const review = await db.reviews.create({
       data: {
-        studioId: validatedData.studioId,
-        reviewerId: session.user.id,
+        studio_id: validatedData.studioId,
+        reviewer_id: session.user.id,
         owner_id: studio.owner_id,
         rating: validatedData.rating,
         content: validatedData.content,
@@ -185,4 +185,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+
 

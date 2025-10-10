@@ -74,7 +74,7 @@ export async function validateSession(sessionUserId: string) {
  * Session activity logging
  */
 export async function logSessionActivity(
-  userId: string,
+  user_id: string,
   activity: string,
   metadata?: Record<string, any>
 ) {
@@ -121,4 +121,5 @@ export function applySecurityHeaders(headers: Headers) {
     headers.set(key, value);
   });
 }
+
 

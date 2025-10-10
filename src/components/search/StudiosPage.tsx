@@ -152,7 +152,7 @@ export function StudiosPage() {
   };
 
   // Function to select a studio and add persistent outline
-  const selectStudio = async (studioId: string) => {
+  const selectStudio = async (studio_id: string) => {
     clearPreviousSelection();
     setSelectedStudioId(studioId);
     
@@ -222,7 +222,7 @@ export function StudiosPage() {
   };
 
   // Helper function to select studio on current page
-  const selectStudioOnCurrentPage = (studioId: string) => {
+  const selectStudioOnCurrentPage = (studio_id: string) => {
     const element = document.getElementById(`studio-${studioId}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -789,3 +789,4 @@ export function StudiosPage() {
     </div>
   );
 }
+

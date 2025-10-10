@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       if (validatedData.studioTypes && validatedData.studioTypes.length > 0) {
         await tx.studioStudioType.createMany({
           data: validatedData.studioTypes.map(studio_type => ({
-            studioId: newStudio.id,
+            studio_id: newStudio.id,
             studio_type,
           })),
         });
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       if (validatedData.services && validatedData.services.length > 0) {
         await tx.studioService.createMany({
           data: validatedData.services.map(service => ({
-            studioId: newStudio.id,
+            studio_id: newStudio.id,
             service,
           })),
         });
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       if (validatedData.images && validatedData.images.length > 0) {
         await tx.studioImage.createMany({
           data: validatedData.images.map((image, index) => ({
-            studioId: newStudio.id,
+            studio_id: newStudio.id,
             imageUrl: image.url,
             alt_text: image.alt_text || null,
             sort_order: index,
@@ -128,3 +128,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+

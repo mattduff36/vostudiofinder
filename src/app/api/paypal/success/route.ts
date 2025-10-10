@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       // Create subscription record
       await tx.subscription.create({
         data: {
-          userId: pendingSubscription.userId,
+          user_id: pendingSubscription.userId,
           paypalSubscriptionId: subscriptionId,
           status: 'ACTIVE',
           currentPeriodStart: new Date(),
@@ -60,4 +60,5 @@ export async function GET(request: NextRequest) {
     return redirect('/billing?error=processing_failed');
   }
 }
+
 

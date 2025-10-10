@@ -100,7 +100,7 @@ export function hasRole(userRole: Role, requiredRole: Role): boolean {
 export function canAccessResource(
   userRole: Role,
   resourceOwnerId: string,
-  userId: string
+  user_id: string
 ): boolean {
   // Admin can access everything
   if (userRole === Role.ADMIN) {
@@ -173,4 +173,5 @@ export function generateResetToken(): string {
   return Math.random().toString(36).substring(2, 15) +
          Math.random().toString(36).substring(2, 15);
 }
+
 

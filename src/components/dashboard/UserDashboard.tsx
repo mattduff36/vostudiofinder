@@ -53,8 +53,8 @@ interface UserDashboardProps {
       subject: string;
       isRead: boolean;
       created_at: Date;
-      senderId: string;
-      receiverId: string;
+      sender_id: string;
+      receiver_id: string;
       sender: {
         display_name: string;
         avatar_url?: string;
@@ -69,8 +69,8 @@ interface UserDashboardProps {
     }>;
     connections: Array<{
       id: string;
-      userId: string;
-      connectedUserId: string;
+      user_id: string;
+      connected_user_id: string;
       user: {
         id: string;
         display_name: string;
@@ -377,3 +377,4 @@ export function UserDashboard({ data }: UserDashboardProps) {
     </div>
   );
 }
+
