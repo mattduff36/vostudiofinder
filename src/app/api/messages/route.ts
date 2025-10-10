@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     
     // Verify receiver exists
     const receiver = await db.users.findUnique({
-      where: { id: validatedData.receiverId },
+      where: { id: validatedData.receiver_id },
       select: { id: true, display_name: true, email: true },
     });
     
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Prevent users from messaging themselves
-    if (validatedData.receiverId === session.user.id) {
+    if (validatedData.receiver_id === session.user.id) {
       return NextResponse.json(
         { error: 'You cannot send messages to yourself' },
         { status: 400 }
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     const message = await db.messages.create({
       data: {
         sender_id: session.user.id,
-        receiver_id: validatedData.receiverId,
+        receiver_id: validatedData.receiver_id,
         subject: validatedData.subject,
         content: validatedData.message,
       },
