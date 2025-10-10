@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { User, UserProfile, UserMetadata } from '@prisma/client';
+import { User, UserProfile, UserMetadata } from '@/types/prisma';
 import { 
   MapPin, 
   Phone, 
