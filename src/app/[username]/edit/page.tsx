@@ -32,12 +32,12 @@ export default async function EditStudioPage({ params }: EditStudioPageProps) {
     where: { username },
     include: {
       studios: {
-        where: { status: 'ACTIVE' },
-        include: {
-          images: {
-            orderBy: { sortOrder: 'asc' },
-          },
-          services: {
+      where: { status: 'ACTIVE' },
+      include: {
+        studio_images: {
+          orderBy: { sortOrder: 'asc' },
+        },
+        studio_services: {
             select: {
               service: true,
             },
