@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
       title: studio.name,
       description: studio.description || `${studio.name} recording studio`,
       type: 'website',
-      images: studio.images?.[0]?.imageUrl ? [studio.images[0].imageUrl] : [],
+      images: studio.studio_images?.[0]?.image_url ? [studio.studio_images[0].image_url] : [],
     },
   };
 }
@@ -172,12 +172,12 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         },
         author: {
           '@type': 'Person',
-          name: review.reviewer.displayName,
+          name: review.users_reviews_reviewer_idTousers.display_name,
         },
         reviewBody: review.content,
-        datePublished: review.createdAt.toISOString(),
+        datePublished: review.created_at.toISOString(),
       })),
-      image: studio.images.map((img) => img.imageUrl),
+      image: studio.studio_images.map((img) => img.image_url),
       priceRange: '$$',
       serviceType: 'Audio Recording Studio',
     };
@@ -196,8 +196,8 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             })(),
             description: studio.description || '',
             address: studio.address || '',
-            studioTypes: studio.studioTypes && studio.studioTypes.length > 0 
-              ? studio.studioTypes.map(st => st.studioType) 
+            studioTypes: studio.studio_studio_types && studio.studio_studio_types.length > 0 
+              ? studio.studio_studio_types.map(st => st.studio_type) 
               : ['VOICEOVER'],
             owner: {
               ...studio.owner,
@@ -236,19 +236,19 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             ...(studio.phone ? { phone: studio.phone } : {}),
             ...(studio.latitude ? { latitude: Number(studio.latitude) } : {}),
             ...(studio.longitude ? { longitude: Number(studio.longitude) } : {}),
-            images: studio.images.map(img => ({
+            images: studio.studio_images.map(img => ({
               id: img.id,
-              imageUrl: img.imageUrl,
-              sortOrder: img.sortOrder,
-              ...(img.altText ? { altText: img.altText } : {}),
+              imageUrl: img.image_url,
+              sortOrder: img.sort_order,
+              ...(img.alt_text ? { altText: img.alt_text } : {}),
             })),
             reviews: studio.reviews.map(review => ({
               id: review.id,
               rating: review.rating,
               content: review.content || '',
-              createdAt: review.createdAt,
+              createdAt: review.created_at,
               reviewer: {
-                displayName: review.reviewer.displayName,
+                displayName: review.users_reviews_reviewer_idTousers.display_name,
               },
             })),
             averageRating,
