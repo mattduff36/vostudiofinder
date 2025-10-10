@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { stripe } from '@/lib/stripe';
 import { db } from '@/lib/db';
 import { z } from 'zod';
+import { randomBytes } from 'crypto';
 
 const refundSchema = z.object({
   paymentIntentId: z.string(),
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
     // Log the refund in our database
     await db.refunds.create({
       data: {
+        id: randomBytes(12).toString('base64url'),
         stripe_refund_id: refund.id,
         stripe_payment_intent_id: paymentIntentId,
         amount: refund.amount,
@@ -57,6 +59,7 @@ export async function POST(request: NextRequest) {
         reason: reason || 'requested_by_customer',
         status: (refund.status || 'PENDING').toUpperCase() as any,
         processed_by: session.user.id,
+        updated_at: new Date(),
       },
     });
 
