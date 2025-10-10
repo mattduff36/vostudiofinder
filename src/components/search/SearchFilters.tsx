@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 
 import { X } from 'lucide-react';
 import { EnhancedLocationFilter } from './EnhancedLocationFilter';
-import { StudioType, ServiceType } from '@prisma/client';
+import { StudioType, ServiceType } from '@/types/prisma';
 
 interface SearchFiltersProps {
   initialFilters: {

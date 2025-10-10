@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { User, Studio, UserProfile } from '@prisma/client';
+import { User, Studio, UserProfile } from '@/types/prisma';
 import { 
   Star, 
   Crown, 
