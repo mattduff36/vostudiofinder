@@ -115,7 +115,7 @@ export default function BlogPage() {
 
       {/* Hero Section */}
       <PageHero
-        title="Voice Over Studio Blog"
+        title="VOSF Blog"
         description="Insights, tips, and industry news for voice over professionals"
       />
 
@@ -127,9 +127,6 @@ export default function BlogPage() {
               <h2 className="text-sm font-medium mb-1" style={{ color: colors.textPrimary }}>
                 Choose Your Preferred Layout:
               </h2>
-              <p className="text-xs" style={{ color: colors.textSubtle }}>
-                Demo page - select your favorite design for the final blog layout
-              </p>
             </div>
             <div className="flex gap-2">
               <button
