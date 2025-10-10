@@ -28,120 +28,120 @@ export async function GET(request: Request) {
     // Map table names to Prisma model methods
     switch (table.toLowerCase()) {
       case 'user':
-        data = await prisma.user.findMany({
+        data = await prisma.users.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.user.count();
+        total = await prisma.users.count();
         break;
 
       case 'userprofile':
-        data = await prisma.userProfile.findMany({
+        data = await prisma.user_profiles.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.userProfile.count();
+        total = await prisma.user_profiles.count();
         break;
 
       case 'studio':
-        data = await prisma.studio.findMany({
+        data = await prisma.studios.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.studio.count();
+        total = await prisma.studios.count();
         break;
 
       case 'studioimage':
-        data = await prisma.studioImage.findMany({
+        data = await prisma.studio_images.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.studioImage.count();
+        total = await prisma.studio_images.count();
         break;
 
       case 'studioequipment':
-        data = await prisma.studioService.findMany({
+        data = await prisma.studio_services.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.studioService.count();
+        total = await prisma.studio_services.count();
         break;
 
       case 'studioservice':
-        data = await prisma.studioService.findMany({
+        data = await prisma.studio_services.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.studioService.count();
+        total = await prisma.studio_services.count();
         break;
 
       case 'studioavailability':
-        data = await prisma.studioService.findMany({
+        data = await prisma.studio_services.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.studioService.count();
+        total = await prisma.studio_services.count();
         break;
 
       case 'studioreview':
-        data = await prisma.review.findMany({
+        data = await prisma.reviews.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.review.count();
+        total = await prisma.reviews.count();
         break;
 
       case 'messages':
-        data = await prisma.message.findMany({
+        data = await prisma.messages.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.message.count();
+        total = await prisma.messages.count();
         break;
 
       case 'reviews':
-        data = await prisma.review.findMany({
+        data = await prisma.reviews.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.review.count();
+        total = await prisma.reviews.count();
         break;
 
       case 'faq':
-        data = await prisma.faq.findMany({
+        data = await prisma.faqs.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.faq.count();
+        total = await prisma.faqs.count();
         break;
 
       case 'contact':
-        data = await prisma.contact.findMany({
+        data = await prisma.contacts.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.contact.count();
+        total = await prisma.contacts.count();
         break;
 
       case 'poi':
-        data = await prisma.poi.findMany({
+        data = await prisma.pois.findMany({
           take: limit,
           skip: offset,
           orderBy: { id: 'desc' }
         });
-        total = await prisma.poi.count();
+        total = await prisma.pois.count();
         break;
 
       default:
@@ -180,3 +180,4 @@ export async function GET(request: Request) {
     await prisma.$disconnect();
   }
 }
+

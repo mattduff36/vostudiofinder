@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'activate':
-        const activateResult = await prisma.studio.updateMany({
+        const activateResult = await prisma.studios.updateMany({
           where: { id: { in: studioIds } },
           data: { status: 'ACTIVE' }
         });
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'deactivate':
-        const deactivateResult = await prisma.studio.updateMany({
+        const deactivateResult = await prisma.studios.updateMany({
           where: { id: { in: studioIds } },
           data: { status: 'INACTIVE' }
         });
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'delete':
-        const deleteResult = await prisma.studio.deleteMany({
+        const deleteResult = await prisma.studios.deleteMany({
           where: { id: { in: studioIds } }
         });
         result = {
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
       case 'export':
         // Get studio data for export
-        const exportResult = await prisma.studio.findMany({
+        const exportResult = await prisma.studios.findMany({
           where: { id: { in: studioIds } },
           include: {
             users: {
@@ -80,12 +80,12 @@ export async function POST(request: NextRequest) {
         // Transform to match expected CSV format
         const csvData = generateCSV(exportResult.map(studio => ({
           id: studio.id,
-          username: studio.owner?.username || '',
+          username: studio.users?.username || '',
           display_name: studio.name || '',
-          email: studio.owner?.email || '',
+          email: studio.users?.email || '',
           status: studio.status.toLowerCase(),
           joined: studio.created_at,
-          avatar_url: studio.owner?.avatar_url || ''
+          avatar_url: studio.users?.avatar_url || ''
         })));
         
         return new NextResponse(csvData, {
@@ -133,3 +133,4 @@ function generateCSV(data: any[]) {
 
   return [csvHeaders, ...csvRows].join('\n');
 }
+

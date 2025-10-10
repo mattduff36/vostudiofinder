@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 async function getPremiumData() {
   // Get featured users
-  const featuredUsers = await prisma.user.findMany({
+  const featuredUsers = await prisma.users.findMany({
     where: {
       user_profiles: {
         isFeatured: true
@@ -39,7 +39,7 @@ async function getPremiumData() {
   });
 
   // Get spotlight users
-  const spotlightUsers = await prisma.user.findMany({
+  const spotlightUsers = await prisma.users.findMany({
     where: {
       user_profiles: {
         isSpotlight: true
@@ -67,13 +67,13 @@ async function getPremiumData() {
   });
 
   // Get premium studios
-  const premiumStudios = await prisma.studio.findMany({
+  const premiumStudios = await prisma.studios.findMany({
     where: {
       OR: [
         { is_premium: true },
         { is_verified: true },
         {
-          owner: {
+          users: {
             user_profiles: {
               OR: [
                 { isFeatured: true },
@@ -100,8 +100,8 @@ async function getPremiumData() {
     orderBy: [
       { is_premium: 'desc' },
       { is_verified: 'desc' },
-      { owner: { user_profiles: { isSpotlight: 'desc' } } },
-      { owner: { user_profiles: { isFeatured: 'desc' } } },
+      { users: { user_profiles: { isSpotlight: 'desc' } } },
+      { users: { user_profiles: { isFeatured: 'desc' } } },
       { created_at: 'desc' }
     ],
     take: 12
@@ -113,17 +113,17 @@ async function getPremiumData() {
     totalSpotlight,
     totalPremiumStudios
   ] = await Promise.all([
-    prisma.user.count({
+    prisma.users.count({
       where: {
         user_profiles: { isFeatured: true }
       }
     }),
-    prisma.user.count({
+    prisma.users.count({
       where: {
         user_profiles: { isSpotlight: true }
       }
     }),
-    prisma.studio.count({
+    prisma.studios.count({
       where: {
         OR: [
           { is_premium: true },
@@ -165,3 +165,4 @@ export default async function PremiumPage() {
     </div>
   );
 }
+
