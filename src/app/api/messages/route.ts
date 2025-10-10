@@ -147,14 +147,14 @@ export async function GET(request: NextRequest) {
       db.messages.findMany({
         where,
         include: {
-          sender: {
+          users_messages_sender_idTousers: {
             select: {
               id: true,
               display_name: true,
               avatar_url: true,
             },
           },
-          receiver: {
+          users_messages_receiver_idTousers: {
             select: {
               id: true,
               display_name: true,
