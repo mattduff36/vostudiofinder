@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     const activeConnections = await prisma.contacts.count({
       where: { accepted: 1 }
     });
-    const pendingConnections = await prisma.contact.count({
+    const pendingConnections = await prisma.contacts.count({
       where: { accepted: 0 }
     });
 
