@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
           include: {
             users: {
               include: {
-                profile: true
+                user_profiles: true
               }
             }
           },

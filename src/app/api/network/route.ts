@@ -39,7 +39,7 @@ async function getConnections(userId: string) {
     include: {
       connectedUser: {
         include: {
-          profile: true,
+          user_profiles: true,
           studios: {
             where: { status: 'ACTIVE' },
             select: { id: true, name: true }
@@ -104,7 +104,7 @@ async function getSuggestions(userId: string) {
           }
         },
         {
-          profile: {
+          user_profiles: {
             OR: [
               { isFeatured: true },
               { isSpotlight: true },
@@ -115,7 +115,7 @@ async function getSuggestions(userId: string) {
       ]
     },
     include: {
-      profile: true,
+      user_profiles: true,
       studios: {
         where: { status: 'ACTIVE' },
         select: { id: true, name: true }
@@ -133,8 +133,8 @@ async function getSuggestions(userId: string) {
     },
     take: 20,
     orderBy: [
-      { profile: { isFeatured: 'desc' } },
-      { profile: { isSpotlight: 'desc' } },
+      { user_profiles: { isFeatured: 'desc' } },
+      { user_profiles: { isSpotlight: 'desc' } },
       { created_at: 'desc' }
     ]
   });

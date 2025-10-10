@@ -38,7 +38,7 @@ export default async function Home() {
           display_name: true,
           username: true,
           avatar_url: true,
-          profile: {
+          user_profiles: {
             select: {
               short_about: true,
             },

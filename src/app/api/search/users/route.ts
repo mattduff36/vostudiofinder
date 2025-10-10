@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         ]
       },
       include: {
-        profile: {
+        user_profiles: {
           select: {
             location: true,
             studioName: true,
