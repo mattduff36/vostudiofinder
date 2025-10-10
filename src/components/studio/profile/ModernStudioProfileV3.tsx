@@ -355,10 +355,43 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               </div>
             </div>
 
+            {/* Connections Section */}
+            {(() => {
+              const connections = [
+                { id: 'connection1', label: 'Source Connect', icon: Link, value: profile?.connection1 },
+                { id: 'connection2', label: 'Source Connect Now', icon: Zap, value: profile?.connection2 },
+                { id: 'connection3', label: 'Phone Patch', icon: Phone, value: profile?.connection3 },
+                { id: 'connection4', label: 'Session Link Pro', icon: Radio, value: profile?.connection4 },
+                { id: 'connection5', label: 'Zoom or Teams', icon: Video, value: profile?.connection5 },
+                { id: 'connection6', label: 'Cleanfeed', icon: Headphones, value: profile?.connection6 },
+                { id: 'connection7', label: 'Riverside', icon: Waves, value: profile?.connection7 },
+                { id: 'connection8', label: 'Google Hangouts', icon: MessageCircle, value: profile?.connection8 },
+              ].filter(conn => conn.value === '1');
+
+              return connections.length > 0 ? (
+                <div className="mb-6">
+                  <h3 className="text-base font-semibold text-gray-900 mb-2 pt-1">Connections</h3>
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      {connections.map((connection) => {
+                        const IconComponent = connection.icon;
+                        return (
+                          <div key={connection.id} className="flex items-center space-x-2 text-gray-700">
+                            <IconComponent className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                            <span className="text-sm">{connection.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
             {/* Social Media Links */}
             {socialLinks.length > 0 && (
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">Find us on socials</h2>
+                <h3 className="text-base font-semibold text-gray-900 mb-2 pt-1">Find us on socials</h3>
                 <div className="flex flex-wrap gap-3">
                   {socialLinks.map((link, index) => {
                     const Icon = link.icon;
@@ -382,34 +415,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 </div>
               </div>
             )}
-
-            {/* Connections Section */}
-            {(() => {
-              const connections = [
-                { id: 'connection1', label: 'Source Connect', icon: '🔗', value: profile?.connection1 },
-                { id: 'connection2', label: 'Source Connect Now', icon: '🔗', value: profile?.connection2 },
-                { id: 'connection3', label: 'Phone patch', icon: '📞', value: profile?.connection3 },
-                { id: 'connection4', label: 'Session Link Pro', icon: '🎤', value: profile?.connection4 },
-                { id: 'connection5', label: 'Zoom or Teams', icon: '💻', value: profile?.connection5 },
-                { id: 'connection6', label: 'Cleanfeed', icon: '🎵', value: profile?.connection6 },
-                { id: 'connection7', label: 'Riverside', icon: '🎬', value: profile?.connection7 },
-                { id: 'connection8', label: 'Google Hangouts', icon: '📹', value: profile?.connection8 },
-              ].filter(conn => conn.value === '1');
-
-              return connections.length > 0 ? (
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-3">Connections</h2>
-                  <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-                    {connections.map((connection) => (
-                      <div key={connection.id} className="flex items-center px-4 py-3">
-                        <span className="text-xl mr-3">{connection.icon}</span>
-                        <span className="text-sm font-medium text-gray-900">{connection.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null;
-            })()}
 
             {/* Reviews Section */}
             {studio.reviews.length > 0 && (
