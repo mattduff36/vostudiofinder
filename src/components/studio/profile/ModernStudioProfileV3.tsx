@@ -383,6 +383,34 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               </div>
             )}
 
+            {/* Connections Section */}
+            {(() => {
+              const connections = [
+                { id: 'connection1', label: 'Source Connect', icon: '🔗', value: profile?.connection1 },
+                { id: 'connection2', label: 'Source Connect Now', icon: '🔗', value: profile?.connection2 },
+                { id: 'connection3', label: 'Phone patch', icon: '📞', value: profile?.connection3 },
+                { id: 'connection4', label: 'Session Link Pro', icon: '🎤', value: profile?.connection4 },
+                { id: 'connection5', label: 'Zoom or Teams', icon: '💻', value: profile?.connection5 },
+                { id: 'connection6', label: 'Cleanfeed', icon: '🎵', value: profile?.connection6 },
+                { id: 'connection7', label: 'Riverside', icon: '🎬', value: profile?.connection7 },
+                { id: 'connection8', label: 'Google Hangouts', icon: '📹', value: profile?.connection8 },
+              ].filter(conn => conn.value === '1');
+
+              return connections.length > 0 ? (
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-3">Connections</h2>
+                  <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                    {connections.map((connection) => (
+                      <div key={connection.id} className="flex items-center px-4 py-3">
+                        <span className="text-xl mr-3">{connection.icon}</span>
+                        <span className="text-sm font-medium text-gray-900">{connection.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
             {/* Reviews Section */}
             {studio.reviews.length > 0 && (
               <div className="mb-6">
