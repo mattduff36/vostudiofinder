@@ -160,11 +160,11 @@ export function SignupForm() {
           />
           <label htmlFor="acceptTerms" className="text-sm text-text-secondary">
             I accept the{' '}
-            <a href="/terms" className="text-primary-600 hover:text-primary-500">
+            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-500">
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="/privacy" className="text-primary-600 hover:text-primary-500">
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-500">
               Privacy Policy
             </a>
           </label>
