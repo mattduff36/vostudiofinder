@@ -303,6 +303,7 @@ export async function PUT(
           where: { user_id: existingStudio.owner_id },
           update: profileUpdateData,
           create: {
+            id: randomBytes(12).toString('base64url'), // Generate ID for new profiles
             user_id: existingStudio.owner_id,
             ...profileUpdateData
           }
