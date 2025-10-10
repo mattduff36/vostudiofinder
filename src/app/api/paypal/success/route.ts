@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     // Find pending subscription in database
     const pendingSubscription = await db.pending_subscriptions.findUnique({
-      where: { paypalSubscriptionId: subscriptionId },
+      where: { paypal_subscription_id: subscriptionId },
     });
 
     if (!pendingSubscription) {
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       await tx.subscription.create({
         data: {
           user_id: pendingSubscription.userId,
-          paypalSubscriptionId: subscriptionId,
+          paypal_subscription_id: subscriptionId,
           status: 'ACTIVE',
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
