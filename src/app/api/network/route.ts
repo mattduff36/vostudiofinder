@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { randomBytes } from 'crypto';
 
 export async function GET(request: NextRequest) {
   try {
@@ -240,9 +241,11 @@ async function createConnection(user_id: string, targetUserId: string) {
   // Create connection request
   const connection = await prisma.user_connections.create({
     data: {
+      id: randomBytes(12).toString('base64url'), // Generate unique ID
       user_id: user_id,
       connected_user_id: targetUserId,
-      accepted: false // Requires acceptance
+      accepted: false, // Requires acceptance
+      created_at: new Date() // Add required timestamp
     }
   });
 
