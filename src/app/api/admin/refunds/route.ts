@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
       db.refund.findMany({
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { created_at: 'desc' },
         include: {
           processedByUser: {
             select: {

@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
     const venues = await prisma.poi.findMany({
       where: whereClause,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
     });
 
     // Calculate statistics

@@ -9,7 +9,7 @@ interface Notification {
   title: string;
   message: string;
   read: boolean;
-  createdAt: string;
+  created_at: string;
   actionUrl?: string;
 }
 
@@ -236,7 +236,7 @@ export function NotificationBell() {
                         {notification.message}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
-                        {formatTimeAgo(notification.createdAt)}
+                        {formatTimeAgo(notification.created_at)}
                       </p>
                     </div>
                   </div>

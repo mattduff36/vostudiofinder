@@ -11,15 +11,15 @@ interface Studio {
   studioType: string;
   studioTypes?: Array<{ studioType: string }>;
   status: string;
-  isVerified: boolean;
-  isPremium: boolean;
+  is_verified: boolean;
+  is_premium: boolean;
   owner: {
     displayName: string;
     email: string;
     username: string;
   };
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface StudiosResponse {
@@ -386,12 +386,12 @@ export default function AdminStudiosPage() {
                             {studio.status}
                           </span>
                           <div className="flex space-x-1">
-                            {studio.isVerified && (
+                            {studio.is_verified && (
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                 ✓
                               </span>
                             )}
-                            {studio.isPremium && (
+                            {studio.is_premium && (
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
                                 ⭐
                               </span>
@@ -400,7 +400,7 @@ export default function AdminStudiosPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(studio.updatedAt).toLocaleDateString()}
+                        {new Date(studio.updated_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">

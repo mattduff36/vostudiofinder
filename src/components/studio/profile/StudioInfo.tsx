@@ -9,7 +9,7 @@ interface StudioInfoProps {
     description: string;
     studioTypes?: Array<{ studioType: string }>;
     services: Array<{ service: string }>;
-    createdAt: Date;
+    created_at: Date;
   };
 }
 
@@ -85,7 +85,7 @@ export function StudioInfo({ studio }: StudioInfoProps) {
             <Calendar className="w-4 h-4 mr-2 text-text-secondary" />
             <span className="font-medium text-text-primary w-22">Listed:</span>
             <span className="text-text-secondary">
-              {new Date(studio.createdAt).toLocaleDateString('en-US', {
+              {new Date(studio.created_at).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'

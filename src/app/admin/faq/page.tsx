@@ -200,8 +200,8 @@ export default function AdminFAQPage() {
                     <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
                       <span>FAQ ID: {faq.id}</span>
                       {faq.sortOrder && <span>Sort Order: {faq.sortOrder}</span>}
-                      {faq.createdAt && (
-                        <span>Created: {new Date(faq.createdAt).toLocaleDateString()}</span>
+                      {faq.created_at && (
+                        <span>Created: {new Date(faq.created_at).toLocaleDateString()}</span>
                       )}
                     </div>
                   </div>

@@ -22,7 +22,7 @@ interface GoogleMapProps {
     position: MapLocation;
     title: string;
     studioType?: string;
-    isVerified?: boolean;
+    is_verified?: boolean;
     onClick?: () => void;
     studio?: {
       id: string;

@@ -208,19 +208,19 @@ export async function GET(request: NextRequest) {
     const orderBy: Prisma.StudioOrderByWithRelationInput[] = [];
     
     // Always prioritize premium studios
-    orderBy.push({ isPremium: 'desc' });
+    orderBy.push({ is_premium: 'desc' });
     
     switch (validatedParams.sortBy) {
       case 'name':
         orderBy.push({ name: validatedParams.sortOrder as 'asc' | 'desc' });
         break;
-      case 'createdAt':
-        orderBy.push({ createdAt: validatedParams.sortOrder as 'asc' | 'desc' });
+      case 'created_at':
+        orderBy.push({ created_at: validatedParams.sortOrder as 'asc' | 'desc' });
         break;
       case 'rating':
         // This would require a more complex query with review aggregation
         // For now, fall back to creation date
-        orderBy.push({ createdAt: 'desc' });
+        orderBy.push({ created_at: 'desc' });
         break;
       default:
         orderBy.push({ name: 'asc' });
@@ -301,8 +301,8 @@ export async function GET(request: NextRequest) {
         )
         .sort((a, b) => {
           // Sort by premium status first, then by distance
-          if (a.isPremium !== b.isPremium) {
-            return b.isPremium ? 1 : -1;
+          if (a.is_premium !== b.is_premium) {
+            return b.is_premium ? 1 : -1;
           }
           return a.distance - b.distance;
         });
@@ -402,7 +402,7 @@ export async function GET(request: NextRequest) {
                 studioType: true,
               },
             },
-            isVerified: true,
+            is_verified: true,
           },
         });
         
@@ -431,7 +431,7 @@ export async function GET(request: NextRequest) {
                 studioType: true,
               },
             },
-            isVerified: true,
+            is_verified: true,
           },
         });
       }
@@ -449,7 +449,7 @@ export async function GET(request: NextRequest) {
               studioType: true,
             },
           },
-          isVerified: true,
+          is_verified: true,
         },
       });
     } else {
@@ -466,7 +466,7 @@ export async function GET(request: NextRequest) {
               studioType: true,
             },
           },
-          isVerified: true,
+          is_verified: true,
         },
       });
     }

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const notifications = await db.notification.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       take: limit,
       skip: offset,
     });

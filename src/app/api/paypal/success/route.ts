@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       // Update studio to premium
       await tx.studio.update({
         where: { id: pendingSubscription.studioId },
-        data: { isPremium: true },
+        data: { is_premium: true },
       });
 
       // Remove pending subscription

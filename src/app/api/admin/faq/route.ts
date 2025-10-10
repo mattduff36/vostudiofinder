@@ -29,7 +29,7 @@ export async function GET(request: Request) {
       where: whereClause,
       orderBy: [
         { sortOrder: 'asc' },
-        { createdAt: 'desc' }
+        { created_at: 'desc' }
       ],
     });
 

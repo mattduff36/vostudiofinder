@@ -10,17 +10,17 @@ interface Studio {
   studioType: string;
   studioTypes?: Array<{ studioType: string }>;
   status: string;
-  isVerified: boolean;
-  isPremium: boolean;
+  is_verified: boolean;
+  is_premium: boolean;
   address?: string;
-  websiteUrl?: string;
+  website_url?: string;
   phone?: string;
   owner: {
     displayName: string;
     email: string;
   };
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface EditStudioModalProps {

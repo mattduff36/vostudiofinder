@@ -34,15 +34,15 @@ interface UserDashboardProps {
       name: string;
       studioType: string;
       status: string;
-      isPremium: boolean;
-      createdAt: Date;
+      is_premium: boolean;
+      created_at: Date;
       _count: { reviews: number };
     }>;
     reviews: Array<{
       id: string;
       rating: number;
       content: string;
-      createdAt: Date;
+      created_at: Date;
       studio: {
         id: string;
         name: string;
@@ -52,7 +52,7 @@ interface UserDashboardProps {
       id: string;
       subject: string;
       isRead: boolean;
-      createdAt: Date;
+      created_at: Date;
       senderId: string;
       receiverId: string;
       sender: {
@@ -291,7 +291,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
                           ))}
                         </div>
                         <span className="text-xs text-text-secondary">
-                          {new Date(review.createdAt).toLocaleDateString()}
+                          {new Date(review.created_at).toLocaleDateString()}
                         </span>
                       </div>
                       <p className="text-sm font-medium text-text-primary">{review.studio.name}</p>
@@ -338,7 +338,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
                             </span>
                           </div>
                           <span className="text-xs text-text-secondary">
-                            {new Date(message.createdAt).toLocaleDateString()}
+                            {new Date(message.created_at).toLocaleDateString()}
                           </span>
                         </div>
                         <p className="text-sm text-text-primary font-medium">{message.subject}</p>

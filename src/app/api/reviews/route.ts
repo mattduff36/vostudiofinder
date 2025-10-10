@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       },
       select: {
         id: true,
-        ownerId: true,
+        owner_id: true,
         name: true,
       },
     });
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Prevent users from reviewing their own studios
-    if (studio.ownerId === session.user.id) {
+    if (studio.owner_id === session.user.id) {
       return NextResponse.json(
         { error: 'You cannot review your own studio' },
         { status: 400 }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       data: {
         studioId: validatedData.studioId,
         reviewerId: session.user.id,
-        ownerId: studio.ownerId,
+        owner_id: studio.owner_id,
         rating: validatedData.rating,
         content: validatedData.content,
         isAnonymous: validatedData.isAnonymous,
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
           content: review.content,
           isAnonymous: review.isAnonymous,
           status: review.status,
-          createdAt: review.createdAt,
+          created_at: review.created_at,
         },
       },
       { status: 201 }
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { created_at: 'desc' },
         skip,
         take: limit,
       }),

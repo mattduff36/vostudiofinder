@@ -11,10 +11,10 @@ interface Studio {
   description: string;
   studioType: string;
   address: string;
-  websiteUrl?: string;
+  website_url?: string;
   phone?: string;
-  isPremium: boolean;
-  isVerified: boolean;
+  is_premium: boolean;
+  is_verified: boolean;
   owner: {
     id: string;
     displayName: string;
@@ -99,10 +99,10 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                         <h3 className="text-xl font-semibold text-text-primary truncate">
                           {studio.name}
                         </h3>
-                        {studio.isPremium && (
+                        {studio.is_premium && (
                           <Crown className="w-5 h-5 text-yellow-500 flex-shrink-0" aria-label="Premium Studio" />
                         )}
-                        {studio.isVerified && (
+                        {studio.is_verified && (
                           <div className="flex-shrink-0 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                             ✓ Verified
                           </div>
@@ -167,9 +167,9 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                   {/* Contact Info & Owner */}
                   <div className="flex items-center justify-between text-sm text-text-secondary">
                     <div className="flex items-center space-x-4">
-                      {studio.websiteUrl && (
+                      {studio.website_url && (
                         <a
-                          href={studio.websiteUrl}
+                          href={studio.website_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center hover:text-primary-600"

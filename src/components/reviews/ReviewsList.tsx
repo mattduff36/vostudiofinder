@@ -7,7 +7,7 @@ interface Review {
   rating: number;
   content: string;
   isAnonymous: boolean;
-  createdAt: Date;
+  created_at: Date;
   reviewer: {
     displayName: string;
     avatarUrl?: string;
@@ -69,7 +69,7 @@ export function ReviewsList({ reviews }: ReviewsListProps) {
                       ))}
                     </div>
                     <span className="text-xs text-text-secondary">
-                      {formatDate(review.createdAt)}
+                      {formatDate(review.created_at)}
                     </span>
                   </div>
                 </div>

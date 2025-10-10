@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const studio = await db.studios.findUnique({
       where: {
         id: studioId,
-        ownerId: session.user.id,
+        owner_id: session.user.id,
       },
     });
 

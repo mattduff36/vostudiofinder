@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     const connections = await prisma.contact.findMany({
       take: limit,
       skip: offset,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
     });
 
     const totalConnections = await prisma.contact.count();

@@ -51,10 +51,10 @@ interface Studio {
   description: string;
   studioTypes: Array<{ studioType: string }>;
   address: string;
-  websiteUrl?: string;
+  website_url?: string;
   phone?: string;
-  isPremium: boolean;
-  isVerified: boolean;
+  is_premium: boolean;
+  is_verified: boolean;
   latitude?: number;
   longitude?: number;
   owner: {
@@ -76,7 +76,7 @@ interface SearchResponse {
     latitude: number | null;
     longitude: number | null;
     studioTypes: Array<{ studioType: string }>;
-    isVerified: boolean;
+    is_verified: boolean;
   }>;
   pagination: {
     page: number;
@@ -668,7 +668,7 @@ export function StudiosPage() {
                         position: { lat: studio.latitude!, lng: studio.longitude! },
                         title: studio.name,
                         studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
-                        isVerified: studio.isVerified,
+                        is_verified: studio.is_verified,
                         onClick: () => {
                           selectStudio(studio.id);
                         },
@@ -706,7 +706,7 @@ export function StudiosPage() {
                         position: { lat: studio.latitude!, lng: studio.longitude! },
                         title: studio.name,
                         studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
-                        isVerified: studio.isVerified,
+                        is_verified: studio.is_verified,
                         onClick: () => {
                           // Switch to list view and select studio (with page navigation if needed)
                           setMobileView('list');

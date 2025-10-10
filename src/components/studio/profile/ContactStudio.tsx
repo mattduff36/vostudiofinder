@@ -22,7 +22,7 @@ interface ContactStudioProps {
   studio: {
     id: string;
     name: string;
-    websiteUrl?: string;
+    website_url?: string;
     phone?: string;
     owner: {
       id: string;
@@ -95,7 +95,7 @@ export function ContactStudio({ studio }: ContactStudioProps) {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Direct Contact */}
-          {(studio.phone || studio.websiteUrl) && (
+          {(studio.phone || studio.website_url) && (
             <div className="text-center">
               <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Phone className="w-6 h-6 text-primary-600" />
@@ -110,9 +110,9 @@ export function ContactStudio({ studio }: ContactStudioProps) {
                     {studio.phone}
                   </a>
                 )}
-                {studio.websiteUrl && (
+                {studio.website_url && (
                   <a
-                    href={studio.websiteUrl}
+                    href={studio.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block text-sm text-primary-600 hover:text-primary-700"

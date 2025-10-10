@@ -31,10 +31,10 @@ interface EnhancedStudioProfileProps {
     description: string;
     studioType: string;
     address: string;
-    websiteUrl?: string;
+    website_url?: string;
     phone?: string;
-    isPremium: boolean;
-    isVerified: boolean;
+    is_premium: boolean;
+    is_verified: boolean;
     latitude?: number;
     longitude?: number;
     images: Array<{
@@ -50,7 +50,7 @@ interface EnhancedStudioProfileProps {
       id: string;
       rating: number;
       content: string;
-      createdAt: Date;
+      created_at: Date;
       reviewer: {
         displayName: string;
       };
@@ -62,8 +62,8 @@ interface EnhancedStudioProfileProps {
       role: string;
       avatarUrl?: string;
     };
-    createdAt: Date;
-    updatedAt: Date;
+    created_at: Date;
+    updated_at: Date;
     averageRating: number;
     _count: {
       reviews: number;
@@ -105,10 +105,10 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-3">
                   <h1 className="text-4xl font-bold text-gray-900">{studio.name}</h1>
-                  {studio.isPremium && (
+                  {studio.is_premium && (
                     <Crown className="w-8 h-8 text-yellow-500" aria-label="Premium Studio" />
                   )}
-                  {studio.isVerified && (
+                  {studio.is_verified && (
                     <div className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-medium flex items-center">
                       <Shield className="w-4 h-4 mr-1" />
                       Verified
@@ -251,7 +251,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                       >
                         {studio.owner.role.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
                       </span>
-                      {studio.isVerified && (
+                      {studio.is_verified && (
                         <span className="inline-flex items-center text-sm text-green-600 font-medium">
                           <Shield className="w-4 h-4 mr-1" />
                           Verified Owner
@@ -314,9 +314,9 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Contact Information</h3>
                     <div className="space-y-4">
-                      {studio.websiteUrl && (
+                      {studio.website_url && (
                         <a
-                          href={studio.websiteUrl}
+                          href={studio.website_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"

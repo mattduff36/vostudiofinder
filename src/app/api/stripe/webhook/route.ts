@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
             // Update studio to premium
             await tx.studio.update({
               where: { id: studioId },
-              data: { isPremium: true },
+              data: { is_premium: true },
             });
           });
         }
@@ -115,8 +115,8 @@ export async function POST(request: NextRequest) {
           
           if (sub) {
             await tx.studio.updateMany({
-              where: { ownerId: sub.userId },
-              data: { isPremium: false },
+              where: { owner_id: sub.userId },
+              data: { is_premium: false },
             });
           }
         });

@@ -30,7 +30,7 @@ export default async function Home() {
   const featuredStudios = await db.studios.findMany({
     where: {
       status: 'ACTIVE',
-      isVerified: true,
+      is_verified: true,
     },
     include: {
       owner: {
@@ -61,8 +61,8 @@ export default async function Home() {
     },
     take: 6,
     orderBy: [
-      { isPremium: 'desc' },
-      { createdAt: 'desc' },
+      { is_premium: 'desc' },
+      { created_at: 'desc' },
     ],
   });
 

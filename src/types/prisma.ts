@@ -52,25 +52,25 @@ export type User = {
   avatarUrl?: string | null;
   role: Role;
   emailVerified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type Studio = {
   id: string;
-  ownerId: string;
+  owner_id: string;
   name: string;
   description?: string | null;
   address?: string | null;
   latitude?: number | null;
   longitude?: number | null;
-  websiteUrl?: string | null;
+  website_url?: string | null;
   phone?: string | null;
-  isPremium: boolean;
-  isVerified: boolean;
+  is_premium: boolean;
+  is_verified: boolean;
   status: StudioStatus;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type UserProfile = {
@@ -85,8 +85,8 @@ export type UserProfile = {
   showEmail: boolean;
   showPhone: boolean;
   showAddress: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type StudioImage = {
@@ -95,7 +95,7 @@ export type StudioImage = {
   imageUrl: string;
   caption?: string | null;
   order: number;
-  createdAt: Date;
+  created_at: Date;
 };
 
 export type StudioService = {
@@ -104,7 +104,7 @@ export type StudioService = {
   serviceType: ServiceType;
   description?: string | null;
   price?: number | null;
-  createdAt: Date;
+  created_at: Date;
 };
 
 export type UserMetadata = {
@@ -112,8 +112,8 @@ export type UserMetadata = {
   userId: string;
   key: string;
   value: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type UserConnection = {
@@ -121,7 +121,7 @@ export type UserConnection = {
   userId: string;
   connectedUserId: string;
   status: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 

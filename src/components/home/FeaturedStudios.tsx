@@ -34,7 +34,7 @@ interface Studio {
   _count?: {
     reviews: number;
   };
-  isVerified?: boolean;
+  is_verified?: boolean;
   owner?: {
     username: string;
   };
@@ -236,7 +236,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                           <span>{studio._count.reviews}</span>
                         </div>
                       )}
-                      {studio.isVerified && (
+                      {studio.is_verified && (
                         <span className="text-green-600 font-medium text-xs">✓ Verified</span>
                       )}
                     </div>

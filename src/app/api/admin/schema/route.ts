@@ -30,8 +30,8 @@ export async function GET(request: Request) {
           { name: 'role', type: 'Role', nullable: false, default: 'USER', primary_key: false },
           { name: 'status', type: 'Int', nullable: false, default: '1', primary_key: false },
           { name: 'emailVerified', type: 'Boolean', nullable: false, default: 'false', primary_key: false },
-          { name: 'createdAt', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
-          { name: 'updatedAt', type: 'DateTime', nullable: false, default: 'updatedAt', primary_key: false }
+          { name: 'created_at', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
+          { name: 'updated_at', type: 'DateTime', nullable: false, default: 'updated_at', primary_key: false }
         ]
       },
       'UserProfile': {
@@ -50,26 +50,26 @@ export async function GET(request: Request) {
           { name: 'rateTier2', type: 'Decimal', nullable: true, default: null, primary_key: false },
           { name: 'rateTier3', type: 'Decimal', nullable: true, default: null, primary_key: false },
           { name: 'isFeatured', type: 'Boolean', nullable: false, default: 'false', primary_key: false },
-          { name: 'createdAt', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
-          { name: 'updatedAt', type: 'DateTime', nullable: false, default: 'updatedAt', primary_key: false }
+          { name: 'created_at', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
+          { name: 'updated_at', type: 'DateTime', nullable: false, default: 'updated_at', primary_key: false }
         ]
       },
       'Studio': {
         columns: [
           { name: 'id', type: 'String', nullable: false, default: 'cuid()', primary_key: true },
-          { name: 'ownerId', type: 'String', nullable: false, default: null, primary_key: false },
+          { name: 'owner_id', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'name', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'description', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'studioType', type: 'StudioType', nullable: false, default: null, primary_key: false },
           { name: 'address', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'latitude', type: 'Decimal', nullable: true, default: null, primary_key: false },
           { name: 'longitude', type: 'Decimal', nullable: true, default: null, primary_key: false },
-          { name: 'websiteUrl', type: 'String', nullable: true, default: null, primary_key: false },
+          { name: 'website_url', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'phone', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'status', type: 'StudioStatus', nullable: false, default: 'ACTIVE', primary_key: false },
-          { name: 'isVerified', type: 'Boolean', nullable: false, default: 'false', primary_key: false },
-          { name: 'createdAt', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
-          { name: 'updatedAt', type: 'DateTime', nullable: false, default: 'updatedAt', primary_key: false }
+          { name: 'is_verified', type: 'Boolean', nullable: false, default: 'false', primary_key: false },
+          { name: 'created_at', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
+          { name: 'updated_at', type: 'DateTime', nullable: false, default: 'updated_at', primary_key: false }
         ]
       },
       'Faq': {
@@ -78,8 +78,8 @@ export async function GET(request: Request) {
           { name: 'question', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'answer', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'sortOrder', type: 'Int', nullable: true, default: null, primary_key: false },
-          { name: 'createdAt', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
-          { name: 'updatedAt', type: 'DateTime', nullable: false, default: 'updatedAt', primary_key: false }
+          { name: 'created_at', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
+          { name: 'updated_at', type: 'DateTime', nullable: false, default: 'updated_at', primary_key: false }
         ]
       },
       'Contact': {
@@ -88,8 +88,8 @@ export async function GET(request: Request) {
           { name: 'user1', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'user2', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'accepted', type: 'Int', nullable: false, default: '0', primary_key: false },
-          { name: 'createdAt', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
-          { name: 'updatedAt', type: 'DateTime', nullable: false, default: 'updatedAt', primary_key: false }
+          { name: 'created_at', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
+          { name: 'updated_at', type: 'DateTime', nullable: false, default: 'updated_at', primary_key: false }
         ]
       },
       'Poi': {
@@ -101,8 +101,8 @@ export async function GET(request: Request) {
           { name: 'longitude', type: 'Decimal', nullable: true, default: null, primary_key: false },
           { name: 'address', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'category', type: 'String', nullable: true, default: null, primary_key: false },
-          { name: 'createdAt', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
-          { name: 'updatedAt', type: 'DateTime', nullable: false, default: 'updatedAt', primary_key: false }
+          { name: 'created_at', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
+          { name: 'updated_at', type: 'DateTime', nullable: false, default: 'updated_at', primary_key: false }
         ]
       },
       'Messages': {
@@ -113,8 +113,8 @@ export async function GET(request: Request) {
           { name: 'subject', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'content', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'isRead', type: 'Boolean', nullable: false, default: 'false', primary_key: false },
-          { name: 'createdAt', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
-          { name: 'updatedAt', type: 'DateTime', nullable: false, default: 'updatedAt', primary_key: false }
+          { name: 'created_at', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
+          { name: 'updated_at', type: 'DateTime', nullable: false, default: 'updated_at', primary_key: false }
         ]
       },
       'Reviews': {
@@ -124,8 +124,8 @@ export async function GET(request: Request) {
           { name: 'reviewerId', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'rating', type: 'Int', nullable: false, default: null, primary_key: false },
           { name: 'comment', type: 'String', nullable: true, default: null, primary_key: false },
-          { name: 'createdAt', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
-          { name: 'updatedAt', type: 'DateTime', nullable: false, default: 'updatedAt', primary_key: false }
+          { name: 'created_at', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
+          { name: 'updated_at', type: 'DateTime', nullable: false, default: 'updated_at', primary_key: false }
         ]
       }
     };

@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
       // Create the studio
       const newStudio = await tx.studio.create({
         data: {
-          ownerId: session.user.id,
+          owner_id: session.user.id,
           name: validatedData.name,
           description: validatedData.description,
           address: validatedData.address,
-          websiteUrl: validatedData.websiteUrl || null,
+          website_url: validatedData.website_url || null,
           phone: validatedData.phone || null,
           status: 'ACTIVE',
         },
