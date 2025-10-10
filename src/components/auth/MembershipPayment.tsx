@@ -17,6 +17,7 @@ export function MembershipPayment() {
   // Get user data from URL params (passed from signup form)
   const email = searchParams?.get('email') || '';
   const name = searchParams?.get('name') || '';
+  const username = searchParams?.get('username') || '';
 
   const handlePayment = async () => {
     setIsLoading(true);
@@ -31,6 +32,7 @@ export function MembershipPayment() {
         body: JSON.stringify({
           email,
           name,
+          username,
           priceId: process.env.NEXT_PUBLIC_STRIPE_MEMBERSHIP_PRICE_ID,
         }),
       });

@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       customerData = {
         email: session.customer_email,
         name: session.metadata?.user_name || session.customer_email.split('@')[0],
+        username: session.metadata?.user_username || '',
       };
     }
 

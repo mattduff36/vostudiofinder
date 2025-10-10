@@ -52,10 +52,23 @@ export function MembershipSuccess() {
           throw new Error(result.error || 'Payment verification failed');
         }
 
-        // Pre-fill form with customer data from payment
-        if (result.customerData) {
+        // Get signup data from sessionStorage
+        const signupDataStr = sessionStorage.getItem('signupData');
+        if (signupDataStr) {
+          const signupData = JSON.parse(signupDataStr);
+          setValue('email', signupData.email);
+          setValue('displayName', signupData.displayName);
+          setValue('password', signupData.password);
+          setValue('confirmPassword', signupData.password);
+        } else if (result.customerData) {
+          // Fallback to payment data if no session data
           setValue('email', result.customerData.email);
           setValue('displayName', result.customerData.name);
+        }
+
+        // Store username for account creation
+        if (result.customerData?.username) {
+          sessionStorage.setItem('selectedUsername', result.customerData.username);
         }
 
         setPaymentVerified(true);
@@ -72,6 +85,9 @@ export function MembershipSuccess() {
     setError(null);
 
     try {
+      // Get username from session storage
+      const username = sessionStorage.getItem('selectedUsername') || '';
+
       const response = await fetch('/api/auth/create-paid-account', {
         method: 'POST',
         headers: {
@@ -79,6 +95,7 @@ export function MembershipSuccess() {
         },
         body: JSON.stringify({
           ...data,
+          username,
           sessionId, // Include session ID for final verification
         }),
       });
@@ -88,6 +105,10 @@ export function MembershipSuccess() {
       if (!response.ok) {
         throw new Error(result.error || 'Account creation failed');
       }
+
+      // Clear signup data from session storage
+      sessionStorage.removeItem('signupData');
+      sessionStorage.removeItem('selectedUsername');
 
       // Redirect to verification or dashboard
       router.push('/auth/verify-email');

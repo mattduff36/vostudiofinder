@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, name, priceId } = await request.json();
+    const { email, name, username, priceId } = await request.json();
 
     if (!email || !name) {
       return NextResponse.json(
@@ -37,16 +37,18 @@ export async function POST(request: NextRequest) {
       ],
       mode: 'subscription',
       success_url: `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/auth/membership?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
+      cancel_url: `${process.env.NEXTAUTH_URL}/auth/membership?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username || '')}`,
       metadata: {
         user_email: email,
         user_name: name,
+        user_username: username || '',
         type: 'studio_membership',
       },
       subscription_data: {
         metadata: {
           user_email: email,
           user_name: name,
+          user_username: username || '',
           type: 'studio_membership',
         },
       },

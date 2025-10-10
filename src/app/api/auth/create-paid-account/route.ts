@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { sessionId, ...userData } = body;
+    const { sessionId, username, ...userData } = body;
     
     // Validate input
     const validatedData = signupSchema.parse(userData);
@@ -53,12 +53,27 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Check if username is already taken (if provided)
+    if (username) {
+      const existingUsername = await db.user.findUnique({
+        where: { username },
+      });
+      
+      if (existingUsername) {
+        return NextResponse.json(
+          { error: 'Username is already taken' },
+          { status: 400 }
+        );
+      }
+    }
     
     // Create user with membership info
     const user = await createUser({
       email: validatedData.email,
       password: validatedData.password,
       displayName: validatedData.displayName,
+      username: username || undefined,
     });
 
     // Store membership information
