@@ -12,12 +12,12 @@ async function getPremiumData() {
   // Get featured users
   const featuredUsers = await prisma.user.findMany({
     where: {
-      profile: {
+      user_profiles: {
         isFeatured: true
       }
     },
     include: {
-      profile: true,
+      user_profiles: true,
       studios: {
         where: { status: 'ACTIVE' },
         select: { 
@@ -32,7 +32,7 @@ async function getPremiumData() {
       }
     },
     orderBy: [
-      { profile: { isSpotlight: 'desc' } },
+      { user_profiles: { isSpotlight: 'desc' } },
       { created_at: 'desc' }
     ],
     take: 12
@@ -41,12 +41,12 @@ async function getPremiumData() {
   // Get spotlight users
   const spotlightUsers = await prisma.user.findMany({
     where: {
-      profile: {
+      user_profiles: {
         isSpotlight: true
       }
     },
     include: {
-      profile: true,
+      user_profiles: true,
       studios: {
         where: { status: 'ACTIVE' },
         select: { 
@@ -74,7 +74,7 @@ async function getPremiumData() {
         { is_verified: true },
         {
           owner: {
-            profile: {
+            user_profiles: {
               OR: [
                 { isFeatured: true },
                 { isSpotlight: true }
@@ -88,7 +88,7 @@ async function getPremiumData() {
     include: {
       users: {
         include: {
-          profile: true
+          user_profiles: true
         }
       },
       studioTypes: {
@@ -100,8 +100,8 @@ async function getPremiumData() {
     orderBy: [
       { is_premium: 'desc' },
       { is_verified: 'desc' },
-      { owner: { profile: { isSpotlight: 'desc' } } },
-      { owner: { profile: { isFeatured: 'desc' } } },
+      { owner: { user_profiles: { isSpotlight: 'desc' } } },
+      { owner: { user_profiles: { isFeatured: 'desc' } } },
       { created_at: 'desc' }
     ],
     take: 12
@@ -115,12 +115,12 @@ async function getPremiumData() {
   ] = await Promise.all([
     prisma.user.count({
       where: {
-        profile: { isFeatured: true }
+        user_profiles: { isFeatured: true }
       }
     }),
     prisma.user.count({
       where: {
-        profile: { isSpotlight: true }
+        user_profiles: { isSpotlight: true }
       }
     }),
     prisma.studio.count({

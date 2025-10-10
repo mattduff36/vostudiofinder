@@ -244,7 +244,7 @@ export async function GET(request: NextRequest) {
               display_name: true,
               username: true,
               avatar_url: true,
-              profile: {
+              user_profiles: {
                 select: {
                   short_about: true,
                 },
@@ -329,7 +329,7 @@ export async function GET(request: NextRequest) {
                 display_name: true,
                 username: true,
                 avatar_url: true,
-                profile: {
+                user_profiles: {
                   select: {
                     short_about: true,
                   },

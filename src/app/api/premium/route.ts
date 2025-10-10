@@ -29,12 +29,12 @@ export async function GET(request: NextRequest) {
 async function getFeaturedUsers() {
   const featuredUsers = await prisma.user.findMany({
     where: {
-      profile: {
+      user_profiles: {
         isFeatured: true
       }
     },
     include: {
-      profile: true,
+      user_profiles: true,
       studios: {
         where: { status: 'ACTIVE' },
         select: { 
@@ -49,7 +49,7 @@ async function getFeaturedUsers() {
       }
     },
     orderBy: [
-      { profile: { isSpotlight: 'desc' } }, // Spotlight users first
+      { user_profiles: { isSpotlight: 'desc' } }, // Spotlight users first
       { created_at: 'desc' }
     ],
     take: 20
@@ -61,12 +61,12 @@ async function getFeaturedUsers() {
 async function getSpotlightUsers() {
   const spotlightUsers = await prisma.user.findMany({
     where: {
-      profile: {
+      user_profiles: {
         isSpotlight: true
       }
     },
     include: {
-      profile: true,
+      user_profiles: true,
       studios: {
         where: { status: 'ACTIVE' },
         select: { 
@@ -97,7 +97,7 @@ async function getPremiumStudios() {
         { is_verified: true },
         {
           owner: {
-            profile: {
+            user_profiles: {
               OR: [
                 { isFeatured: true },
                 { isSpotlight: true }
@@ -111,7 +111,7 @@ async function getPremiumStudios() {
     include: {
       users: {
         include: {
-          profile: true
+          user_profiles: true
         }
       },
       images: {
@@ -130,8 +130,8 @@ async function getPremiumStudios() {
     orderBy: [
       { is_premium: 'desc' },
       { is_verified: 'desc' },
-      { owner: { profile: { isSpotlight: 'desc' } } },
-      { owner: { profile: { isFeatured: 'desc' } } },
+      { owner: { user_profiles: { isSpotlight: 'desc' } } },
+      { owner: { user_profiles: { isFeatured: 'desc' } } },
       { created_at: 'desc' }
     ],
     take: 20
@@ -150,12 +150,12 @@ async function getPremiumStats() {
   ] = await Promise.all([
     prisma.user.count({
       where: {
-        profile: { isFeatured: true }
+        user_profiles: { isFeatured: true }
       }
     }),
     prisma.user.count({
       where: {
-        profile: { isSpotlight: true }
+        user_profiles: { isSpotlight: true }
       }
     }),
     prisma.studio.count({
@@ -231,19 +231,19 @@ export async function POST(request: NextRequest) {
             OR: [
               { display_name: { contains: query, mode: 'insensitive' } },
               { username: { contains: query, mode: 'insensitive' } },
-              { profile: { location: { contains: query, mode: 'insensitive' } } },
-              { profile: { about: { contains: query, mode: 'insensitive' } } }
+              { user_profiles: { location: { contains: query, mode: 'insensitive' } } },
+              { user_profiles: { about: { contains: query, mode: 'insensitive' } } }
             ]
           } : {},
           // Filters
           filters?.location ? {
-            profile: { location: { contains: filters.location, mode: 'insensitive' } }
+            user_profiles: { location: { contains: filters.location, mode: 'insensitive' } }
           } : {},
           filters?.hasStudio ? {
             studios: { some: { status: 'ACTIVE' } }
           } : {},
           filters?.premiumOnly ? {
-            profile: {
+            user_profiles: {
               OR: [
                 { isFeatured: true },
                 { isSpotlight: true }
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
         ]
       },
       include: {
-        profile: true,
+        user_profiles: true,
         studios: {
           where: { status: 'ACTIVE' },
           select: { 
@@ -271,8 +271,8 @@ export async function POST(request: NextRequest) {
       },
       orderBy: [
         // Premium users first
-        { profile: { isSpotlight: 'desc' } },
-        { profile: { isFeatured: 'desc' } },
+        { user_profiles: { isSpotlight: 'desc' } },
+        { user_profiles: { isFeatured: 'desc' } },
         { studios: { _count: 'desc' } },
         { created_at: 'desc' }
       ],
