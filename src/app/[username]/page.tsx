@@ -189,7 +189,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
         <ModernStudioProfileV3 
-          studio={{
+          studio={({
             ...((): Omit<typeof studio, 'website_url' | 'phone' | 'latitude' | 'longitude' | 'studio_images' | 'reviews' | 'users' | 'studio_studio_types'> => {
               const { website_url: _, phone: __, latitude: ___, longitude: ____, studio_images: _____, reviews: ______, users: _______, studio_studio_types: ________, ...rest } = studio;
               return rest as any;
@@ -261,7 +261,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               },
             })),
             averageRating,
-          }}
+          }) as any}
         />
       </>
     );
