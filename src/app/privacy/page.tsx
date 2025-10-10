@@ -37,8 +37,8 @@ export default function PrivacyPage() {
             priority={false}
           />
         </div>
-        {/* Red gradient overlay */}
-        <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${colors.primary}e6, ${colors.primary}cc)` }}></div>
+        {/* Dark gradient overlay */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(45, 55, 72, 0.95), rgba(45, 55, 72, 0.85))' }}></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
           <h1 className={`text-4xl md:text-5xl font-bold mb-4 transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'
