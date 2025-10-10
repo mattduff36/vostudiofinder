@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { loadStripe } from '@stripe/stripe-js';
-import { Check, Crown, Building } from 'lucide-react';
+import { Check, Building } from 'lucide-react';
+import Image from 'next/image';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -59,21 +60,34 @@ export function MembershipPayment() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-2xl">
-        <div className="text-center mb-8">
-          <Crown className="w-16 h-16 text-primary-600 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Studio Owner Membership
-          </h1>
-          <p className="text-lg text-gray-600">
-            Join thousands of studios connecting with voice artists worldwide
-          </p>
+    <div className="min-h-screen relative overflow-hidden flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/background-images/21920-5.jpg"
+          alt="Membership background texture"
+          fill
+          className="object-cover opacity-10"
+          priority={false}
+        />
+      </div>
+
+      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-2xl">
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <Image
+            src="/images/voiceover-studio-finder-header-logo2-black.png"
+            alt="VoiceoverStudioFinder"
+            width={450}
+            height={71}
+            priority
+            className="h-auto"
+          />
         </div>
 
-        <div className="bg-white shadow-xl rounded-lg overflow-hidden">
+        <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-lg overflow-hidden">
           {/* Pricing Header */}
-          <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-8 py-6 text-white text-center">
+          <div className="bg-[#d42027] px-8 py-6 text-white text-center">
             <div className="text-4xl font-bold mb-2">£25</div>
             <div className="text-lg opacity-90">per year</div>
             <div className="text-sm opacity-75 mt-1">Exceptional value for global reach</div>
@@ -82,7 +96,7 @@ export function MembershipPayment() {
           {/* Features List */}
           <div className="px-8 py-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-              <Building className="w-5 h-5 mr-2 text-primary-600" />
+              <Building className="w-5 h-5 mr-2 text-[#d42027]" />
               What's Included
             </h3>
             
@@ -98,7 +112,7 @@ export function MembershipPayment() {
                 '24/7 customer support'
               ].map((feature, index) => (
                 <li key={index} className="flex items-start">
-                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">{feature}</span>
                 </li>
               ))}
@@ -126,7 +140,7 @@ export function MembershipPayment() {
                 onClick={handlePayment}
                 disabled={isLoading}
                 loading={isLoading}
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 text-lg font-semibold"
+                className="w-full bg-[#d42027] hover:bg-[#b91c23] text-white py-3 text-lg font-semibold"
               >
                 Complete Membership Purchase
               </Button>
@@ -134,7 +148,7 @@ export function MembershipPayment() {
               <Button
                 onClick={() => router.back()}
                 variant="outline"
-                className="w-full"
+                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
                 disabled={isLoading}
               >
                 Go Back
