@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const validatedData = signupSchema.parse(body);
     
     // Check if user already exists
-    const existingUser = await db.user.findUnique({
+    const existingUser = await db.users.findUnique({
       where: { email: validatedData.email },
     });
     
@@ -59,3 +59,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+

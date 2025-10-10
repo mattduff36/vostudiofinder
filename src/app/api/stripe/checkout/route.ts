@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const { plan, studioId } = checkoutSchema.parse(body);
     
     // Verify studio ownership
-    const studio = await db.studio.findUnique({
+    const studio = await db.studios.findUnique({
       where: { 
         id: studioId,
         ownerId: session.user.id,

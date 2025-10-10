@@ -27,7 +27,7 @@ export async function DELETE(request: NextRequest) {
     }
     
     // Verify the user exists and password is correct (if they have one)
-    const user = await db.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: session.user.id },
       select: {
         id: true,
@@ -142,3 +142,4 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+

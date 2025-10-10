@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Search for users by username or display name
-    const users = await db.user.findMany({
+    const users = await db.users.findMany({
       where: {
         OR: [
           {
@@ -83,3 +83,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

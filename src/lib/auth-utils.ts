@@ -42,7 +42,7 @@ export async function createUser(data: {
   const hashedPassword = await hashPassword(data.password);
   const username = data.username || await generateUniqueUsername(data.email);
 
-  return db.user.create({
+  return db.users.create({
     data: {
       email: data.email,
       password: hashedPassword,
@@ -63,7 +63,7 @@ async function generateUniqueUsername(email: string): Promise<string> {
   const maxAttempts = 10;
 
   while (attempts < maxAttempts) {
-    const existingUser = await db.user.findUnique({
+    const existingUser = await db.users.findUnique({
       where: { username },
     });
 
@@ -173,3 +173,4 @@ export function generateResetToken(): string {
   return Math.random().toString(36).substring(2, 15) +
          Math.random().toString(36).substring(2, 15);
 }
+

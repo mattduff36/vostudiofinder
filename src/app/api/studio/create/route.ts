@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     });
     
     // Fetch the complete studio data to return
-    const completeStudio = await db.studio.findUnique({
+    const completeStudio = await db.studios.findUnique({
       where: { id: studio.id },
       include: {
         studioTypes: true,

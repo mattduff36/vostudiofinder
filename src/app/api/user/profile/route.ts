@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest) {
     
     // Check if username is already taken by another user
     if (validatedData.username !== session.user.username) {
-      const existingUser = await db.user.findUnique({
+      const existingUser = await db.users.findUnique({
         where: { username: validatedData.username },
       });
       
@@ -36,7 +36,7 @@ export async function PUT(request: NextRequest) {
     }
     
     // Update user profile
-    const updatedUser = await db.user.update({
+    const updatedUser = await db.users.update({
       where: { id: session.user.id },
       data: {
         displayName: validatedData.displayName,
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const user = await db.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: session.user.id },
       select: {
         id: true,
@@ -118,3 +118,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+

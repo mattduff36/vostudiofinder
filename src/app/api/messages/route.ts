@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const validatedData = sendMessageSchema.parse(body);
     
     // Verify receiver exists
-    const receiver = await db.user.findUnique({
+    const receiver = await db.users.findUnique({
       where: { id: validatedData.receiverId },
       select: { id: true, displayName: true, email: true },
     });
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     
     // Verify studio exists if provided
     if (validatedData.studioId) {
-      const studio = await db.studio.findUnique({
+      const studio = await db.studios.findUnique({
         where: { id: validatedData.studioId },
         select: { id: true, name: true },
       });
@@ -197,3 +197,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+

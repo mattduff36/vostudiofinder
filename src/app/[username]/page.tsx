@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const { username } = await params;
   
   // Find user by username and get their studio
-  const user = await db.user.findUnique({
+  const user = await db.users.findUnique({
     where: { username },
     select: {
       displayName: true,
@@ -62,7 +62,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
   const { username } = await params;
 
   // Find user by username and get their full profile with metadata
-  const user = await db.user.findUnique({
+  const user = await db.users.findUnique({
     where: { username },
     include: {
       profile: true,

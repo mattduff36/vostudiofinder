@@ -33,13 +33,13 @@ export async function GET() {
       recentActivity
     ] = await Promise.all([
       // User counts
-      db.user.count(),
-      db.user.count({ where: { role: { not: 'ADMIN' } } }),
+      db.users.count(),
+      db.users.count({ where: { role: { not: 'ADMIN' } } }),
       
       // Studio counts
-      db.studio.count(),
-      db.studio.count({ where: { status: 'ACTIVE' } }),
-      db.studio.count({ where: { isVerified: true } }),
+      db.studios.count(),
+      db.studios.count({ where: { status: 'ACTIVE' } }),
+      db.studios.count({ where: { isVerified: true } }),
       
       // Connection counts
       db.contact.count(),
@@ -49,17 +49,17 @@ export async function GET() {
       db.faq.count(),
       
       // User dates
-      db.user.findFirst({ 
+      db.users.findFirst({ 
         orderBy: { createdAt: 'asc' },
         select: { createdAt: true }
       }),
-      db.user.findFirst({ 
+      db.users.findFirst({ 
         orderBy: { createdAt: 'desc' },
         select: { createdAt: true }
       }),
       
       // Top studios by connections
-      db.studio.findMany({
+      db.studios.findMany({
         take: 10,
         orderBy: { updatedAt: 'desc' },
         select: {
@@ -75,7 +75,7 @@ export async function GET() {
       }),
       
       // User status distribution
-      db.user.groupBy({
+      db.users.groupBy({
         by: ['role'],
         _count: { role: true }
       }),
@@ -87,7 +87,7 @@ export async function GET() {
       }),
       
       // Recent activity
-      db.user.findMany({
+      db.users.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' },
         select: {
@@ -161,3 +161,4 @@ export async function GET() {
     );
   }
 }
+

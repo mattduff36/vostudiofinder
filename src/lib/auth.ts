@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
       const emailPrefix = data.email?.split('@')[0] || 'user';
       const username = emailPrefix.replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.random().toString(36).substring(7);
       
-      return db.user.create({
+      return db.users.create({
         data: {
           email: data.email!,
           username: username,
@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid credentials');
         }
 
-        const user = await db.user.findUnique({
+        const user = await db.users.findUnique({
           where: {
             email: credentials.email,
           },
@@ -126,12 +126,12 @@ export const authOptions: NextAuthOptions = {
       // Handle OAuth account linking
       if (account && profile) {
         // Update user profile with OAuth data if available
-        const existingUser = await db.user.findUnique({
+        const existingUser = await db.users.findUnique({
           where: { email: token.email! },
         });
 
         if (existingUser) {
-          await db.user.update({
+          await db.users.update({
             where: { id: existingUser.id },
             data: {
               avatarUrl: profile.image || existingUser.avatarUrl,
@@ -193,3 +193,4 @@ export const authOptions: NextAuthOptions = {
   },
   debug: process.env.NODE_ENV === 'development',
 };
+

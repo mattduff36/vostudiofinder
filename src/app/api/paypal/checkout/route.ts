@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify studio ownership
-    const studio = await db.studio.findUnique({
+    const studio = await db.studios.findUnique({
       where: {
         id: studioId,
         ownerId: session.user.id,

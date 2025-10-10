@@ -25,7 +25,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check if the studio exists and belongs to the user
-    const existingStudio = await db.studio.findUnique({
+    const existingStudio = await db.studios.findUnique({
       where: { id },
       include: {
         owner: {
@@ -85,7 +85,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update the studio
-    const updatedStudio = await db.studio.update({
+    const updatedStudio = await db.studios.update({
       where: { id },
       data: updateFields,
       include: {

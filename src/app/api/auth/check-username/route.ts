@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const existing = await db.user.findUnique({
+      const existing = await db.users.findUnique({
         where: { username },
       });
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
       // Check availability of base suggestions
       for (const suggestion of baseSuggestions) {
-        const existing = await db.user.findUnique({
+        const existing = await db.users.findUnique({
           where: { username: suggestion },
         });
 
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
           for (let i = 2; i <= 4; i++) {
             const numberedUsername = addNumberSuffix(suggestion, i);
             if (isValidUsername(numberedUsername)) {
-              const numberedExisting = await db.user.findUnique({
+              const numberedExisting = await db.users.findUnique({
                 where: { username: numberedUsername },
               });
               
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
           for (let i = 1; i <= 99; i++) {
             const numberedUsername = addNumberSuffix(baseSuggestion, i);
             if (isValidUsername(numberedUsername)) {
-              const existing = await db.user.findUnique({
+              const existing = await db.users.findUnique({
                 where: { username: numberedUsername },
               });
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
                 for (let j = i + 1; j <= i + 3 && j <= 99; j++) {
                   const nextNumbered = addNumberSuffix(baseSuggestion, j);
                   if (isValidUsername(nextNumbered)) {
-                    const nextExisting = await db.user.findUnique({
+                    const nextExisting = await db.users.findUnique({
                       where: { username: nextNumbered },
                     });
                     
@@ -123,4 +123,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 
