@@ -41,8 +41,8 @@ export default async function SignupPage() {
           <Image
             src="/images/voiceover-studio-finder-header-logo2-black.png"
             alt="VoiceoverStudioFinder"
-            width={300}
-            height={47}
+            width={450}
+            height={71}
             priority
             className="h-auto"
           />
