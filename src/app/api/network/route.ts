@@ -46,7 +46,7 @@ async function getConnections(user_id: string) {
           },
           _count: {
             select: {
-              connections: {
+              user_connections_user_connections_user_idTousers: {
                 where: { accepted: true }
               },
               studios: {
