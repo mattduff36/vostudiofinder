@@ -282,12 +282,15 @@ export async function PUT(
 
         // Create new studio types
         if (Array.isArray(body.studioTypes) && body.studioTypes.length > 0) {
-          await tx.studio_studio_types.createMany({
-            data: body.studioTypes.map((st: any) => ({
-              studio_id: studioId,
-              studio_type: st.studio_type || st.studioType // Accept both formats
-            }))
-          });
+          // Use create instead of createMany to let Prisma auto-generate IDs
+          for (const st of body.studioTypes) {
+            await tx.studio_studio_types.create({
+              data: {
+                studio_id: studioId,
+                studio_type: st.studio_type || st.studioType // Accept both formats
+              }
+            });
+          }
         }
       }
 
