@@ -15,9 +15,10 @@ interface Studio {
   address?: string;
   website_url?: string;
   phone?: string;
-  owner: {
+  users: {
     display_name: string;
     email: string;
+    username?: string;
   };
   created_at: string;
   updated_at: string;
