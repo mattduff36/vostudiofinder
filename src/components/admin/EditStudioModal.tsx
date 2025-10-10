@@ -540,6 +540,143 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     </div>
   );
 
+  const renderSocialMediaTab = () => (
+    <div className="space-y-6">
+      <p className="text-sm text-gray-600 mb-4">
+        Add social media links to display on the studio profile page.
+      </p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Facebook URL
+          </label>
+          <input
+            type="url"
+            value={profile?._meta?.facebook || ''}
+            onChange={(e) => handleMetaChange('facebook', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://facebook.com/yourpage"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Twitter URL
+          </label>
+          <input
+            type="url"
+            value={profile?._meta?.twitter || ''}
+            onChange={(e) => handleMetaChange('twitter', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://twitter.com/yourhandle"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            LinkedIn URL
+          </label>
+          <input
+            type="url"
+            value={profile?._meta?.linkedin || ''}
+            onChange={(e) => handleMetaChange('linkedin', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://linkedin.com/in/yourprofile"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Instagram URL
+          </label>
+          <input
+            type="url"
+            value={profile?._meta?.instagram || ''}
+            onChange={(e) => handleMetaChange('instagram', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://instagram.com/yourhandle"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            YouTube URL
+          </label>
+          <input
+            type="url"
+            value={profile?._meta?.youtubepage || ''}
+            onChange={(e) => handleMetaChange('youtubepage', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://youtube.com/@yourchannel"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Vimeo URL
+          </label>
+          <input
+            type="url"
+            value={profile?._meta?.vimeo || ''}
+            onChange={(e) => handleMetaChange('vimeo', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://vimeo.com/yourpage"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            SoundCloud URL
+          </label>
+          <input
+            type="url"
+            value={profile?._meta?.soundcloud || ''}
+            onChange={(e) => handleMetaChange('soundcloud', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://soundcloud.com/yourprofile"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderConnectionsTab = () => {
+    const connectionTypes = [
+      { id: 'connection1', label: 'Source Connect', icon: '🔗' },
+      { id: 'connection2', label: 'Source Connect Now', icon: '🔗' },
+      { id: 'connection3', label: 'Phone Patch', icon: '📞' },
+      { id: 'connection4', label: 'Session Link Pro', icon: '🎤' },
+      { id: 'connection5', label: 'Zoom or Teams', icon: '💻' },
+      { id: 'connection6', label: 'Cleanfeed', icon: '🎵' },
+      { id: 'connection7', label: 'Riverside', icon: '🎬' },
+      { id: 'connection8', label: 'Google Hangouts', icon: '📹' },
+    ];
+
+    return (
+      <div className="space-y-6">
+        <p className="text-sm text-gray-600 mb-4">
+          Select which communication methods this studio supports. These will be displayed on the profile page.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {connectionTypes.map((connection) => (
+            <label key={connection.id} className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={profile?._meta?.[connection.id] === '1'}
+                onChange={(e) => handleMetaChange(connection.id, e.target.checked ? '1' : '0')}
+                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <span className="text-2xl mr-2">{connection.icon}</span>
+              <span className="text-sm font-medium text-gray-900">{connection.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -632,7 +769,9 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 {activeTab === 'contact' && renderContactTab()}
                 {activeTab === 'location' && renderLocationTab()}
                 {activeTab === 'rates' && renderRatesTab()}
-                {activeTab !== 'basic' && activeTab !== 'contact' && activeTab !== 'location' && activeTab !== 'rates' && (
+                {activeTab === 'social' && renderSocialMediaTab()}
+                {activeTab === 'connections' && renderConnectionsTab()}
+                {activeTab !== 'basic' && activeTab !== 'contact' && activeTab !== 'location' && activeTab !== 'rates' && activeTab !== 'social' && activeTab !== 'connections' && (
                   <div className="text-center py-8 text-gray-500">
                     This tab is under development
                   </div>
