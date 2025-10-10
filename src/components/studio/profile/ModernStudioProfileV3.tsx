@@ -96,6 +96,14 @@ interface ModernStudioProfileV3Props {
         showEmail?: boolean | null;
         showPhone?: boolean | null;
         showAddress?: boolean | null;
+        connection1?: string | null;
+        connection2?: string | null;
+        connection3?: string | null;
+        connection4?: string | null;
+        connection5?: string | null;
+        connection6?: string | null;
+        connection7?: string | null;
+        connection8?: string | null;
       } | null;
     };
     created_at: Date;
