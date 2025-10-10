@@ -285,7 +285,7 @@ export async function PUT(
           await tx.studio_studio_types.createMany({
             data: body.studioTypes.map((st: any) => ({
               studio_id: studioId,
-              studio_type: st.studioType
+              studio_type: st.studio_type || st.studioType // Accept both formats
             }))
           });
         }
