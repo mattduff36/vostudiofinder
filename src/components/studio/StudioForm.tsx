@@ -8,7 +8,7 @@ import { createStudioSchema, type CreateStudioInput } from '@/lib/validations/st
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
-import { StudioType, ServiceType } from '@prisma/client';
+import { StudioType, ServiceType } from '@/types/prisma';
 import { MapPin, Globe, Phone, Trash2, Upload } from 'lucide-react';
 
 interface StudioFormProps {
