@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { PageHero } from '@/components/common/PageHero';
-import { colors } from '../../components/home/HomePage';
 
 export default function CookiesPage() {
   return (
