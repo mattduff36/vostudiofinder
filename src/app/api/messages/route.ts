@@ -65,8 +65,10 @@ export async function POST(request: NextRequest) {
     }
     
     // Create the message
+    const { randomBytes } = require('crypto');
     const message = await db.messages.create({
       data: {
+        id: randomBytes(12).toString('base64url'),
         sender_id: session.user.id,
         receiver_id: validatedData.receiver_id,
         subject: validatedData.subject,
