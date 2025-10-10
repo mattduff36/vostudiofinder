@@ -241,7 +241,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               connection8: studio.users.user_profiles.connection8,
             } : null,
             },
-            ...(studio.websiteUrl ? { websiteUrl: studio.websiteUrl } : {}),
+            ...(studio.website_url ? { website_url: studio.website_url } : {}),
             ...(studio.phone ? { phone: studio.phone } : {}),
             ...(studio.latitude ? { latitude: Number(studio.latitude) } : {}),
             ...(studio.longitude ? { longitude: Number(studio.longitude) } : {}),
