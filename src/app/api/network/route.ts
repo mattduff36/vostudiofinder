@@ -106,9 +106,9 @@ async function getSuggestions(user_id: string) {
         {
           user_profiles: {
             OR: [
-              { isFeatured: true },
-              { isSpotlight: true },
-              { verificationLevel: 'verified' }
+              { is_featured: true },
+              { is_spotlight: true },
+              { verification_level: 'verified' }
             ]
           }
         }
