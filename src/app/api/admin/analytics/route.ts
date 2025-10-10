@@ -42,8 +42,8 @@ export async function GET() {
       db.studios.count({ where: { is_verified: true } }),
       
       // Connection counts
-      db.contact.count(),
-      db.contact.count({ where: { accepted: 1 } }),
+      db.contacts.count(),
+      db.contacts.count({ where: { accepted: 1 } }),
       
       // FAQ count
       db.faq.count(),
