@@ -133,8 +133,8 @@ export default function AdminStudiosPage() {
   const handleSelectStudio = (studio_id: string, isSelected: boolean) => {
     setSelectedStudios(prev => 
       isSelected 
-        ? [...prev, studioId]
-        : prev.filter(id => id !== studioId)
+        ? [...prev, studio_id]
+        : prev.filter(id => id !== studio_id)
     );
   };
 
