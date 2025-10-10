@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       })),
       reviewsWritten: userData.reviews.map(review => ({
         id: review.id,
-        studioId: review.studioId,
+        studio_id: review.studioId,
         rating: review.rating,
         content: review.content,
         isAnonymous: review.isAnonymous,
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
       })),
       reviewsReceived: userData.reviewsReceived.map(review => ({
         id: review.id,
-        studioId: review.studioId,
+        studio_id: review.studioId,
         rating: review.rating,
         content: review.content,
         isAnonymous: review.isAnonymous,
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
       })),
       messagesSent: userData.sentMessages.map(message => ({
         id: message.id,
-        receiverId: message.receiverId,
+        receiver_id: message.receiverId,
         subject: message.subject,
         content: message.content,
         isRead: message.isRead,
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
       })),
       messagesReceived: userData.receivedMessages.map(message => ({
         id: message.id,
-        senderId: message.senderId,
+        sender_id: message.senderId,
         subject: message.subject,
         content: message.content,
         isRead: message.isRead,
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
       })),
       connections: userData.connections.map(conn => ({
         id: conn.id,
-        connectedUserId: conn.connectedUserId,
+        connected_user_id: conn.connectedUserId,
         accepted: conn.accepted,
         created_at: conn.created_at,
       })),
@@ -162,4 +162,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+
 

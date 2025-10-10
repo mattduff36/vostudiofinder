@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     // Create PayPal subscription
     const subscription = await paypal.createSubscription({
       planId,
-      userId: session.user.id,
+      user_id: session.user.id,
       studioId,
     });
 
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     // Store pending subscription in database
     await db.pending_subscriptions.create({
       data: {
-        userId: session.user.id,
+        user_id: session.user.id,
         studioId,
         paypalSubscriptionId: subscription.id,
         status: 'PENDING_APPROVAL',
@@ -89,4 +89,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 

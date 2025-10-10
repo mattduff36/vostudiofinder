@@ -13,7 +13,7 @@ export type NotificationType =
 
 export interface NotificationData {
   id: string;
-  userId: string;
+  user_id: string;
   type: NotificationType;
   title: string;
   message: string;
@@ -24,7 +24,7 @@ export interface NotificationData {
 }
 
 export interface NotificationPreferences {
-  userId: string;
+  user_id: string;
   emailNotifications: boolean;
   pushNotifications: boolean;
   messageNotifications: boolean;
@@ -38,7 +38,7 @@ export class NotificationService {
    * Create a new notification
    */
   static async createNotification(
-    userId: string,
+    user_id: string,
     type: NotificationType,
     title: string,
     message: string,
@@ -116,7 +116,7 @@ export class NotificationService {
     // This would fetch from database
     // For now, return default preferences
     return {
-      userId: _userId,
+      user_id: _userId,
       emailNotifications: true,
       pushNotifications: true,
       messageNotifications: true,
@@ -227,7 +227,7 @@ export class NotificationService {
     studioOwnerId: string,
     reviewerName: string,
     rating: number,
-    studioId: string,
+    studio_id: string,
     studioOwnerUsername: string
   ): Promise<void> {
     await this.createNotification(
@@ -273,7 +273,7 @@ export class NotificationService {
   static async notifyStudioVerified(
     studioOwnerId: string,
     studioName: string,
-    studioId: string,
+    studio_id: string,
     studioOwnerUsername: string
   ): Promise<void> {
     await this.createNotification(
@@ -287,7 +287,7 @@ export class NotificationService {
   }
 
   static async notifyPaymentSuccess(
-    userId: string,
+    user_id: string,
     amount: string,
     currency: string
   ): Promise<void> {
@@ -302,7 +302,7 @@ export class NotificationService {
   }
 
   static async notifyPaymentFailed(
-    userId: string,
+    user_id: string,
     amount: string,
     currency: string
   ): Promise<void> {
@@ -316,4 +316,5 @@ export class NotificationService {
     );
   }
 }
+
 

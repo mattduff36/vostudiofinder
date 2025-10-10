@@ -66,8 +66,8 @@ export function ContactStudio({ studio }: ContactStudioProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          receiverId: studio.owner.id,
-          studioId: studio.id,
+          receiver_id: studio.owner.id,
+          studio_id: studio.id,
           ...data,
         }),
       });
@@ -280,3 +280,4 @@ export function ContactStudio({ studio }: ContactStudioProps) {
     </div>
   );
 }
+

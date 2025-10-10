@@ -7,7 +7,7 @@ import { PaymentMethodSelector, PaymentMethod } from './PaymentMethodSelector';
 import { loadStripe } from '@stripe/stripe-js';
 
 interface EnhancedCheckoutProps {
-  studioId: string;
+  studio_id: string;
   planName: string;
   planPrice: number;
   planCurrency: string;
@@ -220,3 +220,4 @@ export function EnhancedCheckout({
     </div>
   );
 }
+

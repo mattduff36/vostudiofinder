@@ -48,8 +48,8 @@ export async function createCheckoutSession({
   cancelUrl,
 }: {
   plan: SubscriptionPlan;
-  userId: string;
-  studioId: string;
+  user_id: string;
+  studio_id: string;
   successUrl: string;
   cancelUrl: string;
 }) {
@@ -207,3 +207,4 @@ export function constructWebhookEvent(
   }
   return stripe.webhooks.constructEvent(body, signature, secret);
 }
+

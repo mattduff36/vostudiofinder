@@ -30,10 +30,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function getConnections(userId: string) {
+async function getConnections(user_id: string) {
   const connections = await prisma.userConnection.findMany({
     where: {
-      userId: userId,
+      user_id: userId,
       accepted: true
     },
     include: {
@@ -65,18 +65,18 @@ async function getConnections(userId: string) {
   return NextResponse.json({ connections });
 }
 
-async function getSuggestions(userId: string) {
+async function getSuggestions(user_id: string) {
   // Get users who are not already connected
   const existingConnections = await prisma.userConnection.findMany({
     where: {
       OR: [
-        { userId: userId },
-        { connectedUserId: userId }
+        { user_id: userId },
+        { connected_user_id: userId }
       ]
     },
     select: {
-      userId: true,
-      connectedUserId: true
+      user_id: true,
+      connected_user_id: true
     }
   });
 
@@ -142,11 +142,11 @@ async function getSuggestions(userId: string) {
   return NextResponse.json({ suggestions });
 }
 
-async function getNetworkStats(userId: string) {
+async function getNetworkStats(user_id: string) {
   // Get total connections
   const totalConnections = await prisma.userConnection.count({
     where: {
-      userId: userId,
+      user_id: userId,
       accepted: true
     }
   });
@@ -154,7 +154,7 @@ async function getNetworkStats(userId: string) {
   // Get connections with studios (studio owners)
   const studioOwnerConnections = await prisma.userConnection.count({
     where: {
-      userId: userId,
+      user_id: userId,
       accepted: true,
       connectedUser: {
         studios: {
@@ -222,13 +222,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function createConnection(userId: string, targetUserId: string) {
+async function createConnection(user_id: string, targetUserId: string) {
   // Check if connection already exists
   const existing = await prisma.userConnection.findFirst({
     where: {
       OR: [
-        { userId: userId, connectedUserId: targetUserId },
-        { userId: targetUserId, connectedUserId: userId }
+        { user_id: userId, connected_user_id: targetUserId },
+        { user_id: targetUserId, connected_user_id: userId }
       ]
     }
   });
@@ -240,8 +240,8 @@ async function createConnection(userId: string, targetUserId: string) {
   // Create connection request
   const connection = await prisma.userConnection.create({
     data: {
-      userId: userId,
-      connectedUserId: targetUserId,
+      user_id: userId,
+      connected_user_id: targetUserId,
       accepted: false // Requires acceptance
     }
   });
@@ -249,11 +249,11 @@ async function createConnection(userId: string, targetUserId: string) {
   return NextResponse.json({ connection });
 }
 
-async function acceptConnection(userId: string, targetUserId: string) {
+async function acceptConnection(user_id: string, targetUserId: string) {
   await prisma.userConnection.updateMany({
     where: {
-      userId: targetUserId,
-      connectedUserId: userId,
+      user_id: targetUserId,
+      connected_user_id: userId,
       accepted: false
     },
     data: {
@@ -265,13 +265,13 @@ async function acceptConnection(userId: string, targetUserId: string) {
   await prisma.userConnection.upsert({
     where: {
       userId_connectedUserId: {
-        userId: userId,
-        connectedUserId: targetUserId
+        user_id: userId,
+        connected_user_id: targetUserId
       }
     },
     create: {
-      userId: userId,
-      connectedUserId: targetUserId,
+      user_id: userId,
+      connected_user_id: targetUserId,
       accepted: true
     },
     update: {
@@ -282,11 +282,11 @@ async function acceptConnection(userId: string, targetUserId: string) {
   return NextResponse.json({ success: true });
 }
 
-async function declineConnection(userId: string, targetUserId: string) {
+async function declineConnection(user_id: string, targetUserId: string) {
   await prisma.userConnection.deleteMany({
     where: {
-      userId: targetUserId,
-      connectedUserId: userId,
+      user_id: targetUserId,
+      connected_user_id: userId,
       accepted: false
     }
   });
@@ -294,15 +294,16 @@ async function declineConnection(userId: string, targetUserId: string) {
   return NextResponse.json({ success: true });
 }
 
-async function removeConnection(userId: string, targetUserId: string) {
+async function removeConnection(user_id: string, targetUserId: string) {
   await prisma.userConnection.deleteMany({
     where: {
       OR: [
-        { userId: userId, connectedUserId: targetUserId },
-        { userId: targetUserId, connectedUserId: userId }
+        { user_id: userId, connected_user_id: targetUserId },
+        { user_id: targetUserId, connected_user_id: userId }
       ]
     }
   });
 
   return NextResponse.json({ success: true });
 }
+

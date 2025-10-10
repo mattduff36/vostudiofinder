@@ -75,7 +75,7 @@ export type Studio = {
 
 export type UserProfile = {
   id: string;
-  userId: string;
+  user_id: string;
   studioName?: string | null;
   lastName?: string | null;
   phone?: string | null;
@@ -91,7 +91,7 @@ export type UserProfile = {
 
 export type StudioImage = {
   id: string;
-  studioId: string;
+  studio_id: string;
   imageUrl: string;
   caption?: string | null;
   order: number;
@@ -100,7 +100,7 @@ export type StudioImage = {
 
 export type StudioService = {
   id: string;
-  studioId: string;
+  studio_id: string;
   serviceType: ServiceType;
   description?: string | null;
   price?: number | null;
@@ -109,7 +109,7 @@ export type StudioService = {
 
 export type UserMetadata = {
   id: string;
-  userId: string;
+  user_id: string;
   key: string;
   value: string;
   created_at: Date;
@@ -118,10 +118,11 @@ export type UserMetadata = {
 
 export type UserConnection = {
   id: string;
-  userId: string;
-  connectedUserId: string;
+  user_id: string;
+  connected_user_id: string;
   status: string;
   created_at: Date;
   updated_at: Date;
 };
+
 

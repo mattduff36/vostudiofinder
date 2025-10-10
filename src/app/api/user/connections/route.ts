@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
     const existingConnection = await db.user_connections.findFirst({
       where: {
         OR: [
-          { userId: session.user.id, connectedUserId: targetUserId },
-          { userId: targetUserId, connectedUserId: session.user.id },
+          { user_id: session.user.id, connected_user_id: targetUserId },
+          { user_id: targetUserId, connected_user_id: session.user.id },
         ],
       },
     });
@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
         // Send connection request
         const connection = await db.user_connections.create({
           data: {
-            userId: session.user.id,
-            connectedUserId: targetUserId,
+            user_id: session.user.id,
+            connected_user_id: targetUserId,
             accepted: false, // Pending connection request
           },
         });
@@ -189,8 +189,8 @@ export async function GET(request: NextRequest) {
 
     const where: any = {
       OR: [
-        { userId: session.user.id },
-        { connectedUserId: session.user.id },
+        { user_id: session.user.id },
+        { connected_user_id: session.user.id },
       ],
     };
 
@@ -270,8 +270,8 @@ export async function DELETE(request: NextRequest) {
     const connection = await db.user_connections.findFirst({
       where: {
         OR: [
-          { userId: session.user.id, connectedUserId: targetUserId },
-          { userId: targetUserId, connectedUserId: session.user.id },
+          { user_id: session.user.id, connected_user_id: targetUserId },
+          { user_id: targetUserId, connected_user_id: session.user.id },
         ],
       },
     });
@@ -304,5 +304,6 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
 
 

@@ -130,7 +130,7 @@ export default function AdminStudiosPage() {
     }
   };
 
-  const handleSelectStudio = (studioId: string, isSelected: boolean) => {
+  const handleSelectStudio = (studio_id: string, isSelected: boolean) => {
     setSelectedStudios(prev => 
       isSelected 
         ? [...prev, studioId]
@@ -481,3 +481,4 @@ export default function AdminStudiosPage() {
     </div>
   );
 }
+

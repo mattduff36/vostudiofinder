@@ -24,7 +24,7 @@ export async function GET() {
     }
 
     const savedSearches = await db.saved_searches.findMany({
-      where: { userId: session.user.id },
+      where: { user_id: session.user.id },
       orderBy: { created_at: 'desc' },
     });
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const savedSearch = await db.saved_searches.create({
       data: {
-        userId: session.user.id,
+        user_id: session.user.id,
         name,
         filters: JSON.stringify(filters),
       },
@@ -73,4 +73,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 

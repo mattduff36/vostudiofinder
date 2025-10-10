@@ -17,8 +17,8 @@ export interface PayPalSubscriptionPlan {
 export interface PayPalCreateSubscriptionRequest {
   planId: string;
   customId?: string;
-  userId: string;
-  studioId: string;
+  user_id: string;
+  studio_id: string;
 }
 
 export class PayPalService {
@@ -210,3 +210,4 @@ export class PayPalService {
 }
 
 export const paypal = new PayPalService();
+

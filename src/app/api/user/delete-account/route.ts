@@ -58,7 +58,7 @@ export async function DELETE(request: NextRequest) {
     
     // Log the deletion request
     console.log(`Account deletion requested for user ${user.email}`, {
-      userId: user.id,
+      user_id: user.id,
       reason: reason || 'No reason provided',
       timestamp: new Date().toISOString(),
     });
@@ -78,7 +78,7 @@ export async function DELETE(request: NextRequest) {
       
       await tx.review.deleteMany({
         where: { OR: [
-          { reviewerId: user.id },
+          { reviewer_id: user.id },
           { owner_id: user.id },
         ]},
       });
@@ -90,31 +90,31 @@ export async function DELETE(request: NextRequest) {
       // 2. Delete messages
       await tx.message.deleteMany({
         where: { OR: [
-          { senderId: user.id },
-          { receiverId: user.id },
+          { sender_id: user.id },
+          { receiver_id: user.id },
         ]},
       });
       
       // 3. Delete connections
       await tx.userConnection.deleteMany({
         where: { OR: [
-          { userId: user.id },
-          { connectedUserId: user.id },
+          { user_id: user.id },
+          { connected_user_id: user.id },
         ]},
       });
       
       // 4. Delete subscriptions
       await tx.subscription.deleteMany({
-        where: { userId: user.id },
+        where: { user_id: user.id },
       });
       
       // 5. Delete auth-related data
       await tx.session.deleteMany({
-        where: { userId: user.id },
+        where: { user_id: user.id },
       });
       
       await tx.account.deleteMany({
-        where: { userId: user.id },
+        where: { user_id: user.id },
       });
       
       // 6. Finally, delete the user
@@ -142,4 +142,5 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+
 

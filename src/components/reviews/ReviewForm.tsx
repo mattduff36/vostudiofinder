@@ -16,7 +16,7 @@ const reviewSchema = z.object({
 type ReviewFormData = z.infer<typeof reviewSchema>;
 
 interface ReviewFormProps {
-  studioId: string;
+  studio_id: string;
   studioName: string;
   onSubmit: () => void;
   onCancel: () => void;
@@ -196,3 +196,4 @@ export function ReviewForm({ studioId, studioName, onSubmit, onCancel }: ReviewF
     </div>
   );
 }
+

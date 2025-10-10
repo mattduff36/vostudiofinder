@@ -153,8 +153,8 @@ export default async function DashboardPage() {
       subject: message.subject || '',
       isRead: message.isRead,
       created_at: message.created_at,
-      senderId: message.senderId,
-      receiverId: message.receiverId,
+      sender_id: message.senderId,
+      receiver_id: message.receiverId,
       sender: {
         display_name: message.sender.display_name,
         ...(message.sender.avatar_url && { avatar_url: message.sender.avatar_url }),
@@ -166,8 +166,8 @@ export default async function DashboardPage() {
     })),
     connections: userConnections.map(connection => ({
       id: connection.id,
-      userId: connection.user_id,
-      connectedUserId: connection.connected_user_id,
+      user_id: connection.user_id,
+      connected_user_id: connection.connected_user_id,
       user: {
         id: connection.user.id,
         display_name: connection.user.display_name,
@@ -183,6 +183,7 @@ export default async function DashboardPage() {
 
   return <UserDashboard data={dashboardData} />;
 }
+
 
 
 

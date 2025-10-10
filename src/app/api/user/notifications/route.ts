@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const unreadOnly = searchParams.get('unreadOnly') === 'true';
 
     const where: any = {
-      userId: session.user.id,
+      user_id: session.user.id,
     };
 
     if (unreadOnly) {
@@ -42,4 +42,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 
