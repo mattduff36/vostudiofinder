@@ -352,7 +352,7 @@ export default function AdminStudiosPage() {
                               {studio.name}
                             </div>
                             <div className="text-sm text-gray-500 max-w-xs truncate">
-                              {studio.owner.username}
+                              {studio.users.username}
                             </div>
                           </div>
                         </div>
@@ -372,8 +372,8 @@ export default function AdminStudiosPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{studio.owner.display_name}</div>
-                        <div className="text-sm text-gray-500">{studio.owner.email}</div>
+                        <div className="text-sm text-gray-900">{studio.users.display_name}</div>
+                        <div className="text-sm text-gray-500">{studio.users.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col space-y-1">
@@ -405,7 +405,7 @@ export default function AdminStudiosPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => window.open(`/${studio.owner.username}`, '_blank')}
+                            onClick={() => window.open(`/${studio.users.username}`, '_blank')}
                             className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                           >
                             View
