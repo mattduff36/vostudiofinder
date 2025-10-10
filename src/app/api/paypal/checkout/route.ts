@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Store pending subscription in database
-    await db.pendingSubscription.create({
+    await db.pending_subscriptions.create({
       data: {
         userId: session.user.id,
         studioId,
@@ -89,3 +89,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

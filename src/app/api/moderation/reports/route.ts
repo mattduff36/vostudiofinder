@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const { contentType, contentId, reportedUserId, reason, customReason } = reportSchema.parse(body);
 
     // Check if user has already reported this content
-    const existingReport = await db.contentReport.findFirst({
+    const existingReport = await db.content_reports.findFirst({
       where: {
         reporterId: session.user.id,
         contentType: contentType.toUpperCase() as any,
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the report
-    const report = await db.contentReport.create({
+    const report = await db.content_reports.create({
       data: {
         reporterId: session.user.id,
         contentType: contentType.toUpperCase() as any,
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     if (contentType) where.contentType = contentType;
 
     const [reports, totalCount] = await Promise.all([
-      db.contentReport.findMany({
+      db.content_reports.findMany({
         where,
         skip,
         take: limit,
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      db.contentReport.count({ where }),
+      db.content_reports.count({ where }),
     ]);
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -151,3 +151,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

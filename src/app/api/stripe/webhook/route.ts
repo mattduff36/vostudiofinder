@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object;
         
         // Update subscription in database
-        await db.subscription.update({
+        await db.subscriptions.update({
           where: { stripeSubscriptionId: subscription.id },
           data: {
             status: subscription.status.toUpperCase() as any,
@@ -190,3 +190,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

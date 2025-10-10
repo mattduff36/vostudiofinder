@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const refund = await stripe.refunds.create(refundParams);
 
     // Log the refund in our database
-    await db.refund.create({
+    await db.refunds.create({
       data: {
         stripeRefundId: refund.id,
         stripePaymentIntentId: paymentIntentId,
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     const [refunds, totalCount] = await Promise.all([
-      db.refund.findMany({
+      db.refunds.findMany({
         skip,
         take: limit,
         orderBy: { created_at: 'desc' },
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      db.refund.count(),
+      db.refunds.count(),
     ]);
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -137,3 +137,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

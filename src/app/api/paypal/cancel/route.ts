@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     if (subscriptionId) {
       // Clean up pending subscription if exists
-      await db.pendingSubscription.deleteMany({
+      await db.pending_subscriptions.deleteMany({
         where: { paypalSubscriptionId: subscriptionId },
       });
     }
@@ -20,3 +20,4 @@ export async function GET(request: NextRequest) {
     return redirect('/billing?error=cancel_failed');
   }
 }
+
