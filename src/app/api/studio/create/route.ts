@@ -84,9 +84,9 @@ export async function POST(request: NextRequest) {
     const completeStudio = await db.studios.findUnique({
       where: { id: studio.id },
       include: {
-        studioTypes: true,
-        services: true,
-        images: {
+        studio_studio_types: true,
+        studio_services: true,
+        studio_images: {
           orderBy: { sort_order: 'asc' },
         },
         owner: {

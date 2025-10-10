@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface StudioGalleryProps {
-  images: Array<{
+  studio_images: Array<{
     id: string;
     imageUrl: string;
     alt_text?: string;

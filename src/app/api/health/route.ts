@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      services: {
+      studio_services: {
         database: 'connected',
         api: 'operational'
       }
@@ -21,7 +21,7 @@ export async function GET() {
       {
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
-        services: {
+        studio_services: {
           database: 'disconnected',
           api: 'operational'
         },

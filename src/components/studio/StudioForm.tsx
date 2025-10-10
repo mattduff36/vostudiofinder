@@ -35,12 +35,12 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
     defaultValues: {
       name: initialData?.name || '',
       description: initialData?.description || '',
-      studioTypes: initialData?.studioTypes || [studio_type.RECORDING],
+      studio_studio_types: initialData?.studioTypes || [studio_type.RECORDING],
       address: initialData?.address || '',
       website_url: initialData?.website_url || '',
       phone: initialData?.phone || '',
-      services: initialData?.services || [],
-      images: initialData?.images || [],
+      studio_services: initialData?.services || [],
+      studio_images: initialData?.images || [],
     },
   });
 

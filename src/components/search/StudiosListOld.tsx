@@ -21,8 +21,8 @@ interface Studio {
     username: string;
     avatar_url?: string;
   };
-  services: Array<{ service: string }>;
-  images: Array<{ imageUrl: string; alt_text?: string }>;
+  studio_services: Array<{ service: string }>;
+  studio_images: Array<{ imageUrl: string; alt_text?: string }>;
   _count: { reviews: number };
 }
 

@@ -49,7 +49,7 @@ interface Studio {
   id: string;
   name: string;
   description: string;
-  studioTypes: Array<{ studio_type: string }>;
+  studio_studio_types: Array<{ studio_type: string }>;
   address: string;
   website_url?: string;
   phone?: string;
@@ -63,8 +63,8 @@ interface Studio {
     username: string;
     avatar_url?: string;
   };
-  services: Array<{ service: string }>;
-  images: Array<{ imageUrl: string; alt_text?: string }>;
+  studio_services: Array<{ service: string }>;
+  studio_images: Array<{ imageUrl: string; alt_text?: string }>;
   _count: { reviews: number };
 }
 
@@ -75,7 +75,7 @@ interface SearchResponse {
     name: string;
     latitude: number | null;
     longitude: number | null;
-    studioTypes: Array<{ studio_type: string }>;
+    studio_studio_types: Array<{ studio_type: string }>;
     is_verified: boolean;
   }>;
   pagination: {
@@ -423,8 +423,8 @@ export function StudiosPage() {
   // Move useMemo outside conditional render to maintain hook order
   const mobileFiltersInitialState = useMemo(() => ({
     location: searchParams.get('location') || '',
-    studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studio_type')?.split(',') || [],
-    services: searchParams.get('services')?.split(',') || [],
+    studio_studio_types: searchParams.get('studioTypes')?.split(',') || searchParams.get('studio_type')?.split(',') || [],
+    studio_services: searchParams.get('services')?.split(',') || [],
     sortBy: searchParams.get('sortBy') || 'name',
     sort_order: searchParams.get('sort_order') || 'asc',
     radius: parseInt(searchParams.get('radius') || '10'),
@@ -628,8 +628,8 @@ export function StudiosPage() {
               <SearchFilters
                 initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
-                  studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studio_type')?.split(',') || [],
-                  services: searchParams.get('services')?.split(',') || [],
+                  studio_studio_types: searchParams.get('studioTypes')?.split(',') || searchParams.get('studio_type')?.split(',') || [],
+                  studio_services: searchParams.get('services')?.split(',') || [],
                   sortBy: searchParams.get('sortBy') || 'name',
                   sort_order: searchParams.get('sort_order') || 'asc',
                   radius: parseInt(searchParams.get('radius') || '10'),
@@ -677,7 +677,7 @@ export function StudiosPage() {
                             id: studio.id,
                             name: studio.name,
                             owner: { username: studio.owner.username },
-                            images: ('images' in studio && studio.images) ? studio.images : [],
+                            studio_images: ('images' in studio && studio.images) ? studio.studio_images: [],
                           }
                         } : {}),
                       }))}
@@ -719,7 +719,7 @@ export function StudiosPage() {
                               id: studio.id,
                               name: studio.name,
                               owner: { username: studio.owner.username },
-                              images: ('images' in studio && studio.images) ? studio.images : [],
+                              studio_images: ('images' in studio && studio.images) ? studio.studio_images: [],
                             }
                           } : {}),
                         }))}

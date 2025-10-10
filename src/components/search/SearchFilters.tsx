@@ -10,8 +10,8 @@ import { studio_type, ServiceType } from '@/types/prisma';
 interface SearchFiltersProps {
   initialFilters: {
     location: string;
-    studioTypes: string[];
-    services: string[];
+    studio_studio_types: string[];
+    studio_services: string[];
     sortBy: string;
     sort_order: string;
     radius: number;
@@ -63,7 +63,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
       ? currentServices.filter(s => s !== service)
       : [...currentServices, service];
     
-    const newFilters = { ...filters, services: updatedServices };
+    const newFilters = { ...filters, studio_services: updatedServices };
     
     // Preserve coordinates if they exist
     if (filters.lat && filters.lng) {
@@ -87,8 +87,8 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
   const clearFilters = () => {
     const clearedFilters = {
       location: '',
-      studioTypes: [],
-      services: [],
+      studio_studio_types: [],
+      studio_services: [],
       sortBy: 'name',
       sort_order: 'asc',
       radius: 25, // Keep radius for internal state consistency
@@ -123,7 +123,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
       ? currentTypes.filter(type => type !== studio_type)
       : [...currentTypes, studio_type];
     
-    const newFilters = { ...filters, studioTypes: updatedTypes };
+    const newFilters = { ...filters, studio_studio_types: updatedTypes };
     
     // Preserve coordinates if they exist
     if (filters.lat && filters.lng) {

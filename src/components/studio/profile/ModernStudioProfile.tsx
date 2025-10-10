@@ -39,13 +39,13 @@ interface ModernStudioProfileProps {
     is_verified: boolean;
     latitude?: number;
     longitude?: number;
-    images: Array<{
+    studio_images: Array<{
       id: string;
       imageUrl: string;
       alt_text?: string;
       sort_order: number;
     }>;
-    services: Array<{
+    studio_services: Array<{
       service: string;
     }>;
     reviews: Array<{

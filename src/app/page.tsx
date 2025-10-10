@@ -45,13 +45,13 @@ export default async function Home() {
           },
         },
       },
-      services: true,
-      studioTypes: {
+      studio_services: true,
+      studio_studio_types: {
         select: {
           studio_type: true,
         },
       },
-      images: {
+      studio_images: {
         take: 1,
         orderBy: { sort_order: 'asc' },
       },

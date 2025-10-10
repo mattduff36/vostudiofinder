@@ -40,7 +40,7 @@ async function getFeaturedUsers() {
         select: { 
           id: true, 
           name: true,
-          studioTypes: {
+          studio_studio_types: {
             select: {
               studio_type: true
             }
@@ -72,7 +72,7 @@ async function getSpotlightUsers() {
         select: { 
           id: true, 
           name: true,
-          studioTypes: {
+          studio_studio_types: {
             select: {
               studio_type: true
             }
@@ -114,11 +114,11 @@ async function getPremiumStudios() {
           user_profiles: true
         }
       },
-      images: {
+      studio_images: {
         take: 1,
         orderBy: { sort_order: 'asc' }
       },
-      services: true,
+      studio_services: true,
       _count: {
         select: {
           reviews: {
@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
           select: { 
           id: true, 
           name: true,
-          studioTypes: {
+          studio_studio_types: {
             select: {
               studio_type: true
             }

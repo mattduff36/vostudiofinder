@@ -46,8 +46,8 @@ interface StudioProfileProps {
       avatar_url?: string;
       role: string;
     };
-    services: Array<{ service: string }>;
-    images: Array<{
+    studio_services: Array<{ service: string }>;
+    studio_images: Array<{
       id: string;
       imageUrl: string;
       alt_text?: string;
