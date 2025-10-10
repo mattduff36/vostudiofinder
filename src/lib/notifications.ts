@@ -58,7 +58,7 @@ export class NotificationService {
     };
 
     // Store in database (would be implemented with actual DB calls)
-    // await db.notification.create({ data: notification });
+    // await db.notifications.create({ data: notification });
 
     // Send real-time notification if user is online
     await this.sendRealTimeNotification(notification);
@@ -157,7 +157,7 @@ export class NotificationService {
    */
   static async markAsRead(_notificationId: string): Promise<void> {
     // Update in database
-    // await db.notification.update({
+    // await db.notifications.update({
     //   where: { id: notificationId },
     //   data: { read: true, readAt: new Date() }
     // });
@@ -168,7 +168,7 @@ export class NotificationService {
    */
   static async markAllAsRead(_userId: string): Promise<void> {
     // Update in database
-    // await db.notification.updateMany({
+    // await db.notifications.updateMany({
     //   where: { userId, read: false },
     //   data: { read: true, readAt: new Date() }
     // });
@@ -201,7 +201,7 @@ export class NotificationService {
    */
   static async deleteNotification(_notificationId: string): Promise<void> {
     // Delete from database
-    // await db.notification.delete({ where: { id: notificationId } });
+    // await db.notifications.delete({ where: { id: notificationId } });
   }
 
   /**
@@ -316,3 +316,4 @@ export class NotificationService {
     );
   }
 }
+

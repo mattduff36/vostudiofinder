@@ -82,7 +82,7 @@ export default async function DashboardPage() {
     }),
     
     // User's connections
-    db.userConnection.findMany({
+    db.user_connections.findMany({
       where: {
         OR: [
           { userId: session.user.id },
@@ -183,5 +183,6 @@ export default async function DashboardPage() {
 
   return <UserDashboard data={dashboardData} />;
 }
+
 
 
