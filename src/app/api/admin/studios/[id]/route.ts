@@ -97,7 +97,16 @@ export async function GET(
       // Contact preferences
       showemail: studio.owner?.profile?.showEmail || false,
       showphone: studio.owner?.profile?.showPhone || false,
-      showaddress: studio.owner?.profile?.showAddress || false
+      showaddress: studio.owner?.profile?.showAddress || false,
+      // Connection types
+      connection1: studio.owner?.profile?.connection1 || '',
+      connection2: studio.owner?.profile?.connection2 || '',
+      connection3: studio.owner?.profile?.connection3 || '',
+      connection4: studio.owner?.profile?.connection4 || '',
+      connection5: studio.owner?.profile?.connection5 || '',
+      connection6: studio.owner?.profile?.connection6 || '',
+      connection7: studio.owner?.profile?.connection7 || '',
+      connection8: studio.owner?.profile?.connection8 || ''
     };
     
     // Structure the data to match what the frontend expects
@@ -142,7 +151,16 @@ export async function GET(
         // Contact preferences
         showemail: studioData.showemail ? '1' : '0',
         showphone: studioData.showphone ? '1' : '0',
-        showaddress: studioData.showaddress ? '1' : '0'
+        showaddress: studioData.showaddress ? '1' : '0',
+        // Connection types
+        connection1: studioData.connection1 || '0',
+        connection2: studioData.connection2 || '0',
+        connection3: studioData.connection3 || '0',
+        connection4: studioData.connection4 || '0',
+        connection5: studioData.connection5 || '0',
+        connection6: studioData.connection6 || '0',
+        connection7: studioData.connection7 || '0',
+        connection8: studioData.connection8 || '0'
       }
     };
 
@@ -226,6 +244,16 @@ export async function PUT(
     if (body._meta?.showemail !== undefined) profileUpdateData.showEmail = body._meta.showemail === '1' || body._meta.showemail === true;
     if (body._meta?.showphone !== undefined) profileUpdateData.showPhone = body._meta.showphone === '1' || body._meta.showphone === true;
     if (body._meta?.showaddress !== undefined) profileUpdateData.showAddress = body._meta.showaddress === '1' || body._meta.showaddress === true;
+    
+    // Connection types
+    if (body._meta?.connection1 !== undefined) profileUpdateData.connection1 = body._meta.connection1;
+    if (body._meta?.connection2 !== undefined) profileUpdateData.connection2 = body._meta.connection2;
+    if (body._meta?.connection3 !== undefined) profileUpdateData.connection3 = body._meta.connection3;
+    if (body._meta?.connection4 !== undefined) profileUpdateData.connection4 = body._meta.connection4;
+    if (body._meta?.connection5 !== undefined) profileUpdateData.connection5 = body._meta.connection5;
+    if (body._meta?.connection6 !== undefined) profileUpdateData.connection6 = body._meta.connection6;
+    if (body._meta?.connection7 !== undefined) profileUpdateData.connection7 = body._meta.connection7;
+    if (body._meta?.connection8 !== undefined) profileUpdateData.connection8 = body._meta.connection8;
 
     // Perform updates using Prisma transactions
     await prisma.$transaction(async (tx) => {
