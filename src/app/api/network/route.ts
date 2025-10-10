@@ -37,7 +37,7 @@ async function getConnections(user_id: string) {
       accepted: true
     },
     include: {
-      connectedUser: {
+      users_user_connections_connected_user_idTousers: {
         include: {
           user_profiles: true,
           studios: {
@@ -156,7 +156,7 @@ async function getNetworkStats(user_id: string) {
     where: {
       user_id: user_id,
       accepted: true,
-      connectedUser: {
+      users_user_connections_connected_user_idTousers: {
         studios: {
           some: {
             status: 'ACTIVE'
