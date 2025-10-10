@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
         take: limit,
         orderBy: { created_at: 'desc' },
         include: {
-          processedByUser: {
+          users: {
             select: {
               display_name: true,
               email: true,
