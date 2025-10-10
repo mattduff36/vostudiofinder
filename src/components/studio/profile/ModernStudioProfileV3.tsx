@@ -21,7 +21,13 @@ import {
   Linkedin,
   Instagram,
   Youtube,
-  Music
+  Music,
+  Link,
+  Zap,
+  Radio,
+  Video,
+  Headphones,
+  Waves
 } from 'lucide-react';
 
 interface ModernStudioProfileV3Props {
