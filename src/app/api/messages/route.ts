@@ -75,13 +75,13 @@ export async function POST(request: NextRequest) {
         content: validatedData.message,
       },
       include: {
-        sender: {
+        users_messages_sender_idTousers: {
           select: {
             display_name: true,
             email: true,
           },
         },
-        receiver: {
+        users_messages_receiver_idTousers: {
           select: {
             display_name: true,
             email: true,
