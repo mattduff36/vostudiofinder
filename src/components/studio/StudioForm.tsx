@@ -37,7 +37,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
       description: initialData?.description || '',
       studioTypes: initialData?.studioTypes || [StudioType.RECORDING],
       address: initialData?.address || '',
-      websiteUrl: initialData?.websiteUrl || '',
+      website_url: initialData?.website_url || '',
       phone: initialData?.phone || '',
       services: initialData?.services || [],
       images: initialData?.images || [],
@@ -224,8 +224,8 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                   label="Website (optional)"
                   type="url"
                   placeholder="https://yourstudio.com"
-                  error={errors.websiteUrl?.message || ''}
-                  {...register('websiteUrl')}
+                  error={errors.website_url?.message || ''}
+                  {...register('website_url')}
                 />
                 <Globe className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />
               </div>

@@ -30,12 +30,12 @@ export async function POST(request: NextRequest) {
     const studio = await db.studios.findUnique({
       where: { 
         id: studioId,
-        ownerId: session.user.id,
+        owner_id: session.user.id,
       },
       select: {
         id: true,
         name: true,
-        isPremium: true,
+        is_premium: true,
         owner: {
           select: {
             username: true,
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    if (studio.isPremium) {
+    if (studio.is_premium) {
       return NextResponse.json(
         { error: 'Studio already has premium subscription' },
         { status: 400 }

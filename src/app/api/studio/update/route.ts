@@ -41,7 +41,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Studio not found' }, { status: 404 });
     }
 
-    if (existingStudio.ownerId !== session.user.id) {
+    if (existingStudio.owner_id !== session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest) {
     if (updateData.name !== undefined) updateFields.name = updateData.name;
     if (updateData.description !== undefined) updateFields.description = updateData.description;
     if (updateData.address !== undefined) updateFields.address = updateData.address;
-    if (updateData.websiteUrl !== undefined) updateFields.websiteUrl = updateData.websiteUrl;
+    if (updateData.website_url !== undefined) updateFields.website_url = updateData.website_url;
     if (updateData.phone !== undefined) updateFields.phone = updateData.phone;
     if (updateData.latitude !== undefined) updateFields.latitude = updateData.latitude;
     if (updateData.longitude !== undefined) updateFields.longitude = updateData.longitude;

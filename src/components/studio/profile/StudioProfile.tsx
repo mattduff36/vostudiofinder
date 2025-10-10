@@ -31,14 +31,14 @@ interface StudioProfileProps {
     studioType: string;
     studioTypes?: Array<{ studioType: string }>;
     address: string;
-    websiteUrl?: string;
+    website_url?: string;
     phone?: string;
-    isPremium: boolean;
-    isVerified: boolean;
+    is_premium: boolean;
+    is_verified: boolean;
     latitude?: number;
     longitude?: number;
-    createdAt: Date;
-    updatedAt: Date;
+    created_at: Date;
+    updated_at: Date;
     owner: {
       id: string;
       displayName: string;
@@ -58,7 +58,7 @@ interface StudioProfileProps {
       rating: number;
       content: string;
       isAnonymous: boolean;
-      createdAt: Date;
+      created_at: Date;
       reviewer: {
         displayName: string;
         avatarUrl?: string;
@@ -113,10 +113,10 @@ export function StudioProfile({ studio }: StudioProfileProps) {
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
                 <h1 className="text-3xl font-bold" style={{ color: colors.textPrimary }}>{studio.name}</h1>
-                {studio.isPremium && (
+                {studio.is_premium && (
                   <Crown className="w-6 h-6 text-yellow-500" aria-label="Premium Studio" />
                 )}
-                {studio.isVerified && (
+                {studio.is_verified && (
                   <div className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-medium">
                     ✓ Verified
                   </div>
@@ -260,9 +260,9 @@ export function StudioProfile({ studio }: StudioProfileProps) {
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <h3 className="text-lg font-medium mb-4" style={{ color: colors.textPrimary }}>Quick Contact</h3>
                   <div className="space-y-3">
-                    {studio.websiteUrl && (
+                    {studio.website_url && (
                       <a
-                        href={studio.websiteUrl}
+                        href={studio.website_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center text-sm transition-colors"

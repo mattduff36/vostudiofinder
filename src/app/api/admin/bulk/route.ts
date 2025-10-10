@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
           display_name: studio.name || '',
           email: studio.owner?.email || '',
           status: studio.status.toLowerCase(),
-          joined: studio.createdAt,
+          joined: studio.created_at,
           avatar_url: studio.owner?.avatarUrl || ''
         })));
         

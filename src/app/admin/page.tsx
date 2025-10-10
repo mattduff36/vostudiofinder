@@ -31,26 +31,26 @@ export default async function AdminPage() {
     db.review.count({ where: { status: 'PENDING' } }),
     db.users.count({
       where: {
-        updatedAt: {
+        updated_at: {
           gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
         },
       },
     }),
-    db.studios.count({ where: { isPremium: true, status: 'ACTIVE' } }),
+    db.studios.count({ where: { is_premium: true, status: 'ACTIVE' } }),
     db.users.findMany({
       take: 5,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       select: {
         id: true,
         displayName: true,
         email: true,
         role: true,
-        createdAt: true,
+        created_at: true,
       },
     }),
     db.studios.findMany({
       take: 5,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       include: {
         owner: {
           select: {
@@ -66,7 +66,7 @@ export default async function AdminPage() {
     }),
     db.review.findMany({
       take: 5,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       include: {
         reviewer: {
           select: {
@@ -98,7 +98,7 @@ export default async function AdminPage() {
       id: studio.id,
       name: studio.name,
       studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
-      createdAt: studio.createdAt,
+      created_at: studio.created_at,
       owner: {
         displayName: studio.owner.displayName,
       },

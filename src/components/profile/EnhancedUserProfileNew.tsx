@@ -250,7 +250,7 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-3 flex-shrink-0" style={{ color: colors.textSubtle }} />
                   <span className="text-sm" style={{ color: colors.textSecondary }}>
-                    Member since {new Date(user.createdAt).getFullYear()}
+                    Member since {new Date(user.created_at).getFullYear()}
                   </span>
                 </div>
               </div>

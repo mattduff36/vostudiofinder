@@ -16,7 +16,7 @@ interface StudioReviewsProps {
       rating: number;
       content: string;
       isAnonymous: boolean;
-      createdAt: Date;
+      created_at: Date;
       reviewer: {
         displayName: string;
         avatarUrl?: string;

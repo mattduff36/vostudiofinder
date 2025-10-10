@@ -289,7 +289,7 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
                 </div>
                 <div>
                   <span className="font-medium">Member since:</span>{' '}
-                  {new Date(user.createdAt).toLocaleDateString()}
+                  {new Date(user.created_at).toLocaleDateString()}
                 </div>
                 {profile?.isCrbChecked && (
                   <div className="flex items-center text-green-600">

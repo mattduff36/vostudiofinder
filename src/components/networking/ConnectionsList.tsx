@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 interface Connection {
   id: string;
   status: 'PENDING' | 'ACCEPTED' | 'BLOCKED';
-  createdAt: string;
+  created_at: string;
   acceptedAt?: string;
   initiatedBy: string;
   user: {
@@ -221,7 +221,7 @@ export function ConnectionsList({
                   <div className="text-xs text-gray-500">
                     {status === 'ACCEPTED' && connection.acceptedAt
                       ? `Connected ${new Date(connection.acceptedAt).toLocaleDateString()}`
-                      : `Requested ${new Date(connection.createdAt).toLocaleDateString()}`
+                      : `Requested ${new Date(connection.created_at).toLocaleDateString()}`
                     }
                   </div>
                 </div>

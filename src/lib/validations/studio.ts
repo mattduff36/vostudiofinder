@@ -17,7 +17,7 @@ export const createStudioSchema = z.object({
     .string()
     .min(5, 'Address must be at least 5 characters long')
     .max(255, 'Address must be less than 255 characters'),
-  websiteUrl: z
+  website_url: z
     .string()
     .url('Please enter a valid website URL')
     .optional()
@@ -60,7 +60,7 @@ export const updateStudioSchema = z.object({
     .min(5, 'Address must be at least 5 characters long')
     .max(255, 'Address must be less than 255 characters')
     .optional(),
-  websiteUrl: z
+  website_url: z
     .string()
     .url('Please enter a valid website URL')
     .optional()
@@ -96,7 +96,7 @@ export const studioSearchSchema = z.object({
   equipment: z.array(z.string()).optional(), // New equipment parameter
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(50),
-  sortBy: z.enum(['name', 'distance', 'rating', 'createdAt']).default('name'),
+  sortBy: z.enum(['name', 'distance', 'rating', 'created_at']).default('name'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });
 

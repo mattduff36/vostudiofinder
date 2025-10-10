@@ -12,10 +12,10 @@ interface Studio {
   description: string;
   studioTypes: Array<{ studioType: string }>;
   address: string;
-  websiteUrl?: string;
+  website_url?: string;
   phone?: string;
-  isPremium: boolean;
-  isVerified: boolean;
+  is_premium: boolean;
+  is_verified: boolean;
   owner: {
     id: string;
     displayName: string;
@@ -171,7 +171,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                       <span>{studio._count.reviews}</span>
                     </div>
                   )}
-                  {studio.isVerified && (
+                  {studio.is_verified && (
                     <span className="text-green-600 font-medium text-xs">✓ Verified</span>
                   )}
                 </div>

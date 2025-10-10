@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
 
           // Remove premium status from user's studios
           await tx.studio.updateMany({
-            where: { ownerId: subscription.userId },
-            data: { isPremium: false },
+            where: { owner_id: subscription.userId },
+            data: { is_premium: false },
           });
         });
         break;

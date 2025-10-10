@@ -33,10 +33,10 @@ interface ModernStudioProfileProps {
     description: string;
     studioType: string;
     address: string;
-    websiteUrl?: string;
+    website_url?: string;
     phone?: string;
-    isPremium: boolean;
-    isVerified: boolean;
+    is_premium: boolean;
+    is_verified: boolean;
     latitude?: number;
     longitude?: number;
     images: Array<{
@@ -52,7 +52,7 @@ interface ModernStudioProfileProps {
       id: string;
       rating: number;
       content: string;
-      createdAt: Date;
+      created_at: Date;
       reviewer: {
         displayName: string;
       };
@@ -94,8 +94,8 @@ interface ModernStudioProfileProps {
         showAddress?: boolean | null;
       } | null;
     };
-    createdAt: Date;
-    updatedAt: Date;
+    created_at: Date;
+    updated_at: Date;
     averageRating: number;
     _count: {
       reviews: number;
@@ -305,13 +305,13 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                         {studioTypeLabels[studio.studioType as keyof typeof studioTypeLabels] || studio.studioType}
                       </span>
-                      {studio.isPremium && (
+                      {studio.is_premium && (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
                           <Crown className="w-4 h-4 mr-1" />
                           Premium
                         </span>
                       )}
-                      {studio.isVerified && (
+                      {studio.is_verified && (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                           <Shield className="w-4 h-4 mr-1" />
                           Verified
@@ -498,7 +498,7 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                       </div>
                       <p className="text-gray-700 text-sm">{review.content}</p>
                       <p className="text-gray-500 text-xs mt-2">
-                        {new Date(review.createdAt).toLocaleDateString()}
+                        {new Date(review.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   ))}
@@ -542,11 +542,11 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                   )}
 
                   {/* Website */}
-                  {studio.websiteUrl && (
+                  {studio.website_url && (
                     <div className="flex items-center space-x-3">
                       <Globe className="w-5 h-5 text-gray-400" />
                       <a
-                        href={studio.websiteUrl}
+                        href={studio.website_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
@@ -618,7 +618,7 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
                   Message Studio
                 </Button>
                 <p className="text-xs text-gray-500 text-center">
-                  Member of Studio Finder since: {new Date(studio.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+                  Member of Studio Finder since: {new Date(studio.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
                 </p>
               </div>
             </div>

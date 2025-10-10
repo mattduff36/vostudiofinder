@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { updated_at: 'desc' },
         take: limit,
         skip: offset
       }),

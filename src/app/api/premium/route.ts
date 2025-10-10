@@ -50,7 +50,7 @@ async function getFeaturedUsers() {
     },
     orderBy: [
       { profile: { isSpotlight: 'desc' } }, // Spotlight users first
-      { createdAt: 'desc' }
+      { created_at: 'desc' }
     ],
     take: 20
   });
@@ -81,7 +81,7 @@ async function getSpotlightUsers() {
       }
     },
     orderBy: {
-      createdAt: 'desc'
+      created_at: 'desc'
     },
     take: 20
   });
@@ -93,8 +93,8 @@ async function getPremiumStudios() {
   const premiumStudios = await prisma.studio.findMany({
     where: {
       OR: [
-        { isPremium: true },
-        { isVerified: true },
+        { is_premium: true },
+        { is_verified: true },
         {
           owner: {
             profile: {
@@ -128,11 +128,11 @@ async function getPremiumStudios() {
       }
     },
     orderBy: [
-      { isPremium: 'desc' },
-      { isVerified: 'desc' },
+      { is_premium: 'desc' },
+      { is_verified: 'desc' },
       { owner: { profile: { isSpotlight: 'desc' } } },
       { owner: { profile: { isFeatured: 'desc' } } },
-      { createdAt: 'desc' }
+      { created_at: 'desc' }
     ],
     take: 20
   });
@@ -160,13 +160,13 @@ async function getPremiumStats() {
     }),
     prisma.studio.count({
       where: {
-        isPremium: true,
+        is_premium: true,
         status: 'ACTIVE'
       }
     }),
     prisma.studio.count({
       where: {
-        isVerified: true,
+        is_verified: true,
         status: 'ACTIVE'
       }
     })
@@ -264,8 +264,8 @@ export async function POST(request: NextRequest) {
               studioType: true
             }
           },
-          isPremium: true, 
-          isVerified: true 
+          is_premium: true, 
+          is_verified: true 
         }
         }
       },
@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
         { profile: { isSpotlight: 'desc' } },
         { profile: { isFeatured: 'desc' } },
         { studios: { _count: 'desc' } },
-        { createdAt: 'desc' }
+        { created_at: 'desc' }
       ],
       take: 50
     });

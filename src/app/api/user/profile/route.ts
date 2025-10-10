@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest) {
         displayName: validatedData.displayName,
         username: validatedData.username,
         avatarUrl: validatedData.avatarUrl || null,
-        updatedAt: new Date(),
+        updated_at: new Date(),
       },
       select: {
         id: true,
@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest) {
         avatarUrl: true,
         role: true,
         emailVerified: true,
-        updatedAt: true,
+        updated_at: true,
       },
     });
     
@@ -99,8 +99,8 @@ export async function GET(request: NextRequest) {
         avatarUrl: true,
         role: true,
         emailVerified: true,
-        createdAt: true,
-        updatedAt: true,
+        created_at: true,
+        updated_at: true,
       },
     });
     

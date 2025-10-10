@@ -39,7 +39,7 @@ export async function GET() {
       // Studio counts
       db.studios.count(),
       db.studios.count({ where: { status: 'ACTIVE' } }),
-      db.studios.count({ where: { isVerified: true } }),
+      db.studios.count({ where: { is_verified: true } }),
       
       // Connection counts
       db.contact.count(),
@@ -50,18 +50,18 @@ export async function GET() {
       
       // User dates
       db.users.findFirst({ 
-        orderBy: { createdAt: 'asc' },
-        select: { createdAt: true }
+        orderBy: { created_at: 'asc' },
+        select: { created_at: true }
       }),
       db.users.findFirst({ 
-        orderBy: { createdAt: 'desc' },
-        select: { createdAt: true }
+        orderBy: { created_at: 'desc' },
+        select: { created_at: true }
       }),
       
       // Top studios by connections
       db.studios.findMany({
         take: 10,
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { updated_at: 'desc' },
         select: {
           id: true,
           name: true,
@@ -89,11 +89,11 @@ export async function GET() {
       // Recent activity
       db.users.findMany({
         take: 10,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { created_at: 'desc' },
         select: {
           id: true,
           displayName: true,
-          createdAt: true,
+          created_at: true,
           role: true
         }
       })
@@ -105,8 +105,8 @@ export async function GET() {
           total_users: totalUsers,
           active_users: activeUsers,
           pending_users: totalUsers - activeUsers,
-          first_user_date: firstUser?.createdAt?.toISOString() || null,
-          latest_user_date: latestUser?.createdAt?.toISOString() || null
+          first_user_date: firstUser?.created_at?.toISOString() || null,
+          latest_user_date: latestUser?.created_at?.toISOString() || null
         },
         studios: {
           total_studios: totalStudios,
@@ -146,7 +146,7 @@ export async function GET() {
       recentActivity: recentActivity.map(activity => ({
         id: activity.id,
         name: activity.displayName || 'Unknown User',
-        date: activity.createdAt.toISOString(),
+        date: activity.created_at.toISOString(),
         status: activity.role
       }))
     };

@@ -180,13 +180,13 @@ export function PremiumFeatures({
           </div>
           
           <div className="flex space-x-1">
-            {studio.isPremium && (
+            {studio.is_premium && (
               <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                 <Crown className="w-3 h-3 mr-1" />
                 Premium
               </span>
             )}
-            {studio.isVerified && (
+            {studio.is_verified && (
               <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
                 <Shield className="w-3 h-3 mr-1" />
                 Verified

@@ -10,7 +10,7 @@ interface ReviewResponseProps {
   existingResponse?: {
     id: string;
     content: string;
-    createdAt: string;
+    created_at: string;
   };
   onResponseAdded?: () => void;
 }
@@ -99,7 +99,7 @@ export function ReviewResponse({
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-blue-900">Studio Owner Response</span>
               <span className="text-xs text-blue-600">
-                {new Date(existingResponse.createdAt).toLocaleDateString()}
+                {new Date(existingResponse.created_at).toLocaleDateString()}
               </span>
             </div>
             <div className="flex space-x-2">

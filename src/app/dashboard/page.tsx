@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     // User's studios (if they're a studio owner)
     db.studios.findMany({
-      where: { ownerId: session.user.id },
+      where: { owner_id: session.user.id },
       include: {
         services: true,
         images: {
@@ -37,7 +37,7 @@ export default async function DashboardPage() {
           select: { reviews: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
     }),
     
     // User's reviews
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       take: 10,
     }),
     
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       take: 10,
     }),
     
@@ -135,8 +135,8 @@ export default async function DashboardPage() {
       name: studio.name,
       studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
       status: studio.status,
-      isPremium: studio.isPremium,
-      createdAt: studio.createdAt,
+      is_premium: studio.is_premium,
+      created_at: studio.created_at,
       _count: {
         reviews: studio._count.reviews,
       },
@@ -145,14 +145,14 @@ export default async function DashboardPage() {
       id: review.id,
       rating: review.rating,
       content: review.content || '',
-      createdAt: review.createdAt,
+      created_at: review.created_at,
       studio: review.studio,
     })),
     messages: userMessages.map(message => ({
       id: message.id,
       subject: message.subject || '',
       isRead: message.isRead,
-      createdAt: message.createdAt,
+      created_at: message.created_at,
       senderId: message.senderId,
       receiverId: message.receiverId,
       sender: {

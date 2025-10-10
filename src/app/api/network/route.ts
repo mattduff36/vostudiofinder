@@ -58,7 +58,7 @@ async function getConnections(userId: string) {
       }
     },
     orderBy: {
-      createdAt: 'desc'
+      created_at: 'desc'
     }
   });
 
@@ -135,7 +135,7 @@ async function getSuggestions(userId: string) {
     orderBy: [
       { profile: { isFeatured: 'desc' } },
       { profile: { isSpotlight: 'desc' } },
-      { createdAt: 'desc' }
+      { created_at: 'desc' }
     ]
   });
 

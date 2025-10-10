@@ -24,8 +24,8 @@ export async function getEnhancedSession() {
       avatarUrl: true,
       role: true,
       emailVerified: true,
-      createdAt: true,
-      updatedAt: true,
+      created_at: true,
+      updated_at: true,
     },
   });
 

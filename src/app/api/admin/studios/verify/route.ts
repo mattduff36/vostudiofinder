@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest) {
       where: { id: studioId },
             data: {
         status,
-        isVerified: status === 'VERIFIED',
+        is_verified: status === 'VERIFIED',
       },
     });
 

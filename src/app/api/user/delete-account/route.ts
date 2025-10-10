@@ -69,22 +69,22 @@ export async function DELETE(request: NextRequest) {
       
       // 1. Delete studio-related data
       await tx.studioService.deleteMany({
-        where: { studio: { ownerId: user.id } },
+        where: { studio: { owner_id: user.id } },
       });
       
       await tx.studioImage.deleteMany({
-        where: { studio: { ownerId: user.id } },
+        where: { studio: { owner_id: user.id } },
       });
       
       await tx.review.deleteMany({
         where: { OR: [
           { reviewerId: user.id },
-          { ownerId: user.id },
+          { owner_id: user.id },
         ]},
       });
       
       await tx.studio.deleteMany({
-        where: { ownerId: user.id },
+        where: { owner_id: user.id },
       });
       
       // 2. Delete messages

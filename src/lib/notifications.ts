@@ -19,7 +19,7 @@ export interface NotificationData {
   message: string;
   data?: Record<string, any>;
   read: boolean;
-  createdAt: Date;
+  created_at: Date;
   actionUrl?: string;
 }
 
@@ -53,7 +53,7 @@ export class NotificationService {
       message,
       data: data || {},
       read: false,
-      createdAt: new Date(),
+      created_at: new Date(),
       ...(actionUrl && { actionUrl }),
     };
 

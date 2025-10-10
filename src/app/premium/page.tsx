@@ -33,7 +33,7 @@ async function getPremiumData() {
     },
     orderBy: [
       { profile: { isSpotlight: 'desc' } },
-      { createdAt: 'desc' }
+      { created_at: 'desc' }
     ],
     take: 12
   });
@@ -61,7 +61,7 @@ async function getPremiumData() {
       }
     },
     orderBy: {
-      createdAt: 'desc'
+      created_at: 'desc'
     },
     take: 12
   });
@@ -70,8 +70,8 @@ async function getPremiumData() {
   const premiumStudios = await prisma.studio.findMany({
     where: {
       OR: [
-        { isPremium: true },
-        { isVerified: true },
+        { is_premium: true },
+        { is_verified: true },
         {
           owner: {
             profile: {
@@ -98,11 +98,11 @@ async function getPremiumData() {
       }
     },
     orderBy: [
-      { isPremium: 'desc' },
-      { isVerified: 'desc' },
+      { is_premium: 'desc' },
+      { is_verified: 'desc' },
       { owner: { profile: { isSpotlight: 'desc' } } },
       { owner: { profile: { isFeatured: 'desc' } } },
-      { createdAt: 'desc' }
+      { created_at: 'desc' }
     ],
     take: 12
   });
@@ -126,8 +126,8 @@ async function getPremiumData() {
     prisma.studio.count({
       where: {
         OR: [
-          { isPremium: true },
-          { isVerified: true }
+          { is_premium: true },
+          { is_verified: true }
         ],
         status: 'ACTIVE'
       }

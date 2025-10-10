@@ -25,7 +25,7 @@ export async function GET() {
 
     const savedSearches = await db.savedSearch.findMany({
       where: { userId: session.user.id },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
     });
 
     return NextResponse.json({ savedSearches });

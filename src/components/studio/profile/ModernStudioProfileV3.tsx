@@ -31,10 +31,10 @@ interface ModernStudioProfileV3Props {
     description: string;
     studioTypes: string[];
     address: string;
-    websiteUrl?: string;
+    website_url?: string;
     phone?: string;
-    isPremium: boolean;
-    isVerified: boolean;
+    is_premium: boolean;
+    is_verified: boolean;
     latitude?: number;
     longitude?: number;
     images: Array<{
@@ -50,7 +50,7 @@ interface ModernStudioProfileV3Props {
       id: string;
       rating: number;
       content: string;
-      createdAt: Date;
+      created_at: Date;
       reviewer: {
         displayName: string;
       };
@@ -92,8 +92,8 @@ interface ModernStudioProfileV3Props {
         showAddress?: boolean | null;
       } | null;
     };
-    createdAt: Date;
-    updatedAt: Date;
+    created_at: Date;
+    updated_at: Date;
     averageRating: number;
     _count: {
       reviews: number;
@@ -305,7 +305,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 <div className="flex items-center space-x-4 mb-3">
                   {/* Badges */}
                   <div className="flex flex-wrap gap-2">
-                    {studio.isVerified && (
+                    {studio.is_verified && (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                         <Shield className="w-4 h-4 mr-1" />
                         Verified
@@ -443,7 +443,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                       </div>
                       <p className="text-gray-700 text-sm">{review.content}</p>
                       <p className="text-gray-500 text-xs mt-2">
-                        {new Date(review.createdAt).toLocaleDateString()}
+                        {new Date(review.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   ))}
@@ -523,13 +523,13 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   )}
 
                   {/* Website */}
-                  {studio.websiteUrl && (
+                  {studio.website_url && (
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                         <Globe className="w-4 h-4 text-gray-600" />
                       </div>
                       <a
-                        href={studio.websiteUrl}
+                        href={studio.website_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
@@ -604,9 +604,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             <p className="text-gray-600 mb-4">
               Contact information not available, please visit the studio's website directly.
             </p>
-            {studio.websiteUrl && (
+            {studio.website_url && (
               <a 
-                href={studio.websiteUrl} 
+                href={studio.website_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
