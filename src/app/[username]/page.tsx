@@ -65,28 +65,28 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
   const user = await db.users.findUnique({
     where: { username },
     include: {
-      profile: true,
-      metadata: true,
+      user_profiles: true,
+      user_metadata: true,
       studios: {
         where: { status: 'ACTIVE' },
         include: {
-          owner: {
+          users: {
             include: {
-              profile: true,
+              user_profiles: true,
             },
           },
-          services: {
+          studio_services: {
             select: {
               service: true,
             },
           },
-          studioTypes: {
+          studio_studio_types: {
             select: {
-              studioType: true,
+              studio_type: true,
             },
           },
-          images: {
-            orderBy: { sortOrder: 'asc' },
+          studio_images: {
+            orderBy: { sort_order: 'asc' },
           },
           reviews: {
             where: { status: 'APPROVED' },
@@ -94,16 +94,16 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               id: true,
               rating: true,
               content: true,
-              isAnonymous: true,
-              createdAt: true,
-              reviewer: {
+              is_anonymous: true,
+              created_at: true,
+              users_reviews_reviewer_idTousers: {
                 select: {
-                  displayName: true,
-                  avatarUrl: true,
+                  display_name: true,
+                  avatar_url: true,
                 },
               },
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { created_at: 'desc' },
             take: 10,
           },
           _count: {
