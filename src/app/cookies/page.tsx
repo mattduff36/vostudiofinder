@@ -39,7 +39,7 @@ export default function CookiesPage() {
           <h1 className={`text-4xl md:text-5xl font-bold mb-4 transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'
           }`} style={{ transitionDelay: '0.2s' }}>Cookie Policy</h1>
-          <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
+          <div className="w-24 h-1 bg-[#d42027] mx-auto mb-6"></div>
           <p className={`text-xl text-center transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.4s', color: 'rgba(255, 255, 255, 0.9)', maxWidth: '768px', margin: '0 auto' }}>
