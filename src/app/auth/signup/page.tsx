@@ -38,9 +38,14 @@ export default async function SignupPage() {
       
       <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="text-4xl font-bold text-primary-600">
-            VoiceoverStudioFinder
-          </div>
+          <Image
+            src="/images/voiceover-studio-finder-header-logo2-black.png"
+            alt="VoiceoverStudioFinder"
+            width={300}
+            height={47}
+            priority
+            className="h-auto"
+          />
         </div>
       </div>
 
