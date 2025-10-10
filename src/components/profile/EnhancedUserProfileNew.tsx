@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { User, UserProfile, UserMetadata } from '@prisma/client';
+import { User, UserProfile, UserMetadata } from '@/types/prisma';
 import { colors } from '@/components/home/HomePage';
 import { 
   MapPin, 

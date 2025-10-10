@@ -89,3 +89,39 @@ export type UserProfile = {
   updatedAt: Date;
 };
 
+export type StudioImage = {
+  id: string;
+  studioId: string;
+  imageUrl: string;
+  caption?: string | null;
+  order: number;
+  createdAt: Date;
+};
+
+export type StudioService = {
+  id: string;
+  studioId: string;
+  serviceType: ServiceType;
+  description?: string | null;
+  price?: number | null;
+  createdAt: Date;
+};
+
+export type UserMetadata = {
+  id: string;
+  userId: string;
+  key: string;
+  value: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type UserConnection = {
+  id: string;
+  userId: string;
+  connectedUserId: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+

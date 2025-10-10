@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { User, UserConnection, UserProfile } from '@prisma/client';
+import { User, UserConnection, UserProfile } from '@/types/prisma';
 import { 
   Users, 
   UserPlus, 
