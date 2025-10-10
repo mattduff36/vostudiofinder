@@ -42,9 +42,9 @@ export default async function DashboardPage() {
     
     // User's reviews
     db.reviews.findMany({
-      where: { reviewerId: session.user.id },
+      where: { reviewer_id: session.user.id },
       include: {
-        studio: {
+        studios: {
           select: {
             id: true,
             name: true,
@@ -85,8 +85,8 @@ export default async function DashboardPage() {
     db.user_connections.findMany({
       where: {
         OR: [
-          { userId: session.user.id },
-          { connectedUserId: session.user.id },
+          { user_id: session.user.id },
+          { connected_user_id: session.user.id },
         ],
         accepted: true,
       },
@@ -166,8 +166,8 @@ export default async function DashboardPage() {
     })),
     connections: userConnections.map(connection => ({
       id: connection.id,
-      userId: connection.userId,
-      connectedUserId: connection.connectedUserId,
+      userId: connection.user_id,
+      connectedUserId: connection.connected_user_id,
       user: {
         id: connection.user.id,
         display_name: connection.user.display_name,
