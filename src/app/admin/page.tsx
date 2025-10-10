@@ -68,12 +68,12 @@ export default async function AdminPage() {
       take: 5,
       orderBy: { created_at: 'desc' },
       include: {
-        reviewer: {
+        users_reviews_reviewer_idTousers: {
           select: {
             display_name: true,
           },
         },
-        studio: {
+        studios: {
           select: {
             name: true,
           },

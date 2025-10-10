@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Create the message
-    const message = await db.message.create({
+    const message = await db.messages.create({
       data: {
         senderId: session.user.id,
         receiverId: validatedData.receiverId,
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
       : { receiverId: session.user.id };
     
     const [messages, totalCount] = await Promise.all([
-      db.message.findMany({
+      db.messages.findMany({
         where,
         include: {
           sender: {
@@ -164,12 +164,12 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
       }),
-      db.message.count({ where }),
+      db.messages.count({ where }),
     ]);
     
     // Mark received messages as read
     if (type === 'received') {
-      await db.message.updateMany({
+      await db.messages.updateMany({
         where: {
           receiverId: session.user.id,
           isRead: false,
@@ -197,4 +197,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+
 

@@ -56,21 +56,21 @@ export default async function DashboardPage() {
     }),
     
     // User's messages
-    db.message.findMany({
+    db.messages.findMany({
       where: {
         OR: [
-          { senderId: session.user.id },
-          { receiverId: session.user.id },
+          { sender_id: session.user.id },
+          { receiver_id: session.user.id },
         ],
       },
       include: {
-        sender: {
+        users_messages_sender_idTousers: {
           select: {
             display_name: true,
             avatar_url: true,
           },
         },
-        receiver: {
+        users_messages_receiver_idTousers: {
           select: {
             display_name: true,
             avatar_url: true,
@@ -183,4 +183,5 @@ export default async function DashboardPage() {
 
   return <UserDashboard data={dashboardData} />;
 }
+
 
