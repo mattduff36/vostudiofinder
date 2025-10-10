@@ -191,7 +191,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         <ModernStudioProfileV3 
           studio={{
             ...(() => {
-              const { website_url: _, phone: __, latitude: ___, longitude: ____, images: _____, reviews: ______, owner: _______, studioTypes: ________, ...rest } = studio;
+              const { website_url: _, phone: __, latitude: ___, longitude: ____, studio_images: _____, reviews: ______, users: _______, studio_studio_types: ________, ...rest } = studio;
               return rest;
             })(),
             description: studio.description || '',
