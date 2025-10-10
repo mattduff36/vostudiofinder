@@ -35,16 +35,16 @@ export default async function EditStudioPage({ params }: EditStudioPageProps) {
       where: { status: 'ACTIVE' },
       include: {
         studio_images: {
-          orderBy: { sortOrder: 'asc' },
+          orderBy: { sort_order: 'asc' },
         },
         studio_services: {
             select: {
               service: true,
             },
           },
-          studioTypes: {
+          studio_studio_types: {
             select: {
-              studioType: true,
+              studio_type: true,
             },
           },
         },
