@@ -23,7 +23,7 @@ async function getPremiumData() {
         select: { 
           id: true, 
           name: true,
-          studioTypes: {
+          studio_studio_types: {
             select: {
               studio_type: true
             }
@@ -52,7 +52,7 @@ async function getPremiumData() {
         select: { 
           id: true, 
           name: true,
-          studioTypes: {
+          studio_studio_types: {
             select: {
               studio_type: true
             }
@@ -91,7 +91,7 @@ async function getPremiumData() {
           user_profiles: true
         }
       },
-      studioTypes: {
+      studio_studio_types: {
         select: {
           studio_type: true
         }

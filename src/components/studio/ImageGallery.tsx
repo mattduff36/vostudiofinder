@@ -14,8 +14,8 @@ interface ImageItem {
 }
 
 interface ImageGalleryProps {
-  images: ImageItem[];
-  onImagesChange: (images: ImageItem[]) => void;
+  studio_images: ImageItem[];
+  onImagesChange: (studio_images: ImageItem[]) => void;
   maxImages?: number;
   isEditing?: boolean;
 }

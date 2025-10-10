@@ -21,7 +21,7 @@ interface Studio {
   id: string;
   name: string;
   description: string;
-  studioTypes: Array<{ studio_type: string }>;
+  studio_studio_types: Array<{ studio_type: string }>;
   location: string;
   address: string;
   averageRating?: number;

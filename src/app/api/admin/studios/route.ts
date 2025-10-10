@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
               username: true
             }
           },
-          studioTypes: {
+          studio_studio_types: {
             select: {
               studio_type: true
             }

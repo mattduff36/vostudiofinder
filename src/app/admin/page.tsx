@@ -57,7 +57,7 @@ export default async function AdminPage() {
             display_name: true,
           },
         },
-        studioTypes: {
+        studio_studio_types: {
           select: {
             studio_type: true,
           },

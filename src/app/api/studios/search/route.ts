@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : undefined,
       lat: searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : undefined,
       lng: searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : undefined,
-      studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studio_type')?.split(',') || searchParams.get('type')?.split(',') || undefined, // Support multiple parameters
-      services: searchParams.get('services')?.split(',') || undefined,
+      studio_studio_types: searchParams.get('studioTypes')?.split(',') || searchParams.get('studio_type')?.split(',') || searchParams.get('type')?.split(',') || undefined, // Support multiple parameters
+      studio_services: searchParams.get('services')?.split(',') || undefined,
       equipment: searchParams.get('equipment')?.split(',') || undefined, // New equipment parameter
       page: parseInt(searchParams.get('page') || '1'),
       limit: parseInt(searchParams.get('limit') || '50'),
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
           { description: { contains: validatedParams.query, mode: 'insensitive' } },
           // Any service matches
           {
-            services: {
+            studio_services: {
               some: {
                 service: { 
                   in: Object.values(ServiceType).filter(service => 
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
 
       if (mappedTypes.length > 0) {
         (where.AND as Prisma.StudioWhereInput[]).push({
-          studioTypes: {
+          studio_studio_types: {
             some: {
               studio_type: {
                 in: mappedTypes as any[],
@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
 
       if (mappedServices.length > 0) {
         (where.AND as Prisma.StudioWhereInput[]).push({
-          services: {
+          studio_services: {
             some: {
               service: {
                 in: mappedServices as any[],
@@ -251,17 +251,17 @@ export async function GET(request: NextRequest) {
               },
             },
           },
-          studioTypes: {
+          studio_studio_types: {
             select: {
               studio_type: true,
             },
           },
-          services: {
+          studio_services: {
             select: {
               service: true,
             },
           },
-          images: {
+          studio_images: {
             take: 1,
             orderBy: { sort_order: 'asc' },
             select: {
@@ -336,17 +336,17 @@ export async function GET(request: NextRequest) {
                 },
               },
             },
-            studioTypes: {
+            studio_studio_types: {
               select: {
                 studio_type: true,
               },
             },
-            services: {
+            studio_services: {
               select: {
                 service: true,
               },
             },
-            images: {
+            studio_images: {
               take: 1,
               orderBy: { sort_order: 'asc' },
               select: {
@@ -397,7 +397,7 @@ export async function GET(request: NextRequest) {
             name: true,
             latitude: true,
             longitude: true,
-            studioTypes: {
+            studio_studio_types: {
               select: {
                 studio_type: true,
               },
@@ -426,7 +426,7 @@ export async function GET(request: NextRequest) {
             name: true,
             latitude: true,
             longitude: true,
-            studioTypes: {
+            studio_studio_types: {
               select: {
                 studio_type: true,
               },
@@ -444,7 +444,7 @@ export async function GET(request: NextRequest) {
           name: true,
           latitude: true,
           longitude: true,
-          studioTypes: {
+          studio_studio_types: {
             select: {
               studio_type: true,
             },
@@ -461,7 +461,7 @@ export async function GET(request: NextRequest) {
           name: true,
           latitude: true,
           longitude: true,
-          studioTypes: {
+          studio_studio_types: {
             select: {
               studio_type: true,
             },
@@ -494,8 +494,8 @@ export async function GET(request: NextRequest) {
       filters: {
         query: validatedParams.query,
         location: validatedParams.location,
-        studioTypes: validatedParams.studioTypes,
-        services: validatedParams.services,
+        studio_studio_types: validatedParams.studioTypes,
+        studio_services: validatedParams.services,
       },
       searchCoordinates: searchCoordinates,
       searchRadius: validatedParams.radius,

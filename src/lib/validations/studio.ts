@@ -10,7 +10,7 @@ export const createStudioSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters long')
     .max(2000, 'Description must be less than 2000 characters'),
-  studioTypes: z
+  studio_studio_types: z
     .array(z.nativeEnum(studio_type))
     .min(1, 'Please select at least one studio type'),
   address: z
@@ -27,10 +27,10 @@ export const createStudioSchema = z.object({
     .regex(/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number')
     .optional()
     .or(z.literal('')),
-  services: z
+  studio_services: z
     .array(z.nativeEnum(ServiceType))
     .min(1, 'Please select at least one service'),
-  images: z
+  studio_images: z
     .array(z.object({
       url: z.string().url('Please enter a valid image URL'),
       alt_text: z.string().optional(),
@@ -51,7 +51,7 @@ export const updateStudioSchema = z.object({
     .min(10, 'Description must be at least 10 characters long')
     .max(2000, 'Description must be less than 2000 characters')
     .optional(),
-  studioTypes: z
+  studio_studio_types: z
     .array(z.nativeEnum(studio_type))
     .min(1, 'Please select at least one studio type')
     .optional(),
@@ -72,11 +72,11 @@ export const updateStudioSchema = z.object({
     .or(z.literal('')),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
-  services: z
+  studio_services: z
     .array(z.nativeEnum(ServiceType))
     .min(1, 'Please select at least one service')
     .optional(),
-  images: z
+  studio_images: z
     .array(z.object({
       url: z.string().url('Please enter a valid image URL'),
       alt_text: z.string().optional(),
@@ -91,8 +91,8 @@ export const studioSearchSchema = z.object({
   radius: z.number().min(1).max(500).optional(),
   lat: z.number().min(-90).max(90).optional(), // Latitude coordinate
   lng: z.number().min(-180).max(180).optional(), // Longitude coordinate
-  studioTypes: z.array(z.string()).optional(), // Changed to string array to handle multiple types and NLP-detected types
-  services: z.array(z.string()).optional(), // Changed to string array for flexibility
+  studio_studio_types: z.array(z.string()).optional(), // Changed to string array to handle multiple types and NLP-detected types
+  studio_services: z.array(z.string()).optional(), // Changed to string array for flexibility
   equipment: z.array(z.string()).optional(), // New equipment parameter
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(50),

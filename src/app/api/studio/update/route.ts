@@ -89,9 +89,9 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: updateFields,
       include: {
-        studioTypes: true,
-        services: true,
-        images: {
+        studio_studio_types: true,
+        studio_services: true,
+        studio_images: {
           orderBy: { sort_order: 'asc' },
         },
         owner: {

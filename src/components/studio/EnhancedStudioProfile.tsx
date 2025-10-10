@@ -30,8 +30,8 @@ interface EnhancedStudioProfileProps {
     owner: User & {
       profile?: UserProfile | null;
     };
-    images: StudioImage[];
-    services: StudioService[];
+    studio_images: StudioImage[];
+    studio_services: StudioService[];
     studioTypes?: Array<{ studio_type: string }>;
     reviews?: any[];
   };

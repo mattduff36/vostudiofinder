@@ -17,7 +17,7 @@ import {
 
 interface PremiumUser extends User {
   profile?: UserProfile | null;
-  studios?: { id: string; name: string; studioTypes: Array<{ studio_type: string }> }[];
+  studios?: { id: string; name: string; studio_studio_types: Array<{ studio_type: string }> }[];
 }
 
 interface PremiumStudio extends Studio {

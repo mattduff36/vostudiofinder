@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
       include: {
         studios: {
           include: {
-            services: true,
-            images: true,
+            studio_services: true,
+            studio_images: true,
             reviews: true,
-            studioTypes: {
+            studio_studio_types: {
               select: {
                 studio_type: true,
               },
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
         id: studio.id,
         name: studio.name,
         description: studio.description,
-        studioTypes: studio.studioTypes?.map(st => st.studio_type) || [],
+        studio_studio_types: studio.studioTypes?.map(st => st.studio_type) || [],
         address: studio.address,
         latitude: studio.latitude,
         longitude: studio.longitude,
@@ -89,8 +89,8 @@ export async function GET(request: NextRequest) {
         status: studio.status,
         created_at: studio.created_at,
         updated_at: studio.updated_at,
-        services: studio.services,
-        images: studio.images,
+        studio_services: studio.services,
+        studio_images: studio.images,
         reviews: studio.reviews.length,
       })),
       reviewsWritten: userData.reviews.map(review => ({

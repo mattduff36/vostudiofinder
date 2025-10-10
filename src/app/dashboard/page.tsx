@@ -23,12 +23,12 @@ export default async function DashboardPage() {
     db.studios.findMany({
       where: { owner_id: session.user.id },
       include: {
-        services: true,
-        images: {
+        studio_services: true,
+        studio_images: {
           take: 1,
           orderBy: { sort_order: 'asc' },
         },
-        studioTypes: {
+        studio_studio_types: {
           select: {
             studio_type: true,
           },
