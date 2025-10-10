@@ -1,287 +1,183 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type') || 'all';
+const prisma = new PrismaClient();
 
-    switch (type) {
-      case 'featured':
-        return getFeaturedUsers();
-      case 'spotlight':
-        return getSpotlightUsers();
-      case 'studios':
-        return getPremiumStudios();
-      case 'stats':
-        return getPremiumStats();
-      case 'all':
-        return getAllPremiumData();
-      default:
-        return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
-    }
-  } catch (error) {
-    console.error('Premium API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || session.user.role !== 'ADMIN') {
+    return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
-}
 
-async function getFeaturedUsers() {
-  const featuredUsers = await prisma.user.findMany({
-    where: {
-      user_profiles: {
-        isFeatured: true
-      }
-    },
-    include: {
-      user_profiles: true,
-      studios: {
-        where: { status: 'ACTIVE' },
-        select: { 
-          id: true, 
-          name: true,
-          studio_studio_types: {
-            select: {
-              studio_type: true
-            }
-          }
-        }
-      }
-    },
-    orderBy: [
-      { user_profiles: { isSpotlight: 'desc' } }, // Spotlight users first
-      { created_at: 'desc' }
-    ],
-    take: 20
-  });
+  const { searchParams } = new URL(request.url);
+  const table = searchParams.get('table');
+  const limit = parseInt(searchParams.get('limit') || '20');
+  const offset = parseInt(searchParams.get('offset') || '0');
 
-  return NextResponse.json({ featuredUsers });
-}
+  if (!table) {
+    return new NextResponse(JSON.stringify({ error: 'Table name is required' }), { status: 400 });
+  }
 
-async function getSpotlightUsers() {
-  const spotlightUsers = await prisma.user.findMany({
-    where: {
-      user_profiles: {
-        isSpotlight: true
-      }
-    },
-    include: {
-      user_profiles: true,
-      studios: {
-        where: { status: 'ACTIVE' },
-        select: { 
-          id: true, 
-          name: true,
-          studio_studio_types: {
-            select: {
-              studio_type: true
-            }
-          }
-        }
-      }
-    },
-    orderBy: {
-      created_at: 'desc'
-    },
-    take: 20
-  });
-
-  return NextResponse.json({ spotlightUsers });
-}
-
-async function getPremiumStudios() {
-  const premiumStudios = await prisma.studio.findMany({
-    where: {
-      OR: [
-        { is_premium: true },
-        { is_verified: true },
-        {
-          owner: {
-            user_profiles: {
-              OR: [
-                { isFeatured: true },
-                { isSpotlight: true }
-              ]
-            }
-          }
-        }
-      ],
-      status: 'ACTIVE'
-    },
-    include: {
-      users: {
-        include: {
-          user_profiles: true
-        }
-      },
-      studio_images: {
-        take: 1,
-        orderBy: { sort_order: 'asc' }
-      },
-      studio_services: true,
-      _count: {
-        select: {
-          reviews: {
-            where: { status: 'APPROVED' }
-          }
-        }
-      }
-    },
-    orderBy: [
-      { is_premium: 'desc' },
-      { is_verified: 'desc' },
-      { owner: { user_profiles: { isSpotlight: 'desc' } } },
-      { owner: { user_profiles: { isFeatured: 'desc' } } },
-      { created_at: 'desc' }
-    ],
-    take: 20
-  });
-
-  return NextResponse.json({ premiumStudios });
-}
-
-async function getPremiumStats() {
-  // Get counts for different premium tiers
-  const [
-    totalFeatured,
-    totalSpotlight,
-    totalPremiumStudios,
-    totalVerifiedStudios
-  ] = await Promise.all([
-    prisma.user.count({
-      where: {
-        user_profiles: { isFeatured: true }
-      }
-    }),
-    prisma.user.count({
-      where: {
-        user_profiles: { isSpotlight: true }
-      }
-    }),
-    prisma.studio.count({
-      where: {
-        is_premium: true,
-        status: 'ACTIVE'
-      }
-    }),
-    prisma.studio.count({
-      where: {
-        is_verified: true,
-        status: 'ACTIVE'
-      }
-    })
-  ]);
-
-  // Calculate average visibility boost (mock data for now)
-  const averageViews = 250; // 250% more visibility for premium users
-
-  const stats = {
-    totalFeatured,
-    totalSpotlight,
-    totalPremiumStudios: totalPremiumStudios + totalVerifiedStudios,
-    averageViews
-  };
-
-  return NextResponse.json({ stats });
-}
-
-async function getAllPremiumData() {
-  const [
-    featuredUsersResponse,
-    spotlightUsersResponse,
-    premiumStudiosResponse,
-    statsResponse
-  ] = await Promise.all([
-    getFeaturedUsers(),
-    getSpotlightUsers(),
-    getPremiumStudios(),
-    getPremiumStats()
-  ]);
-
-  const [
-    featuredUsersData,
-    spotlightUsersData,
-    premiumStudiosData,
-    statsData
-  ] = await Promise.all([
-    featuredUsersResponse.json(),
-    spotlightUsersResponse.json(),
-    premiumStudiosResponse.json(),
-    statsResponse.json()
-  ]);
-
-  return NextResponse.json({
-    featuredUsers: featuredUsersData.featuredUsers,
-    spotlightUsers: spotlightUsersData.spotlightUsers,
-    premiumStudios: premiumStudiosData.premiumStudios,
-    premiumStats: statsData.stats
-  });
-}
-
-// Enhanced search that prioritizes premium users
-export async function POST(request: NextRequest) {
   try {
-    const { query, filters } = await request.json();
+    let data: any[] = [];
+    let total = 0;
 
-    const searchResults = await prisma.user.findMany({
-      where: {
-        AND: [
-          // Text search
-          query ? {
-            OR: [
-              { display_name: { contains: query, mode: 'insensitive' } },
-              { username: { contains: query, mode: 'insensitive' } },
-              { user_profiles: { location: { contains: query, mode: 'insensitive' } } },
-              { user_profiles: { about: { contains: query, mode: 'insensitive' } } }
-            ]
-          } : {},
-          // Filters
-          filters?.location ? {
-            user_profiles: { location: { contains: filters.location, mode: 'insensitive' } }
-          } : {},
-          filters?.hasStudio ? {
-            studios: { some: { status: 'ACTIVE' } }
-          } : {},
-          filters?.premiumOnly ? {
-            user_profiles: {
-              OR: [
-                { isFeatured: true },
-                { isSpotlight: true }
-              ]
-            }
-          } : {}
-        ]
-      },
-      include: {
-        user_profiles: true,
-        studios: {
-          where: { status: 'ACTIVE' },
-          select: { 
-          id: true, 
-          name: true,
-          studio_studio_types: {
-            select: {
-              studio_type: true
-            }
-          },
-          is_premium: true, 
-          is_verified: true 
+    // Map table names to Prisma model methods
+    switch (table.toLowerCase()) {
+      case 'user':
+        data = await prisma.users.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.users.count();
+        break;
+
+      case 'userprofile':
+        data = await prisma.user_profiles.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.user_profiles.count();
+        break;
+
+      case 'studio':
+        data = await prisma.studios.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.studios.count();
+        break;
+
+      case 'studioimage':
+        data = await prisma.studio_images.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.studio_images.count();
+        break;
+
+      case 'studioequipment':
+        data = await prisma.studio_services.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.studio_services.count();
+        break;
+
+      case 'studioservice':
+        data = await prisma.studio_services.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.studio_services.count();
+        break;
+
+      case 'studioavailability':
+        data = await prisma.studio_services.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.studio_services.count();
+        break;
+
+      case 'studioreview':
+        data = await prisma.reviews.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.reviews.count();
+        break;
+
+      case 'messages':
+        data = await prisma.messages.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.messages.count();
+        break;
+
+      case 'reviews':
+        data = await prisma.reviews.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.reviews.count();
+        break;
+
+      case 'faq':
+        data = await prisma.faqs.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.faqs.count();
+        break;
+
+      case 'contact':
+        data = await prisma.contacts.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.contacts.count();
+        break;
+
+      case 'poi':
+        data = await prisma.pois.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' }
+        });
+        total = await prisma.pois.count();
+        break;
+
+      default:
+        return new NextResponse(JSON.stringify({ error: 'Table not found' }), { status: 404 });
+    }
+
+    // Convert Decimal fields to strings for JSON serialization
+    const serializedData = data.map(item => {
+      const serialized: any = {};
+      for (const [key, value] of Object.entries(item)) {
+        if (value && typeof value === 'object' && 'toFixed' in value) {
+          // This is likely a Decimal
+          serialized[key] = value.toString();
+        } else {
+          serialized[key] = value;
         }
-        }
-      },
-      orderBy: [
-        // Premium users first
-        { user_profiles: { isSpotlight: 'desc' } },
-        { user_profiles: { isFeatured: 'desc' } },
-        { studios: { _count: 'desc' } },
-        { created_at: 'desc' }
-      ],
-      take: 50
+      }
+      return serialized;
     });
 
-    return NextResponse.json({ results: searchResults });
+    return NextResponse.json({
+      data: serializedData,
+      total,
+      limit,
+      offset,
+      page: Math.floor(offset / limit) + 1,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (error) {
-    console.error('Premium search error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error browsing table data:', error);
+    return new NextResponse(JSON.stringify({ 
+      error: 'Failed to fetch table data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }), { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
+

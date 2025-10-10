@@ -31,9 +31,9 @@ export async function GET(request: NextRequest) {
 }
 
 async function getConnections(user_id: string) {
-  const connections = await prisma.userConnection.findMany({
+  const connections = await prisma.user_connections.findMany({
     where: {
-      user_id: userId,
+      user_id: user_id,
       accepted: true
     },
     include: {
@@ -67,11 +67,11 @@ async function getConnections(user_id: string) {
 
 async function getSuggestions(user_id: string) {
   // Get users who are not already connected
-  const existingConnections = await prisma.userConnection.findMany({
+  const existingConnections = await prisma.user_connections.findMany({
     where: {
       OR: [
-        { user_id: userId },
-        { connected_user_id: userId }
+        { user_id: user_id },
+        { connected_user_id: user_id }
       ]
     },
     select: {
@@ -80,20 +80,20 @@ async function getSuggestions(user_id: string) {
     }
   });
 
-  const connectedUserIds = new Set([
-    ...existingConnections.map(c => c.userId),
-    ...existingConnections.map(c => c.connectedUserId),
-    userId // Exclude self
+  const connected_user_ids = new Set([
+    ...existingConnections.map(c => c.user_id),
+    ...existingConnections.map(c => c.connected_user_id),
+    user_id // Exclude self
   ]);
 
   // Find suggested connections based on:
   // 1. Users with studios (studio owners)
   // 2. Featured/verified users
   // 3. Users with similar locations
-  const suggestions = await prisma.user.findMany({
+  const suggestions = await prisma.users.findMany({
     where: {
       id: {
-        notIn: Array.from(connectedUserIds)
+        notIn: Array.from(connected_user_ids)
       },
       OR: [
         {
@@ -144,17 +144,17 @@ async function getSuggestions(user_id: string) {
 
 async function getNetworkStats(user_id: string) {
   // Get total connections
-  const totalConnections = await prisma.userConnection.count({
+  const totalConnections = await prisma.user_connections.count({
     where: {
-      user_id: userId,
+      user_id: user_id,
       accepted: true
     }
   });
 
   // Get connections with studios (studio owners)
-  const studioOwnerConnections = await prisma.userConnection.count({
+  const studioOwnerConnections = await prisma.user_connections.count({
     where: {
-      user_id: userId,
+      user_id: user_id,
       accepted: true,
       connectedUser: {
         studios: {
@@ -174,10 +174,10 @@ async function getNetworkStats(user_id: string) {
     SELECT COUNT(DISTINCT uc2.user_id) as count
     FROM user_connections uc1
     JOIN user_connections uc2 ON uc1.connected_user_id = uc2.connected_user_id
-    WHERE uc1.user_id = ${userId} 
+    WHERE uc1.user_id = ${user_id} 
       AND uc1.accepted = true 
       AND uc2.accepted = true 
-      AND uc2.user_id != ${userId}
+      AND uc2.user_id != ${user_id}
   `;
 
   const stats = {
@@ -224,11 +224,11 @@ export async function POST(request: NextRequest) {
 
 async function createConnection(user_id: string, targetUserId: string) {
   // Check if connection already exists
-  const existing = await prisma.userConnection.findFirst({
+  const existing = await prisma.user_connections.findFirst({
     where: {
       OR: [
-        { user_id: userId, connected_user_id: targetUserId },
-        { user_id: targetUserId, connected_user_id: userId }
+        { user_id: user_id, connected_user_id: targetUserId },
+        { user_id: targetUserId, connected_user_id: user_id }
       ]
     }
   });
@@ -238,9 +238,9 @@ async function createConnection(user_id: string, targetUserId: string) {
   }
 
   // Create connection request
-  const connection = await prisma.userConnection.create({
+  const connection = await prisma.user_connections.create({
     data: {
-      user_id: userId,
+      user_id: user_id,
       connected_user_id: targetUserId,
       accepted: false // Requires acceptance
     }
@@ -250,10 +250,10 @@ async function createConnection(user_id: string, targetUserId: string) {
 }
 
 async function acceptConnection(user_id: string, targetUserId: string) {
-  await prisma.userConnection.updateMany({
+  await prisma.user_connections.updateMany({
     where: {
       user_id: targetUserId,
-      connected_user_id: userId,
+      connected_user_id: user_id,
       accepted: false
     },
     data: {
@@ -262,15 +262,15 @@ async function acceptConnection(user_id: string, targetUserId: string) {
   });
 
   // Create reciprocal connection
-  await prisma.userConnection.upsert({
+  await prisma.user_connections.upsert({
     where: {
-      userId_connectedUserId: {
-        user_id: userId,
+      user_id_connected_user_id: {
+        user_id: user_id,
         connected_user_id: targetUserId
       }
     },
     create: {
-      user_id: userId,
+      user_id: user_id,
       connected_user_id: targetUserId,
       accepted: true
     },
@@ -283,10 +283,10 @@ async function acceptConnection(user_id: string, targetUserId: string) {
 }
 
 async function declineConnection(user_id: string, targetUserId: string) {
-  await prisma.userConnection.deleteMany({
+  await prisma.user_connections.deleteMany({
     where: {
       user_id: targetUserId,
-      connected_user_id: userId,
+      connected_user_id: user_id,
       accepted: false
     }
   });
@@ -295,15 +295,16 @@ async function declineConnection(user_id: string, targetUserId: string) {
 }
 
 async function removeConnection(user_id: string, targetUserId: string) {
-  await prisma.userConnection.deleteMany({
+  await prisma.user_connections.deleteMany({
     where: {
       OR: [
-        { user_id: userId, connected_user_id: targetUserId },
-        { user_id: targetUserId, connected_user_id: userId }
+        { user_id: user_id, connected_user_id: targetUserId },
+        { user_id: targetUserId, connected_user_id: user_id }
       ]
     }
   });
 
   return NextResponse.json({ success: true });
 }
+
 
