@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
-        { owner: { display_name: { contains: search, mode: 'insensitive' } } },
-        { owner: { email: { contains: search, mode: 'insensitive' } } }
+        { users: { display_name: { contains: search, mode: 'insensitive' } } },
+        { users: { email: { contains: search, mode: 'insensitive' } } }
       ];
     }
 
