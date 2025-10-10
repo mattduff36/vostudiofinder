@@ -190,9 +190,9 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         />
         <ModernStudioProfileV3 
           studio={{
-            ...(() => {
+            ...((): Omit<typeof studio, 'website_url' | 'phone' | 'latitude' | 'longitude' | 'studio_images' | 'reviews' | 'users' | 'studio_studio_types'> => {
               const { website_url: _, phone: __, latitude: ___, longitude: ____, studio_images: _____, reviews: ______, users: _______, studio_studio_types: ________, ...rest } = studio;
-              return rest;
+              return rest as any;
             })(),
             description: studio.description || '',
             address: studio.address || '',
