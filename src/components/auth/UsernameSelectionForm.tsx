@@ -89,9 +89,9 @@ export function UsernameSelectionForm() {
         checkCustomUsername(customUsername);
       }, 500);
       return () => clearTimeout(timer);
-    } else {
-      setCustomAvailable(null);
     }
+    setCustomAvailable(null);
+    return undefined;
   }, [customUsername]);
 
   const handleContinue = () => {
@@ -217,7 +217,7 @@ export function UsernameSelectionForm() {
       <Button
         onClick={handleContinue}
         className="w-full"
-        disabled={!selectedUsername || (customUsername && !customAvailable)}
+        disabled={!selectedUsername || Boolean(customUsername && !customAvailable)}
       >
         Continue to Membership
       </Button>
