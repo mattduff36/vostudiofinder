@@ -1,11 +1,11 @@
 export interface PasswordResetEmailData {
-  displayName: string;
+  display_name: string;
   email: string;
   resetUrl: string;
 }
 
 export function getPasswordResetEmailTemplate(data: PasswordResetEmailData) {
-  const { displayName, email, resetUrl } = data;
+  const { display_name, email, resetUrl } = data;
 
   return {
     subject: 'Reset Your VoiceoverStudioFinder Password',
@@ -82,7 +82,7 @@ export function getPasswordResetEmailTemplate(data: PasswordResetEmailData) {
     </div>
     
     <div class="content">
-        <h2>Hi ${displayName},</h2>
+        <h2>Hi ${display_name},</h2>
         
         <p>We received a request to reset the password for your VoiceoverStudioFinder account (${email}).</p>
         
@@ -123,7 +123,7 @@ export function getPasswordResetEmailTemplate(data: PasswordResetEmailData) {
     text: `
 Password Reset Request - VoiceoverStudioFinder
 
-Hi ${displayName},
+Hi ${display_name},
 
 We received a request to reset the password for your VoiceoverStudioFinder account (${email}).
 

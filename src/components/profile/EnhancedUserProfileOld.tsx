@@ -89,16 +89,16 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
       <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-8 text-white">
         <div className="flex items-start space-x-6">
           <div className="flex-shrink-0">
-            {user.avatarUrl ? (
+            {user.avatar_url ? (
               <img
-                src={user.avatarUrl}
-                alt={user.displayName}
+                src={user.avatar_url}
+                alt={user.display_name}
                 className="w-24 h-24 rounded-full border-4 border-white shadow-lg"
               />
             ) : (
               <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center">
                 <span className="text-2xl font-bold">
-                  {user.displayName.charAt(0).toUpperCase()}
+                  {user.display_name.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
@@ -108,10 +108,10 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
             <h1 className="text-3xl font-bold">
               {profile?.studioName && profile?.lastName 
                 ? `${profile.studioName} ${profile.lastName}`
-                : user.displayName
+                : user.display_name
               }
             </h1>
-            {user.displayName !== `${profile?.studioName} ${profile?.lastName}` && (
+            {user.display_name !== `${profile?.studioName} ${profile?.lastName}` && (
               <p className="text-primary-100 text-lg">@{user.username}</p>
             )}
             

@@ -8,10 +8,10 @@ declare module 'next-auth' {
       id: string;
       email: string;
       username: string;
-      displayName: string;
+      display_name: string;
       role: Role;
-      avatarUrl: string | null;
-      emailVerified: boolean;
+      avatar_url: string | null;
+      email_verified: boolean;
     };
   }
 
@@ -19,10 +19,10 @@ declare module 'next-auth' {
     id: string;
     email: string;
     username: string;
-    displayName: string;
+    display_name: string;
     role: Role;
-    avatarUrl: string | null;
-    emailVerified: boolean;
+    avatar_url: string | null;
+    email_verified: boolean;
   }
 }
 
@@ -30,8 +30,8 @@ declare module 'next-auth/jwt' {
   interface JWT {
     role: Role;
     username: string;
-    displayName: string;
-    avatarUrl: string | null;
-    emailVerified: boolean;
+    display_name: string;
+    avatar_url: string | null;
+    email_verified: boolean;
   }
 }

@@ -9,8 +9,8 @@ import { Plus, Trash2, Edit2, Move, Image as ImageIcon, Eye } from 'lucide-react
 interface ImageItem {
   id: string;
   url: string;
-  altText?: string;
-  sortOrder: number;
+  alt_text?: string;
+  sort_order: number;
 }
 
 interface EnhancedImageGalleryProps {
@@ -44,7 +44,7 @@ export function EnhancedImageGallery({
     // Update sort orders
     const updatedItems = items.map((item, index) => ({
       ...item,
-      sortOrder: index,
+      sort_order: index,
     }));
 
     onImagesChange(updatedItems);
@@ -72,7 +72,7 @@ export function EnhancedImageGallery({
 
     const updatedImages = images
       .filter(img => img.id !== id)
-      .map((img, index) => ({ ...img, sortOrder: index }));
+      .map((img, index) => ({ ...img, sort_order: index }));
     onImagesChange(updatedImages);
   };
 
@@ -173,7 +173,7 @@ export function EnhancedImageGallery({
                         <div className="aspect-video bg-gray-100 relative">
                           <img
                             src={image.url}
-                            alt={image.altText || 'Studio image'}
+                            alt={image.alt_text || 'Studio image'}
                             className="w-full h-full object-cover"
                             loading="lazy"
                             onError={(e) => {
@@ -203,8 +203,8 @@ export function EnhancedImageGallery({
                             <div className="space-y-2">
                               <input
                                 type="text"
-                                value={image.altText || ''}
-                                onChange={(e) => updateImage(image.id, { altText: e.target.value })}
+                                value={image.alt_text || ''}
+                                onChange={(e) => updateImage(image.id, { alt_text: e.target.value })}
                                 placeholder="Add description for accessibility..."
                                 className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                                 autoFocus
@@ -232,7 +232,7 @@ export function EnhancedImageGallery({
                           ) : (
                             <div>
                               <p className="text-sm text-text-secondary truncate">
-                                {image.altText || 'No description'}
+                                {image.alt_text || 'No description'}
                               </p>
                               {isEditing && (
                                 <div className="flex items-center justify-between mt-2">

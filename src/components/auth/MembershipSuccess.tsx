@@ -57,13 +57,13 @@ export function MembershipSuccess() {
         if (signupDataStr) {
           const signupData = JSON.parse(signupDataStr);
           setValue('email', signupData.email);
-          setValue('displayName', signupData.displayName);
+          setValue('display_name', signupData.display_name);
           setValue('password', signupData.password);
           setValue('confirmPassword', signupData.password);
         } else if (result.customerData) {
           // Fallback to payment data if no session data
           setValue('email', result.customerData.email);
-          setValue('displayName', result.customerData.name);
+          setValue('display_name', result.customerData.name);
         }
 
         // Store username for account creation
@@ -205,17 +205,17 @@ export function MembershipSuccess() {
             </div>
 
             <div>
-              <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="display_name" className="block text-sm font-medium text-gray-700">
                 Display Name
               </label>
               <Input
-                id="displayName"
+                id="display_name"
                 type="text"
-                {...register('displayName')}
+                {...register('display_name')}
                 className="mt-1"
               />
-              {errors.displayName && (
-                <p className="mt-1 text-sm text-red-600">{errors.displayName.message}</p>
+              {errors.display_name && (
+                <p className="mt-1 text-sm text-red-600">{errors.display_name.message}</p>
               )}
             </div>
 

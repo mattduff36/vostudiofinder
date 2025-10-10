@@ -22,7 +22,7 @@ export enum MembershipTier {
   ENTERPRISE = 'ENTERPRISE'
 }
 
-export enum StudioType {
+export enum studio_type {
   HOME = 'HOME',
   RECORDING = 'RECORDING',
   PODCAST = 'PODCAST',
@@ -48,10 +48,10 @@ export type User = {
   id: string;
   email: string;
   username: string;
-  displayName: string;
-  avatarUrl?: string | null;
+  display_name: string;
+  avatar_url?: string | null;
   role: Role;
-  emailVerified: boolean;
+  email_verified: boolean;
   created_at: Date;
   updated_at: Date;
 };
@@ -80,7 +80,7 @@ export type UserProfile = {
   lastName?: string | null;
   phone?: string | null;
   about?: string | null;
-  shortAbout?: string | null;
+  short_about?: string | null;
   location?: string | null;
   showEmail: boolean;
   showPhone: boolean;

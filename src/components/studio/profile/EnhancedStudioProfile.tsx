@@ -29,7 +29,7 @@ interface EnhancedStudioProfileProps {
     id: string;
     name: string;
     description: string;
-    studioType: string;
+    studio_type: string;
     address: string;
     website_url?: string;
     phone?: string;
@@ -40,8 +40,8 @@ interface EnhancedStudioProfileProps {
     images: Array<{
       id: string;
       imageUrl: string;
-      altText?: string;
-      sortOrder: number;
+      alt_text?: string;
+      sort_order: number;
     }>;
     services: Array<{
       service: string;
@@ -52,15 +52,15 @@ interface EnhancedStudioProfileProps {
       content: string;
       created_at: Date;
       reviewer: {
-        displayName: string;
+        display_name: string;
       };
     }>;
     owner: {
       id: string;
-      displayName: string;
+      display_name: string;
       username: string;
       role: string;
-      avatarUrl?: string;
+      avatar_url?: string;
     };
     created_at: Date;
     updated_at: Date;
@@ -123,7 +123,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                   </div>
                   <div className="flex items-center">
                     <Award className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-lg capitalize">{studio.studioType.toLowerCase().replace('_', ' ')} Studio</span>
+                    <span className="text-lg capitalize">{studio.studio_type.toLowerCase().replace('_', ' ')} Studio</span>
                   </div>
                 </div>
 
@@ -227,10 +227,10 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6">
                 <div className="flex items-center space-x-6">
-                  {studio.owner.avatarUrl ? (
+                  {studio.owner.avatar_url ? (
                     <img
-                      src={studio.owner.avatarUrl}
-                      alt={studio.owner.displayName}
+                      src={studio.owner.avatar_url}
+                      alt={studio.owner.display_name}
                       className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
                     />
                   ) : (
@@ -239,7 +239,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                     </div>
                   )}
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-gray-900">{studio.owner.displayName}</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">{studio.owner.display_name}</h2>
                     <p className="text-gray-600 text-lg">@{studio.owner.username}</p>
                     <div className="flex items-center mt-2 space-x-4">
                       <span 
@@ -351,7 +351,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Studio Type</span>
                         <span className="font-medium text-gray-900 capitalize">
-                          {studio.studioType.replace('_', ' ').toLowerCase()}
+                          {studio.studio_type.replace('_', ' ').toLowerCase()}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">

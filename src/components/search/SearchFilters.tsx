@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 
 import { X } from 'lucide-react';
 import { EnhancedLocationFilter } from './EnhancedLocationFilter';
-import { StudioType, ServiceType } from '@/types/prisma';
+import { studio_type, ServiceType } from '@/types/prisma';
 
 interface SearchFiltersProps {
   initialFilters: {
@@ -13,7 +13,7 @@ interface SearchFiltersProps {
     studioTypes: string[];
     services: string[];
     sortBy: string;
-    sortOrder: string;
+    sort_order: string;
     radius: number;
     lat?: number;
     lng?: number;
@@ -90,7 +90,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
       studioTypes: [],
       services: [],
       sortBy: 'name',
-      sortOrder: 'asc',
+      sort_order: 'asc',
       radius: 25, // Keep radius for internal state consistency
       // Clear coordinates to remove the radius circle from the map - omit lat/lng properties
     };
@@ -99,9 +99,9 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
   };
 
   const studioTypeOptions = [
-    { value: StudioType.VOICEOVER, label: 'Voiceover Studio' },
-    { value: StudioType.RECORDING, label: 'Recording Studio' },
-    { value: StudioType.PODCAST, label: 'Podcast Studio' },
+    { value: studio_type.VOICEOVER, label: 'Voiceover Studio' },
+    { value: studio_type.RECORDING, label: 'Recording Studio' },
+    { value: studio_type.PODCAST, label: 'Podcast Studio' },
   ];
 
   const serviceOptions = [
@@ -117,11 +117,11 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
 
   const hasActiveFilters = filters.location || filters.studioTypes.length > 0 || filters.services.length > 0 || filters.radius !== 25;
 
-  const handleStudioTypeToggle = (studioType: string) => {
+  const handleStudioTypeToggle = (studio_type: string) => {
     const currentTypes = filters.studioTypes || [];
-    const updatedTypes = currentTypes.includes(studioType)
-      ? currentTypes.filter(type => type !== studioType)
-      : [...currentTypes, studioType];
+    const updatedTypes = currentTypes.includes(studio_type)
+      ? currentTypes.filter(type => type !== studio_type)
+      : [...currentTypes, studio_type];
     
     const newFilters = { ...filters, studioTypes: updatedTypes };
     

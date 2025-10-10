@@ -21,7 +21,7 @@ interface GoogleMapProps {
     id: string;
     position: MapLocation;
     title: string;
-    studioType?: string;
+    studio_type?: string;
     is_verified?: boolean;
     onClick?: () => void;
     studio?: {
@@ -32,7 +32,7 @@ interface GoogleMapProps {
       };
       images?: Array<{
         imageUrl: string;
-        altText?: string;
+        alt_text?: string;
       }>;
     };
   }>;
@@ -344,7 +344,7 @@ export function GoogleMap({
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
 
     // Check if any markers are HOME studios to determine max zoom
-    const hasHomeStudios = markers.some(marker => marker.studioType === 'HOME');
+    const hasHomeStudios = markers.some(marker => marker.studio_type === 'HOME');
     const maxZoom = hasHomeStudios ? 15 : 20; // Limit zoom for privacy when HOME studios are present
 
     const map = new window.google.maps.Map(mapRef.current, {

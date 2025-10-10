@@ -31,27 +31,27 @@ export function SignupForm() {
     setSuccess(null);
 
     try {
-      const displayName = data.displayName ?? data.email.split('@')[0];
+      const display_name = data.display_name ?? data.email.split('@')[0];
       
       // Store signup data in session storage for the next step
       sessionStorage.setItem('signupData', JSON.stringify({
         email: data.email,
         password: data.password,
-        displayName: displayName,
+        display_name: display_name,
       }));
 
       // Check if display name has spaces
-      const hasSpaces = /\s/.test(displayName);
+      const hasSpaces = /\s/.test(display_name);
       
       if (hasSpaces) {
         // Redirect to username selection page
-        router.push(`/auth/username-selection?displayName=${encodeURIComponent(displayName)}`);
+        router.push(`/auth/username-selection?display_name=${encodeURIComponent(display_name)}`);
       } else {
         // No spaces - check if username is available
         const response = await fetch('/api/auth/check-username', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: displayName }),
+          body: JSON.stringify({ username: display_name }),
         });
 
         const result = await response.json();
@@ -60,13 +60,13 @@ export function SignupForm() {
           // Username available - proceed directly to membership
           const params = new URLSearchParams();
           params.set('email', data.email);
-          params.set('name', displayName);
-          params.set('username', displayName);
+          params.set('name', display_name);
+          params.set('username', display_name);
           
           router.push(`/auth/membership?${params.toString()}`);
         } else {
           // Username taken - go to username selection
-          router.push(`/auth/username-selection?displayName=${encodeURIComponent(displayName)}`);
+          router.push(`/auth/username-selection?display_name=${encodeURIComponent(display_name)}`);
         }
       }
     } catch (err) {
@@ -102,8 +102,8 @@ export function SignupForm() {
           label="Display Name"
           type="text"
           placeholder="e.g. John Smith or Smith Studios"
-          error={errors.displayName?.message || ''}
-          {...register('displayName')}
+          error={errors.display_name?.message || ''}
+          {...register('display_name')}
         />
 
         <div className="relative">

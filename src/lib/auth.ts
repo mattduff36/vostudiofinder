@@ -11,7 +11,7 @@ import { Role } from '@prisma/client';
 export const authOptions: NextAuthOptions = {
   adapter: {
     ...PrismaAdapter(db),
-    createUser: async (data: { email?: string; name?: string; image?: string; emailVerified?: Date | null }) => {
+    createUser: async (data: { email?: string; name?: string; image?: string; email_verified?: Date | null }) => {
       // Generate username from email if not provided
       const emailPrefix = data.email?.split('@')[0] || 'user';
       const username = emailPrefix.replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.random().toString(36).substring(7);
@@ -20,9 +20,9 @@ export const authOptions: NextAuthOptions = {
         data: {
           email: data.email!,
           username: username,
-          displayName: data.name || data.email?.split('@')[0] || 'User',
-          avatarUrl: data.image || null,
-          emailVerified: !!data.emailVerified,
+          display_name: data.name || data.email?.split('@')[0] || 'User',
+          avatar_url: data.image || null,
+          email_verified: !!data.email_verified,
         },
       });
     },
@@ -79,10 +79,10 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           username: user.username,
-          displayName: user.displayName,
+          display_name: user.display_name,
           role: user.role,
-          avatarUrl: user.avatarUrl,
-          emailVerified: user.emailVerified,
+          avatar_url: user.avatar_url,
+          email_verified: user.email_verified,
         };
       },
     }),
@@ -118,9 +118,9 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role;
         token.username = user.username;
-        token.displayName = user.displayName;
-        token.avatarUrl = user.avatarUrl;
-        token.emailVerified = !!user.emailVerified;
+        token.display_name = user.display_name;
+        token.avatar_url = user.avatar_url;
+        token.email_verified = !!user.email_verified;
       }
 
       // Handle OAuth account linking
@@ -134,9 +134,9 @@ export const authOptions: NextAuthOptions = {
           await db.users.update({
             where: { id: existingUser.id },
             data: {
-              avatarUrl: profile.image || existingUser.avatarUrl,
-              displayName: profile.name || existingUser.displayName,
-              emailVerified: true, // OAuth accounts are pre-verified
+              avatar_url: profile.image || existingUser.avatar_url,
+              display_name: profile.name || existingUser.display_name,
+              email_verified: true, // OAuth accounts are pre-verified
             },
           });
         }
@@ -149,9 +149,9 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub!;
         session.user.role = token.role as Role;
         session.user.username = token.username as string;
-        session.user.displayName = token.displayName as string;
-        session.user.avatarUrl = token.avatarUrl as string | null;
-        session.user.emailVerified = token.emailVerified as boolean;
+        session.user.display_name = token.display_name as string;
+        session.user.avatar_url = token.avatar_url as string | null;
+        session.user.email_verified = token.email_verified as boolean;
       }
       return session;
     },

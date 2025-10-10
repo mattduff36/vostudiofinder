@@ -21,9 +21,9 @@ export default async function ProfilePage() {
   const user = await db.users.findUnique({
     where: { id: session.user.id },
     select: {
-      displayName: true,
+      display_name: true,
       username: true,
-      avatarUrl: true,
+      avatar_url: true,
     },
   });
 
@@ -39,9 +39,9 @@ export default async function ProfilePage() {
 
         <ProfileForm
           initialData={{
-            displayName: user?.displayName || session.user.displayName,
+            display_name: user?.display_name || session.user.display_name,
             username: user?.username || session.user.username,
-            avatarUrl: user?.avatarUrl || session.user.avatarUrl,
+            avatar_url: user?.avatar_url || session.user.avatar_url,
           }}
         />
       </div>

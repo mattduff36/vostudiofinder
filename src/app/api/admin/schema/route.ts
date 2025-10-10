@@ -23,13 +23,13 @@ export async function GET(request: Request) {
         columns: [
           { name: 'id', type: 'String', nullable: false, default: 'cuid()', primary_key: true },
           { name: 'username', type: 'String', nullable: false, default: null, primary_key: false },
-          { name: 'displayName', type: 'String', nullable: true, default: null, primary_key: false },
+          { name: 'display_name', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'email', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'password', type: 'String', nullable: true, default: null, primary_key: false },
-          { name: 'avatarUrl', type: 'String', nullable: true, default: null, primary_key: false },
+          { name: 'avatar_url', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'role', type: 'Role', nullable: false, default: 'USER', primary_key: false },
           { name: 'status', type: 'Int', nullable: false, default: '1', primary_key: false },
-          { name: 'emailVerified', type: 'Boolean', nullable: false, default: 'false', primary_key: false },
+          { name: 'email_verified', type: 'Boolean', nullable: false, default: 'false', primary_key: false },
           { name: 'created_at', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
           { name: 'updated_at', type: 'DateTime', nullable: false, default: 'updated_at', primary_key: false }
         ]
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
           { name: 'lastName', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'location', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'about', type: 'String', nullable: true, default: null, primary_key: false },
-          { name: 'shortAbout', type: 'String', nullable: true, default: null, primary_key: false },
+          { name: 'short_about', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'phone', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'instagramUrl', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'youtubeUrl', type: 'String', nullable: true, default: null, primary_key: false },
@@ -60,7 +60,7 @@ export async function GET(request: Request) {
           { name: 'owner_id', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'name', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'description', type: 'String', nullable: true, default: null, primary_key: false },
-          { name: 'studioType', type: 'StudioType', nullable: false, default: null, primary_key: false },
+          { name: 'studio_type', type: 'studio_type', nullable: false, default: null, primary_key: false },
           { name: 'address', type: 'String', nullable: true, default: null, primary_key: false },
           { name: 'latitude', type: 'Decimal', nullable: true, default: null, primary_key: false },
           { name: 'longitude', type: 'Decimal', nullable: true, default: null, primary_key: false },
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
           { name: 'id', type: 'String', nullable: false, default: 'cuid()', primary_key: true },
           { name: 'question', type: 'String', nullable: false, default: null, primary_key: false },
           { name: 'answer', type: 'String', nullable: false, default: null, primary_key: false },
-          { name: 'sortOrder', type: 'Int', nullable: true, default: null, primary_key: false },
+          { name: 'sort_order', type: 'Int', nullable: true, default: null, primary_key: false },
           { name: 'created_at', type: 'DateTime', nullable: false, default: 'now()', primary_key: false },
           { name: 'updated_at', type: 'DateTime', nullable: false, default: 'updated_at', primary_key: false }
         ]

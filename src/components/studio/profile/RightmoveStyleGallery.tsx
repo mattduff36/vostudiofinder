@@ -7,8 +7,8 @@ interface RightmoveStyleGalleryProps {
   images: Array<{
     id: string;
     imageUrl: string;
-    altText?: string;
-    sortOrder: number;
+    alt_text?: string;
+    sort_order: number;
   }>;
 }
 
@@ -45,7 +45,7 @@ export function RightmoveStyleGallery({ images }: RightmoveStyleGalleryProps) {
         <div className="col-span-2 relative group cursor-pointer" onClick={() => openLightbox(0)}>
           <img
             src={images[0]?.imageUrl}
-            alt={images[0]?.altText || 'Studio main image'}
+            alt={images[0]?.alt_text || 'Studio main image'}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           
@@ -63,7 +63,7 @@ export function RightmoveStyleGallery({ images }: RightmoveStyleGalleryProps) {
             <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(1)}>
               <img
                 src={images[1].imageUrl}
-                alt={images[1].altText || 'Studio image'}
+                alt={images[1].alt_text || 'Studio image'}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             </div>
@@ -74,7 +74,7 @@ export function RightmoveStyleGallery({ images }: RightmoveStyleGalleryProps) {
             <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(2)}>
               <img
                 src={images[2].imageUrl}
-                alt={images[2].altText || 'Studio image'}
+                alt={images[2].alt_text || 'Studio image'}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
               
@@ -127,7 +127,7 @@ export function RightmoveStyleGallery({ images }: RightmoveStyleGalleryProps) {
             {/* Image */}
             <img
               src={images[selectedImage]?.imageUrl}
-              alt={images[selectedImage]?.altText || 'Studio image'}
+              alt={images[selectedImage]?.alt_text || 'Studio image'}
               className="max-w-full max-h-full object-contain"
             />
 

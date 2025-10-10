@@ -11,9 +11,9 @@ import { User, Camera, Save, X, LogOut } from 'lucide-react';
 
 interface ProfileFormProps {
   initialData?: {
-    displayName: string;
+    display_name: string;
     username: string;
-    avatarUrl?: string | null;
+    avatar_url?: string | null;
   };
 }
 
@@ -31,9 +31,9 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   } = useForm<UpdateProfileInput>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
-      displayName: initialData?.displayName || session?.user?.displayName || '',
+      display_name: initialData?.display_name || session?.user?.display_name || '',
       username: initialData?.username || session?.user?.username || '',
-      avatarUrl: initialData?.avatarUrl || session?.user?.avatarUrl || '',
+      avatar_url: initialData?.avatar_url || session?.user?.avatar_url || '',
     },
   });
 
@@ -64,9 +64,9 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         ...session,
         user: {
           ...session?.user,
-          displayName: data.displayName,
+          display_name: data.display_name,
           username: data.username,
-          avatarUrl: data.avatarUrl || null,
+          avatar_url: data.avatar_url || null,
         },
       });
 
@@ -116,9 +116,9 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           <div className="flex items-center space-x-6">
             <div className="flex-shrink-0">
               <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                {session?.user?.avatarUrl ? (
+                {session?.user?.avatar_url ? (
                   <img
-                    src={session.user.avatarUrl}
+                    src={session.user.avatar_url}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
@@ -143,9 +143,9 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
             label="Avatar URL"
             type="url"
             placeholder="https://example.com/avatar.jpg"
-            error={errors.avatarUrl?.message || ''}
+            error={errors.avatar_url?.message || ''}
             helperText="Enter a URL to your profile image"
-            {...register('avatarUrl')}
+            {...register('avatar_url')}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -153,8 +153,8 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               label="Display Name"
               type="text"
               placeholder="Your full name"
-              error={errors.displayName?.message || ''}
-              {...register('displayName')}
+              error={errors.display_name?.message || ''}
+              {...register('display_name')}
             />
 
             <Input
@@ -190,7 +190,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                   Email Verified
                 </label>
                 <p className="text-sm text-text-primary">
-                  {session?.user?.emailVerified ? (
+                  {session?.user?.email_verified ? (
                     <span className="text-green-600">✓ Verified</span>
                   ) : (
                     <span className="text-red-600">✗ Not verified</span>

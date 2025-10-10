@@ -10,7 +10,7 @@ interface Studio {
   id: string;
   name: string;
   description: string;
-  studioTypes: Array<{ studioType: string }>;
+  studioTypes: Array<{ studio_type: string }>;
   address: string;
   website_url?: string;
   phone?: string;
@@ -18,12 +18,12 @@ interface Studio {
   is_verified: boolean;
   owner: {
     id: string;
-    displayName: string;
+    display_name: string;
     username: string;
-    avatarUrl?: string;
+    avatar_url?: string;
   };
   services: Array<{ service: string }>;
-  images: Array<{ imageUrl: string; altText?: string }>;
+  images: Array<{ imageUrl: string; alt_text?: string }>;
   _count: { reviews: number };
 }
 
@@ -72,7 +72,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
               {studio.images?.[0]?.imageUrl ? (
                 <Image
                   src={studio.images[0].imageUrl}
-                  alt={studio.images[0].altText || studio.name}
+                  alt={studio.images[0].alt_text || studio.name}
                   fill
                   className="object-cover"
                 />
@@ -90,7 +90,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                     className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" 
                     style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}
                   >
-                    {type.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                    {type.studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                   </span>
                 ))}
                 {studio.studioTypes.length > 2 && (

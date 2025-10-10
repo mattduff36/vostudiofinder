@@ -5,8 +5,8 @@
 /**
  * Convert display name to CamelCase (e.g., "Smith Studios" -> "SmithStudios")
  */
-export function toCamelCase(displayName: string): string {
-  return displayName
+export function toCamelCase(display_name: string): string {
+  return display_name
     .split(/[\s_-]+/)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join('');
@@ -15,8 +15,8 @@ export function toCamelCase(displayName: string): string {
 /**
  * Convert display name to Snake_Case (e.g., "Smith Studios" -> "Smith_Studios")
  */
-export function toSnakeCase(displayName: string): string {
-  return displayName
+export function toSnakeCase(display_name: string): string {
+  return display_name
     .split(/[\s-]+/)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join('_');
@@ -35,25 +35,25 @@ export function sanitizeUsername(username: string): string {
 /**
  * Check if display name has spaces
  */
-export function hasSpaces(displayName: string): boolean {
-  return /\s/.test(displayName);
+export function hasSpaces(display_name: string): boolean {
+  return /\s/.test(display_name);
 }
 
 /**
  * Generate username suggestions from display name
  * Returns an array of suggestions in priority order
  */
-export function generateUsernameSuggestions(displayName: string): string[] {
+export function generateUsernameSuggestions(display_name: string): string[] {
   const suggestions: string[] = [];
-  const sanitized = sanitizeUsername(displayName);
+  const sanitized = sanitizeUsername(display_name);
   
-  if (!hasSpaces(displayName)) {
+  if (!hasSpaces(display_name)) {
     // No spaces - use display name directly as first suggestion
     suggestions.push(sanitized);
   } else {
     // Has spaces - generate CamelCase and Snake_Case
-    const camelCase = toCamelCase(displayName);
-    const snakeCase = toSnakeCase(displayName);
+    const camelCase = toCamelCase(display_name);
+    const snakeCase = toSnakeCase(display_name);
     
     if (camelCase) suggestions.push(camelCase);
     if (snakeCase && snakeCase !== camelCase) suggestions.push(snakeCase);

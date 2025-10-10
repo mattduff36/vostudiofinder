@@ -21,7 +21,7 @@ interface Studio {
   id: string;
   name: string;
   description: string;
-  studioTypes: Array<{ studioType: string }>;
+  studioTypes: Array<{ studio_type: string }>;
   location: string;
   address: string;
   averageRating?: number;
@@ -29,7 +29,7 @@ interface Studio {
   services?: Array<{ service: string }>;
   images?: Array<{
     imageUrl: string;
-    altText?: string;
+    alt_text?: string;
   }>;
   _count?: {
     reviews: number;
@@ -132,7 +132,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   {studio.images?.[0]?.imageUrl ? (
                     <Image
                       src={studio.images[0].imageUrl}
-                      alt={studio.images[0].altText || studio.name}
+                      alt={studio.images[0].alt_text || studio.name}
                       fill
                       className="object-cover"
                     />
@@ -146,7 +146,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   {studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] && (
                     <div className="absolute bottom-2 right-2">
                       <span className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}>
-                        {studio.studioTypes[0].studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                        {studio.studioTypes[0].studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                       </span>
                     </div>
                   )}

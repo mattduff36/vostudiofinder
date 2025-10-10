@@ -26,9 +26,9 @@ interface ContactStudioProps {
     phone?: string;
     owner: {
       id: string;
-      displayName: string;
+      display_name: string;
       username: string;
-      avatarUrl?: string;
+      avatar_url?: string;
     };
   };
 }
@@ -150,10 +150,10 @@ export function ContactStudio({ studio }: ContactStudioProps) {
         {/* Studio Owner Info */}
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
           <div className="flex items-center space-x-3">
-            {studio.owner.avatarUrl ? (
+            {studio.owner.avatar_url ? (
               <img
-                src={studio.owner.avatarUrl}
-                alt={studio.owner.displayName}
+                src={studio.owner.avatar_url}
+                alt={studio.owner.display_name}
                 className="w-12 h-12 rounded-full"
               />
             ) : (
@@ -162,7 +162,7 @@ export function ContactStudio({ studio }: ContactStudioProps) {
               </div>
             )}
             <div>
-              <p className="font-medium text-text-primary">{studio.owner.displayName}</p>
+              <p className="font-medium text-text-primary">{studio.owner.display_name}</p>
               <p className="text-sm text-text-secondary">Studio Owner • @{studio.owner.username}</p>
             </div>
           </div>

@@ -49,7 +49,7 @@ interface Studio {
   id: string;
   name: string;
   description: string;
-  studioTypes: Array<{ studioType: string }>;
+  studioTypes: Array<{ studio_type: string }>;
   address: string;
   website_url?: string;
   phone?: string;
@@ -59,12 +59,12 @@ interface Studio {
   longitude?: number;
   owner: {
     id: string;
-    displayName: string;
+    display_name: string;
     username: string;
-    avatarUrl?: string;
+    avatar_url?: string;
   };
   services: Array<{ service: string }>;
-  images: Array<{ imageUrl: string; altText?: string }>;
+  images: Array<{ imageUrl: string; alt_text?: string }>;
   _count: { reviews: number };
 }
 
@@ -75,7 +75,7 @@ interface SearchResponse {
     name: string;
     latitude: number | null;
     longitude: number | null;
-    studioTypes: Array<{ studioType: string }>;
+    studioTypes: Array<{ studio_type: string }>;
     is_verified: boolean;
   }>;
   pagination: {
@@ -414,7 +414,7 @@ export function StudiosPage() {
   const getActiveFilterCount = () => {
     let count = 0;
     if (searchParams.get('location')) count++;
-    if (searchParams.get('studioType')) count++;
+    if (searchParams.get('studio_type')) count++;
     if (searchParams.get('services')) count++;
     if (searchParams.get('radius') && searchParams.get('radius') !== '10') count++;
     return count;
@@ -423,10 +423,10 @@ export function StudiosPage() {
   // Move useMemo outside conditional render to maintain hook order
   const mobileFiltersInitialState = useMemo(() => ({
     location: searchParams.get('location') || '',
-    studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studioType')?.split(',') || [],
+    studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studio_type')?.split(',') || [],
     services: searchParams.get('services')?.split(',') || [],
     sortBy: searchParams.get('sortBy') || 'name',
-    sortOrder: searchParams.get('sortOrder') || 'asc',
+    sort_order: searchParams.get('sort_order') || 'asc',
     radius: parseInt(searchParams.get('radius') || '10'),
     ...(searchParams.get('lat') && searchParams.get('lng') ? {
       lat: parseFloat(searchParams.get('lat')!),
@@ -628,10 +628,10 @@ export function StudiosPage() {
               <SearchFilters
                 initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
-                  studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studioType')?.split(',') || [],
+                  studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studio_type')?.split(',') || [],
                   services: searchParams.get('services')?.split(',') || [],
                   sortBy: searchParams.get('sortBy') || 'name',
-                  sortOrder: searchParams.get('sortOrder') || 'asc',
+                  sort_order: searchParams.get('sort_order') || 'asc',
                   radius: parseInt(searchParams.get('radius') || '10'),
                   ...(searchParams.get('lat') && searchParams.get('lng') ? {
                     lat: parseFloat(searchParams.get('lat')!),
@@ -667,7 +667,7 @@ export function StudiosPage() {
                         id: studio.id,
                         position: { lat: studio.latitude!, lng: studio.longitude! },
                         title: studio.name,
-                        studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
+                        studio_type: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studio_type : 'VOICEOVER',
                         is_verified: studio.is_verified,
                         onClick: () => {
                           selectStudio(studio.id);
@@ -705,7 +705,7 @@ export function StudiosPage() {
                         id: studio.id,
                         position: { lat: studio.latitude!, lng: studio.longitude! },
                         title: studio.name,
-                        studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
+                        studio_type: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studio_type : 'VOICEOVER',
                         is_verified: studio.is_verified,
                         onClick: () => {
                           // Switch to list view and select studio (with page navigation if needed)
@@ -739,7 +739,7 @@ export function StudiosPage() {
                       Showing {searchResults.pagination.totalCount === 0 ? '0-0' : `${((searchResults.pagination.page - 1) * searchResults.pagination.limit) + 1}-${Math.min(searchResults.pagination.page * searchResults.pagination.limit, searchResults.pagination.totalCount)}`} of {searchResults.pagination.totalCount} studios
                     </p>
                     {/* Active Filters Display */}
-                    {(searchParams.get('location') || searchParams.get('studioType') || searchParams.get('services') || searchParams.get('radius')) && (
+                    {(searchParams.get('location') || searchParams.get('studio_type') || searchParams.get('services') || searchParams.get('radius')) && (
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-text-secondary">•</span>
                         <div className="flex flex-wrap gap-2">
@@ -748,9 +748,9 @@ export function StudiosPage() {
                               📍 {abbreviateAddress(searchParams.get('location')!)}
                             </span>
                           )}
-                          {searchParams.get('studioType') && (
+                          {searchParams.get('studio_type') && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              🎙️ {searchParams.get('studioType')?.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
+                              🎙️ {searchParams.get('studio_type')?.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
                             </span>
                           )}
                           {searchParams.get('services') && (

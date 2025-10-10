@@ -56,7 +56,7 @@ export default function AdminNavigation() {
           <div className="flex items-center space-x-4">
             <div className="hidden md:flex items-center space-x-4">
               <span className="text-sm text-text-secondary font-raleway">
-                Welcome, {session?.user?.displayName || session?.user?.email}
+                Welcome, {session?.user?.display_name || session?.user?.email}
               </span>
               <button
                 onClick={handleSignOut}
@@ -120,13 +120,13 @@ export default function AdminNavigation() {
               <div className="flex-shrink-0">
                 <div className="h-10 w-10 rounded-full bg-secondary-300 flex items-center justify-center">
                   <span className="text-sm font-raleway text-text-primary">
-                    {session?.user?.displayName?.charAt(0) || session?.user?.email?.charAt(0)}
+                    {session?.user?.display_name?.charAt(0) || session?.user?.email?.charAt(0)}
                   </span>
                 </div>
               </div>
               <div className="ml-3">
                 <div className="text-base font-raleway text-text-primary">
-                  {session?.user?.displayName || 'Admin User'}
+                  {session?.user?.display_name || 'Admin User'}
                 </div>
                 <div className="text-sm font-raleway text-text-secondary">
                   {session?.user?.email}

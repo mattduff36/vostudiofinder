@@ -8,7 +8,7 @@ import { createStudioSchema, type CreateStudioInput } from '@/lib/validations/st
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
-import { StudioType, ServiceType } from '@/types/prisma';
+import { studio_type, ServiceType } from '@/types/prisma';
 import { MapPin, Globe, Phone, Trash2, Upload } from 'lucide-react';
 
 interface StudioFormProps {
@@ -35,7 +35,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
     defaultValues: {
       name: initialData?.name || '',
       description: initialData?.description || '',
-      studioTypes: initialData?.studioTypes || [StudioType.RECORDING],
+      studioTypes: initialData?.studioTypes || [studio_type.RECORDING],
       address: initialData?.address || '',
       website_url: initialData?.website_url || '',
       phone: initialData?.phone || '',
@@ -69,7 +69,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
     // Add the uploaded image to the form
     appendImage({ 
       url: result.image.url, 
-      altText: `Studio image ${imageFields.length + 1}` 
+      alt_text: `Studio image ${imageFields.length + 1}` 
     });
 
     return { url: result.image.url, id: result.image.id };
@@ -111,9 +111,9 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
   };
 
   const studioTypeOptions = [
-    { value: StudioType.VOICEOVER, label: 'Voiceover Studio' },
-    { value: StudioType.RECORDING, label: 'Recording Studio' },
-    { value: StudioType.PODCAST, label: 'Podcast Studio' },
+    { value: studio_type.VOICEOVER, label: 'Voiceover Studio' },
+    { value: studio_type.RECORDING, label: 'Recording Studio' },
+    { value: studio_type.PODCAST, label: 'Podcast Studio' },
   ];
 
   const serviceOptions = [
@@ -317,7 +317,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                       <div className="aspect-w-16 aspect-h-12">
                         <img
                           src={field.url}
-                          alt={field.altText || `Studio image ${index + 1}`}
+                          alt={field.alt_text || `Studio image ${index + 1}`}
                           className="w-full h-48 object-cover"
                         />
                       </div>
@@ -325,7 +325,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                         <Input
                           label="Alt Text (optional)"
                           placeholder="Describe this image"
-                          {...register(`images.${index}.altText`)}
+                          {...register(`images.${index}.alt_text`)}
                           className="text-sm"
                         />
                       </div>

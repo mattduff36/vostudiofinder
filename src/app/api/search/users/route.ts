@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
             }
           },
           {
-            displayName: {
+            display_name: {
               contains: query,
               mode: 'insensitive'
             }
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       return {
         id: user.id,
         username: user.username,
-        display_name: user.displayName,
+        display_name: user.display_name,
         location: abbreviatedLocation,
         full_location: fullLocation, // Keep full location for geocoding if needed
         coordinates

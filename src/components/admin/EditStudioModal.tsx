@@ -7,8 +7,8 @@ interface Studio {
   id: string;
   name: string;
   description?: string;
-  studioType: string;
-  studioTypes?: Array<{ studioType: string }>;
+  studio_type: string;
+  studioTypes?: Array<{ studio_type: string }>;
   status: string;
   is_verified: boolean;
   is_premium: boolean;
@@ -16,7 +16,7 @@ interface Studio {
   website_url?: string;
   phone?: string;
   owner: {
-    displayName: string;
+    display_name: string;
     email: string;
   };
   created_at: string;
@@ -244,7 +244,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               { value: 'VOICEOVER', label: 'Voiceover' }
             ].map((type) => {
               const selectedTypes = profile?.studioTypes || [];
-              const isChecked = selectedTypes.some((st: any) => st.studioType === type.value);
+              const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
               
               return (
                 <label key={type.value} className="flex items-center space-x-2 cursor-pointer">
@@ -257,10 +257,10 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                       
                       if (e.target.checked) {
                         // Add the type
-                        newTypes = [...currentTypes, { studioType: type.value }];
+                        newTypes = [...currentTypes, { studio_type: type.value }];
                       } else {
                         // Remove the type
-                        newTypes = currentTypes.filter((st: any) => st.studioType !== type.value);
+                        newTypes = currentTypes.filter((st: any) => st.studio_type !== type.value);
                       }
                       
                       handleBasicChange('studioTypes', newTypes);
@@ -281,8 +281,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Short About</label>
         <textarea
-          value={profile?._meta?.shortabout || ''}
-          onChange={(e) => handleMetaChange('shortabout', e.target.value)}
+          value={profile?._meta?.short_about || ''}
+          onChange={(e) => handleMetaChange('short_about', e.target.value)}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />

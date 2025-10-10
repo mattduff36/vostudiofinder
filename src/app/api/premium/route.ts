@@ -42,7 +42,7 @@ async function getFeaturedUsers() {
           name: true,
           studioTypes: {
             select: {
-              studioType: true
+              studio_type: true
             }
           }
         }
@@ -74,7 +74,7 @@ async function getSpotlightUsers() {
           name: true,
           studioTypes: {
             select: {
-              studioType: true
+              studio_type: true
             }
           }
         }
@@ -109,14 +109,14 @@ async function getPremiumStudios() {
       status: 'ACTIVE'
     },
     include: {
-      owner: {
+      users: {
         include: {
           profile: true
         }
       },
       images: {
         take: 1,
-        orderBy: { sortOrder: 'asc' }
+        orderBy: { sort_order: 'asc' }
       },
       services: true,
       _count: {
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
           // Text search
           query ? {
             OR: [
-              { displayName: { contains: query, mode: 'insensitive' } },
+              { display_name: { contains: query, mode: 'insensitive' } },
               { username: { contains: query, mode: 'insensitive' } },
               { profile: { location: { contains: query, mode: 'insensitive' } } },
               { profile: { about: { contains: query, mode: 'insensitive' } } }
@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
           name: true,
           studioTypes: {
             select: {
-              studioType: true
+              studio_type: true
             }
           },
           is_premium: true, 

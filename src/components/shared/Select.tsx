@@ -39,6 +39,6 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
   );
 });
 
-Select.displayName = 'Select';
+Select.display_name = 'Select';
 
 export default Select;

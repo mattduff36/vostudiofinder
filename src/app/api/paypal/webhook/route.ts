@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
             to: subscription.user.email,
             subject: 'Subscription Activated - VoiceoverStudioFinder',
             html: paymentSuccessTemplate({
-              customerName: subscription.user.displayName,
+              customerName: subscription.user.display_name,
               amount: '25.00',
               currency: 'GBP',
               invoiceNumber: subscriptionId,
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
               to: subscription.user.email,
               subject: 'Payment Received - VoiceoverStudioFinder',
               html: paymentSuccessTemplate({
-                customerName: subscription.user.displayName,
+                customerName: subscription.user.display_name,
                 amount: (parseFloat(resource.amount.total)).toFixed(2),
                 currency: resource.amount.currency,
                 invoiceNumber: resource.id,
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
               to: subscription.user.email,
               subject: 'Payment Failed - VoiceoverStudioFinder',
               html: paymentFailedTemplate({
-                customerName: subscription.user.displayName,
+                customerName: subscription.user.display_name,
                 amount: (parseFloat(resource.amount.total)).toFixed(2),
                 currency: resource.amount.currency,
                 reason: resource.reason_code || 'Payment was declined by PayPal',

@@ -9,7 +9,7 @@ interface Studio {
   id: string;
   name: string;
   description: string;
-  studioType: string;
+  studio_type: string;
   address: string;
   website_url?: string;
   phone?: string;
@@ -17,12 +17,12 @@ interface Studio {
   is_verified: boolean;
   owner: {
     id: string;
-    displayName: string;
+    display_name: string;
     username: string;
-    avatarUrl?: string;
+    avatar_url?: string;
   };
   services: Array<{ service: string }>;
-  images: Array<{ imageUrl: string; altText?: string }>;
+  images: Array<{ imageUrl: string; alt_text?: string }>;
   _count: { reviews: number };
 }
 
@@ -78,7 +78,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                     {studio.images?.[0]?.imageUrl ? (
                       <Image
                         src={studio.images[0].imageUrl}
-                        alt={studio.images[0].altText || studio.name}
+                        alt={studio.images[0].alt_text || studio.name}
                         fill
                         className="object-cover"
                       />
@@ -111,7 +111,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                       
                       <div className="flex items-center space-x-4 text-sm text-text-secondary mb-2">
                         <span className="inline-block px-2 py-1 bg-primary-100 text-primary-800 text-xs font-medium rounded">
-                          {studio.studioType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                          {studio.studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
                         </span>
                         {studio._count.reviews > 0 && (
                           <div className="flex items-center">
@@ -192,11 +192,11 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                     <div className="flex items-center">
                       <span className="text-xs mr-2">Owner:</span>
                       <div className="flex items-center">
-                        {studio.owner.avatarUrl ? (
+                        {studio.owner.avatar_url ? (
                           <div className="relative w-6 h-6 mr-2">
                             <Image
-                              src={studio.owner.avatarUrl}
-                              alt={studio.owner.displayName}
+                              src={studio.owner.avatar_url}
+                              alt={studio.owner.display_name}
                               fill
                               className="rounded-full object-cover"
                             />
@@ -206,7 +206,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                             <Users className="w-3 h-3 text-gray-600" />
                           </div>
                         )}
-                        <span className="text-sm font-medium">{studio.owner.displayName}</span>
+                        <span className="text-sm font-medium">{studio.owner.display_name}</span>
                       </div>
                     </div>
                   </div>

@@ -9,8 +9,8 @@ interface Review {
   isAnonymous: boolean;
   created_at: Date;
   reviewer: {
-    displayName: string;
-    avatarUrl?: string;
+    display_name: string;
+    avatar_url?: string;
   };
 }
 
@@ -34,10 +34,10 @@ export function ReviewsList({ reviews }: ReviewsListProps) {
           <div className="flex items-start space-x-4">
             {/* Reviewer Avatar */}
             <div className="flex-shrink-0">
-              {!review.isAnonymous && review.reviewer.avatarUrl ? (
+              {!review.isAnonymous && review.reviewer.avatar_url ? (
                 <img
-                  src={review.reviewer.avatarUrl}
-                  alt={review.reviewer.displayName}
+                  src={review.reviewer.avatar_url}
+                  alt={review.reviewer.display_name}
                   className="w-10 h-10 rounded-full"
                 />
               ) : (
@@ -53,7 +53,7 @@ export function ReviewsList({ reviews }: ReviewsListProps) {
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <p className="text-sm font-medium text-text-primary">
-                    {review.isAnonymous ? 'Anonymous User' : review.reviewer.displayName}
+                    {review.isAnonymous ? 'Anonymous User' : review.reviewer.display_name}
                   </p>
                   <div className="flex items-center space-x-2 mt-1">
                     <div className="flex items-center">

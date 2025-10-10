@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     const user = await createUser({
       email: validatedData.email,
       password: validatedData.password,
-      displayName: validatedData.displayName,
+      display_name: validatedData.display_name,
       username: username || undefined,
     });
 
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
           id: user.id,
           email: user.email,
           username: user.username,
-          displayName: user.displayName,
+          display_name: user.display_name,
           role: user.role,
         },
       },

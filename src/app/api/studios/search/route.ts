@@ -18,13 +18,13 @@ export async function GET(request: NextRequest) {
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : undefined,
       lat: searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : undefined,
       lng: searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : undefined,
-      studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studioType')?.split(',') || searchParams.get('type')?.split(',') || undefined, // Support multiple parameters
+      studioTypes: searchParams.get('studioTypes')?.split(',') || searchParams.get('studio_type')?.split(',') || searchParams.get('type')?.split(',') || undefined, // Support multiple parameters
       services: searchParams.get('services')?.split(',') || undefined,
       equipment: searchParams.get('equipment')?.split(',') || undefined, // New equipment parameter
       page: parseInt(searchParams.get('page') || '1'),
       limit: parseInt(searchParams.get('limit') || '50'),
       sortBy: searchParams.get('sortBy') || 'name',
-      sortOrder: searchParams.get('sortOrder') || 'asc',
+      sort_order: searchParams.get('sort_order') || 'asc',
     };
 
     const validatedParams = studioSearchSchema.parse(params);
@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
         (where.AND as Prisma.StudioWhereInput[]).push({
           studioTypes: {
             some: {
-              studioType: {
+              studio_type: {
                 in: mappedTypes as any[],
               },
             },
@@ -212,10 +212,10 @@ export async function GET(request: NextRequest) {
     
     switch (validatedParams.sortBy) {
       case 'name':
-        orderBy.push({ name: validatedParams.sortOrder as 'asc' | 'desc' });
+        orderBy.push({ name: validatedParams.sort_order as 'asc' | 'desc' });
         break;
       case 'created_at':
-        orderBy.push({ created_at: validatedParams.sortOrder as 'asc' | 'desc' });
+        orderBy.push({ created_at: validatedParams.sort_order as 'asc' | 'desc' });
         break;
       case 'rating':
         // This would require a more complex query with review aggregation
@@ -238,22 +238,22 @@ export async function GET(request: NextRequest) {
       const allStudios = await db.studios.findMany({
         where,
         include: {
-          owner: {
+          users: {
             select: {
               id: true,
-              displayName: true,
+              display_name: true,
               username: true,
-              avatarUrl: true,
+              avatar_url: true,
               profile: {
                 select: {
-                  shortAbout: true,
+                  short_about: true,
                 },
               },
             },
           },
           studioTypes: {
             select: {
-              studioType: true,
+              studio_type: true,
             },
           },
           services: {
@@ -263,10 +263,10 @@ export async function GET(request: NextRequest) {
           },
           images: {
             take: 1,
-            orderBy: { sortOrder: 'asc' },
+            orderBy: { sort_order: 'asc' },
             select: {
               imageUrl: true,
-              altText: true,
+              alt_text: true,
             },
           },
           _count: {
@@ -323,22 +323,22 @@ export async function GET(request: NextRequest) {
           skip,
           take: validatedParams.limit,
           include: {
-            owner: {
+            users: {
               select: {
                 id: true,
-                displayName: true,
+                display_name: true,
                 username: true,
-                avatarUrl: true,
+                avatar_url: true,
                 profile: {
                   select: {
-                    shortAbout: true,
+                    short_about: true,
                   },
                 },
               },
             },
             studioTypes: {
               select: {
-                studioType: true,
+                studio_type: true,
               },
             },
             services: {
@@ -348,10 +348,10 @@ export async function GET(request: NextRequest) {
             },
             images: {
               take: 1,
-              orderBy: { sortOrder: 'asc' },
+              orderBy: { sort_order: 'asc' },
               select: {
                 imageUrl: true,
-                altText: true,
+                alt_text: true,
               },
             },
             _count: {
@@ -370,10 +370,10 @@ export async function GET(request: NextRequest) {
     const hasNextPage = validatedParams.page < totalPages;
     const hasPrevPage = validatedParams.page > 1;
 
-    // Serialize Decimal fields and map shortAbout to description for JSON response
+    // Serialize Decimal fields and map short_about to description for JSON response
     const serializedStudios = studios.map(studio => ({
       ...studio,
-      description: studio.owner?.profile?.shortAbout || '', // Use shortAbout as description
+      description: studio.owner?.profile?.short_about || '', // Use short_about as description
       latitude: studio.latitude ? Number(studio.latitude) : null,
       longitude: studio.longitude ? Number(studio.longitude) : null,
     }));
@@ -399,7 +399,7 @@ export async function GET(request: NextRequest) {
             longitude: true,
             studioTypes: {
               select: {
-                studioType: true,
+                studio_type: true,
               },
             },
             is_verified: true,
@@ -428,7 +428,7 @@ export async function GET(request: NextRequest) {
             longitude: true,
             studioTypes: {
               select: {
-                studioType: true,
+                studio_type: true,
               },
             },
             is_verified: true,
@@ -446,7 +446,7 @@ export async function GET(request: NextRequest) {
           longitude: true,
           studioTypes: {
             select: {
-              studioType: true,
+              studio_type: true,
             },
           },
           is_verified: true,
@@ -463,7 +463,7 @@ export async function GET(request: NextRequest) {
           longitude: true,
           studioTypes: {
             select: {
-              studioType: true,
+              studio_type: true,
             },
           },
           is_verified: true,

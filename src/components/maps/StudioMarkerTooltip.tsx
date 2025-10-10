@@ -12,7 +12,7 @@ interface StudioMarkerTooltipProps {
     };
     images?: Array<{
       imageUrl: string;
-      altText?: string;
+      alt_text?: string;
     }>;
   };
   onClose?: () => void;
@@ -52,7 +52,7 @@ export function StudioMarkerTooltip({
             {studio.images?.[0]?.imageUrl ? (
               <Image
                 src={studio.images[0].imageUrl}
-                alt={studio.images[0].altText || studio.name}
+                alt={studio.images[0].alt_text || studio.name}
                 width={48}
                 height={48}
                 className="object-cover w-full h-full"

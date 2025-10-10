@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     const faqs = await prisma.faq.findMany({
       where: whereClause,
       orderBy: [
-        { sortOrder: 'asc' },
+        { sort_order: 'asc' },
         { created_at: 'desc' }
       ],
     });

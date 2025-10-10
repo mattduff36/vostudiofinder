@@ -17,11 +17,11 @@ interface UserDashboardProps {
   data: {
     user: {
       id: string;
-      displayName: string;
+      display_name: string;
       email: string;
       username: string;
       role: string;
-      avatarUrl?: string;
+      avatar_url?: string;
     };
     stats: {
       studiosOwned: number;
@@ -32,7 +32,7 @@ interface UserDashboardProps {
     studios: Array<{
       id: string;
       name: string;
-      studioType: string;
+      studio_type: string;
       status: string;
       is_premium: boolean;
       created_at: Date;
@@ -56,12 +56,12 @@ interface UserDashboardProps {
       senderId: string;
       receiverId: string;
       sender: {
-        displayName: string;
-        avatarUrl?: string;
+        display_name: string;
+        avatar_url?: string;
       };
       receiver: {
-        displayName: string;
-        avatarUrl?: string;
+        display_name: string;
+        avatar_url?: string;
       };
       studio?: {
         name: string;
@@ -73,13 +73,13 @@ interface UserDashboardProps {
       connectedUserId: string;
       user: {
         id: string;
-        displayName: string;
-        avatarUrl?: string;
+        display_name: string;
+        avatar_url?: string;
       };
       connectedUser: {
         id: string;
-        displayName: string;
-        avatarUrl?: string;
+        display_name: string;
+        avatar_url?: string;
       };
     }>;
   };
@@ -130,10 +130,10 @@ export function UserDashboard({ data }: UserDashboardProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              {user.avatarUrl ? (
+              {user.avatar_url ? (
                 <img
-                  src={user.avatarUrl}
-                  alt={user.displayName}
+                  src={user.avatar_url}
+                  alt={user.display_name}
                   className="w-16 h-16 rounded-full"
                 />
               ) : (
@@ -143,7 +143,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
               )}
               <div>
                 <h1 className="text-3xl font-bold text-text-primary">
-                  Welcome back, {user.displayName}!
+                  Welcome back, {user.display_name}!
                 </h1>
                 <p className="text-text-secondary">
                   @{user.username} • {user.role.toLowerCase().replace('_', ' ')}
@@ -322,10 +322,10 @@ export function UserDashboard({ data }: UserDashboardProps) {
                       <div key={message.id} className={`p-4 ${!message.isRead && isReceived ? 'bg-blue-50' : ''}`}>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center">
-                            {otherUser.avatarUrl ? (
+                            {otherUser.avatar_url ? (
                               <img
-                                src={otherUser.avatarUrl}
-                                alt={otherUser.displayName}
+                                src={otherUser.avatar_url}
+                                alt={otherUser.display_name}
                                 className="w-6 h-6 rounded-full mr-2"
                               />
                             ) : (
@@ -334,7 +334,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
                               </div>
                             )}
                             <span className="text-sm font-medium text-text-primary">
-                              {isReceived ? 'From' : 'To'} {otherUser.displayName}
+                              {isReceived ? 'From' : 'To'} {otherUser.display_name}
                             </span>
                           </div>
                           <span className="text-xs text-text-secondary">

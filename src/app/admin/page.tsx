@@ -42,7 +42,7 @@ export default async function AdminPage() {
       orderBy: { created_at: 'desc' },
       select: {
         id: true,
-        displayName: true,
+        display_name: true,
         email: true,
         role: true,
         created_at: true,
@@ -52,14 +52,14 @@ export default async function AdminPage() {
       take: 5,
       orderBy: { created_at: 'desc' },
       include: {
-        owner: {
+        users: {
           select: {
-            displayName: true,
+            display_name: true,
           },
         },
         studioTypes: {
           select: {
-            studioType: true,
+            studio_type: true,
           },
         },
       },
@@ -70,7 +70,7 @@ export default async function AdminPage() {
       include: {
         reviewer: {
           select: {
-            displayName: true,
+            display_name: true,
           },
         },
         studio: {
@@ -97,10 +97,10 @@ export default async function AdminPage() {
     studios: recentStudios.map(studio => ({
       id: studio.id,
       name: studio.name,
-      studioType: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studioType : 'VOICEOVER',
+      studio_type: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studio_type : 'VOICEOVER',
       created_at: studio.created_at,
       owner: {
-        displayName: studio.owner.displayName,
+        display_name: studio.owner.display_name,
       },
     })),
     reviews: recentReviews,

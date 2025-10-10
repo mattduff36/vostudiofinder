@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
           reporter: {
             select: {
               id: true,
-              displayName: true,
+              display_name: true,
               username: true,
               email: true,
             },
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
           reportedUser: {
             select: {
               id: true,
-              displayName: true,
+              display_name: true,
               username: true,
               email: true,
             },
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
           reviewedBy: {
             select: {
               id: true,
-              displayName: true,
+              display_name: true,
               username: true,
             },
           },

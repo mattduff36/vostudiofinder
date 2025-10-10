@@ -7,8 +7,8 @@ interface StudioGalleryProps {
   images: Array<{
     id: string;
     imageUrl: string;
-    altText?: string;
-    sortOrder: number;
+    alt_text?: string;
+    sort_order: number;
   }>;
 }
 
@@ -50,7 +50,7 @@ export function StudioGallery({ images }: StudioGalleryProps) {
           >
             <img
               src={images[0]?.imageUrl}
-              alt={images[0]?.altText || 'Studio image'}
+              alt={images[0]?.alt_text || 'Studio image'}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
             />
           </div>
@@ -67,7 +67,7 @@ export function StudioGallery({ images }: StudioGalleryProps) {
               >
                 <img
                   src={image.imageUrl}
-                  alt={image.altText || 'Studio image'}
+                  alt={image.alt_text || 'Studio image'}
                   className="w-full h-full object-cover hover:opacity-80 transition-opacity"
                 />
               </div>
@@ -119,7 +119,7 @@ export function StudioGallery({ images }: StudioGalleryProps) {
             {/* Image */}
             <img
               src={images[selectedImage]?.imageUrl}
-              alt={images[selectedImage]?.altText || 'Studio image'}
+              alt={images[selectedImage]?.alt_text || 'Studio image'}
               className="max-w-full max-h-full object-contain"
             />
 
