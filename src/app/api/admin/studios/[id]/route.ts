@@ -305,6 +305,8 @@ export async function PUT(
           create: {
             id: randomBytes(12).toString('base64url'), // Generate ID for new profiles
             user_id: existingStudio.owner_id,
+            created_at: new Date(),
+            updated_at: new Date(),
             ...profileUpdateData
           }
         });
