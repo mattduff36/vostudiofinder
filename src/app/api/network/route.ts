@@ -122,7 +122,7 @@ async function getSuggestions(user_id: string) {
       },
       _count: {
         select: {
-          connections: {
+          user_connections_user_connections_user_idTousers: {
             where: { accepted: true }
           },
           studios: {
@@ -133,8 +133,8 @@ async function getSuggestions(user_id: string) {
     },
     take: 20,
     orderBy: [
-      { user_profiles: { isFeatured: 'desc' } },
-      { user_profiles: { isSpotlight: 'desc' } },
+      { user_profiles: { is_featured: 'desc' } },
+      { user_profiles: { is_spotlight: 'desc' } },
       { created_at: 'desc' }
     ]
   });
