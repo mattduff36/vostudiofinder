@@ -234,7 +234,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Studio Types</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Studio Types <span className="text-red-600">(studio_studio_types.studio_type)</span></label>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
             {[
               { value: 'HOME', label: 'Home' },
@@ -281,11 +281,12 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Short About <span className="text-red-600">(user_profiles.short_about)</span></label>
-        <textarea
+        <input
+          type="text"
           value={profile?._meta?.short_about || ''}
           onChange={(e) => handleMetaChange('short_about', e.target.value)}
-          rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Brief description of the studio"
         />
       </div>
 
@@ -298,59 +299,12 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-600">(studios.status)</span></label>
-          <select
-            value={profile?.status || 'active'}
-            onChange={(e) => handleBasicChange('status', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="pending">Pending</option>
-          </select>
-        </div>
-        <div>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={profile?._meta?.verified === '1'}
-              onChange={(e) => handleMetaChange('verified', e.target.checked ? '1' : '0')}
-              className="mr-2"
-            />
-            <span className="text-sm font-medium text-gray-700">Verified</span>
-          </label>
-        </div>
-        <div>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={profile?._meta?.featured === '1'}
-              onChange={(e) => handleMetaChange('featured', e.target.checked ? '1' : '0')}
-              className="mr-2"
-            />
-            <span className="text-sm font-medium text-gray-700">Featured</span>
-          </label>
-        </div>
-      </div>
     </div>
   );
 
   const renderContactTab = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name <span className="text-red-600">(user_profiles.last_name)</span></label>
-          <input
-            type="text"
-            value={profile?._meta?.last_name || ''}
-            onChange={(e) => handleMetaChange('last_name', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g. Smith"
-          />
-        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Phone <span className="text-red-600">(user_profiles.phone)</span></label>
           <input
@@ -680,6 +634,49 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     );
   };
 
+  const renderAdvancedTab = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-600">(studios.status)</span></label>
+          <select
+            value={profile?.status || 'active'}
+            onChange={(e) => handleBasicChange('status', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+        
+        <div className="flex items-center">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={profile?._meta?.verified === '1'}
+              onChange={(e) => handleMetaChange('verified', e.target.checked ? '1' : '0')}
+              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <span className="text-sm font-medium text-gray-700">Verified <span className="text-red-600">(studios.is_verified)</span></span>
+          </label>
+        </div>
+        
+        <div className="flex items-center">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={profile?._meta?.featured === '1'}
+              onChange={(e) => handleMetaChange('featured', e.target.checked ? '1' : '0')}
+              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <span className="text-sm font-medium text-gray-700">Featured <span className="text-red-600">(user_profiles.is_featured)</span></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -767,14 +764,15 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               </div>
 
               {/* Tab Content */}
-              <div className="px-6 py-6">
+              <div className="px-6 py-6 min-h-[600px]">
                 {activeTab === 'basic' && renderBasicTab()}
                 {activeTab === 'contact' && renderContactTab()}
                 {activeTab === 'location' && renderLocationTab()}
                 {activeTab === 'rates' && renderRatesTab()}
                 {activeTab === 'social' && renderSocialMediaTab()}
                 {activeTab === 'connections' && renderConnectionsTab()}
-                {activeTab !== 'basic' && activeTab !== 'contact' && activeTab !== 'location' && activeTab !== 'rates' && activeTab !== 'social' && activeTab !== 'connections' && (
+                {activeTab === 'advanced' && renderAdvancedTab()}
+                {activeTab !== 'basic' && activeTab !== 'contact' && activeTab !== 'location' && activeTab !== 'rates' && activeTab !== 'social' && activeTab !== 'connections' && activeTab !== 'advanced' && (
                   <div className="text-center py-8 text-gray-500">
                     This tab is under development
                   </div>
