@@ -18,7 +18,7 @@ interface EnhancedCheckoutProps {
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export function EnhancedCheckout({
-  studioId,
+  studio_id,
   planName,
   planPrice,
 }: EnhancedCheckoutProps) {
@@ -38,7 +38,7 @@ export function EnhancedCheckout({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          studioId,
+          studio_id,
           priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
         }),
       });
@@ -77,7 +77,7 @@ export function EnhancedCheckout({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ studioId }),
+        body: JSON.stringify({ studio_id }),
       });
 
       if (!response.ok) {
