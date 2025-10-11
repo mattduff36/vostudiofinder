@@ -33,23 +33,23 @@ export async function GET(request: NextRequest) {
       // Create subscription record
       await tx.subscriptions.create({
         data: {
-          user_id: pendingSubscription.userId,
+          user_id: pendingSubscription.user_id,
           paypal_subscription_id: subscriptionId,
           status: 'ACTIVE',
-          currentPeriodStart: new Date(),
-          currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
-          paymentMethod: 'PAYPAL',
+          current_period_start: new Date(),
+          current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+          payment_method: 'PAYPAL',
         },
       });
 
       // Update studio to premium
-      await tx.studio.update({
-        where: { id: pendingSubscription.studioId },
+      await tx.studios.update({
+        where: { id: pendingSubscription.studio_id },
         data: { is_premium: true },
       });
 
       // Remove pending subscription
-      await tx.pendingSubscription.delete({
+      await tx.pending_subscriptions.delete({
         where: { id: pendingSubscription.id },
       });
     });
