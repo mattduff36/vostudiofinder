@@ -265,7 +265,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                           >
                             <Icon className="w-4 h-4 mr-2 text-blue-600" />
                             <span className="text-sm font-medium text-blue-900">
-                              {service.service.replace(/_/g, ' ')}
+                              {service.service?.replace(/_/g, ' ') || 'Service'}
                             </span>
                           </div>
                         );
