@@ -11,7 +11,7 @@ interface StudioVerificationProps {
 }
 
 export function StudioVerification({
-  studioId,
+  studio_id,
   studioName,
   currentStatus,
   onStatusChange,
@@ -21,7 +21,7 @@ export function StudioVerification({
   const handleVerify = async () => {
     setIsLoading(true);
     try {
-      await onStatusChange(studioId, 'verified');
+      await onStatusChange(studio_id, 'verified');
     } finally {
       setIsLoading(false);
     }
@@ -30,7 +30,7 @@ export function StudioVerification({
   const handleReject = async () => {
     setIsLoading(true);
     try {
-      await onStatusChange(studioId, 'rejected');
+      await onStatusChange(studio_id, 'rejected');
     } finally {
       setIsLoading(false);
     }
