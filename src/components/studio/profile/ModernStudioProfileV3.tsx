@@ -116,7 +116,7 @@ interface ModernStudioProfileV3Props {
 }
 
 export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
-  const [displayImages, setDisplayImages] = useState(studio.images);
+  const [displayImages, setDisplayImages] = useState(studio.studio_images);
   const [showUnavailableModal, setShowUnavailableModal] = useState(false);
 
   // Calculate average rating
