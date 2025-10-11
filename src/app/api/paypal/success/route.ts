@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { paypal } from '@/lib/paypal';
 import { db } from '@/lib/db';
 import { redirect } from 'next/navigation';
+import { randomBytes } from 'crypto';
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,12 +34,14 @@ export async function GET(request: NextRequest) {
       // Create subscription record
       await tx.subscriptions.create({
         data: {
+          id: randomBytes(12).toString('base64url'), // Generate unique ID
           user_id: pendingSubscription.user_id,
           paypal_subscription_id: subscriptionId,
           status: 'ACTIVE',
           current_period_start: new Date(),
           current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
           payment_method: 'PAYPAL',
+          updated_at: new Date(), // Add required timestamp
         },
       });
 
