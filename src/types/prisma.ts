@@ -96,6 +96,8 @@ export type UserProfile = {
   is_featured?: boolean;
   is_spotlight?: boolean;
   isCrbChecked?: boolean;
+  verificationLevel?: string | null;
+  verification_level?: string | null;
   facebookUrl?: string | null;
   facebook_url?: string | null;
   twitterUrl?: string | null;
