@@ -154,17 +154,17 @@ export function StudiosPage() {
   // Function to select a studio and add persistent outline
   const selectStudio = async (studio_id: string) => {
     clearPreviousSelection();
-    setSelectedStudioId(studioId);
+    setSelectedStudioId(studio_id);
     
     // Check if the studio is on the current page
     const currentPageStudios = searchResults?.studios || [];
-    const studioOnCurrentPage = currentPageStudios.find(studio => studio.id === studioId);
+    const studioOnCurrentPage = currentPageStudios.find(studio => studio.id === studio_id);
     
     if (!studioOnCurrentPage && searchResults) {
       // Studio is not on current page - need to find which page it's on
       // Since we have mapMarkers with all studios, we can search through pages more efficiently
       try {
-        console.log('🔍 Studio not on current page, searching for:', studioId);
+        console.log('🔍 Studio not on current page, searching for:', studio_id);
         
         const studiosPerPage = searchResults.pagination.limit;
         const totalPages = searchResults.pagination.totalPages;
@@ -177,7 +177,7 @@ export function StudiosPage() {
           params.set('page', page.toString());
           params.set('limit', studiosPerPage.toString()); // Use same limit as current pagination
           
-          console.log(`🔍 Checking page ${page} for studio ${studioId}`);
+          console.log(`🔍 Checking page ${page} for studio ${studio_id}`);
           
           const response = await fetch(`/api/studios/search?${params.toString()}`);
           if (!response.ok) {
@@ -188,7 +188,7 @@ export function StudiosPage() {
           const data = await response.json();
           
           if (data.studios) {
-            const studioFound = data.studios.find((studio: any) => studio.id === studioId);
+            const studioFound = data.studios.find((studio: any) => studio.id === studio_id);
             if (studioFound) {
               foundPage = page;
               console.log(`✅ Found studio on page ${page}`);
@@ -205,7 +205,7 @@ export function StudiosPage() {
           router.push(`/studios?${newParams.toString()}`);
           
           // Store the studio ID to select after navigation
-          sessionStorage.setItem('pendingStudioSelection', studioId);
+          sessionStorage.setItem('pendingStudioSelection', studio_id);
           return;
         }
         
@@ -218,12 +218,12 @@ export function StudiosPage() {
     }
     
     // Studio is on current page or fallback - select it directly
-    selectStudioOnCurrentPage(studioId);
+    selectStudioOnCurrentPage(studio_id);
   };
 
   // Helper function to select studio on current page
   const selectStudioOnCurrentPage = (studio_id: string) => {
-    const element = document.getElementById(`studio-${studioId}`);
+    const element = document.getElementById(`studio-${studio_id}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       
