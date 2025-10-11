@@ -84,7 +84,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
   const badges = [];
   if (studio.is_premium) badges.push({ label: 'Premium', icon: Star, color: 'bg-yellow-100 text-yellow-800' });
   if (studio.is_verified) badges.push({ label: 'Verified', icon: Shield, color: 'bg-green-100 text-green-800' });
-  if (ownerProfile?.isFeatured) badges.push({ label: 'Featured Owner', icon: Award, color: 'bg-purple-100 text-purple-800' });
+  if (ownerProfile?.is_featured) badges.push({ label: 'Featured Owner', icon: Award, color: 'bg-purple-100 text-purple-800' });
   if (ownerProfile?.isCrbChecked) badges.push({ label: 'CRB Checked', icon: Shield, color: 'bg-blue-100 text-blue-800' });
 
   // Service icons mapping
