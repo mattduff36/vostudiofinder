@@ -115,10 +115,10 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
 
 
 
-  const hasActiveFilters = filters.location || filters.studioTypes.length > 0 || filters.services.length > 0 || filters.radius !== 25;
+  const hasActiveFilters = filters.location || filters.studio_studio_types.length > 0 || filters.studio_services.length > 0 || filters.radius !== 25;
 
   const handleStudioTypeToggle = (studio_type: string) => {
-    const currentTypes = filters.studioTypes || [];
+    const currentTypes = filters.studio_studio_types || [];
     const updatedTypes = currentTypes.includes(studio_type)
       ? currentTypes.filter(type => type !== studio_type)
       : [...currentTypes, studio_type];
@@ -279,7 +279,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
             >
               <input
                 type="checkbox"
-                checked={filters.studioTypes.includes(option.value)}
+                checked={filters.studio_studio_types.includes(option.value)}
                 onChange={() => handleStudioTypeToggle(option.value)}
                 className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
