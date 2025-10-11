@@ -26,8 +26,8 @@ interface Studio {
   address: string;
   averageRating?: number;
   reviewCount?: number;
-  services?: Array<{ service: string }>;
-  images?: Array<{
+  studio_services?: Array<{ service: string }>;
+  studio_images?: Array<{
     imageUrl: string;
     alt_text?: string;
   }>;
