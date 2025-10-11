@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Only the recipient can accept
-        if (existingConnection.connectedUserId !== session.user.id) {
+        if (existingConnection.connected_user_id !== session.user.id) {
           return NextResponse.json(
             { error: 'You can only accept requests sent to you' },
             { status: 403 }
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Only the recipient can reject
-        if (existingConnection.connectedUserId !== session.user.id) {
+        if (existingConnection.connected_user_id !== session.user.id) {
           return NextResponse.json(
             { error: 'You can only reject requests sent to you' },
             { status: 403 }
