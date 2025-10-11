@@ -68,27 +68,27 @@ export async function DELETE(request: NextRequest) {
       // Delete in order of dependencies
       
       // 1. Delete studio-related data
-      await tx.studioService.deleteMany({
+      await tx.studio_services.deleteMany({
         where: { studio: { owner_id: user.id } },
       });
       
-      await tx.studioImage.deleteMany({
+      await tx.studio_images.deleteMany({
         where: { studio: { owner_id: user.id } },
       });
       
-      await tx.review.deleteMany({
+      await tx.reviews.deleteMany({
         where: { OR: [
           { reviewer_id: user.id },
           { owner_id: user.id },
         ]},
       });
       
-      await tx.studio.deleteMany({
+      await tx.studios.deleteMany({
         where: { owner_id: user.id },
       });
       
       // 2. Delete messages
-      await tx.message.deleteMany({
+      await tx.messages.deleteMany({
         where: { OR: [
           { sender_id: user.id },
           { receiver_id: user.id },
@@ -96,7 +96,7 @@ export async function DELETE(request: NextRequest) {
       });
       
       // 3. Delete connections
-      await tx.userConnection.deleteMany({
+      await tx.user_connections.deleteMany({
         where: { OR: [
           { user_id: user.id },
           { connected_user_id: user.id },
@@ -104,21 +104,21 @@ export async function DELETE(request: NextRequest) {
       });
       
       // 4. Delete subscriptions
-      await tx.subscription.deleteMany({
+      await tx.subscriptions.deleteMany({
         where: { user_id: user.id },
       });
       
       // 5. Delete auth-related data
-      await tx.session.deleteMany({
+      await tx.sessions.deleteMany({
         where: { user_id: user.id },
       });
       
-      await tx.account.deleteMany({
+      await tx.accounts.deleteMany({
         where: { user_id: user.id },
       });
       
       // 6. Finally, delete the user
-      await tx.user.delete({
+      await tx.users.delete({
         where: { id: user.id },
       });
     });
