@@ -69,10 +69,10 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
           >
             {/* Studio Image */}
             <div className="h-48 bg-gray-200 rounded-t-lg overflow-hidden relative">
-              {studio.images?.[0]?.imageUrl ? (
+              {studio.studio_images?.[0]?.imageUrl ? (
                 <Image
-                  src={studio.images[0].imageUrl}
-                  alt={studio.images[0].alt_text || studio.name}
+                  src={studio.studio_images[0].imageUrl}
+                  alt={studio.studio_images[0].alt_text || studio.name}
                   fill
                   className="object-cover"
                 />
