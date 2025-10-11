@@ -78,8 +78,8 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
 
   // Professional badges
   const badges = [];
-  if (profile?.isFeatured) badges.push({ label: 'Featured', icon: Star, color: 'bg-yellow-100 text-yellow-800' });
-  if (profile?.isSpotlight) badges.push({ label: 'Spotlight', icon: Award, color: 'bg-purple-100 text-purple-800' });
+  if (profile?.is_featured) badges.push({ label: 'Featured', icon: Star, color: 'bg-yellow-100 text-yellow-800' });
+  if (profile?.is_spotlight) badges.push({ label: 'Spotlight', icon: Award, color: 'bg-purple-100 text-purple-800' });
   if (profile?.isCrbChecked) badges.push({ label: 'CRB Checked', icon: Shield, color: 'bg-green-100 text-green-800' });
   if (profile?.verificationLevel === 'verified') badges.push({ label: 'Verified', icon: Shield, color: 'bg-blue-100 text-blue-800' });
 
