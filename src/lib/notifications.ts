@@ -281,7 +281,7 @@ export class NotificationService {
       'STUDIO_VERIFIED',
       'Studio Verified',
       `Your studio "${studioName}" has been verified`,
-      { studioId },
+      { studio_id },
       `/${studioOwnerUsername}`
     );
   }
