@@ -44,12 +44,13 @@ export async function POST(request: NextRequest) {
           website_url: validatedData.website_url || null,
           phone: validatedData.phone || null,
           status: 'ACTIVE',
+          updated_at: new Date(), // Add required timestamp
         },
       });
       
       // Add studio types
-      if (validatedData.studioTypes && validatedData.studioTypes.length > 0) {
-        for (const studio_type of validatedData.studioTypes) {
+      if (validatedData.studio_studio_types && validatedData.studio_studio_types.length > 0) {
+        for (const studio_type of validatedData.studio_studio_types) {
           await tx.studio_studio_types.create({
             data: {
               id: randomBytes(12).toString('base64url'), // Generate unique ID
@@ -61,8 +62,8 @@ export async function POST(request: NextRequest) {
       }
       
       // Add services
-      if (validatedData.services && validatedData.services.length > 0) {
-        for (const service of validatedData.services) {
+      if (validatedData.studio_services && validatedData.studio_services.length > 0) {
+        for (const service of validatedData.studio_services) {
           await tx.studio_services.create({
             data: {
               id: randomBytes(12).toString('base64url'), // Generate unique ID
@@ -74,8 +75,8 @@ export async function POST(request: NextRequest) {
       }
       
       // Add images
-      if (validatedData.images && validatedData.images.length > 0) {
-        for (const [index, image] of validatedData.images.entries()) {
+      if (validatedData.studio_images && validatedData.studio_images.length > 0) {
+        for (const [index, image] of validatedData.studio_images.entries()) {
           await tx.studio_images.create({
             data: {
               id: randomBytes(12).toString('base64url'), // Generate unique ID
