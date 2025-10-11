@@ -15,11 +15,11 @@ interface FixedDynamicGalleryProps {
 export function FixedDynamicGallery({ studio_images }: FixedDynamicGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
-  if (studio_studio_images.length === 0) return null;
+  if (studio_images.length === 0) return null;
 
   // Simple logic: if we have 5+ images total (1 main + 4 in grid), use 2x2, otherwise use 2x1
-  const use2x2Layout = studio_studio_images.length >= 5;
-  console.log(`Selected ${use2x2Layout ? '2x2' : '2x1'} layout - ${studio_studio_images.length} images available`);
+  const use2x2Layout = studio_images.length >= 5;
+  console.log(`Selected ${use2x2Layout ? '2x2' : '2x1'} layout - ${studio_images.length} images available`);
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
