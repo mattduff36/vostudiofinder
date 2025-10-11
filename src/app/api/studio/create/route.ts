@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
         studio_images: {
           orderBy: { sort_order: 'asc' },
         },
-        owner: {
+        users: {
           select: {
             id: true,
             display_name: true,
