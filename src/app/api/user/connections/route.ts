@@ -213,7 +213,7 @@ export async function GET(request: NextRequest) {
         take: limit,
         orderBy: { created_at: 'desc' },
         include: {
-          user: {
+          users_user_connections_user_idTousers: {
             select: {
               id: true,
               display_name: true,
@@ -222,7 +222,7 @@ export async function GET(request: NextRequest) {
               role: true,
             },
           },
-          connectedUser: {
+          users_user_connections_connected_user_idTousers: {
             select: {
               id: true,
               display_name: true,
