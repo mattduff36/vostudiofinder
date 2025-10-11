@@ -58,7 +58,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
   };
 
   const handleServiceToggle = (service: string) => {
-    const currentServices = filters.services || [];
+    const currentServices = filters.studio_services || [];
     const updatedServices = currentServices.includes(service)
       ? currentServices.filter(s => s !== service)
       : [...currentServices, service];
