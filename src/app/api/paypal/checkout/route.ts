@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { paypal } from '@/lib/paypal';
 import { db } from '@/lib/db';
+import { randomBytes } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,11 +70,13 @@ export async function POST(request: NextRequest) {
     // Store pending subscription in database
     await db.pending_subscriptions.create({
       data: {
+        id: randomBytes(12).toString('base64url'), // Generate unique ID
         user_id: session.user.id,
         studio_id: studioId,
         paypal_subscription_id: subscription.id,
         status: 'PENDING_APPROVAL',
         payment_method: 'PAYPAL',
+        updated_at: new Date(), // Add required timestamp
       },
     });
 
