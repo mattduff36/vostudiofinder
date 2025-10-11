@@ -71,6 +71,10 @@ export type Studio = {
   status: StudioStatus;
   created_at: Date;
   updated_at: Date;
+  // Relations (optional for when they're included)
+  studio_images?: StudioImage[];
+  studio_services?: StudioService[];
+  studio_studio_types?: Array<{ studio_type: string }>;
 };
 
 export type UserProfile = {
