@@ -193,7 +193,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Username <span className="text-red-600">(users.username)</span></label>
           <input
             type="text"
             value={profile?.username || ''}
@@ -204,7 +204,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           <p className="text-xs text-gray-500 mt-1">This is used in URLs and should be unique</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-600">(users.email)</span></label>
           <input
             type="email"
             value={profile?.email || ''}
@@ -213,7 +213,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Studio Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Studio Name <span className="text-red-600">(studios.name)</span></label>
           <input
             type="text"
             value={profile?._meta?.studio_name || ''}
@@ -280,7 +280,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Short About</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Short About <span className="text-red-600">(user_profiles.short_about)</span></label>
         <textarea
           value={profile?._meta?.short_about || ''}
           onChange={(e) => handleMetaChange('short_about', e.target.value)}
@@ -290,7 +290,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Full About</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Full About <span className="text-red-600">(user_profiles.about)</span></label>
         <textarea
           value={decodeHtmlEntities(profile?._meta?.about) || ''}
           onChange={(e) => handleMetaChange('about', e.target.value)}
@@ -301,7 +301,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-600">(studios.status)</span></label>
           <select
             value={profile?.status || 'active'}
             onChange={(e) => handleBasicChange('status', e.target.value)}
@@ -342,7 +342,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name <span className="text-red-600">(user_profiles.last_name)</span></label>
           <input
             type="text"
             value={profile?._meta?.last_name || ''}
@@ -352,7 +352,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Phone <span className="text-red-600">(user_profiles.phone)</span></label>
           <input
             type="tel"
             value={profile?._meta?.phone || ''}
@@ -361,7 +361,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Website URL <span className="text-red-600">(studios.website_url)</span></label>
           <input
             type="url"
             value={profile?._meta?.url || ''}
@@ -440,7 +440,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-600">(user_profiles.location)</span></label>
           <input
             type="text"
             value={profile?._meta?.location || ''}
@@ -449,7 +449,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Locale</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Locale <span className="text-red-600">(N/A)</span></label>
           <input
             type="text"
             value={profile?._meta?.locale || ''}
@@ -460,7 +460,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Full Address</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Full Address <span className="text-red-600">(studios.address)</span></label>
         <input
           type="text"
           value={profile?._meta?.address || ''}
@@ -471,7 +471,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Latitude <span className="text-red-600">(studios.latitude)</span></label>
           <input
             type="text"
             value={profile?._meta?.latitude || ''}
@@ -480,7 +480,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Longitude <span className="text-red-600">(studios.longitude)</span></label>
           <input
             type="text"
             value={profile?._meta?.longitude || ''}
@@ -496,7 +496,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">15 Minutes Rate</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">15 Minutes Rate <span className="text-red-600">(user_profiles.rate_tier_1)</span></label>
           <input
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates1) || ''}
@@ -506,7 +506,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">30 Minutes Rate</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">30 Minutes Rate <span className="text-red-600">(user_profiles.rate_tier_2)</span></label>
           <input
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates2) || ''}
@@ -516,7 +516,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">60 Minutes Rate</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">60 Minutes Rate <span className="text-red-600">(user_profiles.rate_tier_3)</span></label>
           <input
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates3) || ''}
@@ -550,7 +550,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Facebook URL
+            Facebook URL <span className="text-red-600">(user_profiles.facebook_url)</span>
           </label>
           <input
             type="url"
@@ -563,7 +563,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Twitter URL
+            Twitter URL <span className="text-red-600">(user_profiles.twitter_url)</span>
           </label>
           <input
             type="url"
@@ -576,7 +576,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            LinkedIn URL
+            LinkedIn URL <span className="text-red-600">(user_profiles.linkedin_url)</span>
           </label>
           <input
             type="url"
@@ -589,7 +589,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Instagram URL
+            Instagram URL <span className="text-red-600">(user_profiles.instagram_url)</span>
           </label>
           <input
             type="url"
@@ -602,7 +602,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            YouTube URL
+            YouTube URL <span className="text-red-600">(user_profiles.youtube_url)</span>
           </label>
           <input
             type="url"
@@ -615,7 +615,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Vimeo URL
+            Vimeo URL <span className="text-red-600">(user_profiles.vimeo_url)</span>
           </label>
           <input
             type="url"
@@ -628,7 +628,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            SoundCloud URL
+            SoundCloud URL <span className="text-red-600">(user_profiles.soundcloud_url)</span>
           </label>
           <input
             type="url"
