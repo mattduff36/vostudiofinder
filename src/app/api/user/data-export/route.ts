@@ -136,8 +136,8 @@ export async function GET(request: NextRequest) {
       subscriptions: userData.subscriptions.map(sub => ({
         id: sub.id,
         status: sub.status,
-        currentPeriodStart: sub.currentPeriodStart,
-        currentPeriodEnd: sub.currentPeriodEnd,
+        currentPeriodStart: sub.current_period_start,
+        currentPeriodEnd: sub.current_period_end,
         created_at: sub.created_at,
       })),
       oauthAccounts: userData.accounts.map(account => ({
