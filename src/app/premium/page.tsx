@@ -13,7 +13,7 @@ async function getPremiumData() {
   const featuredUsers = await prisma.users.findMany({
     where: {
       user_profiles: {
-        isFeatured: true
+        is_featured: true
       }
     },
     include: {
@@ -32,7 +32,7 @@ async function getPremiumData() {
       }
     },
     orderBy: [
-      { user_profiles: { isSpotlight: 'desc' } },
+      { user_profiles: { is_spotlight: 'desc' } },
       { created_at: 'desc' }
     ],
     take: 12
@@ -42,7 +42,7 @@ async function getPremiumData() {
   const spotlightUsers = await prisma.users.findMany({
     where: {
       user_profiles: {
-        isSpotlight: true
+        is_spotlight: true
       }
     },
     include: {
@@ -77,7 +77,7 @@ async function getPremiumData() {
             user_profiles: {
               OR: [
                 { isFeatured: true },
-                { isSpotlight: true }
+                { is_spotlight: true }
               ]
             }
           }
@@ -100,7 +100,7 @@ async function getPremiumData() {
     orderBy: [
       { is_premium: 'desc' },
       { is_verified: 'desc' },
-      { users: { user_profiles: { isSpotlight: 'desc' } } },
+      { users: { user_profiles: { is_spotlight: 'desc' } } },
       { users: { user_profiles: { isFeatured: 'desc' } } },
       { created_at: 'desc' }
     ],
@@ -120,7 +120,7 @@ async function getPremiumData() {
     }),
     prisma.users.count({
       where: {
-        user_profiles: { isSpotlight: true }
+        user_profiles: { is_spotlight: true }
       }
     }),
     prisma.studios.count({
