@@ -23,7 +23,7 @@ export function EnhancedCheckout({
   planPrice,
 }: EnhancedCheckoutProps) {
   const { data: session } = useSession();
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('stripe');
+  const [selectedMethod] = useState<PaymentMethod>('stripe'); // Stripe only now
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,43 +64,6 @@ export function EnhancedCheckout({
       setError(errorMessage);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handlePayPalCheckout = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await fetch('/api/paypal/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ studio_id }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create PayPal subscription');
-      }
-
-      const { approvalUrl } = await response.json();
-      
-      // Redirect to PayPal for approval
-      window.location.href = approvalUrl;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'PayPal payment failed';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCheckout = () => {
-    if (selectedMethod === 'stripe') {
-      handleStripeCheckout();
-    } else {
-      handlePayPalCheckout();
     }
   };
 
@@ -161,7 +124,7 @@ export function EnhancedCheckout({
 
       {/* Payment Method Selection */}
       <PaymentMethodSelector
-        onMethodSelect={setSelectedMethod}
+        onMethodSelect={() => {}} // No-op since we only have Stripe now
         selectedMethod={selectedMethod}
         isLoading={isLoading}
       />
@@ -183,7 +146,7 @@ export function EnhancedCheckout({
       {/* Checkout Button */}
       <div className="text-center">
         <Button
-          onClick={handleCheckout}
+          onClick={handleStripeCheckout}
           disabled={isLoading}
           className="w-full sm:w-auto px-8 py-3 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white"
         >
@@ -193,7 +156,7 @@ export function EnhancedCheckout({
               Processing...
             </div>
           ) : (
-            `Subscribe with ${selectedMethod === 'stripe' ? 'Card' : 'PayPal'}`
+            'Subscribe with Card'
           )}
         </Button>
         
@@ -210,7 +173,7 @@ export function EnhancedCheckout({
         </div>
         <div className="flex items-center justify-center">
           <span className="text-blue-500 mr-2">💳</span>
-          {selectedMethod === 'stripe' ? 'Stripe Secure' : 'PayPal Protected'}
+          Stripe Secure
         </div>
         <div className="flex items-center justify-center">
           <span className="text-purple-500 mr-2">↩️</span>
@@ -220,4 +183,3 @@ export function EnhancedCheckout({
     </div>
   );
 }
-
