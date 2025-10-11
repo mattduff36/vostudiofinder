@@ -8,10 +8,9 @@ import { ImageGalleryManager } from './ImageGalleryManager';
 
 interface DashboardContentProps {
   dashboardData: any;
-  profileData?: any;
 }
 
-export function DashboardContent({ dashboardData, profileData }: DashboardContentProps) {
+export function DashboardContent({ dashboardData }: DashboardContentProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
 
   const renderTabContent = () => {

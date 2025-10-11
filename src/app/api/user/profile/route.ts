@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { z } from 'zod';
 
 /**
  * GET /api/user/profile
@@ -15,7 +14,7 @@ import { z } from 'zod';
  * - Studio types, services, and images
  * - User metadata
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Verify authentication
     const session = await getServerSession(authOptions);
@@ -323,7 +322,7 @@ export async function PUT(request: NextRequest) {
           if (body.studio_types.length > 0) {
             const { randomBytes } = await import('crypto');
             await db.studio_studio_types.createMany({
-              data: body.studio_types.map(type => ({
+              data: body.studio_types.map((type: string) => ({
                 id: randomBytes(12).toString('hex'),
                 studio_id: studio.id,
                 studio_type: type,
@@ -343,7 +342,7 @@ export async function PUT(request: NextRequest) {
           if (body.services.length > 0) {
             const { randomBytes } = await import('crypto');
             await db.studio_services.createMany({
-              data: body.services.map(service => ({
+              data: body.services.map((service: string) => ({
                 id: randomBytes(12).toString('hex'),
                 studio_id: studio.id,
                 service: service,

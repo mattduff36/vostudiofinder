@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, X, Edit2, Trash2, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -45,6 +45,7 @@ export function ImageGalleryManager() {
     if (!files || files.length === 0) return;
 
     const file = files[0];
+    if (!file) return;
     
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -111,6 +112,7 @@ export function ImageGalleryManager() {
 
     const newImages = [...images];
     const [movedImage] = newImages.splice(fromIndex, 1);
+    if (!movedImage) return;
     newImages.splice(toIndex, 0, movedImage);
 
     // Update sort orders

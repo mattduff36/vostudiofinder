@@ -91,8 +91,12 @@ export async function POST(request: NextRequest) {
     });
 
     // Create database record
+    const { randomBytes } = await import('crypto');
+    const imageId = randomBytes(12).toString('hex');
+    
     const newImage = await db.studio_images.create({
       data: {
+        id: imageId,
         studio_id: studio.id,
         image_url: cloudinaryResult.secure_url,
         alt_text: alt_text || '',
@@ -108,7 +112,6 @@ export async function POST(request: NextRequest) {
         image_url: newImage.image_url,
         alt_text: newImage.alt_text,
         sort_order: newImage.sort_order,
-        created_at: newImage.created_at,
       },
     }, { status: 201 });
   } catch (error) {
