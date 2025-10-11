@@ -325,7 +325,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                         <Input
                           label="Alt Text (optional)"
                           placeholder="Describe this image"
-                          {...register(`images.${index}.alt_text`)}
+                          {...register(`studio_images.${index}.alt_text`)}
                           className="text-sm"
                         />
                       </div>
