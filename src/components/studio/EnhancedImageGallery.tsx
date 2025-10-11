@@ -22,7 +22,7 @@ interface EnhancedImageGalleryProps {
 }
 
 export function EnhancedImageGallery({ 
-  images, 
+  studio_images, 
   onImagesChange, 
   maxImages = 10, 
   isEditing = false,
@@ -35,7 +35,7 @@ export function EnhancedImageGallery({
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
-    const items = Array.from(images);
+    const items = Array.from(studio_images);
     const [reorderedItem] = items.splice(result.source.index, 1);
     if (!reorderedItem) return;
     
@@ -70,14 +70,14 @@ export function EnhancedImageGallery({
       console.warn('Failed to delete image from Cloudinary:', error);
     }
 
-    const updatedImages = images
+    const updatedImages = studio_images
       .filter(img => img.id !== id)
       .map((img, index) => ({ ...img, sort_order: index }));
     onImagesChange(updatedImages);
   };
 
   const updateImage = (id: string, updates: Partial<ImageItem>) => {
-    const updatedImages = images.map(img =>
+    const updatedImages = studio_images.map(img =>
       img.id === id ? { ...img, ...updates } : img
     );
     onImagesChange(updatedImages);
@@ -88,9 +88,9 @@ export function EnhancedImageGallery({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-text-primary">
-          Studio Images ({images.length}/{maxImages})
+          Studio Images ({studio_images.length}/{maxImages})
         </h3>
-        {isEditing && images.length < maxImages && (
+        {isEditing && studio_images.length < maxImages && (
           <Button
             type="button"
             variant="outline"
@@ -126,7 +126,7 @@ export function EnhancedImageGallery({
       )}
 
       {/* Image Gallery */}
-      {images.length > 0 ? (
+      {studio_images.length > 0 ? (
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="images">
             {(provided) => (
@@ -135,7 +135,7 @@ export function EnhancedImageGallery({
                 ref={provided.innerRef}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
               >
-                {images.map((image, index) => (
+                {studio_images.map((image, index) => (
                   <Draggable
                     key={image.id}
                     draggableId={image.id}
