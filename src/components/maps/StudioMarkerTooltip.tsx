@@ -10,7 +10,7 @@ interface StudioMarkerTooltipProps {
     owner?: {
       username: string;
     };
-    images?: Array<{
+    studio_images?: Array<{
       imageUrl: string;
       alt_text?: string;
     }>;
