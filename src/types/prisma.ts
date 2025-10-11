@@ -85,6 +85,9 @@ export type UserProfile = {
   showEmail: boolean;
   showPhone: boolean;
   showAddress: boolean;
+  is_featured?: boolean;
+  is_spotlight?: boolean;
+  isCrbChecked?: boolean;
   created_at: Date;
   updated_at: Date;
 };
