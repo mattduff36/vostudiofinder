@@ -257,7 +257,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                     <h3 className="font-medium text-gray-900 mb-2">Technical Services</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {studio.studio_services.map((service) => {
-                        const Icon = serviceIcons[service.service] || Settings;
+                        const Icon = serviceIcons[service.service || ''] || Settings;
                         return (
                           <div
                             key={service.id}
