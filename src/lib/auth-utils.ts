@@ -111,7 +111,7 @@ export function canAccessResource(
   }
 
   // User can access their own resources
-  if (resourceOwnerId === userId) {
+  if (resourceOwnerId === _user_id) {
     return true;
   }
 
