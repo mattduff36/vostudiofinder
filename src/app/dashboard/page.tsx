@@ -133,7 +133,7 @@ export default async function DashboardPage() {
     studios: userStudios.map(studio => ({
       id: studio.id,
       name: studio.name,
-      studio_type: studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] ? studio.studioTypes[0].studio_type : 'VOICEOVER',
+      studio_type: studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] ? studio.studio_studio_types[0].studio_type : 'VOICEOVER',
       status: studio.status,
       is_premium: studio.is_premium,
       created_at: studio.created_at,
