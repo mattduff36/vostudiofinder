@@ -232,28 +232,32 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
-      {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4">
-        <h2 className="text-2xl font-bold text-gray-900">Manage Images</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Upload and organize your studio images ({images.length}/10)
-        </p>
-      </div>
+    <div className={isAdminMode ? "" : "bg-white rounded-lg border border-gray-200"}>
+      {/* Header - Hidden in admin mode */}
+      {!isAdminMode && (
+        <div className="border-b border-gray-200 px-6 py-4">
+          <h2 className="text-2xl font-bold text-gray-900">Manage Images</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Upload and organize your studio images ({images.length}/10)
+          </p>
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (
-        <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+        <div className={`bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 ${isAdminMode ? 'mb-4' : 'mx-6 mt-4'}`}>
           {error}
         </div>
       )}
 
       {/* Upload Zone */}
-      <div className="p-6">
+      <div className={isAdminMode ? "mb-4" : "p-6"}>
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer"
+          className={`border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-500 transition-colors cursor-pointer ${
+            isAdminMode ? 'p-4' : 'p-8'
+          }`}
           onClick={() => fileInputRef.current?.click()}
         >
           <input
@@ -266,12 +270,12 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
           
           {uploading ? (
             <div className="flex flex-col items-center">
-              <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-3" />
+              <Loader2 className={`text-blue-600 animate-spin ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
               <p className="text-sm font-medium text-gray-700">Uploading...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center">
-              <Upload className="w-12 h-12 text-gray-400 mb-3" />
+              <Upload className={`text-gray-400 ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
               <p className="text-sm font-medium text-gray-700 mb-1">
                 Drop images here or click to browse
               </p>
@@ -285,8 +289,8 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
 
       {/* Image Grid */}
       {images.length > 0 ? (
-        <div className="px-6 pb-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className={isAdminMode ? "" : "px-6 pb-6"}>
+          <div className={`grid gap-3 ${isAdminMode ? 'grid-cols-3 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
             {images.map((image, index) => (
               <div
                 key={image.id}
@@ -337,13 +341,15 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
             ))}
           </div>
 
-          <p className="text-xs text-gray-500 mt-4">
-            💡 Tip: Drag and drop images to reorder them. The first image is your featured image.
-          </p>
+          {!isAdminMode && (
+            <p className="text-xs text-gray-500 mt-4">
+              💡 Tip: Drag and drop images to reorder them. The first image is your featured image.
+            </p>
+          )}
         </div>
       ) : (
-        <div className="px-6 pb-6 text-center">
-          <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-3" />
+        <div className={`text-center ${isAdminMode ? '' : 'px-6 pb-6'}`}>
+          <ImageIcon className={`text-gray-300 mx-auto mb-3 ${isAdminMode ? 'w-12 h-12' : 'w-16 h-16'}`} />
           <p className="text-gray-500">No images uploaded yet</p>
           <p className="text-sm text-gray-400 mt-1">Upload your first image to get started</p>
         </div>
