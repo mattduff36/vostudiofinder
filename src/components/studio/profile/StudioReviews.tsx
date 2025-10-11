@@ -126,7 +126,7 @@ export function StudioReviews({ studio, canReview }: StudioReviewsProps) {
       {showReviewForm && (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <ReviewForm
-            studioId={studio.id}
+            studio_id={studio.id}
             studioName={studio.name}
             onSubmit={() => {
               setShowReviewForm(false);
