@@ -91,14 +91,14 @@ export default async function DashboardPage() {
         accepted: true,
       },
       include: {
-        user: {
+        users_user_connections_user_idTousers: {
           select: {
             id: true,
             display_name: true,
             avatar_url: true,
           },
         },
-        connectedUser: {
+        users_user_connections_connected_user_idTousers: {
           select: {
             id: true,
             display_name: true,
