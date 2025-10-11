@@ -24,19 +24,19 @@ export async function POST(request: NextRequest) {
     }
     
     const body = await request.json();
-    const { plan, studioId } = checkoutSchema.parse(body);
+    const { plan, studio_id } = checkoutSchema.parse(body);
     
     // Verify studio ownership
     const studio = await db.studios.findUnique({
       where: { 
-        id: studioId,
+        id: studio_id,
         owner_id: session.user.id,
       },
       select: {
         id: true,
         name: true,
         is_premium: true,
-        owner: {
+        users: {
           select: {
             username: true,
           },
@@ -62,9 +62,9 @@ export async function POST(request: NextRequest) {
     const checkoutSession = await createCheckoutSession({
       plan: plan as SubscriptionPlan,
       user_id: session.user.id,
-      studioId,
-      successUrl: `${process.env.NEXTAUTH_URL}/${studio.owner.username}?payment=success`,
-      cancelUrl: `${process.env.NEXTAUTH_URL}/${studio.owner.username}?payment=cancelled`,
+      studio_id,
+      successUrl: `${process.env.NEXTAUTH_URL}/${studio.users.username}?payment=success`,
+      cancelUrl: `${process.env.NEXTAUTH_URL}/${studio.users.username}?payment=cancelled`,
     });
     
     return NextResponse.json({

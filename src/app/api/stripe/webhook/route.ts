@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { headers } from 'next/headers';
 import { sendEmail } from '@/lib/email/email-service';
 import { paymentSuccessTemplate, paymentFailedTemplate } from '@/lib/email/templates/payment-success';
+import { randomBytes } from 'crypto';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
@@ -55,19 +56,21 @@ export async function POST(request: NextRequest) {
         if (userId && studioId) {
           await db.$transaction(async (tx) => {
             // Create subscription record
-            await tx.subscription.create({
+            await tx.subscriptions.create({
               data: {
-                userId,
-                stripeSubscriptionId: subscription.id,
-                stripeCustomerId: subscription.customer as string,
+                id: randomBytes(12).toString('base64url'), // Generate unique ID
+                user_id: userId,
+                stripe_subscription_id: subscription.id,
+                stripe_customer_id: subscription.customer as string,
                 status: subscription.status.toUpperCase() as any,
-                currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
-                currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+                current_period_start: new Date((subscription as any).current_period_start * 1000),
+                current_period_end: new Date((subscription as any).current_period_end * 1000),
+                updated_at: new Date(), // Add required timestamp
               },
             });
             
             // Update studio to premium
-            await tx.studio.update({
+            await tx.studios.update({
               where: { id: studioId },
               data: { is_premium: true },
             });
@@ -81,11 +84,11 @@ export async function POST(request: NextRequest) {
         
         // Update subscription in database
         await db.subscriptions.update({
-          where: { stripeSubscriptionId: subscription.id },
+          where: { stripe_subscription_id: subscription.id },
           data: {
             status: subscription.status.toUpperCase() as any,
-            currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
-            currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+            current_period_start: new Date((subscription as any).current_period_start * 1000),
+            current_period_end: new Date((subscription as any).current_period_end * 1000),
           },
         });
         break;
@@ -99,23 +102,23 @@ export async function POST(request: NextRequest) {
         // Update database
         await db.$transaction(async (tx) => {
           // Update subscription status
-          await tx.subscription.update({
-            where: { stripeSubscriptionId: subscription.id },
+          await tx.subscriptions.update({
+            where: { stripe_subscription_id: subscription.id },
             data: {
               status: 'CANCELLED',
-              cancelledAt: new Date(),
+              cancelled_at: new Date(),
             },
           });
           
           // Remove premium status from studio
-          const sub = await tx.subscription.findUnique({
-            where: { stripeSubscriptionId: subscription.id },
-            include: { user: { include: { studios: true } } },
+          const sub = await tx.subscriptions.findUnique({
+            where: { stripe_subscription_id: subscription.id },
+            include: { users: { include: { studios: true } } },
           });
           
           if (sub) {
-            await tx.studio.updateMany({
-              where: { owner_id: sub.userId },
+            await tx.studios.updateMany({
+              where: { owner_id: sub.user_id },
               data: { is_premium: false },
             });
           }

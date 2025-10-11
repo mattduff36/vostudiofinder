@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
         user_profiles: {
           select: {
             location: true,
-            studioName: true,
-            lastName: true
+            studio_name: true,
+            last_name: true
           }
         },
         studios: {
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     // Format users for suggestions
     const formattedUsers = users.map(user => {
       // Prioritize studio address over profile location
-      const fullLocation = user.studios?.[0]?.address || user.profile?.location || null;
+      const fullLocation = user.studios?.[0]?.address || user.user_profiles?.location || null;
       const abbreviatedLocation = fullLocation ? abbreviateAddress(fullLocation) : null;
       const coordinates = user.studios?.[0]?.latitude && user.studios?.[0]?.longitude
         ? { 
