@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
         name,
         filters: JSON.stringify(filters),
         created_at: new Date(), // Add required timestamp
+        updated_at: new Date(), // Add required timestamp
       },
     });
 
