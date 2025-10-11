@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { z } from 'zod';
+import { randomBytes } from 'crypto';
 
 const connectionRequestSchema = z.object({
   targetUserId: z.string(),
@@ -65,9 +66,11 @@ export async function POST(request: NextRequest) {
         // Send connection request
         const connection = await db.user_connections.create({
           data: {
+            id: randomBytes(12).toString('base64url'), // Generate unique ID
             user_id: session.user.id,
             connected_user_id: targetUserId,
             accepted: false, // Pending connection request
+            created_at: new Date(), // Add required timestamp
           },
         });
 
