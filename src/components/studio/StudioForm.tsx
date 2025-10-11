@@ -174,7 +174,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                         type="checkbox"
                         value={option.value}
                         className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                        {...register('studioTypes')}
+                        {...register('studio_studio_types')}
                       />
                       <span className="text-sm text-text-primary">{option.label}</span>
                     </label>
@@ -263,7 +263,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                       type="checkbox"
                       value={service.value}
                       className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                      {...register('services')}
+                      {...register('studio_services')}
                     />
                     <span className="text-sm text-text-primary">{service.label}</span>
                   </label>
