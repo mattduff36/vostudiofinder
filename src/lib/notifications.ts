@@ -292,7 +292,7 @@ export class NotificationService {
     currency: string
   ): Promise<void> {
     await this.createNotification(
-      userId,
+      user_id,
       'PAYMENT_SUCCESS',
       'Payment Successful',
       `Your payment of ${amount} ${currency} has been processed successfully`,
@@ -307,7 +307,7 @@ export class NotificationService {
     currency: string
   ): Promise<void> {
     await this.createNotification(
-      userId,
+      user_id,
       'PAYMENT_FAILED',
       'Payment Failed',
       `Your payment of ${amount} ${currency} could not be processed`,
