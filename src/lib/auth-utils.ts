@@ -103,7 +103,7 @@ export function hasRole(userRole: Role, requiredRole: Role): boolean {
 export function canAccessResource(
   userRole: Role,
   resourceOwnerId: string,
-  user_id: string
+  _user_id: string
 ): boolean {
   // Admin can access everything
   if (userRole === Role.ADMIN) {
