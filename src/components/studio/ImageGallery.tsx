@@ -21,7 +21,7 @@ interface ImageGalleryProps {
 }
 
 export function ImageGallery({ 
-  images, 
+  studio_images, 
   onImagesChange, 
   maxImages = 10, 
   isEditing = false 
@@ -33,7 +33,7 @@ export function ImageGallery({
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
-    const items = Array.from(images);
+    const items = Array.from(studio_images);
     const [reorderedItem] = items.splice(result.source.index, 1);
     if (!reorderedItem) return;
     
@@ -55,23 +55,23 @@ export function ImageGallery({
       id: `temp-${Date.now()}`,
       url: newImage.url,
       alt_text: newImage.alt_text,
-      sort_order: images.length,
+      sort_order: studio_images.length,
     };
 
-    onImagesChange([...images, newImageItem]);
+    onImagesChange([...studio_images, newImageItem]);
     setNewImage({ url: '', alt_text: '' });
     setShowAddForm(false);
   };
 
   const removeImage = (id: string) => {
-    const updatedImages = images
+    const updatedImages = studio_images
       .filter(img => img.id !== id)
       .map((img, index) => ({ ...img, sort_order: index }));
     onImagesChange(updatedImages);
   };
 
   const updateImage = (id: string, updates: Partial<ImageItem>) => {
-    const updatedImages = images.map(img =>
+    const updatedImages = studio_images.map(img =>
       img.id === id ? { ...img, ...updates } : img
     );
     onImagesChange(updatedImages);
@@ -82,9 +82,9 @@ export function ImageGallery({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-text-primary">
-          Studio Images ({images.length}/{maxImages})
+          Studio Images ({studio_images.length}/{maxImages})
         </h3>
-        {isEditing && images.length < maxImages && (
+        {isEditing && studio_images.length < maxImages && (
           <Button
             type="button"
             variant="outline"
@@ -140,7 +140,7 @@ export function ImageGallery({
       )}
 
       {/* Image Gallery */}
-      {images.length > 0 ? (
+      {studio_images.length > 0 ? (
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="images">
             {(provided) => (
@@ -149,7 +149,7 @@ export function ImageGallery({
                 ref={provided.innerRef}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
               >
-                {images.map((image, index) => (
+                {studio_images.map((image, index) => (
                   <Draggable
                     key={image.id}
                     draggableId={image.id}
