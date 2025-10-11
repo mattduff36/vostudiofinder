@@ -321,8 +321,10 @@ export async function PUT(request: NextRequest) {
           
           // Create new types
           if (body.studio_types.length > 0) {
+            const { randomBytes } = await import('crypto');
             await db.studio_studio_types.createMany({
               data: body.studio_types.map(type => ({
+                id: randomBytes(12).toString('hex'),
                 studio_id: studio.id,
                 studio_type: type,
               })),
@@ -339,8 +341,10 @@ export async function PUT(request: NextRequest) {
           
           // Create new services
           if (body.services.length > 0) {
+            const { randomBytes } = await import('crypto');
             await db.studio_services.createMany({
               data: body.services.map(service => ({
+                id: randomBytes(12).toString('hex'),
                 studio_id: studio.id,
                 service: service,
               })),
