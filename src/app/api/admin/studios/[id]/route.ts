@@ -54,6 +54,11 @@ export async function GET(
           select: {
             studio_type: true
           }
+        },
+        studio_images: {
+          orderBy: {
+            sort_order: 'asc'
+          }
         }
       }
     });
@@ -162,7 +167,13 @@ export async function GET(
         connection6: studioData.connection6 || '0',
         connection7: studioData.connection7 || '0',
         connection8: studioData.connection8 || '0'
-      }
+      },
+      images: studio.studio_images?.map(img => ({
+        id: img.id,
+        image_url: img.image_url,
+        alt_text: img.alt_text || '',
+        sort_order: img.sort_order
+      })) || []
     };
 
     return NextResponse.json({ profile });
