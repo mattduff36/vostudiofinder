@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Toggle } from '@/components/ui/Toggle';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -333,10 +334,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               />
             </div>
 
-            <Input
+            <AddressAutocomplete
               label="Address"
               value={profile.studio?.address || ''}
-              onChange={(e) => updateStudio('address', e.target.value)}
+              onChange={(value) => updateStudio('address', value)}
+              placeholder="Start typing your address..."
+              helperText="Google autocomplete will suggest addresses, but you can type manually too"
             />
 
             <Input
