@@ -146,7 +146,7 @@ export default async function DashboardPage() {
       rating: review.rating,
       content: review.content || '',
       created_at: review.created_at,
-      studio: review.studio,
+      studio: review.studios,
     })),
     messages: userMessages.map(message => ({
       id: message.id,
