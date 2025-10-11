@@ -57,7 +57,6 @@ export async function GET(request: NextRequest) {
                 image_url: true,
                 alt_text: true,
                 sort_order: true,
-                created_at: true,
               },
             },
           },
