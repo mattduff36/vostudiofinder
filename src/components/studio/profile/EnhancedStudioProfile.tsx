@@ -217,9 +217,9 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {/* Image Gallery - Rightmove Style - Full Width */}
-            {studio.images.length > 0 && (
+            {studio.studio_images.length > 0 && (
               <div className="w-full -mx-4 sm:-mx-6 lg:-mx-8">
-                <FixedDynamicGallery images={studio.images} />
+                <FixedDynamicGallery images={studio.studio_images} />
               </div>
             )}
 
