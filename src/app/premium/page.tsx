@@ -101,7 +101,7 @@ async function getPremiumData() {
       { is_premium: 'desc' },
       { is_verified: 'desc' },
       { users: { user_profiles: { is_spotlight: 'desc' } } },
-      { users: { user_profiles: { isFeatured: 'desc' } } },
+      { users: { user_profiles: { is_featured: 'desc' } } },
       { created_at: 'desc' }
     ],
     take: 12
