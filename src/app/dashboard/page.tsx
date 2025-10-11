@@ -169,14 +169,14 @@ export default async function DashboardPage() {
       user_id: connection.user_id,
       connected_user_id: connection.connected_user_id,
       user: {
-        id: connection.user.id,
-        display_name: connection.user.display_name,
-        ...(connection.user.avatar_url && { avatar_url: connection.user.avatar_url }),
+        id: connection.users_user_connections_user_idTousers.id,
+        display_name: connection.users_user_connections_user_idTousers.display_name,
+        ...(connection.users_user_connections_user_idTousers.avatar_url && { avatar_url: connection.users_user_connections_user_idTousers.avatar_url }),
       },
       connectedUser: {
-        id: connection.connectedUser.id,
-        display_name: connection.connectedUser.display_name,
-        ...(connection.connectedUser.avatar_url && { avatar_url: connection.connectedUser.avatar_url }),
+        id: connection.users_user_connections_connected_user_idTousers.id,
+        display_name: connection.users_user_connections_connected_user_idTousers.display_name,
+        ...(connection.users_user_connections_connected_user_idTousers.avatar_url && { avatar_url: connection.users_user_connections_connected_user_idTousers.avatar_url }),
       },
     })),
   };
