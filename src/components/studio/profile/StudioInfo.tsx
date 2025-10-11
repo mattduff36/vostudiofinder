@@ -7,7 +7,7 @@ interface StudioInfoProps {
     id: string;
     name: string;
     description: string;
-    studioTypes?: Array<{ studio_type: string }>;
+    studio_studio_types?: Array<{ studio_type: string }>;
     studio_services: Array<{ service: string }>;
     created_at: Date;
   };
