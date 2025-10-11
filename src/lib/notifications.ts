@@ -90,7 +90,7 @@ export class NotificationService {
   static async sendEmailNotification(notification: NotificationData): Promise<void> {
     try {
       // Get user preferences (would be from database)
-      const preferences = await this.getUserPreferences(notification.userId);
+      const preferences = await this.getUserPreferences(notification.user_id);
       
       if (!preferences.emailNotifications) {
         return;
@@ -103,7 +103,7 @@ export class NotificationService {
 
       // Send email via email service
       // This would integrate with the actual email service
-      console.log(`Email notification sent for ${notification.type} to user ${notification.userId}`);
+      console.log(`Email notification sent for ${notification.type} to user ${notification.user_id}`);
     } catch (error) {
       console.error('Failed to send email notification:', error);
     }
