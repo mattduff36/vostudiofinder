@@ -82,7 +82,7 @@ export async function logSessionActivity(
     // In a production app, you might want to store session logs
     // For now, we'll just log to console
     console.log('Session Activity:', {
-      userId,
+      user_id,
       activity,
       metadata,
       timestamp: new Date().toISOString(),
