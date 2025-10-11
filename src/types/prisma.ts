@@ -85,6 +85,14 @@ export type UserProfile = {
   showEmail: boolean;
   showPhone: boolean;
   showAddress: boolean;
+  showRates?: boolean;
+  show_rates?: boolean;
+  rateTier1?: string | null;
+  rate_tier_1?: string | null;
+  rateTier2?: string | null;
+  rate_tier_2?: string | null;
+  rateTier3?: string | null;
+  rate_tier_3?: string | null;
   is_featured?: boolean;
   is_spotlight?: boolean;
   isCrbChecked?: boolean;
