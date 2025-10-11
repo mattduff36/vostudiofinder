@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Studio types filter - enhanced to handle multiple types and NLP-detected types
-    if (validatedParams.studioTypes && validatedParams.studioTypes.length > 0) {
+    if (validatedParams.studio_studio_types && validatedParams.studio_studio_types.length > 0) {
       // Map common NLP terms to database enum values
       const studioTypeMapping: { [key: string]: string } = {
         'podcast': 'PODCAST',
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
         'sound': 'RECORDING'
       };
 
-      const mappedTypes = validatedParams.studioTypes
+      const mappedTypes = validatedParams.studio_studio_types
         .map(type => studioTypeMapping[type.toLowerCase()] || type.toUpperCase())
         .filter(type => type); // Remove any undefined values
 
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Services filter with string-to-enum mapping
-    if (validatedParams.services && validatedParams.services.length > 0) {
+    if (validatedParams.studio_services && validatedParams.studio_services.length > 0) {
       // Map common service terms to database enum values
       const serviceMapping: { [key: string]: string } = {
         'isdn': 'ISDN',
@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
         'live streaming': 'LIVE_STREAMING'
       };
 
-      const mappedServices = validatedParams.services
+      const mappedServices = validatedParams.studio_services
         .map(service => serviceMapping[service.toLowerCase()] || service.toUpperCase())
         .filter(service => service); // Remove any undefined values
 
@@ -265,7 +265,7 @@ export async function GET(request: NextRequest) {
             take: 1,
             orderBy: { sort_order: 'asc' },
             select: {
-              imageUrl: true,
+              image_url: true,
               alt_text: true,
             },
           },
@@ -350,7 +350,7 @@ export async function GET(request: NextRequest) {
               take: 1,
               orderBy: { sort_order: 'asc' },
               select: {
-                imageUrl: true,
+                image_url: true,
                 alt_text: true,
               },
             },
@@ -382,7 +382,7 @@ export async function GET(request: NextRequest) {
     // For location-based searches, only show studios that match the search criteria
     // For general searches, show all active studios
     const hasLocationSearch = validatedParams.location && validatedParams.radius;
-    const hasOtherFilters = validatedParams.query || validatedParams.studioTypes?.length || validatedParams.services?.length || validatedParams.equipment?.length;
+    const hasOtherFilters = validatedParams.query || validatedParams.studio_studio_types?.length || validatedParams.studio_services?.length || validatedParams.equipment?.length;
     
     let mapMarkers;
     if (hasLocationSearch) {
@@ -494,8 +494,8 @@ export async function GET(request: NextRequest) {
       filters: {
         query: validatedParams.query,
         location: validatedParams.location,
-        studio_studio_types: validatedParams.studioTypes,
-        studio_services: validatedParams.services,
+        studio_studio_types: validatedParams.studio_studio_types,
+        studio_services: validatedParams.studio_services,
       },
       searchCoordinates: searchCoordinates,
       searchRadius: validatedParams.radius,
