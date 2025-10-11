@@ -302,7 +302,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
             >
               <input
                 type="checkbox"
-                checked={filters.services.includes(service.value)}
+                checked={filters.studio_services.includes(service.value)}
                 onChange={() => handleServiceToggle(service.value)}
                 className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
