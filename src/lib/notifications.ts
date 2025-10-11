@@ -38,7 +38,7 @@ export class NotificationService {
    * Create a new notification
    */
   static async createNotification(
-    user_id: string,
+    _user_id: string,
     type: NotificationType,
     title: string,
     message: string,
@@ -47,7 +47,7 @@ export class NotificationService {
   ): Promise<NotificationData> {
     const notification: NotificationData = {
       id: crypto.randomUUID(),
-      userId,
+      userId: _user_id,
       type,
       title,
       message,
