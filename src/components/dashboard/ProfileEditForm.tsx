@@ -248,7 +248,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
       {/* Content */}
       <div className="px-6 py-6 min-h-[400px] flex justify-center">
-        <div className="w-full max-w-3xl">
+        <div className="w-full max-w-5xl">
         {activeSection === 'basic' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
