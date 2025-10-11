@@ -98,6 +98,10 @@ export type UserProfile = {
   isCrbChecked?: boolean;
   verificationLevel?: string | null;
   verification_level?: string | null;
+  homeStudioDescription?: string | null;
+  home_studio_description?: string | null;
+  equipmentList?: string | null;
+  equipment_list?: string | null;
   facebookUrl?: string | null;
   facebook_url?: string | null;
   twitterUrl?: string | null;
