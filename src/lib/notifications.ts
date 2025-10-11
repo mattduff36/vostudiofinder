@@ -235,7 +235,7 @@ export class NotificationService {
       'REVIEW_RECEIVED',
       'New Review Received',
       `${reviewerName} left a ${rating}-star review for your studio`,
-      { studioId, rating },
+      { studio_id, rating },
       `/${studioOwnerUsername}#reviews`
     );
   }
