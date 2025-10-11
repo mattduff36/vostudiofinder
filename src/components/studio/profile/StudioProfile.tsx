@@ -223,8 +223,8 @@ export function StudioProfile({ studio }: StudioProfileProps) {
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
               {/* Image Gallery */}
-              {studio.images.length > 0 && (
-                <StudioGallery images={studio.images} />
+              {studio.studio_images.length > 0 && (
+                <StudioGallery images={studio.studio_images} />
               )}
 
               {/* Studio Information */}

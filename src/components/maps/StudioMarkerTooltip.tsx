@@ -49,10 +49,10 @@ export function StudioMarkerTooltip({
         {/* Studio Image/Logo - Left */}
         <div className="flex-shrink-0">
           <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden">
-            {studio.images?.[0]?.imageUrl ? (
+            {studio.studio_images?.[0]?.imageUrl ? (
               <Image
-                src={studio.images[0].imageUrl}
-                alt={studio.images[0].alt_text || studio.name}
+                src={studio.studio_images[0].imageUrl}
+                alt={studio.studio_images[0].alt_text || studio.name}
                 width={48}
                 height={48}
                 className="object-cover w-full h-full"

@@ -172,8 +172,8 @@ export function PremiumFeatures({
           <div>
             <h3 className="text-lg font-semibold text-gray-900">{studio.name}</h3>
             <p className="text-sm text-gray-600">
-              {studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0]
-                ? studio.studioTypes[0].studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
+              {studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0]
+                ? studio.studio_studio_types[0].studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
                 : 'Studio'
               }
             </p>
