@@ -393,7 +393,7 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
             <div className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Connections</h2>
               <div className="flex flex-wrap gap-3">
-                {studio.services.map((service, index) => (
+                {studio.studio_services.map((service, index) => (
                   <span
                     key={index}
                     className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium"
