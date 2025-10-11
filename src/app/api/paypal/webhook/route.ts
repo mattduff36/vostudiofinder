@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
           where: { paypal_subscription_id: subscriptionId },
           data: { 
             status: 'ACTIVE',
-            currentPeriodStart: new Date(),
-            currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+            current_period_start: new Date(),
+            current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
           },
         });
 
