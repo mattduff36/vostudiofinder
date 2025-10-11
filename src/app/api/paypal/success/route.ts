@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     // Create active subscription and update studio
     await db.$transaction(async (tx) => {
       // Create subscription record
-      await tx.subscription.create({
+      await tx.subscriptions.create({
         data: {
           user_id: pendingSubscription.userId,
           paypal_subscription_id: subscriptionId,
