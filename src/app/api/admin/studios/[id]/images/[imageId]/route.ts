@@ -13,7 +13,7 @@ cloudinary.config({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { studioId: string; imageId: string } }
+  { params }: { params: { id: string; imageId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -27,7 +27,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
     }
 
-    const { studioId, imageId } = await params;
+    const { id: studioId, imageId } = await params;
     const body = await request.json();
     const { alt_text } = body;
 
@@ -57,7 +57,7 @@ export async function PUT(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { studioId: string; imageId: string } }
+  { params }: { params: { id: string; imageId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -74,7 +74,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
     }
 
-    const { studioId, imageId } = await params;
+    const { id: studioId, imageId } = await params;
 
     const existingImage = await db.studio_images.findUnique({
       where: { id: imageId },
