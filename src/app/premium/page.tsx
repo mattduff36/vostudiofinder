@@ -115,7 +115,7 @@ async function getPremiumData() {
   ] = await Promise.all([
     prisma.users.count({
       where: {
-        user_profiles: { isFeatured: true }
+        user_profiles: { is_featured: true }
       }
     }),
     prisma.users.count({
