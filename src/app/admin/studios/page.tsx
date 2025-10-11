@@ -9,7 +9,7 @@ interface Studio {
   name: string;
   description?: string;
   studio_type: string;
-  studioTypes?: Array<{ studio_type: string }>;
+  studio_studio_types?: Array<{ studio_type: string }>;
   status: string;
   is_verified: boolean;
   is_premium: boolean;
