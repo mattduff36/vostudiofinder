@@ -35,18 +35,18 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
     defaultValues: {
       name: initialData?.name || '',
       description: initialData?.description || '',
-      studio_studio_types: initialData?.studioTypes || [studio_type.RECORDING],
+      studio_studio_types: initialData?.studio_studio_types || [studio_type.RECORDING],
       address: initialData?.address || '',
       website_url: initialData?.website_url || '',
       phone: initialData?.phone || '',
-      studio_services: initialData?.services || [],
-      studio_images: initialData?.images || [],
+      studio_services: initialData?.studio_services || [],
+      studio_images: initialData?.studio_images || [],
     },
   });
 
   const { fields: imageFields, append: appendImage, remove: removeImage } = useFieldArray({
     control,
-    name: 'images',
+    name: 'studio_images',
   });
 
   const handleImageUpload = async (file: File) => {
