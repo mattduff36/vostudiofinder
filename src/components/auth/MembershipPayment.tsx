@@ -38,20 +38,23 @@ export function MembershipPayment() {
         }),
       });
 
-      const { sessionId, error: apiError } = await response.json();
+    const { sessionId, url, error: apiError } = await response.json();
 
-      if (apiError) {
-        throw new Error(apiError);
-      }
+    if (apiError) {
+      throw new Error(apiError);
+    }
 
+    // Stripe.js v8 uses direct URL redirect instead of redirectToCheckout
+    if (url) {
+      window.location.href = url;
+    } else if (sessionId) {
+      // Fallback: construct the URL manually if only sessionId is provided
       const stripe = await stripePromise;
-      const { error: stripeError } = await stripe!.redirectToCheckout({
-        sessionId,
-      });
-
-      if (stripeError) {
-        throw new Error(stripeError.message);
+      if (stripe) {
+        // This is no longer supported in v8, but keeping as fallback
+        window.location.href = `https://checkout.stripe.com/pay/${sessionId}`;
       }
+    }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Payment failed');
     } finally {
