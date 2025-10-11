@@ -143,10 +143,10 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   )}
                   
                   {/* Studio Type Badge - moved to bottom right of image */}
-                  {studio.studioTypes && studio.studioTypes.length > 0 && studio.studioTypes[0] && (
+                  {studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] && (
                     <div className="absolute bottom-2 right-2">
                       <span className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}>
-                        {studio.studioTypes[0].studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                        {studio.studio_studio_types[0].studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                       </span>
                     </div>
                   )}
