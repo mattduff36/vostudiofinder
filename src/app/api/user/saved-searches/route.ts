@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { z } from 'zod';
+import { randomBytes } from 'crypto';
 
 const saveSearchSchema = z.object({
   name: z.string().min(1).max(100),
@@ -51,9 +52,11 @@ export async function POST(request: NextRequest) {
 
     const savedSearch = await db.saved_searches.create({
       data: {
+        id: randomBytes(12).toString('base64url'), // Generate unique ID
         user_id: session.user.id,
         name,
         filters: JSON.stringify(filters),
+        created_at: new Date(), // Add required timestamp
       },
     });
 
