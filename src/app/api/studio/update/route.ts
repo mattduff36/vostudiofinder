@@ -57,27 +57,27 @@ export async function PUT(request: NextRequest) {
     if (updateData.longitude !== undefined) updateFields.longitude = updateData.longitude;
 
     // Handle studio types update if provided
-    if (updateData.studioTypes !== undefined) {
-      updateFields.studioTypes = {
+    if (updateData.studio_studio_types !== undefined) {
+      updateFields.studio_studio_types = {
         deleteMany: {}, // Remove existing studio types
-        create: updateData.studioTypes.map(studio_type => ({ studio_type })),
+        create: updateData.studio_studio_types.map(studio_type => ({ studio_type })),
       };
     }
 
     // Handle services update if provided
-    if (updateData.services !== undefined) {
-      updateFields.services = {
+    if (updateData.studio_services !== undefined) {
+      updateFields.studio_services = {
         deleteMany: {}, // Remove existing services
-        create: updateData.services.map(service => ({ service })),
+        create: updateData.studio_services.map(service => ({ service })),
       };
     }
 
     // Handle images update if provided
-    if (updateData.images !== undefined) {
-      updateFields.images = {
+    if (updateData.studio_images !== undefined) {
+      updateFields.studio_images = {
         deleteMany: {}, // Remove existing images
-        create: updateData.images.map((image, index) => ({
-          imageUrl: image.url,
+        create: updateData.studio_images.map((image, index) => ({
+          image_url: image.url,
           alt_text: image.alt_text || '',
           sort_order: index,
         })),
