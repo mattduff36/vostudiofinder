@@ -315,7 +315,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 </div>
                 <div className="divide-y divide-gray-200">
                   {messages.slice(0, 5).map((message) => {
-                    const isReceived = message.receiverId === user.id;
+                    const isReceived = message.receiver_id === user.id;
                     const otherUser = isReceived ? message.sender : message.receiver;
                     
                     return (
