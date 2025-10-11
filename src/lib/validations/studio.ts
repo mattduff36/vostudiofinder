@@ -52,7 +52,7 @@ export const updateStudioSchema = z.object({
     .max(2000, 'Description must be less than 2000 characters')
     .optional(),
   studio_studio_types: z
-    .array(z.nativeEnum(studio_type))
+    .array(z.nativeEnum(StudioType))
     .min(1, 'Please select at least one studio type')
     .optional(),
   address: z
