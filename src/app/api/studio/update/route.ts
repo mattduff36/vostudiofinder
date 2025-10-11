@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest) {
         studio_images: {
           orderBy: { sort_order: 'asc' },
         },
-        owner: {
+        users: {
           select: {
             username: true,
           },
