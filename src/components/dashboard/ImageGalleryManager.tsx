@@ -12,7 +12,12 @@ interface StudioImage {
   sort_order: number;
 }
 
-export function ImageGalleryManager() {
+interface ImageGalleryManagerProps {
+  studioId?: string; // Optional: for admin mode
+  isAdminMode?: boolean; // Optional: to use admin API endpoints
+}
+
+export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGalleryManagerProps = {}) {
   const [images, setImages] = useState<StudioImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -24,16 +29,23 @@ export function ImageGalleryManager() {
 
   useEffect(() => {
     fetchImages();
-  }, []);
+  }, [studioId, isAdminMode]);
 
   const fetchImages = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/user/profile');
+      const endpoint = isAdminMode && studioId 
+        ? `/api/admin/studios/${studioId}`
+        : '/api/user/profile';
+        
+      const response = await fetch(endpoint);
       if (!response.ok) throw new Error('Failed to fetch images');
       
       const data = await response.json();
-      setImages(data.data.studio?.images || []);
+      const imageData = isAdminMode 
+        ? data.profile?.images || []
+        : data.data.studio?.images || [];
+      setImages(imageData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load images');
     } finally {
@@ -72,7 +84,11 @@ export function ImageGalleryManager() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/user/profile/images', {
+      const endpoint = isAdminMode && studioId
+        ? `/api/admin/studios/${studioId}/images`
+        : '/api/user/profile/images';
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         body: formData,
       });
@@ -124,14 +140,15 @@ export function ImageGalleryManager() {
     setImages(updatedImages);
 
     try {
-      const response = await fetch('/api/user/profile/images/reorder', {
+      const endpoint = isAdminMode && studioId
+        ? `/api/admin/studios/${studioId}/images/reorder`
+        : '/api/user/profile/images/reorder';
+
+      const response = await fetch(endpoint, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          images: updatedImages.map(img => ({
-            id: img.id,
-            sort_order: img.sort_order,
-          })),
+          imageIds: updatedImages.map(img => img.id),
         }),
       });
 
@@ -164,7 +181,11 @@ export function ImageGalleryManager() {
 
   const handleSaveAltText = async (imageId: string) => {
     try {
-      const response = await fetch(`/api/user/profile/images/${imageId}`, {
+      const endpoint = isAdminMode && studioId
+        ? `/api/admin/studios/${studioId}/images/${imageId}`
+        : `/api/user/profile/images/${imageId}`;
+
+      const response = await fetch(endpoint, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ alt_text: editAltText }),
@@ -186,7 +207,11 @@ export function ImageGalleryManager() {
     if (!confirm('Are you sure you want to delete this image?')) return;
 
     try {
-      const response = await fetch(`/api/user/profile/images/${imageId}`, {
+      const endpoint = isAdminMode && studioId
+        ? `/api/admin/studios/${studioId}/images/${imageId}`
+        : `/api/user/profile/images/${imageId}`;
+
+      const response = await fetch(endpoint, {
         method: 'DELETE',
       });
 

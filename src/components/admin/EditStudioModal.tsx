@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager';
 
 interface Studio {
   id: string;
@@ -677,6 +678,11 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     </div>
   );
 
+  const renderImagesTab = () => {
+    if (!studio) return null;
+    return <ImageGalleryManager studioId={studio.id} isAdminMode={true} />;
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -771,8 +777,9 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 {activeTab === 'rates' && renderRatesTab()}
                 {activeTab === 'social' && renderSocialMediaTab()}
                 {activeTab === 'connections' && renderConnectionsTab()}
+                {activeTab === 'images' && renderImagesTab()}
                 {activeTab === 'advanced' && renderAdvancedTab()}
-                {activeTab !== 'basic' && activeTab !== 'contact' && activeTab !== 'location' && activeTab !== 'rates' && activeTab !== 'social' && activeTab !== 'connections' && activeTab !== 'advanced' && (
+                {activeTab !== 'basic' && activeTab !== 'contact' && activeTab !== 'location' && activeTab !== 'rates' && activeTab !== 'social' && activeTab !== 'connections' && activeTab !== 'images' && activeTab !== 'advanced' && (
                   <div className="text-center py-8 text-gray-500">
                     This tab is under development
                   </div>
