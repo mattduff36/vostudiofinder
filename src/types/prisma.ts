@@ -102,6 +102,8 @@ export type UserProfile = {
   home_studio_description?: string | null;
   equipmentList?: string | null;
   equipment_list?: string | null;
+  servicesOffered?: string | null;
+  services_offered?: string | null;
   facebookUrl?: string | null;
   facebook_url?: string | null;
   twitterUrl?: string | null;
