@@ -245,7 +245,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             ...(studio.phone ? { phone: studio.phone } : {}),
             ...(studio.latitude ? { latitude: Number(studio.latitude) } : {}),
             ...(studio.longitude ? { longitude: Number(studio.longitude) } : {}),
-            images: studio.studio_images.map(img => ({
+            studio_images: studio.studio_images.map(img => ({
               id: img.id,
               imageUrl: img.image_url,
               sortOrder: img.sort_order,
