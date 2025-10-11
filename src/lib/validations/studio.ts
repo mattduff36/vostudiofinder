@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { studio_type, ServiceType } from '@prisma/client';
+import { StudioType, ServiceType } from '@prisma/client';
 
 export const createStudioSchema = z.object({
   name: z
@@ -11,7 +11,7 @@ export const createStudioSchema = z.object({
     .min(10, 'Description must be at least 10 characters long')
     .max(2000, 'Description must be less than 2000 characters'),
   studio_studio_types: z
-    .array(z.nativeEnum(studio_type))
+    .array(z.nativeEnum(StudioType))
     .min(1, 'Please select at least one studio type'),
   address: z
     .string()
