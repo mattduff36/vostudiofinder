@@ -12,10 +12,10 @@ interface RightmoveStyleGalleryProps {
   }>;
 }
 
-export function RightmoveStyleGallery({ images }: RightmoveStyleGalleryProps) {
+export function RightmoveStyleGallery({ studio_images }: RightmoveStyleGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
-  if (images.length === 0) return null;
+  if (studio_images.length === 0) return null;
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -27,13 +27,13 @@ export function RightmoveStyleGallery({ images }: RightmoveStyleGalleryProps) {
 
   const nextImage = () => {
     if (selectedImage !== null) {
-      setSelectedImage((selectedImage + 1) % images.length);
+      setSelectedImage((selectedImage + 1) % studio_images.length);
     }
   };
 
   const prevImage = () => {
     if (selectedImage !== null) {
-      setSelectedImage(selectedImage === 0 ? images.length - 1 : selectedImage - 1);
+      setSelectedImage(selectedImage === 0 ? studio_images.length - 1 : selectedImage - 1);
     }
   };
 
@@ -44,44 +44,44 @@ export function RightmoveStyleGallery({ images }: RightmoveStyleGalleryProps) {
         {/* Main large image - takes up 2/3 width */}
         <div className="col-span-2 relative group cursor-pointer" onClick={() => openLightbox(0)}>
           <img
-            src={images[0]?.imageUrl}
-            alt={images[0]?.alt_text || 'Studio main image'}
+            src={studio_images[0]?.imageUrl}
+            alt={studio_images[0]?.alt_text || 'Studio main image'}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           
           {/* Image counter overlay - positioned like Rightmove */}
           <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-sm font-medium flex items-center">
             <Camera className="w-4 h-4 mr-1" />
-            1/{images.length}
+            1/{studio_images.length}
           </div>
         </div>
 
         {/* Right column - two smaller images stacked */}
         <div className="col-span-1 flex flex-col">
           {/* Top right image */}
-          {images[1] && (
+          {studio_images[1] && (
             <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(1)}>
               <img
-                src={images[1].imageUrl}
-                alt={images[1].alt_text || 'Studio image'}
+                src={studio_images[1].imageUrl}
+                alt={studio_images[1].alt_text || 'Studio image'}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             </div>
           )}
 
           {/* Bottom right image */}
-          {images[2] ? (
+          {studio_images[2] ? (
             <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(2)}>
               <img
-                src={images[2].imageUrl}
-                alt={images[2].alt_text || 'Studio image'}
+                src={studio_images[2].imageUrl}
+                alt={studio_images[2].alt_text || 'Studio image'}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
               
               {/* Show more images overlay if there are more than 3 */}
-              {images.length > 3 && (
+              {studio_images.length > 3 && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-lg">
-                  +{images.length - 3} more
+                  +{studio_images.length - 3} more
                 </div>
               )}
             </div>
@@ -107,7 +107,7 @@ export function RightmoveStyleGallery({ images }: RightmoveStyleGalleryProps) {
             </button>
 
             {/* Navigation */}
-            {images.length > 1 && (
+            {studio_images.length > 1 && (
               <>
                 <button
                   onClick={prevImage}
@@ -126,14 +126,14 @@ export function RightmoveStyleGallery({ images }: RightmoveStyleGalleryProps) {
 
             {/* Image */}
             <img
-              src={images[selectedImage]?.imageUrl}
-              alt={images[selectedImage]?.alt_text || 'Studio image'}
+              src={studio_images[selectedImage]?.imageUrl}
+              alt={studio_images[selectedImage]?.alt_text || 'Studio image'}
               className="max-w-full max-h-full object-contain"
             />
 
             {/* Image Counter */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm font-medium">
-              {selectedImage + 1} of {images.length}
+              {selectedImage + 1} of {studio_images.length}
             </div>
           </div>
         </div>
