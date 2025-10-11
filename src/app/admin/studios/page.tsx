@@ -359,8 +359,8 @@ export default function AdminStudiosPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm font-medium text-gray-900">
-                          {studio.studioTypes && studio.studioTypes.length > 0 
-                            ? studio.studioTypes
+                          {studio.studio_studio_types && studio.studio_studio_types.length > 0 
+                            ? studio.studio_studio_types
                                 .map(st => {
                                   const type = st.studio_type;
                                   if (type === 'VO_COACH') return 'C';

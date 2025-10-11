@@ -677,7 +677,7 @@ export function StudiosPage() {
                             id: studio.id,
                             name: studio.name,
                             owner: { username: studio.owner.username },
-                            studio_images: ('images' in studio && studio.images) ? studio.studio_images: [],
+                            studio_images: ('images' in studio && studio.studio_images) ? studio.studio_images: [],
                           }
                         } : {}),
                       }))}
@@ -719,7 +719,7 @@ export function StudiosPage() {
                               id: studio.id,
                               name: studio.name,
                               owner: { username: studio.owner.username },
-                              studio_images: ('images' in studio && studio.images) ? studio.studio_images: [],
+                              studio_images: ('images' in studio && studio.studio_images) ? studio.studio_images: [],
                             }
                           } : {}),
                         }))}

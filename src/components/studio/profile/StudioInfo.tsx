@@ -38,9 +38,9 @@ export function StudioInfo({ studio }: StudioInfoProps) {
           Services & Equipment
         </h3>
         
-        {studio.services.length > 0 ? (
+        {studio.studio_services.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {studio.services.map((service, index) => {
+            {studio.studio_services.map((service, index) => {
               const IconComponent = serviceIcons[service.service] || Mic;
               return (
                 <div
@@ -65,11 +65,11 @@ export function StudioInfo({ studio }: StudioInfoProps) {
         <h3 className="text-lg font-medium text-text-primary mb-4">Studio Details</h3>
         
         <div className="space-y-4">
-          {studio.studioTypes && studio.studioTypes.length > 0 && (
+          {studio.studio_studio_types && studio.studio_studio_types.length > 0 && (
             <div className="flex items-start text-sm">
               <span className="font-medium text-text-primary w-24">Types:</span>
               <div className="flex flex-wrap gap-1">
-                {studio.studioTypes.map((type, index) => (
+                {studio.studio_studio_types.map((type, index) => (
                   <span 
                     key={index}
                     className="inline-block px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700"

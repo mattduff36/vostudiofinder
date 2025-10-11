@@ -511,10 +511,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 
                 <div className="space-y-2">
                   {/* Studio Types */}
-                  {studio.studioTypes && studio.studioTypes.length > 0 && (
+                  {studio.studio_studio_types && studio.studio_studio_types.length > 0 && (
                     <div className="pb-2 border-b border-gray-200">
                       <div className="flex flex-wrap gap-2">
-                        {studio.studioTypes.map((type, index) => (
+                        {studio.studio_studio_types.map((type, index) => (
                           <span 
                             key={index}
                             className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800"
