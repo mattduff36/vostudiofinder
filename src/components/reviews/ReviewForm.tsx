@@ -22,7 +22,7 @@ interface ReviewFormProps {
   onCancel: () => void;
 }
 
-export function ReviewForm({ studioId, studioName, onSubmit, onCancel }: ReviewFormProps) {
+export function ReviewForm({ studio_id, studioName, onSubmit, onCancel }: ReviewFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
@@ -59,7 +59,7 @@ export function ReviewForm({ studioId, studioName, onSubmit, onCancel }: ReviewF
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          studioId,
+          studio_id,
           ...data,
         }),
       });
