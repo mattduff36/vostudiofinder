@@ -12,14 +12,14 @@ interface FixedDynamicGalleryProps {
   }>;
 }
 
-export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
+export function FixedDynamicGallery({ studio_images }: FixedDynamicGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
-  if (images.length === 0) return null;
+  if (studio_studio_images.length === 0) return null;
 
   // Simple logic: if we have 5+ images total (1 main + 4 in grid), use 2x2, otherwise use 2x1
-  const use2x2Layout = images.length >= 5;
-  console.log(`Selected ${use2x2Layout ? '2x2' : '2x1'} layout - ${images.length} images available`);
+  const use2x2Layout = studio_studio_images.length >= 5;
+  console.log(`Selected ${use2x2Layout ? '2x2' : '2x1'} layout - ${studio_studio_images.length} images available`);
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -31,13 +31,13 @@ export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
 
   const nextImage = () => {
     if (selectedImage !== null) {
-      setSelectedImage((selectedImage + 1) % images.length);
+      setSelectedImage((selectedImage + 1) % studio_images.length);
     }
   };
 
   const prevImage = () => {
     if (selectedImage !== null) {
-      setSelectedImage(selectedImage === 0 ? images.length - 1 : selectedImage - 1);
+      setSelectedImage(selectedImage === 0 ? studio_images.length - 1 : selectedImage - 1);
     }
   };
 
@@ -48,15 +48,15 @@ export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
         {/* Main large image - takes up 2/3 width */}
         <div className="col-span-2 relative group cursor-pointer" onClick={() => openLightbox(0)}>
           <img
-            src={images[0]?.imageUrl}
-            alt={images[0]?.alt_text || 'Studio main image'}
+            src={studio_images[0]?.imageUrl}
+            alt={studio_images[0]?.alt_text || 'Studio main image'}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           
           {/* Image counter overlay - positioned like Rightmove */}
           <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-sm font-medium flex items-center">
             <Camera className="w-4 h-4 mr-1" />
-            1/{images.length}
+            1/{studio_images.length}
           </div>
         </div>
 
@@ -67,20 +67,20 @@ export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
             <>
               {/* Top row - 2 images side by side */}
               <div className="flex-1 flex">
-                {images[1] && (
+                {studio_images[1] && (
                   <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(1)}>
                     <img
-                      src={images[1].imageUrl}
-                      alt={images[1].alt_text || 'Studio image'}
+                      src={studio_images[1].imageUrl}
+                      alt={studio_images[1].alt_text || 'Studio image'}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
                 )}
-                {images[2] && (
+                {studio_images[2] && (
                   <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(2)}>
                     <img
-                      src={images[2].imageUrl}
-                      alt={images[2].alt_text || 'Studio image'}
+                      src={studio_images[2].imageUrl}
+                      alt={studio_images[2].alt_text || 'Studio image'}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
@@ -89,27 +89,27 @@ export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
               
               {/* Bottom row - 2 images side by side */}
               <div className="flex-1 flex">
-                {images[3] && (
+                {studio_images[3] && (
                   <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(3)}>
                     <img
-                      src={images[3].imageUrl}
-                      alt={images[3].alt_text || 'Studio image'}
+                      src={studio_images[3].imageUrl}
+                      alt={studio_images[3].alt_text || 'Studio image'}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
                 )}
-                {images[4] ? (
+                {studio_images[4] ? (
                   <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(4)}>
                     <img
-                      src={images[4].imageUrl}
-                      alt={images[4].alt_text || 'Studio image'}
+                      src={studio_images[4].imageUrl}
+                      alt={studio_images[4].alt_text || 'Studio image'}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     
                     {/* Show more images overlay if there are more than 5 */}
-                    {images.length > 5 && (
+                    {studio_images.length > 5 && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-lg">
-                        +{images.length - 5} more
+                        +{studio_images.length - 5} more
                       </div>
                     )}
                   </div>
@@ -125,29 +125,29 @@ export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
             // 2x1 Layout - 2 images stacked vertically (original Rightmove style)
             <>
               {/* Top right image */}
-              {images[1] && (
+              {studio_images[1] && (
                 <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(1)}>
                   <img
-                    src={images[1].imageUrl}
-                    alt={images[1].alt_text || 'Studio image'}
+                    src={studio_images[1].imageUrl}
+                    alt={studio_images[1].alt_text || 'Studio image'}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
               )}
 
               {/* Bottom right image */}
-              {images[2] ? (
+              {studio_images[2] ? (
                 <div className="flex-1 relative group cursor-pointer" onClick={() => openLightbox(2)}>
                   <img
-                    src={images[2].imageUrl}
-                    alt={images[2].alt_text || 'Studio image'}
+                    src={studio_images[2].imageUrl}
+                    alt={studio_images[2].alt_text || 'Studio image'}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   
                   {/* Show more images overlay if there are more than 3 */}
-                  {images.length > 3 && (
+                  {studio_images.length > 3 && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-lg">
-                      +{images.length - 3} more
+                      +{studio_images.length - 3} more
                     </div>
                   )}
                 </div>
@@ -188,14 +188,14 @@ export function FixedDynamicGallery({ images }: FixedDynamicGalleryProps) {
 
           <div className="max-w-4xl max-h-full p-4">
             <img
-              src={images[selectedImage]?.imageUrl}
-              alt={images[selectedImage]?.alt_text || 'Studio image'}
+              src={studio_images[selectedImage]?.imageUrl}
+              alt={studio_images[selectedImage]?.alt_text || 'Studio image'}
               className="max-w-full max-h-full object-contain"
             />
           </div>
           
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-lg">
-            {selectedImage + 1} / {images.length}
+            {selectedImage + 1} / {studio_images.length}
           </div>
         </div>
       )}
