@@ -70,10 +70,10 @@ export async function POST(request: NextRequest) {
     await db.pending_subscriptions.create({
       data: {
         user_id: session.user.id,
-        studioId,
+        studio_id: studioId,
         paypal_subscription_id: subscription.id,
         status: 'PENDING_APPROVAL',
-        paymentMethod: 'PAYPAL',
+        payment_method: 'PAYPAL',
       },
     });
 
