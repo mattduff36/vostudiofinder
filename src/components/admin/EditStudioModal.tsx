@@ -644,14 +644,14 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   const renderConnectionsTab = () => {
     const connectionTypes = [
-      { id: 'connection1', label: 'Source Connect', icon: '🔗' },
-      { id: 'connection2', label: 'Source Connect Now', icon: '🔗' },
-      { id: 'connection3', label: 'Phone Patch', icon: '📞' },
-      { id: 'connection4', label: 'Session Link Pro', icon: '🎤' },
-      { id: 'connection5', label: 'Zoom or Teams', icon: '💻' },
-      { id: 'connection6', label: 'Cleanfeed', icon: '🎵' },
-      { id: 'connection7', label: 'Riverside', icon: '🎬' },
-      { id: 'connection8', label: 'Google Hangouts', icon: '📹' },
+      { id: 'connection1', label: 'Source Connect', icon: '🔗', dbField: 'user_profiles.connection1' },
+      { id: 'connection2', label: 'Source Connect Now', icon: '🔗', dbField: 'user_profiles.connection2' },
+      { id: 'connection3', label: 'Phone Patch', icon: '📞', dbField: 'user_profiles.connection3' },
+      { id: 'connection4', label: 'Session Link Pro', icon: '🎤', dbField: 'user_profiles.connection4' },
+      { id: 'connection5', label: 'Zoom or Teams', icon: '💻', dbField: 'user_profiles.connection5' },
+      { id: 'connection6', label: 'Cleanfeed', icon: '🎵', dbField: 'user_profiles.connection6' },
+      { id: 'connection7', label: 'Riverside', icon: '🎬', dbField: 'user_profiles.connection7' },
+      { id: 'connection8', label: 'Google Hangouts', icon: '📹', dbField: 'user_profiles.connection8' },
     ];
 
     return (
@@ -670,7 +670,9 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <span className="text-2xl mr-2">{connection.icon}</span>
-              <span className="text-sm font-medium text-gray-900">{connection.label}</span>
+              <span className="text-sm font-medium text-gray-900">
+                {connection.label} <span className="text-red-600">({connection.dbField})</span>
+              </span>
             </label>
           ))}
         </div>
