@@ -42,14 +42,17 @@ export async function createUser(data: {
   const hashedPassword = await hashPassword(data.password);
   const username = data.username || await generateUniqueUsername(data.email);
 
+  const { randomBytes } = await import('crypto');
   return db.users.create({
     data: {
+      id: randomBytes(12).toString('base64url'),
       email: data.email,
       password: hashedPassword,
       username,
       display_name: data.display_name,
       role: data.role || Role.USER,
       email_verified: false,
+      updated_at: new Date(),
     },
   });
 }
