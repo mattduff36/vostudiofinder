@@ -125,9 +125,14 @@ export type UserProfile = {
 export type StudioImage = {
   id: string;
   studio_id: string;
-  imageUrl: string;
+  imageUrl?: string;
+  image_url?: string;
   caption?: string | null;
-  order: number;
+  alt_text?: string | null;
+  altText?: string | null;
+  order?: number;
+  sort_order?: number;
+  sortOrder?: number;
   created_at: Date;
 };
 
