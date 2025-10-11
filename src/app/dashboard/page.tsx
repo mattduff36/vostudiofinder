@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { requireAuth } from '@/lib/auth-guards';
-import { UserDashboard } from '@/components/dashboard/UserDashboard';
+import { DashboardContent } from '@/components/dashboard/DashboardContent';
 import { db } from '@/lib/db';
 
 
@@ -181,9 +181,5 @@ export default async function DashboardPage() {
     })),
   };
 
-  return <UserDashboard data={dashboardData} />;
+  return <DashboardContent dashboardData={dashboardData} />;
 }
-
-
-
-
