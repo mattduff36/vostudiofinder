@@ -116,7 +116,7 @@ export default async function DashboardPage() {
     reviewsWritten: userReviews.length,
     totalConnections: userConnections.length,
     unreadMessages: userMessages.filter(msg => 
-      msg.receiverId === session.user.id && !msg.isRead
+      msg.receiver_id === session.user.id && !msg.is_read
     ).length,
   };
 
@@ -151,17 +151,17 @@ export default async function DashboardPage() {
     messages: userMessages.map(message => ({
       id: message.id,
       subject: message.subject || '',
-      isRead: message.isRead,
+      isRead: message.is_read,
       created_at: message.created_at,
-      sender_id: message.senderId,
-      receiver_id: message.receiverId,
+      sender_id: message.sender_id,
+      receiver_id: message.receiver_id,
       sender: {
-        display_name: message.sender.display_name,
-        ...(message.sender.avatar_url && { avatar_url: message.sender.avatar_url }),
+        display_name: message.users_messages_sender_idTousers.display_name,
+        ...(message.users_messages_sender_idTousers.avatar_url && { avatar_url: message.users_messages_sender_idTousers.avatar_url }),
       },
       receiver: {
-        display_name: message.receiver.display_name,
-        ...(message.receiver.avatar_url && { avatar_url: message.receiver.avatar_url }),
+        display_name: message.users_messages_receiver_idTousers.display_name,
+        ...(message.users_messages_receiver_idTousers.avatar_url && { avatar_url: message.users_messages_receiver_idTousers.avatar_url }),
       },
     })),
     connections: userConnections.map(connection => ({
