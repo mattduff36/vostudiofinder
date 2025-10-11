@@ -12,10 +12,10 @@ interface StudioGalleryProps {
   }>;
 }
 
-export function StudioGallery({ images }: StudioGalleryProps) {
+export function StudioGallery({ studio_images }: StudioGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
-  if (images.length === 0) return null;
+  if (studio_images.length === 0) return null;
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -27,13 +27,13 @@ export function StudioGallery({ images }: StudioGalleryProps) {
 
   const nextImage = () => {
     if (selectedImage !== null) {
-      setSelectedImage((selectedImage + 1) % images.length);
+      setSelectedImage((selectedImage + 1) % studio_images.length);
     }
   };
 
   const prevImage = () => {
     if (selectedImage !== null) {
-      setSelectedImage(selectedImage === 0 ? images.length - 1 : selectedImage - 1);
+      setSelectedImage(selectedImage === 0 ? studio_images.length - 1 : selectedImage - 1);
     }
   };
 
@@ -49,17 +49,17 @@ export function StudioGallery({ images }: StudioGalleryProps) {
             onClick={() => openLightbox(0)}
           >
             <img
-              src={images[0]?.imageUrl}
-              alt={images[0]?.alt_text || 'Studio image'}
+              src={studio_images[0]?.imageUrl}
+              alt={studio_images[0]?.alt_text || 'Studio image'}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
             />
           </div>
         </div>
 
         {/* Thumbnail Grid */}
-        {images.length > 1 && (
+        {studio_images.length > 1 && (
           <div className="grid grid-cols-4 gap-2">
-            {images.slice(1, 5).map((image, index) => (
+            {studio_images.slice(1, 5).map((image, index) => (
               <div
                 key={image.id}
                 className="aspect-square bg-gray-200 rounded cursor-pointer overflow-hidden"
@@ -74,12 +74,12 @@ export function StudioGallery({ images }: StudioGalleryProps) {
             ))}
             
             {/* Show more indicator */}
-            {images.length > 5 && (
+            {studio_images.length > 5 && (
               <div
                 className="aspect-square bg-black/50 rounded cursor-pointer flex items-center justify-center text-white font-medium"
                 onClick={() => openLightbox(5)}
               >
-                +{images.length - 5}
+                +{studio_images.length - 5}
               </div>
             )}
           </div>
@@ -99,7 +99,7 @@ export function StudioGallery({ images }: StudioGalleryProps) {
             </button>
 
             {/* Navigation */}
-            {images.length > 1 && (
+            {studio_images.length > 1 && (
               <>
                 <button
                   onClick={prevImage}
@@ -118,14 +118,14 @@ export function StudioGallery({ images }: StudioGalleryProps) {
 
             {/* Image */}
             <img
-              src={images[selectedImage]?.imageUrl}
-              alt={images[selectedImage]?.alt_text || 'Studio image'}
+              src={studio_images[selectedImage]?.imageUrl}
+              alt={studio_images[selectedImage]?.alt_text || 'Studio image'}
               className="max-w-full max-h-full object-contain"
             />
 
             {/* Image Counter */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-              {selectedImage + 1} of {images.length}
+              {selectedImage + 1} of {studio_images.length}
             </div>
           </div>
         </div>
