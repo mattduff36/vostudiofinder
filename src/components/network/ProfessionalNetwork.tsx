@@ -63,8 +63,8 @@ export function ProfessionalNetwork({
 
   const ConnectionCard = ({ user, isConnection = false }: { user: NetworkUser; isConnection?: boolean }) => {
     const badges = [];
-    if (user.profile?.isFeatured) badges.push({ label: 'Featured', color: 'bg-yellow-100 text-yellow-800', icon: Star });
-    if (user.profile?.isSpotlight) badges.push({ label: 'Spotlight', color: 'bg-purple-100 text-purple-800', icon: Award });
+    if (user.profile?.is_featured) badges.push({ label: 'Featured', color: 'bg-yellow-100 text-yellow-800', icon: Star });
+    if (user.profile?.is_spotlight) badges.push({ label: 'Spotlight', color: 'bg-purple-100 text-purple-800', icon: Award });
     if (user.profile?.isCrbChecked) badges.push({ label: 'CRB', color: 'bg-green-100 text-green-800', icon: Shield });
     if (user.studios && user.studios.length > 0) badges.push({ label: 'Studio Owner', color: 'bg-blue-100 text-blue-800', icon: Building });
 
