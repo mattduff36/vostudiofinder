@@ -47,7 +47,7 @@ export class NotificationService {
   ): Promise<NotificationData> {
     const notification: NotificationData = {
       id: crypto.randomUUID(),
-      userId: _user_id,
+      user_id: _user_id,
       type,
       title,
       message,
