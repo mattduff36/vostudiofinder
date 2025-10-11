@@ -42,8 +42,8 @@ export type SubscriptionPlan = keyof typeof SUBSCRIPTION_PLANS;
  */
 export async function createCheckoutSession({
   plan,
-  userId,
-  studioId,
+  user_id,
+  studio_id,
   successUrl,
   cancelUrl,
 }: {
@@ -62,15 +62,15 @@ export async function createCheckoutSession({
   // Create or retrieve Stripe customer
   const customer = await stripe.customers.list({
     limit: 1,
-    email: userId, // We'll use user ID as reference for now
+    email: user_id, // We'll use user ID as reference for now
   });
 
   let customerId: string;
   if (customer.data.length === 0) {
     const newCustomer = await stripe.customers.create({
       metadata: {
-        userId,
-        studioId,
+        user_id,
+        studio_id,
       },
     });
     customerId = newCustomer.id;
@@ -102,14 +102,14 @@ export async function createCheckoutSession({
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata: {
-      userId,
-      studioId,
+      user_id,
+      studio_id,
       plan,
     },
     subscription_data: {
       metadata: {
-        userId,
-        studioId,
+        user_id,
+        studio_id,
         plan,
       },
     },
@@ -144,17 +144,17 @@ export async function createBillingPortalSession({
  * Handle successful subscription
  */
 export async function handleSubscriptionSuccess(subscription: Stripe.Subscription) {
-  const { userId, studioId, plan } = subscription.metadata;
+  const { user_id, studio_id, plan } = subscription.metadata;
 
-  if (!userId || !studioId || !plan) {
+  if (!user_id || !studio_id || !plan) {
     throw new Error('Missing subscription metadata');
   }
 
   // Update database with subscription info
   // This would be implemented with your database logic
   console.log('Subscription created:', {
-    userId,
-    studioId,
+    user_id,
+    studio_id,
     plan,
     subscriptionId: subscription.id,
     customerId: subscription.customer,
@@ -173,16 +173,16 @@ export async function handleSubscriptionSuccess(subscription: Stripe.Subscriptio
  * Handle subscription cancellation
  */
 export async function handleSubscriptionCancellation(subscription: Stripe.Subscription) {
-  const { userId, studioId } = subscription.metadata;
+  const { user_id, studio_id } = subscription.metadata;
 
-  if (!userId || !studioId) {
+  if (!user_id || !studio_id) {
     throw new Error('Missing subscription metadata');
   }
 
   // Update database to mark subscription as cancelled
   console.log('Subscription cancelled:', {
-    userId,
-    studioId,
+    user_id,
+    studio_id,
     subscriptionId: subscription.id,
     cancelledAt: new Date(subscription.canceled_at! * 1000),
   });

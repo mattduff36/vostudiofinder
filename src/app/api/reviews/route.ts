@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
+import { randomBytes } from 'crypto';
 
 const createReviewSchema = z.object({
   studio_id: z.string().cuid(),
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
     // Check if studio exists and is active
     const studio = await db.studios.findUnique({
       where: { 
-        id: validatedData.studioId,
+        id: validatedData.studio_id,
         status: 'ACTIVE',
       },
       select: {
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
     // Check if user has already reviewed this studio
     const existingReview = await db.reviews.findFirst({
       where: {
-        studio_id: validatedData.studioId,
+        studio_id: validatedData.studio_id,
         reviewer_id: session.user.id,
       },
     });
@@ -72,22 +73,24 @@ export async function POST(request: NextRequest) {
     // Create the review
     const review = await db.reviews.create({
       data: {
-        studio_id: validatedData.studioId,
+        id: randomBytes(12).toString('base64url'), // Generate unique ID
+        studio_id: validatedData.studio_id,
         reviewer_id: session.user.id,
         owner_id: studio.owner_id,
         rating: validatedData.rating,
         content: validatedData.content,
-        isAnonymous: validatedData.isAnonymous,
+        is_anonymous: validatedData.isAnonymous,
         status: 'PENDING', // Reviews need moderation
+        updated_at: new Date(), // Add required timestamp
       },
       include: {
-        reviewer: {
+        users_reviews_reviewer_idTousers: {
           select: {
             display_name: true,
             avatar_url: true,
           },
         },
-        studio: {
+        studios: {
           select: {
             name: true,
           },
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest) {
           id: review.id,
           rating: review.rating,
           content: review.content,
-          isAnonymous: review.isAnonymous,
+          isAnonymous: review.is_anonymous,
           status: review.status,
           created_at: review.created_at,
         },
@@ -143,24 +146,24 @@ export async function GET(request: NextRequest) {
     const [reviews, totalCount] = await Promise.all([
       db.reviews.findMany({
         where: {
-          studioId,
+          studio_id: studioId,
           status: 'APPROVED',
         },
-        include: {
-          reviewer: {
-            select: {
-              display_name: true,
-              avatar_url: true,
-            },
+      include: {
+        users_reviews_reviewer_idTousers: {
+          select: {
+            display_name: true,
+            avatar_url: true,
           },
         },
+      },
         orderBy: { created_at: 'desc' },
         skip,
         take: limit,
       }),
       db.reviews.count({
         where: {
-          studioId,
+          studio_id: studioId,
           status: 'APPROVED',
         },
       }),

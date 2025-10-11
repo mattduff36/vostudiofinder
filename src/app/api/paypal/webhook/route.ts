@@ -29,15 +29,15 @@ export async function POST(request: NextRequest) {
         // Send confirmation email
         const subscription = await db.subscriptions.findUnique({
           where: { paypal_subscription_id: subscriptionId },
-          include: { user: true },
+          include: { users: true },
         });
 
-        if (subscription?.user?.email) {
+        if (subscription?.users?.email) {
           await sendEmail({
-            to: subscription.user.email,
+            to: subscription.users.email,
             subject: 'Subscription Activated - VoiceoverStudioFinder',
             html: paymentSuccessTemplate({
-              customerName: subscription.user.display_name,
+              customerName: subscription.users.display_name,
               amount: '25.00',
               currency: 'GBP',
               invoiceNumber: subscriptionId,
@@ -54,17 +54,17 @@ export async function POST(request: NextRequest) {
         
         // Update subscription and studio status
         await db.$transaction(async (tx) => {
-          const subscription = await tx.subscription.update({
+          const subscription = await tx.subscriptions.update({
             where: { paypal_subscription_id: subscriptionId },
             data: {
               status: 'CANCELLED',
-              cancelledAt: new Date(),
+              cancelled_at: new Date(),
             },
           });
 
           // Remove premium status from user's studios
-          await tx.studio.updateMany({
-            where: { owner_id: subscription.userId },
+          await tx.studios.updateMany({
+            where: { owner_id: subscription.user_id },
             data: { is_premium: false },
           });
         });
@@ -88,15 +88,15 @@ export async function POST(request: NextRequest) {
         if (subscriptionId) {
           const subscription = await db.subscriptions.findUnique({
             where: { paypal_subscription_id: subscriptionId },
-            include: { user: true },
+            include: { users: true },
           });
 
-          if (subscription?.user?.email) {
+          if (subscription?.users?.email) {
             await sendEmail({
-              to: subscription.user.email,
+              to: subscription.users.email,
               subject: 'Payment Received - VoiceoverStudioFinder',
               html: paymentSuccessTemplate({
-                customerName: subscription.user.display_name,
+                customerName: subscription.users.display_name,
                 amount: (parseFloat(resource.amount.total)).toFixed(2),
                 currency: resource.amount.currency,
                 invoiceNumber: resource.id,
@@ -116,15 +116,15 @@ export async function POST(request: NextRequest) {
         if (subscriptionId) {
           const subscription = await db.subscriptions.findUnique({
             where: { paypal_subscription_id: subscriptionId },
-            include: { user: true },
+            include: { users: true },
           });
 
-          if (subscription?.user?.email) {
+          if (subscription?.users?.email) {
             await sendEmail({
-              to: subscription.user.email,
+              to: subscription.users.email,
               subject: 'Payment Failed - VoiceoverStudioFinder',
               html: paymentFailedTemplate({
-                customerName: subscription.user.display_name,
+                customerName: subscription.users.display_name,
                 amount: (parseFloat(resource.amount.total)).toFixed(2),
                 currency: resource.amount.currency,
                 reason: resource.reason_code || 'Payment was declined by PayPal',

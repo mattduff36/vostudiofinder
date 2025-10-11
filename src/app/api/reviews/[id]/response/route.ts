@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { z } from 'zod';
+import { randomBytes } from 'crypto';
 
 const responseSchema = z.object({
   content: z.string().min(1).max(500),
@@ -63,9 +64,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Create the response
     const response = await db.review_responses.create({
       data: {
+        id: randomBytes(12).toString('base64url'), // Generate unique ID
         review_id: reviewId,
         content,
         author_id: session.user.id,
+        updated_at: new Date(), // Add required timestamp
       },
     });
 
