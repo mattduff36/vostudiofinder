@@ -147,7 +147,7 @@ export class PayPalService {
       },
       body: JSON.stringify({
         plan_id: request.planId,
-        custom_id: request.customId || `${request.userId}-${request.studioId}`,
+        custom_id: request.customId || `${request.user_id}-${request.studio_id}`,
         application_context: {
           brand_name: 'VoiceoverStudioFinder',
           locale: 'en-GB',
