@@ -141,10 +141,10 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
               </div>
 
               {/* Services */}
-              {studio.services && studio.services.length > 0 && (
+              {studio.studio_services && studio.studio_services.length > 0 && (
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-1">
-                    {studio.services.slice(0, 2).map((service: any, index: number) => (
+                    {studio.studio_services.slice(0, 2).map((service: any, index: number) => (
                       <span
                         key={index}
                         className="inline-block px-2 py-1 bg-gray-100 text-xs rounded"
@@ -153,9 +153,9 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                         {service.service.replace(/_/g, ' ')}
                       </span>
                     ))}
-                    {studio.services.length > 2 && (
+                    {studio.studio_services.length > 2 && (
                       <span className="inline-block px-2 py-1 bg-gray-100 text-xs rounded" style={{ color: colors.textSecondary }}>
-                        +{studio.services.length - 2} more
+                        +{studio.studio_services.length - 2} more
                       </span>
                     )}
                   </div>
