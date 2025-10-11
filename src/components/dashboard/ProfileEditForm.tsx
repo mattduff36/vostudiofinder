@@ -247,9 +247,10 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       </div>
 
       {/* Content */}
-      <div className="px-6 py-6 min-h-[400px]">
+      <div className="px-6 py-6 min-h-[400px] flex justify-center">
+        <div className="w-full max-w-3xl">
         {activeSection === 'basic' && (
-          <div className="space-y-6 max-w-3xl">
+          <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Display Name"
@@ -316,7 +317,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         )}
 
         {activeSection === 'contact' && (
-          <div className="space-y-6 max-w-3xl">
+          <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Phone"
@@ -372,7 +373,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         )}
 
         {activeSection === 'rates' && (
-          <div className="space-y-6 max-w-3xl">
+          <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
                 label="Rate Tier 1 (£/hour)"
@@ -423,7 +424,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         )}
 
         {activeSection === 'social' && (
-          <div className="space-y-4 max-w-3xl">
+          <div className="space-y-4">
             <Input
               label="Facebook"
               type="url"
@@ -477,7 +478,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         )}
 
         {activeSection === 'connections' && (
-          <div className="space-y-4 max-w-3xl">
+          <div className="space-y-4">
             <p className="text-sm text-gray-600 mb-4">
               Select the communication methods you support for remote sessions.
             </p>
@@ -502,6 +503,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Footer Actions */}

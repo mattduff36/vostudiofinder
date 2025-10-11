@@ -47,7 +47,7 @@ export function DashboardTabs({ activeTab, onTabChange }: DashboardTabsProps) {
     <>
       {/* Desktop Tabs */}
       <div className="hidden md:block bg-white border-b border-gray-200">
-        <nav className="flex space-x-8 px-6" aria-label="Dashboard tabs">
+        <nav className="flex justify-center space-x-8 px-6" aria-label="Dashboard tabs">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
