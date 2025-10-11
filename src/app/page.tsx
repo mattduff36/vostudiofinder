@@ -75,7 +75,7 @@ export default async function Home() {
   // Convert Decimal fields to numbers and map short_about to description for client components
   const serializedStudios = featuredStudios.map(studio => ({
     ...studio,
-    description: studio.owner?.profile?.short_about || '', // Use short_about as description
+    description: studio.users?.user_profiles?.short_about || '', // Use short_about as description
     latitude: studio.latitude ? Number(studio.latitude) : null,
     longitude: studio.longitude ? Number(studio.longitude) : null,
   }));
