@@ -197,13 +197,13 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => 
-      prev === studio.images.length - 1 ? 0 : prev + 1
+      prev === studio.studio_images.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
     setCurrentImageIndex((prev) => 
-      prev === 0 ? studio.images.length - 1 : prev - 1
+      prev === 0 ? studio.studio_images.length - 1 : prev - 1
     );
   };
 
@@ -220,18 +220,18 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
       <div className="relative">
         {/* Image Carousel */}
         <div className="relative h-96 md:h-[500px] bg-gray-200 overflow-hidden">
-          {studio.images.length > 0 ? (
+          {studio.studio_images.length > 0 ? (
             <>
               <Image
-                src={studio.images[currentImageIndex]?.imageUrl || ''}
-                alt={studio.images[currentImageIndex]?.alt_text || studio.name}
+                src={studio.studio_images[currentImageIndex]?.imageUrl || ''}
+                alt={studio.studio_images[currentImageIndex]?.alt_text || studio.name}
                 fill
                 className="object-cover"
                 priority
               />
               
               {/* Navigation Arrows */}
-              {studio.images.length > 1 && (
+              {studio.studio_images.length > 1 && (
                 <>
                   <button
                     onClick={prevImage}
@@ -253,9 +253,9 @@ export function ModernStudioProfile({ studio }: ModernStudioProfileProps) {
               )}
               
               {/* Image Counter */}
-              {studio.images.length > 1 && (
+              {studio.studio_images.length > 1 && (
                 <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                  {currentImageIndex + 1} / {studio.images.length}
+                  {currentImageIndex + 1} / {studio.studio_images.length}
                 </div>
               )}
             </>
