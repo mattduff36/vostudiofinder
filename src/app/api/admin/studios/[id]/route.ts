@@ -134,7 +134,7 @@ export async function GET(
         about: studioData.about,
         latitude: studioData.latitude,
         longitude: studioData.longitude,
-        shortabout: studioData.shortabout,
+        short_about: studioData.shortabout,
         category: studioData.category,
         facebook: studioData.facebook,
         twitter: studioData.twitter,
@@ -226,7 +226,8 @@ export async function PUT(
     if (body._meta?.last_name !== undefined) profileUpdateData.last_name = body._meta.last_name;
     if (body._meta?.location !== undefined) profileUpdateData.location = body._meta.location;
     if (body._meta?.about !== undefined) profileUpdateData.about = body._meta.about;
-    if (body._meta?.shortabout !== undefined) profileUpdateData.short_about = body._meta.shortabout;
+    if (body._meta?.short_about !== undefined) profileUpdateData.short_about = body._meta.short_about;
+    if (body._meta?.shortabout !== undefined) profileUpdateData.short_about = body._meta.shortabout; // Legacy support
     if (body._meta?.facebook !== undefined) profileUpdateData.facebook_url = body._meta.facebook;
     if (body._meta?.twitter !== undefined) profileUpdateData.twitter_url = body._meta.twitter;
     if (body._meta?.linkedin !== undefined) profileUpdateData.linkedin_url = body._meta.linkedin;
