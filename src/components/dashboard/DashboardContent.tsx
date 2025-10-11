@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { DashboardTabs, DashboardTab } from './DashboardTabs';
 import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
+import { ImageGalleryManager } from './ImageGalleryManager';
 
 interface DashboardContentProps {
   dashboardData: any;
@@ -22,13 +23,7 @@ export function DashboardContent({ dashboardData, profileData }: DashboardConten
         return <ProfileEditForm userId={dashboardData.user.id} />;
       
       case 'images':
-        return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Manage Images</h2>
-            <p className="text-gray-600">Image gallery manager will go here.</p>
-            {/* ImageGalleryManager will be added here */}
-          </div>
-        );
+        return <ImageGalleryManager />;
       
       case 'settings':
         return (
