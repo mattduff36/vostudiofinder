@@ -156,9 +156,9 @@ export default async function PremiumPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <PremiumFeatures
-          featuredUsers={featuredUsers}
-          spotlightUsers={spotlightUsers}
-          premiumStudios={premiumStudios}
+          featuredUsers={featuredUsers as any}
+          spotlightUsers={spotlightUsers as any}
+          premiumStudios={premiumStudios as any}
           premiumStats={premiumStats}
         />
       </div>
