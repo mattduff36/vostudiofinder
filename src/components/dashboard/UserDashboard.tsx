@@ -275,96 +275,15 @@ export function UserDashboard({ data }: UserDashboardProps) {
               </div>
             </div>
 
-            {/* Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Recent Reviews */}
-              <div className="bg-white rounded-lg border border-gray-200">
-                <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-text-primary">Recent Reviews</h3>
-                </div>
-                <div className="divide-y divide-gray-200">
-                  {reviews.slice(0, 5).map((review) => (
-                    <div key={review.id} className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-4 h-4 ${
-                                star <= review.rating
-                                  ? 'text-yellow-400 fill-current'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-xs text-text-secondary">
-                          {new Date(review.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-sm font-medium text-text-primary">{review.studio.name}</p>
-                      <p className="text-sm text-text-secondary line-clamp-2 mt-1">
-                        {review.content}
-                      </p>
-                    </div>
-                  ))}
-                  {reviews.length === 0 && (
-                    <div className="p-8 text-center text-text-secondary">
-                      No reviews yet. Start exploring studios!
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Recent Messages */}
-              <div className="bg-white rounded-lg border border-gray-200">
-                <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-text-primary">Recent Messages</h3>
-                </div>
-                <div className="divide-y divide-gray-200">
-                  {messages.slice(0, 5).map((message) => {
-                    const isReceived = message.receiver_id === user.id;
-                    const otherUser = isReceived ? message.sender : message.receiver;
-                    
-                    return (
-                      <div key={message.id} className={`p-4 ${!message.isRead && isReceived ? 'bg-blue-50' : ''}`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
-                            {otherUser.avatar_url ? (
-                              <img
-                                src={otherUser.avatar_url}
-                                alt={otherUser.display_name}
-                                className="w-6 h-6 rounded-full mr-2"
-                              />
-                            ) : (
-                              <div className="w-6 h-6 bg-gray-300 rounded-full mr-2 flex items-center justify-center">
-                                <User className="w-3 h-3 text-gray-600" />
-                              </div>
-                            )}
-                            <span className="text-sm font-medium text-text-primary">
-                              {isReceived ? 'From' : 'To'} {otherUser.display_name}
-                            </span>
-                          </div>
-                          <span className="text-xs text-text-secondary">
-                            {new Date(message.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-sm text-text-primary font-medium">{message.subject}</p>
-                        {message.studio && (
-                          <p className="text-xs text-text-secondary mt-1">
-                            Re: {message.studio.name}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {messages.length === 0 && (
-                    <div className="p-8 text-center text-text-secondary">
-                      No messages yet.
-                    </div>
-                  )}
-                </div>
-              </div>
+            {/* Placeholder */}
+            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+              <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-medium text-text-primary mb-2">
+                Overview Page Under Development
+              </h3>
+              <p className="text-text-secondary max-w-md mx-auto">
+                This section is currently being developed. Check back soon for activity insights, recent reviews, and messages.
+              </p>
             </div>
           </div>
         )}
