@@ -373,9 +373,14 @@ export async function GET(request: NextRequest) {
     // Serialize Decimal fields and map short_about to description for JSON response
     const serializedStudios = studios.map(studio => ({
       ...studio,
-      description: studio.owner?.profile?.short_about || '', // Use short_about as description
+      description: studio.users?.user_profiles?.short_about || '', // Use short_about as description
       latitude: studio.latitude ? Number(studio.latitude) : null,
       longitude: studio.longitude ? Number(studio.longitude) : null,
+      owner: studio.users, // Map users to owner for backward compatibility with frontend
+      studio_images: studio.studio_images?.map((img: any) => ({
+        imageUrl: img.image_url,
+        alt_text: img.alt_text,
+      })) || [],
     }));
 
     // Get map markers based on search criteria

@@ -165,7 +165,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
               {/* Stats & CTA */}
               <div className="flex items-center justify-between mt-auto pt-2">
                 <div className="flex items-center space-x-3 text-sm" style={{ color: colors.textSecondary }}>
-                  {studio._count?.reviews && studio._count.reviews > 0 && (
+                  {(studio._count?.reviews ?? 0) > 0 && (
                     <div className="flex items-center">
                       <Star className="w-4 h-4 text-yellow-400 mr-1" />
                       <span>{studio._count.reviews}</span>

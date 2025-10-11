@@ -91,7 +91,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
       studio_services: [],
       sortBy: 'name',
       sort_order: 'asc',
-      radius: 25, // Keep radius for internal state consistency
+      radius: 10, // Default radius is 10 miles
       // Clear coordinates to remove the radius circle from the map - omit lat/lng properties
     };
     setFilters(clearedFilters);
@@ -115,7 +115,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
 
 
 
-  const hasActiveFilters = filters.location || filters.studio_studio_types.length > 0 || filters.studio_services.length > 0 || filters.radius !== 25;
+  const hasActiveFilters = filters.location || filters.studio_studio_types.length > 0 || filters.studio_services.length > 0 || filters.radius !== 10;
 
   const handleStudioTypeToggle = (studio_type: string) => {
     const currentTypes = filters.studio_studio_types || [];

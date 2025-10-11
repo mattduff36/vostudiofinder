@@ -124,7 +124,7 @@ export default async function DashboardPage() {
     user: {
       id: session.user.id,
       display_name: session.user.display_name,
-      email: session.user.email,
+      email: session.user.email || '',
       username: session.user.username,
       role: session.user.role as string,
       ...(session.user.avatar_url && { avatar_url: session.user.avatar_url }),

@@ -758,7 +758,7 @@ export function StudiosPage() {
                               ⚙️ {searchParams.get('services')?.split(',').length} Service{searchParams.get('services')?.split(',').length !== 1 ? 's' : ''}
                             </span>
                           )}
-                          {searchParams.get('radius') && (
+                          {searchParams.get('radius') && searchParams.get('location') && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                               📏 {searchParams.get('radius')} miles
                             </span>
