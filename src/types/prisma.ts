@@ -139,7 +139,9 @@ export type StudioImage = {
 export type StudioService = {
   id: string;
   studio_id: string;
-  serviceType: ServiceType;
+  service?: string;
+  serviceType?: ServiceType;
+  service_type?: string;
   description?: string | null;
   price?: number | null;
   created_at: Date;
