@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
@@ -196,6 +197,18 @@ export function Navbar({ session }: NavbarProps) {
                 >
                   Dashboard
                 </Button>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className={`p-2 rounded-lg transition-all duration-300 ${
+                    isScrolled || !isHomePage 
+                      ? 'text-gray-600 hover:bg-gray-100' 
+                      : 'text-white hover:bg-white/20'
+                  }`}
+                  aria-label="Logout"
+                  title="Logout"
+                >
+                  <LogOut size={20} />
+                </button>
               </>
             ) : (
               <>
@@ -299,6 +312,12 @@ export function Navbar({ session }: NavbarProps) {
                       className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-700 hover:text-white hover:bg-red-500 transition-colors"
                     >
                       Dashboard
+                    </button>
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-700 hover:text-white hover:bg-red-500 transition-colors"
+                    >
+                      Logout
                     </button>
                   </>
                 ) : (
