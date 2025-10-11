@@ -93,43 +93,43 @@ export async function GET(request: NextRequest) {
         studio_images: studio.studio_images,
         reviews: studio.reviews.length,
       })),
-      reviewsWritten: userData.reviews.map(review => ({
+      reviewsWritten: userData.reviews_reviews_reviewer_idTousers.map(review => ({
         id: review.id,
-        studio_id: review.studioId,
+        studio_id: review.studio_id,
         rating: review.rating,
         content: review.content,
-        isAnonymous: review.isAnonymous,
+        isAnonymous: review.is_anonymous,
         status: review.status,
         created_at: review.created_at,
       })),
-      reviewsReceived: userData.reviewsReceived.map(review => ({
+      reviewsReceived: userData.reviews_reviews_owner_idTousers.map(review => ({
         id: review.id,
-        studio_id: review.studioId,
+        studio_id: review.studio_id,
         rating: review.rating,
         content: review.content,
-        isAnonymous: review.isAnonymous,
+        isAnonymous: review.is_anonymous,
         status: review.status,
         created_at: review.created_at,
       })),
-      messagesSent: userData.sentMessages.map(message => ({
+      messagesSent: userData.messages_messages_sender_idTousers.map(message => ({
         id: message.id,
-        receiver_id: message.receiverId,
+        receiver_id: message.receiver_id,
         subject: message.subject,
         content: message.content,
-        isRead: message.isRead,
+        isRead: message.is_read,
         created_at: message.created_at,
       })),
-      messagesReceived: userData.receivedMessages.map(message => ({
+      messagesReceived: userData.messages_messages_receiver_idTousers.map(message => ({
         id: message.id,
-        sender_id: message.senderId,
+        sender_id: message.sender_id,
         subject: message.subject,
         content: message.content,
-        isRead: message.isRead,
+        isRead: message.is_read,
         created_at: message.created_at,
       })),
-      connections: userData.connections.map(conn => ({
+      connections: userData.user_connections_user_connections_user_idTousers.map(conn => ({
         id: conn.id,
-        connected_user_id: conn.connectedUserId,
+        connected_user_id: conn.connected_user_id,
         accepted: conn.accepted,
         created_at: conn.created_at,
       })),
