@@ -4,7 +4,8 @@ import { createStudioSchema } from '@/lib/validations/studio';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
-import { Role } from '@prisma/client';
+import { Role } from '@/types/prisma';
+import { randomBytes } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,8 +34,9 @@ export async function POST(request: NextRequest) {
     // Create studio in a transaction
     const studio = await db.$transaction(async (tx) => {
       // Create the studio
-      const newStudio = await tx.studio.create({
+      const newStudio = await tx.studios.create({
         data: {
+          id: randomBytes(12).toString('base64url'), // Generate unique ID
           owner_id: session.user.id,
           name: validatedData.name,
           description: validatedData.description,
@@ -47,34 +49,43 @@ export async function POST(request: NextRequest) {
       
       // Add studio types
       if (validatedData.studioTypes && validatedData.studioTypes.length > 0) {
-        await tx.studioStudioType.createMany({
-          data: validatedData.studioTypes.map(studio_type => ({
-            studio_id: newStudio.id,
-            studio_type,
-          })),
-        });
+        for (const studio_type of validatedData.studioTypes) {
+          await tx.studio_studio_types.create({
+            data: {
+              id: randomBytes(12).toString('base64url'), // Generate unique ID
+              studio_id: newStudio.id,
+              studio_type,
+            },
+          });
+        }
       }
       
       // Add services
       if (validatedData.services && validatedData.services.length > 0) {
-        await tx.studioService.createMany({
-          data: validatedData.services.map(service => ({
-            studio_id: newStudio.id,
-            service,
-          })),
-        });
+        for (const service of validatedData.services) {
+          await tx.studio_services.create({
+            data: {
+              id: randomBytes(12).toString('base64url'), // Generate unique ID
+              studio_id: newStudio.id,
+              service,
+            },
+          });
+        }
       }
       
       // Add images
       if (validatedData.images && validatedData.images.length > 0) {
-        await tx.studioImage.createMany({
-          data: validatedData.images.map((image, index) => ({
-            studio_id: newStudio.id,
-            imageUrl: image.url,
-            alt_text: image.alt_text || null,
-            sort_order: index,
-          })),
-        });
+        for (const [index, image] of validatedData.images.entries()) {
+          await tx.studio_images.create({
+            data: {
+              id: randomBytes(12).toString('base64url'), // Generate unique ID
+              studio_id: newStudio.id,
+              image_url: image.url,
+              alt_text: image.alt_text || null,
+              sort_order: index,
+            },
+          });
+        }
       }
       
       return newStudio;
