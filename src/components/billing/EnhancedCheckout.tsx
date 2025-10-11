@@ -47,18 +47,20 @@ export function EnhancedCheckout({
         throw new Error('Failed to create checkout session');
       }
 
-      const { sessionId } = await response.json();
-      const stripe = await stripePromise;
+    const { sessionId, url } = await response.json();
 
-      if (!stripe) {
+    // Stripe.js v8 uses direct URL redirect instead of redirectToCheckout
+    if (url) {
+      window.location.href = url;
+    } else if (sessionId) {
+      // Fallback: construct the URL manually if only sessionId is provided
+      const stripe = await stripePromise;
+      if (stripe) {
+        window.location.href = `https://checkout.stripe.com/pay/${sessionId}`;
+      } else {
         throw new Error('Stripe failed to load');
       }
-
-      const { error } = await stripe.redirectToCheckout({ sessionId });
-      
-      if (error) {
-        throw new Error(error.message);
-      }
+    }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Payment failed';
       setError(errorMessage);
