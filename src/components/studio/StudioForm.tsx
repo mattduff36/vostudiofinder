@@ -180,8 +180,8 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                     </label>
                   ))}
                 </div>
-                {errors.studioTypes && (
-                  <p className="mt-1 text-sm text-red-600">{errors.studioTypes.message}</p>
+                {errors.studio_studio_types && (
+                  <p className="mt-1 text-sm text-red-600">{errors.studio_studio_types.message}</p>
                 )}
               </div>
             </div>
@@ -269,8 +269,8 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                   </label>
                 ))}
               </div>
-              {errors.services && (
-                <p className="mt-1 text-sm text-red-600">{errors.services.message}</p>
+              {errors.studio_services && (
+                <p className="mt-1 text-sm text-red-600">{errors.studio_services.message}</p>
               )}
             </div>
           </div>
