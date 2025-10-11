@@ -219,7 +219,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
             {/* Image Gallery - Rightmove Style - Full Width */}
             {studio.studio_images.length > 0 && (
               <div className="w-full -mx-4 sm:-mx-6 lg:-mx-8">
-                <FixedDynamicGallery images={studio.studio_images} />
+                <FixedDynamicGallery studio_images={studio.studio_images} />
               </div>
             )}
 
