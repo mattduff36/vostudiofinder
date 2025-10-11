@@ -244,7 +244,7 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
             )}
 
             {/* Services & Capabilities */}
-            {(studio.services.length > 0 || ownerProfile?.servicesOffered) && (
+            {(studio.studio_services.length > 0 || ownerProfile?.servicesOffered) && (
               <section>
                 <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center">
                   <Settings className="w-5 h-5 mr-2" />
@@ -252,11 +252,11 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
                 </h2>
                 
                 {/* Technical Services */}
-                {studio.services.length > 0 && (
+                {studio.studio_services.length > 0 && (
                   <div className="mb-4">
                     <h3 className="font-medium text-gray-900 mb-2">Technical Services</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {studio.services.map((service) => {
+                      {studio.studio_services.map((service) => {
                         const Icon = serviceIcons[service.service] || Settings;
                         return (
                           <div
