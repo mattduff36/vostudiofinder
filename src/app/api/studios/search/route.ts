@@ -42,14 +42,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where clause
-    const where: Prisma.StudioWhereInput = {
+    const where: Prisma.studiosWhereInput = {
       status: 'ACTIVE',
       AND: [],
     };
 
     // Enhanced full-text search in name, description, and services
     if (validatedParams.query) {
-      (where.AND as Prisma.StudioWhereInput[]).push({
+      (where.AND as Prisma.studiosWhereInput[]).push({
         OR: [
           // Exact name match (highest priority)
           { name: { equals: validatedParams.query, mode: 'insensitive' } },
@@ -93,14 +93,14 @@ export async function GET(request: NextRequest) {
             } else {
               console.warn(`Failed to geocode location: ${validatedParams.location}`);
               // Fall back to text-based address search
-              (where.AND as Prisma.StudioWhereInput[]).push({
+              (where.AND as Prisma.studiosWhereInput[]).push({
                 address: { contains: validatedParams.location, mode: 'insensitive' },
               });
             }
           } catch (error) {
             console.error('Geocoding error:', error);
             // Fall back to text-based address search
-            (where.AND as Prisma.StudioWhereInput[]).push({
+            (where.AND as Prisma.studiosWhereInput[]).push({
               address: { contains: validatedParams.location, mode: 'insensitive' },
             });
           }
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
         // Note: For better performance with large datasets, consider using PostGIS or similar
       } else {
         // Standard address search without radius
-        (where.AND as Prisma.StudioWhereInput[]).push({
+        (where.AND as Prisma.studiosWhereInput[]).push({
           address: { contains: validatedParams.location, mode: 'insensitive' },
         });
       }
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
         .filter(type => type); // Remove any undefined values
 
       if (mappedTypes.length > 0) {
-        (where.AND as Prisma.StudioWhereInput[]).push({
+        (where.AND as Prisma.studiosWhereInput[]).push({
           studio_studio_types: {
             some: {
               studio_type: {
@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
         .filter(service => service); // Remove any undefined values
 
       if (mappedServices.length > 0) {
-        (where.AND as Prisma.StudioWhereInput[]).push({
+        (where.AND as Prisma.studiosWhereInput[]).push({
           studio_services: {
             some: {
               service: {
@@ -199,13 +199,13 @@ export async function GET(request: NextRequest) {
         ],
       }));
 
-      (where.AND as Prisma.StudioWhereInput[]).push({
+      (where.AND as Prisma.studiosWhereInput[]).push({
         OR: equipmentConditions,
       });
     }
 
     // Build order by clause
-    const orderBy: Prisma.StudioOrderByWithRelationInput[] = [];
+    const orderBy: Prisma.studiosOrderByWithRelationInput[] = [];
     
     // Always prioritize premium studios
     orderBy.push({ is_premium: 'desc' });
