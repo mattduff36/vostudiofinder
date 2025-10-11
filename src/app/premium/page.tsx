@@ -76,7 +76,7 @@ async function getPremiumData() {
           users: {
             user_profiles: {
               OR: [
-                { isFeatured: true },
+                { is_featured: true },
                 { is_spotlight: true }
               ]
             }
