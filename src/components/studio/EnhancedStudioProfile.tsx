@@ -102,9 +102,9 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
     <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Hero Section with Images */}
       <div className="relative h-64 md:h-80 bg-gray-200">
-        {studio.images.length > 0 ? (
+        {studio.studio_images.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 h-full">
-            {studio.images.slice(0, 3).map((image, index) => (
+            {studio.studio_images.slice(0, 3).map((image, index) => (
               <div key={image.id} className={`relative ${index === 0 ? 'md:col-span-2' : ''}`}>
                 <img
                   src={image.imageUrl}
@@ -315,14 +315,14 @@ export function EnhancedStudioProfile({ studio }: EnhancedStudioProfileProps) {
             )}
 
             {/* Studio Images Gallery */}
-            {studio.images.length > 3 && (
+            {studio.studio_images.length > 3 && (
               <section>
                 <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center">
                   <Camera className="w-5 h-5 mr-2" />
                   Studio Gallery
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {studio.images.slice(3).map((image) => (
+                  {studio.studio_images.slice(3).map((image) => (
                     <div key={image.id} className="aspect-video bg-gray-200 rounded-lg overflow-hidden">
                       <img
                         src={image.imageUrl}
