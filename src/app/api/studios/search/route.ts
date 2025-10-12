@@ -7,6 +7,41 @@ import { Prisma, ServiceType } from '@prisma/client';
 import { geocodeAddress, calculateDistance } from '@/lib/maps';
 import crypto from 'crypto';
 
+// Fisher-Yates shuffle algorithm for randomizing array
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// Pin a specific studio to the top 6 positions
+function pinStudioToTop6<T extends { name: string; id: number }>(studios: T[], targetName: string): T[] {
+  if (studios.length === 0) return studios;
+  
+  // Find the target studio
+  const targetIndex = studios.findIndex(studio => 
+    studio.name.toLowerCase().includes('voiceoverguy') && 
+    studio.name.toLowerCase().includes('yorkshire')
+  );
+  
+  // If studio not found or already in top 6, return as is
+  if (targetIndex === -1 || targetIndex < 6) {
+    return studios;
+  }
+  
+  // Remove the studio from its current position
+  const [targetStudio] = studios.splice(targetIndex, 1);
+  
+  // Insert it at a random position in the top 6 (but not position 0 to keep premium there)
+  const insertPosition = Math.floor(Math.random() * 6);
+  studios.splice(insertPosition, 0, targetStudio);
+  
+  return studios;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -35,10 +70,15 @@ export async function GET(request: NextRequest) {
       .update(JSON.stringify(validatedParams))
       .digest('hex');
 
-    // Try to get cached results first
-    const cachedResults = await cache.getCachedSearchResults(cacheKey);
-    if (cachedResults) {
-      return NextResponse.json(cachedResults);
+    // Skip caching for page 1 to ensure random results on each load
+    const shouldUseCache = validatedParams.page !== 1;
+    
+    // Try to get cached results first (only for pages 2+)
+    if (shouldUseCache) {
+      const cachedResults = await cache.getCachedSearchResults(cacheKey);
+      if (cachedResults) {
+        return NextResponse.json(cachedResults);
+      }
     }
 
     // Build where clause
@@ -309,60 +349,148 @@ export async function GET(request: NextRequest) {
 
       totalCount = studiosWithDistance.length;
       
+      // Apply randomization and pinning for page 1 only
+      let finalStudiosWithDistance = studiosWithDistance;
+      if (validatedParams.page === 1) {
+        // Separate premium and non-premium studios to preserve premium priority
+        const premiumStudios = finalStudiosWithDistance.filter(s => s.is_premium);
+        const nonPremiumStudios = finalStudiosWithDistance.filter(s => !s.is_premium);
+        
+        // Shuffle non-premium studios
+        const shuffledNonPremium = shuffleArray(nonPremiumStudios);
+        
+        // Combine: premium first, then shuffled non-premium
+        finalStudiosWithDistance = [...premiumStudios, ...shuffledNonPremium];
+        
+        // Pin the target studio to top 6
+        finalStudiosWithDistance = pinStudioToTop6(finalStudiosWithDistance, 'voiceoverguy');
+      }
+      
       // Apply pagination to filtered results
       const skip = (validatedParams.page - 1) * validatedParams.limit;
-      studios = studiosWithDistance.slice(skip, skip + validatedParams.limit);
+      studios = finalStudiosWithDistance.slice(skip, skip + validatedParams.limit);
 
       console.log(`Found ${totalCount} studios within ${validatedParams.radius} miles of ${validatedParams.location}`);
     } else {
       // Standard non-geographic search
-      [studios, totalCount] = await Promise.all([
-        db.studios.findMany({
-          where,
-          orderBy,
-          skip,
-          take: validatedParams.limit,
-          include: {
-            users: {
-              select: {
-                id: true,
-                display_name: true,
-                username: true,
-                avatar_url: true,
-                user_profiles: {
-                  select: {
-                    short_about: true,
+      // For page 1, fetch all results to randomize; for other pages, use standard pagination
+      const shouldRandomize = validatedParams.page === 1;
+      
+      if (shouldRandomize) {
+        // Fetch all results for randomization
+        const [allStudios, count] = await Promise.all([
+          db.studios.findMany({
+            where,
+            orderBy,
+            include: {
+              users: {
+                select: {
+                  id: true,
+                  display_name: true,
+                  username: true,
+                  avatar_url: true,
+                  user_profiles: {
+                    select: {
+                      short_about: true,
+                    },
                   },
                 },
               },
-            },
-            studio_studio_types: {
-              select: {
-                studio_type: true,
+              studio_studio_types: {
+                select: {
+                  studio_type: true,
+                },
+              },
+              studio_services: {
+                select: {
+                  service: true,
+                },
+              },
+              studio_images: {
+                take: 1,
+                orderBy: { sort_order: 'asc' },
+                select: {
+                  image_url: true,
+                  alt_text: true,
+                },
+              },
+              _count: {
+                select: {
+                  reviews: true,
+                },
               },
             },
-            studio_services: {
-              select: {
-                service: true,
+          }),
+          db.studios.count({ where }),
+        ]);
+        
+        totalCount = count;
+        
+        // Separate premium and non-premium studios
+        const premiumStudios = allStudios.filter(s => s.is_premium);
+        const nonPremiumStudios = allStudios.filter(s => !s.is_premium);
+        
+        // Shuffle non-premium studios
+        const shuffledNonPremium = shuffleArray(nonPremiumStudios);
+        
+        // Combine: premium first, then shuffled non-premium
+        let finalStudios = [...premiumStudios, ...shuffledNonPremium];
+        
+        // Pin the target studio to top 6
+        finalStudios = pinStudioToTop6(finalStudios, 'voiceoverguy');
+        
+        // Apply pagination manually
+        studios = finalStudios.slice(0, validatedParams.limit);
+      } else {
+        // Standard pagination for pages 2+
+        [studios, totalCount] = await Promise.all([
+          db.studios.findMany({
+            where,
+            orderBy,
+            skip,
+            take: validatedParams.limit,
+            include: {
+              users: {
+                select: {
+                  id: true,
+                  display_name: true,
+                  username: true,
+                  avatar_url: true,
+                  user_profiles: {
+                    select: {
+                      short_about: true,
+                    },
+                  },
+                },
+              },
+              studio_studio_types: {
+                select: {
+                  studio_type: true,
+                },
+              },
+              studio_services: {
+                select: {
+                  service: true,
+                },
+              },
+              studio_images: {
+                take: 1,
+                orderBy: { sort_order: 'asc' },
+                select: {
+                  image_url: true,
+                  alt_text: true,
+                },
+              },
+              _count: {
+                select: {
+                  reviews: true,
+                },
               },
             },
-            studio_images: {
-              take: 1,
-              orderBy: { sort_order: 'asc' },
-              select: {
-                image_url: true,
-                alt_text: true,
-              },
-            },
-            _count: {
-              select: {
-                reviews: true,
-              },
-            },
-          },
-        }),
-        db.studios.count({ where }),
-      ]);
+          }),
+          db.studios.count({ where }),
+        ]);
+      }
     }
 
     // Calculate pagination info
@@ -507,8 +635,10 @@ export async function GET(request: NextRequest) {
       searchRadius: validatedParams.radius,
     };
 
-    // Cache the results for 5 minutes
-    await cache.cacheSearchResults(cacheKey, response, 300);
+    // Cache the results for 5 minutes (only for pages 2+)
+    if (shouldUseCache) {
+      await cache.cacheSearchResults(cacheKey, response, 300);
+    }
 
     return NextResponse.json(response);
   } catch (error) {
