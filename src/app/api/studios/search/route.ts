@@ -414,6 +414,7 @@ export async function GET(request: NextRequest) {
         });
         
         // Filter by distance for location searches
+        console.log(`📊 Before distance filtering: ${mapMarkers.length} mapMarkers`);
         mapMarkers = mapMarkers.filter(studio => {
           if (!studio.latitude || !studio.longitude) return false;
           const distance = calculateDistance(
@@ -422,8 +423,13 @@ export async function GET(request: NextRequest) {
             Number(studio.latitude),
             Number(studio.longitude)
           );
-          return distance <= validatedParams.radius!;
+          const withinRadius = distance <= validatedParams.radius!;
+          if (!withinRadius) {
+            console.log(`❌ Filtered out: ${studio.name} - ${distance.toFixed(2)}mi > ${validatedParams.radius}mi`);
+          }
+          return withinRadius;
         });
+        console.log(`📊 After distance filtering: ${mapMarkers.length} mapMarkers`);
       } else {
         // Fallback to filtered results
         mapMarkers = await db.studios.findMany({
