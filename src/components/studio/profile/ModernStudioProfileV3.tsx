@@ -355,6 +355,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             {/* Description */}
             <div className="mb-6">
               <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">About</h3>
                 <div className="prose prose-gray max-w-none">
                   <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                     {cleanDescription(profile?.about || profile?.short_about || studio.description)}
@@ -386,8 +387,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
               return connections.length > 0 ? (
                 <div className="mb-6">
-                  <h3 className="text-base font-semibold text-gray-900 mb-2 pt-1">Connections</h3>
-                  <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-4">
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Connections</h3>
                     <div className="grid grid-cols-2 gap-3">
                       {connections.map((connection) => {
                         const IconComponent = connection.icon;
@@ -407,7 +408,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             {/* Social Media Links */}
             {socialLinks.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-base font-semibold text-gray-900 mb-2 pt-1">Find us on socials</h3>
                 <div className="flex flex-wrap gap-3">
                   {socialLinks.map((link, index) => {
                     const Icon = link.icon;
