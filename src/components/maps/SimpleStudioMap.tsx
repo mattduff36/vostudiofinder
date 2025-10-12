@@ -56,7 +56,8 @@ export function SimpleStudioMap({
   useEffect(() => {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current || !latitude || !longitude) return;
 
-    const map = new window.google.maps.Map(mapRef.current, {
+    const googleMaps = window.google.maps as any;
+    const map = new googleMaps.Map(mapRef.current, {
       center: { lat: latitude, lng: longitude },
       zoom: 15,
       zoomControl: true,
@@ -73,7 +74,7 @@ export function SimpleStudioMap({
     });
 
     // Add marker
-    new window.google.maps.Marker({
+    new googleMaps.Marker({
       position: { lat: latitude, lng: longitude },
       map: map,
       title: address,
