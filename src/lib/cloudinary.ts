@@ -2,17 +2,32 @@
 let cloudinary: any;
 try {
   cloudinary = require('cloudinary').v2;
-} catch (_) {
-  console.warn('Cloudinary not available - image uploads will be disabled');
+} catch (error) {
+  console.error('❌ Cloudinary package not found:', error);
+  console.warn('⚠️ Image uploads will be disabled. Install with: npm install cloudinary');
 }
 
 // Configure Cloudinary (only if available)
 if (cloudinary) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  
+  // Validate environment variables
+  if (!cloudName || !apiKey || !apiSecret) {
+    console.error('❌ Cloudinary configuration incomplete:');
+    console.error(`  - CLOUDINARY_CLOUD_NAME: ${cloudName ? '✓' : '✗ MISSING'}`);
+    console.error(`  - CLOUDINARY_API_KEY: ${apiKey ? '✓' : '✗ MISSING'}`);
+    console.error(`  - CLOUDINARY_API_SECRET: ${apiSecret ? '✓' : '✗ MISSING'}`);
+    console.error('⚠️ Please check your .env.local file');
+  } else {
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret,
+    });
+    console.log('✅ Cloudinary configured successfully');
+  }
 }
 
 export interface ImageUploadResult {
@@ -33,8 +48,20 @@ export async function uploadImage(
   } = {}
 ): Promise<ImageUploadResult> {
   if (!cloudinary) {
-    throw new Error('Cloudinary not available - please install cloudinary package');
+    const error = 'Cloudinary not available - please install cloudinary package';
+    console.error('❌', error);
+    throw new Error(error);
   }
+  
+  // Verify configuration
+  const config = cloudinary.config();
+  if (!config.cloud_name || !config.api_key || !config.api_secret) {
+    const error = 'Cloudinary not properly configured - check your .env.local file';
+    console.error('❌', error);
+    throw new Error(error);
+  }
+  
+  console.log('📤 Uploading image to Cloudinary...');
   
   return new Promise((resolve, reject) => {
     const uploadOptions = {
@@ -52,8 +79,10 @@ export async function uploadImage(
     cloudinary.uploader
       .upload_stream(uploadOptions, (error: any, result: any) => {
         if (error) {
-          reject(error);
+          console.error('❌ Cloudinary upload failed:', error);
+          reject(new Error(`Cloudinary upload failed: ${error.message || JSON.stringify(error)}`));
         } else if (result) {
+          console.log('✅ Image uploaded successfully:', result.secure_url);
           resolve({
             public_id: result.public_id,
             secure_url: result.secure_url,
@@ -63,7 +92,8 @@ export async function uploadImage(
             bytes: result.bytes,
           });
         } else {
-          reject(new Error('Upload failed'));
+          console.error('❌ Upload failed - no result returned');
+          reject(new Error('Upload failed - no result returned'));
         }
       })
       .end(file);

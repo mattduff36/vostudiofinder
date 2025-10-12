@@ -7,6 +7,21 @@ declare global {
   interface Window {
     google: any;
   }
+  
+  namespace google {
+    namespace maps {
+      namespace places {
+        class Autocomplete {
+          constructor(input: HTMLInputElement, options?: any);
+          addListener(eventName: string, handler: Function): void;
+          getPlace(): any;
+        }
+      }
+      namespace event {
+        function clearInstanceListeners(instance: any): void;
+      }
+    }
+  }
 }
 
 interface AddressAutocompleteProps {
@@ -81,18 +96,25 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       return;
     }
 
-    // Initialize autocomplete
+    // Initialize autocomplete with expanded types for better coverage
     try {
       autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-        types: ['address'],
-        fields: ['formatted_address', 'address_components', 'geometry'],
+        // Remove types restriction to allow all address types including postcodes, establishments, etc.
+        // This enables: street addresses, postcodes/zip codes, business names, and more
+        types: ['geocode', 'establishment'],
+        fields: ['formatted_address', 'address_components', 'geometry', 'name'],
+        componentRestrictions: undefined, // Allow worldwide addresses
       });
 
       // Listen for place selection
       autocompleteRef.current.addListener('place_changed', () => {
         const place = autocompleteRef.current?.getPlace();
-        if (place && place.formatted_address) {
-          onChange(place.formatted_address);
+        if (place) {
+          // Use formatted_address if available, otherwise use name (for establishments)
+          const address = place.formatted_address || place.name || '';
+          if (address) {
+            onChange(address);
+          }
         }
       });
     } catch (error) {

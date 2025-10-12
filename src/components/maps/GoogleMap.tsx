@@ -85,6 +85,7 @@ export function GoogleMap({
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [markersReady, setMarkersReady] = useState(false);
   const [activeInfoWindow, setActiveInfoWindow] = useState<any>(null);
+  const [scrollZoomEnabled, setScrollZoomEnabled] = useState(false);
 
 
   // Helper function to create circle and marker
@@ -350,10 +351,11 @@ export function GoogleMap({
     const map = new window.google.maps.Map(mapRef.current, {
       center: { lat: center.lat, lng: center.lng },
       zoom,
+      minZoom: 2, // Prevent zooming out beyond the initial global view
       maxZoom,
       // Enable smooth animations with proper scroll wheel behavior
       gestureHandling: 'greedy', // Allow all gestures without requiring Ctrl key
-      scrollwheel: true, // Enable scroll wheel zoom when hovering over map
+      scrollwheel: false, // Disable scroll wheel zoom by default
       zoomControl: true,
       zoomControlOptions: {
         position: window.google.maps.ControlPosition.RIGHT_BOTTOM,
@@ -380,6 +382,47 @@ export function GoogleMap({
     });
 
     mapInstanceRef.current = map;
+
+    // Create custom scroll zoom toggle button
+    const scrollZoomToggleDiv = document.createElement('div');
+    scrollZoomToggleDiv.style.margin = '10px';
+    scrollZoomToggleDiv.style.cursor = 'pointer';
+    
+    const scrollZoomButton = document.createElement('button');
+    scrollZoomButton.style.backgroundColor = '#fff';
+    scrollZoomButton.style.border = '2px solid #fff';
+    scrollZoomButton.style.borderRadius = '3px';
+    scrollZoomButton.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    scrollZoomButton.style.color = 'rgb(25,25,25)';
+    scrollZoomButton.style.cursor = 'pointer';
+    scrollZoomButton.style.fontFamily = 'Roboto,Arial,sans-serif';
+    scrollZoomButton.style.fontSize = '16px';
+    scrollZoomButton.style.lineHeight = '38px';
+    scrollZoomButton.style.margin = '0';
+    scrollZoomButton.style.padding = '0 17px';
+    scrollZoomButton.style.textAlign = 'center';
+    scrollZoomButton.textContent = '🖱️ Scroll Zoom: Off';
+    scrollZoomButton.title = 'Click to enable scroll wheel zoom';
+    scrollZoomButton.type = 'button';
+
+    // Add hover effect
+    scrollZoomButton.addEventListener('mouseenter', () => {
+      scrollZoomButton.style.backgroundColor = '#f5f5f5';
+    });
+    scrollZoomButton.addEventListener('mouseleave', () => {
+      scrollZoomButton.style.backgroundColor = '#fff';
+    });
+
+    // Add click handler to toggle scroll zoom
+    scrollZoomButton.addEventListener('click', () => {
+      setScrollZoomEnabled(prev => !prev);
+    });
+
+    scrollZoomToggleDiv.appendChild(scrollZoomButton);
+    map.controls[window.google.maps.ControlPosition.TOP_LEFT].push(scrollZoomToggleDiv);
+
+    // Store button reference for updates
+    (map as any).scrollZoomButton = scrollZoomButton;
 
     // Add user interaction listeners to track when user manipulates the map
     let isUserInitiated = false;
@@ -454,6 +497,34 @@ export function GoogleMap({
     });
   }, [isLoaded, center, zoom, onLocationSelect, markers]);
 
+  // Handle scroll zoom toggle
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      const map = mapInstanceRef.current;
+      map.setOptions({ scrollwheel: scrollZoomEnabled });
+      
+      // Update button text and style
+      const scrollZoomButton = (map as any).scrollZoomButton;
+      if (scrollZoomButton) {
+        scrollZoomButton.textContent = scrollZoomEnabled ? '🖱️ Scroll Zoom: On' : '🖱️ Scroll Zoom: Off';
+        scrollZoomButton.title = scrollZoomEnabled 
+          ? 'Click to disable scroll wheel zoom' 
+          : 'Click to enable scroll wheel zoom';
+        scrollZoomButton.style.backgroundColor = scrollZoomEnabled ? '#e8f5e9' : '#fff';
+        scrollZoomButton.style.color = scrollZoomEnabled ? '#2e7d32' : 'rgb(25,25,25)';
+        
+        // Update hover effect based on state
+        scrollZoomButton.onmouseenter = () => {
+          scrollZoomButton.style.backgroundColor = scrollZoomEnabled ? '#c8e6c9' : '#f5f5f5';
+        };
+        scrollZoomButton.onmouseleave = () => {
+          scrollZoomButton.style.backgroundColor = scrollZoomEnabled ? '#e8f5e9' : '#fff';
+        };
+      }
+      
+      console.log(`🖱️ Scroll zoom ${scrollZoomEnabled ? 'enabled' : 'disabled'}`);
+    }
+  }, [scrollZoomEnabled]);
 
   // Update markers with clustering and enhanced features
   useEffect(() => {
