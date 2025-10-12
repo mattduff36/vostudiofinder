@@ -213,8 +213,9 @@ export function EnhancedLocationFilter({
     
     console.log('🗺️ Google Places API available, fetching suggestions for:', searchQuery);
 
-    const autocompleteService = new window.google.maps.places.AutocompleteService();
-    const placesService = new window.google.maps.places.PlacesService(document.createElement('div'));
+    const places = window.google.maps.places as any;
+    const autocompleteService = new places.AutocompleteService();
+    const placesService = new places.PlacesService(document.createElement('div'));
 
     // Define different search types to try - enhanced for landmarks and businesses
     const searchTypes = [
@@ -241,7 +242,7 @@ export function EnhancedLocationFilter({
               : { componentRestrictions: { country: ['us', 'gb', 'ca', 'au'] } })
           },
           async (predictions: any[], status: any) => {
-            if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+            if (status === places.PlacesServiceStatus.OK && predictions) {
               // Get details for each prediction to obtain coordinates
               const detailPromises = predictions.slice(0, 3).map((prediction) => {
                 return new Promise<SearchSuggestion | null>((detailResolve) => {
@@ -251,7 +252,7 @@ export function EnhancedLocationFilter({
                       fields: ['place_id', 'formatted_address', 'geometry', 'name']
                     },
                     (place: any, detailStatus: any) => {
-                      if (detailStatus === window.google.maps.places.PlacesServiceStatus.OK && place) {
+                      if (detailStatus === places.PlacesServiceStatus.OK && place) {
                         let distance: number | undefined;
                         
                         // Calculate distance if user location is available

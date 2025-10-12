@@ -196,8 +196,9 @@ export function EnhancedSearchBar({
       return [];
     }
 
-    const autocompleteService = new window.google.maps.places.AutocompleteService();
-    const placesService = new window.google.maps.places.PlacesService(document.createElement('div'));
+    const places = window.google.maps.places as any;
+    const autocompleteService = new places.AutocompleteService();
+    const placesService = new places.PlacesService(document.createElement('div'));
 
     // Define different search types to try - enhanced for landmarks and businesses
     const searchTypes = [
@@ -224,7 +225,7 @@ export function EnhancedSearchBar({
               : { componentRestrictions: { country: ['us', 'gb', 'ca', 'au'] } })
           },
           async (predictions: any[], status: any) => {
-            if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+            if (status === places.PlacesServiceStatus.OK && predictions) {
               // Get details for each prediction to obtain coordinates
               const detailPromises = predictions.slice(0, 3).map((prediction) => {
                 return new Promise<SearchSuggestion | null>((detailResolve) => {
@@ -234,7 +235,7 @@ export function EnhancedSearchBar({
                       fields: ['place_id', 'formatted_address', 'geometry', 'name']
                     },
                     (place: any, detailStatus: any) => {
-                      if (detailStatus === window.google.maps.places.PlacesServiceStatus.OK && place) {
+                      if (detailStatus === places.PlacesServiceStatus.OK && place) {
                         let distance: number | undefined;
                         
                         // Calculate distance if user location is available
@@ -496,7 +497,7 @@ export function EnhancedSearchBar({
         return;
       }
 
-      const geocoder = new window.google.maps.Geocoder();
+      const geocoder = new (window.google.maps as any).Geocoder();
       geocoder.geocode({ address: locationName }, (results: any[], status: any) => {
         if (status === 'OK' && results && results[0]) {
           const location = results[0].geometry.location;

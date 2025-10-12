@@ -5,22 +5,35 @@ import React, { useRef, useEffect, useState } from 'react';
 // Google Maps types
 declare global {
   interface Window {
-    google: any;
-  }
-  
-  namespace google {
-    namespace maps {
-      namespace places {
-        class Autocomplete {
-          constructor(input: HTMLInputElement, options?: any);
-          addListener(eventName: string, handler: Function): void;
-          getPlace(): any;
-        }
-      }
-      namespace event {
-        function clearInstanceListeners(instance: any): void;
-      }
-    }
+    google: {
+      maps: {
+        places: {
+          Autocomplete: new (
+            input: HTMLInputElement,
+            options?: {
+              types?: string[];
+              fields?: string[];
+              componentRestrictions?: unknown;
+            }
+          ) => {
+            addListener(eventName: string, handler: () => void): void;
+            getPlace(): {
+              formatted_address?: string;
+              name?: string;
+              place_id?: string;
+              address_components?: unknown[];
+              geometry?: unknown;
+              types?: string[];
+            } | undefined;
+          };
+          [key: string]: unknown; // Allow other Places API properties
+        };
+        event: {
+          clearInstanceListeners(instance: unknown): void;
+        };
+        [key: string]: unknown; // Allow other Google Maps API properties
+      };
+    };
   }
 }
 
@@ -44,7 +57,17 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   id,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const autocompleteRef = useRef<{
+    addListener(eventName: string, handler: () => void): void;
+    getPlace(): {
+      formatted_address?: string;
+      name?: string;
+      place_id?: string;
+      address_components?: unknown[];
+      geometry?: unknown;
+      types?: string[];
+    } | undefined;
+  } | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const inputId = id || `address-autocomplete-${label.toLowerCase().replace(/\s/g, '-')}`;
 
@@ -123,7 +146,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
     return () => {
       // Cleanup autocomplete listeners
-      if (autocompleteRef.current && window.google && window.google.maps) {
+      if (autocompleteRef.current && window.google && window.google.maps && window.google.maps.event) {
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };

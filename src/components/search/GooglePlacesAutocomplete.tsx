@@ -3,13 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 
-// Google Maps types
-declare global {
-  interface Window {
-    google: any;
-  }
-}
-
 interface GooglePlacesAutocompleteProps {
   onPlaceSelect: (place: {
     description: string;
