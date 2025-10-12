@@ -699,9 +699,24 @@ export function StudiosPage() {
                         : { lat: 20, lng: 0 }
                       }
                       zoom={searchResults.searchCoordinates ? 10 : 2}
-                      markers={(searchResults.mapMarkers || searchResults.studios)
-                        .filter(studio => studio.latitude && studio.longitude)
-                        .map(studio => ({
+                      markers={(() => {
+                        const allStudios = (searchResults.mapMarkers || searchResults.studios);
+                        const studiosWithCoords = allStudios.filter(studio => studio.latitude && studio.longitude);
+                        const studiosWithoutCoords = allStudios.filter(studio => !studio.latitude || !studio.longitude);
+                        
+                        if (studiosWithoutCoords.length > 0) {
+                          console.warn('⚠️ Studios missing coordinates:', studiosWithoutCoords.map(s => ({ 
+                            id: s.id, 
+                            name: s.name, 
+                            address: s.address,
+                            lat: s.latitude,
+                            lng: s.longitude 
+                          })));
+                        }
+                        
+                        console.log(`📍 Map markers: ${studiosWithCoords.length}/${allStudios.length} studios have coordinates`);
+                        
+                        return studiosWithCoords.map(studio => ({
                         id: studio.id,
                         position: { lat: studio.latitude!, lng: studio.longitude! },
                         title: studio.name,
@@ -722,7 +737,8 @@ export function StudiosPage() {
                               studio_images: ('images' in studio && studio.studio_images) ? studio.studio_images: [],
                             }
                           } : {}),
-                        }))}
+                        }));
+                      })()}
                       searchCenter={searchResults.searchCoordinates || null}
                       searchRadius={parseInt(searchParams.get('radius') || '10')}
                       selectedMarkerId={null}
