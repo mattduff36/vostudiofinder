@@ -292,11 +292,11 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 
                 {/* Thumbnail Row */}
                 {displayImages.length > 1 && (
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {displayImages.slice(1, 5).map((image, index) => (
                       <div 
                         key={image.id} 
-                        className="relative h-24 bg-gray-200 rounded-md overflow-hidden cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-[#d42027] transition-all"
+                        className="relative aspect-[4/3] bg-gray-200 rounded-md overflow-hidden cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-[#d42027] transition-all"
                         onClick={() => handleThumbnailClick(index + 1)}
                       >
                         <Image
