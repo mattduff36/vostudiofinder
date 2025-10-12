@@ -1,12 +1,15 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { 
   User, 
   Plus,
   Settings,
-  Activity
+  Activity,
+  Loader2
 } from 'lucide-react';
+import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
 
 interface UserDashboardProps {
   data: {
@@ -82,8 +85,28 @@ interface UserDashboardProps {
 
 export function UserDashboard({ data }: UserDashboardProps) {
   const { user } = data;
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const isStudioOwner = user.role === 'STUDIO_OWNER' || user.role === 'ADMIN';
+
+  // Fetch profile data for completion progress
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+          const result = await response.json();
+          setProfileData(result.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -146,16 +169,75 @@ export function UserDashboard({ data }: UserDashboardProps) {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
-          {/* Placeholder */}
-          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-            <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-text-primary mb-2">
-              Overview Page Under Development
-            </h3>
-            <p className="text-text-secondary max-w-md mx-auto">
-              This section is currently being developed. Check back soon for activity insights, recent reviews, and messages.
-            </p>
-          </div>
+          {loading ? (
+            <div className="bg-white rounded-lg border border-gray-200 p-12 flex justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+          ) : profileData ? (
+            <>
+              {/* Profile Completion Progress */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <ProfileCompletionProgress 
+                  profileData={{
+                    display_name: profileData.user?.display_name,
+                    username: profileData.user?.username,
+                    avatar_url: profileData.user?.avatar_url,
+                    about: profileData.profile?.about,
+                    short_about: profileData.profile?.short_about,
+                    phone: profileData.profile?.phone,
+                    location: profileData.profile?.location,
+                    studio_name: profileData.profile?.studio_name,
+                    facebook_url: profileData.profile?.facebook_url,
+                    twitter_url: profileData.profile?.twitter_url,
+                    linkedin_url: profileData.profile?.linkedin_url,
+                    instagram_url: profileData.profile?.instagram_url,
+                    youtube_url: profileData.profile?.youtube_url,
+                    connection1: profileData.profile?.connection1,
+                    connection2: profileData.profile?.connection2,
+                    connection3: profileData.profile?.connection3,
+                    connection4: profileData.profile?.connection4,
+                    connection5: profileData.profile?.connection5,
+                    connection6: profileData.profile?.connection6,
+                    connection7: profileData.profile?.connection7,
+                    connection8: profileData.profile?.connection8,
+                  }}
+                />
+              </div>
+
+              {/* Profile Tips */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-blue-900 mb-2">Profile Tips</h3>
+                <ul className="space-y-2 text-sm text-blue-800">
+                  <li>• Complete profiles get 3x more views</li>
+                  <li>• Add a professional photo to build trust</li>
+                  <li>• Fill in your about sections to stand out</li>
+                  <li>• Add connection methods so clients can reach you easily</li>
+                  <li>• Link your social media to showcase your work</li>
+                </ul>
+              </div>
+
+              {/* Additional Dashboard Sections Coming Soon */}
+              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-text-primary mb-2">
+                  More Features Coming Soon
+                </h3>
+                <p className="text-text-secondary max-w-md mx-auto">
+                  Activity insights, recent reviews, and messages will appear here soon.
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+              <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-medium text-text-primary mb-2">
+                Welcome to Your Dashboard
+              </h3>
+              <p className="text-text-secondary max-w-md mx-auto">
+                Complete your profile to see your progress and tips here.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -12,16 +12,18 @@ function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const temp = shuffled[i];
+    shuffled[i] = shuffled[j]!;
+    shuffled[j] = temp!;
   }
   return shuffled;
 }
 
 // Pin a specific studio to the top 6 positions
-function pinStudioToTop6<T extends { name: string; id: number }>(studios: T[], targetName: string): T[] {
+function pinStudioToTop6<T extends { name: string }>(studios: T[]): T[] {
   if (studios.length === 0) return studios;
   
-  // Find the target studio
+  // Find the target studio (VoiceoverGuy - Yorkshire Recording Studio)
   const targetIndex = studios.findIndex(studio => 
     studio.name.toLowerCase().includes('voiceoverguy') && 
     studio.name.toLowerCase().includes('yorkshire')
@@ -32,12 +34,14 @@ function pinStudioToTop6<T extends { name: string; id: number }>(studios: T[], t
     return studios;
   }
   
-  // Remove the studio from its current position
+  // Remove the studio from its current position and insert at random position in top 6
+  const insertPosition = Math.floor(Math.random() * 6);
   const [targetStudio] = studios.splice(targetIndex, 1);
   
-  // Insert it at a random position in the top 6 (but not position 0 to keep premium there)
-  const insertPosition = Math.floor(Math.random() * 6);
-  studios.splice(insertPosition, 0, targetStudio);
+  // Safety check - this should never happen but TypeScript needs it
+  if (targetStudio) {
+    studios.splice(insertPosition, 0, targetStudio);
+  }
   
   return studios;
 }
@@ -363,7 +367,7 @@ export async function GET(request: NextRequest) {
         finalStudiosWithDistance = [...premiumStudios, ...shuffledNonPremium];
         
         // Pin the target studio to top 6
-        finalStudiosWithDistance = pinStudioToTop6(finalStudiosWithDistance, 'voiceoverguy');
+        finalStudiosWithDistance = pinStudioToTop6(finalStudiosWithDistance);
       }
       
       // Apply pagination to filtered results
@@ -437,7 +441,7 @@ export async function GET(request: NextRequest) {
         let finalStudios = [...premiumStudios, ...shuffledNonPremium];
         
         // Pin the target studio to top 6
-        finalStudios = pinStudioToTop6(finalStudios, 'voiceoverguy');
+        finalStudios = pinStudioToTop6(finalStudios);
         
         // Apply pagination manually
         studios = finalStudios.slice(0, validatedParams.limit);
