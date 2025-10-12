@@ -237,12 +237,20 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     };
 
     // Remove undefined values from structured data
-    const cleanedStructuredData = JSON.parse(JSON.stringify(structuredData, (_key, value) => 
+    const tempData = JSON.parse(JSON.stringify(structuredData, (_key, value) => 
       value === undefined ? null : value
     ));
-    Object.keys(cleanedStructuredData).forEach(key => 
-      cleanedStructuredData[key] === null && delete cleanedStructuredData[key]
+    Object.keys(tempData).forEach(key => 
+      tempData[key] === null && delete tempData[key]
     );
+
+    // Ensure @context is the first property for Google compliance
+    const cleanedStructuredData = {
+      '@context': 'https://schema.org',
+      ...Object.fromEntries(
+        Object.entries(tempData).filter(([key]) => key !== '@context')
+      )
+    };
 
     return (
       <>
