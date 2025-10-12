@@ -484,6 +484,8 @@ export async function GET(request: NextRequest) {
         latitude: Number(studio.latitude),
         longitude: Number(studio.longitude),
       }));
+    
+    console.log(`📍 Returning ${serializedStudios.length} paginated studios and ${serializedMapMarkers.length} map markers`);
 
     const response = {
       studios: serializedStudios,
