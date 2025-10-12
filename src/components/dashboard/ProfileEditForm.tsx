@@ -19,6 +19,7 @@ interface ProfileData {
     display_name: string;
     username: string;
     email: string;
+    avatar_url?: string | null;
   };
   profile: {
     phone?: string;
