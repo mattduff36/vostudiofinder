@@ -124,7 +124,7 @@ export function Navbar({ session }: NavbarProps) {
           {/* Logo */}
           <Link 
             href="/" 
-            className="transition-opacity hover:opacity-80"
+            className="transition-opacity hover:opacity-80 cursor-pointer"
           >
             <Image
               src={isScrolled || !isHomePage 
