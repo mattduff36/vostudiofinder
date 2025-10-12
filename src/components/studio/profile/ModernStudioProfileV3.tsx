@@ -558,8 +558,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     </div>
                   )}
 
-                  {/* Website */}
-                  {studio.website_url && (
+                  {/* Website - Only show if email is available OR if button won't show Visit Website */}
+                  {studio.website_url && !(studio.website_url && profile?.showEmail === false) && (
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                         <Globe className="w-4 h-4 text-gray-600" />
