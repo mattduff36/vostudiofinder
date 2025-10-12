@@ -158,7 +158,7 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
             
             {/* About Section */}
             {profile?.about && (
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-md p-6">
                 <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.textPrimary }}>
                   About
                 </h2>
@@ -258,7 +258,7 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
 
             {/* Social Media Links */}
             {socialLinks.length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-md p-6">
                 <h3 className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
                   Connect
                 </h3>
