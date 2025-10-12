@@ -128,7 +128,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                 className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col h-full cursor-pointer group"
               >
                 {/* Studio Image */}
-                <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
+                <div className="aspect-[25/12] bg-gray-200 rounded-t-lg overflow-hidden relative">
                   {studio.studio_images?.[0]?.imageUrl ? (
                     <Image
                       src={studio.studio_images[0].imageUrl}

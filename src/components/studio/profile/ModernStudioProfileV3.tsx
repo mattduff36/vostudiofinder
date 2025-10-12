@@ -282,7 +282,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               <div className="mb-8">
                 {/* Featured Image */}
                 <div 
-                  className="relative h-96 bg-gray-200 rounded-lg overflow-hidden mb-4 cursor-pointer group"
+                  className="relative aspect-[25/12] bg-gray-200 rounded-lg overflow-hidden mb-4 cursor-pointer group"
                   onClick={() => setShowLightbox(true)}
                 >
                   <Image
@@ -308,7 +308,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     {displayImages.slice(1, 5).map((image, index) => (
                       <div 
                         key={image.id} 
-                        className="relative aspect-[4/3] bg-gray-200 rounded-md overflow-hidden cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-[#d42027] transition-all"
+                        className="relative aspect-[25/12] bg-gray-200 rounded-md overflow-hidden cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-[#d42027] transition-all"
                         onClick={() => handleThumbnailClick(index + 1)}
                       >
                         <Image
