@@ -127,6 +127,12 @@ export function GoogleMap({
   // Helper function to create studio markers
   const createStudioMarkers = useCallback((mapInstance: any, markerData: any[]) => {
     console.log('🏭 Creating studio markers:', markerData.length);
+    console.log('📍 Marker data:', markerData.map(m => ({ 
+      id: m.id, 
+      name: m.title, 
+      lat: m.position.lat, 
+      lng: m.position.lng 
+    })));
     
     const googleMaps = window.google.maps as any;
     
@@ -194,6 +200,8 @@ export function GoogleMap({
     });
 
     markersRef.current = newMarkers;
+    
+    console.log(`✅ Created ${newMarkers.length} individual markers`);
 
     // Create marker clusterer for grouping with custom cluster marker
     if (newMarkers.length > 0) {
