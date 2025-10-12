@@ -38,7 +38,9 @@ export async function GET(request: NextRequest) {
     // Try to get cached results first
     const cachedResults = await cache.getCachedSearchResults(cacheKey);
     if (cachedResults) {
-      return NextResponse.json(cachedResults);
+      console.log(`🔄 Returning cached results: ${cachedResults.studios?.length || 0} studios, ${cachedResults.mapMarkers?.length || 0} mapMarkers`);
+      // Temporarily disable cache to test fresh results
+      // return NextResponse.json(cachedResults);
     }
 
     // Build where clause
