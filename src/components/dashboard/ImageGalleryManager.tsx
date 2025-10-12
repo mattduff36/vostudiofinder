@@ -298,7 +298,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
                 onDragStart={() => handleDragStart(index)}
                 onDragEnd={handleDragEnd}
                 onDragEnter={() => handleDragEnter(index)}
-                className={`group relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-move ${
+                className={`group relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden cursor-move ${
                   draggedIndex === index ? 'opacity-50' : ''
                 }`}
               >

@@ -94,7 +94,7 @@ export const userProfileUpdateSchema = z.object({
   location: z.string().max(255).optional(),
   
   // About sections
-  about: z.string().max(500, 'About section must be less than 500 characters').optional(),
+  about: z.string().max(1000, 'About section must be less than 1000 characters').optional(),
   short_about: z.string().max(140, 'Short about must be less than 140 characters').optional(),
   
   // Rates

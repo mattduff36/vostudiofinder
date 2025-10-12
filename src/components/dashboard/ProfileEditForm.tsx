@@ -360,8 +360,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               value={profile.profile.about || ''}
               onChange={(e) => updateProfile('about', e.target.value)}
               rows={6}
-              helperText={`Detailed description for your profile page (${(profile.profile.about || '').length}/500 characters)`}
-              maxLength={500}
+              helperText={`Detailed description for your profile page (${(profile.profile.about || '').length}/1000 characters)`}
+              maxLength={1000}
             />
           </div>
         )}
