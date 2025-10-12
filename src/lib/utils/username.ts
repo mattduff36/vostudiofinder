@@ -6,8 +6,11 @@
  * Convert display name to CamelCase (e.g., "Smith Studios" -> "SmithStudios")
  */
 export function toCamelCase(display_name: string): string {
-  return display_name
+  // First remove all special characters except spaces, underscores, and hyphens
+  const cleaned = display_name.replace(/[^a-zA-Z0-9\s_-]/g, '');
+  return cleaned
     .split(/[\s_-]+/)
+    .filter(word => word.length > 0)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join('');
 }
@@ -16,8 +19,11 @@ export function toCamelCase(display_name: string): string {
  * Convert display name to Snake_Case (e.g., "Smith Studios" -> "Smith_Studios")
  */
 export function toSnakeCase(display_name: string): string {
-  return display_name
+  // First remove all special characters except spaces and hyphens
+  const cleaned = display_name.replace(/[^a-zA-Z0-9\s-]/g, '');
+  return cleaned
     .split(/[\s-]+/)
+    .filter(word => word.length > 0)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join('_');
 }

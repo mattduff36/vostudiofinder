@@ -54,10 +54,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if username is already taken (if provided)
+    // Check if username is already taken (if provided) - case-insensitive
     if (username) {
-      const existingUsername = await db.users.findUnique({
-        where: { username },
+      const existingUsername = await db.users.findFirst({
+        where: {
+          username: {
+            equals: username,
+            mode: 'insensitive',
+          },
+        },
       });
       
       if (existingUsername) {
