@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Toggle } from '@/components/ui/Toggle';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
-import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -90,7 +89,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState('basic');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -205,7 +204,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   }
 
   const sections = [
-    { id: 'overview', label: 'Overview' },
     { id: 'basic', label: 'Basic Info' },
     { id: 'contact', label: 'Contact & Location' },
     { id: 'rates', label: 'Rates & Pricing' },
@@ -257,47 +255,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       {/* Content */}
       <div className="px-6 py-6 min-h-[400px] flex justify-center">
         <div className="w-full max-w-5xl">
-        {activeSection === 'overview' && (
-          <div className="space-y-6">
-            <ProfileCompletionProgress 
-              profileData={{
-                display_name: profile.user.display_name,
-                username: profile.user.username,
-                avatar_url: profile.user.avatar_url,
-                about: profile.profile.about,
-                short_about: profile.profile.short_about,
-                phone: profile.profile.phone,
-                location: profile.profile.location,
-                studio_name: profile.profile.studio_name,
-                facebook_url: profile.profile.facebook_url,
-                twitter_url: profile.profile.twitter_url,
-                linkedin_url: profile.profile.linkedin_url,
-                instagram_url: profile.profile.instagram_url,
-                youtube_url: profile.profile.youtube_url,
-                connection1: profile.profile.connection1,
-                connection2: profile.profile.connection2,
-                connection3: profile.profile.connection3,
-                connection4: profile.profile.connection4,
-                connection5: profile.profile.connection5,
-                connection6: profile.profile.connection6,
-                connection7: profile.profile.connection7,
-                connection8: profile.profile.connection8,
-              }}
-            />
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-lg font-medium text-blue-900 mb-2">Profile Tips</h3>
-              <ul className="space-y-2 text-sm text-blue-800">
-                <li>• Complete profiles get 3x more views</li>
-                <li>• Add a professional photo to build trust</li>
-                <li>• Fill in your about sections to stand out</li>
-                <li>• Add connection methods so clients can reach you easily</li>
-                <li>• Link your social media to showcase your work</li>
-              </ul>
-            </div>
-          </div>
-        )}
-        
         {activeSection === 'basic' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
