@@ -115,7 +115,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           {/* Avatar Section */}
           <div className="flex items-center space-x-6">
             <div className="flex-shrink-0">
-              <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+              <div className="w-32 h-24 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                 {session?.user?.avatar_url ? (
                   <img
                     src={session.user.avatar_url}
