@@ -78,6 +78,8 @@ export default async function Home() {
     description: studio.users?.user_profiles?.short_about || '', // Use short_about as description
     latitude: studio.latitude ? Number(studio.latitude) : null,
     longitude: studio.longitude ? Number(studio.longitude) : null,
+    owner: studio.users ? { username: studio.users.username } : undefined, // Map users to owner for component
+    address: studio.address || '', // Ensure address is available
   }));
 
   return (

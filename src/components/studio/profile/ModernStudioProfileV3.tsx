@@ -489,10 +489,13 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 <div className="h-3"></div>
                 {/* Directions section - matches thumbnail row height (h-24 = 96px) */}
                 <div className="h-24 flex flex-col justify-center px-6">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <p className="text-xs text-gray-600 line-clamp-1">{studio.address}</p>
-                  </div>
+                  {/* Only show address if showAddress is not explicitly false */}
+                  {(profile?.showAddress !== false) && studio.address && (
+                    <div className="flex items-center space-x-2 mb-2">
+                      <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <p className="text-xs text-gray-600 line-clamp-1">{studio.address}</p>
+                    </div>
+                  )}
                   <Button
                     size="sm"
                     className="w-full"
@@ -580,6 +583,21 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                       >
                         <Mail className="w-4 h-4 mr-2" />
                         Message Studio
+                      </Button>
+                    </a>
+                  ) : studio.website_url && (profile?.showEmail === false) ? (
+                    <a 
+                      href={studio.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      <Button
+                        size="sm"
+                        className="w-full"
+                      >
+                        <Globe className="w-4 h-4 mr-2" />
+                        Visit Website
                       </Button>
                     </a>
                   ) : (
