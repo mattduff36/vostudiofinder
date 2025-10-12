@@ -313,18 +313,18 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
                   {index + 1}
                 </div>
 
-                {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                {/* Action Buttons - Always Visible */}
+                <div className="absolute top-2 right-2 flex gap-2">
                   <button
                     onClick={() => handleEditAltText(image)}
-                    className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
+                    className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors shadow-lg"
                     title="Edit alt text"
                   >
                     <Edit2 className="w-4 h-4 text-gray-700" />
                   </button>
                   <button
                     onClick={() => handleDelete(image.id)}
-                    className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
+                    className="p-2 bg-white rounded-full hover:bg-red-50 transition-colors shadow-lg"
                     title="Delete image"
                   >
                     <Trash2 className="w-4 h-4 text-red-600" />
