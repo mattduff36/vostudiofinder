@@ -700,8 +700,8 @@ export function StudiosPage() {
                       }
                       zoom={searchResults.searchCoordinates ? 10 : 2}
                       markers={(() => {
-                        // Always use the full studios array for the map, not mapMarkers which may be paginated
-                        const allStudios = searchResults.studios;
+                        // Use mapMarkers which contains ALL studios within radius (not paginated)
+                        const allStudios = searchResults.mapMarkers || searchResults.studios;
                         const studiosWithCoords = allStudios.filter(studio => studio.latitude && studio.longitude);
                         const studiosWithoutCoords = allStudios.filter(studio => !studio.latitude || !studio.longitude);
                         
