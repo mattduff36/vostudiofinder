@@ -170,7 +170,7 @@ export function EnhancedImageGallery({
                         </button>
 
                         {/* Image */}
-                        <div className="aspect-video bg-gray-100 relative">
+                        <div className="aspect-[25/12] bg-gray-100 relative">
                           <img
                             src={image.url}
                             alt={image.alt_text || 'Studio image'}
