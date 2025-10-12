@@ -182,23 +182,32 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       ? studio.reviews.reduce((sum, review) => sum + review.rating, 0) / studio.reviews.length
       : 0;
 
-    // Generate structured data for SEO
+    // Get base URL from environment or use default
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://voiceoverstudiofinder.com';
+    const pageUrl = `${baseUrl}/${username}`;
+
+    // Get description from user_profiles.short_about with fallback
+    const businessDescription = user.user_profiles?.short_about || 
+                                studio.description || 
+                                'Voiceover recording studio available for hire in the UK.';
+
+    // Generate structured data for SEO (LocalBusiness schema)
     const structuredData = {
       '@context': 'https://schema.org',
       '@type': 'LocalBusiness',
-      '@id': `https://voiceoverstudiofinder.com/${username}`,
+      '@id': pageUrl,
       name: studio.name,
-      description: studio.description,
-      url: `https://voiceoverstudiofinder.com/${username}`,
-      address: {
+      description: businessDescription,
+      url: pageUrl,
+      address: studio.address ? {
         '@type': 'PostalAddress',
         streetAddress: studio.address,
         addressCountry: 'GB',
-      },
+      } : undefined,
       geo: studio.latitude && studio.longitude ? {
         '@type': 'GeoCoordinates',
-        latitude: studio.latitude,
-        longitude: studio.longitude,
+        latitude: Number(studio.latitude),
+        longitude: Number(studio.longitude),
       } : undefined,
       aggregateRating: studio.reviews.length > 0 ? {
         '@type': 'AggregateRating',
@@ -222,16 +231,24 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         reviewBody: review.content,
         datePublished: review.created_at.toISOString(),
       })),
-      image: studio.studio_images.map((img) => img.image_url),
+      // Limit to max 3 images for clean schema
+      image: studio.studio_images.slice(0, 3).map((img) => img.image_url).filter(Boolean),
       priceRange: '$$',
-      serviceType: 'Audio Recording Studio',
     };
+
+    // Remove undefined values from structured data
+    const cleanedStructuredData = JSON.parse(JSON.stringify(structuredData, (key, value) => 
+      value === undefined ? null : value
+    ));
+    Object.keys(cleanedStructuredData).forEach(key => 
+      cleanedStructuredData[key] === null && delete cleanedStructuredData[key]
+    );
 
     return (
       <>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(cleanedStructuredData) }}
         />
         <ModernStudioProfileV3 
           studio={({
