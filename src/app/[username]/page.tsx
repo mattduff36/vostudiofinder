@@ -231,8 +231,8 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         reviewBody: review.content,
         datePublished: review.created_at.toISOString(),
       })),
-      // Limit to max 3 images for clean schema
-      image: studio.studio_images.slice(0, 3).map((img) => img.image_url).filter(Boolean),
+      // Use only the first (main) image
+      image: studio.studio_images[0]?.image_url || undefined,
       priceRange: '$$',
     };
 
