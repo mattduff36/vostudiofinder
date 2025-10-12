@@ -11,11 +11,17 @@ interface UsernamePageProps {
 export async function generateMetadata({ params }: UsernamePageProps): Promise<Metadata> {
   const { username } = await params;
   
-  // Find user by username and get their studio
+  // Find user by username and get their studio with profile data
   const user = await db.users.findUnique({
     where: { username },
     select: {
       display_name: true,
+      user_profiles: {
+        select: {
+          short_about: true,
+          twitter_url: true,
+        },
+      },
       studios: {
         where: { status: 'ACTIVE' },
         select: {
@@ -25,6 +31,9 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
           studio_images: {
             take: 1,
             orderBy: { sort_order: 'asc' },
+            select: {
+              image_url: true,
+            },
           },
         },
         take: 1, // Assuming one studio per user
@@ -39,23 +48,59 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   }
 
   const studio = user.studios[0];
+  const profile = user.user_profiles;
+  
   if (!studio) {
     return {
       title: 'Studio Not Found - VoiceoverStudioFinder',
     };
   }
 
-  return {
+  // Construct the full page URL
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://voiceoverstudiofinder.com';
+  const pageUrl = `${baseUrl}/${username}`;
+
+  // Use short_about if available, otherwise fall back to description
+  const description = profile?.short_about || studio.description?.substring(0, 160) || `${studio.name} recording studio`;
+
+  // Use first image or fallback to logo
+  const ogImage = studio.studio_images?.[0]?.image_url || `${baseUrl}/images/voiceover-studio-finder-header-logo2-black.png`;
+
+  // Check if user has Twitter handle
+  const hasTwitter = profile?.twitter_url && profile.twitter_url.trim().length > 0;
+
+  const metadata: Metadata = {
     title: `${studio.name} - Recording Studio | VoiceoverStudioFinder`,
-    description: studio.description?.substring(0, 160) || `${studio.name} recording studio`,
+    description: description,
     keywords: `recording studio, ${studio.name}, voiceover, audio production, ${studio.address}`,
     openGraph: {
       title: studio.name,
-      description: studio.description || `${studio.name} recording studio`,
+      description: description,
       type: 'website',
-      images: studio.studio_images?.[0]?.image_url ? [studio.studio_images[0].image_url] : [],
+      url: pageUrl,
+      siteName: 'VoiceoverStudioFinder',
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: `${studio.name} - Recording Studio`,
+        },
+      ],
     },
   };
+
+  // Only add Twitter metadata if user has a Twitter handle
+  if (hasTwitter) {
+    metadata.twitter = {
+      card: 'summary_large_image',
+      title: studio.name,
+      description: description,
+      images: [ogImage],
+    };
+  }
+
+  return metadata;
 }
 
 export default async function UsernamePage({ params }: UsernamePageProps) {
