@@ -326,20 +326,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
             {/* Studio Header */}
             <div className="mb-6">
-              <div className="mb-3">
-                <h1 className="text-3xl font-bold text-gray-900 mb-1">{studio.name}</h1>
-                <div className="flex items-center space-x-4 mb-3">
-                  {/* Badges */}
-                  <div className="flex flex-wrap gap-2">
-                    {studio.is_verified && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        <Shield className="w-4 h-4 mr-1" />
-                        Verified
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-3">{studio.name}</h1>
 
               {/* Rating and Reviews */}
               {studio.reviews.length > 0 && (
@@ -527,6 +514,16 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Studio Details</h3>
                 
                 <div className="space-y-2">
+                  {/* Verified Badge */}
+                  {studio.is_verified && (
+                    <div className="pb-2 border-b border-gray-200">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        <Shield className="w-4 h-4 mr-1" />
+                        Verified
+                      </span>
+                    </div>
+                  )}
+
                   {/* Studio Types */}
                   {studio.studio_studio_types && studio.studio_studio_types.length > 0 && (
                     <div className="pb-2 border-b border-gray-200">
