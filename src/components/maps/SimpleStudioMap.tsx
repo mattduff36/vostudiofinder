@@ -59,7 +59,9 @@ export function SimpleStudioMap({
     const googleMaps = window.google.maps as any;
     const map = new googleMaps.Map(mapRef.current, {
       center: { lat: latitude, lng: longitude },
-      zoom: 15,
+      zoom: 14, // Start at a reasonable distance
+      minZoom: 2, // Prevent zooming out too far
+      maxZoom: 16, // Limit zoom for privacy - shows neighborhood but not exact building details
       zoomControl: true,
       mapTypeControl: false,
       streetViewControl: false,
