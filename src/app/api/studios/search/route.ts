@@ -417,15 +417,16 @@ export async function GET(request: NextRequest) {
         console.log(`📊 Before distance filtering: ${mapMarkers.length} mapMarkers`);
         mapMarkers = mapMarkers.filter(studio => {
           if (!studio.latitude || !studio.longitude) return false;
-          const distance = calculateDistance(
+          const distanceKm = calculateDistance(
             searchCoordinates.lat,
             searchCoordinates.lng,
             Number(studio.latitude),
             Number(studio.longitude)
           );
-          const withinRadius = distance <= validatedParams.radius!;
+          const distanceMiles = distanceKm * 0.621371; // Convert km to miles
+          const withinRadius = distanceMiles <= validatedParams.radius!;
           if (!withinRadius) {
-            console.log(`❌ Filtered out: ${studio.name} - ${distance.toFixed(2)}mi > ${validatedParams.radius}mi`);
+            console.log(`❌ Filtered out: ${studio.name} - ${distanceMiles.toFixed(2)}mi > ${validatedParams.radius}mi`);
           }
           return withinRadius;
         });
