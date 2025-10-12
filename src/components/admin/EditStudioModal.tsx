@@ -58,6 +58,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     if (studio && isOpen) {
@@ -151,7 +152,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
       onSave();
       // Don't close the modal - just show success message
-      alert('Changes saved successfully!');
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Error saving profile:', error);
       alert('Failed to save profile. Please try again.');
@@ -814,6 +815,27 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </div>
           </div>
         </div>
+
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center cursor-pointer"
+            onClick={() => setShowSuccessModal(false)}
+          >
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-4">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Success!</h3>
+              </div>
+              <p className="text-gray-600 mb-4">Changes saved successfully!</p>
+              <p className="text-xs text-gray-500">Click anywhere to close</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
