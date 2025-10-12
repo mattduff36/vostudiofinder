@@ -237,7 +237,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     };
 
     // Remove undefined values from structured data
-    const cleanedStructuredData = JSON.parse(JSON.stringify(structuredData, (key, value) => 
+    const cleanedStructuredData = JSON.parse(JSON.stringify(structuredData, (_key, value) => 
       value === undefined ? null : value
     ));
     Object.keys(cleanedStructuredData).forEach(key => 
