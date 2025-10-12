@@ -5,27 +5,27 @@ import { CheckCircle, Circle } from 'lucide-react';
 
 interface ProfileCompletionProgressProps {
   profileData: {
-    display_name?: string;
-    username?: string;
-    avatar_url?: string;
-    about?: string;
-    short_about?: string;
-    phone?: string;
-    location?: string;
-    studio_name?: string;
-    facebook_url?: string;
-    twitter_url?: string;
-    linkedin_url?: string;
-    instagram_url?: string;
-    youtube_url?: string;
-    connection1?: string;
-    connection2?: string;
-    connection3?: string;
-    connection4?: string;
-    connection5?: string;
-    connection6?: string;
-    connection7?: string;
-    connection8?: string;
+    display_name?: string | undefined;
+    username?: string | undefined;
+    avatar_url?: string | undefined | null;
+    about?: string | undefined;
+    short_about?: string | undefined;
+    phone?: string | undefined;
+    location?: string | undefined;
+    studio_name?: string | undefined;
+    facebook_url?: string | undefined;
+    twitter_url?: string | undefined;
+    linkedin_url?: string | undefined;
+    instagram_url?: string | undefined;
+    youtube_url?: string | undefined;
+    connection1?: string | undefined;
+    connection2?: string | undefined;
+    connection3?: string | undefined;
+    connection4?: string | undefined;
+    connection5?: string | undefined;
+    connection6?: string | undefined;
+    connection7?: string | undefined;
+    connection8?: string | undefined;
   };
 }
 
