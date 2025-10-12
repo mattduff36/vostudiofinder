@@ -361,7 +361,7 @@ export function GoogleMap({
       minZoom: 2, // Prevent zooming out beyond the initial global view
       maxZoom,
       // Enable smooth animations with proper scroll wheel behavior
-      gestureHandling: 'greedy', // Allow all gestures without requiring Ctrl key
+      gestureHandling: 'cooperative', // Require 2-finger scroll on mobile, Ctrl+scroll on desktop
       scrollwheel: false, // Disable scroll wheel zoom by default
       zoomControl: true,
       zoomControlOptions: {
