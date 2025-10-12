@@ -43,6 +43,10 @@ interface ProfileData {
     connection6?: string;
     connection7?: string;
     connection8?: string;
+    custom_connection_1_name?: string;
+    custom_connection_1_value?: string;
+    custom_connection_2_name?: string;
+    custom_connection_2_value?: string;
     show_email: boolean;
     show_phone: boolean;
     show_address: boolean;
@@ -304,7 +308,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               label="Short About"
               value={profile.profile.short_about || ''}
               onChange={(e) => updateProfile('short_about', e.target.value)}
-              helperText="Brief description shown in listings"
+              helperText={`Brief description shown in listings (${(profile.profile.short_about || '').length}/140 characters)`}
+              maxLength={140}
             />
 
             <Textarea
@@ -312,7 +317,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               value={profile.profile.about || ''}
               onChange={(e) => updateProfile('about', e.target.value)}
               rows={6}
-              helperText="Detailed description for your profile page"
+              helperText={`Detailed description for your profile page (${(profile.profile.about || '').length}/500 characters)`}
+              maxLength={500}
             />
           </div>
         )}
@@ -481,28 +487,82 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         )}
 
         {activeSection === 'connections' && (
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600 mb-4">
-              Select the communication methods you support for remote sessions.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {CONNECTION_TYPES.map((connection) => (
-                <label
-                  key={connection.id}
-                  className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={profile.profile[connection.id as keyof typeof profile.profile] === '1'}
-                    onChange={(e) => updateProfile(connection.id, e.target.checked ? '1' : '0')}
-                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="text-2xl mr-2">{connection.icon}</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {connection.label}
-                  </span>
-                </label>
-              ))}
+          <div className="space-y-6">
+            <div>
+              <p className="text-sm text-gray-600 mb-4">
+                Select the communication methods you support for remote sessions.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {CONNECTION_TYPES.map((connection) => (
+                  <label
+                    key={connection.id}
+                    className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={profile.profile[connection.id as keyof typeof profile.profile] === '1'}
+                      onChange={(e) => updateProfile(connection.id, e.target.checked ? '1' : '0')}
+                      className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-2xl mr-2">{connection.icon}</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {connection.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Connections */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Custom Connection Methods</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Add your own custom connection methods (max 2)
+              </p>
+              
+              <div className="space-y-4">
+                {/* Custom Connection 1 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Custom Method 1</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      label="Method Name"
+                      value={profile.profile.custom_connection_1_name || ''}
+                      onChange={(e) => updateProfile('custom_connection_1_name', e.target.value)}
+                      placeholder="e.g., Discord, WhatsApp"
+                      maxLength={50}
+                    />
+                    <Input
+                      label="Connection Details"
+                      value={profile.profile.custom_connection_1_value || ''}
+                      onChange={(e) => updateProfile('custom_connection_1_value', e.target.value)}
+                      placeholder="e.g., Username, ID, or details"
+                      maxLength={100}
+                    />
+                  </div>
+                </div>
+
+                {/* Custom Connection 2 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Custom Method 2</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      label="Method Name"
+                      value={profile.profile.custom_connection_2_name || ''}
+                      onChange={(e) => updateProfile('custom_connection_2_name', e.target.value)}
+                      placeholder="e.g., Discord, WhatsApp"
+                      maxLength={50}
+                    />
+                    <Input
+                      label="Connection Details"
+                      value={profile.profile.custom_connection_2_value || ''}
+                      onChange={(e) => updateProfile('custom_connection_2_value', e.target.value)}
+                      placeholder="e.g., Username, ID, or details"
+                      maxLength={100}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

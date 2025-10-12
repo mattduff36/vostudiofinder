@@ -94,8 +94,8 @@ export const userProfileUpdateSchema = z.object({
   location: z.string().max(255).optional(),
   
   // About sections
-  about: z.string().max(2000, 'About section must be less than 2000 characters').optional(),
-  short_about: z.string().max(255, 'Short about must be less than 255 characters').optional(),
+  about: z.string().max(500, 'About section must be less than 500 characters').optional(),
+  short_about: z.string().max(140, 'Short about must be less than 140 characters').optional(),
   
   // Rates
   rate_tier_1: rateSchema,
@@ -121,6 +121,12 @@ export const userProfileUpdateSchema = z.object({
   connection6: connectionSchema, // Zoom
   connection7: connectionSchema, // Teams
   connection8: connectionSchema, // Skype
+  
+  // Custom connection methods
+  custom_connection_1_name: z.string().max(50).optional(),
+  custom_connection_1_value: z.string().max(100).optional(),
+  custom_connection_2_name: z.string().max(50).optional(),
+  custom_connection_2_value: z.string().max(100).optional(),
   
   // Visibility settings
   show_email: z.boolean().optional(),
