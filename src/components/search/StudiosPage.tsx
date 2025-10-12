@@ -703,19 +703,6 @@ export function StudiosPage() {
                         // Use mapMarkers which contains ALL studios within radius (not paginated)
                         const allStudios = searchResults.mapMarkers || searchResults.studios;
                         const studiosWithCoords = allStudios.filter(studio => studio.latitude && studio.longitude);
-                        const studiosWithoutCoords = allStudios.filter(studio => !studio.latitude || !studio.longitude);
-                        
-                        if (studiosWithoutCoords.length > 0) {
-                          console.warn('⚠️ Studios missing coordinates:', studiosWithoutCoords.map(s => ({ 
-                            id: s.id, 
-                            name: s.name, 
-                            address: s.address,
-                            lat: s.latitude,
-                            lng: s.longitude 
-                          })));
-                        }
-                        
-                        console.log(`📍 Map markers: ${studiosWithCoords.length}/${allStudios.length} studios have coordinates`);
                         
                         return studiosWithCoords.map(studio => ({
                         id: studio.id,
