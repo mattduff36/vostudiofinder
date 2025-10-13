@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { DashboardTabs, DashboardTab } from './DashboardTabs';
 import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
@@ -26,10 +27,12 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
       
       case 'settings':
         return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
-            <p className="text-gray-600">Settings panel will go here.</p>
-            {/* Settings panel will be added here */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
+              <p className="text-gray-600">Settings panel will go here.</p>
+              {/* Settings panel will be added here */}
+            </div>
           </div>
         );
       
@@ -39,9 +42,25 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen relative bg-gray-50">
+      {/* Background Image - Fixed */}
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/background-images/21920-4.jpg"
+          alt="Dashboard background texture"
+          fill
+          className="object-cover opacity-10"
+          priority={false}
+        />
+      </div>
+
+      {/* Tabs with proper z-index */}
+      <div className="relative z-20">
+        <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderTabContent()}
       </div>
     </div>
