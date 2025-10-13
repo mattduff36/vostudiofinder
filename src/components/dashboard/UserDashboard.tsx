@@ -215,7 +215,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 {/* Profile Tips - Takes 1/3 width on large screens */}
                 <div className="lg:col-span-1 bg-gray-50 border border-gray-300 shadow-sm rounded-lg p-6 text-center">
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Tips</h3>
-                  <ul className="space-y-2 text-sm text-gray-700 inline-block text-left">
+                  <ul className="space-y-2 text-sm text-text-secondary inline-block text-left">
                     <li>• Complete profiles get 3x more views</li>
                     <li>• Fill in your about sections to stand out</li>
                     <li>• Upload quality images of your studio to build trust</li>
