@@ -40,6 +40,7 @@ export function Navbar({ session }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const [isClient, setIsClient] = useState(false);
+  const [showEditButton, setShowEditButton] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
 
   // Calculate logo dimensions
@@ -49,6 +50,29 @@ export function Navbar({ session }: NavbarProps) {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Listen for profile edit handler events
+  useEffect(() => {
+    const handleEditHandlerReady = () => {
+      setShowEditButton(true);
+    };
+
+    const handleEditHandlerUnmount = () => {
+      setShowEditButton(false);
+    };
+
+    window.addEventListener('profileEditHandlerReady', handleEditHandlerReady);
+    window.addEventListener('profileEditHandlerUnmount', handleEditHandlerUnmount);
+
+    return () => {
+      window.removeEventListener('profileEditHandlerReady', handleEditHandlerReady);
+      window.removeEventListener('profileEditHandlerUnmount', handleEditHandlerUnmount);
+    };
+  }, []);
+
+  const handleEditClick = () => {
+    window.dispatchEvent(new Event('profileEditClick'));
+  };
 
   // Handle scroll effect
   useEffect(() => {
@@ -198,12 +222,22 @@ export function Navbar({ session }: NavbarProps) {
                   Dashboard
                 </Button>
                 {session.user.email === 'admin@mpdee.co.uk' && (
-                  <button
-                    onClick={() => router.push('/admin')}
-                    className="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
-                  >
-                    ADMIN
-                  </button>
+                  <>
+                    <button
+                      onClick={() => router.push('/admin')}
+                      className="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                    >
+                      ADMIN
+                    </button>
+                    {showEditButton && (
+                      <button
+                        onClick={handleEditClick}
+                        className="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                      >
+                        EDIT
+                      </button>
+                    )}
+                  </>
                 )}
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
@@ -322,12 +356,22 @@ export function Navbar({ session }: NavbarProps) {
                       Dashboard
                     </button>
                     {session.user.email === 'admin@mpdee.co.uk' && (
-                      <button
-                        onClick={() => router.push('/admin')}
-                        className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 transition-colors"
-                      >
-                        ADMIN
-                      </button>
+                      <>
+                        <button
+                          onClick={() => router.push('/admin')}
+                          className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 transition-colors"
+                        >
+                          ADMIN
+                        </button>
+                        {showEditButton && (
+                          <button
+                            onClick={handleEditClick}
+                            className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 transition-colors"
+                          >
+                            EDIT
+                          </button>
+                        )}
+                      </>
                     )}
                     <button
                       onClick={() => signOut({ callbackUrl: '/' })}
