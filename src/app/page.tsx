@@ -101,6 +101,11 @@ export default async function Home() {
     owner: studio.users ? { username: studio.users.username } : undefined, // Map users to owner for component
     location: studio.users?.user_profiles?.location || '', // Use user_profiles.location for featured studios
     address: studio.address || '', // Ensure address is available (but use location for display)
+    // Map studio_images to convert snake_case to camelCase for client component
+    studio_images: studio.studio_images?.map(img => ({
+      imageUrl: img.image_url,
+      alt_text: img.alt_text,
+    })) || [],
   }));
 
   return (
