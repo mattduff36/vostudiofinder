@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { 
   User, 
@@ -106,20 +105,9 @@ export function UserDashboard({ data }: UserDashboardProps) {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-50">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/background-images/21920-4.jpg"
-          alt="Dashboard background texture"
-          fill
-          className="object-cover opacity-10"
-          priority={false}
-        />
-      </div>
-
+    <div className="space-y-6">
       {/* Header */}
-      <div className="relative z-10 bg-white border-b border-gray-200">
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -127,12 +115,14 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 <img
                   src={user.avatar_url}
                   alt={user.display_name}
-                  className="w-16 h-16 rounded-full"
+                  className="w-16 h-16 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
-                  <User className="w-8 h-8 text-gray-600" />
-                </div>
+                <img
+                  src="/images/avatar-vosf.jpg"
+                  alt="Default avatar"
+                  className="w-16 h-16 rounded-full object-cover"
+                />
               )}
               <div>
                 <h1 className="text-3xl font-bold text-text-primary">
@@ -148,7 +138,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
         <div className="space-y-8">
           {loading ? (
             <div className="bg-white rounded-lg border border-gray-200 p-12 flex justify-center">
