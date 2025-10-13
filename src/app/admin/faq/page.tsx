@@ -88,8 +88,47 @@ export default function AdminFAQPage() {
   return (
     <>
       <AdminTabs activeTab="faq" />
-      <div className="min-h-screen" style={{ backgroundColor: '#d42027' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="min-h-screen bg-gray-50 relative">
+        {/* Subtle red gradient overlays in corners */}
+        <div className="fixed inset-0 pointer-events-none z-0">
+          {/* Top-left gradient */}
+          <div 
+            className="absolute top-0 left-0 w-96 h-96 opacity-50"
+            style={{
+              background: 'radial-gradient(circle at top left, #d42027 0%, transparent 70%)'
+            }}
+          />
+          {/* Top-right gradient */}
+          <div 
+            className="absolute top-0 right-0 w-96 h-96 opacity-50"
+            style={{
+              background: 'radial-gradient(circle at top right, #d42027 0%, transparent 70%)'
+            }}
+          />
+          {/* Bottom-left gradient */}
+          <div 
+            className="absolute bottom-0 left-0 w-96 h-96 opacity-50"
+            style={{
+              background: 'radial-gradient(circle at bottom left, #d42027 0%, transparent 70%)'
+            }}
+          />
+          {/* Bottom-right gradient */}
+          <div 
+            className="absolute bottom-0 right-0 w-96 h-96 opacity-50"
+            style={{
+              background: 'radial-gradient(circle at bottom right, #d42027 0%, transparent 70%)'
+            }}
+          />
+          {/* Center gradient */}
+          <div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-10"
+            style={{
+              background: 'radial-gradient(circle at center, #d42027 0%, transparent 70%)'
+            }}
+          />
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative z-10">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">❓ VOSF Knowledge Base</h1>
