@@ -266,7 +266,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             })(),
             description: studio.description || '',
             address: studio.address || '',
-            studioTypes: studio.studio_studio_types && studio.studio_studio_types.length > 0 
+            studio_studio_types: studio.studio_studio_types && studio.studio_studio_types.length > 0 
               ? studio.studio_studio_types.map(st => st.studio_type) 
               : ['VOICEOVER'],
             owner: {
