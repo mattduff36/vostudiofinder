@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { 
   User, 
@@ -105,9 +106,20 @@ export function UserDashboard({ data }: UserDashboardProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative overflow-hidden bg-gray-50">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/background-images/21920-4.jpg"
+          alt="Dashboard background texture"
+          fill
+          className="object-cover opacity-10"
+          priority={false}
+        />
+      </div>
+
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="relative z-10 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -136,7 +148,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
           {loading ? (
             <div className="bg-white rounded-lg border border-gray-200 p-12 flex justify-center">
