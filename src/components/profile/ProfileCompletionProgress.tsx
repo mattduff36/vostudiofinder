@@ -109,7 +109,7 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-md p-6">
+    <div>
       <h2 className="text-2xl font-semibold mb-6 text-gray-900">Profile Completion</h2>
       
       <div className="flex flex-col md:flex-row gap-8 items-center">
