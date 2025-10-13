@@ -185,12 +185,16 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 <div className="lg:col-span-1 bg-gray-50 border border-gray-300 shadow-sm rounded-lg p-6 text-center">
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Tips</h3>
                   <ul className="space-y-2 text-sm text-text-secondary inline-block text-left">
-                    <li>• Complete profiles get 3x more views</li>
-                    <li>• Fill in your about sections to stand out</li>
-                    <li>• Upload quality images of your studio to build trust</li>
-                    <li>• Add connection methods so clients can reach you easily</li>
-                    <li>• Link at least 2 social media profiles to showcase your work</li>
-                    <li>• All fields must be completed before publishing your profile</li>
+                    <li>✅ Complete profiles get more views</li>
+                    <li>📸 Add a professional photo to build trust</li>
+                    <li>✍️ Fill in your About sections to stand out</li>
+                    <li>🔗 Add connection methods so clients can reach you easily</li>
+                    <li>📣 Link your social media to showcase your work</li>
+                    <li>🧠 A good description helps with your SEO</li>
+                    <li>🏆 Reach 85% completion to become eligible for Verified status</li>
+                    <li>🌍 Add your location and website for better visibility in search results</li>
+                    <li>🎯 Upload a strong featured image – it's the first thing clients see</li>
+                    <li>💬 Include a short "intro" that sums up your studio or voice style</li>
                   </ul>
                 </div>
               </div>
