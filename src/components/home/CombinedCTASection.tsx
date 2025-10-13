@@ -11,6 +11,7 @@ interface CombinedCTASectionProps {
   stats: {
     totalStudios: number;
     totalUsers: number;
+    totalCountries: number;
   };
 }
 
@@ -55,7 +56,7 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
   
   const studiosCounter = useCountUp(stats.totalStudios, 2000);
   const usersCounter = useCountUp(stats.totalUsers, 2500);
-  const countriesCounter = useCountUp(50, 1500);
+  const countriesCounter = useCountUp(stats.totalCountries, 1500);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

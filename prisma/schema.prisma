@@ -280,11 +280,14 @@ model user_profiles {
   rate_tier_3             String?
   show_rates              Boolean  @default(false)
   facebook_url            String?
-  twitter_url             String?
+  twitter_url             String?  // Legacy field, kept for backward compatibility
+  x_url                   String?  // NEW: Renamed from Twitter to X
   linkedin_url            String?
   instagram_url           String?
+  tiktok_url              String?  // NEW: TikTok social media
+  threads_url             String?  // NEW: Threads social media
   youtube_url             String?
-  vimeo_url               String?
+  vimeo_url               String?  // Kept in DB, hidden in UI
   soundcloud_url          String?
   is_crb_checked          Boolean  @default(false)
   is_featured             Boolean  @default(false)
@@ -296,6 +299,7 @@ model user_profiles {
   show_email              Boolean  @default(false)
   show_phone              Boolean  @default(false)
   show_address            Boolean  @default(false)
+  show_directions         Boolean  @default(true) // NEW: Visibility toggle for directions
   created_at              DateTime @default(now())
   updated_at              DateTime
   studio_name             String?

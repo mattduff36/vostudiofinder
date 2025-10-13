@@ -27,10 +27,15 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
   
   // Fetch featured studios for the homepage (available to all users)
-  const featuredStudios = await db.studios.findMany({
+  // Only show studios where user_profiles.is_featured === true, limited to 6
+  const featuredStudiosRaw = await db.studios.findMany({
     where: {
       status: 'ACTIVE',
-      is_verified: true,
+      users: {
+        user_profiles: {
+          is_featured: true,
+        },
+      },
     },
     include: {
       users: {
@@ -41,6 +46,8 @@ export default async function Home() {
           user_profiles: {
             select: {
               short_about: true,
+              location: true,
+              is_featured: true,
             },
           },
         },
@@ -59,17 +66,30 @@ export default async function Home() {
         select: { reviews: true },
       },
     },
-    take: 6,
-    orderBy: [
-      { is_premium: 'desc' },
-      { created_at: 'desc' },
-    ],
+    take: 6, // Maximum of 6 featured studios
   });
 
+  // Randomize the order of featured studios
+  const featuredStudios = featuredStudiosRaw
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 6);
+
   // Get total counts for stats
-  const [totalStudios, totalUsers] = await Promise.all([
+  const [totalStudios, totalUsers, uniqueCountries] = await Promise.all([
     db.studios.count({ where: { status: 'ACTIVE' } }),
     db.users.count(),
+    // Count unique countries from user_profiles.location
+    db.user_profiles.findMany({
+      select: { location: true },
+      where: { location: { not: null } }
+    }).then(profiles => {
+      const uniqueLocations = new Set(
+        profiles
+          .map(p => p.location?.trim())
+          .filter((loc): loc is string => !!loc && loc.length > 0)
+      );
+      return uniqueLocations.size;
+    })
   ]);
 
   // Convert Decimal fields to numbers and map short_about to description for client components
@@ -79,7 +99,8 @@ export default async function Home() {
     latitude: studio.latitude ? Number(studio.latitude) : null,
     longitude: studio.longitude ? Number(studio.longitude) : null,
     owner: studio.users ? { username: studio.users.username } : undefined, // Map users to owner for component
-    address: studio.address || '', // Ensure address is available
+    location: studio.users?.user_profiles?.location || '', // Use user_profiles.location for featured studios
+    address: studio.address || '', // Ensure address is available (but use location for display)
   }));
 
   return (
@@ -89,6 +110,7 @@ export default async function Home() {
       stats={{
         totalStudios,
         totalUsers,
+        totalCountries: uniqueCountries,
       }}
     />
   );

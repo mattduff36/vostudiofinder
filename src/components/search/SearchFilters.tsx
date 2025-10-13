@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 
 import { X } from 'lucide-react';
 import { EnhancedLocationFilter } from './EnhancedLocationFilter';
-import { studio_type, ServiceType } from '@/types/prisma';
+import { studio_type } from '@/types/prisma';
 
 interface SearchFiltersProps {
   initialFilters: {
@@ -57,30 +57,31 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
     }
   };
 
-  const handleServiceToggle = (service: string) => {
-    const currentServices = filters.studio_services || [];
-    const updatedServices = currentServices.includes(service)
-      ? currentServices.filter(s => s !== service)
-      : [...currentServices, service];
-    
-    const newFilters = { ...filters, studio_services: updatedServices };
-    
-    // Preserve coordinates if they exist
-    if (filters.lat && filters.lng) {
-      newFilters.lat = filters.lat;
-      newFilters.lng = filters.lng;
-    }
-    
-    setFilters(newFilters);
-    
-    // RULE: Only trigger search if there's a location
-    if (newFilters.location && newFilters.location.trim() !== '') {
-      console.log('✅ Service toggle triggering search - location exists');
-      onSearch(newFilters);
-    } else {
-      console.log('🚫 Service toggle skipping search - no location provided');
-    }
-  };
+  // Disabled for now - not currently used in the UI
+  // const handleServiceToggle = (service: string) => {
+  //   const currentServices = filters.studio_services || [];
+  //   const updatedServices = currentServices.includes(service)
+  //     ? currentServices.filter(s => s !== service)
+  //     : [...currentServices, service];
+  //   
+  //   const newFilters = { ...filters, studio_services: updatedServices };
+  //   
+  //   // Preserve coordinates if they exist
+  //   if (filters.lat && filters.lng) {
+  //     newFilters.lat = filters.lat;
+  //     newFilters.lng = filters.lng;
+  //   }
+  //   
+  //   setFilters(newFilters);
+  //   
+  //   // RULE: Only trigger search if there's a location
+  //   if (newFilters.location && newFilters.location.trim() !== '') {
+  //     console.log('✅ Service toggle triggering search - location exists');
+  //     onSearch(newFilters);
+  //   } else {
+  //     console.log('🚫 Service toggle skipping search - no location provided');
+  //   }
+  // };
 
 
 
@@ -104,16 +105,15 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
     { value: studio_type.PODCAST, label: 'Podcast Studio' },
   ];
 
-  const serviceOptions = [
-    { value: ServiceType.SOURCE_CONNECT, label: 'Source Connect' },
-    { value: ServiceType.SOURCE_CONNECT_NOW, label: 'Source Connect Now' },
-    { value: ServiceType.CLEANFEED, label: 'Cleanfeed' },
-    { value: ServiceType.SESSION_LINK_PRO, label: 'Session Link Pro' },
-    { value: ServiceType.ZOOM, label: 'Zoom' },
-    { value: ServiceType.TEAMS, label: 'Microsoft Teams' },
-  ];
-
-
+  // Disabled for now - not currently used in the UI
+  // const serviceOptions = [
+  //   { value: ServiceType.SOURCE_CONNECT, label: 'Source Connect' },
+  //   { value: ServiceType.SOURCE_CONNECT_NOW, label: 'Source Connect Now' },
+  //   { value: ServiceType.CLEANFEED, label: 'Cleanfeed' },
+  //   { value: ServiceType.SESSION_LINK_PRO, label: 'Session Link Pro' },
+  //   { value: ServiceType.ZOOM, label: 'Zoom' },
+  //   { value: ServiceType.TEAMS, label: 'Microsoft Teams' },
+  // ];
 
   const hasActiveFilters = filters.location || filters.studio_studio_types.length > 0 || filters.studio_services.length > 0 || filters.radius !== 10;
 
@@ -137,7 +137,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3 space-y-6">
       {hasActiveFilters && (
         <div className="flex justify-end">
           <Button
@@ -155,7 +155,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
 
       {/* Location */}
       <div>
-        <label className="block text-sm font-medium text-text-primary mb-3">
+        <label className="block text-sm font-medium text-black mb-3">
           Location
         </label>
         <div className="space-y-3">
@@ -268,7 +268,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
 
       {/* Studio Types */}
       <div>
-        <label className="block text-sm font-medium text-text-primary mb-3">
+        <label className="block text-sm font-medium text-black mb-3">
           Studio Types
         </label>
         <div className="space-y-2">
@@ -283,34 +283,12 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
                 onChange={() => handleStudioTypeToggle(option.value)}
                 className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
-              <span className="text-sm text-text-primary">{option.label}</span>
+              <span className="text-sm text-black">{option.label}</span>
             </label>
           ))}
         </div>
       </div>
 
-      {/* Services */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-3">
-          Services
-        </label>
-        <div className="space-y-2">
-          {serviceOptions.map(service => (
-            <label
-              key={service.value}
-              className="flex items-center space-x-2 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={filters.studio_services.includes(service.value)}
-                onChange={() => handleServiceToggle(service.value)}
-                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm text-text-primary">{service.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
 
 
 

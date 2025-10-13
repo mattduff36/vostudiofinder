@@ -1,0 +1,353 @@
+*** PROMPT 1 - Profile Completion Logic:
+
+update the profile completion logic in the dashboard “Overview” section as follows:
+________________________________________
+❌ Remove Avatar from the completion checklist entirely. It’s not needed for this platform, and should not count towards the profile percentage.
+
+✅ Update the fields required for a profile to reach 100% Complete. The user must have the following completed:
+1.	Display Name ✅
+2.	Username ✅
+3.	Short About ✅ 
+4.	Full About ✅
+5.	Phone ✅
+6.	Location ✅
+7.	Studio Name ✅
+8.	Connection Methods ✅
+9.	Social Media — Minimum of 2 links
+10.	Website URL (in studio profile)
+11.	At least 1 image uploaded 
+12.	Studio Type selected (e.g. Home, Podcast, Recording)
+13.	Rate Tier 1 (must have at least one £/hour rate filled out)
+14.	Email (from user profile or contact settings)
+________________________________________
+🔄 Recalculate the percentage logic based on these 14 fields. Each should be worth roughly 7.14%, or adjusted evenly to total 100%.
+
+Can the circle stay grey in colour until 75% then turn the colour to Amber and anything over 85% can turn Green.
+
+✅ Update the green checklist UI to reflect these new requirements showing which they haven’t filled yet. 
+All are Mandatory before the user can publish the file. 
+ 
+Remove “Avatar”, and display any missing items with a hollow circle and label (e.g. ⭕ Website URL).
+
+
+
+*** PROMPT 2 - Control Gold Star & Homepage “Featured Studios” via Admin Toggle
+
+update the Featured logic site-wide to be controlled solely by the user_profiles.is_featured boolean.
+
+🔸 Specifically:
+1.	On the Studio Admin Panel, when an admin ticks or unticks the “Featured” checkbox (linked to user_profiles.is_featured), it should update the database immediately.
+2.	On the Studios dashboard (admin view), the gold star icon in the “Status” column should:
+
+•	✅ Only appear if user_profiles.is_featured === true
+•	❌ Not appear if it’s false or missing
+
+3.	On the Homepage (in the “Featured Studios” section):
+
+•	Display studios only where user_profiles.is_featured === true
+•	Limit to a maximum of 6 featured studios (admin should not be able to make a studio featured if 6 are already chosen)
+•	Show them in a random order each time the page is loaded
+
+“Cursor, on the admin studio list page, add a tooltip or label to the gold star icon saying ‘Featured Studio – displayed on homepage’ when hovered.”
+
+
+
+*** PROMPT 3 - Fix Homepage Featured Studios Display
+
+update the Featured Studios section on the homepage so that each featured studio card correctly displays:
+________________________________________
+🖼️ Image
+•	Show the first image from the studio’s image gallery
+•	
+•	If no image exists, fall back to a default placeholder image of the website logo
+
+✍️ Short Description
+•	Pull the summary text from user_profiles.short_about
+•	This should appear as the main paragraph text under the studio name and location
+
+📍 Location and Studio Name
+•	Studio name should come from studios.name
+•	Location should use user_profiles.location
+
+✅ Also ensure that:
+•	The image loads from a valid path (e.g., Cloudinary or public image folder)
+•	The homepage only loads studios where user_profiles.is_featured === true
+
+
+
+*** PROMPT 4 - Adjust Default Map Zoom for Privacy
+
+on the individual studio profile page, please update the default zoom level of the Google Map to be less precise, to protect user privacy.
+
+Specifically:
+•	Set the default zoom level to 3 steps further out than the current value
+•	This should centre the map on the studio’s postcode (e.g. WF2 0UJ) or coordinates, but display a wider surrounding area rather than the exact street or building
+•	Ensure the map still supports user interaction (scroll, zoom, drag) as normal
+•	On mobile, use the ‘two finger option) maintain full responsiveness and avoid cutting off map controls at the new zoom level
+
+
+
+*** PROMPT 5 - Verification Badge Update
+
+please update the Verified badge UI across the site for consistency and clarity.
+________________________________________
+🔁 Replace:
+•	❌ Remove the green “Verified” badge with the shield icon currently shown on studio profile pages (right column)
+
+✅ Instead:
+•	✔️ Show the green tick icon immediately after the studio name (from studios.name) on:
+o	The studio profile page, 
+o	The studio card on grid/list views (homepage, search results)
+o	Any modal or popup card with a studio name
+•	Make the tick use:
+o	🔴 use studio red (#d42027) for hover or tooltip accent
+
+🧾 Also:
+•	At the bottom of the profile page, add a subtle box or label reading:
+o	✔️ Verified Studio — 
+o	Style: light border, green tick, small font, consistent with the rest of the UI
+•	Tooltip (optional): On hover over the tick next to studio name, show:
+“Verified studio — approved by our team.”
+
+
+
+*** PROMPT 6 - Fix Padding on About Box
+
+adjust the padding on the “About” box on the studio profile page to match the padding used in the “Studio Details” box.
+•	The current “About” box has too much top padding, pushing the About heading too far down
+•	Reduce the top padding to visually align it with the title in the “Studio Details” box on the right-hand side
+•	Maintain consistent left/right/bottom spacing, just tighten the top spacing for a cleaner and more balanced layout
+
+🧪 Bonus: Apply a utility class (pt-4 or similar) instead of hardcoded styles, if possible, for easier site-wide consistency
+
+
+
+*** PROMPT 7 - Studios Page Filter, Styling & Colour Updates
+
+update the /studios page layout and styling as follows:
+________________________________________
+🎯 1. Remove Unnecessary Filters:
+•	❌ Remove the “Services” filter section entirely (Source Connect, Zoom, Cleanfeed, etc.)
+•	✅ Keep only the Studio Type filters (Voiceover Studio, Podcast Studio, Recording Studio)
+________________________________________
+💻 2. Refactor Filter Box Styling:
+•	Apply the same light drop shadow and rounded corners used on the studio profile side boxes (e.g. “Studio Details” or “Contact Info”) for consistency
+•	Match the padding and border-radius as well
+•	Adjust the height of the filter box so it cuts off at the same level as the bottom of the map beside it — they should align vertically
+________________________________________
+🎨 3. Improve Text Colour for Accessibility:
+•	Change all light grey text used in:
+o	Search input placeholder
+o	Website URLs
+o	Phone numbers
+o	Dropdown labels or filter headings
+→ to standard black (#000000)
+
+This improves contrast, accessibility, and consistency across the platform.
+
+
+
+*** PROMPT 8 - Make Homepage Stats Reflect Live Data
+
+please update the stats section on the homepage to reflect live, dynamic values based on actual platform data.
+________________________________________
+🏢 Recording Studios:
+•	If not already, Replace the hardcoded number 651+ with the actual number of studios currently listed, using the studios table
+•	Count only published/active studios (e.g. is_active === true)
+
+🌍 Countries:
+•	Replace 50+ with the actual number of unique countries based on user_profiles.location or Location / Region result in the Edit Profile section.
+
+
+•	Use a DISTINCT or GROUP BY query to count how many unique countries are represented by user profiles
+•	If location is free-text, consider parsing based on country field or using a helper function to extract countries from known formats
+
+
+
+*** PROMPT 9 - Edit Profile – Location Field Update
+
+update the “Location / Region” field on the Edit Profile page (Contact & Location tab) as follows:
+
+________________________________________
+🏷️ 1. Label Change:
+•	Change the label text from “Location / Region” to “Country”
+•	Update the placeholder if needed to say: e.g. United Kingdom
+________________________________________
+🌍 2. Autocomplete Functionality:
+•	Enable Google Places Autocomplete (or existing address autocomplete system) to suggest only valid Countries (e.g. United Kingdom, United States, Germany etc.)
+o	Maybe always have United Kingdom, United States and Germany at the top of the list. Use a drop down
+•	
+•	Prevent selection of overly granular localities (like roads, postcodes, or businesses. Keep to Countries only)
+________________________________________
+🗃️ 3. Database Impact:
+•	Ensure the final selected value is saved to profile and provide the path so we can link on the website. We should change the use of the postcode under the map to the Country and region/town of the studio.
+________________________________________
+✅ This will:
+•	Improve accuracy in search radius filters
+•	Provide more structured filtering across user locations
+•	Clean up inconsistent location naming
+
+
+
+*** PROMPT 10 - Fix Upload Error + Add Featured Image Visual Cue
+
+address two things in the Studio Images section:
+________________________________________
+🐞 1. Image Upload Error:
+•	Investigate the cause of the "Failed to upload image" error when uploading new images
+•	Confirm that accepted formats are correctly handled (.png, .jpg, .webp)
+•	Ensure image size is validated client-side and server-side (limit is 5MB as stated)
+•	Please now limit to 5 images and change text accordingly. If 5 images is the max, disable or grey out the upload box once 5 images are present and show a message like: “Maximum of 5 images reached.”
+•	Ensure any Cloudinary (or other storage) upload path is authenticated and accessible
+________________________________________
+🟥 2. Featured Image Red Highlight:
+•	Add a red border (e.g. 2px solid #d42027) around image slot #1 to show it’s the currently featured image
+•	Add a small tag/label (e.g. ⭐ Featured) in the top-left or top-right corner
+•	When a user drags a new image into slot #1, update the featured image reference immediately (update DB if necessary)
+•	Ensure the red box moves with the slot, not locked to a specific image
+✅ This image should be used for:
+•	Studio search result cards
+•	Studio homepage Featured studio display
+•	OpenGraph/meta previews where applicable
+
+
+
+*** PROMPT 11 - Standardise “Connections” and Add Suggestion Approval System with Notifications
+
+Cursor, please update the “Communication Methods” system across user and admin dashboards. Here’s what to change:
+________________________________________
+1. 🔁 Rename All to “Connections”
+•	Change all instances of “Communication Methods” to “Connections”
+•	This includes:
+o	Edit Profile tab: Edit Profile > Connections
+o	Heading on that page
+o	Admin Dashboard tab: Admin > Connections
+________________________________________
+2. 🔄 Sync Connection Options
+•	Make sure the user-facing connection options are not hardcoded but dynamically loaded from an admin-approved list
+•	Keep icons for visual consistency (e.g. Source Connect, Cleanfeed, Zoom, etc.)
+•	These should match what appears in:
+o	Public profile
+o	Admin > Studios > Connections tab
+________________________________________
+3. ✍️ Custom Method Suggestion (User Side)
+•	In “Connections” under Edit Profile:
+o	Keep only “Method Name” 
+o	Remove “Connection Details” field
+o	Add a Submit button
+o	Users can suggest up to 2 methods per profile
+________________________________________
+4. 🛠️ Admin Dashboard > New “Connections” Tab
+•	Add a new Admin tab called “Connections”
+•	Inside, create a table showing user-submitted suggestions
+o	Columns: Suggested Method, Submitted By, Date, Approve, Reject
+•	On approval:
+o	Add method to global connection options list (instantly usable by all users)
+•	On rejection:
+o	Remove it from the suggestions list
+•	Prevent duplicate or near-identical names (case-insensitive)
+________________________________________
+5. 📣 Notifications for Users
+•	When a user-submitted method is:
+o	Approved → Show notification:
+✅ “Your suggested connection method ‘Discord’ has been approved and is now available to all users.”
+o	Rejected → Show notification:
+❌ “Sorry, your suggested connection method ‘Discord’ was not approved. Please ensure suggestions are relevant and professional.”
+•	Notifications can appear as:
+o	Alert in dashboard banner
+o	OR toast-style popup on next login
+________________________________________
+6. ✅ Once Approved, a Method:
+•	Appears in the user’s profile editor (Connections tab)
+•	Can be toggled on/off just like existing methods
+•	Becomes assignable by Admin to any studio
+•	Displays on the studio’s public profile if selected
+
+
+
+*** PROMPT 12 - Social Media Section: UI & Database Changes
+
+1. 
+Field Consistency
+•	Ensure both the Edit Profile > Social Media page and the Admin > Edit Studio > Social Media tab contain the same platforms, with the same order and field names.
+
+2. 
+Field Changes
+•	Remove: Vimeo
+•	Add:
+o	TikTok (e.g. https://www.tiktok.com/@yourhandle)
+o	Threads (e.g. https://www.threads.net/@yourhandle)
+•	Rename:
+o	Change “Twitter” to “X” on both front-end and back-end
+o	Update the database field name from twitter_url to x_url (or whatever naming you prefer)
+
+
+
+*** PROMPT 13 - Character Count Display for Descriptions
+
+
+Purpose:
+Improve usability and visual feedback when users are completing the “Short About” and “Full About” fields.
+________________________________________
+Task Requirements:
+1.	Live Character Counter
+o	Add a live character counter beneath each input field as users type.
+o	Display the count as:
+	xx/150 characters for Short About
+	xx/1200 characters for Full About 
+2.	Field Limits
+o	Hard-limit input to:
+	150 characters for Short About
+	1200 characters for Full About
+3.	Visual Placement
+o	The counter should sit below the input box, right-aligned (e.g., grey text, smaller font size).
+o	Match existing UI style and spacing.
+4.	Why It’s Important
+o	The Short About text appears on the studio profile card across the site.
+o	We need to ensure it fits cleanly without getting cut off.
+o	The counter helps users keep within the limit and write concise, clear summaries.
+5.	Optional Enhancement
+o	Consider using a soft colour change at 1000 - orange  then at 1100 words - red as the user approaches the limit to help visually reinforce the remaining space.
+
+
+
+*** PROMPT 14 - Visibility Toggles (Contact Info)
+
+Task:
+Update visibility toggles in both Admin and User areas to streamline options and match user-facing controls.
+________________________________________
+🛠️ In 
+Admin > Edit Studio Profile > Contact Tab
+:
+
+Update the “Display Settings” section:
+
+🔹 Remove the following toggle options:
+•	Show Short About
+•	Show Map
+
+🔹 Keep only these toggles:
+•	Show Email
+•	Show Phone
+•	Show Address
+•	Show Directions
+
+These should function as visibility toggles for the public studio profile page.
+________________________________________
+🛠️ In 
+Users > Edit Profile > Contact & Location > Visibility Settings
+:
+
+Update the “Visibility Settings” box:
+
+✅ Add a new toggle:
+•	Show Directions
+Display directions link on public profile (based on Location data if provided)
+
+✅ Final toggles should be:
+•	Show Email
+•	Show Phone
+•	Show Address
+•	Show Directions
+________________________________________
+If the Show Directions is Toggled OFF, please change the red ‘get directions’ tab in the profile page to Visit Website and hyperlink to the users URL. 

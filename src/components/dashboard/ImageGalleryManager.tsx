@@ -59,9 +59,10 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
     const file = files[0];
     if (!file) return;
     
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file');
+    // Validate file type - only allow specific formats
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Please select a valid image file (.png, .jpg, .webp)');
       return;
     }
 
@@ -71,9 +72,9 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
       return;
     }
 
-    // Check image limit
-    if (images.length >= 10) {
-      setError('Maximum 10 images allowed');
+    // Check image limit - now 5 max
+    if (images.length >= 5) {
+      setError('Maximum of 5 images reached');
       return;
     }
 
@@ -238,7 +239,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
         <div className="border-b border-gray-200 px-6 py-4">
           <h2 className="text-2xl font-bold text-gray-900">Manage Images</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Upload and organize your studio images ({images.length}/10)
+            Upload and organize your studio images ({images.length}/5)
           </p>
         </div>
       )}
@@ -252,39 +253,55 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
 
       {/* Upload Zone */}
       <div className={isAdminMode ? "mb-4" : "p-6"}>
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          className={`border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-500 transition-colors cursor-pointer ${
+        {images.length >= 5 ? (
+          <div className={`border-2 border-gray-300 rounded-lg text-center bg-gray-50 ${
             isAdminMode ? 'p-4' : 'p-8'
-          }`}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleFileSelect(e.target.files)}
-            className="hidden"
-          />
-          
-          {uploading ? (
+          }`}>
             <div className="flex flex-col items-center">
-              <Loader2 className={`text-blue-600 animate-spin ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
-              <p className="text-sm font-medium text-gray-700">Uploading...</p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center">
-              <Upload className={`text-gray-400 ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
+              <ImageIcon className={`text-gray-400 ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
               <p className="text-sm font-medium text-gray-700 mb-1">
-                Drop images here or click to browse
+                Maximum of 5 images reached
               </p>
               <p className="text-xs text-gray-500">
-                PNG, JPG, WebP up to 5MB (max 10 images)
+                Delete an image to upload a new one
               </p>
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            className={`border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-500 transition-colors cursor-pointer ${
+              isAdminMode ? 'p-4' : 'p-8'
+            }`}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              onChange={(e) => handleFileSelect(e.target.files)}
+              className="hidden"
+            />
+            
+            {uploading ? (
+              <div className="flex flex-col items-center">
+                <Loader2 className={`text-blue-600 animate-spin ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
+                <p className="text-sm font-medium text-gray-700">Uploading...</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <Upload className={`text-gray-400 ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Drop images here or click to browse
+                </p>
+                <p className="text-xs text-gray-500">
+                  PNG, JPG, WebP up to 5MB (max 5 images)
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Image Grid */}
@@ -300,7 +317,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
                 onDragEnter={() => handleDragEnter(index)}
                 className={`group relative aspect-[25/12] bg-gray-100 rounded-lg overflow-hidden cursor-move ${
                   draggedIndex === index ? 'opacity-50' : ''
-                }`}
+                } ${index === 0 ? 'ring-2 ring-[#d42027]' : ''}`}
               >
                 <img
                   src={image.image_url}
@@ -308,10 +325,20 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
                   className="w-full h-full object-cover"
                 />
                 
+                {/* Featured Badge for first image */}
+                {index === 0 && (
+                  <div className="absolute top-2 left-2 px-2 py-1 bg-[#d42027] text-white text-xs font-bold rounded shadow-lg flex items-center gap-1">
+                    <span>⭐</span>
+                    <span>Featured</span>
+                  </div>
+                )}
+                
                 {/* Sort Order Badge */}
-                <div className="absolute top-2 left-2 w-7 h-7 bg-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
-                  {index + 1}
-                </div>
+                {index > 0 && (
+                  <div className="absolute top-2 left-2 w-7 h-7 bg-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
+                    {index + 1}
+                  </div>
+                )}
 
                 {/* Action Buttons - Always Visible */}
                 <div className="absolute top-2 right-2 flex gap-2">

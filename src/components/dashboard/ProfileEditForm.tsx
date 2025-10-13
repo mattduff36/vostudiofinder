@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Toggle } from '@/components/ui/Toggle';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
+import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -30,11 +31,12 @@ interface ProfileData {
     rate_tier_3?: number;
     show_rates: boolean;
     facebook_url?: string;
-    twitter_url?: string;
+    x_url?: string; // Renamed from twitter_url
     linkedin_url?: string;
     instagram_url?: string;
     youtube_url?: string;
-    vimeo_url?: string;
+    tiktok_url?: string; // New field
+    threads_url?: string; // New field
     soundcloud_url?: string;
     connection1?: string;
     connection2?: string;
@@ -51,6 +53,7 @@ interface ProfileData {
     show_email: boolean;
     show_phone: boolean;
     show_address: boolean;
+    show_directions?: boolean;
     studio_name?: string;
     equipment_list?: string;
     services_offered?: string;
@@ -208,7 +211,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     { id: 'contact', label: 'Contact & Location' },
     { id: 'rates', label: 'Rates & Pricing' },
     { id: 'social', label: 'Social Media' },
-    { id: 'connections', label: 'Communication Methods' },
+    { id: 'connections', label: 'Connections' },
   ];
 
   return (
@@ -262,6 +265,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 label="Display Name"
                 value={profile.user.display_name || ''}
                 onChange={(e) => updateUser('display_name', e.target.value)}
+                helperText="Your public display name"
                 required
               />
               <Input
@@ -281,18 +285,24 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               helperText="Contact admin to change email address"
             />
 
-            <Input
-              label="Studio Name"
-              value={profile.profile.studio_name || ''}
-              onChange={(e) => updateProfile('studio_name', e.target.value)}
-              helperText={`${(profile.profile.studio_name || '').length}/30 characters`}
-              maxLength={30}
-            />
+            <div>
+              <Input
+                label="Studio Name"
+                value={profile.profile.studio_name || ''}
+                onChange={(e) => updateProfile('studio_name', e.target.value)}
+                helperText="Your studio or business name"
+                maxLength={30}
+              />
+              <div className="text-right text-xs text-gray-500 mt-1">
+                {(profile.profile.studio_name || '').length}/30 characters
+              </div>
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Studio Types
               </label>
+              <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {STUDIO_TYPES.map((type) => (
                   <Checkbox
@@ -305,22 +315,40 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
             </div>
 
-            <Input
-              label="Short About"
-              value={profile.profile.short_about || ''}
-              onChange={(e) => updateProfile('short_about', e.target.value)}
-              helperText={`Brief description shown in listings (${(profile.profile.short_about || '').length}/140 characters)`}
-              maxLength={140}
-            />
+            <div>
+              <Input
+                label="Short About"
+                value={profile.profile.short_about || ''}
+                onChange={(e) => updateProfile('short_about', e.target.value)}
+                helperText="Brief description shown in listings"
+                maxLength={150}
+              />
+              <div className="text-right text-xs text-gray-500 mt-1">
+                {(profile.profile.short_about || '').length}/150 characters
+              </div>
+            </div>
 
-            <Textarea
-              label="Full About"
-              value={profile.profile.about || ''}
-              onChange={(e) => updateProfile('about', e.target.value)}
-              rows={6}
-              helperText={`Detailed description for your profile page (${(profile.profile.about || '').length}/1000 characters)`}
-              maxLength={1000}
-            />
+            <div>
+              <Textarea
+                label="Full About"
+                value={profile.profile.about || ''}
+                onChange={(e) => updateProfile('about', e.target.value)}
+                rows={6}
+                helperText="Detailed description for your profile page"
+                maxLength={1200}
+              />
+              <div 
+                className={`text-right text-xs mt-1 ${
+                  (profile.profile.about || '').length >= 1100 
+                    ? 'text-red-600 font-semibold' 
+                    : (profile.profile.about || '').length >= 1000 
+                    ? 'text-orange-600 font-medium' 
+                    : 'text-gray-500'
+                }`}
+              >
+                {(profile.profile.about || '').length}/1200 characters
+              </div>
+            </div>
           </div>
         )}
 
@@ -332,12 +360,16 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 type="tel"
                 value={profile.profile.phone || ''}
                 onChange={(e) => updateProfile('phone', e.target.value)}
+                helperText="Your contact phone number"
+                placeholder="+44 20 1234 5678"
               />
               <Input
                 label="Website URL"
                 type="url"
                 value={profile.studio?.website_url || ''}
                 onChange={(e) => updateStudio('website_url', e.target.value)}
+                helperText="Your studio or personal website"
+                placeholder="https://yourstudio.com"
               />
             </div>
 
@@ -346,14 +378,15 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               value={profile.studio?.address || ''}
               onChange={(value) => updateStudio('address', value)}
               placeholder="Start typing your address..."
-              helperText="Google autocomplete will suggest addresses, but you can type manually too"
+              helperText="Studio location for map display"
             />
 
-            <Input
-              label="Location / Region"
+            <CountryAutocomplete
+              label="Country"
               value={profile.profile.location || ''}
-              onChange={(e) => updateProfile('location', e.target.value)}
-              helperText="General area (e.g., 'Yorkshire, UK')"
+              onChange={(value) => updateProfile('location', value)}
+              placeholder="e.g. United Kingdom"
+              helperText="Your primary country of operation"
             />
 
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -377,6 +410,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   checked={profile.profile.show_address || false}
                   onChange={(checked) => updateProfile('show_address', checked)}
                 />
+                <Toggle
+                  label="Show Directions"
+                  description="Display directions link on public profile"
+                  checked={profile.profile.show_directions !== false}
+                  onChange={(checked) => updateProfile('show_directions', checked)}
+                />
               </div>
             </div>
           </div>
@@ -384,28 +423,39 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
         {activeSection === 'rates' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input
-                label="Rate Tier 1 (£/hour)"
-                type="number"
-                step="0.01"
-                value={profile.profile.rate_tier_1 || ''}
-                onChange={(e) => updateProfile('rate_tier_1', parseFloat(e.target.value) || null)}
-              />
-              <Input
-                label="Rate Tier 2 (£/hour)"
-                type="number"
-                step="0.01"
-                value={profile.profile.rate_tier_2 || ''}
-                onChange={(e) => updateProfile('rate_tier_2', parseFloat(e.target.value) || null)}
-              />
-              <Input
-                label="Rate Tier 3 (£/hour)"
-                type="number"
-                step="0.01"
-                value={profile.profile.rate_tier_3 || ''}
-                onChange={(e) => updateProfile('rate_tier_3', parseFloat(e.target.value) || null)}
-              />
+            <div>
+              <p className="text-sm text-gray-600 mb-4">
+                Set up to three rate tiers for your services
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input
+                  label="Rate Tier 1 (£/hour)"
+                  type="number"
+                  step="0.01"
+                  value={profile.profile.rate_tier_1 || ''}
+                  onChange={(e) => updateProfile('rate_tier_1', parseFloat(e.target.value) || null)}
+                  helperText="Basic rate"
+                  placeholder="0.00"
+                />
+                <Input
+                  label="Rate Tier 2 (£/hour)"
+                  type="number"
+                  step="0.01"
+                  value={profile.profile.rate_tier_2 || ''}
+                  onChange={(e) => updateProfile('rate_tier_2', parseFloat(e.target.value) || null)}
+                  helperText="Standard rate"
+                  placeholder="0.00"
+                />
+                <Input
+                  label="Rate Tier 3 (£/hour)"
+                  type="number"
+                  step="0.01"
+                  value={profile.profile.rate_tier_3 || ''}
+                  onChange={(e) => updateProfile('rate_tier_3', parseFloat(e.target.value) || null)}
+                  helperText="Premium rate"
+                  placeholder="0.00"
+                />
+              </div>
             </div>
 
             <Toggle
@@ -421,6 +471,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               onChange={(e) => updateProfile('equipment_list', e.target.value)}
               rows={4}
               helperText="List your microphones, interfaces, and other equipment"
+              placeholder="e.g., Neumann U87, Universal Audio Apollo, etc."
             />
 
             <Textarea
@@ -429,25 +480,31 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               onChange={(e) => updateProfile('services_offered', e.target.value)}
               rows={4}
               helperText="Describe the services you provide"
+              placeholder="e.g., Voice recording, audio editing, mixing, mastering..."
             />
           </div>
         )}
 
         {activeSection === 'social' && (
           <div className="space-y-4">
+            <p className="text-sm text-gray-600 mb-4">
+              Add links to your social media profiles
+            </p>
             <Input
               label="Facebook"
               type="url"
               value={profile.profile.facebook_url || ''}
               onChange={(e) => updateProfile('facebook_url', e.target.value)}
               placeholder="https://facebook.com/your-page"
+              helperText="Your Facebook page or profile"
             />
             <Input
-              label="Twitter"
+              label="X (formerly Twitter)"
               type="url"
-              value={profile.profile.twitter_url || ''}
-              onChange={(e) => updateProfile('twitter_url', e.target.value)}
-              placeholder="https://twitter.com/yourhandle"
+              value={profile.profile.x_url || ''}
+              onChange={(e) => updateProfile('x_url', e.target.value)}
+              placeholder="https://x.com/yourhandle"
+              helperText="Your X (Twitter) profile"
             />
             <Input
               label="LinkedIn"
@@ -455,6 +512,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               value={profile.profile.linkedin_url || ''}
               onChange={(e) => updateProfile('linkedin_url', e.target.value)}
               placeholder="https://linkedin.com/in/yourprofile"
+              helperText="Your LinkedIn profile"
             />
             <Input
               label="Instagram"
@@ -462,6 +520,23 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               value={profile.profile.instagram_url || ''}
               onChange={(e) => updateProfile('instagram_url', e.target.value)}
               placeholder="https://instagram.com/yourhandle"
+              helperText="Your Instagram profile"
+            />
+            <Input
+              label="TikTok"
+              type="url"
+              value={profile.profile.tiktok_url || ''}
+              onChange={(e) => updateProfile('tiktok_url', e.target.value)}
+              placeholder="https://www.tiktok.com/@yourhandle"
+              helperText="Your TikTok profile"
+            />
+            <Input
+              label="Threads"
+              type="url"
+              value={profile.profile.threads_url || ''}
+              onChange={(e) => updateProfile('threads_url', e.target.value)}
+              placeholder="https://www.threads.net/@yourhandle"
+              helperText="Your Threads profile"
             />
             <Input
               label="YouTube"
@@ -469,13 +544,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               value={profile.profile.youtube_url || ''}
               onChange={(e) => updateProfile('youtube_url', e.target.value)}
               placeholder="https://youtube.com/@yourchannel"
-            />
-            <Input
-              label="Vimeo"
-              type="url"
-              value={profile.profile.vimeo_url || ''}
-              onChange={(e) => updateProfile('vimeo_url', e.target.value)}
-              placeholder="https://vimeo.com/yourprofile"
+              helperText="Your YouTube channel"
             />
             <Input
               label="SoundCloud"
@@ -483,6 +552,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               value={profile.profile.soundcloud_url || ''}
               onChange={(e) => updateProfile('soundcloud_url', e.target.value)}
               placeholder="https://soundcloud.com/yourprofile"
+              helperText="Your SoundCloud profile"
             />
           </div>
         )}
@@ -491,7 +561,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           <div className="space-y-6">
             <div>
               <p className="text-sm text-gray-600 mb-4">
-                Select the communication methods you support for remote sessions.
+                Select the connections you support for remote sessions.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {CONNECTION_TYPES.map((connection) => (
@@ -526,20 +596,32 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 <div className="border border-gray-200 rounded-lg p-4">
                   <h4 className="text-sm font-medium text-gray-700 mb-3">Custom Method 1</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      label="Method Name"
-                      value={profile.profile.custom_connection_1_name || ''}
-                      onChange={(e) => updateProfile('custom_connection_1_name', e.target.value)}
-                      placeholder="e.g., Discord, WhatsApp"
-                      maxLength={50}
-                    />
-                    <Input
-                      label="Connection Details"
-                      value={profile.profile.custom_connection_1_value || ''}
-                      onChange={(e) => updateProfile('custom_connection_1_value', e.target.value)}
-                      placeholder="e.g., Username, ID, or details"
-                      maxLength={100}
-                    />
+                    <div>
+                      <Input
+                        label="Method Name"
+                        value={profile.profile.custom_connection_1_name || ''}
+                        onChange={(e) => updateProfile('custom_connection_1_name', e.target.value)}
+                        placeholder="e.g., Discord, WhatsApp"
+                        helperText="Name of connection method"
+                        maxLength={50}
+                      />
+                      <div className="text-right text-xs text-gray-500 mt-1">
+                        {(profile.profile.custom_connection_1_name || '').length}/50 characters
+                      </div>
+                    </div>
+                    <div>
+                      <Input
+                        label="Connection Details"
+                        value={profile.profile.custom_connection_1_value || ''}
+                        onChange={(e) => updateProfile('custom_connection_1_value', e.target.value)}
+                        placeholder="e.g., Username, ID, or details"
+                        helperText="Username or connection info"
+                        maxLength={100}
+                      />
+                      <div className="text-right text-xs text-gray-500 mt-1">
+                        {(profile.profile.custom_connection_1_value || '').length}/100 characters
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -547,20 +629,32 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 <div className="border border-gray-200 rounded-lg p-4">
                   <h4 className="text-sm font-medium text-gray-700 mb-3">Custom Method 2</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      label="Method Name"
-                      value={profile.profile.custom_connection_2_name || ''}
-                      onChange={(e) => updateProfile('custom_connection_2_name', e.target.value)}
-                      placeholder="e.g., Discord, WhatsApp"
-                      maxLength={50}
-                    />
-                    <Input
-                      label="Connection Details"
-                      value={profile.profile.custom_connection_2_value || ''}
-                      onChange={(e) => updateProfile('custom_connection_2_value', e.target.value)}
-                      placeholder="e.g., Username, ID, or details"
-                      maxLength={100}
-                    />
+                    <div>
+                      <Input
+                        label="Method Name"
+                        value={profile.profile.custom_connection_2_name || ''}
+                        onChange={(e) => updateProfile('custom_connection_2_name', e.target.value)}
+                        placeholder="e.g., Discord, WhatsApp"
+                        helperText="Name of connection method"
+                        maxLength={50}
+                      />
+                      <div className="text-right text-xs text-gray-500 mt-1">
+                        {(profile.profile.custom_connection_2_name || '').length}/50 characters
+                      </div>
+                    </div>
+                    <div>
+                      <Input
+                        label="Connection Details"
+                        value={profile.profile.custom_connection_2_value || ''}
+                        onChange={(e) => updateProfile('custom_connection_2_value', e.target.value)}
+                        placeholder="e.g., Username, ID, or details"
+                        helperText="Username or connection info"
+                        maxLength={100}
+                      />
+                      <div className="text-right text-xs text-gray-500 mt-1">
+                        {(profile.profile.custom_connection_2_value || '').length}/100 characters
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

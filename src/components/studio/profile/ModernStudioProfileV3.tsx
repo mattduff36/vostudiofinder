@@ -13,7 +13,7 @@ import {
   Globe, 
   Phone, 
   Mail, 
-  Shield,
+  Check,
   ExternalLink,
   MessageCircle,
   Facebook,
@@ -96,6 +96,7 @@ interface ModernStudioProfileV3Props {
         showEmail?: boolean | null;
         showPhone?: boolean | null;
         showAddress?: boolean | null;
+        showDirections?: boolean | null;
         connection1?: string | null;
         connection2?: string | null;
         connection3?: string | null;
@@ -326,7 +327,17 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
             {/* Studio Header */}
             <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">{studio.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span>{studio.name}</span>
+                {studio.is_verified && (
+                  <span 
+                    className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help" 
+                    title="Verified studio — approved by our team"
+                  >
+                    <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                  </span>
+                )}
+              </h1>
 
               {/* Rating and Reviews */}
               {studio.reviews.length > 0 && (
@@ -353,7 +364,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
             {/* Description */}
             <div className="mb-6">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-6">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">About</h3>
                 <div className="prose prose-gray max-w-none">
                   <p className="text-gray-700 leading-relaxed whitespace-pre-line">
@@ -470,6 +481,16 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 </div>
               </div>
             )}
+
+            {/* Verified Studio Badge at Bottom */}
+            {studio.is_verified && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
+                  <Check className="w-4 h-4 text-green-600 flex-shrink-0" strokeWidth={3} />
+                  <span className="text-sm font-medium text-green-800">Verified Studio</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Sidebar - Sticky on Desktop */}
@@ -497,15 +518,26 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                       <p className="text-xs text-gray-600 line-clamp-1">{studio.address}</p>
                     </div>
                   )}
-                  <Button
-                    size="sm"
-                    className="w-full"
-                    onClick={handleGetDirections}
-                    disabled={!studio.latitude && !studio.longitude && !studio.address}
-                  >
-                    <ExternalLink className="w-3 h-3 mr-2" />
-                    Get directions
-                  </Button>
+                  {profile?.showDirections !== false ? (
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={handleGetDirections}
+                      disabled={!studio.latitude && !studio.longitude && !studio.address}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      Get directions
+                    </Button>
+                  ) : studio.website_url ? (
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => window.open(studio.website_url, '_blank')}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      Visit Website
+                    </Button>
+                  ) : null}
                 </div>
               </div>
 
@@ -514,16 +546,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Studio Details</h3>
                 
                 <div className="space-y-2">
-                  {/* Verified Badge */}
-                  {studio.is_verified && (
-                    <div className="pb-2 border-b border-gray-200">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        <Shield className="w-4 h-4 mr-1" />
-                        Verified
-                      </span>
-                    </div>
-                  )}
-
                   {/* Studio Types */}
                   {studio.studio_studio_types && studio.studio_studio_types.length > 0 && (
                     <div className="pb-2 border-b border-gray-200">

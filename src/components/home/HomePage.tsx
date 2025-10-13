@@ -23,6 +23,7 @@ interface HomePageProps {
   stats: {
     totalStudios: number;
     totalUsers: number;
+    totalCountries: number;
   };
 }
 

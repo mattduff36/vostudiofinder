@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Star, Users } from 'lucide-react';
+import { MapPin, Star } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
@@ -137,8 +137,14 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <Users className="w-12 h-12" />
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <Image
+                        src="/images/voiceover-studio-finder-header-logo2-black.png"
+                        alt="VoiceoverStudioFinder Logo"
+                        width={120}
+                        height={40}
+                        className="opacity-30"
+                      />
                     </div>
                   )}
                   
@@ -153,19 +159,29 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                 </div>
 
                 <div className="p-4 sm:p-6 flex flex-col flex-grow max-h-[340px]">
-                  {/* Studio Name - badge moved to image */}
-                  <h3 className="studio-card-title-featured" style={{ color: colors.textPrimary }}>
-                    {studio.name}
+                  {/* Studio Name with Verified Badge */}
+                  <h3 className="studio-card-title-featured flex items-start gap-2" style={{ color: colors.textPrimary }}>
+                    <span className="flex-1">{studio.name} </span>
+                    {studio.is_verified && (
+                      <span 
+                        className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help flex-shrink-0 mt-0.5" 
+                        title="Verified studio — approved by our team"
+                      >
+                        <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                          <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      </span>
+                    )}
                   </h3>
 
                   {/* Location and Description - combined, limited to 4 lines maximum */}
                   <div className="mb-4">
                     <div className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
-                      {/* Location */}
-                      {studio.address && studio.address.trim() && (
+                      {/* Location - use user_profiles.location */}
+                      {studio.location && studio.location.trim() && (
                         <div className="flex items-start mb-2">
                           <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="line-clamp-1">{studio.address}</span>
+                          <span className="line-clamp-1">{studio.location}</span>
                         </div>
                       )}
                       
@@ -175,7 +191,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                         if (!description) return null;
                         
                         // Calculate available lines (4 total, minus 1 if location exists)
-                        const availableLines = studio.address && studio.address.trim() ? 3 : 4;
+                        const availableLines = studio.location && studio.location.trim() ? 3 : 4;
                         // More conservative character limit per line (roughly 45 chars per line)
                         const seeMoreText = '..... See More';
                         const maxChars = (availableLines * 45) - seeMoreText.length;
@@ -184,7 +200,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                           <div 
                             className="overflow-hidden"
                             style={{ 
-                              maxHeight: studio.address && studio.address.trim() ? '4.5rem' : '6rem', // 3 or 4 lines at 1.5rem line-height
+                              maxHeight: studio.location && studio.location.trim() ? '4.5rem' : '6rem', // 3 or 4 lines at 1.5rem line-height
                               lineHeight: '1.5rem'
                             }}
                             title={description}
@@ -235,9 +251,6 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                           <Star className="w-4 h-4 text-yellow-400 mr-1" />
                           <span>{studio._count?.reviews}</span>
                         </div>
-                      )}
-                      {studio.is_verified && (
-                        <span className="text-green-600 font-medium text-xs">✓ Verified</span>
                       )}
                     </div>
                     

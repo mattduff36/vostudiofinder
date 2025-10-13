@@ -181,7 +181,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
                   profileData={{
                     display_name: profileData.user?.display_name,
                     username: profileData.user?.username,
-                    avatar_url: profileData.user?.avatar_url,
+                    email: profileData.user?.email,
                     about: profileData.profile?.about,
                     short_about: profileData.profile?.short_about,
                     phone: profileData.profile?.phone,
@@ -192,6 +192,8 @@ export function UserDashboard({ data }: UserDashboardProps) {
                     linkedin_url: profileData.profile?.linkedin_url,
                     instagram_url: profileData.profile?.instagram_url,
                     youtube_url: profileData.profile?.youtube_url,
+                    vimeo_url: profileData.profile?.vimeo_url,
+                    soundcloud_url: profileData.profile?.soundcloud_url,
                     connection1: profileData.profile?.connection1,
                     connection2: profileData.profile?.connection2,
                     connection3: profileData.profile?.connection3,
@@ -200,6 +202,10 @@ export function UserDashboard({ data }: UserDashboardProps) {
                     connection6: profileData.profile?.connection6,
                     connection7: profileData.profile?.connection7,
                     connection8: profileData.profile?.connection8,
+                    rate_tier_1: profileData.profile?.rate_tier_1,
+                    website_url: profileData.studio?.website_url,
+                    images_count: profileData.studio?.images?.length || 0,
+                    studio_types_count: profileData.studio?.studio_types?.length || 0,
                   }}
                 />
               </div>
@@ -209,10 +215,11 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 <h3 className="text-lg font-medium text-blue-900 mb-2">Profile Tips</h3>
                 <ul className="space-y-2 text-sm text-blue-800">
                   <li>• Complete profiles get 3x more views</li>
-                  <li>• Add a professional photo to build trust</li>
                   <li>• Fill in your about sections to stand out</li>
+                  <li>• Upload quality images of your studio to build trust</li>
                   <li>• Add connection methods so clients can reach you easily</li>
-                  <li>• Link your social media to showcase your work</li>
+                  <li>• Link at least 2 social media profiles to showcase your work</li>
+                  <li>• All fields must be completed before publishing your profile</li>
                 </ul>
               </div>
 

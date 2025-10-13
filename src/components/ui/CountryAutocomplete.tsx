@@ -22,12 +22,15 @@ declare global {
               formatted_address?: string;
               name?: string;
               place_id?: string;
-              address_components?: unknown[];
+              address_components?: Array<{
+                long_name: string;
+                short_name: string;
+                types: string[];
+              }>;
               geometry?: unknown;
               types?: string[];
             } | undefined;
           };
-          [key: string]: unknown;
         };
         event: {
           clearInstanceListeners(instance: unknown): void;
@@ -38,7 +41,7 @@ declare global {
   }
 }
 
-interface AddressAutocompleteProps {
+interface CountryAutocompleteProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -48,7 +51,7 @@ interface AddressAutocompleteProps {
   id?: string;
 }
 
-export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
+export const CountryAutocomplete: React.FC<CountryAutocompleteProps> = ({
   label,
   value,
   onChange,
@@ -63,7 +66,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [inputValue, setInputValue] = useState(value || '');
   const [isUpdatingFromAutocomplete, setIsUpdatingFromAutocomplete] = useState(false);
-  const inputId = id || `address-autocomplete-${label.toLowerCase().replace(/\s/g, '-')}`;
+  const inputId = id || `country-autocomplete-${label.toLowerCase().replace(/\s/g, '-')}`;
 
   // Update ref when onChange changes
   useEffect(() => {
@@ -82,7 +85,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     
     if (!apiKey) {
-      console.warn('Google Maps API key not configured - address autocomplete will not be available');
+      console.warn('Google Maps API key not configured - country autocomplete will not be available');
       setIsLoaded(true);
       return;
     }
@@ -120,19 +123,22 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
     try {
       autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-        types: ['geocode', 'establishment'],
-        fields: ['formatted_address', 'address_components', 'geometry', 'name'],
-        componentRestrictions: undefined,
+        types: ['(regions)'],
+        fields: ['name', 'address_components', 'types'],
       });
 
       autocompleteRef.current.addListener('place_changed', () => {
         const place = autocompleteRef.current?.getPlace();
-        if (place) {
-          const address = place.formatted_address || place.name || '';
-          if (address) {
+        if (place && place.address_components) {
+          const countryComponent = place.address_components.find((component: any) =>
+            component.types.includes('country')
+          );
+          
+          const countryName = countryComponent?.long_name || place.name || '';
+          if (countryName) {
             setIsUpdatingFromAutocomplete(true);
-            setInputValue(address);
-            onChangeRef.current(address); // Use ref instead of prop
+            setInputValue(countryName);
+            onChangeRef.current(countryName); // Use ref instead of prop
             // Clear flag after onChange completes
             setTimeout(() => setIsUpdatingFromAutocomplete(false), 100);
           }
@@ -164,10 +170,10 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         ref={inputRef}
         id={inputId}
         type="text"
-        name={`address-field-${Math.random()}`}
+        name={`country-field-${Math.random()}`}
         value={inputValue}
         onChange={handleChange}
-        placeholder={placeholder || 'Start typing an address...'}
+        placeholder={placeholder || 'e.g. United Kingdom'}
         autoComplete="chrome-off"
         className={cn(
           'flex h-10 w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
@@ -179,4 +185,5 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     </div>
   );
 };
+
 
