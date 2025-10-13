@@ -290,11 +290,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 label="Studio Name"
                 value={profile.profile.studio_name || ''}
                 onChange={(e) => updateProfile('studio_name', e.target.value)}
-                helperText="Your studio or business name"
                 maxLength={30}
               />
-              <div className="text-right text-xs text-gray-500 mt-1">
-                {(profile.profile.studio_name || '').length}/30 characters
+              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                <span>Your studio or business name</span>
+                <span>{(profile.profile.studio_name || '').length}/30 characters</span>
               </div>
             </div>
 
@@ -320,11 +320,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 label="Short About"
                 value={profile.profile.short_about || ''}
                 onChange={(e) => updateProfile('short_about', e.target.value)}
-                helperText="Brief description shown in listings"
                 maxLength={150}
               />
-              <div className="text-right text-xs text-gray-500 mt-1">
-                {(profile.profile.short_about || '').length}/150 characters
+              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                <span>Brief description shown in listings</span>
+                <span>{(profile.profile.short_about || '').length}/150 characters</span>
               </div>
             </div>
 
@@ -334,19 +334,21 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.about || ''}
                 onChange={(e) => updateProfile('about', e.target.value)}
                 rows={6}
-                helperText="Detailed description for your profile page"
                 maxLength={1200}
               />
-              <div 
-                className={`text-right text-xs mt-1 ${
-                  (profile.profile.about || '').length >= 1100 
-                    ? 'text-red-600 font-semibold' 
-                    : (profile.profile.about || '').length >= 1000 
-                    ? 'text-orange-600 font-medium' 
-                    : 'text-gray-500'
-                }`}
-              >
-                {(profile.profile.about || '').length}/1200 characters
+              <div className="flex justify-between items-center text-xs mt-1">
+                <span className="text-gray-500">Detailed description for your profile page</span>
+                <span 
+                  className={`${
+                    (profile.profile.about || '').length >= 1100 
+                      ? 'text-red-600 font-semibold' 
+                      : (profile.profile.about || '').length >= 1000 
+                      ? 'text-orange-600 font-medium' 
+                      : 'text-gray-500'
+                  }`}
+                >
+                  {(profile.profile.about || '').length}/1200 characters
+                </span>
               </div>
             </div>
           </div>
@@ -602,11 +604,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                         value={profile.profile.custom_connection_1_name || ''}
                         onChange={(e) => updateProfile('custom_connection_1_name', e.target.value)}
                         placeholder="e.g., Discord, WhatsApp"
-                        helperText="Name of connection method"
                         maxLength={50}
                       />
-                      <div className="text-right text-xs text-gray-500 mt-1">
-                        {(profile.profile.custom_connection_1_name || '').length}/50 characters
+                      <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                        <span>Name of connection method</span>
+                        <span>{(profile.profile.custom_connection_1_name || '').length}/50 characters</span>
                       </div>
                     </div>
                     <div>
@@ -615,11 +617,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                         value={profile.profile.custom_connection_1_value || ''}
                         onChange={(e) => updateProfile('custom_connection_1_value', e.target.value)}
                         placeholder="e.g., Username, ID, or details"
-                        helperText="Username or connection info"
                         maxLength={100}
                       />
-                      <div className="text-right text-xs text-gray-500 mt-1">
-                        {(profile.profile.custom_connection_1_value || '').length}/100 characters
+                      <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                        <span>Username or connection info</span>
+                        <span>{(profile.profile.custom_connection_1_value || '').length}/100 characters</span>
                       </div>
                     </div>
                   </div>
@@ -635,11 +637,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                         value={profile.profile.custom_connection_2_name || ''}
                         onChange={(e) => updateProfile('custom_connection_2_name', e.target.value)}
                         placeholder="e.g., Discord, WhatsApp"
-                        helperText="Name of connection method"
                         maxLength={50}
                       />
-                      <div className="text-right text-xs text-gray-500 mt-1">
-                        {(profile.profile.custom_connection_2_name || '').length}/50 characters
+                      <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                        <span>Name of connection method</span>
+                        <span>{(profile.profile.custom_connection_2_name || '').length}/50 characters</span>
                       </div>
                     </div>
                     <div>
@@ -648,11 +650,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                         value={profile.profile.custom_connection_2_value || ''}
                         onChange={(e) => updateProfile('custom_connection_2_value', e.target.value)}
                         placeholder="e.g., Username, ID, or details"
-                        helperText="Username or connection info"
                         maxLength={100}
                       />
-                      <div className="text-right text-xs text-gray-500 mt-1">
-                        {(profile.profile.custom_connection_2_value || '').length}/100 characters
+                      <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                        <span>Username or connection info</span>
+                        <span>{(profile.profile.custom_connection_2_value || '').length}/100 characters</span>
                       </div>
                     </div>
                   </div>

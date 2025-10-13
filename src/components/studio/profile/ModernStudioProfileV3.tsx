@@ -496,10 +496,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           {/* Right Sidebar - Sticky on Desktop */}
           <div className="lg:col-span-1">
             <div className="sticky top-8 space-y-6">
-              {/* Map Card - Integrated Design */}
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                {/* Map section - matches main image height (h-96 = 384px) */}
-                <div className="h-96">
+              {/* Map Card - Integrated Design - Total height matches main image + gap + thumbnails (492px) */}
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden" style={{ height: '492px' }}>
+                {/* Map section */}
+                <div className="h-[384px]">
                   <SimpleStudioMap
                     latitude={studio.latitude}
                     longitude={studio.longitude}
@@ -507,10 +507,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     height="384px"
                   />
                 </div>
-                {/* Gap - matches the gap between main image and thumbnails (gap-3 = 12px) */}
-                <div className="h-3"></div>
-                {/* Directions section - matches thumbnail row height (h-24 = 96px) */}
-                <div className="h-24 flex flex-col justify-center px-6">
+                {/* Gap - matches the gap between main image and thumbnails */}
+                <div className="h-4"></div>
+                {/* Directions section - fills remaining space (492 - 384 - 16 = 92px) */}
+                <div className="flex-1 flex flex-col justify-center px-6">
                   {/* Only show address if showAddress is not explicitly false */}
                   {(profile?.showAddress !== false) && studio.address && (
                     <div className="flex items-center space-x-2 mb-2">
