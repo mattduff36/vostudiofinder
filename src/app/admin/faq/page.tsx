@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { AdminTabs } from '@/components/admin/AdminTabs';
 
 export default function AdminFAQPage() {
   const [faqData, setFaqData] = useState(null);
@@ -85,7 +86,10 @@ export default function AdminFAQPage() {
   if (!faqData) return null;
 
   return (
-    <div className="space-y-8">
+    <>
+      <AdminTabs activeTab="faq" />
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">❓ VOSF Knowledge Base</h1>
@@ -277,6 +281,8 @@ export default function AdminFAQPage() {
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { AdminTabs } from '@/components/admin/AdminTabs';
 
 export default function AdminSchemaPage() {
   const [tables, setTables] = useState([]);
@@ -80,7 +81,10 @@ export default function AdminSchemaPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <>
+      <AdminTabs activeTab="schema" />
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">🗂️ Database Schema Viewer</h1>
@@ -307,6 +311,8 @@ export default function AdminSchemaPage() {
           </div>
         </div>
       )}
-    </div>
+        </div>
+      </div>
+    </>
   );
 }

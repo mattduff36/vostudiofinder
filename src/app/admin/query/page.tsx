@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { AdminTabs } from '@/components/admin/AdminTabs';
 
 export default function AdminQueryPage() {
   const [query, setQuery] = useState('');
@@ -72,7 +73,10 @@ export default function AdminQueryPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <>
+      <AdminTabs activeTab="query" />
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">💻 SQL Query Interface</h1>
@@ -262,6 +266,8 @@ export default function AdminQueryPage() {
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      </div>
+    </>
   );
 }
