@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { Toggle } from '@/components/ui/Toggle';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
+import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager';
 
 interface Studio {
@@ -32,6 +38,26 @@ interface EditStudioModalProps {
   onSave: () => void;
 }
 
+const STUDIO_TYPES = [
+  { value: 'HOME', label: 'Home' },
+  { value: 'EDITING', label: 'Editing' },
+  { value: 'RECORDING', label: 'Recording' },
+  { value: 'VO_COACH', label: 'VO-Coach' },
+  { value: 'PODCAST', label: 'Podcast' },
+  { value: 'VOICEOVER', label: 'Voiceover' },
+];
+
+const CONNECTION_TYPES = [
+  { id: 'connection1', label: 'Source Connect', icon: '🔗' },
+  { id: 'connection2', label: 'Source Connect Now', icon: '🔗' },
+  { id: 'connection3', label: 'ipDTL', icon: '🎙️' },
+  { id: 'connection4', label: 'Session Link Pro', icon: '🎛️' },
+  { id: 'connection5', label: 'Clean Feed', icon: '📡' },
+  { id: 'connection6', label: 'Zoom', icon: '💻' },
+  { id: 'connection7', label: 'Teams', icon: '👥' },
+  { id: 'connection8', label: 'Skype', icon: '📞' },
+];
+
 // Helper function to decode HTML entities
 function decodeHtmlEntities(str: string) {
   if (!str) return str;
@@ -54,6 +80,7 @@ function decodeHtmlEntities(str: string) {
 }
 
 export default function EditStudioModal({ studio, isOpen, onClose, onSave }: EditStudioModalProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -83,6 +110,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleMetaChange = (key: string, value: any) => {
     setProfile((prev: any) => ({
       ...prev,
@@ -93,11 +121,27 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     }));
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleBasicChange = (key: string, value: any) => {
     setProfile((prev: any) => ({
       ...prev,
       [key]: value
     }));
+  };
+
+  const toggleStudioType = (type: string) => {
+    const currentTypes = profile?.studioTypes || [];
+    let newTypes;
+    
+    const isChecked = currentTypes.some((st: any) => st.studio_type === type);
+    
+    if (isChecked) {
+      newTypes = currentTypes.filter((st: any) => st.studio_type !== type);
+    } else {
+      newTypes = [...currentTypes, { studio_type: type }];
+    }
+    
+    handleBasicChange('studioTypes', newTypes);
   };
 
   const handleSaveAndClose = async () => {
@@ -151,7 +195,6 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       }
 
       onSave();
-      // Don't close the modal - just show success message
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -167,7 +210,6 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       return;
     }
     
-    // Open the profile page in a new tab
     window.open(`/${profile.username}`, '_blank');
   };
 
@@ -180,126 +222,117 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   if (!isOpen || !studio) return null;
 
   const tabs = [
-    { id: 'basic', name: 'Basic Info', icon: '👤' },
-    { id: 'contact', name: 'Contact', icon: '📞' },
+    { id: 'basic', name: 'Basic Info', icon: '📝' },
+    { id: 'contact', name: 'Contact & Location', icon: '📍' },
+    { id: 'rates', name: 'Rates & Pricing', icon: '💰' },
     { id: 'social', name: 'Social Media', icon: '🌐' },
-    { id: 'media', name: 'Media Links', icon: '🎵' },
     { id: 'connections', name: 'Connections', icon: '🔗' },
-    { id: 'location', name: 'Location', icon: '📍' },
-    { id: 'rates', name: 'Rates & Display', icon: '💰' },
     { id: 'images', name: 'Images', icon: '🖼️' },
-    { id: 'advanced', name: 'Advanced', icon: '⚙️' }
+    { id: 'admin', name: 'Admin Settings', icon: '⚙️' }
   ];
 
   const renderBasicTab = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Username <span className="text-red-600">(users.username)</span></label>
-          <input
-            type="text"
-            value={profile?.username || ''}
-            onChange={(e) => handleBasicChange('username', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g. VoiceoverGuy"
-          />
-          <p className="text-xs text-gray-500 mt-1">This is used in URLs and should be unique</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-600">(users.email)</span></label>
-          <input
-            type="email"
-            value={profile?.email || ''}
-            onChange={(e) => handleBasicChange('email', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Studio Name <span className="text-red-600">(studios.name)</span></label>
-          <input
-            type="text"
-            value={profile?._meta?.studio_name || ''}
-            onChange={(e) => {
-              const value = e.target.value;
-              const truncatedValue = value.length > 30 ? value.substring(0, 30) : value;
-              handleMetaChange('studio_name', truncatedValue);
-            }}
-            maxLength={30}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g. VoiceoverGuy - Yorkshire"
-          />
-          <div className="flex justify-between items-center mt-1">
-            <p className="text-xs text-gray-500">This is the studio display name shown in listings</p>
-            <p className={`text-xs ${(profile?._meta?.studio_name || '').length > 25 ? 'text-orange-600' : 'text-gray-400'}`}>
-              {(profile?._meta?.studio_name || '').length}/30
-            </p>
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Studio Types <span className="text-red-600">(studio_studio_types.studio_type)</span></label>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
-            {[
-              { value: 'HOME', label: 'Home' },
-              { value: 'EDITING', label: 'Editing' },
-              { value: 'RECORDING', label: 'Recording' },
-              { value: 'VO_COACH', label: 'VO-Coach' },
-              { value: 'PODCAST', label: 'Podcast' },
-              { value: 'VOICEOVER', label: 'Voiceover' }
-            ].map((type) => {
-              const selectedTypes = profile?.studioTypes || [];
-              const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
-              
-              return (
-                <label key={type.value} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={(e) => {
-                      const currentTypes = profile?.studioTypes || [];
-                      let newTypes;
-                      
-                      if (e.target.checked) {
-                        // Add the type
-                        newTypes = [...currentTypes, { studio_type: type.value }];
-                      } else {
-                        // Remove the type
-                        newTypes = currentTypes.filter((st: any) => st.studio_type !== type.value);
-                      }
-                      
-                      handleBasicChange('studioTypes', newTypes);
-                    }}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    {type.label}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-          <p className="text-xs text-gray-500 mt-1">Select one or more studio types</p>
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Short About <span className="text-red-600">(user_profiles.short_about)</span></label>
-        <input
-          type="text"
-          value={profile?._meta?.short_about || ''}
-          onChange={(e) => handleMetaChange('short_about', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Brief description of the studio"
+        <Input
+          label="Display Name"
+          value={profile?.display_name || ''}
+          onChange={(e) => handleBasicChange('display_name', e.target.value)}
+          helperText="Public display name"
+          required
+        />
+        <Input
+          label="Email"
+          type="email"
+          value={profile?.email || ''}
+          disabled
+          helperText="Edit in Admin Settings tab"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Full About <span className="text-red-600">(user_profiles.about)</span></label>
-        <textarea
+        <Input
+          label="Studio Name"
+          value={profile?._meta?.studio_name || ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            const truncatedValue = value.length > 30 ? value.substring(0, 30) : value;
+            handleMetaChange('studio_name', truncatedValue);
+          }}
+          maxLength={30}
+          placeholder="e.g. VoiceoverGuy - Yorkshire"
+        />
+        <div className="flex justify-between items-center text-xs mt-1">
+          <span className="text-gray-500">Studio display name shown in listings</span>
+          <span 
+            className={`${
+              (profile?._meta?.studio_name || '').length > 25 
+                ? 'text-orange-600 font-medium' 
+                : 'text-gray-400'
+            }`}
+          >
+            {(profile?._meta?.studio_name || '').length}/30 characters
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Studio Types
+        </label>
+        <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {STUDIO_TYPES.map((type) => {
+            const selectedTypes = profile?.studioTypes || [];
+            const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
+            
+            return (
+              <Checkbox
+                key={type.value}
+                label={type.label}
+                checked={isChecked}
+                onChange={() => toggleStudioType(type.value)}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <Input
+          label="Short About"
+          value={profile?._meta?.short_about || ''}
+          onChange={(e) => handleMetaChange('short_about', e.target.value)}
+          maxLength={150}
+        />
+        <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+          <span>Brief description shown in listings</span>
+          <span>{(profile?._meta?.short_about || '').length}/150 characters</span>
+        </div>
+      </div>
+
+      <div>
+        <Textarea
+          label="Full About"
           value={decodeHtmlEntities(profile?._meta?.about) || ''}
           onChange={(e) => handleMetaChange('about', e.target.value)}
           rows={6}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          maxLength={1200}
         />
+        <div className="flex justify-between items-center text-xs mt-1">
+          <span className="text-gray-500">Detailed description for profile page</span>
+          <span 
+            className={`${
+              (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1100 
+                ? 'text-red-600 font-semibold' 
+                : (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1000 
+                ? 'text-orange-600 font-medium' 
+                : 'text-gray-500'
+            }`}
+          >
+            {(decodeHtmlEntities(profile?._meta?.about) || '').length}/1200 characters
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -307,141 +340,64 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   const renderContactTab = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Phone <span className="text-red-600">(user_profiles.phone)</span></label>
-          <input
-            type="tel"
-            value={profile?._meta?.phone || ''}
-            onChange={(e) => handleMetaChange('phone', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Website URL <span className="text-red-600">(studios.website_url)</span></label>
-          <input
-            type="url"
-            value={profile?._meta?.url || ''}
-            onChange={(e) => handleMetaChange('url', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">Display Settings</h4>
-        <p className="text-xs text-gray-600 mb-3">
-          🔒 Email addresses are protected from bots. The "Message Studio" button uses secure mailto links with anti-bot measures.
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={profile?._meta?.showemail === '1'}
-              onChange={(e) => handleMetaChange('showemail', e.target.checked ? '1' : '0')}
-              className="mr-2"
-            />
-            <span className="text-sm">Show Email</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={profile?._meta?.showphone === '1'}
-              onChange={(e) => handleMetaChange('showphone', e.target.checked ? '1' : '0')}
-              className="mr-2"
-            />
-            <span className="text-sm">Show Phone</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={profile?._meta?.showmap === '1'}
-              onChange={(e) => handleMetaChange('showmap', e.target.checked ? '1' : '0')}
-              className="mr-2"
-            />
-            <span className="text-sm">Show Map</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={profile?._meta?.showdirections === '1'}
-              onChange={(e) => handleMetaChange('showdirections', e.target.checked ? '1' : '0')}
-              className="mr-2"
-            />
-            <span className="text-sm">Show Directions</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={profile?._meta?.showaddress === '1'}
-              onChange={(e) => handleMetaChange('showaddress', e.target.checked ? '1' : '0')}
-              className="mr-2"
-            />
-            <span className="text-sm">Show Address</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={profile?._meta?.showshort === '1'}
-              onChange={(e) => handleMetaChange('showshort', e.target.checked ? '1' : '0')}
-              className="mr-2"
-            />
-            <span className="text-sm">Show Short About</span>
-          </label>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderLocationTab = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-600">(user_profiles.location)</span></label>
-          <input
-            type="text"
-            value={profile?._meta?.location || ''}
-            onChange={(e) => handleMetaChange('location', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Locale <span className="text-red-600">(N/A)</span></label>
-          <input
-            type="text"
-            value={profile?._meta?.locale || ''}
-            onChange={(e) => handleMetaChange('locale', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Full Address <span className="text-red-600">(studios.address)</span></label>
-        <input
-          type="text"
-          value={profile?._meta?.address || ''}
-          onChange={(e) => handleMetaChange('address', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <Input
+          label="Phone"
+          type="tel"
+          value={profile?._meta?.phone || ''}
+          onChange={(e) => handleMetaChange('phone', e.target.value)}
+          helperText="Contact phone number"
+          placeholder="+44 20 1234 5678"
+        />
+        <Input
+          label="Website URL"
+          type="url"
+          value={profile?._meta?.url || ''}
+          onChange={(e) => handleMetaChange('url', e.target.value)}
+          helperText="Studio or personal website"
+          placeholder="https://yourstudio.com"
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Latitude <span className="text-red-600">(studios.latitude)</span></label>
-          <input
-            type="text"
-            value={profile?._meta?.latitude || ''}
-            onChange={(e) => handleMetaChange('latitude', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      <AddressAutocomplete
+        label="Address"
+        value={profile?._meta?.address || ''}
+        onChange={(value) => handleMetaChange('address', value)}
+        placeholder="Start typing your address..."
+      />
+
+      <CountryAutocomplete
+        label="Country"
+        value={profile?._meta?.location || ''}
+        onChange={(value) => handleMetaChange('location', value)}
+        placeholder="e.g. United Kingdom"
+      />
+
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <h3 className="font-medium text-gray-900 mb-3">Visibility Settings</h3>
+        <div className="space-y-3">
+          <Toggle
+            label="Show Email"
+            description="Display email on public profile"
+            checked={profile?._meta?.showemail === '1'}
+            onChange={(checked) => handleMetaChange('showemail', checked ? '1' : '0')}
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Longitude <span className="text-red-600">(studios.longitude)</span></label>
-          <input
-            type="text"
-            value={profile?._meta?.longitude || ''}
-            onChange={(e) => handleMetaChange('longitude', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <Toggle
+            label="Show Phone"
+            description="Display phone number on public profile"
+            checked={profile?._meta?.showphone === '1'}
+            onChange={(checked) => handleMetaChange('showphone', checked ? '1' : '0')}
+          />
+          <Toggle
+            label="Show Address"
+            description="Display full address on public profile"
+            checked={profile?._meta?.showaddress === '1'}
+            onChange={(checked) => handleMetaChange('showaddress', checked ? '1' : '0')}
+          />
+          <Toggle
+            label="Show Directions"
+            description="Display directions link on public profile"
+            checked={profile?._meta?.showdirections === '1'}
+            onChange={(checked) => handleMetaChange('showdirections', checked ? '1' : '0')}
           />
         </div>
       </div>
@@ -450,230 +406,235 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   const renderRatesTab = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">15 Minutes Rate <span className="text-red-600">(user_profiles.rate_tier_1)</span></label>
-          <input
+      <div>
+        <p className="text-sm text-gray-600 mb-4">
+          Set up to three rate tiers for services
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            label="Rate Tier 1 (15 min)"
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates1) || ''}
             onChange={(e) => handleMetaChange('rates1', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            helperText="Basic rate"
             placeholder="e.g. £80, $80, €80"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">30 Minutes Rate <span className="text-red-600">(user_profiles.rate_tier_2)</span></label>
-          <input
+          <Input
+            label="Rate Tier 2 (30 min)"
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates2) || ''}
             onChange={(e) => handleMetaChange('rates2', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            helperText="Standard rate"
             placeholder="e.g. £100, $100, €100"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">60 Minutes Rate <span className="text-red-600">(user_profiles.rate_tier_3)</span></label>
-          <input
+          <Input
+            label="Rate Tier 3 (60 min)"
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates3) || ''}
             onChange={(e) => handleMetaChange('rates3', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            helperText="Premium rate"
             placeholder="e.g. £125, $125, €125"
           />
         </div>
       </div>
 
-      <div>
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            checked={profile?._meta?.showrates === '1'}
-            onChange={(e) => handleMetaChange('showrates', e.target.checked ? '1' : '0')}
-            className="mr-2"
-          />
-          <span className="text-sm font-medium text-gray-700">Show Rates</span>
-        </label>
-      </div>
+      <Toggle
+        label="Show Rates on Profile"
+        description="Display pricing information publicly"
+        checked={profile?._meta?.showrates === '1'}
+        onChange={(checked) => handleMetaChange('showrates', checked ? '1' : '0')}
+      />
+
+      <Textarea
+        label="Equipment List"
+        value={profile?._meta?.equipment_list || ''}
+        onChange={(e) => handleMetaChange('equipment_list', e.target.value)}
+        rows={4}
+        helperText="List microphones, interfaces, and other equipment"
+        placeholder="e.g., Neumann U87, Universal Audio Apollo, etc."
+      />
+
+      <Textarea
+        label="Services Offered"
+        value={profile?._meta?.services_offered || ''}
+        onChange={(e) => handleMetaChange('services_offered', e.target.value)}
+        rows={4}
+        helperText="Describe the services provided"
+        placeholder="e.g., Voice recording, audio editing, mixing, mastering..."
+      />
     </div>
   );
 
   const renderSocialMediaTab = () => (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <p className="text-sm text-gray-600 mb-4">
-        Add social media links to display on the studio profile page.
+        Add links to social media profiles
       </p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Facebook URL <span className="text-red-600">(user_profiles.facebook_url)</span>
-          </label>
-          <input
-            type="url"
-            value={profile?._meta?.facebook || ''}
-            onChange={(e) => handleMetaChange('facebook', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="https://facebook.com/yourpage"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Twitter URL <span className="text-red-600">(user_profiles.twitter_url)</span>
-          </label>
-          <input
-            type="url"
-            value={profile?._meta?.twitter || ''}
-            onChange={(e) => handleMetaChange('twitter', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="https://twitter.com/yourhandle"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            LinkedIn URL <span className="text-red-600">(user_profiles.linkedin_url)</span>
-          </label>
-          <input
-            type="url"
-            value={profile?._meta?.linkedin || ''}
-            onChange={(e) => handleMetaChange('linkedin', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="https://linkedin.com/in/yourprofile"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Instagram URL <span className="text-red-600">(user_profiles.instagram_url)</span>
-          </label>
-          <input
-            type="url"
-            value={profile?._meta?.instagram || ''}
-            onChange={(e) => handleMetaChange('instagram', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="https://instagram.com/yourhandle"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            YouTube URL <span className="text-red-600">(user_profiles.youtube_url)</span>
-          </label>
-          <input
-            type="url"
-            value={profile?._meta?.youtubepage || ''}
-            onChange={(e) => handleMetaChange('youtubepage', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="https://youtube.com/@yourchannel"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Vimeo URL <span className="text-red-600">(user_profiles.vimeo_url)</span>
-          </label>
-          <input
-            type="url"
-            value={profile?._meta?.vimeo || ''}
-            onChange={(e) => handleMetaChange('vimeo', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="https://vimeo.com/yourpage"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            SoundCloud URL <span className="text-red-600">(user_profiles.soundcloud_url)</span>
-          </label>
-          <input
-            type="url"
-            value={profile?._meta?.soundcloud || ''}
-            onChange={(e) => handleMetaChange('soundcloud', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="https://soundcloud.com/yourprofile"
-          />
-        </div>
-      </div>
+      <Input
+        label="Facebook"
+        type="url"
+        value={profile?._meta?.facebook || ''}
+        onChange={(e) => handleMetaChange('facebook', e.target.value)}
+        placeholder="https://facebook.com/your-page"
+        helperText="Facebook page or profile"
+      />
+      <Input
+        label="X (formerly Twitter)"
+        type="url"
+        value={profile?._meta?.twitter || ''}
+        onChange={(e) => handleMetaChange('twitter', e.target.value)}
+        placeholder="https://x.com/yourhandle"
+        helperText="X (Twitter) profile"
+      />
+      <Input
+        label="LinkedIn"
+        type="url"
+        value={profile?._meta?.linkedin || ''}
+        onChange={(e) => handleMetaChange('linkedin', e.target.value)}
+        placeholder="https://linkedin.com/in/yourprofile"
+        helperText="LinkedIn profile"
+      />
+      <Input
+        label="Instagram"
+        type="url"
+        value={profile?._meta?.instagram || ''}
+        onChange={(e) => handleMetaChange('instagram', e.target.value)}
+        placeholder="https://instagram.com/yourhandle"
+        helperText="Instagram profile"
+      />
+      <Input
+        label="TikTok"
+        type="url"
+        value={profile?._meta?.tiktok || ''}
+        onChange={(e) => handleMetaChange('tiktok', e.target.value)}
+        placeholder="https://www.tiktok.com/@yourhandle"
+        helperText="TikTok profile"
+      />
+      <Input
+        label="Threads"
+        type="url"
+        value={profile?._meta?.threads || ''}
+        onChange={(e) => handleMetaChange('threads', e.target.value)}
+        placeholder="https://www.threads.net/@yourhandle"
+        helperText="Threads profile"
+      />
+      <Input
+        label="YouTube"
+        type="url"
+        value={profile?._meta?.youtubepage || ''}
+        onChange={(e) => handleMetaChange('youtubepage', e.target.value)}
+        placeholder="https://youtube.com/@yourchannel"
+        helperText="YouTube channel"
+      />
+      <Input
+        label="SoundCloud"
+        type="url"
+        value={profile?._meta?.soundcloud || ''}
+        onChange={(e) => handleMetaChange('soundcloud', e.target.value)}
+        placeholder="https://soundcloud.com/yourprofile"
+        helperText="SoundCloud profile"
+      />
     </div>
   );
 
-  const renderConnectionsTab = () => {
-    const connectionTypes = [
-      { id: 'connection1', label: 'Source Connect', icon: '🔗', dbField: 'user_profiles.connection1' },
-      { id: 'connection2', label: 'Source Connect Now', icon: '🔗', dbField: 'user_profiles.connection2' },
-      { id: 'connection3', label: 'Phone Patch', icon: '📞', dbField: 'user_profiles.connection3' },
-      { id: 'connection4', label: 'Session Link Pro', icon: '🎤', dbField: 'user_profiles.connection4' },
-      { id: 'connection5', label: 'Zoom or Teams', icon: '💻', dbField: 'user_profiles.connection5' },
-      { id: 'connection6', label: 'Cleanfeed', icon: '🎵', dbField: 'user_profiles.connection6' },
-      { id: 'connection7', label: 'Riverside', icon: '🎬', dbField: 'user_profiles.connection7' },
-      { id: 'connection8', label: 'Google Hangouts', icon: '📹', dbField: 'user_profiles.connection8' },
-    ];
-
-    return (
-      <div className="space-y-6">
+  const renderConnectionsTab = () => (
+    <div className="space-y-6">
+      <div>
         <p className="text-sm text-gray-600 mb-4">
-          Select which communication methods this studio supports. These will be displayed on the profile page.
+          Select connections supported for remote sessions
         </p>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {connectionTypes.map((connection) => (
-            <label key={connection.id} className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+          {CONNECTION_TYPES.map((connection) => (
+            <label
+              key={connection.id}
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+            >
               <input
                 type="checkbox"
                 checked={profile?._meta?.[connection.id] === '1'}
                 onChange={(e) => handleMetaChange(connection.id, e.target.checked ? '1' : '0')}
-                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="mr-3 h-4 w-4 text-red-600 accent-red-600 focus:ring-red-500 border-gray-300 rounded"
               />
               <span className="text-2xl mr-2">{connection.icon}</span>
               <span className="text-sm font-medium text-gray-900">
-                {connection.label} <span className="text-red-600">({connection.dbField})</span>
+                {connection.label}
               </span>
             </label>
           ))}
         </div>
       </div>
-    );
-  };
 
-  const renderAdvancedTab = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-600">(studios.status)</span></label>
-          <select
-            value={profile?.status || 'active'}
-            onChange={(e) => handleBasicChange('status', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="pending">Pending</option>
-          </select>
-        </div>
+      {/* Custom Connections */}
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Custom Connection Methods</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Add custom connection methods (max 2)
+        </p>
         
-        <div className="flex items-center">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={profile?._meta?.verified === '1'}
-              onChange={(e) => handleMetaChange('verified', e.target.checked ? '1' : '0')}
-              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <span className="text-sm font-medium text-gray-700">Verified <span className="text-red-600">(studios.is_verified)</span></span>
-          </label>
-        </div>
-        
-        <div className="flex items-center">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={profile?._meta?.featured === '1'}
-              onChange={(e) => handleMetaChange('featured', e.target.checked ? '1' : '0')}
-              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <span className="text-sm font-medium text-gray-700">Featured <span className="text-red-600">(user_profiles.is_featured)</span></span>
-          </label>
+        <div className="space-y-4">
+          {/* Custom Connection 1 */}
+          <div className="border border-gray-200 rounded-lg p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Input
+                  label="Method Name"
+                  value={profile?._meta?.custom_connection_1_name || ''}
+                  onChange={(e) => handleMetaChange('custom_connection_1_name', e.target.value)}
+                  placeholder="e.g., Discord, WhatsApp"
+                  maxLength={50}
+                />
+                <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                  <span>Name of connection method</span>
+                  <span>{(profile?._meta?.custom_connection_1_name || '').length}/50 characters</span>
+                </div>
+              </div>
+              <div>
+                <Input
+                  label="Connection Details"
+                  value={profile?._meta?.custom_connection_1_value || ''}
+                  onChange={(e) => handleMetaChange('custom_connection_1_value', e.target.value)}
+                  placeholder="e.g., Username, ID, or details"
+                  maxLength={100}
+                />
+                <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                  <span>Username or connection info</span>
+                  <span>{(profile?._meta?.custom_connection_1_value || '').length}/100 characters</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Custom Connection 2 */}
+          <div className="border border-gray-200 rounded-lg p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Input
+                  label="Method Name"
+                  value={profile?._meta?.custom_connection_2_name || ''}
+                  onChange={(e) => handleMetaChange('custom_connection_2_name', e.target.value)}
+                  placeholder="e.g., Discord, WhatsApp"
+                  maxLength={50}
+                />
+                <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                  <span>Name of connection method</span>
+                  <span>{(profile?._meta?.custom_connection_2_name || '').length}/50 characters</span>
+                </div>
+              </div>
+              <div>
+                <Input
+                  label="Connection Details"
+                  value={profile?._meta?.custom_connection_2_value || ''}
+                  onChange={(e) => handleMetaChange('custom_connection_2_value', e.target.value)}
+                  placeholder="e.g., Username, ID, or details"
+                  maxLength={100}
+                />
+                <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                  <span>Username or connection info</span>
+                  <span>{(profile?._meta?.custom_connection_2_value || '').length}/100 characters</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -684,6 +645,96 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     return <ImageGalleryManager studioId={studio.id} isAdminMode={true} />;
   };
 
+  const renderAdminTab = () => (
+    <div className="space-y-6">
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <h3 className="font-medium text-red-900 mb-1">⚠️ Admin Only Section</h3>
+        <p className="text-sm text-red-700">
+          These settings are only visible and editable by administrators. Changes here affect system-level configurations.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input
+          label="Username"
+          value={profile?.username || ''}
+          onChange={(e) => handleBasicChange('username', e.target.value)}
+          helperText="Used in profile URLs (be careful when changing)"
+          required
+        />
+        <Input
+          label="Email"
+          type="email"
+          value={profile?.email || ''}
+          onChange={(e) => handleBasicChange('email', e.target.value)}
+          helperText="User's primary email address"
+          required
+        />
+      </div>
+
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Location Coordinates</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Set precise coordinates for map display. You can enter them manually or use the map (if available).
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Latitude"
+            type="text"
+            value={profile?._meta?.latitude || ''}
+            onChange={(e) => handleMetaChange('latitude', e.target.value)}
+            placeholder="e.g., 51.5074"
+            helperText="Decimal degrees (e.g., 51.5074)"
+          />
+          <Input
+            label="Longitude"
+            type="text"
+            value={profile?._meta?.longitude || ''}
+            onChange={(e) => handleMetaChange('longitude', e.target.value)}
+            placeholder="e.g., -0.1278"
+            helperText="Decimal degrees (e.g., -0.1278)"
+          />
+        </div>
+      </div>
+
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Status & Verification</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Account Status
+            </label>
+            <select
+              value={profile?.status || 'active'}
+              onChange={(e) => handleBasicChange('status', e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="pending">Pending</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">Current account status</p>
+          </div>
+          
+          <div className="space-y-3">
+            <Toggle
+              label="Verified"
+              description="Show verified badge on profile"
+              checked={profile?._meta?.verified === '1'}
+              onChange={(checked) => handleMetaChange('verified', checked ? '1' : '0')}
+            />
+            <Toggle
+              label="Featured"
+              description="Show in featured listings"
+              checked={profile?._meta?.featured === '1'}
+              onChange={(checked) => handleMetaChange('featured', checked ? '1' : '0')}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -691,7 +742,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         <div className="flex min-h-full items-center justify-center p-4">
           <div className="bg-white rounded-lg p-8">
             <div className="flex items-center">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-red-600" />
               <span className="ml-2">Loading profile...</span>
             </div>
           </div>
@@ -725,15 +776,15 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative w-full max-w-7xl mx-auto">
           {/* Modal content */}
-          <div className="bg-gray-50 rounded-xl shadow-2xl border-4 border-gray-400 max-h-[90vh] overflow-hidden">
+          <div className="bg-white rounded-xl shadow-2xl max-h-[90vh] overflow-hidden">
             {/* Modal header with close button */}
-            <div className="bg-gradient-to-r from-gray-200 to-gray-300 px-4 border-b-2 border-gray-400 flex justify-between items-center" style={{ paddingTop: '4px', paddingBottom: '4px' }}>
-              <h2 className="font-bold text-gray-800" style={{ fontSize: '14px', margin: '0' }}>
+            <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 border-b border-red-800 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white">
                 📝 Edit Studio Profile
               </h2>
               <button
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-full flex items-center justify-center font-bold transition-colors duration-200"
+                className="text-white hover:text-red-100 hover:bg-red-800 rounded-full flex items-center justify-center font-bold transition-colors duration-200"
                 style={{ width: '32px', height: '32px', fontSize: '24px' }}
                 title="Close modal (Esc)"
               >
@@ -742,24 +793,24 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </div>
             
             {/* Modal body with scrollable content */}
-            <div className="overflow-y-auto max-h-[calc(90vh-60px)] bg-white">
+            <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
               {/* Studio name header */}
-              <div className="bg-blue-50 px-4 border-b border-gray-200" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
-                <h3 className="font-medium text-gray-900" style={{ fontSize: '14px', margin: '0' }}>
+              <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                <h3 className="text-sm font-medium text-gray-900">
                   {profile.display_name || profile.username}
                 </h3>
               </div>
 
               {/* Tab Navigation */}
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-8 px-6" aria-label="Tabs">
+              <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+                <nav className="flex space-x-8 px-6 overflow-x-auto" aria-label="Tabs">
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                      className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
                         activeTab === tab.id
-                          ? 'border-blue-500 text-blue-600'
+                          ? 'border-red-500 text-red-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
@@ -771,46 +822,42 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               </div>
 
               {/* Tab Content */}
-              <div className="px-6 py-6 min-h-[600px]">
-                {activeTab === 'basic' && renderBasicTab()}
-                {activeTab === 'contact' && renderContactTab()}
-                {activeTab === 'location' && renderLocationTab()}
-                {activeTab === 'rates' && renderRatesTab()}
-                {activeTab === 'social' && renderSocialMediaTab()}
-                {activeTab === 'connections' && renderConnectionsTab()}
-                {activeTab === 'images' && renderImagesTab()}
-                {activeTab === 'advanced' && renderAdvancedTab()}
-                {activeTab !== 'basic' && activeTab !== 'contact' && activeTab !== 'location' && activeTab !== 'rates' && activeTab !== 'social' && activeTab !== 'connections' && activeTab !== 'images' && activeTab !== 'advanced' && (
-                  <div className="text-center py-8 text-gray-500">
-                    This tab is under development
-                  </div>
-                )}
-              </div>
-
-              {/* Sticky Action Buttons */}
-              <div className="sticky bottom-0 bg-white border-t-2 border-gray-300 px-6 py-4 flex justify-end">
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleSaveOnly}
-                    disabled={saving}
-                    className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 shadow-md"
-                  >
-                    {saving ? 'Saving...' : 'Save'}
-                  </button>
-                  <button
-                    onClick={handleViewProfile}
-                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={handleSaveAndClose}
-                    disabled={saving}
-                    className="px-4 py-2 bg-purple-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50 shadow-md"
-                  >
-                    {saving ? 'Saving...' : 'Save & Close'}
-                  </button>
+              <div className="px-6 py-6 min-h-[400px] flex justify-center">
+                <div className="w-full max-w-5xl">
+                  {activeTab === 'basic' && renderBasicTab()}
+                  {activeTab === 'contact' && renderContactTab()}
+                  {activeTab === 'rates' && renderRatesTab()}
+                  {activeTab === 'social' && renderSocialMediaTab()}
+                  {activeTab === 'connections' && renderConnectionsTab()}
+                  {activeTab === 'images' && renderImagesTab()}
+                  {activeTab === 'admin' && renderAdminTab()}
                 </div>
+              </div>
+            </div>
+
+            {/* Sticky Action Buttons */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-between items-center">
+              <button
+                onClick={handleViewProfile}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                👁️ View Profile
+              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSaveOnly}
+                  disabled={saving}
+                  className="px-6 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                >
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  onClick={handleSaveAndClose}
+                  disabled={saving}
+                  className="px-6 py-2 bg-purple-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                >
+                  {saving ? 'Saving...' : 'Save & Close'}
+                </button>
               </div>
             </div>
           </div>
