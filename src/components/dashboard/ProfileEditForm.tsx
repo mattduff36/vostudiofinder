@@ -575,7 +575,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                       type="checkbox"
                       checked={profile.profile[connection.id as keyof typeof profile.profile] === '1'}
                       onChange={(e) => updateProfile(connection.id, e.target.checked ? '1' : '0')}
-                      className="mr-3 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                      className="mr-3 h-4 w-4 text-red-600 accent-red-600 focus:ring-red-500 border-gray-300 rounded"
                     />
                     <span className="text-2xl mr-2">{connection.icon}</span>
                     <span className="text-sm font-medium text-gray-900">
@@ -596,7 +596,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               <div className="space-y-4">
                 {/* Custom Connection 1 */}
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Custom Method 1</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Input
@@ -629,7 +628,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
                 {/* Custom Connection 2 */}
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Custom Method 2</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Input
