@@ -178,7 +178,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
               {/* Profile Completion Progress and Tips - Side by Side */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Profile Completion Progress - Takes 2/3 width on large screens */}
-                <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
+                <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
                   <ProfileCompletionProgress 
                     profileData={{
                       display_name: profileData.user?.display_name,
@@ -213,7 +213,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 </div>
 
                 {/* Profile Tips - Takes 1/3 width on large screens */}
-                <div className="lg:col-span-1 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <div className="lg:col-span-1 bg-blue-50 border border-blue-200 shadow-sm rounded-lg p-6">
                   <h3 className="text-lg font-medium text-blue-900 mb-2">Profile Tips</h3>
                   <ul className="space-y-2 text-sm text-blue-800">
                     <li>• Complete profiles get 3x more views</li>
