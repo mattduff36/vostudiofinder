@@ -193,7 +193,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-red-600" />
       </div>
     );
   }
@@ -245,7 +245,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               onClick={() => setActiveSection(section.id)}
               className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
                 activeSection === section.id
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-red-500 text-red-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -575,7 +575,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                       type="checkbox"
                       checked={profile.profile[connection.id as keyof typeof profile.profile] === '1'}
                       onChange={(e) => updateProfile(connection.id, e.target.checked ? '1' : '0')}
-                      className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      className="mr-3 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                     />
                     <span className="text-2xl mr-2">{connection.icon}</span>
                     <span className="text-sm font-medium text-gray-900">
