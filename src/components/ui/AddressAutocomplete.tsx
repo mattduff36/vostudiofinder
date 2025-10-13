@@ -3,41 +3,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-// Google Maps types
-declare global {
-  interface Window {
-    google: {
-      maps: {
-        places: {
-          Autocomplete: new (
-            input: HTMLInputElement,
-            options?: {
-              types?: string[];
-              fields?: string[];
-              componentRestrictions?: unknown;
-            }
-          ) => {
-            addListener(eventName: string, handler: () => void): void;
-            getPlace(): {
-              formatted_address?: string;
-              name?: string;
-              place_id?: string;
-              address_components?: unknown[];
-              geometry?: unknown;
-              types?: string[];
-            } | undefined;
-          };
-          [key: string]: unknown;
-        };
-        event: {
-          clearInstanceListeners(instance: unknown): void;
-        };
-        [key: string]: unknown;
-      };
-    };
-  }
-}
-
 interface AddressAutocompleteProps {
   label: string;
   value: string;
