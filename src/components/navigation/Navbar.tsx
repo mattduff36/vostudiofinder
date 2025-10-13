@@ -223,12 +223,6 @@ export function Navbar({ session }: NavbarProps) {
                 </Button>
                 {session.user.email === 'admin@mpdee.co.uk' && (
                   <>
-                    <button
-                      onClick={() => router.push('/admin')}
-                      className="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
-                    >
-                      ADMIN
-                    </button>
                     {showEditButton && (
                       <button
                         onClick={handleEditClick}
@@ -237,6 +231,12 @@ export function Navbar({ session }: NavbarProps) {
                         EDIT
                       </button>
                     )}
+                    <button
+                      onClick={() => router.push('/admin')}
+                      className="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                    >
+                      ADMIN
+                    </button>
                   </>
                 )}
                 <button
@@ -357,12 +357,6 @@ export function Navbar({ session }: NavbarProps) {
                     </button>
                     {session.user.email === 'admin@mpdee.co.uk' && (
                       <>
-                        <button
-                          onClick={() => router.push('/admin')}
-                          className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 transition-colors"
-                        >
-                          ADMIN
-                        </button>
                         {showEditButton && (
                           <button
                             onClick={handleEditClick}
@@ -371,6 +365,12 @@ export function Navbar({ session }: NavbarProps) {
                             EDIT
                           </button>
                         )}
+                        <button
+                          onClick={() => router.push('/admin')}
+                          className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 transition-colors"
+                        >
+                          ADMIN
+                        </button>
                       </>
                     )}
                     <button
