@@ -794,13 +794,6 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             
             {/* Modal body with scrollable content */}
             <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
-              {/* Studio name header */}
-              <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-gray-900">
-                  {profile.display_name || profile.username}
-                </h3>
-              </div>
-
               {/* Tab Navigation */}
               <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
                 <nav className="flex space-x-8 px-6 overflow-x-auto" aria-label="Tabs">
