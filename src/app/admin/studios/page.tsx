@@ -17,6 +17,9 @@ interface Studio {
     display_name: string;
     email: string;
     username: string;
+    user_profiles?: {
+      is_featured?: boolean;
+    };
   };
   created_at: string;
   updated_at: string;
@@ -392,7 +395,15 @@ export default function AdminStudiosPage() {
                               </span>
                             )}
                             {studio.is_premium && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                👑
+                              </span>
+                            )}
+                            {studio.users?.user_profiles?.is_featured && (
+                              <span 
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 cursor-help" 
+                                title="Featured Studio – displayed on homepage"
+                              >
                                 ⭐
                               </span>
                             )}

@@ -196,7 +196,7 @@ h6,
   margin: 0 0 8px 0 !important; /* mb-2 sm:mb-3 equivalent */
   line-height: 1.25 !important;
   display: -webkit-box !important;
-  -webkit-line-clamp: 1 !important;
+  -webkit-line-clamp: 2 !important; /* Allow studio name to wrap to 2 lines */
   -webkit-box-orient: vertical !important;
   overflow: hidden !important;
 }
@@ -208,7 +208,7 @@ h6,
   margin: 0 0 8px 0 !important; /* mb-2 sm:mb-3 equivalent */
   line-height: 1.25 !important;
   display: -webkit-box !important;
-  -webkit-line-clamp: 1 !important;
+  -webkit-line-clamp: 2 !important; /* Allow studio name to wrap to 2 lines */
   -webkit-box-orient: vertical !important;
   overflow: hidden !important;
 }

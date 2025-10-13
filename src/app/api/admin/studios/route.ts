@@ -46,7 +46,12 @@ export async function GET(request: NextRequest) {
             select: {
               display_name: true,
               email: true,
-              username: true
+              username: true,
+              user_profiles: {
+                select: {
+                  is_featured: true
+                }
+              }
             }
           },
           studio_studio_types: {

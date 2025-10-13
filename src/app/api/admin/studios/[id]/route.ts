@@ -246,7 +246,26 @@ export async function PUT(
     if (body._meta?.youtubepage !== undefined) profileUpdateData.youtube_url = body._meta.youtubepage;
     if (body._meta?.soundcloud !== undefined) profileUpdateData.soundcloud_url = body._meta.soundcloud;
     if (body._meta?.vimeo !== undefined) profileUpdateData.vimeo_url = body._meta.vimeo;
-    if (body._meta?.featured !== undefined) profileUpdateData.is_featured = body._meta.featured === '1' || body._meta.featured === true;
+    
+    // Handle featured status with validation (max 6 featured studios)
+    if (body._meta?.featured !== undefined) {
+      const isFeatured = body._meta.featured === '1' || body._meta.featured === true;
+      
+      // If trying to feature this studio, check if limit is reached
+      if (isFeatured && !existingStudio.users?.user_profiles?.is_featured) {
+        const featuredCount = await prisma.user_profiles.count({
+          where: { is_featured: true }
+        });
+        
+        if (featuredCount >= 6) {
+          return NextResponse.json({
+            error: 'Maximum of 6 featured studios reached. Please unfeature another studio first.'
+          }, { status: 400 });
+        }
+      }
+      
+      profileUpdateData.is_featured = isFeatured;
+    }
     // Rate updates
     if (body._meta?.rates1 !== undefined) profileUpdateData.rate_tier_1 = body._meta.rates1;
     if (body._meta?.rates2 !== undefined) profileUpdateData.rate_tier_2 = body._meta.rates2;

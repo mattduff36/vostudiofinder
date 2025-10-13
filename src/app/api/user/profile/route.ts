@@ -107,8 +107,11 @@ export async function GET() {
           show_rates: user.user_profiles.show_rates,
           facebook_url: user.user_profiles.facebook_url,
           twitter_url: user.user_profiles.twitter_url,
+          x_url: user.user_profiles.x_url,
           linkedin_url: user.user_profiles.linkedin_url,
           instagram_url: user.user_profiles.instagram_url,
+          tiktok_url: user.user_profiles.tiktok_url,
+          threads_url: user.user_profiles.threads_url,
           youtube_url: user.user_profiles.youtube_url,
           vimeo_url: user.user_profiles.vimeo_url,
           soundcloud_url: user.user_profiles.soundcloud_url,
@@ -123,6 +126,7 @@ export async function GET() {
           show_email: user.user_profiles.show_email,
           show_phone: user.user_profiles.show_phone,
           show_address: user.user_profiles.show_address,
+          show_directions: user.user_profiles.show_directions,
           is_crb_checked: user.user_profiles.is_crb_checked,
           is_featured: user.user_profiles.is_featured,
           is_spotlight: user.user_profiles.is_spotlight,
@@ -229,17 +233,26 @@ export async function PUT(request: NextRequest) {
       if (body.profile.short_about !== undefined) profileUpdates.short_about = body.profile.short_about;
       if (body.profile.location !== undefined) profileUpdates.location = body.profile.location;
       
-      // Rate fields
-      if (body.profile.rate_tier_1 !== undefined) profileUpdates.rate_tier_1 = body.profile.rate_tier_1;
-      if (body.profile.rate_tier_2 !== undefined) profileUpdates.rate_tier_2 = body.profile.rate_tier_2;
-      if (body.profile.rate_tier_3 !== undefined) profileUpdates.rate_tier_3 = body.profile.rate_tier_3;
+      // Rate fields (convert numbers to strings for database)
+      if (body.profile.rate_tier_1 !== undefined) {
+        profileUpdates.rate_tier_1 = body.profile.rate_tier_1 !== null ? String(body.profile.rate_tier_1) : null;
+      }
+      if (body.profile.rate_tier_2 !== undefined) {
+        profileUpdates.rate_tier_2 = body.profile.rate_tier_2 !== null ? String(body.profile.rate_tier_2) : null;
+      }
+      if (body.profile.rate_tier_3 !== undefined) {
+        profileUpdates.rate_tier_3 = body.profile.rate_tier_3 !== null ? String(body.profile.rate_tier_3) : null;
+      }
       if (body.profile.show_rates !== undefined) profileUpdates.show_rates = body.profile.show_rates;
       
       // Social media fields
       if (body.profile.facebook_url !== undefined) profileUpdates.facebook_url = body.profile.facebook_url;
       if (body.profile.twitter_url !== undefined) profileUpdates.twitter_url = body.profile.twitter_url;
+      if (body.profile.x_url !== undefined) profileUpdates.x_url = body.profile.x_url;
       if (body.profile.linkedin_url !== undefined) profileUpdates.linkedin_url = body.profile.linkedin_url;
       if (body.profile.instagram_url !== undefined) profileUpdates.instagram_url = body.profile.instagram_url;
+      if (body.profile.tiktok_url !== undefined) profileUpdates.tiktok_url = body.profile.tiktok_url;
+      if (body.profile.threads_url !== undefined) profileUpdates.threads_url = body.profile.threads_url;
       if (body.profile.youtube_url !== undefined) profileUpdates.youtube_url = body.profile.youtube_url;
       if (body.profile.vimeo_url !== undefined) profileUpdates.vimeo_url = body.profile.vimeo_url;
       if (body.profile.soundcloud_url !== undefined) profileUpdates.soundcloud_url = body.profile.soundcloud_url;
@@ -258,6 +271,7 @@ export async function PUT(request: NextRequest) {
       if (body.profile.show_email !== undefined) profileUpdates.show_email = body.profile.show_email;
       if (body.profile.show_phone !== undefined) profileUpdates.show_phone = body.profile.show_phone;
       if (body.profile.show_address !== undefined) profileUpdates.show_address = body.profile.show_address;
+      if (body.profile.show_directions !== undefined) profileUpdates.show_directions = body.profile.show_directions;
       
       // Other fields
       if (body.profile.studio_name !== undefined) profileUpdates.studio_name = body.profile.studio_name;

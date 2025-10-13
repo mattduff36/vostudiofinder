@@ -7,7 +7,7 @@ interface ProfileCompletionProgressProps {
   profileData: {
     display_name?: string | undefined;
     username?: string | undefined;
-    avatar_url?: string | undefined | null;
+    email?: string | undefined;
     about?: string | undefined;
     short_about?: string | undefined;
     phone?: string | undefined;
@@ -18,6 +18,8 @@ interface ProfileCompletionProgressProps {
     linkedin_url?: string | undefined;
     instagram_url?: string | undefined;
     youtube_url?: string | undefined;
+    vimeo_url?: string | undefined;
+    soundcloud_url?: string | undefined;
     connection1?: string | undefined;
     connection2?: string | undefined;
     connection3?: string | undefined;
@@ -26,6 +28,10 @@ interface ProfileCompletionProgressProps {
     connection6?: string | undefined;
     connection7?: string | undefined;
     connection8?: string | undefined;
+    rate_tier_1?: number | null | undefined;
+    website_url?: string | undefined;
+    images_count?: number | undefined;
+    studio_types_count?: number | undefined;
   };
 }
 
@@ -36,71 +42,70 @@ interface ProfileField {
 }
 
 export function ProfileCompletionProgress({ profileData }: ProfileCompletionProgressProps) {
-  // Define all fields that contribute to profile completion
+  // Count social media links (need at least 2)
+  const socialMediaCount = [
+    profileData.facebook_url,
+    profileData.twitter_url,
+    profileData.linkedin_url,
+    profileData.instagram_url,
+    profileData.youtube_url,
+    profileData.vimeo_url,
+    profileData.soundcloud_url,
+  ].filter(url => url && url.trim() !== '').length;
+
+  // Check if at least one connection method is selected
+  const hasConnectionMethod = !!(
+    profileData.connection1 === '1' || 
+    profileData.connection2 === '1' || 
+    profileData.connection3 === '1' || 
+    profileData.connection4 === '1' || 
+    profileData.connection5 === '1' || 
+    profileData.connection6 === '1' || 
+    profileData.connection7 === '1' || 
+    profileData.connection8 === '1'
+  );
+
+  // Define all 14 fields required for profile completion (each worth ~7.14%)
   const fields: ProfileField[] = [
-    // Essential fields (higher weight)
-    { label: 'Display Name', completed: !!profileData.display_name, weight: 10 },
-    { label: 'Username', completed: !!profileData.username, weight: 10 },
-    { label: 'Avatar', completed: !!profileData.avatar_url, weight: 15 },
-    { label: 'Short About', completed: !!profileData.short_about, weight: 10 },
-    { label: 'Full About', completed: !!profileData.about, weight: 15 },
-    
-    // Contact info (medium weight)
-    { label: 'Phone', completed: !!profileData.phone, weight: 5 },
-    { label: 'Location', completed: !!profileData.location, weight: 5 },
-    { label: 'Studio Name', completed: !!profileData.studio_name, weight: 5 },
-    
-    // Social media (lower weight, but multiple options)
-    { 
-      label: 'Social Media', 
-      completed: !!(
-        profileData.facebook_url || 
-        profileData.twitter_url || 
-        profileData.linkedin_url || 
-        profileData.instagram_url || 
-        profileData.youtube_url
-      ), 
-      weight: 10 
-    },
-    
-    // Connection methods (lower weight, but multiple options)
-    { 
-      label: 'Connection Methods', 
-      completed: !!(
-        profileData.connection1 === '1' || 
-        profileData.connection2 === '1' || 
-        profileData.connection3 === '1' || 
-        profileData.connection4 === '1' || 
-        profileData.connection5 === '1' || 
-        profileData.connection6 === '1' || 
-        profileData.connection7 === '1' || 
-        profileData.connection8 === '1'
-      ), 
-      weight: 15 
-    },
+    { label: 'Display Name', completed: !!(profileData.display_name && profileData.display_name.trim()), weight: 7.14 },
+    { label: 'Username', completed: !!(profileData.username && profileData.username.trim()), weight: 7.14 },
+    { label: 'Short About', completed: !!(profileData.short_about && profileData.short_about.trim()), weight: 7.14 },
+    { label: 'Full About', completed: !!(profileData.about && profileData.about.trim()), weight: 7.14 },
+    { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), weight: 7.14 },
+    { label: 'Location', completed: !!(profileData.location && profileData.location.trim()), weight: 7.14 },
+    { label: 'Studio Name', completed: !!(profileData.studio_name && profileData.studio_name.trim()), weight: 7.14 },
+    { label: 'Connection Methods', completed: hasConnectionMethod, weight: 7.14 },
+    { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, weight: 7.14 },
+    { label: 'Website URL', completed: !!(profileData.website_url && profileData.website_url.trim()), weight: 7.14 },
+    { label: 'At least 1 image', completed: (profileData.images_count || 0) >= 1, weight: 7.14 },
+    { label: 'Studio Type selected', completed: (profileData.studio_types_count || 0) >= 1, weight: 7.14 },
+    { label: 'Rate Tier 1', completed: !!(profileData.rate_tier_1 && profileData.rate_tier_1 > 0), weight: 7.14 },
+    { label: 'Email', completed: !!(profileData.email && profileData.email.trim()), weight: 7.16 }, // 7.16 to round up to 100
   ];
 
   // Calculate completion percentage
-  const completionPercentage = fields.reduce((total, field) => {
-    return total + (field.completed ? field.weight : 0);
-  }, 0);
+  const completionPercentage = Math.round(
+    fields.reduce((total, field) => {
+      return total + (field.completed ? field.weight : 0);
+    }, 0)
+  );
 
   // Circle SVG parameters
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (completionPercentage / 100) * circumference;
 
-  // Color based on completion
+  // Color based on completion (grey until 75%, amber 75-85%, green >85%)
   const getColor = (percentage: number) => {
-    if (percentage >= 80) return 'text-green-600';
-    if (percentage >= 50) return 'text-yellow-600';
-    return 'text-red-600';
+    if (percentage > 85) return 'text-green-600';
+    if (percentage >= 75) return 'text-amber-600';
+    return 'text-gray-600';
   };
 
   const getStrokeColor = (percentage: number) => {
-    if (percentage >= 80) return '#16a34a'; // green-600
-    if (percentage >= 50) return '#ca8a04'; // yellow-600
-    return '#dc2626'; // red-600
+    if (percentage > 85) return '#16a34a'; // green-600
+    if (percentage >= 75) return '#f59e0b'; // amber-600
+    return '#6b7280'; // gray-600
   };
 
   return (
