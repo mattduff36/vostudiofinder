@@ -28,7 +28,7 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
       case 'settings':
         return (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
               <p className="text-gray-600">Settings panel will go here.</p>
               {/* Settings panel will be added here */}
