@@ -27,7 +27,8 @@ export async function requireRole(
   const session = await requireAuth(callbackUrl);
   
   if (!hasRequiredRole(session.user.role, requiredRole)) {
-    redirect('/unauthorized');
+    // Redirect to dashboard instead of unauthorized page
+    redirect('/dashboard');
   }
   
   return session;

@@ -197,6 +197,14 @@ export function Navbar({ session }: NavbarProps) {
                 >
                   Dashboard
                 </Button>
+                {session.user.email === 'admin@mpdee.co.uk' && (
+                  <button
+                    onClick={() => router.push('/admin')}
+                    className="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                  >
+                    ADMIN
+                  </button>
+                )}
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className={`p-2 rounded-lg transition-all duration-300 ${
@@ -313,6 +321,14 @@ export function Navbar({ session }: NavbarProps) {
                     >
                       Dashboard
                     </button>
+                    {session.user.email === 'admin@mpdee.co.uk' && (
+                      <button
+                        onClick={() => router.push('/admin')}
+                        className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 transition-colors"
+                      >
+                        ADMIN
+                      </button>
+                    )}
                     <button
                       onClick={() => signOut({ callbackUrl: '/' })}
                       className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-700 hover:text-white hover:bg-red-500 transition-colors"

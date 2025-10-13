@@ -131,17 +131,6 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 </p>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-4">
-              {user.email === 'admin@mpdee.co.uk' && (
-                <button
-                  onClick={() => window.location.href = '/admin'}
-                  className="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg flex items-center transition-all font-medium"
-                >
-                  ADMIN
-                </button>
-              )}
-            </div>
           </div>
         </div>
       </div>
