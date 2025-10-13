@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import EditStudioModal from '@/components/admin/EditStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
+import { AdminTabs } from '@/components/admin/AdminTabs';
 
 interface Studio {
   id: string;
@@ -212,7 +213,10 @@ export default function AdminStudiosPage() {
   }
 
   return (
-    <div className="space-y-6 px-4 sm:px-6 lg:px-8">
+    <>
+      <AdminTabs activeTab="studios" />
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -489,7 +493,9 @@ export default function AdminStudiosPage() {
         onClose={handleCloseEditModal}
         onSave={handleSaveStudio}
       />
-    </div>
+        </div>
+      </div>
+    </>
   );
 }
 
