@@ -178,55 +178,51 @@ export function UserDashboard({ data }: UserDashboardProps) {
               {/* Profile Completion Progress and Tips - Side by Side */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Profile Completion Progress - Takes 2/3 width on large screens */}
-                <div className="lg:col-span-2">
-                  <div className="bg-white rounded-lg border border-gray-200 p-6 h-full">
-                    <ProfileCompletionProgress 
-                      profileData={{
-                        display_name: profileData.user?.display_name,
-                        username: profileData.user?.username,
-                        email: profileData.user?.email,
-                        about: profileData.profile?.about,
-                        short_about: profileData.profile?.short_about,
-                        phone: profileData.profile?.phone,
-                        location: profileData.profile?.location,
-                        studio_name: profileData.profile?.studio_name,
-                        facebook_url: profileData.profile?.facebook_url,
-                        twitter_url: profileData.profile?.twitter_url,
-                        linkedin_url: profileData.profile?.linkedin_url,
-                        instagram_url: profileData.profile?.instagram_url,
-                        youtube_url: profileData.profile?.youtube_url,
-                        vimeo_url: profileData.profile?.vimeo_url,
-                        soundcloud_url: profileData.profile?.soundcloud_url,
-                        connection1: profileData.profile?.connection1,
-                        connection2: profileData.profile?.connection2,
-                        connection3: profileData.profile?.connection3,
-                        connection4: profileData.profile?.connection4,
-                        connection5: profileData.profile?.connection5,
-                        connection6: profileData.profile?.connection6,
-                        connection7: profileData.profile?.connection7,
-                        connection8: profileData.profile?.connection8,
-                        rate_tier_1: profileData.profile?.rate_tier_1,
-                        website_url: profileData.studio?.website_url,
-                        images_count: profileData.studio?.images?.length || 0,
-                        studio_types_count: profileData.studio?.studio_types?.length || 0,
-                      }}
-                    />
-                  </div>
+                <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
+                  <ProfileCompletionProgress 
+                    profileData={{
+                      display_name: profileData.user?.display_name,
+                      username: profileData.user?.username,
+                      email: profileData.user?.email,
+                      about: profileData.profile?.about,
+                      short_about: profileData.profile?.short_about,
+                      phone: profileData.profile?.phone,
+                      location: profileData.profile?.location,
+                      studio_name: profileData.profile?.studio_name,
+                      facebook_url: profileData.profile?.facebook_url,
+                      twitter_url: profileData.profile?.twitter_url,
+                      linkedin_url: profileData.profile?.linkedin_url,
+                      instagram_url: profileData.profile?.instagram_url,
+                      youtube_url: profileData.profile?.youtube_url,
+                      vimeo_url: profileData.profile?.vimeo_url,
+                      soundcloud_url: profileData.profile?.soundcloud_url,
+                      connection1: profileData.profile?.connection1,
+                      connection2: profileData.profile?.connection2,
+                      connection3: profileData.profile?.connection3,
+                      connection4: profileData.profile?.connection4,
+                      connection5: profileData.profile?.connection5,
+                      connection6: profileData.profile?.connection6,
+                      connection7: profileData.profile?.connection7,
+                      connection8: profileData.profile?.connection8,
+                      rate_tier_1: profileData.profile?.rate_tier_1,
+                      website_url: profileData.studio?.website_url,
+                      images_count: profileData.studio?.images?.length || 0,
+                      studio_types_count: profileData.studio?.studio_types?.length || 0,
+                    }}
+                  />
                 </div>
 
                 {/* Profile Tips - Takes 1/3 width on large screens */}
-                <div className="lg:col-span-1">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 h-full">
-                    <h3 className="text-lg font-medium text-blue-900 mb-2">Profile Tips</h3>
-                    <ul className="space-y-2 text-sm text-blue-800">
-                      <li>• Complete profiles get 3x more views</li>
-                      <li>• Fill in your about sections to stand out</li>
-                      <li>• Upload quality images of your studio to build trust</li>
-                      <li>• Add connection methods so clients can reach you easily</li>
-                      <li>• Link at least 2 social media profiles to showcase your work</li>
-                      <li>• All fields must be completed before publishing your profile</li>
-                    </ul>
-                  </div>
+                <div className="lg:col-span-1 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <h3 className="text-lg font-medium text-blue-900 mb-2">Profile Tips</h3>
+                  <ul className="space-y-2 text-sm text-blue-800">
+                    <li>• Complete profiles get 3x more views</li>
+                    <li>• Fill in your about sections to stand out</li>
+                    <li>• Upload quality images of your studio to build trust</li>
+                    <li>• Add connection methods so clients can reach you easily</li>
+                    <li>• Link at least 2 social media profiles to showcase your work</li>
+                    <li>• All fields must be completed before publishing your profile</li>
+                  </ul>
                 </div>
               </div>
 
