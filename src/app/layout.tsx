@@ -29,6 +29,19 @@ export const metadata: Metadata = {
   description: 'Browse professional voiceover recording studios worldwide - no signup required! Find studios, read reviews, and contact directly. Studio owners can list for £25/year.',
   keywords: 'voiceover, recording studio, audio production, voice talent, studio rental',
   authors: [{ name: 'VoiceoverStudioFinder Team' }],
+  icons: {
+    icon: [
+      { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon/favicon.ico', sizes: 'any' },
+    ],
+    apple: [
+      { url: '/favicon/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      { rel: 'manifest', url: '/favicon/site.webmanifest' },
+    ],
+  },
   openGraph: {
     title: 'VoiceoverStudioFinder',
     description: 'Browse professional voiceover recording studios worldwide - no signup required!',
