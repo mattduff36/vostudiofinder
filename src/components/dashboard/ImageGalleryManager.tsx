@@ -233,7 +233,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
   }
 
   return (
-    <div className={isAdminMode ? "" : "bg-white rounded-lg border border-gray-200"}>
+    <div className={isAdminMode ? "" : "bg-white rounded-lg border border-gray-200 shadow-sm"}>
       {/* Header - Hidden in admin mode */}
       {!isAdminMode && (
         <div className="border-b border-gray-200 px-6 py-4">

@@ -107,7 +107,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -141,7 +141,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
       <div>
         <div className="space-y-8">
           {loading ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 flex justify-center">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 flex justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
           ) : profileData ? (
@@ -202,7 +202,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
               </div>
 
               {/* Additional Dashboard Sections Coming Soon */}
-              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center">
                 <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-medium text-text-primary mb-2">
                   More Features Coming Soon
@@ -210,7 +210,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
               </div>
             </>
           ) : (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center">
               <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-medium text-text-primary mb-2">
                 Welcome to Your Dashboard
