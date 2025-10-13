@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth-guards';
 import { db } from '@/lib/db';
 
 export async function GET(
-  request: NextRequest,
+  _request: Request,
   { params }: { params: Promise<{ username: string }> }
 ) {
   try {
@@ -55,6 +55,13 @@ export async function GET(
     }
 
     const studio = user.studios[0];
+
+    if (!studio) {
+      return NextResponse.json(
+        { error: 'Studio not found' },
+        { status: 404 }
+      );
+    }
 
     // Format the studio data to match the expected structure
     const formattedStudio = {
