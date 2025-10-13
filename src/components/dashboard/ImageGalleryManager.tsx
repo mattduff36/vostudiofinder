@@ -227,7 +227,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-red-600" />
       </div>
     );
   }
@@ -271,7 +271,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className={`border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-500 transition-colors cursor-pointer ${
+            className={`border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-red-500 transition-colors cursor-pointer ${
               isAdminMode ? 'p-4' : 'p-8'
             }`}
             onClick={() => fileInputRef.current?.click()}
@@ -286,7 +286,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
             
             {uploading ? (
               <div className="flex flex-col items-center">
-                <Loader2 className={`text-blue-600 animate-spin ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
+                <Loader2 className={`text-red-600 animate-spin ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
                 <p className="text-sm font-medium text-gray-700">Uploading...</p>
               </div>
             ) : (
@@ -335,7 +335,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
                 
                 {/* Sort Order Badge */}
                 {index > 0 && (
-                  <div className="absolute top-2 left-2 w-7 h-7 bg-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
+                  <div className="absolute top-2 left-2 w-7 h-7 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
                     {index + 1}
                   </div>
                 )}
