@@ -142,7 +142,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
         <div className="space-y-8">
           {loading ? (
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 flex justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-red-600" />
             </div>
           ) : profileData ? (
             <>
