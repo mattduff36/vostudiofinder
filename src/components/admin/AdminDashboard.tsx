@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { signOut } from 'next-auth/react';
 import { 
   Users, 
   Building, 
@@ -9,15 +7,9 @@ import {
   AlertCircle, 
   Activity,
   Crown,
-  TrendingUp,
-  Settings,
-  Shield,
-  MessageSquare,
-  Globe,
-  Search,
-  FileText,
-  LogOut
+  TrendingUp
 } from 'lucide-react';
+import { AdminTabs } from './AdminTabs';
 
 interface AdminDashboardProps {
   stats: {
@@ -61,8 +53,6 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
-  const [activeTab] = useState<'overview' | 'users' | 'studios' | 'reviews' | 'settings'>('overview');
-
   const statCards = [
     {
       title: 'Total Users',
@@ -109,76 +99,13 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-text-primary flex items-center">
-                <Shield className="w-8 h-8 mr-3 text-primary-600" />
-                Admin Dashboard
-              </h1>
-              <p className="mt-2 text-text-secondary">
-                Manage your VoiceoverStudioFinder platform
-              </p>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button className="bg-gradient-to-r from-primary-700 to-primary-600 hover:from-primary-800 hover:to-primary-700 text-white px-4 py-2 rounded-lg flex items-center transition-all">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <>
       {/* Admin Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8 justify-between">
-            <div className="flex space-x-8">
-              {[
-                { id: 'overview', label: 'Overview', icon: TrendingUp, href: '/admin' },
-                { id: 'studios', label: 'Studios', icon: Building, href: '/admin/studios' },
-                { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
-                { id: 'network', label: 'Network', icon: Globe, href: '/admin/network' },
-                { id: 'query', label: 'Query', icon: Search, href: '/admin/query' },
-                { id: 'schema', label: 'Schema', icon: FileText, href: '/admin/schema' },
-                { id: 'venues', label: 'Venues', icon: Building, href: '/admin/venues' },
-                { id: 'faq', label: 'FAQ', icon: MessageSquare, href: '/admin/faq' },
-              ].map((tab) => (
-                <a
-                  key={tab.id}
-                  href={tab.href}
-                  className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-text-secondary hover:text-text-primary hover:border-gray-300'
-                  }`}
-                >
-                  <tab.icon className="w-4 h-4 mr-2" />
-                  {tab.label}
-                </a>
-              ))}
-            </div>
-            <div className="flex items-center">
-              <button 
-                onClick={() => signOut({ callbackUrl: '/' })}
-                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center transition-all"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </button>
-            </div>
-          </nav>
-        </div>
-      </div>
+      <AdminTabs activeTab="overview" />
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'overview' && (
+      <main className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-8">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -299,21 +226,8 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Other tabs would be implemented here */}
-        {activeTab !== 'overview' && (
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-text-primary mb-2">
-              {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Management
-            </h3>
-            <p className="text-text-secondary">
-              This section is under development. Advanced admin features for managing {activeTab} will be available soon.
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </main>
+    </>
   );
 }
