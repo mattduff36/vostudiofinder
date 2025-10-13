@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { 
   User, 
-  Plus,
-  Settings,
   Activity,
   Loader2
 } from 'lucide-react';
@@ -88,8 +86,6 @@ export function UserDashboard({ data }: UserDashboardProps) {
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const isStudioOwner = user.role === 'STUDIO_OWNER' || user.role === 'ADMIN';
-
   // Fetch profile data for completion progress
   useEffect(() => {
     const fetchProfile = async () => {
@@ -144,22 +140,6 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 >
                   ADMIN
                 </button>
-              )}
-              <Button
-                onClick={() => window.location.href = '/profile'}
-                variant="outline"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
-              
-              {isStudioOwner && (
-                <Button
-                  onClick={() => window.location.href = '/studio/create'}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Studio
-                </Button>
               )}
             </div>
           </div>
