@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { 
   TrendingUp, 
   Building, 
@@ -38,7 +38,6 @@ const tabs: TabConfig[] = [
 export function AdminTabs({ activeTab }: AdminTabsProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
 
   return (
     <>
