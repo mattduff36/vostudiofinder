@@ -59,7 +59,7 @@ export function DashboardTabs({ activeTab, onTabChange }: DashboardTabsProps) {
                 className={`
                   flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors
                   ${isActive
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-red-500 text-red-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }
                 `}
@@ -117,7 +117,7 @@ export function DashboardTabs({ activeTab, onTabChange }: DashboardTabsProps) {
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 text-left transition-colors
                     ${isActive
-                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      ? 'bg-red-50 text-red-600 font-medium'
                       : 'text-gray-700 hover:bg-gray-50'
                     }
                   `}
