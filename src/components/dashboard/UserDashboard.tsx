@@ -207,9 +207,6 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 <h3 className="text-xl font-medium text-text-primary mb-2">
                   More Features Coming Soon
                 </h3>
-                <p className="text-text-secondary max-w-md mx-auto">
-                  Activity insights, recent reviews, and messages will appear here soon.
-                </p>
               </div>
             </>
           ) : (
