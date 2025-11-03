@@ -100,7 +100,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
   };
 
   const studioTypeOptions = [
-    { value: studio_type.VOICEOVER, label: 'Voiceover Studio' },
+    { value: studio_type.HOME, label: 'Home Studio' },
     { value: studio_type.RECORDING, label: 'Recording Studio' },
     { value: studio_type.PODCAST, label: 'Podcast Studio' },
   ];
