@@ -374,7 +374,9 @@ export function StudiosPage() {
       else if (value !== undefined && value !== null && value !== '') {
         if (Array.isArray(value)) {
           if (value.length > 0) {
-            params.set(key, value.join(','));
+            // Normalize studio_studio_types to studioTypes for URL
+            const paramKey = key === 'studio_studio_types' ? 'studioTypes' : key;
+            params.set(paramKey, value.join(','));
           }
         } else {
           params.set(key, value.toString());
