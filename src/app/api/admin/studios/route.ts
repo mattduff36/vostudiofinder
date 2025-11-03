@@ -49,7 +49,8 @@ export async function GET(request: NextRequest) {
               username: true,
               user_profiles: {
                 select: {
-                  is_featured: true
+                  is_featured: true,
+                  is_spotlight: true
                 }
               }
             }
