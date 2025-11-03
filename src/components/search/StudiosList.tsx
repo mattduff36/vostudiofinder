@@ -117,10 +117,10 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                 <span className="flex-1">{studio.name} </span>
                 {studio.is_verified && (
                   <span 
-                    className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help flex-shrink-0 mt-0.5" 
+                    className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help flex-shrink-0 mt-0.5" 
                     title="Verified studio — approved by our team"
                   >
-                    <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-2 h-2 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
                       <path d="M5 13l4 4L19 7"></path>
                     </svg>
                   </span>
