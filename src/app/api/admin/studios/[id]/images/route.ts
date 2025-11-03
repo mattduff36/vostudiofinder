@@ -92,35 +92,52 @@ export async function POST(
     const buffer = Buffer.from(arrayBuffer);
     console.log('✅ Buffer created:', buffer.length, 'bytes');
 
-    console.log('☁️ Uploading to Cloudinary...');
+    console.log('☁️ Uploading to Cloudinary via direct API...');
     console.log('☁️ Cloudinary config being used:', {
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
       api_key_length: process.env.CLOUDINARY_API_KEY?.length,
       api_secret_length: process.env.CLOUDINARY_API_SECRET?.length,
     });
     
-    const cloudinaryResult: any = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream({
-        folder: `vosf/studios/${studio.id}`,
-        transformation: [
-          { width: 1200, height: 800, crop: 'limit' },
-          { quality: 'auto' },
-          { fetch_format: 'auto' },
-        ],
-      }, (error, result) => {
-        if (error) {
-          console.error('❌ Cloudinary upload error:', JSON.stringify(error, null, 2));
-          reject(error);
-          return;
-        }
-        console.log('✅ Cloudinary upload success:', { 
-          secure_url: result?.secure_url,
-          public_id: result?.public_id 
-        });
-        resolve(result);
-      });
-      
-      uploadStream.end(buffer);
+    // Use direct API instead of SDK to avoid serverless issues
+    const timestamp = Math.round(Date.now() / 1000);
+    const folder = `vosf/studios/${studio.id}`;
+    
+    // Create signature for authenticated upload
+    const crypto = require('crypto');
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}&transformation=c_limit,h_800,w_1200/f_auto/q_auto${process.env.CLOUDINARY_API_SECRET}`;
+    const signature = crypto.createHash('sha256').update(paramsToSign).digest('hex');
+    
+    // Create form data for Cloudinary API
+    const cloudinaryFormData = new FormData();
+    cloudinaryFormData.append('file', new Blob([buffer]), file.name);
+    cloudinaryFormData.append('timestamp', timestamp.toString());
+    cloudinaryFormData.append('folder', folder);
+    cloudinaryFormData.append('transformation', 'c_limit,h_800,w_1200/f_auto/q_auto');
+    cloudinaryFormData.append('api_key', process.env.CLOUDINARY_API_KEY!);
+    cloudinaryFormData.append('signature', signature);
+    
+    console.log('📤 Posting to Cloudinary API...');
+    const cloudinaryResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: 'POST',
+        body: cloudinaryFormData,
+      }
+    );
+    
+    console.log('📥 Cloudinary response status:', cloudinaryResponse.status);
+    
+    if (!cloudinaryResponse.ok) {
+      const errorText = await cloudinaryResponse.text();
+      console.error('❌ Cloudinary API error:', errorText);
+      throw new Error(`Cloudinary upload failed: ${cloudinaryResponse.status} - ${errorText}`);
+    }
+    
+    const cloudinaryResult = await cloudinaryResponse.json();
+    console.log('✅ Cloudinary upload success:', { 
+      secure_url: cloudinaryResult.secure_url,
+      public_id: cloudinaryResult.public_id 
     });
 
     if (!cloudinaryResult || !cloudinaryResult.secure_url) {
