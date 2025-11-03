@@ -20,6 +20,7 @@ interface Studio {
     username: string;
     user_profiles?: {
       is_featured?: boolean;
+      is_spotlight?: boolean;
     };
   };
   created_at: string;
@@ -448,6 +449,14 @@ export default function AdminStudiosPage() {
                                 title="Featured Studio – displayed on homepage"
                               >
                                 ⭐
+                              </span>
+                            )}
+                            {studio.users?.user_profiles?.is_spotlight && (
+                              <span 
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800 cursor-help" 
+                                title="Spotlight Studio – highlighted in network"
+                              >
+                                💡
                               </span>
                             )}
                           </div>
