@@ -104,6 +104,7 @@ export async function GET(
       showemail: studio.users?.user_profiles?.show_email || false,
       showphone: studio.users?.user_profiles?.show_phone || false,
       showaddress: studio.users?.user_profiles?.show_address || false,
+      showdirections: studio.users?.user_profiles?.show_directions !== false, // Default true
       // Connection types
       connection1: studio.users?.user_profiles?.connection1 || '',
       connection2: studio.users?.user_profiles?.connection2 || '',
@@ -158,6 +159,7 @@ export async function GET(
         showemail: studioData.showemail ? '1' : '0',
         showphone: studioData.showphone ? '1' : '0',
         showaddress: studioData.showaddress ? '1' : '0',
+        showdirections: studioData.showdirections ? '1' : '0',
         // Connection types
         connection1: studioData.connection1 || '0',
         connection2: studioData.connection2 || '0',
@@ -276,6 +278,7 @@ export async function PUT(
     if (body._meta?.showemail !== undefined) profileUpdateData.show_email = body._meta.showemail === '1' || body._meta.showemail === true;
     if (body._meta?.showphone !== undefined) profileUpdateData.show_phone = body._meta.showphone === '1' || body._meta.showphone === true;
     if (body._meta?.showaddress !== undefined) profileUpdateData.show_address = body._meta.showaddress === '1' || body._meta.showaddress === true;
+    if (body._meta?.showdirections !== undefined) profileUpdateData.show_directions = body._meta.showdirections === '1' || body._meta.showdirections === true;
     
     // Connection types
     if (body._meta?.connection1 !== undefined) profileUpdateData.connection1 = body._meta.connection1;
