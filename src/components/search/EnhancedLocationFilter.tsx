@@ -523,7 +523,7 @@ export function EnhancedLocationFilter({
         value={query}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        className={`w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${className}`}
+        className={`w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${className}`}
         autoComplete="off"
       />
       
