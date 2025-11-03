@@ -331,10 +331,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 <span>{studio.name}</span>
                 {studio.is_verified && (
                   <span 
-                    className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help" 
+                    className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help" 
                     title="Verified studio — approved by our team"
                   >
-                    <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                    <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                   </span>
                 )}
               </h1>
@@ -486,7 +486,12 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             {studio.is_verified && (
               <div className="mb-6">
                 <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
-                  <Check className="w-4 h-4 text-green-600 flex-shrink-0" strokeWidth={3} />
+                  <span 
+                    className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 flex-shrink-0" 
+                    title="Verified studio — approved by our team"
+                  >
+                    <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                  </span>
                   <span className="text-sm font-medium text-green-800">Verified Studio</span>
                 </div>
               </div>
