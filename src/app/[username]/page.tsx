@@ -300,6 +300,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               showEmail: studio.users.user_profiles.show_email,
               showPhone: studio.users.user_profiles.show_phone,
               showAddress: studio.users.user_profiles.show_address,
+              showDirections: studio.users.user_profiles.show_directions,
               // Connection types
               connection1: studio.users.user_profiles.connection1,
               connection2: studio.users.user_profiles.connection2,
