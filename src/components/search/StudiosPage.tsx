@@ -660,7 +660,7 @@ export function StudiosPage() {
                       ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
                       : { lat: 20, lng: 0 }
                     }
-                    zoom={searchResults.searchCoordinates ? 8 : 2}
+                    zoom={searchResults.searchCoordinates ? 10 : 2}
                     markers={(searchResults.mapMarkers || searchResults.studios)
                       .filter(studio => studio.latitude && studio.longitude)
                       .map(studio => ({
