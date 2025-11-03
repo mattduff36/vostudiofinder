@@ -59,9 +59,9 @@ export function SimpleStudioMap({
     const googleMaps = window.google.maps as any;
     const map = new googleMaps.Map(mapRef.current, {
       center: { lat: latitude, lng: longitude },
-      zoom: 8, // Reduced by 6 steps for privacy - shows wider area around postcode/coordinates
+      zoom: 9, // Shows wider area around postcode/coordinates for privacy
       minZoom: 2, // Prevent zooming out too far
-      maxZoom: 11, // Limit zoom for privacy - prevent zooming in too close (3 steps back from 14)
+      maxZoom: 12, // Limit zoom for privacy - prevent zooming in too close (1 step closer than before)
       zoomControl: true,
       mapTypeControl: false,
       streetViewControl: false,

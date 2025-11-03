@@ -352,7 +352,7 @@ export function GoogleMap({
 
     // Check if any markers are HOME studios to determine max zoom
     const hasHomeStudios = markers.some(marker => marker.studio_type === 'HOME');
-    const maxZoom = hasHomeStudios ? 11 : 13; // Limit zoom for privacy - reduced to prevent zooming in too far
+    const maxZoom = hasHomeStudios ? 13 : 15; // Limit zoom for privacy (2 steps closer than previous setting)
 
     const googleMaps = window.google.maps as any;
     const map = new googleMaps.Map(mapRef.current, {
@@ -674,8 +674,8 @@ export function GoogleMap({
           (window.google.maps as any).event.trigger(mapInstanceRef.current, 'resize');
           
           const currentZoom = mapInstanceRef.current?.getZoom();
-          if (currentZoom && currentZoom > 11) {
-            mapInstanceRef.current?.setZoom(11); // Don't zoom in too much for privacy (2 steps back from 13)
+          if (currentZoom && currentZoom > 13) {
+            mapInstanceRef.current?.setZoom(13); // Don't zoom in too much for privacy
           } else if (currentZoom && currentZoom < 6) {
             mapInstanceRef.current?.setZoom(6); // Don't zoom out too much
           }
