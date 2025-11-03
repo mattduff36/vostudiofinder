@@ -59,21 +59,35 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
     const file = files[0];
     if (!file) return;
     
+    console.log('🖼️ Image Upload Debug - File Selected:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      sizeKB: (file.size / 1024).toFixed(2) + ' KB',
+      sizeMB: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+      isAdminMode,
+      studioId,
+      currentImageCount: images.length
+    });
+    
     // Validate file type - only allow specific formats
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
+      console.error('❌ Invalid file type:', file.type);
       setError('Please select a valid image file (.png, .jpg, .webp)');
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
+      console.error('❌ File too large:', file.size, 'bytes');
       setError('Image size must be less than 5MB');
       return;
     }
 
     // Check image limit - now 5 max
     if (images.length >= 5) {
+      console.error('❌ Maximum images reached:', images.length);
       setError('Maximum of 5 images reached');
       return;
     }
@@ -89,17 +103,37 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
         ? `/api/admin/studios/${studioId}/images`
         : '/api/user/profile/images';
 
+      console.log('📤 Uploading to endpoint:', endpoint);
+      console.log('📦 FormData contents:', {
+        hasFile: formData.has('file'),
+        fileSize: file.size
+      });
+
       const response = await fetch(endpoint, {
         method: 'POST',
         body: formData,
       });
 
+      console.log('📥 Upload response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('❌ Upload failed - Server error:', {
+          status: response.status,
+          error: errorData.error,
+          details: errorData.details,
+          fullResponse: errorData
+        });
         throw new Error(errorData.error || 'Failed to upload image');
       }
 
       const result = await response.json();
+      console.log('✅ Upload successful:', result);
       setImages([...images, result.data]);
       
       // Reset file input
@@ -107,6 +141,14 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
         fileInputRef.current.value = '';
       }
     } catch (err) {
+      console.error('❌ Upload error caught:', err);
+      if (err instanceof Error) {
+        console.error('Error details:', {
+          message: err.message,
+          stack: err.stack,
+          name: err.name
+        });
+      }
       setError(err instanceof Error ? err.message : 'Failed to upload image');
     } finally {
       setUploading(false);
