@@ -7,16 +7,17 @@ export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputE
 }
 
 export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ label, description, error, className = '', ...props }, ref) => {
+  ({ label, description, error, className = '', disabled, ...props }, ref) => {
     return (
       <div className="space-y-1">
-        <label className="flex items-start cursor-pointer">
+        <label className={`flex items-start ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
           <input
             ref={ref}
             type="checkbox"
+            disabled={disabled}
             className={`mt-0.5 h-4 w-4 text-red-600 accent-red-600 border-gray-300 rounded focus:ring-red-500 focus:ring-2 focus:ring-offset-0 transition-colors ${
               error ? 'border-red-500' : ''
-            } ${className}`}
+            } ${disabled ? 'cursor-not-allowed' : ''} ${className}`}
             {...props}
           />
           {(label || description) && (

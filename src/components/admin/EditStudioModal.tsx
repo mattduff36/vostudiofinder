@@ -39,12 +39,14 @@ interface EditStudioModalProps {
 }
 
 const STUDIO_TYPES = [
-  { value: 'HOME', label: 'Home' },
-  { value: 'EDITING', label: 'Editing' },
-  { value: 'RECORDING', label: 'Recording' },
-  { value: 'VO_COACH', label: 'VO-Coach' },
-  { value: 'PODCAST', label: 'Podcast' },
-  { value: 'VOICEOVER', label: 'Voiceover' },
+  // Top row - Active types
+  { value: 'HOME', label: 'Home', description: 'Personal recording space in a home environment', disabled: false },
+  { value: 'RECORDING', label: 'Recording', description: 'Full, professional recording facility', disabled: false },
+  { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
+  // Bottom row - Future additions (disabled)
+  { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services', disabled: true },
+  { value: 'VO_COACH', label: 'VO-Coach', description: 'Voiceover coaching and training services', disabled: true },
+  { value: 'EDITING', label: 'Editing', description: 'Post-production and editing services', disabled: true },
 ];
 
 const CONNECTION_TYPES = [
@@ -281,20 +283,51 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           Studio Types
         </label>
         <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {STUDIO_TYPES.map((type) => {
-            const selectedTypes = profile?.studioTypes || [];
-            const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
-            
-            return (
-              <Checkbox
-                key={type.value}
-                label={type.label}
-                checked={isChecked}
-                onChange={() => toggleStudioType(type.value)}
-              />
-            );
-          })}
+        <div className="space-y-3">
+          {/* Top row - Active types */}
+          <div className="grid grid-cols-3 gap-3">
+            {STUDIO_TYPES.slice(0, 3).map((type) => {
+              const selectedTypes = profile?.studioTypes || [];
+              const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
+              
+              return (
+                <div key={type.value} className="relative group">
+                  <Checkbox
+                    label={type.label}
+                    checked={isChecked}
+                    onChange={() => toggleStudioType(type.value)}
+                    disabled={type.disabled}
+                  />
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                    {type.description}
+                    <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {/* Bottom row - Future additions (disabled) */}
+          <div className="grid grid-cols-3 gap-3">
+            {STUDIO_TYPES.slice(3).map((type) => {
+              const selectedTypes = profile?.studioTypes || [];
+              const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
+              
+              return (
+                <div key={type.value} className="relative group">
+                  <Checkbox
+                    label={type.label}
+                    checked={isChecked}
+                    onChange={() => toggleStudioType(type.value)}
+                    disabled={type.disabled}
+                  />
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                    {type.description}
+                    <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
