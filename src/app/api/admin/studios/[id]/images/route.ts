@@ -93,8 +93,14 @@ export async function POST(
     console.log('✅ Buffer created:', buffer.length, 'bytes');
 
     console.log('☁️ Uploading to Cloudinary...');
+    console.log('☁️ Cloudinary config being used:', {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key_length: process.env.CLOUDINARY_API_KEY?.length,
+      api_secret_length: process.env.CLOUDINARY_API_SECRET?.length,
+    });
+    
     const cloudinaryResult: any = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream({
+      const uploadStream = cloudinary.uploader.upload_stream({
         folder: `vosf/studios/${studio.id}`,
         transformation: [
           { width: 1200, height: 800, crop: 'limit' },
@@ -103,12 +109,18 @@ export async function POST(
         ],
       }, (error, result) => {
         if (error) {
-          console.error('❌ Cloudinary upload error:', error);
+          console.error('❌ Cloudinary upload error:', JSON.stringify(error, null, 2));
           reject(error);
+          return;
         }
-        console.log('✅ Cloudinary upload success');
+        console.log('✅ Cloudinary upload success:', { 
+          secure_url: result?.secure_url,
+          public_id: result?.public_id 
+        });
         resolve(result);
-      }).end(buffer);
+      });
+      
+      uploadStream.end(buffer);
     });
 
     if (!cloudinaryResult || !cloudinaryResult.secure_url) {
@@ -142,13 +154,26 @@ export async function POST(
     console.error('❌ Error uploading image:', error);
     
     // Provide more detailed error information for debugging
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStack = error instanceof Error ? error.stack : undefined;
+    let errorMessage = 'Unknown error';
+    let errorStack = undefined;
+    let cloudinaryError = null;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      errorStack = error.stack;
+    } else if (typeof error === 'object' && error !== null) {
+      // Cloudinary errors are objects with specific properties
+      cloudinaryError = error;
+      errorMessage = (error as any).message || (error as any).error?.message || 'Cloudinary upload failed';
+    }
+    
     const errorDetails = {
       message: errorMessage,
       stack: errorStack,
       errorType: error?.constructor?.name || typeof error,
+      cloudinaryError: cloudinaryError,
       cloudinaryConfigured: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET),
+      cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
       nodeEnv: process.env.NODE_ENV,
     };
     
