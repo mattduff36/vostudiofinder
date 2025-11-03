@@ -28,6 +28,15 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
     }
 
+    // Check if Cloudinary is configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error('Cloudinary environment variables not configured');
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Image upload service not configured. Please contact the administrator.' 
+      }, { status: 500 });
+    }
+
     const studioId = (await params).id;
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -96,8 +105,22 @@ export async function POST(
     }, { status: 201 });
   } catch (error) {
     console.error('Error uploading image:', error);
+    
+    // Provide more detailed error information for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorDetails = {
+      message: errorMessage,
+      cloudinaryConfigured: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET),
+    };
+    
+    console.error('Image upload error details:', errorDetails);
+    
     return NextResponse.json(
-      { success: false, error: 'Failed to upload image' },
+      { 
+        success: false, 
+        error: 'Failed to upload image',
+        details: process.env.NODE_ENV === 'development' ? errorDetails : undefined
+      },
       { status: 500 }
     );
   }
