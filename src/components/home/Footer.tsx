@@ -40,7 +40,8 @@ export function Footer() {
             <ul className="space-y-2 text-sm" style={{ color: '#cccccc' }}>
               <li><Link href="/studios" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Browse Studios</Link></li>
               <li><Link href="/auth/signup" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>List Your Studio</Link></li>
-              <li><a href="/blog" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Blog</a></li>
+              {/* Blog link hidden until page is fully developed */}
+              {/* <li><a href="/blog" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Blog</a></li> */}
             </ul>
           </div>
         </div>

@@ -184,7 +184,8 @@ export function Navbar({ session }: NavbarProps) {
             >
               Studios
             </Link>
-            <Link 
+            {/* Blog link hidden until page is fully developed */}
+            {/* <Link 
               href="/blog" 
               className={`transition-colors ${pathname === '/blog' ? 'font-semibold' : ''}`}
               style={{ 
@@ -198,7 +199,7 @@ export function Navbar({ session }: NavbarProps) {
               }}
             >
               Blog
-            </Link>
+            </Link> */}
           </div>
           
           {/* Desktop Auth Buttons */}
@@ -331,7 +332,8 @@ export function Navbar({ session }: NavbarProps) {
               >
                 Studios
               </Link>
-              <Link 
+              {/* Blog link hidden until page is fully developed */}
+              {/* <Link 
                 href="/blog" 
                 className={`block py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                   pathname === '/blog' 
@@ -341,7 +343,7 @@ export function Navbar({ session }: NavbarProps) {
                 style={pathname === '/blog' ? { backgroundColor: colors.primary } : {}}
               >
                 Blog
-              </Link>
+              </Link> */}
               
               <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
                 {session ? (
