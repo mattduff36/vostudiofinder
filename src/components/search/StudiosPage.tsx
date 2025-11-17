@@ -65,7 +65,7 @@ interface Studio {
     avatar_url?: string;
   };
   studio_services: Array<{ service: string }>;
-  studio_images: Array<{ image_url: string; imageUrl: string; alt_text?: string }>;
+  studio_images: Array<{ image_url: string; alt_text?: string }>;
   _count: { reviews: number };
 }
 

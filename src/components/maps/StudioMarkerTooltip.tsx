@@ -11,7 +11,7 @@ interface StudioMarkerTooltipProps {
       username: string;
     };
     studio_images?: Array<{
-      imageUrl: string;
+      image_url: string;
       alt_text?: string;
     }>;
   };
@@ -49,9 +49,9 @@ export function StudioMarkerTooltip({
         {/* Studio Image/Logo - Left */}
         <div className="flex-shrink-0">
           <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden">
-            {studio.studio_images?.[0]?.imageUrl ? (
+            {studio.studio_images?.[0]?.image_url ? (
               <Image
-                src={studio.studio_images[0].imageUrl}
+                src={studio.studio_images[0].image_url}
                 alt={studio.studio_images[0].alt_text || studio.name}
                 width={48}
                 height={48}

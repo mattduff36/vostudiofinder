@@ -45,7 +45,7 @@ interface ModernStudioProfileV3Props {
     longitude?: number;
     studio_images?: Array<{
       id: string;
-      imageUrl: string;
+      image_url: string;
       alt_text?: string;
       sort_order: number;
     }>;
@@ -69,34 +69,34 @@ interface ModernStudioProfileV3Props {
       role: string;
       avatar_url?: string;
       profile?: {
-        studioName?: string | null;
-        lastName?: string | null;
+        studio_name?: string | null;
+        last_name?: string | null;
         phone?: string | null;
         about?: string | null;
         short_about?: string | null;
         location?: string | null;
-        rateTier1?: string | null;
-        rateTier2?: string | null;
-        rateTier3?: string | null;
-        showRates?: boolean | null;
-        facebookUrl?: string | null;
-        twitterUrl?: string | null;
-        linkedinUrl?: string | null;
-        instagramUrl?: string | null;
-        youtubeUrl?: string | null;
-        vimeoUrl?: string | null;
-        soundcloudUrl?: string | null;
-        isCrbChecked?: boolean | null;
-        isFeatured?: boolean | null;
-        isSpotlight?: boolean | null;
-        verificationLevel?: string | null;
-        homeStudioDescription?: string | null;
-        equipmentList?: string | null;
-        servicesOffered?: string | null;
-        showEmail?: boolean | null;
-        showPhone?: boolean | null;
-        showAddress?: boolean | null;
-        showDirections?: boolean | null;
+        rate_tier_1?: string | null;
+        rate_tier_2?: string | null;
+        rate_tier_3?: string | null;
+        show_rates?: boolean | null;
+        facebook_url?: string | null;
+        twitter_url?: string | null;
+        linkedin_url?: string | null;
+        instagram_url?: string | null;
+        youtube_url?: string | null;
+        vimeo_url?: string | null;
+        soundcloud_url?: string | null;
+        is_crb_checked?: boolean | null;
+        is_featured?: boolean | null;
+        is_spotlight?: boolean | null;
+        verification_level?: string | null;
+        home_studio_description?: string | null;
+        equipment_list?: string | null;
+        services_offered?: string | null;
+        show_email?: boolean | null;
+        show_phone?: boolean | null;
+        show_address?: boolean | null;
+        show_directions?: boolean | null;
         connection1?: string | null;
         connection2?: string | null;
         connection3?: string | null;
@@ -157,43 +157,43 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
   const socialLinks = [
     { 
       platform: 'Facebook', 
-      url: profile?.facebookUrl, 
+      url: profile?.facebook_url, 
       icon: Facebook, 
       color: 'text-blue-600 hover:text-blue-800' 
     },
     { 
       platform: 'Twitter', 
-      url: profile?.twitterUrl, 
+      url: profile?.twitter_url, 
       icon: Twitter, 
       color: 'text-sky-500 hover:text-sky-700' 
     },
     { 
       platform: 'LinkedIn', 
-      url: profile?.linkedinUrl, 
+      url: profile?.linkedin_url, 
       icon: Linkedin, 
       color: 'text-blue-700 hover:text-blue-900' 
     },
     { 
       platform: 'Instagram', 
-      url: profile?.instagramUrl, 
+      url: profile?.instagram_url, 
       icon: Instagram, 
       color: 'text-pink-600 hover:text-pink-800' 
     },
     { 
       platform: 'YouTube', 
-      url: profile?.youtubeUrl, 
+      url: profile?.youtube_url, 
       icon: Youtube, 
       color: 'text-red-600 hover:text-red-800' 
     },
     { 
       platform: 'Vimeo', 
-      url: profile?.vimeoUrl, 
+      url: profile?.vimeo_url, 
       icon: Globe, 
       color: 'text-green-600 hover:text-green-800' 
     },
     { 
       platform: 'SoundCloud', 
-      url: profile?.soundcloudUrl, 
+      url: profile?.soundcloud_url, 
       icon: Music, 
       color: 'text-orange-500 hover:text-orange-700' 
     }
@@ -201,9 +201,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
   // Rates from profile data
   const rates = [];
-  if (profile?.rateTier1) rates.push({ duration: '15 minutes', price: profile.rateTier1 });
-  if (profile?.rateTier2) rates.push({ duration: '30 minutes', price: profile.rateTier2 });
-  if (profile?.rateTier3) rates.push({ duration: '60 minutes', price: profile.rateTier3 });
+  if (profile?.rate_tier_1) rates.push({ duration: '15 minutes', price: profile.rate_tier_1 });
+  if (profile?.rate_tier_2) rates.push({ duration: '30 minutes', price: profile.rate_tier_2 });
+  if (profile?.rate_tier_3) rates.push({ duration: '60 minutes', price: profile.rate_tier_3 });
   
   // Fallback rates if none are set
   if (rates.length === 0) {
@@ -215,7 +215,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
   }
 
   // Email and contact handling
-  const canContactViaEmail = profile?.showEmail !== false && studio.owner.email;
+  const canContactViaEmail = profile?.show_email !== false && studio.owner.email;
   
   const getMailtoLink = () => {
     if (!canContactViaEmail) return '#';
@@ -287,7 +287,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   onClick={() => setShowLightbox(true)}
                 >
                   <Image
-                    src={displayImages[0]?.imageUrl || ''}
+                    src={displayImages[0]?.image_url || ''}
                     alt={displayImages[0]?.alt_text || studio.name}
                     fill
                     className="object-cover group-hover:opacity-95 transition-opacity"
@@ -313,7 +313,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                         onClick={() => handleThumbnailClick(index + 1)}
                       >
                         <Image
-                          src={image.imageUrl}
+                          src={image.image_url}
                           alt={image.alt_text || studio.name}
                           fill
                           className="object-cover"
@@ -370,11 +370,11 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                     {cleanDescription(profile?.about || profile?.short_about || studio.description)}
                   </p>
-                  {profile?.equipmentList && (
+                  {profile?.equipment_list && (
                     <div className="mt-4">
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Equipment</h3>
                       <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                        {profile.equipmentList}
+                        {profile.equipment_list}
                       </p>
                     </div>
                   )}
@@ -516,14 +516,14 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 <div className="h-4"></div>
                 {/* Directions section - fills remaining space (492 - 384 - 16 = 92px) */}
                 <div className="flex-1 flex flex-col justify-center px-6">
-                  {/* Only show address if showAddress is not explicitly false */}
-                  {(profile?.showAddress !== false) && studio.address && (
+                  {/* Only show address if show_address is not explicitly false */}
+                  {(profile?.show_address !== false) && studio.address && (
                     <div className="flex items-center space-x-2 mb-2">
                       <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
                       <p className="text-xs text-gray-600 line-clamp-1">{studio.address}</p>
                     </div>
                   )}
-                  {profile?.showDirections !== false ? (
+                  {profile?.show_directions !== false ? (
                     <Button
                       size="sm"
                       className="w-full"
@@ -568,7 +568,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   )}
 
                   {/* Phone */}
-                  {(profile?.showPhone !== false) && (profile?.phone || studio.phone) && (
+                  {(profile?.show_phone !== false) && (profile?.phone || studio.phone) && (
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                         <Phone className="w-4 h-4 text-gray-600" />
@@ -583,7 +583,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   )}
 
                   {/* Website - Only show if email is available OR if button won't show Visit Website */}
-                  {studio.website_url && !(studio.website_url && profile?.showEmail === false) && (
+                  {studio.website_url && !(studio.website_url && profile?.show_email === false) && (
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                         <Globe className="w-4 h-4 text-gray-600" />
@@ -623,7 +623,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                         Message Studio
                       </Button>
                     </a>
-                  ) : studio.website_url && (profile?.showEmail === false) ? (
+                  ) : studio.website_url && (profile?.show_email === false) ? (
                     <a 
                       href={studio.website_url}
                       target="_blank"
@@ -652,7 +652,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               </div>
 
               {/* Rates Card */}
-              {profile?.showRates !== false && rates.length > 0 && (
+              {profile?.show_rates !== false && rates.length > 0 && (
                 <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Rates</h3>
                   <div className="space-y-1">
@@ -708,7 +708,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
         >
           <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
             <img
-              src={displayImages[0]?.imageUrl || ''}
+              src={displayImages[0]?.image_url || ''}
               alt={displayImages[0]?.alt_text || studio.name}
               className="max-w-full max-h-full object-contain"
             />
