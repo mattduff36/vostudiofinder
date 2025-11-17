@@ -113,7 +113,11 @@ export async function GET(
       connection5: studio.users?.user_profiles?.connection5 || '',
       connection6: studio.users?.user_profiles?.connection6 || '',
       connection7: studio.users?.user_profiles?.connection7 || '',
-      connection8: studio.users?.user_profiles?.connection8 || ''
+      connection8: studio.users?.user_profiles?.connection8 || '',
+      connection9: studio.users?.user_profiles?.connection9 || '',
+      connection10: studio.users?.user_profiles?.connection10 || '',
+      connection11: studio.users?.user_profiles?.connection11 || '',
+      connection12: studio.users?.user_profiles?.connection12 || ''
     };
     
     // Structure the data to match what the frontend expects
@@ -168,7 +172,11 @@ export async function GET(
         connection5: studioData.connection5 || '0',
         connection6: studioData.connection6 || '0',
         connection7: studioData.connection7 || '0',
-        connection8: studioData.connection8 || '0'
+        connection8: studioData.connection8 || '0',
+        connection9: studioData.connection9 || '0',
+        connection10: studioData.connection10 || '0',
+        connection11: studioData.connection11 || '0',
+        connection12: studioData.connection12 || '0'
       },
       images: studio.studio_images?.map(img => ({
         id: img.id,
@@ -289,6 +297,10 @@ export async function PUT(
     if (body._meta?.connection6 !== undefined) profileUpdateData.connection6 = body._meta.connection6;
     if (body._meta?.connection7 !== undefined) profileUpdateData.connection7 = body._meta.connection7;
     if (body._meta?.connection8 !== undefined) profileUpdateData.connection8 = body._meta.connection8;
+    if (body._meta?.connection9 !== undefined) profileUpdateData.connection9 = body._meta.connection9;
+    if (body._meta?.connection10 !== undefined) profileUpdateData.connection10 = body._meta.connection10;
+    if (body._meta?.connection11 !== undefined) profileUpdateData.connection11 = body._meta.connection11;
+    if (body._meta?.connection12 !== undefined) profileUpdateData.connection12 = body._meta.connection12;
 
     // Perform updates using Prisma transactions
     await prisma.$transaction(async (tx) => {

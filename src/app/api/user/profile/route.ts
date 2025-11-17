@@ -266,6 +266,10 @@ export async function PUT(request: NextRequest) {
       if (body.profile.connection6 !== undefined) profileUpdates.connection6 = body.profile.connection6;
       if (body.profile.connection7 !== undefined) profileUpdates.connection7 = body.profile.connection7;
       if (body.profile.connection8 !== undefined) profileUpdates.connection8 = body.profile.connection8;
+      if (body.profile.connection9 !== undefined) profileUpdates.connection9 = body.profile.connection9;
+      if (body.profile.connection10 !== undefined) profileUpdates.connection10 = body.profile.connection10;
+      if (body.profile.connection11 !== undefined) profileUpdates.connection11 = body.profile.connection11;
+      if (body.profile.connection12 !== undefined) profileUpdates.connection12 = body.profile.connection12;
       
       // Visibility settings
       if (body.profile.show_email !== undefined) profileUpdates.show_email = body.profile.show_email;
