@@ -65,7 +65,7 @@ interface Studio {
     avatar_url?: string;
   };
   studio_services: Array<{ service: string }>;
-  studio_images: Array<{ image_url: string; alt_text?: string }>;
+  studio_images: Array<{ image_url: string; imageUrl: string; alt_text?: string }>;
   _count: { reviews: number };
 }
 
@@ -214,21 +214,25 @@ export function StudiosPage() {
         studio_type: studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] ? studio.studio_studio_types[0].studio_type : 'VOICEOVER',
         is_verified: studio.is_verified,
         onClick: (event: any) => {
+          const studioData: any = studio;
           handleStudioMarkerClick({
             id: studio.id,
             name: studio.name,
-            users: 'users' in studio && studio.users ? { username: studio.users.username } : undefined,
-            studio_images: 'studio_images' in studio && studio.studio_images ? studio.studio_images : [],
+            users: studioData.users?.username ? { username: studioData.users.username } : undefined,
+            studio_images: studioData.studio_images || [],
           }, event);
         },
-        ...('users' in studio && studio.users ? {
-          studio: {
-            id: studio.id,
-            name: studio.name,
-            users: { username: studio.users.username },
-            studio_images: ('images' in studio && studio.studio_images) ? studio.studio_images: [],
-          }
-        } : {}),
+        ...((() => {
+          const studioData: any = studio;
+          return studioData.users?.username ? {
+            studio: {
+              id: studio.id,
+              name: studio.name,
+              users: { username: studioData.users.username },
+              studio_images: studioData.studio_images || [],
+            }
+          } : {};
+        })()),
       }));
   }, [searchResults, handleStudioMarkerClick]);
 
@@ -731,8 +735,8 @@ export function StudiosPage() {
           studio={{
             id: modalStudio.id,
             name: modalStudio.name,
-            users: modalStudio.users,
-            studio_images: modalStudio.studio_images,
+            ...(modalStudio.users && { users: modalStudio.users }),
+            ...(modalStudio.studio_images && { studio_images: modalStudio.studio_images }),
           }}
           position={modalStudio.position}
           onClose={handleCloseModal}
