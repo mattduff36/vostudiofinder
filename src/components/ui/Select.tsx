@@ -1,11 +1,11 @@
-import React from 'react';
+import { forwardRef, SelectHTMLAttributes } from 'react';
 
 export interface SelectOption {
   value: string;
   label: string;
 }
 
-export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   options: SelectOption[];
   error?: string;
@@ -13,7 +13,7 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
   placeholder?: string;
 }
 
-export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, options, error, helperText, placeholder, required, className = '', ...props }, ref) => {
     return (
       <div className="space-y-1">

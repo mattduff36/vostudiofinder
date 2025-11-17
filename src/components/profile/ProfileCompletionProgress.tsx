@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { CheckCircle, Circle } from 'lucide-react';
 
 interface ProfileCompletionProgressProps {
