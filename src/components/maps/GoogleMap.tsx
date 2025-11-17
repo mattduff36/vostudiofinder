@@ -64,7 +64,7 @@ export function GoogleMap({
   useEffect(() => {
     if (searchCenter && searchRadius) {
       console.log('🔄 New search parameters detected - resetting user interaction state');
-      setHasUserInteracted(false);
+      hasUserInteractedRef.current = false;
       setMarkersReady(false); // Reset markers ready state for new search
     }
   }, [searchCenter, searchRadius]);
@@ -75,7 +75,8 @@ export function GoogleMap({
   const circleRef = useRef<any>(null);
   const centerMarkerRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  // Track if user has interacted with the map (use ref for synchronous updates)
+  const hasUserInteractedRef = useRef(false);
   const [markersReady, setMarkersReady] = useState(false);
   const [activeInfoWindow, setActiveInfoWindow] = useState<any>(null);
   const [scrollZoomEnabled, setScrollZoomEnabled] = useState(false);
@@ -294,10 +295,10 @@ export function GoogleMap({
     console.log('🎯 Studio markers created successfully!');
     
     // Trigger auto-zoom after markers are created
-    if (searchCenter && searchRadius && markerData.length > 0 && !hasUserInteracted) {
+    if (searchCenter && searchRadius && markerData.length > 0 && !hasUserInteractedRef.current) {
       console.log('🔍 Triggering auto-zoom from marker creation');
       setTimeout(() => {
-        if (mapInstance && !hasUserInteracted) {
+        if (mapInstance && !hasUserInteractedRef.current) {
           const bounds = new (window.google.maps as any).LatLngBounds();
           
           // Center the map on the search location
@@ -332,7 +333,7 @@ export function GoogleMap({
         }
       }, 200); // Small delay to ensure markers are fully rendered
     }
-  }, [searchCenter, searchRadius, hasUserInteracted]);
+  }, [searchCenter, searchRadius]);
 
   // Load Google Maps script
   useEffect(() => {
@@ -448,9 +449,9 @@ export function GoogleMap({
     let isUserInitiated = false;
     
     const handleUserInteraction = () => {
-      if (!hasUserInteracted && isUserInitiated) {
+      if (!hasUserInteractedRef.current && isUserInitiated) {
         console.log('👤 User interaction detected - disabling auto-zoom');
-        setHasUserInteracted(true);
+        hasUserInteractedRef.current = true;
       }
     };
 
@@ -469,9 +470,9 @@ export function GoogleMap({
     
     // Also consider any click on the map as user interaction
     map.addListener('click', () => {
-      if (!hasUserInteracted) {
+      if (!hasUserInteractedRef.current) {
         console.log('👤 User clicked map - disabling auto-zoom');
-        setHasUserInteracted(true);
+        hasUserInteractedRef.current = true;
       }
     });
     
@@ -662,14 +663,14 @@ export function GoogleMap({
       markersCount: markers.length,
       hasCircle: !!circleRef.current,
       hasMarkers: markersRef.current.length > 0,
-      hasUserInteracted,
+      hasUserInteracted: hasUserInteractedRef.current,
       markersReady
     });
 
     // RULE 1 & 2: When location search is performed, show all studios within search radius, zoomed as close as possible
     // Center the search location on the map, don't worry about fitting the entire circle
     // IMPORTANT: Only auto-zoom when there's actually a search center (location search performed) AND user hasn't interacted AND markers are ready
-    if (searchCenter && searchRadius && markers.length > 0 && !hasUserInteracted && markersReady) {
+    if (searchCenter && searchRadius && markers.length > 0 && !hasUserInteractedRef.current && markersReady) {
       const bounds = new (window.google.maps as any).LatLngBounds();
       
       // Center the map on the search location
@@ -705,7 +706,7 @@ export function GoogleMap({
         }
       }, 100);
       
-    } else if (markers.length > 0 && !hasUserInteracted && markersReady) {
+    } else if (markers.length > 0 && !hasUserInteractedRef.current && markersReady) {
       // No search center - fit all studios comfortably in view (only if user hasn't interacted and markers are ready)
       const bounds = new (window.google.maps as any).LatLngBounds();
       
@@ -737,17 +738,17 @@ export function GoogleMap({
     
     // No cleanup needed for this effect
     return;
-  }, [searchCenter, searchRadius, markers, circleRef.current, markersRef.current, hasUserInteracted, markersReady]);
+  }, [searchCenter, searchRadius, markers, circleRef.current, markersRef.current, markersReady]);
 
   // Update center when prop changes (only if user hasn't interacted)
   useEffect(() => {
-    if (mapInstanceRef.current && !hasUserInteracted) {
+    if (mapInstanceRef.current && !hasUserInteractedRef.current) {
       console.log('🎯 Updating map center to:', center);
       mapInstanceRef.current.setCenter({ lat: center.lat, lng: center.lng });
-    } else if (hasUserInteracted) {
+    } else if (hasUserInteractedRef.current) {
       console.log('🚫 Skipping center update - user has interacted with map');
     }
-  }, [center, hasUserInteracted]);
+  }, [center]);
 
   if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
     return (
