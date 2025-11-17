@@ -184,22 +184,22 @@ export function Navbar({ session }: NavbarProps) {
             >
               Studios
             </Link>
-            {/* Blog link hidden until page is fully developed */}
-            {/* <Link 
-              href="/blog" 
-              className={`transition-colors ${pathname === '/blog' ? 'font-semibold' : ''}`}
-              style={{ 
-                color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-              }}
-            >
-              Blog
-            </Link> */}
+            {/* Blog - Coming Soon */}
+            <div className="relative group">
+              <span 
+                className="cursor-not-allowed opacity-50 transition-opacity"
+                style={{ 
+                  color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+                }}
+              >
+                Blog
+              </span>
+              {/* Tooltip */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                Coming soon!
+                <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 bg-gray-900 rotate-45"></div>
+              </div>
+            </div>
           </div>
           
           {/* Desktop Auth Buttons */}
@@ -332,18 +332,15 @@ export function Navbar({ session }: NavbarProps) {
               >
                 Studios
               </Link>
-              {/* Blog link hidden until page is fully developed */}
-              {/* <Link 
-                href="/blog" 
-                className={`block py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                  pathname === '/blog' 
-                    ? 'text-white' 
-                    : 'text-gray-700 hover:text-white hover:bg-red-500'
-                }`}
-                style={pathname === '/blog' ? { backgroundColor: colors.primary } : {}}
-              >
-                Blog
-              </Link> */}
+              {/* Blog - Coming Soon */}
+              <div className="relative group">
+                <span 
+                  className="block py-2 px-3 rounded-md text-sm font-medium text-gray-400 cursor-not-allowed"
+                >
+                  Blog
+                  <span className="ml-2 text-xs">(Coming soon!)</span>
+                </span>
+              </div>
               
               <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
                 {session ? (
