@@ -540,6 +540,21 @@ export async function GET(request: NextRequest) {
               },
             },
             is_verified: true,
+            owner: {
+              select: {
+                username: true,
+              },
+            },
+            studio_images: {
+              select: {
+                image_url: true,
+                alt_text: true,
+              },
+              orderBy: {
+                sort_order: 'asc',
+              },
+              take: 1, // Only get the first image
+            },
           },
         });
         
@@ -570,6 +585,21 @@ export async function GET(request: NextRequest) {
               },
             },
             is_verified: true,
+            owner: {
+              select: {
+                username: true,
+              },
+            },
+            studio_images: {
+              select: {
+                image_url: true,
+                alt_text: true,
+              },
+              orderBy: {
+                sort_order: 'asc',
+              },
+              take: 1, // Only get the first image
+            },
           },
         });
       }
@@ -588,6 +618,21 @@ export async function GET(request: NextRequest) {
             },
           },
           is_verified: true,
+          owner: {
+            select: {
+              username: true,
+            },
+          },
+          studio_images: {
+            select: {
+              imageUrl: true,
+              alt_text: true,
+            },
+            orderBy: {
+              sort_order: 'asc',
+            },
+            take: 1, // Only get the first image
+          },
         },
       });
     } else {
@@ -605,6 +650,21 @@ export async function GET(request: NextRequest) {
             },
           },
           is_verified: true,
+          owner: {
+            select: {
+              username: true,
+            },
+          },
+          studio_images: {
+            select: {
+              imageUrl: true,
+              alt_text: true,
+            },
+            orderBy: {
+              sort_order: 'asc',
+            },
+            take: 1, // Only get the first image
+          },
         },
       });
     }

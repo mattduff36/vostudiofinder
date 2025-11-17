@@ -65,7 +65,7 @@ interface Studio {
     avatar_url?: string;
   };
   studio_services: Array<{ service: string }>;
-  studio_images: Array<{ imageUrl: string; alt_text?: string }>;
+  studio_images: Array<{ image_url: string; alt_text?: string }>;
   _count: { reviews: number };
 }
 
@@ -115,7 +115,7 @@ export function StudiosPage() {
     id: string;
     name: string;
     owner?: { username: string };
-    studio_images?: Array<{ imageUrl: string; alt_text?: string }>;
+    studio_images?: Array<{ image_url: string; alt_text?: string }>;
     position: { x: number; y: number };
   } | null>(null);
 
