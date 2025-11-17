@@ -65,7 +65,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
             key={studio.id}
             id={`studio-${studio.id}`}
             onClick={() => window.location.href = `/${studio.owner?.username}`}
-            className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col cursor-pointer group h-[480px]"
+            className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col cursor-pointer group"
           >
             {/* Studio Image */}
             <div className="aspect-[25/12] bg-gray-200 rounded-t-lg overflow-hidden relative">
@@ -111,9 +111,9 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
 
             </div>
 
-            <div className="p-4 sm:p-6 flex flex-col flex-grow">
+            <div className="p-3 sm:p-4 flex flex-col flex-grow">
               {/* Studio Name with Verified Badge */}
-              <h3 className="studio-card-title flex items-start gap-2" style={{ color: colors.textPrimary }}>
+              <h3 className="studio-card-title flex items-start gap-2 mb-2" style={{ color: colors.textPrimary }}>
                 <span className="flex-1">{studio.name} </span>
                 {studio.is_verified && (
                   <span 
@@ -128,11 +128,11 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
               </h3>
 
               {/* Location and Description */}
-              <div className="mb-4">
-                <div className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
+              <div className="mb-3">
+                <div className="text-sm leading-snug" style={{ color: colors.textSecondary }}>
                   {/* Location */}
                   {studio.address && studio.address.trim() && (
-                    <div className="flex items-start mb-2">
+                    <div className="flex items-start mb-1.5">
                       <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
                       <span className="line-clamp-1">{studio.address}</span>
                     </div>
@@ -145,7 +145,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
                     
                     return (
                       <div 
-                        className="line-clamp-4 text-sm leading-relaxed"
+                        className="line-clamp-3 text-sm leading-snug"
                         style={{ color: 'inherit' }}
                         title={description}
                       >
@@ -158,7 +158,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
 
               {/* Services */}
               {studio.studio_services && studio.studio_services.length > 0 && (
-                <div className="mb-4">
+                <div className="mb-3">
                   <div className="flex flex-wrap gap-1">
                     {studio.studio_services.slice(0, 2).map((service: any, index: number) => (
                       <span
@@ -179,7 +179,7 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
               )}
 
               {/* Stats & CTA */}
-              <div className="flex items-center justify-between mt-auto pt-2">
+              <div className="flex items-center justify-between mt-auto pt-1">
                 <div className="flex items-center space-x-3 text-sm" style={{ color: colors.textSecondary }}>
                   {(studio._count?.reviews ?? 0) > 0 && (
                     <div className="flex items-center">
