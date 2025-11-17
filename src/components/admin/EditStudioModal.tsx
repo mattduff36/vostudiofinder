@@ -286,7 +286,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Studio Types
         </label>
-        <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
+        <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio (Admin: all types enabled)</p>
         <div className="space-y-3">
           {/* Top row - Active types */}
           <div className="grid grid-cols-3 gap-3">
@@ -300,7 +300,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                     label={type.label}
                     checked={isChecked}
                     onChange={() => toggleStudioType(type.value)}
-                    disabled={type.disabled}
+                    disabled={false}
                   />
                   <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
                     {type.description}
@@ -310,7 +310,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               );
             })}
           </div>
-          {/* Bottom row - Future additions (disabled) */}
+          {/* Bottom row - Additional types (enabled for admins) */}
           <div className="grid grid-cols-3 gap-3">
             {STUDIO_TYPES.slice(3).map((type) => {
               const selectedTypes = profile?.studioTypes || [];
@@ -322,7 +322,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                     label={type.label}
                     checked={isChecked}
                     onChange={() => toggleStudioType(type.value)}
-                    disabled={type.disabled}
+                    disabled={false}
                   />
                   <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
                     {type.description}
