@@ -7,6 +7,7 @@ import { StudiosList } from './StudiosList';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 import { abbreviateAddress } from '@/lib/utils/address';
 import Image from 'next/image';
+import { StudioMarkerModal } from '@/components/maps/StudioMarkerModal';
 
 // Custom hook for dynamic text sizing
 function useDynamicTextSize(text: string, containerWidth: number, maxFontSize: number = 48) {
@@ -108,6 +109,15 @@ export function StudiosPage() {
   const [containerWidth, setContainerWidth] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const titleContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Studio marker modal state
+  const [modalStudio, setModalStudio] = useState<{
+    id: string;
+    name: string;
+    owner?: { username: string };
+    studio_images?: Array<{ imageUrl: string; alt_text?: string }>;
+    position: { x: number; y: number };
+  } | null>(null);
 
   // Use dynamic text sizing hook
   const { fontSize, measureRef } = useDynamicTextSize('Available Studios', containerWidth, 48);
@@ -151,95 +161,43 @@ export function StudiosPage() {
     }
   };
 
-  // Function to select a studio and add persistent outline
-  const selectStudio = async (studio_id: string) => {
+  // Function to handle studio marker click - opens modal and adds outline
+  const handleStudioMarkerClick = (studio: any, event: any) => {
+    // Close any existing modal
+    setModalStudio(null);
+    
+    // Clear previous selection and set new one
     clearPreviousSelection();
-    setSelectedStudioId(studio_id);
+    setSelectedStudioId(studio.id);
     
-    // Check if the studio is on the current page
-    const currentPageStudios = searchResults?.studios || [];
-    const studioOnCurrentPage = currentPageStudios.find(studio => studio.id === studio_id);
-    
-    if (!studioOnCurrentPage && searchResults) {
-      // Studio is not on current page - need to find which page it's on
-      // Since we have mapMarkers with all studios, we can search through pages more efficiently
-      try {
-        console.log('🔍 Studio not on current page, searching for:', studio_id);
-        
-        const studiosPerPage = searchResults.pagination.limit;
-        const totalPages = searchResults.pagination.totalPages;
-        
-        // Search through pages to find the studio (limit to first 10 pages for performance)
-        let foundPage = null;
-        
-        for (let page = 1; page <= Math.min(totalPages, 10); page++) {
-          const params = new URLSearchParams(searchParams);
-          params.set('page', page.toString());
-          params.set('limit', studiosPerPage.toString()); // Use same limit as current pagination
-          
-          console.log(`🔍 Checking page ${page} for studio ${studio_id}`);
-          
-          const response = await fetch(`/api/studios/search?${params.toString()}`);
-          if (!response.ok) {
-            console.error('API request failed:', response.status);
-            break;
-          }
-          
-          const data = await response.json();
-          
-          if (data.studios) {
-            const studioFound = data.studios.find((studio: any) => studio.id === studio_id);
-            if (studioFound) {
-              foundPage = page;
-              console.log(`✅ Found studio on page ${page}`);
-              break;
-            }
-          }
-        }
-        
-        if (foundPage && foundPage !== searchResults.pagination.page) {
-          console.log(`🚀 Navigating to page ${foundPage}`);
-          // Navigate to the correct page
-          const newParams = new URLSearchParams(searchParams);
-          newParams.set('page', foundPage.toString());
-          router.push(`/studios?${newParams.toString()}`);
-          
-          // Store the studio ID to select after navigation
-          sessionStorage.setItem('pendingStudioSelection', studio_id);
-          return;
-        }
-        
-        // If not found in first 10 pages, fall back to direct selection
-        console.log('⚠️ Studio not found in first 10 pages, selecting on current page if possible');
-        
-      } catch (error) {
-        console.error('❌ Error finding studio page:', error);
-      }
+    // Add red outline to the studio card if it exists on current page
+    const element = document.getElementById(`studio-${studio.id}`);
+    if (element) {
+      element.style.outline = '2px solid #dc2626'; // red-600
+      element.style.outlineOffset = '2px';
     }
     
-    // Studio is on current page or fallback - select it directly
-    selectStudioOnCurrentPage(studio_id);
+    // Get marker position from the map click event
+    // The event should contain the marker's screen position
+    const markerPosition = {
+      x: event?.clientX || window.innerWidth / 2,
+      y: event?.clientY || window.innerHeight / 2,
+    };
+    
+    // Open modal with studio info
+    setModalStudio({
+      id: studio.id,
+      name: studio.name,
+      owner: studio.owner,
+      studio_images: studio.studio_images,
+      position: markerPosition,
+    });
   };
 
-  // Helper function to select studio on current page
-  const selectStudioOnCurrentPage = (studio_id: string) => {
-    const element = document.getElementById(`studio-${studio_id}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      
-      // Wait for scroll to complete, then add bounce animation and red outline
-      setTimeout(() => {
-        // Add red outline and bounce animation
-        element.style.outline = '2px solid #dc2626'; // red-600
-        element.style.outlineOffset = '2px';
-        element.classList.add('animate-bounce-once');
-        
-        // Remove only the bounce animation after it completes, keep the outline
-        setTimeout(() => {
-          element.classList.remove('animate-bounce-once');
-        }, 1000); // 1 second for bounce animation
-      }, 800); // Wait for scroll to complete
-    }
+  // Function to close the modal
+  const handleCloseModal = () => {
+    setModalStudio(null);
+    // Keep the outline on the card when modal closes
   };
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
   const heroSectionRef = useRef<HTMLDivElement>(null);
@@ -338,20 +296,7 @@ export function StudiosPage() {
   }, [searchParams.toString()]);
 
   // Handle pending studio selection after navigation
-  useEffect(() => {
-    const pendingStudioId = sessionStorage.getItem('pendingStudioSelection');
-    if (pendingStudioId && searchResults?.studios) {
-      // Check if the pending studio is now on the current page
-      const studioOnCurrentPage = searchResults.studios.find(studio => studio.id === pendingStudioId);
-      if (studioOnCurrentPage) {
-        // Clear the pending selection and select the studio
-        sessionStorage.removeItem('pendingStudioSelection');
-        setTimeout(() => {
-          selectStudioOnCurrentPage(pendingStudioId);
-        }, 100);
-      }
-    }
-  }, [searchResults?.studios]);
+  // Removed old pendingStudioSelection logic - no longer needed with modal approach
 
   const handleSearch = (filters: Record<string, any>) => {
     console.log('🔍 HandleSearch called with filters:', filters);
@@ -671,8 +616,13 @@ export function StudiosPage() {
                         title: studio.name,
                         studio_type: studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] ? studio.studio_studio_types[0].studio_type : 'VOICEOVER',
                         is_verified: studio.is_verified,
-                        onClick: () => {
-                          selectStudio(studio.id);
+                        onClick: (event: any) => {
+                          handleStudioMarkerClick({
+                            id: studio.id,
+                            name: studio.name,
+                            owner: 'owner' in studio && studio.owner ? { username: studio.owner.username } : undefined,
+                            studio_images: 'studio_images' in studio && studio.studio_images ? studio.studio_images : [],
+                          }, event);
                         },
                         ...('owner' in studio && studio.owner ? {
                           studio: {
@@ -712,13 +662,14 @@ export function StudiosPage() {
                         title: studio.name,
                         studio_type: studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] ? studio.studio_studio_types[0].studio_type : 'VOICEOVER',
                         is_verified: studio.is_verified,
-                        onClick: () => {
-                          // Switch to list view and select studio (with page navigation if needed)
-                          setMobileView('list');
-                            setTimeout(() => {
-                              selectStudio(studio.id);
-                            }, 100);
-                          },
+                        onClick: (event: any) => {
+                          handleStudioMarkerClick({
+                            id: studio.id,
+                            name: studio.name,
+                            owner: 'owner' in studio && studio.owner ? { username: studio.owner.username } : undefined,
+                            studio_images: 'studio_images' in studio && studio.studio_images ? studio.studio_images : [],
+                          }, event);
+                        },
                           ...('owner' in studio && studio.owner ? {
                             studio: {
                               id: studio.id,
@@ -792,6 +743,20 @@ export function StudiosPage() {
           </div>
         </div>
       </div>
+      
+      {/* Studio Marker Modal */}
+      {modalStudio && (
+        <StudioMarkerModal
+          studio={{
+            id: modalStudio.id,
+            name: modalStudio.name,
+            owner: modalStudio.owner,
+            studio_images: modalStudio.studio_images,
+          }}
+          position={modalStudio.position}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

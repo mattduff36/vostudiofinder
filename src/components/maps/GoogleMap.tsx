@@ -16,7 +16,7 @@ interface GoogleMapProps {
     title: string;
     studio_type?: string;
     is_verified?: boolean;
-    onClick?: () => void;
+    onClick?: (event: { clientX: number; clientY: number }) => void;
     studio?: {
       id: string;
       name: string;
@@ -152,7 +152,14 @@ export function GoogleMap({
 
       // Add click listener for card selection
       if (data.onClick) {
-        marker.addListener('click', data.onClick);
+        marker.addListener('click', (e: any) => {
+          // Get screen coordinates from the click event
+          const clickEvent = {
+            clientX: e.domEvent?.clientX || window.innerWidth / 2,
+            clientY: e.domEvent?.clientY || window.innerHeight / 2,
+          };
+          data.onClick!(clickEvent);
+        });
       }
 
       // Add click listener for info window
