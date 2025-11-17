@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
@@ -162,7 +162,7 @@ export function StudiosPage() {
   };
 
   // Function to handle studio marker click - opens modal and adds outline
-  const handleStudioMarkerClick = (studio: any, event: any) => {
+  const handleStudioMarkerClick = useCallback((studio: any, event: any) => {
     // Close any existing modal
     setModalStudio(null);
     
@@ -192,13 +192,46 @@ export function StudiosPage() {
       studio_images: studio.studio_images,
       position: markerPosition,
     });
-  };
+  }, []); // Empty deps - function doesn't depend on any props/state
 
   // Function to close the modal
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setModalStudio(null);
     // Keep the outline on the card when modal closes
-  };
+  }, []);
+
+  // Memoize markers array to prevent unnecessary re-renders
+  const memoizedMarkers = useMemo(() => {
+    if (!searchResults) return [];
+    
+    const allStudios = searchResults.mapMarkers || searchResults.studios;
+    return allStudios
+      .filter(studio => studio.latitude && studio.longitude)
+      .map(studio => ({
+        id: studio.id,
+        position: { lat: studio.latitude!, lng: studio.longitude! },
+        title: studio.name,
+        studio_type: studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] ? studio.studio_studio_types[0].studio_type : 'VOICEOVER',
+        is_verified: studio.is_verified,
+        onClick: (event: any) => {
+          handleStudioMarkerClick({
+            id: studio.id,
+            name: studio.name,
+            owner: 'owner' in studio && studio.owner ? { username: studio.owner.username } : undefined,
+            studio_images: 'studio_images' in studio && studio.studio_images ? studio.studio_images : [],
+          }, event);
+        },
+        ...('owner' in studio && studio.owner ? {
+          studio: {
+            id: studio.id,
+            name: studio.name,
+            owner: { username: studio.owner.username },
+            studio_images: ('images' in studio && studio.studio_images) ? studio.studio_images: [],
+          }
+        } : {}),
+      }));
+  }, [searchResults, handleStudioMarkerClick]);
+
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
   const heroSectionRef = useRef<HTMLDivElement>(null);
   const filterSidebarRef = useRef<HTMLDivElement>(null);
@@ -608,31 +641,7 @@ export function StudiosPage() {
                       : { lat: 20, lng: 0 }
                     }
                     zoom={searchResults.searchCoordinates ? 10 : 2}
-                    markers={(searchResults.mapMarkers || searchResults.studios)
-                      .filter(studio => studio.latitude && studio.longitude)
-                      .map(studio => ({
-                        id: studio.id,
-                        position: { lat: studio.latitude!, lng: studio.longitude! },
-                        title: studio.name,
-                        studio_type: studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] ? studio.studio_studio_types[0].studio_type : 'VOICEOVER',
-                        is_verified: studio.is_verified,
-                        onClick: (event: any) => {
-                          handleStudioMarkerClick({
-                            id: studio.id,
-                            name: studio.name,
-                            owner: 'owner' in studio && studio.owner ? { username: studio.owner.username } : undefined,
-                            studio_images: 'studio_images' in studio && studio.studio_images ? studio.studio_images : [],
-                          }, event);
-                        },
-                        ...('owner' in studio && studio.owner ? {
-                          studio: {
-                            id: studio.id,
-                            name: studio.name,
-                            owner: { username: studio.owner.username },
-                            studio_images: ('images' in studio && studio.studio_images) ? studio.studio_images: [],
-                          }
-                        } : {}),
-                      }))}
+                    markers={memoizedMarkers}
                     searchCenter={searchResults.searchCoordinates || null}
                     searchRadius={parseInt(searchParams.get('radius') || '10')}
                     selectedMarkerId={null}
@@ -651,35 +660,7 @@ export function StudiosPage() {
                         : { lat: 20, lng: 0 }
                       }
                       zoom={searchResults.searchCoordinates ? 10 : 2}
-                      markers={(() => {
-                        // Use mapMarkers which contains ALL studios within radius (not paginated)
-                        const allStudios = searchResults.mapMarkers || searchResults.studios;
-                        const studiosWithCoords = allStudios.filter(studio => studio.latitude && studio.longitude);
-                        
-                        return studiosWithCoords.map(studio => ({
-                        id: studio.id,
-                        position: { lat: studio.latitude!, lng: studio.longitude! },
-                        title: studio.name,
-                        studio_type: studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] ? studio.studio_studio_types[0].studio_type : 'VOICEOVER',
-                        is_verified: studio.is_verified,
-                        onClick: (event: any) => {
-                          handleStudioMarkerClick({
-                            id: studio.id,
-                            name: studio.name,
-                            owner: 'owner' in studio && studio.owner ? { username: studio.owner.username } : undefined,
-                            studio_images: 'studio_images' in studio && studio.studio_images ? studio.studio_images : [],
-                          }, event);
-                        },
-                          ...('owner' in studio && studio.owner ? {
-                            studio: {
-                              id: studio.id,
-                              name: studio.name,
-                              owner: { username: studio.owner.username },
-                              studio_images: ('images' in studio && studio.studio_images) ? studio.studio_images: [],
-                            }
-                          } : {}),
-                        }));
-                      })()}
+                      markers={memoizedMarkers}
                       searchCenter={searchResults.searchCoordinates || null}
                       searchRadius={parseInt(searchParams.get('radius') || '10')}
                       selectedMarkerId={null}
