@@ -258,6 +258,10 @@ export function StudiosPage() {
       if (response.ok) {
         const data = await response.json();
         setSearchResults(data);
+        // Update currentOffset to reflect the number of studios loaded
+        if (resetOffset) {
+          setCurrentOffset(data.studios.length);
+        }
       } else {
         console.error('Search failed:', response.status, response.statusText);
       }
@@ -273,8 +277,9 @@ export function StudiosPage() {
     if (!searchResults || loadingMore || !searchResults.pagination.hasMore) return;
     
     setLoadingMore(true);
-    const newOffset = currentOffset + 18; // First load was 18, subsequent loads are 12
-    const limit = newOffset === 18 ? 12 : 12; // Always load 12 more after first batch
+    // Use the actual number of studios currently loaded as the offset
+    const newOffset = searchResults.studios.length;
+    const limit = 12; // Load 12 more studios each time
     
     try {
       const params = new URLSearchParams();
@@ -299,7 +304,7 @@ export function StudiosPage() {
             studios: [...prev.studios, ...data.studios], // Append new studios
           };
         });
-        setCurrentOffset(newOffset);
+        setCurrentOffset(newOffset + data.studios.length);
       } else {
         console.error('Load more failed:', response.status, response.statusText);
       }
