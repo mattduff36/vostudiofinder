@@ -6,7 +6,7 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-  apiVersion: '2025-09-30.clover',
+  apiVersion: '2025-10-29.clover',
 });
 
 export async function POST(request: NextRequest) {
