@@ -19,6 +19,8 @@
     "db:reset": "prisma migrate reset",
     "db:seed": "tsx scripts/seed-database.ts",
     "db:studio": "prisma studio",
+    "migrate:studio-types": "tsx scripts/migrate-studio-types.ts",
+    "migrate:studio-types:dry": "tsx scripts/migrate-studio-types.ts --dry-run",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:build": "docker-compose build",
