@@ -159,6 +159,12 @@ export function GoogleMap({
             e.stop();
           }
           
+          // Mark that user has interacted with the map (disable auto-zoom)
+          if (!hasUserInteractedRef.current) {
+            console.log('👤 User clicked marker - disabling auto-zoom');
+            hasUserInteractedRef.current = true;
+          }
+          
           // Get screen coordinates from the click event
           const clickEvent = {
             clientX: e.domEvent?.clientX || window.innerWidth / 2,
