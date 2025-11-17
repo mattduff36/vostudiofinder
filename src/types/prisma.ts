@@ -80,47 +80,32 @@ export type Studio = {
 export type UserProfile = {
   id: string;
   user_id: string;
-  studioName?: string | null;
-  lastName?: string | null;
+  studio_name?: string | null;
+  last_name?: string | null;
   phone?: string | null;
   about?: string | null;
   short_about?: string | null;
   location?: string | null;
-  showEmail: boolean;
-  showPhone: boolean;
-  showAddress: boolean;
-  showRates?: boolean;
+  show_email: boolean;
+  show_phone: boolean;
+  show_address: boolean;
   show_rates?: boolean;
-  rateTier1?: string | null;
   rate_tier_1?: string | null;
-  rateTier2?: string | null;
   rate_tier_2?: string | null;
-  rateTier3?: string | null;
   rate_tier_3?: string | null;
   is_featured?: boolean;
   is_spotlight?: boolean;
-  isCrbChecked?: boolean;
-  verificationLevel?: string | null;
+  is_crb_checked?: boolean;
   verification_level?: string | null;
-  homeStudioDescription?: string | null;
   home_studio_description?: string | null;
-  equipmentList?: string | null;
   equipment_list?: string | null;
-  servicesOffered?: string | null;
   services_offered?: string | null;
-  facebookUrl?: string | null;
   facebook_url?: string | null;
-  twitterUrl?: string | null;
   twitter_url?: string | null;
-  linkedinUrl?: string | null;
   linkedin_url?: string | null;
-  instagramUrl?: string | null;
   instagram_url?: string | null;
-  youtubeUrl?: string | null;
   youtube_url?: string | null;
-  vimeoUrl?: string | null;
   vimeo_url?: string | null;
-  soundcloudUrl?: string | null;
   soundcloud_url?: string | null;
   created_at: Date;
   updated_at: Date;
@@ -129,26 +114,16 @@ export type UserProfile = {
 export type StudioImage = {
   id: string;
   studio_id: string;
-  imageUrl?: string;
-  image_url?: string;
-  caption?: string | null;
+  image_url: string;
   alt_text?: string | null;
-  altText?: string | null;
-  order?: number;
-  sort_order?: number;
-  sortOrder?: number;
-  created_at: Date;
+  sort_order: number;
+  created_at?: Date;
 };
 
 export type StudioService = {
   id: string;
   studio_id: string;
-  service?: string;
-  serviceType?: ServiceType;
-  service_type?: string;
-  description?: string | null;
-  price?: number | null;
-  created_at: Date;
+  service: ServiceType;
 };
 
 export type UserMetadata = {

@@ -28,7 +28,7 @@ interface Studio {
   reviewCount?: number;
   studio_services?: Array<{ service: string }>;
   studio_images?: Array<{
-    imageUrl: string;
+    image_url: string;
     alt_text?: string;
   }>;
   _count?: {
@@ -129,9 +129,9 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
               >
                 {/* Studio Image */}
                 <div className="aspect-[25/12] bg-gray-200 rounded-t-lg overflow-hidden relative">
-                  {studio.studio_images?.[0]?.imageUrl ? (
+                  {studio.studio_images?.[0]?.image_url ? (
                     <Image
-                      src={studio.studio_images[0].imageUrl}
+                      src={studio.studio_images[0].image_url}
                       alt={studio.studio_images[0].alt_text || studio.name}
                       fill
                       className="object-cover"

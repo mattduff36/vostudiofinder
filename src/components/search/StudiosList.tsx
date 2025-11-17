@@ -23,7 +23,7 @@ interface Studio {
     avatar_url?: string;
   };
   studio_services: Array<{ service: string }>;
-  studio_images: Array<{ imageUrl: string; alt_text?: string }>;
+  studio_images: Array<{ image_url: string; alt_text?: string }>;
   _count: { reviews: number };
 }
 
@@ -69,9 +69,9 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
           >
             {/* Studio Image */}
             <div className="aspect-[25/12] bg-gray-200 rounded-t-lg overflow-hidden relative">
-              {studio.studio_images?.[0]?.imageUrl ? (
+              {studio.studio_images?.[0]?.image_url ? (
                 <Image
-                  src={studio.studio_images[0].imageUrl}
+                  src={studio.studio_images[0].image_url}
                   alt={studio.studio_images[0].alt_text || studio.name}
                   fill
                   className="object-cover"

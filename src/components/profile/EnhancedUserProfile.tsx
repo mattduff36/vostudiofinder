@@ -42,43 +42,43 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
   const socialLinks = [
     { 
       platform: 'Facebook', 
-      url: profile?.facebookUrl, 
+      url: profile?.facebook_url, 
       icon: Facebook, 
       color: 'hover:bg-blue-50 hover:text-blue-600 border-blue-200' 
     },
     { 
       platform: 'Twitter', 
-      url: profile?.twitterUrl, 
+      url: profile?.twitter_url, 
       icon: Twitter, 
       color: 'hover:bg-blue-50 hover:text-blue-400 border-blue-200' 
     },
     { 
       platform: 'LinkedIn', 
-      url: profile?.linkedinUrl, 
+      url: profile?.linkedin_url, 
       icon: Linkedin, 
       color: 'hover:bg-blue-50 hover:text-blue-700 border-blue-200' 
     },
     { 
       platform: 'Instagram', 
-      url: profile?.instagramUrl, 
+      url: profile?.instagram_url, 
       icon: Instagram, 
       color: 'hover:bg-pink-50 hover:text-pink-600 border-pink-200' 
     },
     { 
       platform: 'YouTube', 
-      url: profile?.youtubeUrl, 
+      url: profile?.youtube_url, 
       icon: Youtube, 
       color: 'hover:bg-red-50 hover:text-red-600 border-red-200' 
     },
     { 
       platform: 'SoundCloud', 
-      url: profile?.soundcloudUrl, 
+      url: profile?.soundcloud_url, 
       icon: Music, 
       color: 'hover:bg-orange-50 hover:text-orange-600 border-orange-200' 
     },
     { 
       platform: 'Vimeo', 
-      url: profile?.vimeoUrl, 
+      url: profile?.vimeo_url, 
       icon: Globe, 
       color: 'hover:bg-green-50 hover:text-green-600 border-green-200' 
     },
@@ -125,8 +125,8 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
             {/* Profile Info */}
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-                {profile?.studioName && profile?.lastName 
-                  ? `${profile.studioName} ${profile.lastName}` 
+                {profile?.studio_name && profile?.last_name 
+                  ? `${profile.studio_name} ${profile.last_name}` 
                   : user.display_name
                 }
               </h1>
@@ -170,37 +170,37 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
             )}
 
             {/* Pricing Information */}
-            {profile?.showRates && (profile?.rateTier1 || profile?.rateTier2 || profile?.rateTier3) && (
+            {profile?.show_rates && (profile?.rate_tier_1 || profile?.rate_tier_2 || profile?.rate_tier_3) && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.textPrimary }}>
                   Pricing
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {profile.rateTier1 && (
+                  {profile.rate_tier_1 && (
                     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
                       <div className="flex items-center mb-3">
                         <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
                         <span className="font-semibold" style={{ color: colors.textPrimary }}>Basic Rate</span>
                       </div>
-                      <p style={{ color: colors.textSecondary }}>{profile.rateTier1}</p>
+                      <p style={{ color: colors.textSecondary }}>{profile.rate_tier_1}</p>
                     </div>
                   )}
-                  {profile.rateTier2 && (
+                  {profile.rate_tier_2 && (
                     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
                       <div className="flex items-center mb-3">
                         <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
                         <span className="font-semibold" style={{ color: colors.textPrimary }}>Standard Rate</span>
                       </div>
-                      <p style={{ color: colors.textSecondary }}>{profile.rateTier2}</p>
+                      <p style={{ color: colors.textSecondary }}>{profile.rate_tier_2}</p>
                     </div>
                   )}
-                  {profile.rateTier3 && (
+                  {profile.rate_tier_3 && (
                     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
                       <div className="flex items-center mb-3">
                         <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
                         <span className="font-semibold" style={{ color: colors.textPrimary }}>Premium Rate</span>
                       </div>
-                      <p style={{ color: colors.textSecondary }}>{profile.rateTier3}</p>
+                      <p style={{ color: colors.textSecondary }}>{profile.rate_tier_3}</p>
                     </div>
                   )}
                 </div>

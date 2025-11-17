@@ -89,8 +89,8 @@ export function PremiumFeatures({
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {user.profile?.studioName && user.profile?.lastName 
-                    ? `${user.profile.studioName} ${user.profile.lastName}`
+                  {user.profile?.studio_name && user.profile?.last_name 
+                    ? `${user.profile.studio_name} ${user.profile.last_name}`
                     : user.display_name
                   }
                 </h3>

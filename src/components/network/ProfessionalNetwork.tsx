@@ -65,7 +65,7 @@ export function ProfessionalNetwork({
     const badges = [];
     if (user.profile?.is_featured) badges.push({ label: 'Featured', color: 'bg-yellow-100 text-yellow-800', icon: Star });
     if (user.profile?.is_spotlight) badges.push({ label: 'Spotlight', color: 'bg-purple-100 text-purple-800', icon: Award });
-    if (user.profile?.isCrbChecked) badges.push({ label: 'CRB', color: 'bg-green-100 text-green-800', icon: Shield });
+    if (user.profile?.is_crb_checked) badges.push({ label: 'CRB', color: 'bg-green-100 text-green-800', icon: Shield });
     if (user.studios && user.studios.length > 0) badges.push({ label: 'Studio Owner', color: 'bg-blue-100 text-blue-800', icon: Building });
 
     return (
@@ -93,8 +93,8 @@ export function ProfessionalNetwork({
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-medium text-gray-900 truncate">
-                  {user.profile?.studioName && user.profile?.lastName 
-                    ? `${user.profile.studioName} ${user.profile.lastName}`
+                  {user.profile?.studio_name && user.profile?.last_name 
+                    ? `${user.profile.studio_name} ${user.profile.last_name}`
                     : user.display_name
                   }
                 </h3>

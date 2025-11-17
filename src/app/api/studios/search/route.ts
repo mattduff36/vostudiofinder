@@ -509,10 +509,7 @@ export async function GET(request: NextRequest) {
       latitude: studio.latitude ? Number(studio.latitude) : null,
       longitude: studio.longitude ? Number(studio.longitude) : null,
       owner: studio.users, // Map users to owner for backward compatibility with studio cards
-      studio_images: studio.studio_images?.map((img: any) => ({
-        ...img,
-        imageUrl: img.image_url, // Add camelCase for backward compatibility
-      })) || [],
+      studio_images: studio.studio_images || [],
     }));
 
     // Get map markers based on search criteria
