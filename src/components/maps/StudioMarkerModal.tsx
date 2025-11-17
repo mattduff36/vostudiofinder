@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Users } from 'lucide-react';
+import { X } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useRef } from 'react';
 import { colors } from '@/components/home/HomePage';
@@ -59,9 +59,27 @@ export function StudioMarkerModal({ studio, position, onClose }: StudioMarkerMod
     };
   }, [onClose]);
 
-  const handleModalClick = () => {
+  // Close modal on scroll
+  useEffect(() => {
+    function handleScroll() {
+      onClose();
+    }
+
+    window.addEventListener('scroll', handleScroll, true); // Use capture phase to catch all scroll events
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [onClose]);
+
+  const handleModalClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking the close button
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    
     if (studio.owner?.username) {
-      window.open(`/${studio.owner.username}`, '_blank');
+      window.open(`/${studio.owner.username}`, '_blank', 'noopener,noreferrer');
+      onClose(); // Close modal after opening profile
     }
   };
 
@@ -107,19 +125,17 @@ export function StudioMarkerModal({ studio, position, onClose }: StudioMarkerMod
               className="bg-gray-200 rounded-md overflow-hidden"
               style={{ width: '40px', height: '40px' }}
             >
-              {studio.studio_images?.[0]?.imageUrl ? (
-                <Image
-                  src={studio.studio_images[0].imageUrl}
-                  alt={studio.studio_images[0].alt_text || studio.name}
-                  width={40}
-                  height={40}
-                  className="object-cover w-full h-full"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <Users className="w-5 h-5" />
-                </div>
-              )}
+              <Image
+                src={studio.studio_images?.[0]?.imageUrl || '/favicon_transparent/android-chrome-192x192.png'}
+                alt={studio.studio_images?.[0]?.alt_text || studio.name}
+                width={40}
+                height={40}
+                className="object-cover w-full h-full"
+                onError={(e) => {
+                  // Fallback to logo if image fails to load
+                  (e.target as HTMLImageElement).src = '/favicon_transparent/android-chrome-192x192.png';
+                }}
+              />
             </div>
           </div>
 
