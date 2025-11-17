@@ -19,33 +19,6 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-// Pin a specific studio to the top 6 positions
-function pinStudioToTop6<T extends { name: string }>(studios: T[]): T[] {
-  if (studios.length === 0) return studios;
-  
-  // Find the target studio (VoiceoverGuy - Yorkshire Recording Studio)
-  const targetIndex = studios.findIndex(studio => 
-    studio.name.toLowerCase().includes('voiceoverguy') && 
-    studio.name.toLowerCase().includes('yorkshire')
-  );
-  
-  // If studio not found or already in top 6, return as is
-  if (targetIndex === -1 || targetIndex < 6) {
-    return studios;
-  }
-  
-  // Remove the studio from its current position and insert at random position in top 6
-  const insertPosition = Math.floor(Math.random() * 6);
-  const [targetStudio] = studios.splice(targetIndex, 1);
-  
-  // Safety check - this should never happen but TypeScript needs it
-  if (targetStudio) {
-    studios.splice(insertPosition, 0, targetStudio);
-  }
-  
-  return studios;
-}
-
 // Prioritize studios: verified+images -> images -> no images, randomized within each tier
 function prioritizeStudios<T extends { 
   is_verified: boolean; 
