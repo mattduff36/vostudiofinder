@@ -508,7 +508,11 @@ export async function GET(request: NextRequest) {
       description: studio.users?.user_profiles?.short_about || '', // Use short_about as description
       latitude: studio.latitude ? Number(studio.latitude) : null,
       longitude: studio.longitude ? Number(studio.longitude) : null,
-      // Keep studio_images with image_url (no transformation needed)
+      owner: studio.users, // Map users to owner for backward compatibility with studio cards
+      studio_images: studio.studio_images?.map((img: any) => ({
+        ...img,
+        imageUrl: img.image_url, // Add camelCase for backward compatibility
+      })) || [],
     }));
 
     // Get map markers based on search criteria
