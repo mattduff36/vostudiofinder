@@ -467,6 +467,14 @@ export function GoogleMap({
       }
     });
     
+    // Also consider any click on the map as user interaction
+    map.addListener('click', () => {
+      if (!hasUserInteracted) {
+        console.log('👤 User clicked map - disabling auto-zoom');
+        setHasUserInteracted(true);
+      }
+    });
+    
     map.addListener('center_changed', () => {
       // Only count as user interaction if it's not programmatic
       if (isUserInitiated) {
