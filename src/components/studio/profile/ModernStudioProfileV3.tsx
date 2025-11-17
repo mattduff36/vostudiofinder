@@ -384,6 +384,11 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
             {/* Connections Section */}
             {(() => {
+              // Type-safe access to connection fields with fallback
+              const getConnection = (field: string) => {
+                return (profile as any)?.[field] || null;
+              };
+
               const standardConnections = [
                 { id: 'connection1', label: 'Source Connect', value: profile?.connection1 },
                 { id: 'connection2', label: 'Source Connect Now', value: profile?.connection2 },
@@ -393,14 +398,14 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 { id: 'connection6', label: 'Cleanfeed', value: profile?.connection6 },
                 { id: 'connection7', label: 'Riverside', value: profile?.connection7 },
                 { id: 'connection8', label: 'Google Hangouts', value: profile?.connection8 },
-                { id: 'connection9', label: 'ipDTL', value: profile?.connection9 },
-                { id: 'connection10', label: 'SquadCast', value: profile?.connection10 },
-                { id: 'connection11', label: 'Zencastr', value: profile?.connection11 },
-                { id: 'connection12', label: 'Other (See profile)', value: profile?.connection12 },
+                { id: 'connection9', label: 'ipDTL', value: getConnection('connection9') },
+                { id: 'connection10', label: 'SquadCast', value: getConnection('connection10') },
+                { id: 'connection11', label: 'Zencastr', value: getConnection('connection11') },
+                { id: 'connection12', label: 'Other (See profile)', value: getConnection('connection12') },
               ].filter(conn => conn.value === '1');
 
               // Add custom connections
-              const customMethods = (profile?.custom_connection_methods || []).filter((method: string) => method && method.trim());
+              const customMethods = ((profile as any)?.custom_connection_methods || []).filter((method: string) => method && method.trim());
               const customConnections = customMethods.map((method: string, index: number) => ({
                 id: `custom_${index}`,
                 label: method,
