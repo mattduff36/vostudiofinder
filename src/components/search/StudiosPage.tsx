@@ -105,7 +105,6 @@ export function StudiosPage() {
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [currentOffset, setCurrentOffset] = useState(0);
   const [isFilterSticky, setIsFilterSticky] = useState(false);
   const [stickyStyles, setStickyStyles] = useState<{width: number; left: number} | null>(null);
   const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
@@ -249,7 +248,6 @@ export function StudiosPage() {
   const performSearch = async (params: URLSearchParams, resetOffset: boolean = true) => {
     setLoading(true);
     if (resetOffset) {
-      setCurrentOffset(0);
       params.set('offset', '0');
       params.set('limit', '18'); // Initial load: 18 studios
     }
@@ -258,10 +256,6 @@ export function StudiosPage() {
       if (response.ok) {
         const data = await response.json();
         setSearchResults(data);
-        // Update currentOffset to reflect the number of studios loaded
-        if (resetOffset) {
-          setCurrentOffset(data.studios.length);
-        }
       } else {
         console.error('Search failed:', response.status, response.statusText);
       }
@@ -304,7 +298,6 @@ export function StudiosPage() {
             studios: [...prev.studios, ...data.studios], // Append new studios
           };
         });
-        setCurrentOffset(newOffset + data.studios.length);
       } else {
         console.error('Load more failed:', response.status, response.statusText);
       }
