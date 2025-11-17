@@ -30,7 +30,8 @@ export async function GET() {
       topStudios,
       usersByStatus,
       connectionsByStatus,
-      recentActivity
+      recentActivity,
+      customConnectionMethods
     ] = await Promise.all([
       // User counts
       db.users.count(),
@@ -96,8 +97,37 @@ export async function GET() {
           created_at: true,
           role: true
         }
+      }),
+      
+      // Custom connection methods
+      db.user_profiles.findMany({
+        where: {
+          custom_connection_methods: {
+            isEmpty: false
+          }
+        },
+        select: {
+          custom_connection_methods: true
+        }
       })
     ]);
+
+    // Process custom connection methods
+    const methodCounts: { [key: string]: number } = {};
+    customConnectionMethods.forEach(profile => {
+      profile.custom_connection_methods?.forEach(method => {
+        if (method && method.trim()) {
+          const normalizedMethod = method.trim();
+          methodCounts[normalizedMethod] = (methodCounts[normalizedMethod] || 0) + 1;
+        }
+      });
+    });
+
+    // Sort by count and get top 10
+    const topCustomMethods = Object.entries(methodCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([method, count]) => ({ method, count }));
 
     const analyticsData = {
       overview: {
@@ -125,6 +155,11 @@ export async function GET() {
         faqs: {
           total_faqs: totalFaqs,
           answered_faqs: totalFaqs // All FAQs are considered answered
+        },
+        custom_methods: {
+          total_users_with_custom: customConnectionMethods.length,
+          unique_methods: Object.keys(methodCounts).length,
+          top_methods: topCustomMethods
         }
       },
       topStudios: topStudios.map(studio => ({
@@ -148,7 +183,8 @@ export async function GET() {
         name: activity.display_name || 'Unknown User',
         date: activity.created_at.toISOString(),
         status: activity.role
-      }))
+      })),
+      customConnectionMethods: topCustomMethods
     };
 
     return NextResponse.json(analyticsData);

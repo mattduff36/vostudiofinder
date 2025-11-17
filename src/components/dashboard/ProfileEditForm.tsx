@@ -621,71 +621,47 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             <div className="border-t border-gray-200 pt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Custom Connection Methods</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Add your own custom connection methods (max 2)
+                Add your own custom connection methods (max 2). These will appear in your profile alongside the standard connections.
               </p>
               
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Custom Connection 1 */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Input
-                        label="Method Name"
-                        value={profile.profile.custom_connection_1_name || ''}
-                        onChange={(e) => updateProfile('custom_connection_1_name', e.target.value)}
-                        placeholder="e.g., Discord, WhatsApp"
-                        maxLength={50}
-                      />
-                      <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                        <span>Name of connection method</span>
-                        <span>{(profile.profile.custom_connection_1_name || '').length}/50 characters</span>
-                      </div>
-                    </div>
-                    <div>
-                      <Input
-                        label="Connection Details"
-                        value={profile.profile.custom_connection_1_value || ''}
-                        onChange={(e) => updateProfile('custom_connection_1_value', e.target.value)}
-                        placeholder="e.g., Username, ID, or details"
-                        maxLength={100}
-                      />
-                      <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                        <span>Username or connection info</span>
-                        <span>{(profile.profile.custom_connection_1_value || '').length}/100 characters</span>
-                      </div>
-                    </div>
+                <div>
+                  <Input
+                    label="Custom Method 1"
+                    value={profile.profile.custom_connection_methods?.[0] || ''}
+                    onChange={(e) => {
+                      const methods = profile.profile.custom_connection_methods || [];
+                      const newMethods = [...methods];
+                      newMethods[0] = e.target.value;
+                      updateProfile('custom_connection_methods', newMethods.filter(m => m));
+                    }}
+                    placeholder="e.g., Discord, WhatsApp, Slack"
+                    maxLength={50}
+                  />
+                  <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                    <span>Connection method name</span>
+                    <span>{(profile.profile.custom_connection_methods?.[0] || '').length}/50</span>
                   </div>
                 </div>
 
                 {/* Custom Connection 2 */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Input
-                        label="Method Name"
-                        value={profile.profile.custom_connection_2_name || ''}
-                        onChange={(e) => updateProfile('custom_connection_2_name', e.target.value)}
-                        placeholder="e.g., Discord, WhatsApp"
-                        maxLength={50}
-                      />
-                      <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                        <span>Name of connection method</span>
-                        <span>{(profile.profile.custom_connection_2_name || '').length}/50 characters</span>
-                      </div>
-                    </div>
-                    <div>
-                      <Input
-                        label="Connection Details"
-                        value={profile.profile.custom_connection_2_value || ''}
-                        onChange={(e) => updateProfile('custom_connection_2_value', e.target.value)}
-                        placeholder="e.g., Username, ID, or details"
-                        maxLength={100}
-                      />
-                      <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                        <span>Username or connection info</span>
-                        <span>{(profile.profile.custom_connection_2_value || '').length}/100 characters</span>
-                      </div>
-                    </div>
+                <div>
+                  <Input
+                    label="Custom Method 2"
+                    value={profile.profile.custom_connection_methods?.[1] || ''}
+                    onChange={(e) => {
+                      const methods = profile.profile.custom_connection_methods || [];
+                      const newMethods = [...methods];
+                      newMethods[1] = e.target.value;
+                      updateProfile('custom_connection_methods', newMethods.filter(m => m));
+                    }}
+                    placeholder="e.g., Discord, WhatsApp, Slack"
+                    maxLength={50}
+                  />
+                  <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                    <span>Connection method name</span>
+                    <span>{(profile.profile.custom_connection_methods?.[1] || '').length}/50</span>
                   </div>
                 </div>
               </div>

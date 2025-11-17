@@ -99,6 +99,11 @@ interface ModernStudioProfileV3Props {
         connection6?: string | null;
         connection7?: string | null;
         connection8?: string | null;
+        connection9?: string | null;
+        connection10?: string | null;
+        connection11?: string | null;
+        connection12?: string | null;
+        custom_connection_methods?: string[] | null;
       } | null;
     };
     created_at: Date;
@@ -378,7 +383,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
             {/* Connections Section */}
             {(() => {
-              const connections = [
+              const standardConnections = [
                 { id: 'connection1', label: 'Source Connect', value: profile?.connection1 },
                 { id: 'connection2', label: 'Source Connect Now', value: profile?.connection2 },
                 { id: 'connection3', label: 'Phone Patch', value: profile?.connection3 },
@@ -393,12 +398,21 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 { id: 'connection12', label: 'Other (See profile)', value: profile?.connection12 },
               ].filter(conn => conn.value === '1');
 
-              return connections.length > 0 ? (
+              // Add custom connections
+              const customMethods = (profile?.custom_connection_methods || []).filter((method: string) => method && method.trim());
+              const customConnections = customMethods.map((method: string, index: number) => ({
+                id: `custom_${index}`,
+                label: method,
+              }));
+
+              const allConnections = [...standardConnections, ...customConnections];
+
+              return allConnections.length > 0 ? (
                 <div className="mb-6">
                   <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Connections</h3>
                     <ul className="list-disc list-inside space-y-1">
-                      {connections.map((connection) => (
+                      {allConnections.map((connection) => (
                         <li key={connection.id} className="text-sm text-gray-700">
                           {connection.label}
                         </li>

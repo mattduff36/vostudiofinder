@@ -271,6 +271,13 @@ export async function PUT(request: NextRequest) {
       if (body.profile.connection11 !== undefined) profileUpdates.connection11 = body.profile.connection11;
       if (body.profile.connection12 !== undefined) profileUpdates.connection12 = body.profile.connection12;
       
+      // Custom connection methods
+      if (body.profile.custom_connection_methods !== undefined) {
+        profileUpdates.custom_connection_methods = Array.isArray(body.profile.custom_connection_methods)
+          ? body.profile.custom_connection_methods.filter((m: string) => m && m.trim()).slice(0, 2)
+          : [];
+      }
+      
       // Visibility settings
       if (body.profile.show_email !== undefined) profileUpdates.show_email = body.profile.show_email;
       if (body.profile.show_phone !== undefined) profileUpdates.show_phone = body.profile.show_phone;

@@ -117,7 +117,8 @@ export async function GET(
       connection9: studio.users?.user_profiles?.connection9 || '',
       connection10: studio.users?.user_profiles?.connection10 || '',
       connection11: studio.users?.user_profiles?.connection11 || '',
-      connection12: studio.users?.user_profiles?.connection12 || ''
+      connection12: studio.users?.user_profiles?.connection12 || '',
+      custom_connection_methods: studio.users?.user_profiles?.custom_connection_methods || []
     };
     
     // Structure the data to match what the frontend expects
@@ -176,7 +177,8 @@ export async function GET(
         connection9: studioData.connection9 || '0',
         connection10: studioData.connection10 || '0',
         connection11: studioData.connection11 || '0',
-        connection12: studioData.connection12 || '0'
+        connection12: studioData.connection12 || '0',
+        custom_connection_methods: studioData.custom_connection_methods || []
       },
       images: studio.studio_images?.map(img => ({
         id: img.id,
@@ -301,6 +303,13 @@ export async function PUT(
     if (body._meta?.connection10 !== undefined) profileUpdateData.connection10 = body._meta.connection10;
     if (body._meta?.connection11 !== undefined) profileUpdateData.connection11 = body._meta.connection11;
     if (body._meta?.connection12 !== undefined) profileUpdateData.connection12 = body._meta.connection12;
+    
+    // Custom connection methods
+    if (body._meta?.custom_connection_methods !== undefined) {
+      profileUpdateData.custom_connection_methods = Array.isArray(body._meta.custom_connection_methods)
+        ? body._meta.custom_connection_methods.filter((m: string) => m && m.trim()).slice(0, 2)
+        : [];
+    }
 
     // Perform updates using Prisma transactions
     await prisma.$transaction(async (tx) => {
