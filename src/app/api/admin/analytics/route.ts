@@ -190,7 +190,7 @@ export async function GET() {
       for (let i = 1; i <= 12; i++) {
         const connKey = `connection${i}` as keyof typeof profile;
         const countKey = `connection${i}` as keyof typeof connectionMethodCounts;
-        if (profile[connKey] === '1') {
+        if (profile[connKey] === '1' && connectionMethodCounts[countKey] !== undefined) {
           connectionMethodCounts[countKey]++;
         }
       }
