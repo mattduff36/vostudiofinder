@@ -540,7 +540,7 @@ export async function GET(request: NextRequest) {
               },
             },
             is_verified: true,
-            owner: {
+            users: {
               select: {
                 username: true,
               },
@@ -585,7 +585,7 @@ export async function GET(request: NextRequest) {
               },
             },
             is_verified: true,
-            owner: {
+            users: {
               select: {
                 username: true,
               },

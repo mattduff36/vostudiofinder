@@ -114,7 +114,7 @@ export function StudiosPage() {
   const [modalStudio, setModalStudio] = useState<{
     id: string;
     name: string;
-    owner?: { username: string };
+    users?: { username: string };
     studio_images?: Array<{ image_url: string; alt_text?: string }>;
     position: { x: number; y: number };
   } | null>(null);
@@ -188,7 +188,7 @@ export function StudiosPage() {
     setModalStudio({
       id: studio.id,
       name: studio.name,
-      owner: studio.owner,
+      users: studio.users,
       studio_images: studio.studio_images,
       position: markerPosition,
     });
@@ -217,15 +217,15 @@ export function StudiosPage() {
           handleStudioMarkerClick({
             id: studio.id,
             name: studio.name,
-            owner: 'owner' in studio && studio.owner ? { username: studio.owner.username } : undefined,
+            users: 'users' in studio && studio.users ? { username: studio.users.username } : undefined,
             studio_images: 'studio_images' in studio && studio.studio_images ? studio.studio_images : [],
           }, event);
         },
-        ...('owner' in studio && studio.owner ? {
+        ...('users' in studio && studio.users ? {
           studio: {
             id: studio.id,
             name: studio.name,
-            owner: { username: studio.owner.username },
+            users: { username: studio.users.username },
             studio_images: ('images' in studio && studio.studio_images) ? studio.studio_images: [],
           }
         } : {}),
@@ -731,7 +731,7 @@ export function StudiosPage() {
           studio={{
             id: modalStudio.id,
             name: modalStudio.name,
-            owner: modalStudio.owner,
+            users: modalStudio.users,
             studio_images: modalStudio.studio_images,
           }}
           position={modalStudio.position}
