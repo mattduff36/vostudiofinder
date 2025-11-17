@@ -9,7 +9,7 @@ interface StudioMarkerModalProps {
   studio: {
     id: string;
     name: string;
-    owner?: {
+    users?: {
       username: string;
     };
     studio_images?: Array<{
@@ -77,8 +77,8 @@ export function StudioMarkerModal({ studio, position, onClose }: StudioMarkerMod
       return;
     }
     
-    if (studio.owner?.username) {
-      window.open(`/${studio.owner.username}`, '_blank', 'noopener,noreferrer');
+    if (studio.users?.username) {
+      window.open(`/${studio.users.username}`, '_blank', 'noopener,noreferrer');
       onClose(); // Close modal after opening profile
     }
   };
