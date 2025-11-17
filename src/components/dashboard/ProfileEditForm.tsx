@@ -46,10 +46,11 @@ interface ProfileData {
     connection6?: string;
     connection7?: string;
     connection8?: string;
-    custom_connection_1_name?: string;
-    custom_connection_1_value?: string;
-    custom_connection_2_name?: string;
-    custom_connection_2_value?: string;
+    connection9?: string;
+    connection10?: string;
+    connection11?: string;
+    connection12?: string;
+    custom_connection_methods?: string[];
     show_email: boolean;
     show_phone: boolean;
     show_address: boolean;
@@ -629,19 +630,22 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 <div>
                   <Input
                     label="Custom Method 1"
-                    value={profile.profile.custom_connection_methods?.[0] || ''}
+                    value={(profile.profile.custom_connection_methods || [])[0] || ''}
                     onChange={(e) => {
-                      const methods = profile.profile.custom_connection_methods || [];
-                      const newMethods = [...methods];
-                      newMethods[0] = e.target.value;
-                      updateProfile('custom_connection_methods', newMethods.filter(m => m));
+                      const methods = Array.isArray(profile.profile.custom_connection_methods) 
+                        ? [...profile.profile.custom_connection_methods] 
+                        : [];
+                      methods[0] = e.target.value;
+                      // Filter out empty strings but keep the structure
+                      const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
+                      updateProfile('custom_connection_methods', filtered.length > 0 && filtered.some(m => m) ? filtered : []);
                     }}
                     placeholder="e.g., Discord, WhatsApp, Slack"
                     maxLength={50}
                   />
                   <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
                     <span>Connection method name</span>
-                    <span>{(profile.profile.custom_connection_methods?.[0] || '').length}/50</span>
+                    <span>{((profile.profile.custom_connection_methods || [])[0] || '').length}/50</span>
                   </div>
                 </div>
 
@@ -649,19 +653,22 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 <div>
                   <Input
                     label="Custom Method 2"
-                    value={profile.profile.custom_connection_methods?.[1] || ''}
+                    value={(profile.profile.custom_connection_methods || [])[1] || ''}
                     onChange={(e) => {
-                      const methods = profile.profile.custom_connection_methods || [];
-                      const newMethods = [...methods];
-                      newMethods[1] = e.target.value;
-                      updateProfile('custom_connection_methods', newMethods.filter(m => m));
+                      const methods = Array.isArray(profile.profile.custom_connection_methods) 
+                        ? [...profile.profile.custom_connection_methods] 
+                        : [];
+                      methods[1] = e.target.value;
+                      // Filter out empty strings but keep the structure
+                      const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
+                      updateProfile('custom_connection_methods', filtered.length > 0 && filtered.some(m => m) ? filtered : []);
                     }}
                     placeholder="e.g., Discord, WhatsApp, Slack"
                     maxLength={50}
                   />
                   <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
                     <span>Connection method name</span>
-                    <span>{(profile.profile.custom_connection_methods?.[1] || '').length}/50</span>
+                    <span>{((profile.profile.custom_connection_methods || [])[1] || '').length}/50</span>
                   </div>
                 </div>
               </div>
