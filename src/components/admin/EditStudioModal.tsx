@@ -612,19 +612,21 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           <div>
             <Input
               label="Custom Method 1"
-              value={profile?._meta?.custom_connection_methods?.[0] || ''}
+              value={((profile?._meta?.custom_connection_methods as string[]) || [])[0] || ''}
               onChange={(e) => {
-                const methods = profile?._meta?.custom_connection_methods || [];
-                const newMethods = [...methods];
-                newMethods[0] = e.target.value;
-                handleMetaChange('custom_connection_methods', newMethods.filter((m: string) => m));
+                const methods = Array.isArray(profile?._meta?.custom_connection_methods) 
+                  ? [...(profile._meta.custom_connection_methods as string[])] 
+                  : [];
+                methods[0] = e.target.value;
+                const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
+                handleMetaChange('custom_connection_methods', filtered.length > 0 && filtered.some((m: string) => m) ? filtered : []);
               }}
               placeholder="e.g., Discord, WhatsApp, Slack"
               maxLength={50}
             />
             <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
               <span>Connection method name</span>
-              <span>{(profile?._meta?.custom_connection_methods?.[0] || '').length}/50</span>
+              <span>{(((profile?._meta?.custom_connection_methods as string[]) || [])[0] || '').length}/50</span>
             </div>
           </div>
 
@@ -632,19 +634,21 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           <div>
             <Input
               label="Custom Method 2"
-              value={profile?._meta?.custom_connection_methods?.[1] || ''}
+              value={((profile?._meta?.custom_connection_methods as string[]) || [])[1] || ''}
               onChange={(e) => {
-                const methods = profile?._meta?.custom_connection_methods || [];
-                const newMethods = [...methods];
-                newMethods[1] = e.target.value;
-                handleMetaChange('custom_connection_methods', newMethods.filter((m: string) => m));
+                const methods = Array.isArray(profile?._meta?.custom_connection_methods) 
+                  ? [...(profile._meta.custom_connection_methods as string[])] 
+                  : [];
+                methods[1] = e.target.value;
+                const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
+                handleMetaChange('custom_connection_methods', filtered.length > 0 && filtered.some((m: string) => m) ? filtered : []);
               }}
               placeholder="e.g., Discord, WhatsApp, Slack"
               maxLength={50}
             />
             <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
               <span>Connection method name</span>
-              <span>{(profile?._meta?.custom_connection_methods?.[1] || '').length}/50</span>
+              <span>{(((profile?._meta?.custom_connection_methods as string[]) || [])[1] || '').length}/50</span>
             </div>
           </div>
         </div>
