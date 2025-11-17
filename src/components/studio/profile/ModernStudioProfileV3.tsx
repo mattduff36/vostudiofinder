@@ -7,6 +7,7 @@ import { cleanDescription } from '@/lib/utils/text';
 import { SimpleStudioMap } from '@/components/maps/SimpleStudioMap';
 import clsx from 'clsx';
 
+// Force rebuild: Updated types for connection9-12 and custom_connection_methods
 import { 
   MapPin, 
   Star, 
