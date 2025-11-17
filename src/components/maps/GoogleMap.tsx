@@ -153,6 +153,11 @@ export function GoogleMap({
       // Add click listener for card selection
       if (data.onClick) {
         marker.addListener('click', (e: any) => {
+          // Prevent default map behavior (panning/zooming)
+          if (e.stop) {
+            e.stop();
+          }
+          
           // Get screen coordinates from the click event
           const clickEvent = {
             clientX: e.domEvent?.clientX || window.innerWidth / 2,
@@ -162,8 +167,9 @@ export function GoogleMap({
         });
       }
 
-      // Add click listener for info window
-      if (data.studio) {
+      // Add click listener for info window (only if no onClick handler is provided)
+      // This prevents conflict between modal and info window
+      if (data.studio && !data.onClick) {
         marker.addListener('click', () => {
           // Close existing info window
           if (activeInfoWindow) {
