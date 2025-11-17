@@ -91,11 +91,13 @@ export default function AdminStudiosPage() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
+    setStudios([]); // Clear studios to prevent duplicates
     setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStatusFilter(e.target.value);
+    setStudios([]); // Clear studios to prevent duplicates
     setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page
   };
 
@@ -110,7 +112,9 @@ export default function AdminStudiosPage() {
   };
 
   const handleSaveStudio = () => {
-    fetchStudios(); // Refresh the studios list
+    setStudios([]); // Clear studios to prevent duplicates
+    setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page
+    // fetchStudios will be called automatically by the useEffect
   };
 
   const handleDeleteStudio = async (studio: Studio) => {
@@ -128,7 +132,9 @@ export default function AdminStudiosPage() {
       }
 
       alert('Studio deleted successfully');
-      fetchStudios(); // Refresh the studios list
+      setStudios([]); // Clear studios to prevent duplicates
+      setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page
+      // fetchStudios will be called automatically by the useEffect
     } catch (error) {
       console.error('Error deleting studio:', error);
       alert('Failed to delete studio. Please try again.');

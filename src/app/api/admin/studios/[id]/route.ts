@@ -243,6 +243,11 @@ export async function PUT(
     if (body._meta?.latitude !== undefined) studioUpdateData.latitude = parseFloat(body._meta.latitude) || null;
     if (body._meta?.longitude !== undefined) studioUpdateData.longitude = parseFloat(body._meta.longitude) || null;
     if (body._meta?.verified !== undefined) studioUpdateData.is_verified = body._meta.verified === '1' || body._meta.verified === true;
+    
+    // Handle status updates
+    if (body.status !== undefined) {
+      studioUpdateData.status = body.status.toUpperCase();
+    }
 
     // Prepare profile updates
     const profileUpdateData: any = {};
