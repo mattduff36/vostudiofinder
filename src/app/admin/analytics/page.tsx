@@ -30,6 +30,11 @@ interface AnalyticsData {
       total_faqs: number;
       answered_faqs: number;
     };
+    custom_methods?: {
+      total_users_with_custom: number;
+      unique_methods: number;
+      top_methods: Array<{ method: string; count: number }>;
+    };
   };
   topStudios: Array<{
     id: string;
@@ -53,6 +58,7 @@ interface AnalyticsData {
     date: string;
     status: string;
   }>;
+  customConnectionMethods?: Array<{ method: string; count: number }>;
 }
 
 export default function AdminAnalyticsPage() {
@@ -258,6 +264,18 @@ export default function AdminAnalyticsPage() {
               <span className="font-bold text-yellow-600">{overview.connections.pending_connections || 0}</span>
             </div>
           </div>
+          {overview.custom_methods && overview.custom_methods.unique_methods > 0 && (
+            <div className="mt-4 pt-4 border-t border-purple-200">
+              <div className="flex justify-between text-xs">
+                <span className="text-purple-700 font-medium">Custom Methods:</span>
+                <span className="text-purple-900 font-bold">{overview.custom_methods.unique_methods}</span>
+              </div>
+              <div className="flex justify-between text-xs mt-1">
+                <span className="text-purple-700">Users w/ Custom:</span>
+                <span className="text-purple-900">{overview.custom_methods.total_users_with_custom}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* FAQ Overview */}
@@ -443,6 +461,45 @@ export default function AdminAnalyticsPage() {
           </div>
         </div>
       </div>
+
+      {/* Custom Connection Methods */}
+      {analyticsData.customConnectionMethods && analyticsData.customConnectionMethods.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">🔗 Popular Custom Connection Methods</h2>
+            <p className="text-gray-600 mt-1">Most frequently used custom connection methods by users</p>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {analyticsData.customConnectionMethods.map((method, index) => (
+              <div key={method.method} className="p-4 hover:bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                        index === 0 ? 'bg-yellow-500' : 
+                        index === 1 ? 'bg-gray-400' : 
+                        index === 2 ? 'bg-orange-600' : 'bg-purple-500'
+                      }`}>
+                        {index < 3 ? ['🥇', '🥈', '🥉'][index] : (index + 1)}
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900">{method.method}</h3>
+                      <p className="text-xs text-gray-500">Custom connection method</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-purple-600">{method.count}</div>
+                    <div className="text-xs text-gray-500">
+                      {method.count === 1 ? 'user' : 'users'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recent Activity */}
       {recentActivity.length > 0 && (
