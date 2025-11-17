@@ -50,14 +50,18 @@ const STUDIO_TYPES = [
 ];
 
 const CONNECTION_TYPES = [
-  { id: 'connection1', label: 'Source Connect', icon: '🔗' },
-  { id: 'connection2', label: 'Source Connect Now', icon: '🔗' },
-  { id: 'connection3', label: 'ipDTL', icon: '🎙️' },
-  { id: 'connection4', label: 'Session Link Pro', icon: '🎛️' },
-  { id: 'connection5', label: 'Clean Feed', icon: '📡' },
-  { id: 'connection6', label: 'Zoom', icon: '💻' },
-  { id: 'connection7', label: 'Teams', icon: '👥' },
-  { id: 'connection8', label: 'Skype', icon: '📞' },
+  { id: 'connection1', label: 'Source Connect' },
+  { id: 'connection2', label: 'Source Connect Now' },
+  { id: 'connection3', label: 'Phone Patch' },
+  { id: 'connection4', label: 'Session Link Pro' },
+  { id: 'connection5', label: 'Zoom or Teams' },
+  { id: 'connection6', label: 'Cleanfeed' },
+  { id: 'connection7', label: 'Riverside' },
+  { id: 'connection8', label: 'Google Hangouts' },
+  { id: 'connection9', label: 'ipDTL' },
+  { id: 'connection10', label: 'SquadCast' },
+  { id: 'connection11', label: 'Zencastr' },
+  { id: 'connection12', label: 'Other (See profile)' },
 ];
 
 // Helper function to decode HTML entities
@@ -588,7 +592,6 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 onChange={(e) => handleMetaChange(connection.id, e.target.checked ? '1' : '0')}
                 className="mr-3 h-4 w-4 text-red-600 accent-red-600 focus:ring-red-500 border-gray-300 rounded"
               />
-              <span className="text-2xl mr-2">{connection.icon}</span>
               <span className="text-sm font-medium text-gray-900">
                 {connection.label}
               </span>

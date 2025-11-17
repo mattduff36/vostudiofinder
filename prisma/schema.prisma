@@ -311,6 +311,10 @@ model user_profiles {
   connection6             String?  @db.VarChar(10)
   connection7             String?  @db.VarChar(10)
   connection8             String?  @db.VarChar(10)
+  connection9             String?  @db.VarChar(10)
+  connection10            String?  @db.VarChar(10)
+  connection11            String?  @db.VarChar(10)
+  connection12            String?  @db.VarChar(10)
   users                   users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([is_featured])

@@ -21,13 +21,7 @@ import {
   Linkedin,
   Instagram,
   Youtube,
-  Music,
-  Link,
-  Zap,
-  Radio,
-  Video,
-  Headphones,
-  Waves
+  Music
 } from 'lucide-react';
 
 interface ModernStudioProfileV3Props {
@@ -385,31 +379,31 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             {/* Connections Section */}
             {(() => {
               const connections = [
-                { id: 'connection1', label: 'Source Connect', icon: Link, value: profile?.connection1 },
-                { id: 'connection2', label: 'Source Connect Now', icon: Zap, value: profile?.connection2 },
-                { id: 'connection3', label: 'Phone Patch', icon: Phone, value: profile?.connection3 },
-                { id: 'connection4', label: 'Session Link Pro', icon: Radio, value: profile?.connection4 },
-                { id: 'connection5', label: 'Zoom or Teams', icon: Video, value: profile?.connection5 },
-                { id: 'connection6', label: 'Cleanfeed', icon: Headphones, value: profile?.connection6 },
-                { id: 'connection7', label: 'Riverside', icon: Waves, value: profile?.connection7 },
-                { id: 'connection8', label: 'Google Hangouts', icon: MessageCircle, value: profile?.connection8 },
+                { id: 'connection1', label: 'Source Connect', value: profile?.connection1 },
+                { id: 'connection2', label: 'Source Connect Now', value: profile?.connection2 },
+                { id: 'connection3', label: 'Phone Patch', value: profile?.connection3 },
+                { id: 'connection4', label: 'Session Link Pro', value: profile?.connection4 },
+                { id: 'connection5', label: 'Zoom or Teams', value: profile?.connection5 },
+                { id: 'connection6', label: 'Cleanfeed', value: profile?.connection6 },
+                { id: 'connection7', label: 'Riverside', value: profile?.connection7 },
+                { id: 'connection8', label: 'Google Hangouts', value: profile?.connection8 },
+                { id: 'connection9', label: 'ipDTL', value: profile?.connection9 },
+                { id: 'connection10', label: 'SquadCast', value: profile?.connection10 },
+                { id: 'connection11', label: 'Zencastr', value: profile?.connection11 },
+                { id: 'connection12', label: 'Other (See profile)', value: profile?.connection12 },
               ].filter(conn => conn.value === '1');
 
               return connections.length > 0 ? (
                 <div className="mb-6">
                   <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Connections</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      {connections.map((connection) => {
-                        const IconComponent = connection.icon;
-                        return (
-                          <div key={connection.id} className="flex items-center space-x-2 text-gray-700">
-                            <IconComponent className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                            <span className="text-sm">{connection.label}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <ul className="list-disc list-inside space-y-1">
+                      {connections.map((connection) => (
+                        <li key={connection.id} className="text-sm text-gray-700">
+                          {connection.label}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               ) : null;
