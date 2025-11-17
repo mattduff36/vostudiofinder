@@ -82,10 +82,12 @@ interface SearchResponse {
   pagination: {
     page: number;
     limit: number;
+    offset: number;
     totalCount: number;
     totalPages: number;
     hasNextPage: boolean;
     hasPrevPage: boolean;
+    hasMore?: boolean; // New flag for load-more pattern
   };
   filters: {
     query?: string;
@@ -102,6 +104,8 @@ export function StudiosPage() {
   const searchParams = useSearchParams();
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentOffset, setCurrentOffset] = useState(0);
   const [isFilterSticky, setIsFilterSticky] = useState(false);
   const [stickyStyles, setStickyStyles] = useState<{width: number; left: number} | null>(null);
   const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
@@ -241,9 +245,14 @@ export function StudiosPage() {
   const filterSidebarRef = useRef<HTMLDivElement>(null);
   const filterContainerRef = useRef<HTMLDivElement>(null);
 
-  // Search function
-  const performSearch = async (params: URLSearchParams) => {
+  // Search function - for initial load or filter changes
+  const performSearch = async (params: URLSearchParams, resetOffset: boolean = true) => {
     setLoading(true);
+    if (resetOffset) {
+      setCurrentOffset(0);
+      params.set('offset', '0');
+      params.set('limit', '18'); // Initial load: 18 studios
+    }
     try {
       const response = await fetch(`/api/studios/search?${params.toString()}`);
       if (response.ok) {
@@ -256,6 +265,48 @@ export function StudiosPage() {
       console.error('Search error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load more function - append results
+  const loadMore = async () => {
+    if (!searchResults || loadingMore || !searchResults.pagination.hasMore) return;
+    
+    setLoadingMore(true);
+    const newOffset = currentOffset + 18; // First load was 18, subsequent loads are 12
+    const limit = newOffset === 18 ? 12 : 12; // Always load 12 more after first batch
+    
+    try {
+      const params = new URLSearchParams();
+      
+      // Copy all current search params
+      searchParams.forEach((value, key) => {
+        if (key !== 'offset' && key !== 'limit') {
+          params.set(key, value);
+        }
+      });
+      
+      params.set('offset', newOffset.toString());
+      params.set('limit', limit.toString());
+      
+      const response = await fetch(`/api/studios/search?${params.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(prev => {
+          if (!prev) return data;
+          return {
+            ...data,
+            studios: [...prev.studios, ...data.studios], // Append new studios
+          };
+        });
+        setCurrentOffset(newOffset);
+      } else {
+        console.error('Load more failed:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Load more error:', error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -388,11 +439,6 @@ export function StudiosPage() {
     router.push(`/studios?${params.toString()}`);
   };
 
-  const handlePageChange = (page: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('page', page.toString());
-    router.push(`/studios?${params.toString()}`);
-  };
 
   // Count active filters for mobile badge
   const getActiveFilterCount = () => {
@@ -674,49 +720,39 @@ export function StudiosPage() {
                   </div>
                 )}
 
-                {/* Results Header with Active Filters - Below map, above cards */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <p className="text-black">
-                      Showing {searchResults.pagination.totalCount === 0 ? '0-0' : `${((searchResults.pagination.page - 1) * searchResults.pagination.limit) + 1}-${Math.min(searchResults.pagination.page * searchResults.pagination.limit, searchResults.pagination.totalCount)}`} of {searchResults.pagination.totalCount} studios
-                    </p>
-                    {/* Active Filters Display */}
-                    {(searchParams.get('location') || searchParams.get('studio_type') || searchParams.get('services') || searchParams.get('radius')) && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-text-secondary">•</span>
-                        <div className="flex flex-wrap gap-2">
-                          {searchParams.get('location') && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black">
-                              📍 {abbreviateAddress(searchParams.get('location')!)}
-                            </span>
-                          )}
-                          {searchParams.get('studio_type') && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              🎙️ {searchParams.get('studio_type')?.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
-                            </span>
-                          )}
-                          {searchParams.get('services') && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                              ⚙️ {searchParams.get('services')?.split(',').length} Service{searchParams.get('services')?.split(',').length !== 1 ? 's' : ''}
-                            </span>
-                          )}
-                          {searchParams.get('radius') && searchParams.get('location') && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                              📏 {searchParams.get('radius')} miles
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                {/* Active Filters Display - Below map, above cards */}
+                {(searchParams.get('location') || searchParams.get('studio_type') || searchParams.get('services') || searchParams.get('radius')) && (
+                  <div className="flex flex-wrap gap-2">
+                    {searchParams.get('location') && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black">
+                        📍 {abbreviateAddress(searchParams.get('location')!)}
+                      </span>
+                    )}
+                    {searchParams.get('studio_type') && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        🎙️ {searchParams.get('studio_type')?.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
+                      </span>
+                    )}
+                    {searchParams.get('services') && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        ⚙️ {searchParams.get('services')?.split(',').length} Service{searchParams.get('services')?.split(',').length !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                    {searchParams.get('radius') && searchParams.get('location') && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                        📏 {searchParams.get('radius')} miles
+                      </span>
                     )}
                   </div>
-                </div>
+                )}
 
                 {/* Studios List - Desktop: Always shown, Mobile: Only in list view */}
                 <div className={`${mobileView === 'map' ? 'hidden lg:block' : 'block'}`}>
                   <StudiosList
                     studios={searchResults.studios}
                     pagination={searchResults.pagination}
-                    onPageChange={handlePageChange}
+                    onLoadMore={loadMore}
+                    loadingMore={loadingMore}
                   />
                 </div>
               </div>

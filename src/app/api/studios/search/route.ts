@@ -46,6 +46,47 @@ function pinStudioToTop6<T extends { name: string }>(studios: T[]): T[] {
   return studios;
 }
 
+// Prioritize studios: verified+images -> images -> no images, randomized within each tier
+function prioritizeStudios<T extends { 
+  is_verified: boolean; 
+  studio_images: any[];
+}>(studios: T[], offset: number, limit: number): { studios: T[]; hasMore: boolean } {
+  if (studios.length === 0) return { studios: [], hasMore: false };
+  
+  // Tier 1: Verified with at least 1 image
+  const verifiedWithImages = studios.filter(
+    s => s.is_verified && s.studio_images && s.studio_images.length > 0
+  );
+  
+  // Tier 2: Non-verified with at least 1 image
+  const nonVerifiedWithImages = studios.filter(
+    s => !s.is_verified && s.studio_images && s.studio_images.length > 0
+  );
+  
+  // Tier 3: Studios without images
+  const withoutImages = studios.filter(
+    s => !s.studio_images || s.studio_images.length === 0
+  );
+  
+  // Shuffle each tier
+  const shuffledVerified = shuffleArray(verifiedWithImages);
+  const shuffledWithImages = shuffleArray(nonVerifiedWithImages);
+  const shuffledWithoutImages = shuffleArray(withoutImages);
+  
+  // Combine tiers in priority order
+  const allPrioritized = [
+    ...shuffledVerified,
+    ...shuffledWithImages,
+    ...shuffledWithoutImages
+  ];
+  
+  // Apply offset and limit
+  const paginatedStudios = allPrioritized.slice(offset, offset + limit);
+  const hasMore = allPrioritized.length > offset + limit;
+  
+  return { studios: paginatedStudios, hasMore };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -61,7 +102,8 @@ export async function GET(request: NextRequest) {
       studio_services: searchParams.get('services')?.split(',') || undefined,
       equipment: searchParams.get('equipment')?.split(',') || undefined, // New equipment parameter
       page: parseInt(searchParams.get('page') || '1'),
-      limit: parseInt(searchParams.get('limit') || '50'),
+      limit: parseInt(searchParams.get('limit') || '18'),
+      offset: parseInt(searchParams.get('offset') || '0'), // New offset parameter for load-more pattern
       sortBy: searchParams.get('sortBy') || 'name',
       sort_order: searchParams.get('sort_order') || 'asc',
     };
@@ -270,59 +312,59 @@ export async function GET(request: NextRequest) {
         orderBy.push({ name: 'asc' });
     }
 
-    // Calculate pagination
-    const skip = (validatedParams.page - 1) * validatedParams.limit;
+    // Use offset for load-more pattern instead of page-based pagination
+    const offset = validatedParams.offset || 0;
 
-    // Execute search query
-    let studios: any[];
+    // Execute search query - fetch all matching studios for prioritization
+    let allStudios: any[];
     let totalCount: number;
+    let hasMore: boolean;
 
-    if (searchCoordinates && validatedParams.radius) {
-      // For geographic search, fetch all matching studios first, then filter by distance
-      const allStudios = await db.studios.findMany({
-        where,
-        include: {
-          users: {
-            select: {
-              id: true,
-              display_name: true,
-              username: true,
-              avatar_url: true,
-              user_profiles: {
-                select: {
-                  short_about: true,
-                },
+    // Fetch all matching studios (we'll apply prioritization and pagination in memory)
+    const fetchedStudios = await db.studios.findMany({
+      where,
+      include: {
+        users: {
+          select: {
+            id: true,
+            display_name: true,
+            username: true,
+            avatar_url: true,
+            user_profiles: {
+              select: {
+                short_about: true,
               },
             },
           },
-          studio_studio_types: {
-            select: {
-              studio_type: true,
-            },
-          },
-          studio_services: {
-            select: {
-              service: true,
-            },
-          },
-          studio_images: {
-            take: 1,
-            orderBy: { sort_order: 'asc' },
-            select: {
-              image_url: true,
-              alt_text: true,
-            },
-          },
-          _count: {
-            select: {
-              reviews: true,
-            },
+        },
+        studio_studio_types: {
+          select: {
+            studio_type: true,
           },
         },
-      });
+        studio_services: {
+          select: {
+            service: true,
+          },
+        },
+        studio_images: {
+          orderBy: { sort_order: 'asc' },
+          select: {
+            image_url: true,
+            alt_text: true,
+          },
+        },
+        _count: {
+          select: {
+            reviews: true,
+          },
+        },
+      },
+    });
 
-      // Filter studios by distance and add distance property
-      const studiosWithDistance = allStudios
+    // Filter by geographic distance if applicable
+    if (searchCoordinates && validatedParams.radius) {
+      allStudios = fetchedStudios
         .map(studio => {
           if (studio.latitude && studio.longitude) {
             const distance = calculateDistance(
@@ -331,176 +373,34 @@ export async function GET(request: NextRequest) {
               Number(studio.latitude),
               Number(studio.longitude)
             );
-            const distanceInMiles = distance * 0.621371; // Convert km to miles
+            const distanceInMiles = distance * 0.621371;
             
-            return {
-              ...studio,
-              distance: distanceInMiles,
-            };
+            if (distanceInMiles <= validatedParams.radius!) {
+              return {
+                ...studio,
+                distance: distanceInMiles,
+              };
+            }
           }
           return null;
         })
-        .filter((studio): studio is NonNullable<typeof studio> => 
-          studio !== null && studio.distance <= validatedParams.radius!
-        )
-        .sort((a, b) => {
-          // Sort by premium status first, then by distance
-          if (a.is_premium !== b.is_premium) {
-            return b.is_premium ? 1 : -1;
-          }
-          return a.distance - b.distance;
-        });
+        .filter((studio): studio is NonNullable<typeof studio> => studio !== null);
 
-      totalCount = studiosWithDistance.length;
-      
-      // Apply randomization and pinning for page 1 only
-      let finalStudiosWithDistance = studiosWithDistance;
-      if (validatedParams.page === 1) {
-        // Separate premium and non-premium studios to preserve premium priority
-        const premiumStudios = finalStudiosWithDistance.filter(s => s.is_premium);
-        const nonPremiumStudios = finalStudiosWithDistance.filter(s => !s.is_premium);
-        
-        // Shuffle non-premium studios
-        const shuffledNonPremium = shuffleArray(nonPremiumStudios);
-        
-        // Combine: premium first, then shuffled non-premium
-        finalStudiosWithDistance = [...premiumStudios, ...shuffledNonPremium];
-        
-        // Pin the target studio to top 6
-        finalStudiosWithDistance = pinStudioToTop6(finalStudiosWithDistance);
-      }
-      
-      // Apply pagination to filtered results
-      const skip = (validatedParams.page - 1) * validatedParams.limit;
-      studios = finalStudiosWithDistance.slice(skip, skip + validatedParams.limit);
-
-      console.log(`Found ${totalCount} studios within ${validatedParams.radius} miles of ${validatedParams.location}`);
+      console.log(`Found ${allStudios.length} studios within ${validatedParams.radius} miles of ${validatedParams.location}`);
     } else {
-      // Standard non-geographic search
-      // For page 1, fetch all results to randomize; for other pages, use standard pagination
-      const shouldRandomize = validatedParams.page === 1;
-      
-      if (shouldRandomize) {
-        // Fetch all results for randomization
-        const [allStudios, count] = await Promise.all([
-          db.studios.findMany({
-            where,
-            orderBy,
-            include: {
-              users: {
-                select: {
-                  id: true,
-                  display_name: true,
-                  username: true,
-                  avatar_url: true,
-                  user_profiles: {
-                    select: {
-                      short_about: true,
-                    },
-                  },
-                },
-              },
-              studio_studio_types: {
-                select: {
-                  studio_type: true,
-                },
-              },
-              studio_services: {
-                select: {
-                  service: true,
-                },
-              },
-              studio_images: {
-                take: 1,
-                orderBy: { sort_order: 'asc' },
-                select: {
-                  image_url: true,
-                  alt_text: true,
-                },
-              },
-              _count: {
-                select: {
-                  reviews: true,
-                },
-              },
-            },
-          }),
-          db.studios.count({ where }),
-        ]);
-        
-        totalCount = count;
-        
-        // Separate premium and non-premium studios
-        const premiumStudios = allStudios.filter(s => s.is_premium);
-        const nonPremiumStudios = allStudios.filter(s => !s.is_premium);
-        
-        // Shuffle non-premium studios
-        const shuffledNonPremium = shuffleArray(nonPremiumStudios);
-        
-        // Combine: premium first, then shuffled non-premium
-        let finalStudios = [...premiumStudios, ...shuffledNonPremium];
-        
-        // Pin the target studio to top 6
-        finalStudios = pinStudioToTop6(finalStudios);
-        
-        // Apply pagination manually
-        studios = finalStudios.slice(0, validatedParams.limit);
-      } else {
-        // Standard pagination for pages 2+
-        [studios, totalCount] = await Promise.all([
-          db.studios.findMany({
-            where,
-            orderBy,
-            skip,
-            take: validatedParams.limit,
-            include: {
-              users: {
-                select: {
-                  id: true,
-                  display_name: true,
-                  username: true,
-                  avatar_url: true,
-                  user_profiles: {
-                    select: {
-                      short_about: true,
-                    },
-                  },
-                },
-              },
-              studio_studio_types: {
-                select: {
-                  studio_type: true,
-                },
-              },
-              studio_services: {
-                select: {
-                  service: true,
-                },
-              },
-              studio_images: {
-                take: 1,
-                orderBy: { sort_order: 'asc' },
-                select: {
-                  image_url: true,
-                  alt_text: true,
-                },
-              },
-              _count: {
-                select: {
-                  reviews: true,
-                },
-              },
-            },
-          }),
-          db.studios.count({ where }),
-        ]);
-      }
+      allStudios = fetchedStudios;
     }
 
-    // Calculate pagination info
+    // Apply prioritization logic (verified+images -> images -> no images)
+    totalCount = allStudios.length;
+    const prioritized = prioritizeStudios(allStudios, offset, validatedParams.limit);
+    const studios = prioritized.studios;
+    hasMore = prioritized.hasMore;
+
+    // Calculate pagination info for load-more pattern
     const totalPages = Math.ceil(totalCount / validatedParams.limit);
-    const hasNextPage = validatedParams.page < totalPages;
-    const hasPrevPage = validatedParams.page > 1;
+    const hasNextPage = hasMore;
+    const hasPrevPage = offset > 0;
 
     // Serialize Decimal fields and map short_about to description for JSON response
     const serializedStudios = studios.map(studio => ({
@@ -681,10 +581,12 @@ export async function GET(request: NextRequest) {
       pagination: {
         page: validatedParams.page,
         limit: validatedParams.limit,
+        offset: offset,
         totalCount,
         totalPages,
         hasNextPage,
         hasPrevPage,
+        hasMore, // New flag for load-more pattern
       },
       filters: {
         query: validatedParams.query,
