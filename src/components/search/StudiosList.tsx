@@ -34,6 +34,7 @@ interface Pagination {
   totalPages: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;
+  hasMore: boolean;
 }
 
 interface StudiosListProps {
