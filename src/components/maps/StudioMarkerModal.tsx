@@ -26,6 +26,11 @@ interface StudioMarkerModalProps {
 
 export function StudioMarkerModal({ studio, position, onClose }: StudioMarkerModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  
+  // Debug: Log studio data on mount
+  useEffect(() => {
+    console.log('📊 Modal mounted with studio data:', studio);
+  }, []);
 
   // Handle click outside to close
   useEffect(() => {
@@ -72,14 +77,24 @@ export function StudioMarkerModal({ studio, position, onClose }: StudioMarkerMod
   }, [onClose]);
 
   const handleModalClick = (e: React.MouseEvent) => {
+    console.log('🎯 Modal clicked!', { 
+      target: e.target, 
+      currentTarget: e.currentTarget,
+      username: studio.owner?.username 
+    });
+    
     // Don't navigate if clicking the close button
     if ((e.target as HTMLElement).closest('button')) {
+      console.log('❌ Close button clicked, not navigating');
       return;
     }
     
     if (studio.owner?.username) {
+      console.log('✅ Opening profile:', `/${studio.owner.username}`);
       window.open(`/${studio.owner.username}`, '_blank', 'noopener,noreferrer');
       onClose(); // Close modal after opening profile
+    } else {
+      console.log('⚠️ No username found:', studio);
     }
   };
 
