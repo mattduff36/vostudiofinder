@@ -1,13 +1,13 @@
-import React from 'react';
+import { forwardRef, TextareaHTMLAttributes } from 'react';
 
-export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
   helperText?: string;
   required?: boolean;
 }
 
-export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, error, helperText, required, className = '', ...props }, ref) => {
     return (
       <div className="space-y-1">

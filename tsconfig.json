@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -11,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -19,9 +23,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
-
     // Additional strict TypeScript settings
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -40,7 +45,18 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/**/*",
-    "prisma/**/*"
+    "prisma/**/*",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", ".next", "dist", "build", "coverage", "scripts", "backups", "src/lib/migration", "project-archive"]
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist",
+    "build",
+    "coverage",
+    "scripts",
+    "backups",
+    "src/lib/migration",
+    "project-archive"
+  ]
 }

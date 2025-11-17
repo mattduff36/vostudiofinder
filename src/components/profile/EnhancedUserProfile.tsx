@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Image from 'next/image';
 import { User, UserProfile, UserMetadata } from '@/types/prisma';
 import { colors } from '@/components/home/HomePage';
