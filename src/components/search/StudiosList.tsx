@@ -39,10 +39,11 @@ interface Pagination {
 interface StudiosListProps {
   studios: Studio[];
   pagination: Pagination;
-  onPageChange: (page: number) => void;
+  onLoadMore: () => void;
+  loadingMore: boolean;
 }
 
-export function StudiosList({ studios, pagination, onPageChange }: StudiosListProps) {
+export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: StudiosListProps) {
   if (studios.length === 0) {
     return (
       <div className="text-center py-12">
@@ -198,49 +199,25 @@ export function StudiosList({ studios, pagination, onPageChange }: StudiosListPr
         ))}
       </div>
 
-      {/* Pagination */}
-      {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-8">
+      {/* Show More Button */}
+      {pagination.hasMore && (
+        <div className="flex items-center justify-center mt-8">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(pagination.page - 1)}
-            disabled={!pagination.hasPrevPage}
-            className="px-3 py-2 min-w-[44px] min-h-[44px] sm:min-w-auto sm:min-h-auto"
+            variant="primary"
+            size="lg"
+            onClick={onLoadMore}
+            disabled={loadingMore}
+            className="px-8 py-3 min-w-[200px]"
+            style={{ backgroundColor: colors.primary, color: 'white' }}
           >
-            <span className="hidden sm:inline">Previous</span>
-            <span className="sm:hidden">‹</span>
-          </Button>
-          
-          {/* Show fewer page numbers on mobile */}
-          {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-            const startPage = Math.max(1, pagination.page - Math.floor(5 / 2));
-            const pageNum = startPage + i;
-            if (pageNum > pagination.totalPages) return null;
-            
-            return (
-              <Button
-                key={pageNum}
-                variant={pageNum === pagination.page ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => onPageChange(pageNum)}
-                className="min-w-[44px] min-h-[44px] sm:min-w-auto sm:min-h-auto"
-                style={pageNum === pagination.page ? { backgroundColor: colors.primary, color: 'white' } : {}}
-              >
-                {pageNum}
-              </Button>
-            );
-          })}
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(pagination.page + 1)}
-            disabled={!pagination.hasNextPage}
-            className="px-3 py-2 min-w-[44px] min-h-[44px] sm:min-w-auto sm:min-h-auto"
-          >
-            <span className="hidden sm:inline">Next</span>
-            <span className="sm:hidden">›</span>
+            {loadingMore ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2 inline-block"></div>
+                Loading...
+              </>
+            ) : (
+              'Show More Studios'
+            )}
           </Button>
         </div>
       )}

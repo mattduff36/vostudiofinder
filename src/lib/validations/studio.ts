@@ -95,7 +95,8 @@ export const studioSearchSchema = z.object({
   studio_services: z.array(z.string()).optional(), // Changed to string array for flexibility
   equipment: z.array(z.string()).optional(), // New equipment parameter
   page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(50).default(50),
+  limit: z.number().min(1).max(50).default(18), // Default to 18 for initial load
+  offset: z.number().min(0).default(0), // New offset parameter for load-more pattern
   sortBy: z.enum(['name', 'distance', 'rating', 'created_at']).default('name'),
   sort_order: z.enum(['asc', 'desc']).default('asc'),
 });
