@@ -189,8 +189,9 @@ export async function GET() {
       // Count standard connection methods
       for (let i = 1; i <= 12; i++) {
         const connKey = `connection${i}` as keyof typeof profile;
+        const countKey = `connection${i}` as keyof typeof connectionMethodCounts;
         if (profile[connKey] === '1') {
-          connectionMethodCounts[`connection${i}`]++;
+          connectionMethodCounts[countKey]++;
         }
       }
       
