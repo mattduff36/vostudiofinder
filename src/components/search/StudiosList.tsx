@@ -217,7 +217,7 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
                 Loading...
               </>
             ) : (
-              'Show More Studios'
+              'Load More Studios'
             )}
           </Button>
         </div>
