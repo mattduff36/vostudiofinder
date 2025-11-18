@@ -796,7 +796,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             {/* Modal header with close button */}
             <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 border-b border-red-800 flex justify-between items-center">
               <h2 className="text-xl font-bold text-white">
-                📝 Edit Studio Profile
+                📝 Edit Studio Profile{profile?.username || studio?.users?.username ? ` - ${profile?.username || studio?.users?.username}` : ''}
               </h2>
               <button
                 onClick={onClose}
