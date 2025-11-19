@@ -3,6 +3,52 @@
  */
 
 /**
+ * Check if an address looks like a complete, full address
+ * (not just a country name or very short)
+ */
+export function isCompleteAddress(address: string | null | undefined): boolean {
+  if (!address || address.trim() === '') return false;
+  
+  const trimmed = address.trim();
+  
+  // Very short addresses are likely incomplete
+  if (trimmed.length < 10) return false;
+  
+  // Common country-only addresses
+  const countryOnlyPatterns = [
+    /^(United States|United Kingdom|Canada|Australia|France|Germany|Spain|Italy|Netherlands|Belgium|Switzerland|Austria|Sweden|Norway|Denmark|Finland|Ireland|Portugal|Poland|Greece|Czech Republic|Hungary|Romania|Bulgaria|Croatia|Slovakia|Slovenia|Estonia|Latvia|Lithuania|Luxembourg|Malta|Cyprus|Iceland|Liechtenstein|Monaco|San Marino|Vatican City|Andorra)$/i,
+    /^(USA|UK|U\.S\.A\.|U\.K\.)$/i,
+    /^(India|China|Japan|South Korea|Brazil|Mexico|Argentina|Chile|Colombia|Peru|Venezuela|Ecuador|Bolivia|Paraguay|Uruguay|Guyana|Suriname|French Guiana)$/i,
+    /^(Russia|Ukraine|Belarus|Kazakhstan|Uzbekistan|Azerbaijan|Armenia|Georgia|Moldova|Kyrgyzstan|Tajikistan|Turkmenistan)$/i,
+    /^(Egypt|South Africa|Nigeria|Kenya|Morocco|Tunisia|Algeria|Ethiopia|Ghana|Tanzania|Uganda|Sudan|Angola|Mozambique|Madagascar|Cameroon|Ivory Coast|Niger|Burkina Faso|Mali|Malawi|Zambia|Senegal|Zimbabwe|Chad|Guinea|Rwanda|Benin|Burundi|Tunisia|Somalia|Guinea-Bissau|Eritrea|Sierra Leone|Togo|Central African Republic|Liberia|Mauritania|Lesotho|Gambia|Botswana|Namibia|Gabon|Mauritius|Eswatini|Djibouti|Equatorial Guinea|Comoros|Cape Verde|Sao Tome and Principe|Seychelles)$/i,
+    /^(Thailand|Vietnam|Indonesia|Philippines|Malaysia|Singapore|Myanmar|Cambodia|Laos|Brunei|East Timor|Mongolia|Nepal|Bhutan|Bangladesh|Sri Lanka|Maldives|Afghanistan|Pakistan|Iran|Iraq|Saudi Arabia|United Arab Emirates|Israel|Jordan|Lebanon|Syria|Yemen|Oman|Kuwait|Qatar|Bahrain|Turkey)$/i,
+  ];
+  
+  // Check if it's just a country name
+  for (const pattern of countryOnlyPatterns) {
+    if (pattern.test(trimmed)) {
+      return false;
+    }
+  }
+  
+  // Check if it contains indicators of a complete address:
+  // - Street numbers (digits at start or after comma)
+  // - Postcodes (UK format: letters + numbers, or just numbers in many countries)
+  // - Street names (words like "Street", "Road", "Avenue", "Lane", etc.)
+  
+  const hasStreetNumber = /\d+/.test(trimmed); // Contains numbers
+  const hasStreetName = /\b(Street|St|Road|Rd|Avenue|Ave|Lane|Ln|Drive|Dr|Boulevard|Blvd|Way|Court|Ct|Place|Pl|Close|Crescent|Cres|Grove|Gardens|Gdns|Square|Sq|Terrace|Ter|Park|Hill|View|Mews|Walk|Row|Green|Common|Heath|Moor|Bridge|Gate|End|Corner|Junction|Cross|Roundabout|Circus|Vale|Dale|Rise|Mount|Mountain|Valley|Wood|Forest|Field|Meadow|Orchard|Garden|Yard|Alley|Path|Track|Route|Highway|Freeway|Motorway|Turnpike)\b/i.test(trimmed);
+  const hasPostcode = /\b[A-Z]{1,2}\d{1,2}\s?\d[A-Z]{2}\b/i.test(trimmed) || // UK format
+                      /\b\d{4,6}\b/.test(trimmed) || // Numeric postcodes
+                      /\b\d{5}(-\d{4})?\b/.test(trimmed); // US ZIP codes
+  
+  // If it has at least 2 of these indicators, it's likely a complete address
+  const indicators = [hasStreetNumber, hasStreetName, hasPostcode].filter(Boolean).length;
+  
+  return indicators >= 2 || (hasStreetNumber && trimmed.length > 20);
+}
+
+/**
  * Abbreviates an address for privacy by removing the first line and truncating postcodes/zip codes
  * @param fullAddress - The complete address string
  * @returns Abbreviated address for privacy
@@ -14,7 +60,7 @@ export function abbreviateAddress(fullAddress: string): string {
 
   // Split address by common delimiters (comma, newline)
   const parts = fullAddress.split(/[,\n]/).map(part => part.trim()).filter(part => part.length > 0);
-  
+
   if (parts.length === 0) {
     return '';
   }
@@ -26,7 +72,7 @@ export function abbreviateAddress(fullAddress: string): string {
 
   // Remove the first part (street address/house number)
   const addressWithoutStreet = parts.slice(1);
-  
+
   // Process the last part to abbreviate postal codes
   if (addressWithoutStreet.length > 0) {
     const lastIndex = addressWithoutStreet.length - 1;
@@ -74,7 +120,7 @@ export function abbreviatePostalCode(text: string): string {
 /**
  * Calculates distance between two coordinates using Haversine formula
  * @param lat1 - Latitude of first point
- * @param lng1 - Longitude of first point  
+ * @param lng1 - Longitude of first point
  * @param lat2 - Latitude of second point
  * @param lng2 - Longitude of second point
  * @returns Distance in kilometers
@@ -83,11 +129,11 @@ export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2
   const R = 6371; // Earth's radius in kilometers
   const dLat = toRadians(lat2 - lat1);
   const dLng = toRadians(lng2 - lng1);
-  
+
   const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
     Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  
+
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
