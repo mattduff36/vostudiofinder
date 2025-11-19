@@ -148,7 +148,9 @@ export async function GET() {
           owner_id: studio.owner_id,
           name: studio.name,
           description: studio.description,
-          address: studio.address,
+          address: studio.address, // Legacy field
+          full_address: studio.full_address,
+          abbreviated_address: studio.abbreviated_address,
           latitude: studio.latitude ? Number(studio.latitude) : null,
           longitude: studio.longitude ? Number(studio.longitude) : null,
           website_url: studio.website_url,
@@ -330,9 +332,22 @@ export async function PUT(request: NextRequest) {
         
         if (body.studio.name !== undefined) studioUpdates.name = body.studio.name;
         if (body.studio.description !== undefined) studioUpdates.description = body.studio.description;
-        if (body.studio.address !== undefined) studioUpdates.address = body.studio.address;
+        if (body.studio.address !== undefined) studioUpdates.address = body.studio.address; // Legacy field
+        if (body.studio.full_address !== undefined) studioUpdates.full_address = body.studio.full_address;
+        if (body.studio.abbreviated_address !== undefined) studioUpdates.abbreviated_address = body.studio.abbreviated_address;
         if (body.studio.website_url !== undefined) studioUpdates.website_url = body.studio.website_url;
         if (body.studio.phone !== undefined) studioUpdates.phone = body.studio.phone;
+        
+        // Geocode full_address if it's being updated and coordinates aren't manually set
+        if (body.studio.full_address !== undefined && body.studio.full_address && 
+            body.studio.latitude === undefined && body.studio.longitude === undefined) {
+          const { geocodeAddress } = await import('@/lib/maps');
+          const geocodeResult = await geocodeAddress(body.studio.full_address);
+          if (geocodeResult) {
+            studioUpdates.latitude = geocodeResult.lat;
+            studioUpdates.longitude = geocodeResult.lng;
+          }
+        }
 
         if (Object.keys(studioUpdates).length > 0) {
           await db.studios.update({

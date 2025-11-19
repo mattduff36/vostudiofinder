@@ -170,6 +170,22 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         throw new Error('Failed to save profile');
       }
 
+      const result = await response.json();
+      
+      // Update coordinates if they were geocoded
+      if (result.coordinates) {
+        setProfile((prev: any) => ({
+          ...prev,
+          _meta: {
+            ...prev._meta,
+            latitude: result.coordinates.latitude?.toString() || prev._meta?.latitude || '',
+            longitude: result.coordinates.longitude?.toString() || prev._meta?.longitude || '',
+            full_address: result.full_address || prev._meta?.full_address || '',
+            abbreviated_address: result.abbreviated_address || prev._meta?.abbreviated_address || '',
+          }
+        }));
+      }
+
       onSave();
       onClose();
     } catch (error) {
@@ -198,6 +214,25 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
       if (!response.ok) {
         throw new Error('Failed to save profile');
+      }
+
+      const result = await response.json();
+      
+      // Update coordinates if they were geocoded
+      if (result.coordinates) {
+        setProfile((prev: any) => ({
+          ...prev,
+          _meta: {
+            ...prev._meta,
+            latitude: result.coordinates.latitude?.toString() || prev._meta?.latitude || '',
+            longitude: result.coordinates.longitude?.toString() || prev._meta?.longitude || '',
+            full_address: result.full_address || prev._meta?.full_address || '',
+            abbreviated_address: result.abbreviated_address || prev._meta?.abbreviated_address || '',
+          }
+        }));
+      } else {
+        // Refetch profile to get updated data
+        await fetchProfile();
       }
 
       onSave();
@@ -396,10 +431,24 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       </div>
 
       <AddressAutocomplete
-        label="Address"
-        value={profile?._meta?.address || ''}
-        onChange={(value) => handleMetaChange('address', value)}
-        placeholder="Start typing your address..."
+        label="Full Address"
+        value={profile?._meta?.full_address || ''}
+        onChange={(value) => {
+          handleMetaChange('full_address', value);
+          // Always auto-populate abbreviated address when full address changes
+          handleMetaChange('abbreviated_address', value);
+        }}
+        placeholder="Start typing your full address..."
+        helperText="Complete address used for geocoding and map coordinates"
+      />
+
+      <Input
+        label="Abbreviated Address"
+        type="text"
+        value={profile?._meta?.abbreviated_address || ''}
+        onChange={(e) => handleMetaChange('abbreviated_address', e.target.value)}
+        placeholder="Enter abbreviated address for display..."
+        helperText="This address will be shown on your public profile (if visibility is enabled). You can abbreviate or customize it."
       />
 
       <CountryAutocomplete

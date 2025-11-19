@@ -26,7 +26,9 @@ export async function GET(
             id: true,
             name: true,
             description: true,
-            address: true,
+            address: true, // Legacy field
+            full_address: true,
+            abbreviated_address: true,
             website_url: true,
             phone: true,
             status: true,
@@ -73,7 +75,9 @@ export async function GET(
       status: studio.status,
       is_verified: studio.is_verified,
       is_premium: studio.is_premium,
-      address: studio.address,
+      address: studio.address, // Legacy field
+      full_address: studio.full_address,
+      abbreviated_address: studio.abbreviated_address,
       website_url: studio.website_url,
       phone: studio.phone,
       users: {

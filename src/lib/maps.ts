@@ -18,11 +18,27 @@ export interface GeocodeResult {
  * Geocode an address to coordinates using Google Maps API
  */
 export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  // Use server-side API key (without referrer restrictions) for server-side geocoding
+  // Fall back to NEXT_PUBLIC key if server key not available
+  const serverKey = process.env.GOOGLE_MAPS_API_KEY;
+  const clientKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const apiKey = serverKey || clientKey;
   
   if (!apiKey) {
-    console.warn('Google Maps API key not configured');
+    console.warn('[Geocoding] Google Maps API key not configured');
     return null;
+  }
+  
+  // Log which key is being used (for debugging) - show masked version
+  const maskKey = (key: string) => {
+    if (!key || key.length < 8) return '***';
+    return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
+  };
+  
+  if (serverKey) {
+    console.log(`[Geocoding] Using server-side API key (GOOGLE_MAPS_API_KEY): ${maskKey(serverKey)}`);
+  } else if (clientKey) {
+    console.warn(`[Geocoding] WARNING: Using client-side API key (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY): ${maskKey(clientKey)} - this may fail if key has referrer restrictions`);
   }
 
   try {
@@ -57,6 +73,16 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
         city,
         country,
       };
+    }
+    
+    // Log the error status for debugging
+    console.error(`[Geocoding] Google Maps API error: status=${data.status}, error_message=${data.error_message || 'N/A'}`);
+    if (data.status === 'ZERO_RESULTS') {
+      console.error(`[Geocoding] No results found for address: ${address}`);
+    } else if (data.status === 'OVER_QUERY_LIMIT') {
+      console.error(`[Geocoding] API quota exceeded`);
+    } else if (data.status === 'REQUEST_DENIED') {
+      console.error(`[Geocoding] Request denied - check API key and permissions`);
     }
     
     return null;

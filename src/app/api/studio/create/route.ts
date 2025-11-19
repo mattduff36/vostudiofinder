@@ -33,6 +33,18 @@ export async function POST(request: NextRequest) {
     
     // Create studio in a transaction
     const studio = await db.$transaction(async (tx) => {
+      // Geocode full_address if provided
+      let latitude = null;
+      let longitude = null;
+      if (validatedData.full_address) {
+        const { geocodeAddress } = await import('@/lib/maps');
+        const geocodeResult = await geocodeAddress(validatedData.full_address);
+        if (geocodeResult) {
+          latitude = geocodeResult.lat;
+          longitude = geocodeResult.lng;
+        }
+      }
+      
       // Create the studio
       const newStudio = await tx.studios.create({
         data: {
@@ -40,7 +52,11 @@ export async function POST(request: NextRequest) {
           owner_id: session.user.id,
           name: validatedData.name,
           description: validatedData.description,
-          address: validatedData.address,
+          address: validatedData.address || null, // Legacy field
+          full_address: validatedData.full_address || null,
+          abbreviated_address: validatedData.abbreviated_address || null,
+          latitude: latitude,
+          longitude: longitude,
           website_url: validatedData.website_url || null,
           phone: validatedData.phone || null,
           status: 'ACTIVE',

@@ -31,7 +31,9 @@ interface ModernStudioProfileV3Props {
     name: string;
     description: string;
     studio_studio_types: string[];
-    address: string;
+    address?: string; // Legacy field
+    full_address?: string;
+    abbreviated_address?: string;
     website_url?: string;
     phone?: string;
     is_premium: boolean;
@@ -260,9 +262,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
         // Desktop: open in new tab
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${studio.latitude},${studio.longitude}`, '_blank');
       }
-    } else if (studio.address) {
-      // Fallback to address if no coordinates
-      const encodedAddress = encodeURIComponent(studio.address);
+    } else if (studio.full_address || studio.address) {
+      // Fallback to full_address or legacy address if no coordinates
+      const addressToUse = studio.full_address || studio.address || '';
+      const encodedAddress = encodeURIComponent(addressToUse);
       if (isMobile) {
         window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
       } else {
@@ -522,7 +525,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   <SimpleStudioMap
                     latitude={studio.latitude}
                     longitude={studio.longitude}
-                    address={studio.address}
+                    address={studio.full_address || studio.address || ''}
                     height="384px"
                   />
                 </div>
@@ -531,10 +534,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 {/* Directions section - fills remaining space (492 - 384 - 16 = 92px) */}
                 <div className="flex-1 flex flex-col justify-center px-6">
                   {/* Only show address if show_address is not explicitly false */}
-                  {(profile?.show_address !== false) && studio.address && (
+                  {(profile?.show_address !== false) && (studio.abbreviated_address || studio.address) && (
                     <div className="flex items-center space-x-2 mb-2">
                       <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <p className="text-xs text-gray-600 line-clamp-1">{studio.address}</p>
+                      <p className="text-xs text-gray-600 line-clamp-1">{studio.abbreviated_address || studio.address}</p>
                     </div>
                   )}
                   {profile?.show_directions !== false ? (
@@ -542,7 +545,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                       size="sm"
                       className="w-full"
                       onClick={handleGetDirections}
-                      disabled={!studio.latitude && !studio.longitude && !studio.address}
+                      disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
                     >
                       <ExternalLink className="w-3 h-3 mr-2" />
                       Get directions

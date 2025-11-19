@@ -7,9 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createStudioSchema, type CreateStudioInput } from '@/lib/validations/studio';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { studio_type, ServiceType } from '@/types/prisma';
-import { MapPin, Globe, Phone, Trash2, Upload } from 'lucide-react';
+import { Globe, Phone, Trash2, Upload } from 'lucide-react';
 
 interface StudioFormProps {
   initialData?: Partial<CreateStudioInput> & {
@@ -29,6 +30,8 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<CreateStudioInput>({
     resolver: zodResolver(createStudioSchema),
@@ -36,7 +39,9 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
       name: initialData?.name || '',
       description: initialData?.description || '',
       studio_studio_types: initialData?.studio_studio_types || [studio_type.RECORDING],
-      address: initialData?.address || '',
+      address: initialData?.address || '', // Legacy field
+      full_address: initialData?.full_address || '',
+      abbreviated_address: initialData?.abbreviated_address || '',
       website_url: initialData?.website_url || '',
       phone: initialData?.phone || '',
       studio_services: initialData?.studio_services || [],
@@ -208,14 +213,27 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
               Location & Contact
             </h3>
 
-            <div className="relative">
+            <div className="space-y-4">
+              <div className="relative">
+                <AddressAutocomplete
+                  label="Full Address"
+                  value={watch('full_address') || ''}
+                  onChange={(value) => {
+                    setValue('full_address', value);
+                    // Always auto-populate abbreviated address when full address changes
+                    setValue('abbreviated_address', value);
+                  }}
+                  placeholder="Start typing your full address..."
+                  helperText="Complete address used for geocoding and map coordinates"
+                />
+              </div>
               <Input
-                label="Address"
-                placeholder="Enter your studio address"
-                error={errors.address?.message || ''}
-                {...register('address')}
+                label="Abbreviated Address"
+                placeholder="Enter abbreviated address for display..."
+                error={errors.abbreviated_address?.message || ''}
+                helperText="This address will be shown on your public profile. You can abbreviate or customize it."
+                {...register('abbreviated_address')}
               />
-              <MapPin className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

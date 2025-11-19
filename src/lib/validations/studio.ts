@@ -16,7 +16,16 @@ export const createStudioSchema = z.object({
   address: z
     .string()
     .min(5, 'Address must be at least 5 characters long')
-    .max(255, 'Address must be less than 255 characters'),
+    .max(255, 'Address must be less than 255 characters')
+    .optional(), // Legacy field
+  full_address: z
+    .string()
+    .max(500, 'Full address must be less than 500 characters')
+    .optional(),
+  abbreviated_address: z
+    .string()
+    .max(255, 'Abbreviated address must be less than 255 characters')
+    .optional(),
   website_url: z
     .string()
     .url('Please enter a valid website URL')
@@ -59,6 +68,14 @@ export const updateStudioSchema = z.object({
     .string()
     .min(5, 'Address must be at least 5 characters long')
     .max(255, 'Address must be less than 255 characters')
+    .optional(), // Legacy field
+  full_address: z
+    .string()
+    .max(500, 'Full address must be less than 500 characters')
+    .optional(),
+  abbreviated_address: z
+    .string()
+    .max(255, 'Abbreviated address must be less than 255 characters')
     .optional(),
   website_url: z
     .string()
