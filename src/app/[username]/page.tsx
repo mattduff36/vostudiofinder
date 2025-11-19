@@ -305,6 +305,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               show_phone: studio.users.user_profiles.show_phone,
               show_address: studio.users.user_profiles.show_address,
               show_directions: studio.users.user_profiles.show_directions,
+              use_coordinates_for_map: studio.users.user_profiles.use_coordinates_for_map,
               // Connection types
               connection1: studio.users.user_profiles.connection1,
               connection2: studio.users.user_profiles.connection2,

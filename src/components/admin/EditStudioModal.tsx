@@ -742,7 +742,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         <p className="text-sm text-gray-600 mb-4">
           Set precise coordinates for map display. You can enter them manually or use the map (if available).
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <Input
             label="Latitude"
             type="text"
@@ -759,6 +759,23 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             placeholder="e.g., -0.1278"
             helperText="Decimal degrees (e.g., -0.1278)"
           />
+        </div>
+        <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <Checkbox
+            id="use_coordinates_for_map"
+            checked={profile?._meta?.use_coordinates_for_map === true}
+            onChange={(e) => handleMetaChange('use_coordinates_for_map', e.target.checked)}
+          />
+          <div className="flex-1">
+            <label htmlFor="use_coordinates_for_map" className="text-sm font-medium text-gray-900 cursor-pointer">
+              Use Coordinates for studio profile location
+            </label>
+            <p className="text-xs text-gray-500 mt-1">
+              {profile?._meta?.use_coordinates_for_map 
+                ? 'Map will use the coordinates above instead of the full address'
+                : 'Map will automatically use the full address if it looks complete, otherwise falls back to coordinates'}
+            </p>
+          </div>
         </div>
       </div>
 

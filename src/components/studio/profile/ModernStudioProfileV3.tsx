@@ -94,6 +94,7 @@ interface ModernStudioProfileV3Props {
         show_phone?: boolean | null;
         show_address?: boolean | null;
         show_directions?: boolean | null;
+        use_coordinates_for_map?: boolean | null;
         connection1?: string | null;
         connection2?: string | null;
         connection3?: string | null;
@@ -525,7 +526,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   <SimpleStudioMap
                     latitude={studio.latitude}
                     longitude={studio.longitude}
-                    address={studio.full_address || studio.address || ''}
+                    address={studio.address || ''}
+                    fullAddress={studio.full_address || ''}
+                    useCoordinates={studio.owner?.profile?.use_coordinates_for_map === true}
                     height="384px"
                   />
                 </div>
