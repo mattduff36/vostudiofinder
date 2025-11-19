@@ -28,6 +28,8 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
           name: true,
           description: true,
           address: true,
+          full_address: true,
+          abbreviated_address: true,
           studio_images: {
             take: 1,
             orderBy: { sort_order: 'asc' },
@@ -72,7 +74,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const metadata: Metadata = {
     title: `${studio.name} - Recording Studio | VoiceoverStudioFinder`,
     description: description,
-    keywords: `recording studio, ${studio.name}, voiceover, audio production, ${studio.address}`,
+    keywords: `recording studio, ${studio.name}, voiceover, audio production, ${studio.abbreviated_address || studio.full_address || studio.address || ''}`,
     openGraph: {
       title: studio.name,
       description: description,
@@ -199,9 +201,9 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       name: studio.name,
       description: businessDescription,
       url: pageUrl,
-      address: studio.address ? {
+      address: (studio.full_address || studio.address) ? {
         '@type': 'PostalAddress',
-        streetAddress: studio.address,
+        streetAddress: studio.full_address || studio.address || '',
         addressCountry: 'GB',
       } : undefined,
       geo: studio.latitude && studio.longitude ? {
@@ -265,7 +267,9 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               return rest as any;
             })(),
             description: studio.description || '',
-            address: studio.address || '',
+            address: studio.address || '', // Legacy field
+            full_address: studio.full_address || '',
+            abbreviated_address: studio.abbreviated_address || '',
             studio_studio_types: studio.studio_studio_types && studio.studio_studio_types.length > 0 
               ? studio.studio_studio_types.map(st => st.studio_type) 
               : ['VOICEOVER'],

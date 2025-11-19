@@ -75,7 +75,9 @@ export default async function EditStudioPage({ params }: EditStudioPageProps) {
     name: studio.name,
     description: studio.description || '',
     studioTypes: studio.studio_studio_types?.map(st => st.studio_type) || [],
-    address: studio.address || '',
+    address: studio.address || '', // Legacy field
+    full_address: studio.full_address || '',
+    abbreviated_address: studio.abbreviated_address || '',
     websiteUrl: studio.website_url || '',
     phone: studio.phone || '',
     latitude: studio.latitude ? Number(studio.latitude) : null,

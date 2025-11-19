@@ -63,6 +63,8 @@ interface ProfileData {
     name: string;
     description?: string;
     address?: string;
+    full_address?: string;
+    abbreviated_address?: string;
     website_url?: string;
     phone?: string;
   };
@@ -409,11 +411,24 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             </div>
 
             <AddressAutocomplete
-              label="Address"
-              value={profile.studio?.address || ''}
-              onChange={(value) => updateStudio('address', value)}
-              placeholder="Start typing your address..."
-              helperText="Studio location for map display"
+              label="Full Address"
+              value={profile.studio?.full_address || ''}
+              onChange={(value) => {
+                updateStudio('full_address', value);
+                // Always auto-populate abbreviated address when full address changes
+                updateStudio('abbreviated_address', value);
+              }}
+              placeholder="Start typing your full address..."
+              helperText="Complete address used for geocoding and map coordinates"
+            />
+
+            <Input
+              label="Abbreviated Address"
+              type="text"
+              value={profile.studio?.abbreviated_address || ''}
+              onChange={(e) => updateStudio('abbreviated_address', e.target.value)}
+              placeholder="Enter abbreviated address for display..."
+              helperText="This address will be shown on your public profile (if visibility is enabled). You can abbreviate or customize it."
             />
 
             <CountryAutocomplete

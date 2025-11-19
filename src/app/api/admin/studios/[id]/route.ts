@@ -77,7 +77,9 @@ export async function GET(
       joined: studio.created_at,
       last_name: decodeHtmlEntities(studio.users?.user_profiles?.last_name || ''),
       location: studio.users?.user_profiles?.location || '',
-      address: studio.address || '',
+      address: studio.address || '', // Legacy field
+      full_address: studio.full_address || '',
+      abbreviated_address: studio.abbreviated_address || '',
       phone: studio.phone || '',
       url: studio.website_url || '',
       instagram: studio.users?.user_profiles?.instagram_url || '',
@@ -137,7 +139,9 @@ export async function GET(
         studio_name: studio.name, // Actual studio name from studios table
         last_name: studioData.last_name,
         location: studioData.location,
-        address: studioData.address,
+        address: studioData.address, // Legacy field
+        full_address: studioData.full_address,
+        abbreviated_address: studioData.abbreviated_address,
         phone: studioData.phone,
         url: studioData.url,
         instagram: studioData.instagram,
@@ -237,12 +241,69 @@ export async function PUT(
     // Prepare studio updates
     const studioUpdateData: any = {};
     if (body._meta?.studio_name !== undefined) studioUpdateData.name = body._meta.studio_name; // Studio name field
-    if (body._meta?.address !== undefined) studioUpdateData.address = body._meta.address;
+    if (body._meta?.address !== undefined) studioUpdateData.address = body._meta.address; // Legacy field
+    if (body._meta?.full_address !== undefined) studioUpdateData.full_address = body._meta.full_address;
+    if (body._meta?.abbreviated_address !== undefined) studioUpdateData.abbreviated_address = body._meta.abbreviated_address;
     if (body._meta?.phone !== undefined) studioUpdateData.phone = body._meta.phone;
     if (body._meta?.url !== undefined) studioUpdateData.website_url = body._meta.url;
     if (body._meta?.latitude !== undefined) studioUpdateData.latitude = parseFloat(body._meta.latitude) || null;
     if (body._meta?.longitude !== undefined) studioUpdateData.longitude = parseFloat(body._meta.longitude) || null;
     if (body._meta?.verified !== undefined) studioUpdateData.is_verified = body._meta.verified === '1' || body._meta.verified === true;
+    
+    // Geocode full_address if it's being updated
+    // Always geocode when full_address changes, unless coordinates are explicitly being set to different values
+    if (body._meta?.full_address !== undefined && body._meta.full_address) {
+      const fullAddressChanged = body._meta.full_address !== existingStudio.full_address;
+      
+      if (fullAddressChanged) {
+        // Check if coordinates are being manually changed in this request
+        const existingLat = existingStudio.latitude ? parseFloat(existingStudio.latitude.toString()) : null;
+        const existingLng = existingStudio.longitude ? parseFloat(existingStudio.longitude.toString()) : null;
+        
+        // Parse request coordinates, handling both string and number types
+        let requestLat: number | null = null;
+        let requestLng: number | null = null;
+        if (body._meta?.latitude !== undefined && body._meta.latitude !== null && body._meta.latitude !== '') {
+          requestLat = typeof body._meta.latitude === 'string' ? parseFloat(body._meta.latitude) : body._meta.latitude;
+        }
+        if (body._meta?.longitude !== undefined && body._meta.longitude !== null && body._meta.longitude !== '') {
+          requestLng = typeof body._meta.longitude === 'string' ? parseFloat(body._meta.longitude) : body._meta.longitude;
+        }
+        
+        // Check if coordinates are being manually changed (different from existing)
+        // Use a small epsilon for floating point comparison
+        const epsilon = 0.000001;
+        const latChanged = requestLat !== null && existingLat !== null && Math.abs(requestLat - existingLat) > epsilon;
+        const lngChanged = requestLng !== null && existingLng !== null && Math.abs(requestLng - existingLng) > epsilon;
+        const coordinatesManuallyChanged = latChanged || lngChanged;
+        
+        // Only geocode if coordinates aren't being manually changed
+        if (!coordinatesManuallyChanged) {
+          console.log(`[Geocoding] Full address changed, geocoding: ${body._meta.full_address}`);
+          const { geocodeAddress } = await import('@/lib/maps');
+          const geocodeResult = await geocodeAddress(body._meta.full_address);
+          if (geocodeResult) {
+            console.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}`);
+            studioUpdateData.latitude = geocodeResult.lat;
+            studioUpdateData.longitude = geocodeResult.lng;
+          } else {
+            console.log(`[Geocoding] Failed to geocode address: ${body._meta.full_address}`);
+          }
+        } else {
+          console.log(`[Geocoding] Skipped - coordinates manually changed`);
+        }
+      } else if (!existingStudio.latitude || !existingStudio.longitude) {
+        // Address hasn't changed but coordinates are empty - geocode anyway
+        console.log(`[Geocoding] Coordinates empty, geocoding existing address: ${body._meta.full_address}`);
+        const { geocodeAddress } = await import('@/lib/maps');
+        const geocodeResult = await geocodeAddress(body._meta.full_address);
+        if (geocodeResult) {
+          console.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}`);
+          studioUpdateData.latitude = geocodeResult.lat;
+          studioUpdateData.longitude = geocodeResult.lng;
+        }
+      }
+    }
     
     // Handle status updates
     if (body.status !== undefined) {
@@ -373,9 +434,26 @@ export async function PUT(
       }
     });
 
+    // Fetch the updated studio to return updated coordinates
+    const updatedStudio = await prisma.studios.findUnique({
+      where: { id: studioId },
+      select: {
+        latitude: true,
+        longitude: true,
+        full_address: true,
+        abbreviated_address: true,
+      },
+    });
+
     return NextResponse.json({ 
       success: true,
-      message: 'Studio profile updated successfully'
+      message: 'Studio profile updated successfully',
+      coordinates: {
+        latitude: updatedStudio?.latitude ? parseFloat(updatedStudio.latitude.toString()) : null,
+        longitude: updatedStudio?.longitude ? parseFloat(updatedStudio.longitude.toString()) : null,
+      },
+      full_address: updatedStudio?.full_address || null,
+      abbreviated_address: updatedStudio?.abbreviated_address || null,
     });
 
   } catch (error) {
