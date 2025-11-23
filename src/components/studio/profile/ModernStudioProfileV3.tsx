@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
 import { SimpleStudioMap } from '@/components/maps/SimpleStudioMap';
+import { AvatarUpload } from '@/components/profile/AvatarUpload';
+import { formatRateWithCurrency } from '@/lib/utils/currency';
 import clsx from 'clsx';
 
 // Force rebuild: Updated types for connection9-12 and custom_connection_methods
@@ -202,18 +204,34 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
     }
   ].filter(link => link.url);
 
-  // Rates from profile data
+  // Rates from profile data with currency formatting
   const rates = [];
-  if (profile?.rate_tier_1) rates.push({ duration: '15 minutes', price: profile.rate_tier_1 });
-  if (profile?.rate_tier_2) rates.push({ duration: '30 minutes', price: profile.rate_tier_2 });
-  if (profile?.rate_tier_3) rates.push({ duration: '60 minutes', price: profile.rate_tier_3 });
+  const country = profile?.location;
+  if (profile?.rate_tier_1) {
+    rates.push({ 
+      duration: '15 minutes', 
+      price: formatRateWithCurrency(profile.rate_tier_1, country) 
+    });
+  }
+  if (profile?.rate_tier_2) {
+    rates.push({ 
+      duration: '30 minutes', 
+      price: formatRateWithCurrency(profile.rate_tier_2, country) 
+    });
+  }
+  if (profile?.rate_tier_3) {
+    rates.push({ 
+      duration: '60 minutes', 
+      price: formatRateWithCurrency(profile.rate_tier_3, country) 
+    });
+  }
   
   // Fallback rates if none are set
   if (rates.length === 0) {
     rates.push(
-      { duration: '15 minutes', price: '£80' },
-      { duration: '30 minutes', price: '£100' },
-      { duration: '60 minutes', price: '£125' }
+      { duration: '15 minutes', price: formatRateWithCurrency('80', country) },
+      { duration: '30 minutes', price: formatRateWithCurrency('100', country) },
+      { duration: '60 minutes', price: formatRateWithCurrency('125', country) }
     );
   }
 
@@ -334,15 +352,14 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               <h1 className="text-3xl font-bold text-gray-900 mb-3 flex items-center gap-3">
                 {/* Profile Avatar */}
                 {studio.owner.avatar_url && (
-                  <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-200 flex-shrink-0">
-                    <Image
-                      src={studio.owner.avatar_url}
-                      alt={`${studio.owner.display_name}'s avatar`}
-                      fill
-                      className="object-cover"
-                      sizes="48px"
-                    />
-                  </div>
+                  <AvatarUpload
+                    currentAvatar={studio.owner.avatar_url}
+                    onAvatarChange={() => {}}
+                    size="small"
+                    editable={false}
+                    userName={studio.owner.display_name || studio.owner.username}
+                    variant="profile"
+                  />
                 )}
                 <span>{studio.name}</span>
                 {studio.is_verified && (

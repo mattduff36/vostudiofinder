@@ -179,6 +179,29 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       return <div>Studio not found</div>;
     }
 
+    // If profile is hidden, show the simplified user profile with hidden message
+    if (studio.is_profile_visible === false) {
+      // Serialize user data to avoid Decimal serialization issues
+      const serializedUser = {
+        ...user,
+        studios: user.studios.map(s => ({
+          ...s,
+          status: s.status,
+          is_profile_visible: s.is_profile_visible,
+          latitude: s.latitude ? Number(s.latitude) : null,
+          longitude: s.longitude ? Number(s.longitude) : null,
+        }))
+      };
+      
+      return (
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <EnhancedUserProfile user={serializedUser as any} isHidden={true} />
+          </div>
+        </div>
+      );
+    }
+
     // Calculate average rating
     const averageRating = studio.reviews.length > 0
       ? studio.reviews.reduce((sum, review) => sum + review.rating, 0) / studio.reviews.length

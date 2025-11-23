@@ -216,6 +216,7 @@ model studios {
   phone                 String?
   is_premium            Boolean                 @default(false)
   is_verified           Boolean                 @default(false)
+  is_profile_visible    Boolean                 @default(true)
   status                StudioStatus            @default(ACTIVE)
   created_at            DateTime                @default(now())
   updated_at            DateTime

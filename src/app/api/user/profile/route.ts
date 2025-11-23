@@ -157,6 +157,7 @@ export async function GET() {
           phone: studio.phone,
           is_premium: studio.is_premium,
           is_verified: studio.is_verified,
+          is_profile_visible: studio.is_profile_visible,
           status: studio.status,
           created_at: studio.created_at,
           updated_at: studio.updated_at,
@@ -208,6 +209,7 @@ export async function PUT(request: NextRequest) {
     if (body.user) {
       const userUpdates: any = {};
       if (body.user.display_name !== undefined) userUpdates.display_name = body.user.display_name;
+      if (body.user.avatar_url !== undefined) userUpdates.avatar_url = body.user.avatar_url;
       if (body.user.username !== undefined) {
         // Check if username is already taken by another user
         const existingUser = await db.users.findUnique({
@@ -337,6 +339,7 @@ export async function PUT(request: NextRequest) {
         if (body.studio.abbreviated_address !== undefined) studioUpdates.abbreviated_address = body.studio.abbreviated_address;
         if (body.studio.website_url !== undefined) studioUpdates.website_url = body.studio.website_url;
         if (body.studio.phone !== undefined) studioUpdates.phone = body.studio.phone;
+        if (body.studio.is_profile_visible !== undefined) studioUpdates.is_profile_visible = body.studio.is_profile_visible;
         
         // Geocode full_address if it's being updated and coordinates aren't manually set
         if (body.studio.full_address !== undefined && body.studio.full_address && 

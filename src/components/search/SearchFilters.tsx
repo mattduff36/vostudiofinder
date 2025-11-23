@@ -202,7 +202,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
                           filters.lat && filters.lng ? { lat: filters.lat, lng: filters.lng } : 'none');
               onSearch(newFilters);
             }}
-            placeholder="Search by location, postcode, or username..."
+            placeholder="Search..."
           />
           
           <div>

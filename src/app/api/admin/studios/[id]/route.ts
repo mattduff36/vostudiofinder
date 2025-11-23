@@ -97,6 +97,7 @@ export async function GET(
       verified: studio.is_verified,
       featured: studio.users?.user_profiles?.is_featured || false,
       avatar_image: studio.users?.avatar_url || '',
+      is_profile_visible: studio.is_profile_visible,
       // Rate data from profile (decode HTML entities)
       rates1: decodeHtmlEntities(studio.users?.user_profiles?.rate_tier_1 || ''),
       rates2: decodeHtmlEntities(studio.users?.user_profiles?.rate_tier_2 || ''),
@@ -133,6 +134,7 @@ export async function GET(
       email: studioData.email,
       status: studioData.status,
       joined: studioData.joined,
+      avatar_image: studioData.avatar_image, // Add at root level for modal
       studioTypes: studio.studio_studio_types || [],
       
       // All profile fields go in _meta for frontend compatibility
@@ -171,6 +173,7 @@ export async function GET(
         showaddress: studioData.showaddress ? '1' : '0',
         showdirections: studioData.showdirections ? '1' : '0',
         use_coordinates_for_map: studio.users?.user_profiles?.use_coordinates_for_map || false,
+        is_profile_visible: studioData.is_profile_visible,
         // Connection types
         connection1: studioData.connection1 || '0',
         connection2: studioData.connection2 || '0',
@@ -239,6 +242,7 @@ export async function PUT(
     const userUpdateData: any = {};
     if (body.username !== undefined) userUpdateData.username = body.username; // Username field updates actual username
     if (body.email !== undefined) userUpdateData.email = body.email;
+    if (body.avatar_image !== undefined) userUpdateData.avatar_url = body.avatar_image; // Avatar image
 
     // Prepare studio updates
     const studioUpdateData: any = {};
@@ -251,6 +255,7 @@ export async function PUT(
     if (body._meta?.latitude !== undefined) studioUpdateData.latitude = parseFloat(body._meta.latitude) || null;
     if (body._meta?.longitude !== undefined) studioUpdateData.longitude = parseFloat(body._meta.longitude) || null;
     if (body._meta?.verified !== undefined) studioUpdateData.is_verified = body._meta.verified === '1' || body._meta.verified === true;
+    if (body._meta?.is_profile_visible !== undefined) studioUpdateData.is_profile_visible = body._meta.is_profile_visible;
     
     // Geocode full_address if it's being updated
     // Always geocode when full_address changes, unless coordinates are explicitly being set to different values

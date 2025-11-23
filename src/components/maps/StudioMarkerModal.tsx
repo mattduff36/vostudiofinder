@@ -11,6 +11,7 @@ interface StudioMarkerModalProps {
     name: string;
     users?: {
       username: string;
+      avatar_url?: string;
     };
     studio_images?: Array<{
       image_url: string;
@@ -119,20 +120,19 @@ export function StudioMarkerModal({ studio, position, onClose }: StudioMarkerMod
 
         {/* Content */}
         <div className="flex items-center gap-3 p-3">
-          {/* Thumbnail */}
+          {/* Avatar/Thumbnail */}
           <div className="flex-shrink-0">
             <div 
               className="bg-gray-200 rounded-md overflow-hidden"
               style={{ width: '40px', height: '40px' }}
             >
               <Image
-                src={studio.studio_images?.[0]?.image_url || '/favicon_transparent/android-chrome-192x192.png'}
-                alt={studio.studio_images?.[0]?.alt_text || studio.name}
+                src={studio.users?.avatar_url || studio.studio_images?.[0]?.image_url || '/favicon_transparent/android-chrome-192x192.png'}
+                alt={studio.users?.avatar_url ? `${studio.name} avatar` : studio.studio_images?.[0]?.alt_text || studio.name}
                 width={40}
                 height={40}
                 className="object-cover w-full h-full"
                 onError={(e) => {
-                  // Fallback to logo if image fails to load
                   (e.target as HTMLImageElement).src = '/favicon_transparent/android-chrome-192x192.png';
                 }}
               />

@@ -218,20 +218,30 @@ export function StudiosPage() {
         is_verified: studio.is_verified,
         onClick: (event: any) => {
           const studioData: any = studio;
+          // mapMarkers use 'users', studios use 'owner'
+          const userData = studioData.users || studioData.owner;
           handleStudioMarkerClick({
             id: studio.id,
             name: studio.name,
-            users: studioData.users?.username ? { username: studioData.users.username } : undefined,
+            users: userData?.username ? { 
+              username: userData.username,
+              avatar_url: userData.avatar_url 
+            } : undefined,
             studio_images: studioData.studio_images || [],
           }, event);
         },
         ...((() => {
           const studioData: any = studio;
-          return studioData.users?.username ? {
+          // mapMarkers use 'users', studios use 'owner'
+          const userData = studioData.users || studioData.owner;
+          return userData?.username ? {
             studio: {
               id: studio.id,
               name: studio.name,
-              users: { username: studioData.users.username },
+              owner: { 
+                username: userData.username,
+                avatar_url: userData.avatar_url 
+              },
               studio_images: studioData.studio_images || [],
             }
           } : {};

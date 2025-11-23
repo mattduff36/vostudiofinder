@@ -3,35 +3,34 @@
 import Image from 'next/image';
 import { User, UserProfile, UserMetadata } from '@/types/prisma';
 import { colors } from '@/components/home/HomePage';
+import { formatRateWithCurrency } from '@/lib/utils/currency';
 import { 
   MapPin, 
-  Phone, 
-  Mail, 
-  Globe, 
-  Shield, 
+  Users,
+  CheckCircle,
+  ExternalLink,
   Facebook,
   Twitter,
   Linkedin,
   Instagram,
   Youtube,
   Music,
-  Mic,
-  Users,
-  Calendar,
-  CheckCircle,
-  ExternalLink
+  Globe
 } from 'lucide-react';
 
 interface EnhancedUserProfileProps {
   user: User & {
     profile?: UserProfile | null;
     metadata?: UserMetadata[];
+    studios?: Array<{ status: string; is_profile_visible?: boolean }>;
   };
+  isHidden?: boolean;
 }
 
-export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
+export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProfileProps) {
   const profile = user.profile;
   const metadata = user.metadata || [];
+  const hasInactiveStudio = !isHidden && user.studios && user.studios.length > 0 && user.studios[0]?.status === 'INACTIVE';
   
   // Helper function to get metadata value
   // const getMetadata = (key: string) => {
@@ -148,6 +147,49 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
         </div>
       </div>
 
+      {/* Profile Notice */}
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        {isHidden ? (
+          /* Hidden Profile Notice */
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-blue-700">
+                  <span className="font-medium">Profile visibility has been turned off.</span> This profile is hidden from search results but can still be accessed via direct link.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : hasInactiveStudio ? (
+          /* Inactive Profile Notice */
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700">
+                  <span className="font-medium">Profile not active.</span> If you are the owner of this profile and wish to re-activate it, contact us:{' '}
+                  <a 
+                    href="mailto:info@voiceoverstudiofinder.com" 
+                    className="font-medium underline text-yellow-700 hover:text-yellow-600"
+                  >
+                    info@voiceoverstudiofinder.com
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -180,27 +222,27 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
                     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
                       <div className="flex items-center mb-3">
                         <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
-                        <span className="font-semibold" style={{ color: colors.textPrimary }}>Basic Rate</span>
+                        <span className="font-semibold" style={{ color: colors.textPrimary }}>15 minutes</span>
                       </div>
-                      <p style={{ color: colors.textSecondary }}>{profile.rate_tier_1}</p>
+                      <p style={{ color: colors.textSecondary }}>{formatRateWithCurrency(profile.rate_tier_1, profile.location)}</p>
                     </div>
                   )}
                   {profile.rate_tier_2 && (
                     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
                       <div className="flex items-center mb-3">
                         <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
-                        <span className="font-semibold" style={{ color: colors.textPrimary }}>Standard Rate</span>
+                        <span className="font-semibold" style={{ color: colors.textPrimary }}>30 minutes</span>
                       </div>
-                      <p style={{ color: colors.textSecondary }}>{profile.rate_tier_2}</p>
+                      <p style={{ color: colors.textSecondary }}>{formatRateWithCurrency(profile.rate_tier_2, profile.location)}</p>
                     </div>
                   )}
                   {profile.rate_tier_3 && (
                     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
                       <div className="flex items-center mb-3">
                         <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
-                        <span className="font-semibold" style={{ color: colors.textPrimary }}>Premium Rate</span>
+                        <span className="font-semibold" style={{ color: colors.textPrimary }}>60 minutes</span>
                       </div>
-                      <p style={{ color: colors.textSecondary }}>{profile.rate_tier_3}</p>
+                      <p style={{ color: colors.textSecondary }}>{formatRateWithCurrency(profile.rate_tier_3, profile.location)}</p>
                     </div>
                   )}
                 </div>
@@ -230,30 +272,6 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
           {/* Sidebar */}
           <div className="space-y-6">
             
-            {/* Contact Information */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
-                Contact Information
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-center">
-                  <Mail className="w-4 h-4 mr-3 flex-shrink-0" style={{ color: colors.textSubtle }} />
-                  <span className="text-sm" style={{ color: colors.textSecondary }}>{user.email}</span>
-                </div>
-                {profile?.phone && (
-                  <div className="flex items-center">
-                    <Phone className="w-4 h-4 mr-3 flex-shrink-0" style={{ color: colors.textSubtle }} />
-                    <span className="text-sm" style={{ color: colors.textSecondary }}>{profile.phone}</span>
-                  </div>
-                )}
-                <div className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-3 flex-shrink-0" style={{ color: colors.textSubtle }} />
-                  <span className="text-sm" style={{ color: colors.textSecondary }}>
-                    Member since {new Date(user.created_at).getFullYear()}
-                  </span>
-                </div>
-              </div>
-            </div>
 
             {/* Social Media Links */}
             {socialLinks.length > 0 && (
@@ -284,26 +302,6 @@ export function EnhancedUserProfile({ user }: EnhancedUserProfileProps) {
               </div>
             )}
 
-            {/* Professional Status */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
-                Status
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-center">
-                  <CheckCircle className="w-4 h-4 mr-3 text-green-600" />
-                  <span className="text-sm" style={{ color: colors.textSecondary }}>Verified Member</span>
-                </div>
-                <div className="flex items-center">
-                  <Mic className="w-4 h-4 mr-3" style={{ color: colors.primary }} />
-                  <span className="text-sm" style={{ color: colors.textSecondary }}>Voice Over Professional</span>
-                </div>
-                <div className="flex items-center">
-                  <Shield className="w-4 h-4 mr-3 text-blue-600" />
-                  <span className="text-sm" style={{ color: colors.textSecondary }}>Trusted Profile</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
