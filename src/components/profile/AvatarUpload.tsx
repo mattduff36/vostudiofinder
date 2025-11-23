@@ -2,8 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Camera, Loader2, User } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Loader2, Upload } from 'lucide-react';
 
 interface AvatarUploadProps {
   currentAvatar?: string | null | undefined;
@@ -11,6 +10,7 @@ interface AvatarUploadProps {
   size?: 'small' | 'medium' | 'large';
   editable?: boolean;
   userName?: string;
+  variant?: 'user' | 'admin' | 'profile'; // New: determines border color and style
 }
 
 export function AvatarUpload({
@@ -19,6 +19,7 @@ export function AvatarUpload({
   size = 'medium',
   editable = true,
   userName = 'User',
+  variant = 'user',
 }: AvatarUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -29,6 +30,13 @@ export function AvatarUpload({
     medium: 'w-24 h-24',
     large: 'w-32 h-32',
   };
+
+  // Border color based on variant
+  const borderColorClass = variant === 'admin' ? 'border-gray-900' : 'border-[#d42027]';
+  const hoverBorderColorClass = variant === 'admin' ? 'group-hover:border-gray-700' : 'group-hover:border-[#b91c23]';
+
+  // Treat empty strings as no avatar
+  const hasAvatar = currentAvatar && currentAvatar.trim() !== '';
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,7 +61,7 @@ export function AvatarUpload({
       // Create form data
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('type', 'avatar');
+      formData.append('folder', 'voiceover-studios/avatars');
 
       // Upload to Cloudinary via our API
       const response = await fetch('/api/upload/image', {
@@ -68,8 +76,8 @@ export function AvatarUpload({
 
       const data = await response.json();
       
-      // Update avatar
-      onAvatarChange(data.url);
+      // Update avatar (API returns image.url)
+      onAvatarChange(data.image.url);
       
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -89,39 +97,96 @@ export function AvatarUpload({
     }
   };
 
+  // Different rendering for edit pages vs profile display
+  if (variant === 'profile') {
+    // Small avatar for profile display
+    return (
+      <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-200 flex-shrink-0">
+        {hasAvatar ? (
+          <Image
+            key={currentAvatar}
+            src={currentAvatar}
+            alt={`${userName}'s avatar`}
+            fill
+            className="object-cover"
+            sizes="48px"
+            unoptimized={currentAvatar.includes('cloudinary')}
+          />
+        ) : null}
+      </div>
+    );
+  }
+
+  // Edit mode (user/admin)
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="relative group">
         <div
-          className={`${sizeClasses[size]} rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200 ${
+          className={`${sizeClasses[size]} rounded-lg ${
+            hasAvatar ? 'overflow-hidden' : 'bg-transparent'
+          } border-2 ${borderColorClass} ${hoverBorderColorClass} ${
             editable ? 'cursor-pointer' : ''
-          } relative`}
+          } relative transition-colors`}
           onClick={handleClick}
         >
-          {currentAvatar ? (
-            <Image
+          {hasAvatar ? (
+            <img
+              key={currentAvatar}
               src={currentAvatar}
               alt={`${userName}'s avatar`}
-              fill
-              className="object-cover"
-              sizes={size === 'small' ? '48px' : size === 'medium' ? '96px' : '128px'}
+              className="absolute inset-0 w-full h-full object-cover z-0"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <User className="w-1/2 h-1/2 text-gray-400" />
-            </div>
+            // Empty state - just the border box
+            <div className="w-full h-full"></div>
           )}
 
-          {/* Overlay on hover for editable */}
+          {/* Hover overlay with Upload button */}
           {editable && !isUploading && (
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity flex items-center justify-center">
-              <Camera className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
+            <>
+              {/* Desktop hover */}
+              {hasAvatar ? (
+                // Dark overlay for existing avatars - only visible on hover
+                <div className="hidden md:flex absolute inset-0 opacity-0 hover:opacity-100 group-hover:opacity-100 bg-black/60 transition-opacity items-center justify-center z-10">
+                  <div className="flex flex-col items-center gap-2 text-white">
+                    <Upload className="w-6 h-6" />
+                    <span className="text-xs font-medium">Change Avatar</span>
+                  </div>
+                </div>
+              ) : (
+                // Transparent overlay for empty state - text only, no background
+                <div className="hidden md:flex absolute inset-0 bg-transparent transition-opacity items-center justify-center z-10">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-2">
+                    <Upload className={`w-6 h-6 ${variant === 'admin' ? 'text-gray-900' : 'text-[#d42027]'}`} />
+                    <span className={`text-xs font-medium ${variant === 'admin' ? 'text-gray-900' : 'text-[#d42027]'}`}>
+                      Upload Avatar
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Mobile - always show button below - only for empty state */}
+              {!hasAvatar && (
+                <div className="md:hidden absolute -bottom-10 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                  <button
+                    type="button"
+                    className={`text-xs px-3 py-1 rounded border ${
+                      variant === 'admin' 
+                        ? 'border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white' 
+                        : 'border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white'
+                    } transition-colors`}
+                    onClick={handleClick}
+                  >
+                    Upload
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
           {/* Loading overlay */}
           {isUploading && (
-            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
               <Loader2 className="w-6 h-6 text-white animate-spin" />
             </div>
           )}
@@ -139,33 +204,6 @@ export function AvatarUpload({
           />
         )}
       </div>
-
-      {editable && (
-        <div className="text-center">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleClick}
-            disabled={isUploading}
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Camera className="w-4 h-4 mr-2" />
-                {currentAvatar ? 'Change' : 'Upload'} Avatar
-              </>
-            )}
-          </Button>
-          <p className="text-xs text-gray-500 mt-1">
-            Max 5MB • JPG, PNG, GIF
-          </p>
-        </div>
-      )}
 
       {uploadError && (
         <p className="text-xs text-red-600 text-center">{uploadError}</p>

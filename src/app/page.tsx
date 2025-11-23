@@ -69,10 +69,23 @@ export default async function Home() {
     take: 6, // Maximum of 6 featured studios
   });
 
-  // Randomize the order of featured studios
-  const featuredStudios = featuredStudiosRaw
+  // Always pin VoiceoverGuy studio first, then randomize the rest
+  const voiceoverGuy = featuredStudiosRaw.find(
+    studio => studio.users?.username === 'VoiceoverGuy'
+  );
+  const otherStudios = featuredStudiosRaw.filter(
+    studio => studio.users?.username !== 'VoiceoverGuy'
+  );
+  
+  // Randomize other studios and take up to 5 (to make room for VoiceoverGuy)
+  const randomizedOthers = otherStudios
     .sort(() => Math.random() - 0.5)
-    .slice(0, 6);
+    .slice(0, 5);
+  
+  // Put VoiceoverGuy first if exists, then add the rest
+  const featuredStudios = voiceoverGuy 
+    ? [voiceoverGuy, ...randomizedOthers]
+    : randomizedOthers.slice(0, 6);
 
   // Get total counts for stats
   const [totalStudios, totalUsers, uniqueCountries] = await Promise.all([

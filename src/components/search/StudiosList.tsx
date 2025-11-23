@@ -114,20 +114,47 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
             </div>
 
             <div className="p-3 sm:p-4 flex flex-col flex-grow">
-              {/* Studio Name with Verified Badge */}
-              <h3 className="studio-card-title flex items-start gap-2 mb-2" style={{ color: colors.textPrimary }}>
-                <span className="flex-1">{studio.name} </span>
-                {studio.is_verified && (
-                  <span 
-                    className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help flex-shrink-0 mt-0.5" 
-                    title="Verified studio — approved by our team"
-                  >
-                    <svg className="w-2 h-2 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
-                      <path d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </span>
+              {/* Studio Name with Avatar and Verified Badge */}
+              <div className="flex items-center gap-2 mb-2">
+                {/* Avatar - Small square image on the left */}
+                {studio.owner?.avatar_url && (
+                  <Image
+                    src={studio.owner.avatar_url}
+                    alt={`${studio.owner.display_name || studio.name} avatar`}
+                    width={28}
+                    height={28}
+                    className="rounded-md object-cover flex-shrink-0"
+                  />
                 )}
-              </h3>
+                
+                {/* Studio Name */}
+                <h3 
+                  className="flex-1"
+                  style={{ 
+                    color: colors.textPrimary,
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    margin: 0,
+                    padding: 0,
+                    lineHeight: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>{studio.name}</span>
+                  {studio.is_verified && (
+                    <span 
+                      className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help flex-shrink-0" 
+                      title="Verified studio — approved by our team"
+                    >
+                      <svg className="w-2 h-2 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </span>
+                  )}
+                </h3>
+              </div>
 
               {/* Location and Description */}
               <div className="mb-3">

@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import { 
   Activity,
-  Loader2
+  Loader2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
+import { Toggle } from '@/components/ui/Toggle';
 
 interface UserDashboardProps {
   data: {
@@ -83,6 +86,8 @@ export function UserDashboard({ data }: UserDashboardProps) {
   const { user } = data;
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isProfileVisible, setIsProfileVisible] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   // Fetch profile data for completion progress
   useEffect(() => {
@@ -92,6 +97,12 @@ export function UserDashboard({ data }: UserDashboardProps) {
         if (response.ok) {
           const result = await response.json();
           setProfileData(result.data);
+          // Set initial visibility state from studio data
+          if (result.data.studio) {
+            const visible = result.data.studio.is_profile_visible !== false;
+            setIsProfileVisible(visible);
+            console.log('[Dashboard] Profile visibility loaded:', visible);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch profile:', err);
@@ -100,14 +111,56 @@ export function UserDashboard({ data }: UserDashboardProps) {
       }
     };
     fetchProfile();
+
+    // Refetch when window regains focus (in case admin changed it)
+    const handleFocus = () => {
+      fetchProfile();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
+
+  // Handle profile visibility toggle
+  const handleVisibilityToggle = async (visible: boolean) => {
+    setSaving(true);
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studio: {
+            is_profile_visible: visible
+          }
+        }),
+      });
+
+      if (response.ok) {
+        setIsProfileVisible(visible);
+        console.log('✅ Profile visibility updated successfully to:', visible);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to update profile visibility:', errorData);
+        alert('Failed to update profile visibility. Please try again.');
+        // Revert on error
+        setIsProfileVisible(!visible);
+      }
+    } catch (err) {
+      console.error('Error updating profile visibility:', err);
+      alert('Error updating profile visibility. Please try again.');
+      // Revert on error
+      setIsProfileVisible(!visible);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Profile Visibility */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            {/* Welcome Section */}
             <div className="flex items-center space-x-4">
               {user.avatar_url ? (
                 <img
@@ -131,6 +184,34 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 </p>
               </div>
             </div>
+
+            {/* Profile Visibility Toggle */}
+            {!loading && profileData?.studio && (
+              <div className="flex items-center justify-between lg:justify-end gap-4 pl-0 lg:pl-6 border-t lg:border-t-0 lg:border-l border-gray-200 pt-4 lg:pt-0">
+                <div className="flex items-center space-x-3">
+                  {isProfileVisible ? (
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Eye className="w-5 h-5 text-green-600" />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <EyeOff className="w-5 h-5 text-gray-600" />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900">Profile Visibility</h3>
+                    <p className="text-xs text-gray-600">
+                      {isProfileVisible ? 'Visible' : 'Hidden'}
+                    </p>
+                  </div>
+                </div>
+                <Toggle
+                  checked={isProfileVisible}
+                  onChange={handleVisibilityToggle}
+                  disabled={saving}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

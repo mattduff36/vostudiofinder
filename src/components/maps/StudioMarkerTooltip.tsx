@@ -9,6 +9,7 @@ interface StudioMarkerTooltipProps {
     name: string;
     owner?: {
       username: string;
+      avatar_url?: string;
     };
     studio_images?: Array<{
       image_url: string;
@@ -46,13 +47,13 @@ export function StudioMarkerTooltip({
       )}
 
       <div className="flex items-center gap-3">
-        {/* Studio Image/Logo - Left */}
+        {/* Studio Avatar/Image - Left */}
         <div className="flex-shrink-0">
           <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden">
-            {studio.studio_images?.[0]?.image_url ? (
+            {(studio.owner?.avatar_url || studio.studio_images?.[0]?.image_url) ? (
               <Image
-                src={studio.studio_images[0].image_url}
-                alt={studio.studio_images[0].alt_text || studio.name}
+                src={studio.owner?.avatar_url || studio.studio_images?.[0]?.image_url || ''}
+                alt={studio.owner?.avatar_url ? `${studio.name} avatar` : studio.studio_images?.[0]?.alt_text || studio.name}
                 width={48}
                 height={48}
                 className="object-cover w-full h-full"

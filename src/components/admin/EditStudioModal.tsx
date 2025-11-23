@@ -10,6 +10,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
+import { getCurrencySymbol } from '@/lib/utils/currency';
 
 interface Studio {
   id: string;
@@ -110,6 +111,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       
       const data = await response.json();
       setProfile(data.profile);
+      console.log('[Admin Modal] Profile visibility:', data.profile._meta?.is_profile_visible);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -130,10 +132,13 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleBasicChange = (key: string, value: any) => {
-    setProfile((prev: any) => ({
-      ...prev,
-      [key]: value
-    }));
+    setProfile((prev: any) => {
+      if (!prev) return null;
+      // Create a new object to ensure React detects the change
+      const updated = { ...prev };
+      updated[key] = value;
+      return updated;
+    });
   };
 
   const toggleStudioType = (type: string) => {
@@ -171,21 +176,10 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         throw new Error('Failed to save profile');
       }
 
-      const result = await response.json();
+      await response.json();
       
-      // Update coordinates if they were geocoded
-      if (result.coordinates) {
-        setProfile((prev: any) => ({
-          ...prev,
-          _meta: {
-            ...prev._meta,
-            latitude: result.coordinates.latitude?.toString() || prev._meta?.latitude || '',
-            longitude: result.coordinates.longitude?.toString() || prev._meta?.longitude || '',
-            full_address: result.full_address || prev._meta?.full_address || '',
-            abbreviated_address: result.abbreviated_address || prev._meta?.abbreviated_address || '',
-          }
-        }));
-      }
+      // Always refetch to get latest data (including avatar_url)
+      await fetchProfile();
 
       onSave();
       onClose();
@@ -217,24 +211,10 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         throw new Error('Failed to save profile');
       }
 
-      const result = await response.json();
+      await response.json();
       
-      // Update coordinates if they were geocoded
-      if (result.coordinates) {
-        setProfile((prev: any) => ({
-          ...prev,
-          _meta: {
-            ...prev._meta,
-            latitude: result.coordinates.latitude?.toString() || prev._meta?.latitude || '',
-            longitude: result.coordinates.longitude?.toString() || prev._meta?.longitude || '',
-            full_address: result.full_address || prev._meta?.full_address || '',
-            abbreviated_address: result.abbreviated_address || prev._meta?.abbreviated_address || '',
-          }
-        }));
-      } else {
-        // Refetch profile to get updated data
-        await fetchProfile();
-      }
+      // Always refetch to get latest data (including avatar_url)
+      await fetchProfile();
 
       onSave();
       setShowSuccessModal(true);
@@ -275,17 +255,6 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   const renderBasicTab = () => (
     <div className="space-y-6">
-      {/* Profile Avatar */}
-      <div className="flex justify-center pb-4 border-b border-gray-200">
-        <AvatarUpload
-          currentAvatar={profile?.avatar_image}
-          onAvatarChange={(url) => handleBasicChange('avatar_image', url)}
-          size="large"
-          editable={true}
-          userName={profile?.display_name || profile?.username || 'User'}
-        />
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           label="Display Name"
@@ -510,28 +479,28 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
-            label="Rate Tier 1 (15 min)"
+            label="15 minutes"
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates1) || ''}
             onChange={(e) => handleMetaChange('rates1', e.target.value)}
-            helperText="Basic rate"
-            placeholder="e.g. £80, $80, €80"
+            helperText="15 minute session rate"
+            placeholder={`e.g. ${getCurrencySymbol(profile?._meta?.location)}80`}
           />
           <Input
-            label="Rate Tier 2 (30 min)"
+            label="30 minutes"
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates2) || ''}
             onChange={(e) => handleMetaChange('rates2', e.target.value)}
-            helperText="Standard rate"
-            placeholder="e.g. £100, $100, €100"
+            helperText="30 minute session rate"
+            placeholder={`e.g. ${getCurrencySymbol(profile?._meta?.location)}100`}
           />
           <Input
-            label="Rate Tier 3 (60 min)"
+            label="60 minutes"
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates3) || ''}
             onChange={(e) => handleMetaChange('rates3', e.target.value)}
-            helperText="Premium rate"
-            placeholder="e.g. £125, $125, €125"
+            helperText="60 minute session rate"
+            placeholder={`e.g. ${getCurrencySymbol(profile?._meta?.location)}125`}
           />
         </div>
       </div>
@@ -833,7 +802,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto">
         <div className="fixed inset-0 bg-black bg-opacity-50" />
-        <div className="flex min-h-full items-center justify-center p-4">
+        <div className="flex min-h-full items-start justify-center p-4 pt-20">
           <div className="bg-white rounded-lg p-8">
             <div className="flex items-center">
               <Loader2 className="w-8 h-8 animate-spin text-red-600" />
@@ -849,7 +818,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto">
         <div className="fixed inset-0 bg-black bg-opacity-50" />
-        <div className="flex min-h-full items-center justify-center p-4">
+        <div className="flex min-h-full items-start justify-center p-4 pt-20">
           <div className="bg-white rounded-lg p-8">
             <p className="text-red-600">Profile not found</p>
           </div>
@@ -867,15 +836,36 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       <div className="fixed inset-0 bg-black bg-opacity-60 transition-opacity" />
       
       {/* Modal container */}
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex min-h-full items-start justify-center p-4 pt-20">
         <div className="relative w-full max-w-7xl mx-auto">
           {/* Modal content */}
           <div className="bg-white rounded-xl shadow-2xl max-h-[90vh] overflow-hidden">
             {/* Modal header with close button */}
             <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 border-b border-red-800 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-white">
-                📝 Edit Studio Profile{profile?.username || studio?.users?.username ? ` - ${profile?.username || studio?.users?.username}` : ''}
-              </h2>
+              <div className="flex items-center gap-4">
+                {/* Avatar */}
+                <AvatarUpload
+                  currentAvatar={profile?.avatar_image}
+                  onAvatarChange={(url) => handleBasicChange('avatar_image', url)}
+                  size="medium"
+                  editable={true}
+                  userName={profile?.display_name || profile?.username || 'User'}
+                  variant="admin"
+                />
+                
+                {/* Title */}
+                <div className="flex flex-col">
+                  <h2 className="text-xl font-bold text-white">
+                    Edit Studio Profile
+                  </h2>
+                  {(profile?.username || studio?.users?.username) && (
+                    <p className="text-sm text-white/90 mt-0.5">
+                      {profile?.username || studio?.users?.username}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
               <button
                 onClick={onClose}
                 className="text-white hover:text-red-100 hover:bg-red-800 rounded-full flex items-center justify-center font-bold transition-colors duration-200"
@@ -887,7 +877,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </div>
             
             {/* Modal body with scrollable content */}
-            <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+            <div className="overflow-y-auto max-h-[calc(90vh-220px)]">
               {/* Tab Navigation */}
               <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
                 <nav className="flex space-x-8 px-6 overflow-x-auto" aria-label="Tabs">
@@ -924,12 +914,21 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
             {/* Sticky Action Buttons */}
             <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-between items-center">
-              <button
-                onClick={handleViewProfile}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                👁️ View Profile
-              </button>
+              <div className="flex gap-3 items-center">
+                <button
+                  onClick={handleViewProfile}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  👁️ View Profile
+                </button>
+                <div className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white">
+                  <span className="text-sm font-medium text-gray-700">Profile Visibility:</span>
+                  <Toggle
+                    checked={profile?._meta?.is_profile_visible !== false}
+                    onChange={(checked) => handleMetaChange('is_profile_visible', checked)}
+                  />
+                </div>
+              </div>
               <div className="flex gap-3">
                 <button
                   onClick={handleSaveOnly}

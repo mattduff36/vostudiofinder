@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
+import { getCurrencySymbol } from '@/lib/utils/currency';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -227,11 +228,24 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
       {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4">
-        <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Update your studio information and settings
-        </p>
+      <div className="border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        {/* Avatar */}
+        <AvatarUpload
+          currentAvatar={profile.user.avatar_url}
+          onAvatarChange={(url) => updateUser('avatar_url', url)}
+          size="medium"
+          editable={true}
+          userName={profile.user.display_name || profile.user.username}
+          variant="user"
+        />
+        
+        {/* Title and description */}
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Update your studio information and settings
+          </p>
+        </div>
       </div>
 
       {/* Messages */}
@@ -270,17 +284,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         <div className="w-full max-w-5xl">
         {activeSection === 'basic' && (
           <div className="space-y-6">
-            {/* Profile Avatar */}
-            <div className="flex justify-center pb-4 border-b border-gray-200">
-              <AvatarUpload
-                currentAvatar={profile.user.avatar_url}
-                onAvatarChange={(url) => updateUser('avatar_url', url)}
-                size="large"
-                editable={true}
-                userName={profile.user.display_name || profile.user.username}
-              />
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Display Name"
@@ -491,30 +494,30 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input
-                  label="Rate Tier 1 (£/hour)"
+                  label={`15 minutes (${getCurrencySymbol(profile.profile.location)})`}
                   type="number"
                   step="0.01"
                   value={profile.profile.rate_tier_1 || ''}
                   onChange={(e) => updateProfile('rate_tier_1', parseFloat(e.target.value) || null)}
-                  helperText="Basic rate"
+                  helperText="15 minute session rate"
                   placeholder="0.00"
                 />
                 <Input
-                  label="Rate Tier 2 (£/hour)"
+                  label={`30 minutes (${getCurrencySymbol(profile.profile.location)})`}
                   type="number"
                   step="0.01"
                   value={profile.profile.rate_tier_2 || ''}
                   onChange={(e) => updateProfile('rate_tier_2', parseFloat(e.target.value) || null)}
-                  helperText="Standard rate"
+                  helperText="30 minute session rate"
                   placeholder="0.00"
                 />
                 <Input
-                  label="Rate Tier 3 (£/hour)"
+                  label={`60 minutes (${getCurrencySymbol(profile.profile.location)})`}
                   type="number"
                   step="0.01"
                   value={profile.profile.rate_tier_3 || ''}
                   onChange={(e) => updateProfile('rate_tier_3', parseFloat(e.target.value) || null)}
-                  helperText="Premium rate"
+                  helperText="60 minute session rate"
                   placeholder="0.00"
                 />
               </div>
