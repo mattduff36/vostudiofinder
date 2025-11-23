@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager';
+import { AvatarUpload } from '@/components/profile/AvatarUpload';
 
 interface Studio {
   id: string;
@@ -274,6 +275,17 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   const renderBasicTab = () => (
     <div className="space-y-6">
+      {/* Profile Avatar */}
+      <div className="flex justify-center pb-4 border-b border-gray-200">
+        <AvatarUpload
+          currentAvatar={profile?.avatar_image}
+          onAvatarChange={(url) => handleBasicChange('avatar_image', url)}
+          size="large"
+          editable={true}
+          userName={profile?.display_name || profile?.username || 'User'}
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           label="Display Name"

@@ -331,7 +331,19 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
             {/* Studio Header */}
             <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <h1 className="text-3xl font-bold text-gray-900 mb-3 flex items-center gap-3">
+                {/* Profile Avatar */}
+                {studio.owner.avatar_url && (
+                  <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-200 flex-shrink-0">
+                    <Image
+                      src={studio.owner.avatar_url}
+                      alt={`${studio.owner.display_name}'s avatar`}
+                      fill
+                      className="object-cover"
+                      sizes="48px"
+                    />
+                  </div>
+                )}
                 <span>{studio.name}</span>
                 {studio.is_verified && (
                   <span 

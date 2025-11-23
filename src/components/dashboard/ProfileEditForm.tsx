@@ -9,6 +9,7 @@ import { Toggle } from '@/components/ui/Toggle';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
+import { AvatarUpload } from '@/components/profile/AvatarUpload';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -269,6 +270,17 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         <div className="w-full max-w-5xl">
         {activeSection === 'basic' && (
           <div className="space-y-6">
+            {/* Profile Avatar */}
+            <div className="flex justify-center pb-4 border-b border-gray-200">
+              <AvatarUpload
+                currentAvatar={profile.user.avatar_url}
+                onAvatarChange={(url) => updateUser('avatar_url', url)}
+                size="large"
+                editable={true}
+                userName={profile.user.display_name || profile.user.username}
+              />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Display Name"
