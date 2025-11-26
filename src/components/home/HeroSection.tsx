@@ -65,18 +65,19 @@ export function HeroSection() {
           <h1 className={`hp1 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-center transition-all duration-1000 delay-200 leading-tight ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ color: '#ffffff' }}>
-            Find Your Perfect<br className="hidden sm:block"/>
-            <span className="sm:hidden"> </span>
-            <span style={{ color: colors.primary }}>Recording Studio</span>
+            Find a Voiceover <span style={{ color: colors.primary }}>Recording Studio</span> Near You
           </h1>
           
           <p className={`text-base sm:text-lg md:text-xl text-center transition-all duration-1000 ease-out px-4 ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.4s', color: '#ffffff', maxWidth: '768px', margin: '0 auto' }}>
-            Connect with professional voiceover recording studios worldwide.
+            Professional Voiceover, Podcast & Broadcast Suites Worldwide
             <br className="hidden sm:block"/>
             <span className="sm:hidden"> </span>
-            Advanced search, verified locations, and direct studio contact.
+            Advanced search, verified locations, direct studio contact.
+            <br className="hidden sm:block"/>
+            <span className="sm:hidden"> </span>
+            No commission, no middlemen.
           </p>
 
           {/* Enhanced Search Form */}
