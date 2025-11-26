@@ -99,20 +99,38 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
       {/* Content */}
       <div className="relative z-10 py-16 w-full">
         <div className="max-w-7xl mx-auto px-6">
-        {/* Stats Section */}
+        {/* Founder Story Section */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: '#ffffff' }}>
-            Built by Voice Artists<br />
-            Loved by Studio Owners
+          <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: '#ffffff' }}>
+            Why I Built This Platform
           </h2>
-          <p className={`text-xl text-center transition-all duration-1000 ease-out text-white ${
+          <div className={`text-left transition-all duration-1000 ease-out text-white ${
             isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.2s', maxWidth: '768px', margin: '0 auto' }}>
-            Join the fastest-growing global hub for voiceover talent and recording studios. Already trusted by creatives in 50+ countries.
-          </p>
+          }`} style={{ transitionDelay: '0.2s', maxWidth: '900px', margin: '0 auto' }}>
+            <p className="text-lg md:text-xl leading-relaxed mb-4">
+              "I created Voiceover Studio Finder for a very simple reason: my own studio kept making money while I was literally sat there checking emails. Years ago, a voiceover reached out because they were nearby and needed a professional booth. I said yes — and that became the first of dozens of sessions where I earned £150–£200 simply by letting someone use the space.
+            </p>
+            <p className="text-lg md:text-xl leading-relaxed mb-4">
+              Recently, a local actress from Doncaster recorded a TV commercial here because she didn't have a booth at home — the agency were in Cardiff, so my studio was the perfect middle-ground. Two months ago, an American voice artist on holiday in the UK patched through to the USA for a TV ad, and I earned £175 while she worked.
+            </p>
+            <p className="text-lg md:text-xl leading-relaxed mb-4">
+              It hit me… there are thousands of studios like mine — home booths, pro booths, podcast rooms — all sitting empty for hours a day. And there are thousands of voiceovers desperately needing somewhere local and reliable to record.
+            </p>
+            <p className="text-lg md:text-xl leading-relaxed mb-4">
+              So I built the website I wished existed: a clean, simple, no-commission platform to connect the two."
+            </p>
+            <p className="text-base md:text-lg font-semibold mt-6" style={{ color: colors.primary }}>
+              — British Male Voiceover Guy Harris, Founder
+            </p>
+          </div>
         </div>
 
         {/* Stats Grid */}
+        <div className="text-center mb-8 mt-16">
+          <h3 className="text-2xl md:text-3xl font-bold text-white">
+            Join Our Growing Community
+          </h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {[
             { 
