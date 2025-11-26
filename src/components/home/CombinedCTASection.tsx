@@ -100,34 +100,59 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
       <div className="relative z-10 py-16 w-full">
         <div className="max-w-7xl mx-auto px-6">
         {/* Founder Story Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: '#ffffff' }}>
+        <div className="text-center mb-16">
+          <h2 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-12 transition-all duration-1000 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`} style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
             Why I Built This Platform
           </h2>
-          <div className={`text-left transition-all duration-1000 ease-out text-white ${
-            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.2s', maxWidth: '900px', margin: '0 auto' }}>
-            <p className="text-lg md:text-xl leading-relaxed mb-4">
-              "I created Voiceover Studio Finder for a very simple reason: my own studio kept making money while I was literally sat there checking emails. Years ago, a voiceover reached out because they were nearby and needed a professional booth. I said yes — and that became the first of dozens of sessions where I earned £150–£200 simply by letting someone use the space.
-            </p>
-            <p className="text-lg md:text-xl leading-relaxed mb-4">
-              Recently, a local actress from Doncaster recorded a TV commercial here because she didn't have a booth at home — the agency were in Cardiff, so my studio was the perfect middle-ground. Two months ago, an American voice artist on holiday in the UK patched through to the USA for a TV ad, and I earned £175 while she worked.
-            </p>
-            <p className="text-lg md:text-xl leading-relaxed mb-4">
-              It hit me… there are thousands of studios like mine — home booths, pro booths, podcast rooms — all sitting empty for hours a day. And there are thousands of voiceovers desperately needing somewhere local and reliable to record.
-            </p>
-            <p className="text-lg md:text-xl leading-relaxed mb-4">
-              So I built the website I wished existed: a clean, simple, no-commission platform to connect the two."
-            </p>
-            <p className="text-base md:text-lg font-semibold mt-6" style={{ color: colors.primary }}>
-              — British Male Voiceover Guy Harris, Founder
-            </p>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-7xl mx-auto">
+            {/* Founder Image */}
+            <div className={`relative transition-all duration-1000 ${
+              isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'
+            }`} style={{ transitionDelay: '0.3s' }}>
+              <div className="relative rounded-lg overflow-hidden shadow-2xl transform hover:scale-105 transition-transform duration-500">
+                <Image
+                  src="/founder-guy-harris-voiceover-studio.jpg"
+                  alt="Guy Harris - Founder of Voiceover Studio Finder recording in professional studio"
+                  width={600}
+                  height={400}
+                  className="object-cover w-full h-auto"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+              </div>
+            </div>
+
+            {/* Story Text */}
+            <div className={`text-left transition-all duration-1000 ease-out text-white ${
+              isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+            }`} style={{ transitionDelay: '0.4s' }}>
+              <p className="text-base md:text-lg leading-relaxed mb-4">
+                "I created Voiceover Studio Finder for a very simple reason: my own studio kept making money while I was literally sat there checking emails. Years ago, a voiceover reached out because they were nearby and needed a professional booth. I said yes — and that became the first of dozens of sessions where I earned £150–£200 simply by letting someone use the space.
+              </p>
+              <p className="text-base md:text-lg leading-relaxed mb-4">
+                Recently, a local actress from Doncaster recorded a TV commercial here because she didn't have a booth at home — the agency were in Cardiff, so my studio was the perfect middle-ground. Two months ago, an American voice artist on holiday in the UK patched through to the USA for a TV ad, and I earned £175 while she worked.
+              </p>
+              <p className="text-base md:text-lg leading-relaxed mb-4">
+                It hit me… there are thousands of studios like mine — home booths, pro booths, podcast rooms — all sitting empty for hours a day. And there are thousands of voiceovers desperately needing somewhere local and reliable to record.
+              </p>
+              <p className="text-base md:text-lg leading-relaxed mb-4">
+                So I built the website I wished existed: a clean, simple, no-commission platform to connect the two."
+              </p>
+              <p className="text-sm md:text-base font-semibold mt-6" style={{ color: colors.primary }}>
+                - British Male Voiceover Guy Harris, Founder
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="text-center mb-8 mt-16">
-          <h3 className="text-2xl md:text-3xl font-bold text-white">
+        <div className={`text-center mb-12 mt-16 transition-all duration-1000 ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`} style={{ transitionDelay: '0.6s' }}>
+          <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
             Join Our Growing Community
           </h3>
         </div>
