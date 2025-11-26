@@ -18,7 +18,7 @@ export function NewCTASection({ }: NewCTASectionProps) {
   }, []);
 
   return (
-    <div className="relative py-16 overflow-hidden">
+    <div className="relative py-8 overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -31,7 +31,7 @@ export function NewCTASection({ }: NewCTASectionProps) {
       </div>
       
       {/* Content */}
-      <div className="relative z-10 py-16 w-full">
+      <div className="relative z-10 py-8 w-full">
         <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.textPrimary }}>Ready to Get Started? (keeping for future dev)</h2>
