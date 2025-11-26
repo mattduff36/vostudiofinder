@@ -54,3 +54,9 @@ next-env.d.ts
 
 # Migration artifacts (historical)
 /migration-scripts/
+
+# Temporary files and logs
+/temp/
+temp/
+*.log
+console-log.txt
