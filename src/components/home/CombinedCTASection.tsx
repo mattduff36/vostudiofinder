@@ -130,13 +130,13 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
               isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
             }`} style={{ transitionDelay: '0.4s' }}>
               <p className="text-base md:text-lg leading-relaxed mb-4">
-                "I created Voiceover Studio Finder for a very simple reason: my own studio kept making money while I was literally sat there checking emails. Years ago, a voiceover reached out because they were nearby and needed a professional booth. I said yes — and that became the first of dozens of sessions where I earned £150–£200 simply by letting someone use the space.
+                "I created Voiceover Studio Finder for a very simple reason: my own studio kept making money while I was literally sat there checking emails. Years ago, a voiceover reached out because they were nearby and needed a professional booth. I said yes - and that became the first of dozens of sessions where I earned £150-£200 simply by letting someone use the space.
               </p>
               <p className="text-base md:text-lg leading-relaxed mb-4">
-                Recently, a local actress from Doncaster recorded a TV commercial here because she didn't have a booth at home — the agency were in Cardiff, so my studio was the perfect middle-ground. Two months ago, an American voice artist on holiday in the UK patched through to the USA for a TV ad, and I earned £175 while she worked.
+                Recently, a local actress from Doncaster recorded a TV commercial here because she didn't have a booth at home - the agency were in Cardiff, so my studio was the perfect middle-ground. Two months ago, an American voice artist on holiday in the UK patched through to the USA for a TV ad, and I earned £175 while she worked.
               </p>
               <p className="text-base md:text-lg leading-relaxed mb-4">
-                It hit me… there are thousands of studios like mine — home booths, pro booths, podcast rooms — all sitting empty for hours a day. And there are thousands of voiceovers desperately needing somewhere local and reliable to record.
+                It hit me... there are thousands of studios like mine - home booths, pro booths, podcast rooms - all sitting empty for hours a day. And there are thousands of voiceovers desperately needing somewhere local and reliable to record.
               </p>
               <p className="text-base md:text-lg leading-relaxed mb-4">
                 So I built the website I wished existed: a clean, simple, no-commission platform to connect the two."
