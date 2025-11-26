@@ -3,6 +3,7 @@
 import { Session } from 'next-auth';
 import { Mic, Building, Users } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { colors } from './HomePage';
 
@@ -44,8 +45,8 @@ export function NewCTASection({ }: NewCTASectionProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {[
-            { icon: Mic, title: 'For Voice Artists', points: ['Find trusted recording studios near you — anywhere in the world', 'Compare booths, equipment, rates and availability', 'Verified studios with real photos and real pros behind them', 'Contact studios directly — no fees, no middlemen', 'Perfect for last-minute sessions, travel jobs and remote patches'] },
-            { icon: Building, title: 'For Studio Owners', points: ['Earn extra income from a booth that's sitting empty', 'Get discovered by thousands of voice artists worldwide', 'Showcase your studio with photos, equipment lists and services', 'Receive direct enquiries from qualified clients', 'Just £25/year — one booking often pays for the whole year'] },
+            { icon: Mic, title: 'For Voice Artists', points: ['Find trusted recording studios near you - anywhere in the world', 'Compare booths, equipment, rates and availability', 'Verified studios with real photos and real pros behind them', 'Contact studios directly - no fees, no middlemen', 'Perfect for last-minute sessions, travel jobs and remote patches'] },
+            { icon: Building, title: 'For Studio Owners', points: ['Earn extra income from a booth that is sitting empty', 'Get discovered by thousands of voice artists worldwide', 'Showcase your studio with photos, equipment lists and services', 'Receive direct enquiries from qualified clients', 'Just £25/year - one booking often pays for the whole year'] },
             { icon: Users, title: 'For Everyone', points: ['Join a global community of voice artists, producers and podcasters', 'Connect, collaborate and grow your professional network', 'Share industry tips, equipment knowledge and experience', 'Stay updated with trends, technology and opportunities', 'Be part of a platform built by people in the industry'] }
           ].map((section, index) => (
             <div key={index} className="text-center">
@@ -63,12 +64,12 @@ export function NewCTASection({ }: NewCTASectionProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <button className="px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl" style={{ backgroundColor: colors.primary, color: colors.background }}>
+          <Link href="/auth/signup" className="px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl" style={{ backgroundColor: colors.primary, color: colors.background }}>
             List Your Studio - £25/year
-          </button>
-          <button className="px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl" style={{ border: `1px solid ${colors.primary}`, color: colors.primary, backgroundColor: 'transparent' }}>
+          </Link>
+          <Link href="/studios" className="px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl" style={{ border: `1px solid ${colors.primary}`, color: colors.primary, backgroundColor: 'transparent' }}>
             Browse Studios
-          </button>
+          </Link>
         </div>
         </div>
       </div>
