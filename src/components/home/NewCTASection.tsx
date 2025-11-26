@@ -34,20 +34,19 @@ export function NewCTASection({ }: NewCTASectionProps) {
       <div className="relative z-10 py-8 w-full">
         <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.textPrimary }}>Ready to Get Started? (keeping for future dev)</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.textPrimary }}>The Easiest Way for Voice Artists and Studios to Work Together</h2>
           <p className={`text-xl text-center transition-all duration-1000 ease-out ${
             isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.2s', color: colors.textSecondary, maxWidth: '768px', margin: '0 auto' }}>
-            Whether you're a voice artist looking for the perfect studio or a studio owner
-            wanting to connect with talent, VoiceoverStudioFinder has you covered.
+            A simple, no-commission platform built by people who actually work in the industry.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {[
-            { icon: Mic, title: 'For Voice Artists', points: ['Find studios near you or worldwide', 'Compare equipment and services', 'Read reviews from other artists', 'Book sessions directly with studios'] },
-            { icon: Building, title: 'For Studio Owners', points: ['Reach thousands of voice artists worldwide', 'Professional listing with photos & details', 'Direct bookings from qualified clients', 'Only £25/year - exceptional value'] },
-            { icon: Users, title: 'For Everyone', points: ['Join a global community', 'Network with professionals', 'Share experiences and tips', 'Stay updated on industry trends'] }
+            { icon: Mic, title: 'For Voice Artists', points: ['Find trusted recording studios near you — anywhere in the world', 'Compare booths, equipment, rates and availability', 'Verified studios with real photos and real pros behind them', 'Contact studios directly — no fees, no middlemen', 'Perfect for last-minute sessions, travel jobs and remote patches'] },
+            { icon: Building, title: 'For Studio Owners', points: ['Earn extra income from a booth that's sitting empty', 'Get discovered by thousands of voice artists worldwide', 'Showcase your studio with photos, equipment lists and services', 'Receive direct enquiries from qualified clients', 'Just £25/year — one booking often pays for the whole year'] },
+            { icon: Users, title: 'For Everyone', points: ['Join a global community of voice artists, producers and podcasters', 'Connect, collaborate and grow your professional network', 'Share industry tips, equipment knowledge and experience', 'Stay updated with trends, technology and opportunities', 'Be part of a platform built by people in the industry'] }
           ].map((section, index) => (
             <div key={index} className="text-center">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${colors.primary}20` }}>
