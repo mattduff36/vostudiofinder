@@ -80,7 +80,7 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
   }, [isVisible, studiosCounter, usersCounter, countriesCounter]);
 
   return (
-    <div ref={sectionRef} className="relative py-16 overflow-hidden">
+    <div ref={sectionRef} className="relative py-8 overflow-hidden">
       {/* Background Banner Image */}
       <div className="absolute inset-0">
         <Image
@@ -97,7 +97,7 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
       </div>
       
       {/* Content */}
-      <div className="relative z-10 py-16 w-full">
+      <div className="relative z-10 py-8 w-full">
         <div className="max-w-7xl mx-auto px-6">
         {/* Founder Story Section */}
         <div className="text-center mb-16">
