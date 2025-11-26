@@ -52,7 +52,10 @@ const useCountUp = (end: number, duration: number = 2000) => {
 
 export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [storyPhase, setStoryPhase] = useState<'section1' | 'section2' | 'section3' | 'full'>('section1');
+  const [fadeState, setFadeState] = useState<'in' | 'visible' | 'out'>('in');
   const sectionRef = useRef<HTMLDivElement>(null);
+  const animationStartedRef = useRef(false);
   
   const studiosCounter = useCountUp(stats.totalStudios, 2000);
   const usersCounter = useCountUp(stats.totalUsers, 2500);
@@ -78,6 +81,50 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
 
     return () => observer.disconnect();
   }, [isVisible, studiosCounter, usersCounter, countriesCounter]);
+
+  // Story animation sequence
+  useEffect(() => {
+    if (!isVisible || animationStartedRef.current) return;
+    animationStartedRef.current = true;
+
+    const sequence = [
+      { phase: 'section1' as const, duration: 10000 },
+      { phase: 'section2' as const, duration: 10000 },
+      { phase: 'section3' as const, duration: 10000 },
+      { phase: 'full' as const, duration: 0 }
+    ];
+
+    let currentIndex = 0;
+
+    const runSequence = () => {
+      if (currentIndex >= sequence.length) return;
+
+      const current = sequence[currentIndex];
+      
+      // Fade in
+      setFadeState('in');
+      setStoryPhase(current.phase);
+
+      setTimeout(() => {
+        setFadeState('visible');
+
+        if (current.duration > 0) {
+          // Stay visible, then fade out
+          setTimeout(() => {
+            setFadeState('out');
+
+            // After fade out, move to next
+            setTimeout(() => {
+              currentIndex++;
+              runSequence();
+            }, 500); // Fade out duration
+          }, current.duration);
+        }
+      }, 500); // Fade in duration
+    };
+
+    runSequence();
+  }, [isVisible]);
 
   return (
     <div ref={sectionRef} className="relative py-8 overflow-hidden">
@@ -126,24 +173,60 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
             </div>
 
             {/* Story Text */}
-            <div className={`text-left transition-all duration-1000 ease-out text-white ${
-              isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-            }`} style={{ transitionDelay: '0.4s' }}>
-              <p className="text-base md:text-lg leading-relaxed mb-4">
-                "I created Voiceover Studio Finder for a very simple reason: my own studio kept making money while I was literally sat there checking emails. Years ago, a voiceover reached out because they were nearby and needed a professional booth. I said yes - and that became the first of dozens of sessions where I earned £150-£200 simply by letting someone use the space.
-              </p>
-              <p className="text-base md:text-lg leading-relaxed mb-4">
-                Recently, a local actress from Doncaster recorded a TV commercial here because she didn't have a booth at home - the agency were in Cardiff, so my studio was the perfect middle-ground. Two months ago, an American voice artist on holiday in the UK patched through to the USA for a TV ad, and I earned £175 while she worked.
-              </p>
-              <p className="text-base md:text-lg leading-relaxed mb-4">
-                It hit me... there are thousands of studios like mine - home booths, pro booths, podcast rooms - all sitting empty for hours a day. And there are thousands of voiceovers desperately needing somewhere local and reliable to record.
-              </p>
-              <p className="text-base md:text-lg leading-relaxed mb-4">
-                So I built the website I wished existed: a clean, simple, no-commission platform to connect the two."
-              </p>
-              <p className="text-sm md:text-base font-semibold mt-6" style={{ color: colors.primary }}>
-                - British Male Voiceover Guy Harris, Founder
-              </p>
+            <div className="text-left text-white relative min-h-[400px] lg:min-h-[500px]">
+              {/* Section 1 */}
+              <div className={`absolute inset-0 transition-opacity duration-500 ${
+                storyPhase === 'section1' && fadeState !== 'out' ? 'opacity-100' : 'opacity-0'
+              }`}>
+                <p className="text-base md:text-lg leading-relaxed">
+                  "I created Voiceover Studio Finder for a very simple reason: my own studio kept making money while I was literally sat there checking emails. Years ago, a voiceover reached out because they were nearby and needed a professional booth. I said yes - and that became the first of dozens of sessions where I earned £150-£200 simply by letting someone use the space...
+                </p>
+              </div>
+
+              {/* Section 2 */}
+              <div className={`absolute inset-0 transition-opacity duration-500 ${
+                storyPhase === 'section2' && fadeState !== 'out' ? 'opacity-100' : 'opacity-0'
+              }`}>
+                <p className="text-base md:text-lg leading-relaxed">
+                  "Recently, a local actress from Doncaster recorded a TV commercial here because she didn't have a booth at home - the agency were in Cardiff, so my studio was the perfect middle-ground. Two months ago, an American voice artist on holiday in the UK patched through to the USA for a TV ad, and I earned £175 while she worked...
+                </p>
+              </div>
+
+              {/* Section 3 */}
+              <div className={`absolute inset-0 transition-opacity duration-500 ${
+                storyPhase === 'section3' && fadeState !== 'out' ? 'opacity-100' : 'opacity-0'
+              }`}>
+                <p className="text-base md:text-lg leading-relaxed mb-4">
+                  "It hit me... there are thousands of studios like mine - home booths, pro booths, podcast rooms - all sitting empty for hours a day. And there are thousands of voiceovers desperately needing somewhere local and reliable to record.
+                </p>
+                <p className="text-base md:text-lg leading-relaxed">
+                  So I built the website I wished existed: a clean, simple, no-commission platform to connect the two."
+                </p>
+                <p className="text-sm md:text-base font-semibold mt-6" style={{ color: colors.primary }}>
+                  - British Male Voiceover Guy Harris, Founder
+                </p>
+              </div>
+
+              {/* Full Story */}
+              <div className={`absolute inset-0 transition-opacity duration-500 ${
+                storyPhase === 'full' && fadeState !== 'out' ? 'opacity-100' : 'opacity-0'
+              }`}>
+                <p className="text-base md:text-lg leading-relaxed mb-4">
+                  "I created Voiceover Studio Finder for a very simple reason: my own studio kept making money while I was literally sat there checking emails. Years ago, a voiceover reached out because they were nearby and needed a professional booth. I said yes - and that became the first of dozens of sessions where I earned £150-£200 simply by letting someone use the space.
+                </p>
+                <p className="text-base md:text-lg leading-relaxed mb-4">
+                  Recently, a local actress from Doncaster recorded a TV commercial here because she didn't have a booth at home - the agency were in Cardiff, so my studio was the perfect middle-ground. Two months ago, an American voice artist on holiday in the UK patched through to the USA for a TV ad, and I earned £175 while she worked.
+                </p>
+                <p className="text-base md:text-lg leading-relaxed mb-4">
+                  It hit me... there are thousands of studios like mine - home booths, pro booths, podcast rooms - all sitting empty for hours a day. And there are thousands of voiceovers desperately needing somewhere local and reliable to record.
+                </p>
+                <p className="text-base md:text-lg leading-relaxed mb-4">
+                  So I built the website I wished existed: a clean, simple, no-commission platform to connect the two."
+                </p>
+                <p className="text-sm md:text-base font-semibold mt-6" style={{ color: colors.primary }}>
+                  - British Male Voiceover Guy Harris, Founder
+                </p>
+              </div>
             </div>
           </div>
         </div>
