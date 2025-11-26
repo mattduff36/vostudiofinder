@@ -65,7 +65,11 @@ export function HeroSection() {
           <h1 className={`hp1 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-center transition-all duration-1000 delay-200 leading-tight ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ color: '#ffffff' }}>
-            Find a <span style={{ color: colors.primary }}>Voiceover Recording Studio</span> Near You
+            Find a<br className="hidden sm:block"/>
+            <span className="sm:hidden"> </span>
+            <span style={{ color: colors.primary }}>Voiceover Recording Studio</span><br className="hidden sm:block"/>
+            <span className="sm:hidden"> </span>
+            Near You
           </h1>
           
           <p className={`text-base sm:text-lg md:text-xl text-center transition-all duration-1000 ease-out px-4 ${
