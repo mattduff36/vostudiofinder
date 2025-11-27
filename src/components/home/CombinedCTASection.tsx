@@ -278,6 +278,7 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
                     height={400}
                     className="object-cover w-full h-auto"
                     priority={displaySection === 1}
+                    unoptimized
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
@@ -307,6 +308,7 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
                   width={600}
                   height={400}
                   className="object-cover w-full h-auto"
+                  unoptimized
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
               </div>
