@@ -26,6 +26,10 @@ export const createStudioSchema = z.object({
     .string()
     .max(255, 'Abbreviated address must be less than 255 characters')
     .optional(),
+  city: z
+    .string()
+    .min(1, 'City is required')
+    .max(100, 'City must be less than 100 characters'),
   website_url: z
     .string()
     .url('Please enter a valid website URL')
@@ -76,6 +80,11 @@ export const updateStudioSchema = z.object({
   abbreviated_address: z
     .string()
     .max(255, 'Abbreviated address must be less than 255 characters')
+    .optional(),
+  city: z
+    .string()
+    .min(1, 'City is required')
+    .max(100, 'City must be less than 100 characters')
     .optional(),
   website_url: z
     .string()

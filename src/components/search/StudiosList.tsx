@@ -12,6 +12,7 @@ interface Studio {
   description: string;
   studio_studio_types: Array<{ studio_type: string }>;
   address: string;
+  city?: string;
   website_url?: string;
   phone?: string;
   is_premium: boolean;
@@ -159,11 +160,11 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
               {/* Location and Description */}
               <div className="mb-3">
                 <div className="text-sm leading-snug" style={{ color: colors.textSecondary }}>
-                  {/* Location */}
-                  {studio.address && studio.address.trim() && (
+                  {/* Location - Show city if available, otherwise fall back to address */}
+                  {(studio.city || studio.address) && (
                     <div className="flex items-start mb-1.5">
                       <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-                      <span className="line-clamp-1">{studio.address}</span>
+                      <span className="line-clamp-1">{studio.city || studio.address}</span>
                     </div>
                   )}
                   

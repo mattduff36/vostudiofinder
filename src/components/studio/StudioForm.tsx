@@ -11,6 +11,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { studio_type, ServiceType } from '@/types/prisma';
 import { Globe, Phone, Trash2, Upload } from 'lucide-react';
+import { extractCity } from '@/lib/utils/address';
 
 interface StudioFormProps {
   initialData?: Partial<CreateStudioInput> & {
@@ -222,6 +223,8 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                     setValue('full_address', value);
                     // Always auto-populate abbreviated address when full address changes
                     setValue('abbreviated_address', value);
+                    // Auto-populate city from full address
+                    setValue('city', extractCity(value));
                   }}
                   placeholder="Start typing your full address..."
                   helperText="Complete address used for geocoding and map coordinates"
@@ -233,6 +236,13 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                 error={errors.abbreviated_address?.message || ''}
                 helperText="This address will be shown on your public profile. You can abbreviate or customize it."
                 {...register('abbreviated_address')}
+              />
+              <Input
+                label="City"
+                placeholder="Enter city name..."
+                error={errors.city?.message || ''}
+                helperText="City will be auto-populated from the full address above. You can edit it if needed."
+                {...register('city')}
               />
             </div>
 

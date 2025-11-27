@@ -210,6 +210,7 @@ model studios {
   address               String?                 // Legacy field - kept for backward compatibility
   full_address          String?                // Full address for geocoding
   abbreviated_address   String?                // Abbreviated address for display
+  city                  String                  // City extracted from full_address
   latitude              Decimal?                @db.Decimal(10, 8)
   longitude             Decimal?                @db.Decimal(11, 8)
   website_url           String?

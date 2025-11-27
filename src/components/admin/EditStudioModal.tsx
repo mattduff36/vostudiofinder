@@ -11,6 +11,7 @@ import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { getCurrencySymbol } from '@/lib/utils/currency';
+import { extractCity } from '@/lib/utils/address';
 
 interface Studio {
   id: string;
@@ -418,6 +419,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           handleMetaChange('full_address', value);
           // Always auto-populate abbreviated address when full address changes
           handleMetaChange('abbreviated_address', value);
+          // Auto-populate city from full address
+          handleMetaChange('city', extractCity(value));
         }}
         placeholder="Start typing your full address..."
         helperText="Complete address used for geocoding and map coordinates"
@@ -430,6 +433,15 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         onChange={(e) => handleMetaChange('abbreviated_address', e.target.value)}
         placeholder="Enter abbreviated address for display..."
         helperText="This address will be shown on your public profile (if visibility is enabled). You can abbreviate or customize it."
+      />
+
+      <Input
+        label="City"
+        type="text"
+        value={profile?._meta?.city || ''}
+        onChange={(e) => handleMetaChange('city', e.target.value)}
+        placeholder="Enter city name..."
+        helperText="City will be auto-populated from the full address above. You can edit it if needed."
       />
 
       <CountryAutocomplete
