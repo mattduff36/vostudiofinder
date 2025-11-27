@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
           address: validatedData.address || null, // Legacy field
           full_address: validatedData.full_address || null,
           abbreviated_address: validatedData.abbreviated_address || null,
+          city: validatedData.city || '',
           latitude: latitude,
           longitude: longitude,
           website_url: validatedData.website_url || null,
