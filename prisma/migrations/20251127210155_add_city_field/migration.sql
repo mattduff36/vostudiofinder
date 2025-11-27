@@ -1,0 +1,1 @@
+-- Add city field to studios table\nALTER TABLE "studios" ADD COLUMN "city" TEXT NOT NULL DEFAULT '';

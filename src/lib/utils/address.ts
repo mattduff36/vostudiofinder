@@ -49,6 +49,56 @@ export function isCompleteAddress(address: string | null | undefined): boolean {
 }
 
 /**
+ * Extracts the city name from a full address
+ * @param fullAddress - The complete address string
+ * @returns City name extracted from the address
+ * 
+ * Examples:
+ * - "123 Main St, London, SW1A 1AA" → "London"
+ * - "456 Oak Ave, Los Angeles, CA 90001" → "Los Angeles"
+ * - "789 Elm St, Manchester, M1 1AA, UK" → "Manchester"
+ */
+export function extractCity(fullAddress: string): string {
+  if (!fullAddress || fullAddress.trim() === '') {
+    return '';
+  }
+
+  // Split address by common delimiters (comma, newline)
+  const parts = fullAddress.split(/[,\n]/).map(part => part.trim()).filter(part => part.length > 0);
+
+  if (parts.length === 0) {
+    return '';
+  }
+
+  // If only one part, return it as is (likely just a city name)
+  if (parts.length === 1) {
+    return parts[0] || '';
+  }
+
+  // For multi-part addresses:
+  // - First part is usually the street address (e.g., "123 Main St")
+  // - Second part is usually the city (e.g., "London", "Los Angeles")
+  // - Third+ parts are state/region/postcode/country
+  
+  // Return the second part (index 1) as it's typically the city
+  if (parts.length >= 2) {
+    const cityCandidate = parts[1] || '';
+    
+    // Remove any postcodes/zip codes that might be in the city part
+    // UK postcodes: letters + numbers (e.g., "SW1A 1AA")
+    const cleanedCity = cityCandidate.replace(/\b[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}\b/gi, '').trim();
+    
+    // US ZIP codes
+    const cleanedCity2 = cleanedCity.replace(/\b\d{5}(-\d{4})?\b/g, '').trim();
+    
+    // If after cleaning we still have text, return it, otherwise return the original
+    return cleanedCity2 || cityCandidate;
+  }
+
+  return '';
+}
+
+/**
  * Abbreviates an address for privacy by removing the first line and truncating postcodes/zip codes
  * @param fullAddress - The complete address string
  * @returns Abbreviated address for privacy

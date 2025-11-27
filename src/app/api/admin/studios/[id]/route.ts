@@ -80,6 +80,7 @@ export async function GET(
       address: studio.address || '', // Legacy field
       full_address: studio.full_address || '',
       abbreviated_address: studio.abbreviated_address || '',
+      city: studio.city || '',
       phone: studio.phone || '',
       url: studio.website_url || '',
       instagram: studio.users?.user_profiles?.instagram_url || '',
@@ -250,6 +251,7 @@ export async function PUT(
     if (body._meta?.address !== undefined) studioUpdateData.address = body._meta.address; // Legacy field
     if (body._meta?.full_address !== undefined) studioUpdateData.full_address = body._meta.full_address;
     if (body._meta?.abbreviated_address !== undefined) studioUpdateData.abbreviated_address = body._meta.abbreviated_address;
+    if (body._meta?.city !== undefined) studioUpdateData.city = body._meta.city;
     if (body._meta?.phone !== undefined) studioUpdateData.phone = body._meta.phone;
     if (body._meta?.url !== undefined) studioUpdateData.website_url = body._meta.url;
     if (body._meta?.latitude !== undefined) studioUpdateData.latitude = parseFloat(body._meta.latitude) || null;
@@ -450,6 +452,7 @@ export async function PUT(
         longitude: true,
         full_address: true,
         abbreviated_address: true,
+        city: true,
       },
     });
 
@@ -462,6 +465,7 @@ export async function PUT(
       },
       full_address: updatedStudio?.full_address || null,
       abbreviated_address: updatedStudio?.abbreviated_address || null,
+      city: updatedStudio?.city || null,
     });
 
   } catch (error) {

@@ -11,6 +11,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { getCurrencySymbol } from '@/lib/utils/currency';
+import { extractCity } from '@/lib/utils/address';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -67,6 +68,7 @@ interface ProfileData {
     address?: string;
     full_address?: string;
     abbreviated_address?: string;
+    city?: string;
     website_url?: string;
     phone?: string;
   };
@@ -432,6 +434,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 updateStudio('full_address', value);
                 // Always auto-populate abbreviated address when full address changes
                 updateStudio('abbreviated_address', value);
+                // Auto-populate city from full address
+                updateStudio('city', extractCity(value));
               }}
               placeholder="Start typing your full address..."
               helperText="Complete address used for geocoding and map coordinates"
@@ -444,6 +448,15 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               onChange={(e) => updateStudio('abbreviated_address', e.target.value)}
               placeholder="Enter abbreviated address for display..."
               helperText="This address will be shown on your public profile (if visibility is enabled). You can abbreviate or customize it."
+            />
+
+            <Input
+              label="City"
+              type="text"
+              value={profile.studio?.city || ''}
+              onChange={(e) => updateStudio('city', e.target.value)}
+              placeholder="Enter city name..."
+              helperText="City will be auto-populated from the full address above. You can edit it if needed."
             />
 
             <CountryAutocomplete

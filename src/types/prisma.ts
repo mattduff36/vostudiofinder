@@ -62,6 +62,9 @@ export type Studio = {
   name: string;
   description?: string | null;
   address?: string | null;
+  full_address?: string | null;
+  abbreviated_address?: string | null;
+  city: string;
   latitude?: number | null;
   longitude?: number | null;
   website_url?: string | null;

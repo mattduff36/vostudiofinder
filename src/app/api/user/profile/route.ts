@@ -151,6 +151,7 @@ export async function GET() {
           address: studio.address, // Legacy field
           full_address: studio.full_address,
           abbreviated_address: studio.abbreviated_address,
+          city: studio.city,
           latitude: studio.latitude ? Number(studio.latitude) : null,
           longitude: studio.longitude ? Number(studio.longitude) : null,
           website_url: studio.website_url,
@@ -337,6 +338,7 @@ export async function PUT(request: NextRequest) {
         if (body.studio.address !== undefined) studioUpdates.address = body.studio.address; // Legacy field
         if (body.studio.full_address !== undefined) studioUpdates.full_address = body.studio.full_address;
         if (body.studio.abbreviated_address !== undefined) studioUpdates.abbreviated_address = body.studio.abbreviated_address;
+        if (body.studio.city !== undefined) studioUpdates.city = body.studio.city;
         if (body.studio.website_url !== undefined) studioUpdates.website_url = body.studio.website_url;
         if (body.studio.phone !== undefined) studioUpdates.phone = body.studio.phone;
         if (body.studio.is_profile_visible !== undefined) studioUpdates.is_profile_visible = body.studio.is_profile_visible;
