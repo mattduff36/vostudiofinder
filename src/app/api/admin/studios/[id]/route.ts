@@ -146,6 +146,7 @@ export async function GET(
         address: studioData.address, // Legacy field
         full_address: studioData.full_address,
         abbreviated_address: studioData.abbreviated_address,
+        city: studioData.city,
         phone: studioData.phone,
         url: studioData.url,
         instagram: studioData.instagram,
