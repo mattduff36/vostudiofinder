@@ -436,12 +436,12 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       />
 
       <Input
-        label="City"
+        label="Region (Town / City)"
         type="text"
         value={profile?._meta?.city || ''}
         onChange={(e) => handleMetaChange('city', e.target.value)}
-        placeholder="Enter city name..."
-        helperText="City will be auto-populated from the full address above. You can edit it if needed."
+        placeholder="Enter town or city name..."
+        helperText="Region will be auto-populated from the full address above. You can edit it if needed."
       />
 
       <CountryAutocomplete

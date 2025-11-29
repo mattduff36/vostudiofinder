@@ -48,6 +48,20 @@ export function isCompleteAddress(address: string | null | undefined): boolean {
   return indicators >= 2 || (hasStreetNumber && trimmed.length > 20);
 }
 
+// Major UK cities to prioritize when extracting city from addresses
+// This helps distinguish between villages/towns and actual cities
+const UK_MAJOR_CITIES = [
+  'London', 'Birmingham', 'Manchester', 'Glasgow', 'Edinburgh', 'Liverpool', 
+  'Leeds', 'Sheffield', 'Bristol', 'Newcastle', 'Cardiff', 'Belfast', 
+  'Nottingham', 'Leicester', 'Southampton', 'Brighton', 'Hull', 'Plymouth',
+  'Stoke', 'Wolverhampton', 'Derby', 'Swansea', 'Aberdeen', 'Portsmouth',
+  'York', 'Peterborough', 'Dundee', 'Lancaster', 'Oxford', 'Cambridge',
+  'Ipswich', 'Norwich', 'Luton', 'Solihull', 'Coventry', 'Reading',
+  'Bradford', 'Sunderland', 'Preston', 'Exeter', 'Chelmsford', 'Gloucester',
+  'Salisbury', 'Chester', 'Bath', 'Durham', 'Inverness', 'Stirling',
+  'Perth', 'Canterbury', 'Winchester', 'Worcester', 'Carlisle', 'Truro'
+];
+
 /**
  * Extracts the city name from a full address
  * @param fullAddress - The complete address string
@@ -56,7 +70,8 @@ export function isCompleteAddress(address: string | null | undefined): boolean {
  * Examples:
  * - "123 Main St, London, SW1A 1AA" → "London"
  * - "456 Oak Ave, Los Angeles, CA 90001" → "Los Angeles"
- * - "789 Elm St, Manchester, M1 1AA, UK" → "Manchester"
+ * - "789 Elm St, Edwinstowe, Nottingham, NG21 9PR, UK" → "Nottingham"
+ * - "10 High St, Hove, Brighton, BN3 1AB" → "Brighton"
  */
 export function extractCity(fullAddress: string): string {
   if (!fullAddress || fullAddress.trim() === '') {
@@ -75,24 +90,71 @@ export function extractCity(fullAddress: string): string {
     return parts[0] || '';
   }
 
-  // For multi-part addresses:
-  // - First part is usually the street address (e.g., "123 Main St")
-  // - Second part is usually the city (e.g., "London", "Los Angeles")
-  // - Third+ parts are state/region/postcode/country
-  
-  // Return the second part (index 1) as it's typically the city
+  // Strategy 1: Look for known UK major cities in the address parts
+  // This handles cases like "Street, Village, City, Postcode"
+  for (const part of parts) {
+    // Clean the part (remove postcodes first)
+    const cleanedPart = part
+      .replace(/\b[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}\b/gi, '') // UK postcodes
+      .replace(/\b\d{5}(-\d{4})?\b/g, '') // US ZIP codes
+      .trim();
+    
+    // Check if this part matches a known UK city (case-insensitive)
+    const matchedCity = UK_MAJOR_CITIES.find(
+      city => cleanedPart.toLowerCase() === city.toLowerCase()
+    );
+    
+    if (matchedCity) {
+      return matchedCity;
+    }
+  }
+
+  // Strategy 2: For non-UK or unrecognized cities, use heuristics
+  // Skip the first part (street address) and look for a city-like component
+  for (let i = 1; i < parts.length; i++) {
+    const part = parts[i] || '';
+    
+    // Skip parts that look like postcodes
+    if (/^[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}$/i.test(part)) {
+      continue;
+    }
+    
+    // Skip parts that are just ZIP codes
+    if (/^\d{5}(-\d{4})?$/.test(part)) {
+      continue;
+    }
+    
+    // Skip parts that are country names
+    if (/^(UK|USA|United Kingdom|United States)$/i.test(part)) {
+      continue;
+    }
+    
+    // Skip parts that look like US states (2 letter codes)
+    if (/^[A-Z]{2}$/.test(part)) {
+      continue;
+    }
+    
+    // Clean the part
+    const cleanedPart = part
+      .replace(/\b[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}\b/gi, '') // UK postcodes
+      .replace(/\b\d{5}(-\d{4})?\b/g, '') // US ZIP codes
+      .trim();
+    
+    // If we have a substantial part left, it's likely the city
+    if (cleanedPart.length >= 2) {
+      return cleanedPart;
+    }
+  }
+
+  // Fallback: Return the second part (traditional approach)
   if (parts.length >= 2) {
     const cityCandidate = parts[1] || '';
+    const cleanedCity = cityCandidate
+      .replace(/\b[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}\b/gi, '')
+      .replace(/\b\d{5}(-\d{4})?\b/g, '')
+      .trim();
     
-    // Remove any postcodes/zip codes that might be in the city part
-    // UK postcodes: letters + numbers (e.g., "SW1A 1AA")
-    const cleanedCity = cityCandidate.replace(/\b[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}\b/gi, '').trim();
-    
-    // US ZIP codes
-    const cleanedCity2 = cleanedCity.replace(/\b\d{5}(-\d{4})?\b/g, '').trim();
-    
-    // If after cleaning we still have text, return it, otherwise return the original
-    return cleanedCity2 || cityCandidate;
+    return cleanedCity || cityCandidate;
   }
 
   return '';
