@@ -451,12 +451,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             />
 
             <Input
-              label="City"
+              label="Region (Town / City)"
               type="text"
               value={profile.studio?.city || ''}
               onChange={(e) => updateStudio('city', e.target.value)}
-              placeholder="Enter city name..."
-              helperText="City will be auto-populated from the full address above. You can edit it if needed."
+              placeholder="Enter town or city name..."
+              helperText="Region will be auto-populated from the full address above. You can edit it if needed."
             />
 
             <CountryAutocomplete
