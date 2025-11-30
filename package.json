@@ -51,6 +51,7 @@
     "dotenv": "^17.2.3",
     "ioredis": "^5.8.1",
     "lucide-react": "^0.554.0",
+    "nanoid": "^5.1.6",
     "next": "^16.0.3",
     "next-auth": "^4.24.11",
     "playwright": "^1.40.0",
