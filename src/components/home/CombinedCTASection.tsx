@@ -156,8 +156,8 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
         <p className="text-sm leading-relaxed text-white mb-8">
           So I built the platform I wished existed: a clean, simple, no-commission way to connect the two."
         </p>
-        <p className="text-xs font-semibold mt-6 text-red-500">
-          — British Male Voiceover Guy Harris, Founder
+        <p className="text-xs font-semibold mt-6 text-red-500 text-right">
+          - British Male Voiceover Guy Harris, Founder
         </p>
       </>
     );
