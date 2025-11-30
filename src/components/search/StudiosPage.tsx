@@ -122,8 +122,17 @@ export function StudiosPage() {
     position: { x: number; y: number };
   } | null>(null);
 
+  // Generate dynamic H1 text based on location
+  const dynamicH1Text = useMemo(() => {
+    const location = searchParams.get('location');
+    if (location && location.trim()) {
+      return `Studios Available in ${location}`;
+    }
+    return 'Studios Available Worldwide';
+  }, [searchParams]);
+
   // Use dynamic text sizing hook
-  const { fontSize, measureRef } = useDynamicTextSize('Available Studios', containerWidth, 48);
+  const { fontSize, measureRef } = useDynamicTextSize(dynamicH1Text, containerWidth, 48);
 
   // Track container width and mobile state for dynamic text sizing
   useEffect(() => {
@@ -505,15 +514,23 @@ export function StudiosPage() {
           }}
         ></div>
         <div ref={titleContainerRef} className="relative z-10 max-w-7xl mx-auto px-6 flex items-center justify-center" style={{ height: '120px' }}>
-          <h1 
-            className="font-bold whitespace-nowrap sm:text-3xl md:text-4xl lg:text-5xl" 
-            style={{ 
-              color: '#ffffff',
-              fontSize: isMobile ? `${fontSize}px` : undefined
-            }}
-          >
-            Available Studios
-          </h1>
+          <div className="text-center">
+            <h1 
+              className="font-bold whitespace-nowrap sm:text-3xl md:text-4xl lg:text-5xl" 
+              style={{ 
+                color: '#ffffff',
+                fontSize: isMobile ? `${fontSize}px` : undefined
+              }}
+            >
+              {dynamicH1Text}
+            </h1>
+            <h2 
+              className="text-base sm:text-lg md:text-xl mt-3 font-normal"
+              style={{ color: '#ffffff' }}
+            >
+              Find voiceover, recording and podcast studios near you
+            </h2>
+          </div>
           {/* Hidden measurement element */}
           <span 
             ref={measureRef}
@@ -663,6 +680,7 @@ export function StudiosPage() {
                 overflowY: 'auto'
               } : {}}
             >
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Studios</h3>
               <SearchFilters
                 initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
