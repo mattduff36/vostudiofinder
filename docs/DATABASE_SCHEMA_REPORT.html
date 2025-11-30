@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VO Studio Finder - Database Architecture Report</title>
+<style>
+    /* Professional Document Styling */
+    body {
+        font-family: 'Segoe UI', 'Calibri', sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px;
+        background-color: #f8f9fa;
+    }
+
+    /* Headings */
+    h1 {
+        font-size: 32pt;
+        color: #1e3a8a; /* Deep Navy */
+        border-bottom: 4px solid #3b82f6; /* Bright Blue */
+        padding-bottom: 15px;
+        margin-top: 0;
+        text-align: center;
+    }
+    h2 {
+        font-size: 22pt;
+        color: #0f766e; /* Teal */
+        border-left: 6px solid #0f766e;
+        padding-left: 20px;
+        margin-top: 50px;
+        background-color: #f0fdfa;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        border-radius: 4px;
+    }
+    h3 {
+        font-size: 18pt;
+        color: #1f2937;
+        margin-top: 35px;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 5px;
+    }
+    h4 {
+        font-size: 14pt;
+        color: #4b5563;
+        margin-top: 25px;
+        margin-bottom: 10px;
+    }
+
+    /* Header Info */
+    .header-info {
+        text-align: center;
+        font-size: 11pt;
+        color: #6b7280;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #d1d5db;
+    }
+
+    /* Tables */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    th {
+        background-color: #1e3a8a;
+        color: #ffffff;
+        text-align: left;
+        padding: 14px;
+        font-weight: 600;
+        font-size: 11pt;
+        border: none;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    td {
+        padding: 12px 14px;
+        border: 1px solid #e5e7eb;
+        vertical-align: top;
+        font-size: 10.5pt;
+    }
+    /* Zebra Striping */
+    tbody tr:nth-child(even) {
+        background-color: #f9fafb;
+    }
+    tbody tr:hover {
+        background-color: #eff6ff;
+        transition: background-color 0.2s ease;
+    }
+
+    /* Badges & Highlights */
+    .pk {
+        background-color: #fef3c7;
+        color: #b45309;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.85em;
+        border: 1px solid #fcd34d;
+        display: inline-block;
+    }
+    .fk {
+        background-color: #e0e7ff;
+        color: #3730a3;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.85em;
+        border: 1px solid #a5b4fc;
+        display: inline-block;
+    }
+    .enum-val {
+        background-color: #dcfce7;
+        color: #166534;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-family: 'Consolas', monospace;
+        font-size: 0.9em;
+        display: inline-block;
+        margin: 2px;
+        border: 1px solid #86efac;
+        font-weight: 500;
+    }
+    
+    /* Info Box */
+    .info-box {
+        background-color: #fffbeb;
+        border-left: 6px solid #f59e0b;
+        padding: 20px;
+        margin: 25px 0;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .info-box strong {
+        color: #92400e;
+        font-size: 11pt;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 50px;
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .stat-number {
+        font-size: 32pt;
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+    }
+    .stat-label {
+        font-size: 10pt;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.9;
+    }
+
+    /* Code blocks */
+    pre {
+        background-color: #1f2937;
+        color: #f9fafb;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 9.5pt;
+        line-height: 1.5;
+    }
+
+    /* Relationship Diagram */
+    .diagram {
+        background-color: #f1f5f9;
+        padding: 25px;
+        border-radius: 8px;
+        font-family: 'Consolas', monospace;
+        white-space: pre;
+        overflow-x: auto;
+        border: 2px solid #cbd5e1;
+        font-size: 9.5pt;
+        line-height: 1.6;
+        margin: 20px 0;
+    }
+
+    /* Section spacing */
+    section {
+        background-color: white;
+        padding: 30px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Lists */
+    ul {
+        line-height: 1.8;
+    }
+    li {
+        margin-bottom: 8px;
+    }
+
+    /* Emphasis */
+    strong {
+        color: #1f2937;
+    }
+
+    code {
+        background-color: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Consolas', monospace;
+        font-size: 0.95em;
+        color: #be123c;
+    }
+</style>
+</head>
+<body>
+
+    <h1>VO Studio Finder Database Architecture</h1>
+    <div class="header-info">
+        <strong>Generated:</strong> November 30, 2025 | 
+        <strong>Database:</strong> PostgreSQL 14+ (Neon) | 
+        <strong>ORM:</strong> Prisma 5.x | 
+        <strong>Source:</strong> Live Production Database
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-number">687</span>
+            <span class="stat-label">Total Users</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">651</span>
+            <span class="stat-label">Total Studios</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">487</span>
+            <span class="stat-label">Active Studios</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">22</span>
+            <span class="stat-label">Database Tables</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">1,246</span>
+            <span class="stat-label">Studio Images</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">218</span>
+            <span class="stat-label">Unique Cities</span>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <strong>System Overview:</strong> The VO Studio Finder database is a professional networking and directory platform designed for voiceover artists and recording studios. It features PostgreSQL as the database engine, Prisma as the ORM, role-based access control (RBAC), geographic search capabilities with Haversine radius calculations, Stripe payment integration for premium subscriptions ($299/year), Cloudinary CDN for image storage, and a comprehensive moderation system for user-generated content.
+    </div>
+
+    <section>
+        <h2>1. User Management & Authentication</h2>
+        
+        <div class="info-box">
+            <strong>Current Stats:</strong> 687 total users • 685 regular users • 2 admins • 686 user profiles • 6 featured users • 402 active connections
+        </div>
+
+        <h3>Table: users</h3>
+        <p>The core identity table for the application. Handles authentication via NextAuth with support for email/password (bcrypt) and OAuth providers (Google, Facebook, Twitter).</p>
+        <table>
+            <thead>
+                <tr>
+                    <th width="18%">Field</th>
+                    <th width="12%">Type</th>
+                    <th width="22%">Constraints</th>
+                    <th width="48%">Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>id</strong></td>
+                    <td>String</td>
+                    <td><span class="pk">PRIMARY KEY</span></td>
+                    <td>Unique user identifier (base64url encoded, 12-byte random).</td>
+                </tr>
+                <tr>
+                    <td><strong>email</strong></td>
+                    <td>String</td>
+                    <td>UNIQUE, NOT NULL, INDEX</td>
+                    <td>Primary contact/login email address.</td>
+                </tr>
+                <tr>
+                    <td><strong>username</strong></td>
+                    <td>String</td>
+                    <td>UNIQUE, NOT NULL, INDEX</td>
+                    <td>Public-facing URL slug (e.g., /{username}).</td>
+                </tr>
+                <tr>
+                    <td><strong>display_name</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL</td>
+                    <td>Display name shown throughout the application.</td>
+                </tr>
+                <tr>
+                    <td><strong>avatar_url</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Profile picture URL (stored on Cloudinary CDN).</td>
+                </tr>
+                <tr>
+                    <td><strong>role</strong></td>
+                    <td>Role enum</td>
+                    <td>DEFAULT: USER</td>
+                    <td>Permission level: <span class="enum-val">USER</span> <span class="enum-val">STUDIO_OWNER</span> <span class="enum-val">ADMIN</span></td>
+                </tr>
+                <tr>
+                    <td><strong>email_verified</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false</td>
+                    <td>Email verification status (NextAuth managed).</td>
+                </tr>
+                <tr>
+                    <td><strong>password</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Hashed password (bcrypt, 10 rounds). NULL for OAuth users.</td>
+                </tr>
+                <tr>
+                    <td><strong>created_at</strong></td>
+                    <td>DateTime</td>
+                    <td>DEFAULT: now()</td>
+                    <td>Account creation timestamp.</td>
+                </tr>
+                <tr>
+                    <td><strong>updated_at</strong></td>
+                    <td>DateTime</td>
+                    <td>NOT NULL</td>
+                    <td>Last update timestamp (Prisma auto-updates).</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Relationships:</h4>
+        <ul>
+            <li><strong>1:1</strong> with user_profiles (extended profile data)</li>
+            <li><strong>1:N</strong> with studios (owned studios)</li>
+            <li><strong>1:N</strong> with reviews (as reviewer and as owner)</li>
+            <li><strong>1:N</strong> with messages (as sender and receiver)</li>
+            <li><strong>1:N</strong> with notifications, sessions, accounts, subscriptions</li>
+            <li><strong>1:N</strong> with user_connections (professional networking)</li>
+        </ul>
+
+        <h4>Usage on Site:</h4>
+        <ul>
+            <li><strong>Authentication:</strong> Email/password and OAuth login at /auth/signin</li>
+            <li><strong>Profile Pages:</strong> Public profiles at /{username}</li>
+            <li><strong>Search Results:</strong> Display names and avatars in studio listings</li>
+            <li><strong>Admin Panel:</strong> User management at /admin/users</li>
+            <li><strong>Role-Based Access:</strong> Middleware protection in src/proxy.ts</li>
+        </ul>
+
+        <h3>Table: user_profiles</h3>
+        <p>Extended user profile information. Contains 30+ fields including biography, social media links, pricing tiers, equipment lists, and privacy settings. Relates 1:1 with <code>users</code> table.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Constraints</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>id</strong></td>
+                    <td>String</td>
+                    <td><span class="pk">PK</span></td>
+                    <td>Unique profile identifier.</td>
+                </tr>
+                <tr>
+                    <td><strong>user_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> UNIQUE, INDEX</td>
+                    <td>One-to-one relationship. Cascades on delete.</td>
+                </tr>
+                <tr>
+                    <td><strong>about</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Full "About Me" biography (displayed on profile pages).</td>
+                </tr>
+                <tr>
+                    <td><strong>short_about</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Short bio (used in search results and cards).</td>
+                </tr>
+                <tr>
+                    <td><strong>location</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>User's location/city.</td>
+                </tr>
+                <tr>
+                    <td><strong>is_featured</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false, INDEX</td>
+                    <td>If true, appears on Homepage (Max 6, VoiceoverGuy pinned first).</td>
+                </tr>
+                <tr>
+                    <td><strong>is_spotlight</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false, INDEX</td>
+                    <td>Premium page spotlight status.</td>
+                </tr>
+                <tr>
+                    <td><strong>verification_level</strong></td>
+                    <td>String</td>
+                    <td>DEFAULT: "none", INDEX</td>
+                    <td>Admin verification status (none, verified, premium).</td>
+                </tr>
+                <tr>
+                    <td><strong>rate_tier_1/2/3</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Three pricing tiers for voiceover services.</td>
+                </tr>
+                <tr>
+                    <td><strong>show_rates</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false</td>
+                    <td>Display rates publicly on profile.</td>
+                </tr>
+                <tr>
+                    <td><strong>Social Links</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE (multiple fields)</td>
+                    <td>facebook_url, x_url (Twitter), linkedin_url, instagram_url, tiktok_url, threads_url, youtube_url, soundcloud_url</td>
+                </tr>
+                <tr>
+                    <td><strong>equipment_list</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>List of studio equipment.</td>
+                </tr>
+                <tr>
+                    <td><strong>connection1-12</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE, VARCHAR(10)</td>
+                    <td>12 predefined connection method fields.</td>
+                </tr>
+                <tr>
+                    <td><strong>custom_connection_methods</strong></td>
+                    <td>String[]</td>
+                    <td>ARRAY</td>
+                    <td>Custom connection methods beyond the 12 predefined.</td>
+                </tr>
+                <tr>
+                    <td><strong>show_email</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false</td>
+                    <td>Privacy: show email publicly.</td>
+                </tr>
+                <tr>
+                    <td><strong>show_phone</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false</td>
+                    <td>Privacy: show phone publicly.</td>
+                </tr>
+                <tr>
+                    <td><strong>show_directions</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: true</td>
+                    <td>Show directions on map display.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Featured System:</h4>
+        <ul>
+            <li><strong>Max 6 featured studios</strong> displayed on homepage</li>
+            <li><strong>VoiceoverGuy</strong> user always pinned first position</li>
+            <li>Other 5 slots randomized on each page load</li>
+            <li>Currently <strong>6 featured users</strong> in database</li>
+        </ul>
+
+        <h3>Table: accounts</h3>
+        <p>OAuth provider accounts managed by NextAuth.js. Supports multiple providers per user.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>id</strong></td>
+                    <td>String</td>
+                    <td><span class="pk">PK</span></td>
+                </tr>
+                <tr>
+                    <td><strong>user_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> (CASCADE DELETE)</td>
+                </tr>
+                <tr>
+                    <td><strong>provider</strong></td>
+                    <td>String</td>
+                    <td>OAuth provider name (google, facebook, twitter)</td>
+                </tr>
+                <tr>
+                    <td><strong>provider_account_id</strong></td>
+                    <td>String</td>
+                    <td>Provider's user ID</td>
+                </tr>
+                <tr>
+                    <td><strong>access_token / refresh_token</strong></td>
+                    <td>String</td>
+                    <td>OAuth tokens for API access</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Unique Constraint:</strong> [provider, provider_account_id] - prevents duplicate provider accounts</p>
+        <p><strong>Current Records:</strong> 0 OAuth accounts (all users use email/password)</p>
+
+        <h3>Table: sessions</h3>
+        <p>User session management. JWT-based strategy with database fallback.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>session_token</strong></td>
+                    <td>String</td>
+                    <td>UNIQUE, NOT NULL - Session identifier</td>
+                </tr>
+                <tr>
+                    <td><strong>user_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> (CASCADE DELETE)</td>
+                </tr>
+                <tr>
+                    <td><strong>expires</strong></td>
+                    <td>DateTime</td>
+                    <td>Session expiration timestamp</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Session Strategy:</strong> JWT (configured in src/lib/auth.ts)</p>
+        <p><strong>Current Sessions:</strong> 0 active sessions</p>
+
+        <h3>Table: user_connections</h3>
+        <p>Professional networking system (LinkedIn-style connections). Currently <strong>402 accepted connections</strong> in database.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>user_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> (requestor)</td>
+                </tr>
+                <tr>
+                    <td><strong>connected_user_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> (recipient)</td>
+                </tr>
+                <tr>
+                    <td><strong>accepted</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false (pending until accepted)</td>
+                </tr>
+                <tr>
+                    <td><strong>created_at</strong></td>
+                    <td>DateTime</td>
+                    <td>Request creation timestamp</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Unique Constraint:</strong> [user_id, connected_user_id] - prevents duplicate requests</p>
+        <p><strong>Bidirectional Queries:</strong> Must check both directions when querying connections</p>
+    </section>
+
+    <section>
+        <h2>2. Studio Directory & Geographic Search</h2>
+        
+        <div class="info-box">
+            <strong>Current Stats:</strong> 651 total studios • 487 active • 6 premium • 36 verified • 1,246 images • 536 with GPS coordinates • 218 unique cities
+        </div>
+
+        <h3>Table: studios</h3>
+        <p>The central entity for the application. Supports geographic radius search using Haversine formula (10-500 miles) and complex filtering by type, services, and status.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th width="20%">Field</th>
+                    <th width="15%">Type</th>
+                    <th width="25%">Constraints</th>
+                    <th width="40%">Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>id</strong></td>
+                    <td>String</td>
+                    <td><span class="pk">PRIMARY KEY</span></td>
+                    <td>Unique studio identifier.</td>
+                </tr>
+                <tr>
+                    <td><strong>owner_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> INDEX</td>
+                    <td>The user who owns/manages this studio listing.</td>
+                </tr>
+                <tr>
+                    <td><strong>name</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL</td>
+                    <td>Studio name (displayed in search results and profile).</td>
+                </tr>
+                <tr>
+                    <td><strong>description</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Full studio description (supports markdown).</td>
+                </tr>
+                <tr>
+                    <td><strong>status</strong></td>
+                    <td>StudioStatus</td>
+                    <td>DEFAULT: ACTIVE, INDEX</td>
+                    <td><span class="enum-val">DRAFT</span> <span class="enum-val">ACTIVE</span> <span class="enum-val">INACTIVE</span> <span class="enum-val">PENDING</span></td>
+                </tr>
+                <tr>
+                    <td><strong>is_premium</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false, INDEX</td>
+                    <td><strong>Priority Sorting:</strong> Premium studios appear first in all search results ($299/year subscription).</td>
+                </tr>
+                <tr>
+                    <td><strong>is_verified</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false, INDEX</td>
+                    <td>Admin-verified badge. Second priority in search results.</td>
+                </tr>
+                <tr>
+                    <td><strong>is_profile_visible</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: true</td>
+                    <td>Public visibility toggle (hide from search/public view).</td>
+                </tr>
+                <tr>
+                    <td><strong>full_address</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Complete address for geocoding (Google Maps API).</td>
+                </tr>
+                <tr>
+                    <td><strong>abbreviated_address</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Shortened address shown to users (privacy).</td>
+                </tr>
+                <tr>
+                    <td><strong>city</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL, INDEX</td>
+                    <td>City extracted from full_address for filtering.</td>
+                </tr>
+                <tr>
+                    <td><strong>latitude</strong></td>
+                    <td>Decimal(10,8)</td>
+                    <td>NULLABLE</td>
+                    <td>GPS latitude for map display and radius calculations.</td>
+                </tr>
+                <tr>
+                    <td><strong>longitude</strong></td>
+                    <td>Decimal(11,8)</td>
+                    <td>NULLABLE</td>
+                    <td>GPS longitude for map display and radius calculations.</td>
+                </tr>
+                <tr>
+                    <td><strong>website_url</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Studio website link.</td>
+                </tr>
+                <tr>
+                    <td><strong>phone</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Contact phone number.</td>
+                </tr>
+                <tr>
+                    <td><strong>address (legacy)</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE</td>
+                    <td>Old address field (kept for backward compatibility).</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Address System (Three-Field Architecture):</h4>
+        <ol>
+            <li><strong>full_address:</strong> Used for Google Maps geocoding API</li>
+            <li><strong>abbreviated_address:</strong> Shown to users (e.g., "Los Angeles, CA")</li>
+            <li><strong>city:</strong> Extracted and indexed for fast city-based filtering</li>
+        </ol>
+        <p><strong>536 studios</strong> currently have GPS coordinates for map display and radius search.</p>
+
+        <h4>Search & Discovery:</h4>
+        <p><strong>Prioritization Logic</strong> (applied to all search results):</p>
+        <ol>
+            <li><strong>Premium studios</strong> (is_premium: true) - Always appear first</li>
+            <li><strong>Verified studios</strong> (is_verified: true) - Second priority</li>
+            <li><strong>Studios with images</strong> - Third priority</li>
+            <li><strong>VoiceoverGuy</strong> - Pinned at top when in featured list</li>
+            <li>Then by sort parameter (name, date, rating)</li>
+        </ol>
+
+        <p><strong>Geographic Search:</strong></p>
+        <ul>
+            <li>Haversine formula for distance calculations</li>
+            <li>Supported radii: 10, 25, 50, 100, 250, 500 miles</li>
+            <li>Falls back to city-based filtering if no coordinates</li>
+            <li>Post-query filtering in memory for performance</li>
+        </ul>
+
+        <h3>Table: studio_images</h3>
+        <p>Photo galleries for studios. Images stored on Cloudinary CDN with automatic optimization. <strong>1,246 images</strong> currently in database.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>id</strong></td>
+                    <td>String</td>
+                    <td><span class="pk">PK</span></td>
+                </tr>
+                <tr>
+                    <td><strong>studio_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → studios</span> (CASCADE DELETE), INDEX</td>
+                </tr>
+                <tr>
+                    <td><strong>image_url</strong></td>
+                    <td>String</td>
+                    <td>Cloudinary CDN URL with transformation parameters</td>
+                </tr>
+                <tr>
+                    <td><strong>alt_text</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE - Image description for accessibility</td>
+                </tr>
+                <tr>
+                    <td><strong>sort_order</strong></td>
+                    <td>Int</td>
+                    <td>DEFAULT: 0 - Controls display order in gallery</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Usage:</h4>
+        <ul>
+            <li><strong>Search Results:</strong> First image (sort_order ASC, take 1) shown as thumbnail</li>
+            <li><strong>Profile Pages:</strong> Full gallery with lightbox</li>
+            <li><strong>Upload:</strong> Via Cloudinary API (see src/lib/cloudinary.ts)</li>
+            <li><strong>Optimization:</strong> Automatic WebP conversion, responsive images</li>
+        </ul>
+
+        <h3>Table: studio_services</h3>
+        <p>Many-to-many junction table linking studios to available communication services.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>studio_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → studios</span> (CASCADE DELETE)</td>
+                </tr>
+                <tr>
+                    <td><strong>service</strong></td>
+                    <td>ServiceType</td>
+                    <td>Enum: <span class="enum-val">ISDN</span> <span class="enum-val">SOURCE_CONNECT</span> <span class="enum-val">SOURCE_CONNECT_NOW</span> <span class="enum-val">CLEANFEED</span> <span class="enum-val">SESSION_LINK_PRO</span> <span class="enum-val">ZOOM</span> <span class="enum-val">SKYPE</span> <span class="enum-val">TEAMS</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Unique Constraint:</strong> [studio_id, service] - prevents duplicate services per studio</p>
+        <p><strong>Current Records:</strong> 0 service links (feature not yet populated)</p>
+
+        <h3>Table: studio_studio_types</h3>
+        <p>Many-to-many junction table for studio categorization. <strong>708 type assignments</strong> currently in database.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>studio_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → studios</span> (CASCADE DELETE)</td>
+                </tr>
+                <tr>
+                    <td><strong>studio_type</strong></td>
+                    <td>StudioType</td>
+                    <td>Enum: <span class="enum-val">HOME</span> <span class="enum-val">RECORDING</span> <span class="enum-val">VO_COACH</span> <span class="enum-val">EDITING</span> <span class="enum-val">PODCAST</span> <span class="enum-val">VOICEOVER</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Unique Constraint:</strong> [studio_id, studio_type] - prevents duplicate types per studio</p>
+        <p><strong>Note:</strong> Studios can have multiple types (e.g., HOME + VOICEOVER + EDITING)</p>
+    </section>
+
+    <section>
+        <h2>3. Reviews & Reputation System</h2>
+        
+        <div class="info-box">
+            <strong>Current Stats:</strong> 0 total reviews • 0 approved • 0 pending moderation • Feature ready but not yet utilized by users
+        </div>
+
+        <h3>Table: reviews</h3>
+        <p>Moderated review system with 1-5 star ratings. Double-blind moderation (admin approval required before publication).</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>id</strong></td>
+                    <td>String</td>
+                    <td><span class="pk">PK</span></td>
+                </tr>
+                <tr>
+                    <td><strong>studio_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → studios</span> (CASCADE DELETE), INDEX</td>
+                </tr>
+                <tr>
+                    <td><strong>reviewer_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> INDEX - The person leaving the review</td>
+                </tr>
+                <tr>
+                    <td><strong>owner_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> INDEX - The studio owner (for notifications)</td>
+                </tr>
+                <tr>
+                    <td><strong>rating</strong></td>
+                    <td>SmallInt</td>
+                    <td>NOT NULL - 1 to 5 stars (validated in application layer)</td>
+                </tr>
+                <tr>
+                    <td><strong>content</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE - Review text (10-2000 characters)</td>
+                </tr>
+                <tr>
+                    <td><strong>is_anonymous</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false - If true, reviewer name hidden from public UI</td>
+                </tr>
+                <tr>
+                    <td><strong>status</strong></td>
+                    <td>ReviewStatus</td>
+                    <td>DEFAULT: PENDING - <span class="enum-val">PENDING</span> <span class="enum-val">APPROVED</span> <span class="enum-val">REJECTED</span></td>
+                </tr>
+                <tr>
+                    <td><strong>created_at</strong></td>
+                    <td>DateTime</td>
+                    <td>Review submission timestamp</td>
+                </tr>
+                <tr>
+                    <td><strong>updated_at</strong></td>
+                    <td>DateTime</td>
+                    <td>Last modification (Prisma auto-updates)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Business Rules:</h4>
+        <ul>
+            <li>Users cannot review their own studios</li>
+            <li>Users cannot review the same studio twice</li>
+            <li>Minimum 10 characters, maximum 2000 characters</li>
+            <li>All reviews require admin moderation (status: PENDING by default)</li>
+            <li>Anonymous reviews hide reviewer identity but still tracked for moderation</li>
+        </ul>
+
+        <h4>Admin Moderation:</h4>
+        <ul>
+            <li>Admins review submissions at /admin/reports</li>
+            <li>Can approve (APPROVED) or reject (REJECTED)</li>
+            <li>Only APPROVED reviews shown publicly</li>
+            <li>Status transitions: PENDING → APPROVED or REJECTED (one-way)</li>
+        </ul>
+
+        <h3>Table: review_responses</h3>
+        <p>Studio owner responses to reviews. One-to-one relationship (one response per review maximum).</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>id</strong></td>
+                    <td>String</td>
+                    <td><span class="pk">PK</span></td>
+                </tr>
+                <tr>
+                    <td><strong>review_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → reviews</span> (CASCADE DELETE), UNIQUE - enforces 1:1 relationship</td>
+                </tr>
+                <tr>
+                    <td><strong>author_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> (CASCADE DELETE) - typically the studio owner</td>
+                </tr>
+                <tr>
+                    <td><strong>content</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - Response text</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Usage:</h4>
+        <ul>
+            <li>Shown directly below parent review on profile pages</li>
+            <li>API endpoint: POST /api/reviews/[id]/response</li>
+            <li>Only studio owner can respond (verified in API)</li>
+            <li>One response per review (enforced by UNIQUE constraint)</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>4. Communication & Notifications</h2>
+        
+        <div class="info-box">
+            <strong>Current Stats:</strong> 0 messages • 0 notifications • Features ready but awaiting user adoption
+        </div>
+
+        <h3>Table: messages</h3>
+        <p>Direct user-to-user messaging system. Supports contact studio forms and general messaging.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>id</strong></td>
+                    <td>String</td>
+                    <td><span class="pk">PK</span></td>
+                </tr>
+                <tr>
+                    <td><strong>sender_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> INDEX</td>
+                </tr>
+                <tr>
+                    <td><strong>receiver_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> INDEX</td>
+                </tr>
+                <tr>
+                    <td><strong>subject</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE - Message subject (5-200 characters)</td>
+                </tr>
+                <tr>
+                    <td><strong>content</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - Message body (10-2000 characters)</td>
+                </tr>
+                <tr>
+                    <td><strong>is_read</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false - Read status for inbox UI</td>
+                </tr>
+                <tr>
+                    <td><strong>created_at</strong></td>
+                    <td>DateTime</td>
+                    <td>Message sent timestamp</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Validation Rules:</h4>
+        <ul>
+            <li>Subject: 5-200 characters (optional)</li>
+            <li>Content: 10-2000 characters (required)</li>
+            <li>Cannot message yourself</li>
+            <li>Receiver must exist</li>
+        </ul>
+
+        <h4>Usage:</h4>
+        <ul>
+            <li><strong>Contact Studio Form:</strong> Sidebar on studio profiles</li>
+            <li><strong>Inbox:</strong> GET /api/messages?type=received (auto-marks as read)</li>
+            <li><strong>Sent:</strong> GET /api/messages?type=sent</li>
+            <li><strong>Dashboard:</strong> Unread message count badge</li>
+        </ul>
+
+        <h3>Table: notifications</h3>
+        <p>In-app notification system with support for 9 notification types.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>id</strong></td>
+                    <td>String</td>
+                    <td><span class="pk">PK</span></td>
+                </tr>
+                <tr>
+                    <td><strong>user_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> (CASCADE DELETE), INDEX</td>
+                </tr>
+                <tr>
+                    <td><strong>type</strong></td>
+                    <td>NotificationType</td>
+                    <td>Enum with 9 values (see below)</td>
+                </tr>
+                <tr>
+                    <td><strong>title</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - Notification headline</td>
+                </tr>
+                <tr>
+                    <td><strong>message</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - Notification body text</td>
+                </tr>
+                <tr>
+                    <td><strong>data</strong></td>
+                    <td>Json</td>
+                    <td>NULLABLE - Structured context data (e.g., studio_id, review_id)</td>
+                </tr>
+                <tr>
+                    <td><strong>read</strong></td>
+                    <td>Boolean</td>
+                    <td>DEFAULT: false - Read status</td>
+                </tr>
+                <tr>
+                    <td><strong>read_at</strong></td>
+                    <td>DateTime</td>
+                    <td>NULLABLE - When user marked as read</td>
+                </tr>
+                <tr>
+                    <td><strong>action_url</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE - Deep link to related content</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Notification Types:</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0;">
+            <span class="enum-val">MESSAGE_RECEIVED</span>
+            <span class="enum-val">REVIEW_RECEIVED</span>
+            <span class="enum-val">REVIEW_RESPONSE</span>
+            <span class="enum-val">CONNECTION_REQUEST</span>
+            <span class="enum-val">CONNECTION_ACCEPTED</span>
+            <span class="enum-val">STUDIO_VERIFIED</span>
+            <span class="enum-val">PAYMENT_SUCCESS</span>
+            <span class="enum-val">PAYMENT_FAILED</span>
+            <span class="enum-val">SUBSCRIPTION_EXPIRING</span>
+        </div>
+
+        <h4>Usage:</h4>
+        <ul>
+            <li><strong>Notification Bell:</strong> Header component with unread badge</li>
+            <li><strong>API:</strong> GET /api/user/notifications (supports pagination)</li>
+            <li><strong>Real-time:</strong> Future enhancement with WebSocket/SSE</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>5. Payments & Subscriptions</h2>
+        
+        <div class="info-box">
+            <strong>Current Stats:</strong> 0 active subscriptions • 6 premium studios • Stripe integration configured • $299/year subscription plan
+        </div>
+
+        <h3>Table: subscriptions</h3>
+        <p>Active premium subscriptions managed via Stripe. Controls premium features and priority placement.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>id</strong></td>
+                    <td>String</td>
+                    <td><span class="pk">PK</span></td>
+                </tr>
+                <tr>
+                    <td><strong>user_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span></td>
+                </tr>
+                <tr>
+                    <td><strong>stripe_subscription_id</strong></td>
+                    <td>String</td>
+                    <td>UNIQUE, NULLABLE - Stripe's subscription ID</td>
+                </tr>
+                <tr>
+                    <td><strong>stripe_customer_id</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE - Stripe's customer ID</td>
+                </tr>
+                <tr>
+                    <td><strong>payment_method</strong></td>
+                    <td>PaymentMethod</td>
+                    <td>DEFAULT: STRIPE - <span class="enum-val">STRIPE</span> or <span class="enum-val">PAYPAL</span> (legacy)</td>
+                </tr>
+                <tr>
+                    <td><strong>status</strong></td>
+                    <td>SubscriptionStatus</td>
+                    <td>NOT NULL - See enum values below</td>
+                </tr>
+                <tr>
+                    <td><strong>current_period_start</strong></td>
+                    <td>DateTime</td>
+                    <td>NULLABLE - Billing period start</td>
+                </tr>
+                <tr>
+                    <td><strong>current_period_end</strong></td>
+                    <td>DateTime</td>
+                    <td>NULLABLE - Billing period end (determines premium access cutoff)</td>
+                </tr>
+                <tr>
+                    <td><strong>cancelled_at</strong></td>
+                    <td>DateTime</td>
+                    <td>NULLABLE - Cancellation timestamp</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Subscription Statuses:</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0;">
+            <span class="enum-val">ACTIVE</span>
+            <span class="enum-val">CANCELLED</span>
+            <span class="enum-val">PAST_DUE</span>
+            <span class="enum-val">UNPAID</span>
+            <span class="enum-val">INCOMPLETE</span>
+            <span class="enum-val">SUSPENDED</span>
+        </div>
+
+        <h4>Premium Features ($299/year):</h4>
+        <ul>
+            <li><strong>Priority search placement:</strong> Always appear first in all search results</li>
+            <li><strong>Featured homepage:</strong> Eligibility for featured studio slot (max 6)</li>
+            <li><strong>Verified badge:</strong> Visual trust indicator</li>
+            <li><strong>Enhanced profile:</strong> Additional visibility options</li>
+        </ul>
+
+        <h4>Stripe Integration:</h4>
+        <ul>
+            <li><strong>Checkout:</strong> POST /api/stripe/checkout creates session</li>
+            <li><strong>Webhook:</strong> /api/stripe/webhook handles lifecycle events</li>
+            <li><strong>Billing Portal:</strong> Stripe Customer Portal for subscription management</li>
+            <li><strong>Webhook Events:</strong> checkout.session.completed, customer.subscription.updated, customer.subscription.deleted</li>
+        </ul>
+
+        <h3>Table: pending_subscriptions</h3>
+        <p>Subscription approval workflow. Used for payment verification and fraud prevention.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>user_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> (CASCADE DELETE)</td>
+                </tr>
+                <tr>
+                    <td><strong>studio_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → studios</span> (CASCADE DELETE)</td>
+                </tr>
+                <tr>
+                    <td><strong>stripe_session_id</strong></td>
+                    <td>String</td>
+                    <td>UNIQUE, NULLABLE - Stripe checkout session</td>
+                </tr>
+                <tr>
+                    <td><strong>status</strong></td>
+                    <td>String</td>
+                    <td>DEFAULT: "PENDING_APPROVAL" - Manual approval status</td>
+                </tr>
+                <tr>
+                    <td><strong>payment_method</strong></td>
+                    <td>PaymentMethod</td>
+                    <td>NOT NULL - STRIPE or PAYPAL</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Approval Flow:</h4>
+        <ol>
+            <li>User completes payment on Stripe</li>
+            <li>Record created with status: PENDING_APPROVAL</li>
+            <li>Admin reviews in admin panel</li>
+            <li>Admin approves → creates subscriptions record</li>
+            <li>Studio marked is_premium: true</li>
+        </ol>
+
+        <h3>Table: refunds</h3>
+        <p>Payment refund tracking and audit trail for financial records.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>stripe_refund_id</strong></td>
+                    <td>String</td>
+                    <td>UNIQUE, NOT NULL - Stripe's refund ID</td>
+                </tr>
+                <tr>
+                    <td><strong>stripe_payment_intent_id</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - Original payment intent</td>
+                </tr>
+                <tr>
+                    <td><strong>amount</strong></td>
+                    <td>Int</td>
+                    <td>NOT NULL - Refund amount in cents (e.g., 29900 = $299.00)</td>
+                </tr>
+                <tr>
+                    <td><strong>currency</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - Currency code (USD, EUR, etc.)</td>
+                </tr>
+                <tr>
+                    <td><strong>status</strong></td>
+                    <td>RefundStatus</td>
+                    <td><span class="enum-val">PENDING</span> <span class="enum-val">SUCCEEDED</span> <span class="enum-val">FAILED</span> <span class="enum-val">CANCELLED</span></td>
+                </tr>
+                <tr>
+                    <td><strong>processed_by</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> - Admin who processed refund</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Current Refunds:</strong> 0 (no refunds processed)</p>
+    </section>
+
+    <section>
+        <h2>6. Moderation & Compliance</h2>
+        
+        <div class="info-box">
+            <strong>Current Stats:</strong> 0 content reports • Comprehensive moderation system ready for platform growth
+        </div>
+
+        <h3>Table: content_reports</h3>
+        <p>Content moderation and reporting system. Supports reporting of reviews, messages, studios, and user profiles.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>reporter_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> - User filing the report</td>
+                </tr>
+                <tr>
+                    <td><strong>content_type</strong></td>
+                    <td>ContentType</td>
+                    <td><span class="enum-val">REVIEW</span> <span class="enum-val">MESSAGE</span> <span class="enum-val">STUDIO</span> <span class="enum-val">USER</span></td>
+                </tr>
+                <tr>
+                    <td><strong>content_id</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - ID of the reported content</td>
+                </tr>
+                <tr>
+                    <td><strong>reported_user_id</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE, <span class="fk">FK → users</span> - Content owner</td>
+                </tr>
+                <tr>
+                    <td><strong>reason</strong></td>
+                    <td>ReportReason</td>
+                    <td>NOT NULL - See enum values below</td>
+                </tr>
+                <tr>
+                    <td><strong>custom_reason</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE - Additional details (required if reason is OTHER)</td>
+                </tr>
+                <tr>
+                    <td><strong>status</strong></td>
+                    <td>ReportStatus</td>
+                    <td>DEFAULT: PENDING - <span class="enum-val">PENDING</span> <span class="enum-val">REVIEWED</span> <span class="enum-val">RESOLVED</span> <span class="enum-val">DISMISSED</span></td>
+                </tr>
+                <tr>
+                    <td><strong>reviewed_by_id</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE, <span class="fk">FK → users</span> - Admin who reviewed</td>
+                </tr>
+                <tr>
+                    <td><strong>reviewed_at</strong></td>
+                    <td>DateTime</td>
+                    <td>NULLABLE - Review completion timestamp</td>
+                </tr>
+                <tr>
+                    <td><strong>resolution</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE - Admin notes on resolution</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Report Reasons:</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0;">
+            <span class="enum-val">SPAM</span>
+            <span class="enum-val">HARASSMENT</span>
+            <span class="enum-val">HATE_SPEECH</span>
+            <span class="enum-val">INAPPROPRIATE</span>
+            <span class="enum-val">FAKE_INFO</span>
+            <span class="enum-val">COPYRIGHT</span>
+            <span class="enum-val">OTHER</span>
+        </div>
+
+        <h4>Moderation Flow:</h4>
+        <ol>
+            <li>User clicks "Report" button on content</li>
+            <li>Selects reason and adds details</li>
+            <li>POST /api/moderation/reports creates record</li>
+            <li>Admin notified via dashboard</li>
+            <li>Admin reviews at /admin/reports</li>
+            <li>Admin takes action: approve/reject content, warn/suspend user, delete content, or dismiss report</li>
+            <li>Reporter notified of outcome via notification</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2>7. Supporting Tables</h2>
+
+        <h3>Table: saved_searches</h3>
+        <p>Saved search filters for quick access. JSON string storage for flexibility.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>user_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> (CASCADE DELETE)</td>
+                </tr>
+                <tr>
+                    <td><strong>name</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - User-defined name</td>
+                </tr>
+                <tr>
+                    <td><strong>filters</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - JSON string of search parameters</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Current Records:</strong> 0 saved searches</p>
+
+        <h3>Table: user_metadata</h3>
+        <p>Flexible key-value storage for user-specific data (feature flags, preferences, tracking).</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>user_id</strong></td>
+                    <td>String</td>
+                    <td><span class="fk">FK → users</span> (CASCADE DELETE)</td>
+                </tr>
+                <tr>
+                    <td><strong>key</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL, INDEX - Metadata key</td>
+                </tr>
+                <tr>
+                    <td><strong>value</strong></td>
+                    <td>String</td>
+                    <td>NULLABLE - Metadata value (JSON string)</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Unique Constraint:</strong> [user_id, key] - one value per key per user</p>
+
+        <h3>Table: faq</h3>
+        <p>Frequently Asked Questions. Admin-managed help center content.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>question</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - FAQ question</td>
+                </tr>
+                <tr>
+                    <td><strong>answer</strong></td>
+                    <td>String</td>
+                    <td>NOT NULL - FAQ answer (supports markdown)</td>
+                </tr>
+                <tr>
+                    <td><strong>sort_order</strong></td>
+                    <td>Int</td>
+                    <td>NULLABLE - Display order</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Current Records:</strong> 2 FAQ entries</p>
+
+        <h3>Legacy Tables</h3>
+        <h4>Table: contacts</h4>
+        <p><strong>Status:</strong> Legacy - Superseded by user_connections table. No current usage in active codebase. Recommend migration of remaining records.</p>
+
+        <h4>Table: poi (Points of Interest)</h4>
+        <p><strong>Status:</strong> Future Use - Table exists but not actively used. Prepared for future map features (nearby studios, equipment stores, co-working spaces).</p>
+    </section>
+
+    <section>
+        <h2>8. Database Relationships</h2>
+
+        <div class="diagram">
+USERS (687 records)
+  │
+  ├─── (1:1) ─────────► user_profiles (686 records)
+  │                      • Extended profile data
+  │                      • Social media links
+  │                      • Pricing tiers
+  │                      • Privacy settings
+  │
+  ├─── (1:N) ─────────► studios (651 records)
+  │                      │
+  │                      ├─── (1:N) ──► studio_images (1,246 records)
+  │                      │              • Cloudinary URLs
+  │                      │              • Sort order
+  │                      │
+  │                      ├─── (1:N) ──► studio_services (0 records)
+  │                      │              • ISDN, Source-Connect, etc.
+  │                      │
+  │                      ├─── (1:N) ──► studio_studio_types (708 records)
+  │                      │              • HOME, RECORDING, VO_COACH, etc.
+  │                      │
+  │                      ├─── (1:N) ──► reviews (0 records)
+  │                      │              │
+  │                      │              └─── (1:1) ──► review_responses (0 records)
+  │                      │
+  │                      └─── (1:N) ──► pending_subscriptions (0 records)
+  │
+  ├─── (1:N) ─────────► messages (0 records)
+  │                      • As sender and receiver
+  │                      • Subject + content
+  │
+  ├─── (1:N) ─────────► notifications (0 records)
+  │                      • 9 notification types
+  │                      • JSON data field
+  │
+  ├─── (1:N) ─────────► user_connections (402 records)
+  │                      • Bidirectional relationships
+  │                      • Accepted status
+  │
+  ├─── (1:N) ─────────► subscriptions (0 records)
+  │                      • Stripe integration
+  │                      • Premium features
+  │
+  ├─── (1:N) ─────────► saved_searches (0 records)
+  │                      • JSON filter storage
+  │
+  ├─── (1:N) ─────────► user_metadata
+  │                      • Key-value storage
+  │
+  ├─── (1:N) ─────────► content_reports (0 records)
+  │                      • As reporter, reported_user, reviewer
+  │
+  ├─── (1:N) ─────────► refunds (0 records)
+  │                      • Processed by admin
+  │
+  ├─── (1:N) ─────────► accounts (0 records)
+  │                      • OAuth providers
+  │
+  └─── (1:N) ─────────► sessions (0 records)
+                         • JWT strategy
+        </div>
+    </section>
+
+    <section>
+        <h2>9. System Enumerations</h2>
+
+        <h3>Role</h3>
+        <p><strong>Usage:</strong> users.role</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Description</th>
+                    <th>Permissions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="enum-val">USER</span></td>
+                    <td>Regular user</td>
+                    <td>Basic access, can review, message, connect</td>
+                </tr>
+                <tr>
+                    <td><span class="enum-val">STUDIO_OWNER</span></td>
+                    <td>Studio owner</td>
+                    <td>All USER permissions + studio management</td>
+                </tr>
+                <tr>
+                    <td><span class="enum-val">ADMIN</span></td>
+                    <td>Administrator</td>
+                    <td>Full access, moderation, user management</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Current Distribution:</strong> 685 users, 0 studio owners, 2 admins</p>
+
+        <h3>StudioStatus</h3>
+        <p><strong>Usage:</strong> studios.status</p>
+        <p>
+            <span class="enum-val">DRAFT</span>
+            <span class="enum-val">ACTIVE</span>
+            <span class="enum-val">INACTIVE</span>
+            <span class="enum-val">PENDING</span>
+        </p>
+        <p><strong>Current Distribution:</strong> 487 active, 0 draft, 164 other statuses</p>
+
+        <h3>StudioType</h3>
+        <p><strong>Usage:</strong> studio_studio_types.studio_type</p>
+        <p>
+            <span class="enum-val">HOME</span>
+            <span class="enum-val">RECORDING</span>
+            <span class="enum-val">VO_COACH</span>
+            <span class="enum-val">EDITING</span>
+            <span class="enum-val">PODCAST</span>
+            <span class="enum-val">VOICEOVER</span>
+        </p>
+        <p><strong>Note:</strong> Studios can have multiple types. 708 total type assignments across 651 studios.</p>
+
+        <h3>ServiceType</h3>
+        <p><strong>Usage:</strong> studio_services.service</p>
+        <p>
+            <span class="enum-val">ISDN</span>
+            <span class="enum-val">SOURCE_CONNECT</span>
+            <span class="enum-val">SOURCE_CONNECT_NOW</span>
+            <span class="enum-val">CLEANFEED</span>
+            <span class="enum-val">SESSION_LINK_PRO</span>
+            <span class="enum-val">ZOOM</span>
+            <span class="enum-val">SKYPE</span>
+            <span class="enum-val">TEAMS</span>
+        </p>
+
+        <h3>ReviewStatus</h3>
+        <p><strong>Usage:</strong> reviews.status</p>
+        <p>
+            <span class="enum-val">PENDING</span> (awaiting moderation)
+            <span class="enum-val">APPROVED</span> (published)
+            <span class="enum-val">REJECTED</span> (not approved)
+        </p>
+
+        <h3>SubscriptionStatus</h3>
+        <p><strong>Usage:</strong> subscriptions.status</p>
+        <p>
+            <span class="enum-val">ACTIVE</span>
+            <span class="enum-val">CANCELLED</span>
+            <span class="enum-val">PAST_DUE</span>
+            <span class="enum-val">UNPAID</span>
+            <span class="enum-val">INCOMPLETE</span>
+            <span class="enum-val">SUSPENDED</span>
+        </p>
+
+        <h3>Additional Enums</h3>
+        <ul>
+            <li><strong>PaymentMethod:</strong> STRIPE, PAYPAL</li>
+            <li><strong>RefundStatus:</strong> PENDING, SUCCEEDED, FAILED, CANCELLED</li>
+            <li><strong>ContentType:</strong> REVIEW, MESSAGE, STUDIO, USER</li>
+            <li><strong>ReportReason:</strong> SPAM, HARASSMENT, HATE_SPEECH, INAPPROPRIATE, FAKE_INFO, COPYRIGHT, OTHER</li>
+            <li><strong>ReportStatus:</strong> PENDING, REVIEWED, RESOLVED, DISMISSED</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>10. Technical Stack & Architecture</h2>
+
+        <h3>Database Technology</h3>
+        <ul>
+            <li><strong>Database:</strong> PostgreSQL 14+</li>
+            <li><strong>Hosting:</strong> Neon (Serverless PostgreSQL)</li>
+            <li><strong>ORM:</strong> Prisma 5.x</li>
+            <li><strong>Connection Pooling:</strong> Built-in Neon pooler</li>
+            <li><strong>SSL Mode:</strong> Required (sslmode=require)</li>
+        </ul>
+
+        <h3>Performance Optimizations</h3>
+        <ul>
+            <li><strong>Indexes:</strong> Strategic indexes on foreign keys, status fields, search columns (city, is_premium, is_verified)</li>
+            <li><strong>Caching:</strong> Page 2+ search results cached with MD5 hash of parameters (Page 1 not cached for randomization)</li>
+            <li><strong>Query Optimization:</strong> Selective includes, field selection, take/skip pagination</li>
+            <li><strong>Geographic Search:</strong> Post-query Haversine filtering in memory (performant for current scale)</li>
+        </ul>
+
+        <h3>Security Features</h3>
+        <ul>
+            <li><strong>Password Hashing:</strong> bcrypt with 10 rounds</li>
+            <li><strong>Session Management:</strong> JWT tokens signed with NEXTAUTH_SECRET, httpOnly cookies</li>
+            <li><strong>Input Validation:</strong> Zod schemas for all API inputs</li>
+            <li><strong>SQL Injection Prevention:</strong> Prisma parameterized queries</li>
+            <li><strong>XSS Prevention:</strong> React automatic escaping</li>
+            <li><strong>RBAC:</strong> Role-based access control via middleware (src/proxy.ts)</li>
+        </ul>
+
+        <h3>Third-Party Integrations</h3>
+        <ul>
+            <li><strong>Authentication:</strong> NextAuth.js with email/password and OAuth</li>
+            <li><strong>Payments:</strong> Stripe API (checkout, webhooks, customer portal)</li>
+            <li><strong>Image Storage:</strong> Cloudinary CDN with automatic optimization</li>
+            <li><strong>Geocoding:</strong> Google Maps API for address → coordinates</li>
+            <li><strong>Error Tracking:</strong> Sentry integration</li>
+            <li><strong>Validation:</strong> Zod for schema validation</li>
+        </ul>
+
+        <h3>Schema Management</h3>
+        <pre>
+# Create migration
+npx prisma migrate dev --name description_of_change
+
+# Apply migrations (production)
+npx prisma migrate deploy
+
+# Generate Prisma Client
+npx prisma generate
+
+# Reset database (dev only)
+npx prisma migrate reset</pre>
+
+        <h3>Recent Migrations</h3>
+        <ol>
+            <li><strong>Studio Types Enum</strong> (2025-01) - Migrated from string-based to enum for type safety</li>
+            <li><strong>Address System</strong> (2025-01) - Added three-field address system (full/abbreviated/city)</li>
+            <li><strong>Social Media Fields</strong> (2025-01) - Added x_url, tiktok_url, threads_url</li>
+            <li><strong>Avatar Migration</strong> (2025-01) - Migrated avatars to Cloudinary</li>
+            <li><strong>Profile Visibility</strong> (2024-12) - Added is_profile_visible to studios</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2>11. Future Enhancements</h2>
+
+        <h3>Planned Features</h3>
+        <ul>
+            <li><strong>Real-time Messaging:</strong> WebSocket integration for instant messaging, typing indicators, read receipts</li>
+            <li><strong>Advanced Search:</strong> PostgreSQL Full-Text Search or Algolia integration for fuzzy matching and search suggestions</li>
+            <li><strong>Analytics Dashboard:</strong> Studio view tracking, search analytics, user engagement metrics</li>
+            <li><strong>Booking System:</strong> Studio availability calendar, booking requests, automated scheduling</li>
+            <li><strong>Portfolio System:</strong> Audio samples/demos, video showcases, work history, client testimonials</li>
+            <li><strong>Activity Feed:</strong> User posts/updates, studio following, endorsements</li>
+        </ul>
+
+        <h3>Database Optimizations</h3>
+        <ul>
+            <li><strong>Materialized Views:</strong> Studio average ratings, user connection counts, search result rankings</li>
+            <li><strong>Additional Indexes:</strong> reviews.rating (rating calculations), messages.is_read (unread counts), notifications.read (unread notifications)</li>
+            <li><strong>Composite Indexes:</strong> studios(status, is_premium, is_verified) for optimized search queries</li>
+            <li><strong>Read Replicas:</strong> Separate read/write databases to scale read-heavy operations</li>
+            <li><strong>Redis Caching:</strong> Session storage, search results, user profiles</li>
+            <li><strong>Archive Strategy:</strong> Move old messages to archive table, soft delete inactive users, clean up old notifications</li>
+        </ul>
+    </section>
+
+    <footer style="text-align: center; margin-top: 60px; padding-top: 30px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 10pt;">
+        <p><strong>Report Generated:</strong> November 30, 2025</p>
+        <p><strong>Last Schema Update:</strong> January 12, 2025</p>
+        <p><strong>Source:</strong> Live Production Database (Neon PostgreSQL)</p>
+        <p><strong>Total Tables:</strong> 22 (19 core + 3 legacy/future)</p>
+        <p><strong>Total Enumerations:</strong> 8 + 4 additional</p>
+    </footer>
+
+</body>
+</html>
+
