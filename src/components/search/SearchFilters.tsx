@@ -138,8 +138,10 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3 space-y-6">
-      {hasActiveFilters && (
-        <div className="flex justify-end">
+      {/* Header with optional Clear All button */}
+      <div className="flex justify-between items-center">
+        <h3 className="font-semibold text-gray-900" style={{ fontSize: '0.875rem' }}>Filter Studios</h3>
+        {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
@@ -149,8 +151,8 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
             <X className="w-4 h-4 mr-1" />
             Clear All
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
 
       {/* Location */}

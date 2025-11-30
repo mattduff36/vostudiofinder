@@ -605,7 +605,6 @@ export function StudiosPage() {
                 overflowY: 'auto'
               } : {}}
             >
-              <h3 className="font-semibold text-gray-900 mb-4" style={{ fontSize: '0.875rem' }}>Filter Studios</h3>
               <SearchFilters
                 initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
