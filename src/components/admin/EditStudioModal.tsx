@@ -871,7 +871,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                     Edit Studio Profile
                   </h2>
                   {(profile?.username || studio?.users?.username) && (
-                    <p className="text-sm text-white/90 mt-0.5">
+                    <p className="text-lg font-semibold text-white mt-0.5">
                       {profile?.username || studio?.users?.username}
                     </p>
                   )}
