@@ -804,6 +804,27 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               checked={profile?._meta?.featured === '1'}
               onChange={(checked) => handleMetaChange('featured', checked ? '1' : '0')}
             />
+            
+            {/* Featured Expiry Date - only show when Featured is enabled */}
+            {profile?._meta?.featured === '1' && (
+              <div className="pl-6 pt-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Featured Expiry Date
+                </label>
+                <input
+                  type="date"
+                  value={profile?._meta?.featured_expires_at ? new Date(profile._meta.featured_expires_at).toISOString().split('T')[0] : ''}
+                  onChange={(e) => {
+                    const dateValue = e.target.value ? new Date(e.target.value).toISOString() : '';
+                    handleMetaChange('featured_expires_at', dateValue);
+                  }}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  When should this studio stop being featured? Leave empty for no expiry.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
