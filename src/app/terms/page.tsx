@@ -213,8 +213,8 @@ export default function TermsPage() {
             <p className="mb-2">For support or questions, email:</p>
             
             <p className="mb-8">
-              <a href="mailto:info@voiceoverstudiofinder.com" className="text-[#d42027] hover:text-[#b91c23] font-semibold">
-                info@voiceoverstudiofinder.com
+              <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#d42027] hover:text-[#b91c23] font-semibold">
+                support@voiceoverstudiofinder.com
               </a>
             </p>
           </div>
