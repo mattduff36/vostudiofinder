@@ -132,9 +132,6 @@ export default function JoinWaitlistPage() {
             <p className="text-lg text-gray-600">
               VoiceoverStudioFinder is currently in its final testing phase. We're fine-tuning the platform, ensuring everything works perfectly for our studio owners and voice artists alike.
             </p>
-            <p className="text-lg text-gray-600">
-              Register your interest now, and we'll notify you the moment we're ready to welcome new members.
-            </p>
           </div>
         </div>
 
@@ -142,9 +139,12 @@ export default function JoinWaitlistPage() {
           {/* Left Column - Form */}
           <div className="lg:sticky lg:top-8">
             <div className="bg-white/90 backdrop-blur-sm py-8 px-6 shadow-xl sm:rounded-lg">
-              <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: colors.textPrimary }}>
+              <h2 className="text-2xl font-bold mb-3 text-center" style={{ color: colors.textPrimary }}>
                 Join the Waitlist
               </h2>
+              <p className="text-center text-gray-600 mb-6">
+                Register your interest now, and we'll notify you the moment we're ready to welcome new members.
+              </p>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
