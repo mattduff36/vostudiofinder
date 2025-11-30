@@ -9,10 +9,11 @@ import {
   Globe, 
   Search, 
   FileText, 
-  MessageSquare 
+  MessageSquare,
+  Users 
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'network' | 'query' | 'schema' | 'faq';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'network' | 'query' | 'schema' | 'faq' | 'waitlist';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -30,6 +31,7 @@ const tabs: TabConfig[] = [
   { id: 'studios', label: 'Studios', icon: Building, href: '/admin/studios' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'network', label: 'Network', icon: Globe, href: '/admin/network' },
+  { id: 'waitlist', label: 'Waiting List', icon: Users, href: '/admin/waitlist' },
   { id: 'query', label: 'Query', icon: Search, href: '/admin/query' },
   { id: 'schema', label: 'Schema', icon: FileText, href: '/admin/schema' },
   { id: 'faq', label: 'FAQ', icon: MessageSquare, href: '/admin/faq' },
