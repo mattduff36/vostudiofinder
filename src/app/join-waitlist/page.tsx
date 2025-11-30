@@ -80,13 +80,6 @@ export default function JoinWaitlistPage() {
                   >
                     Browse Studios
                   </Link>
-                  <span className="mx-2 text-gray-400">|</span>
-                  <Link
-                    href="/about"
-                    className="text-gray-600 hover:text-gray-900 underline"
-                  >
-                    Learn More
-                  </Link>
                 </div>
               </div>
             </div>

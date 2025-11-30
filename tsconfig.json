@@ -8,9 +8,17 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
+
     "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "strictNullChecks": true,
+
     "noEmit": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -27,6 +35,7 @@
         "./src/*"
       ]
     },
+
     // Additional strict TypeScript settings
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -37,7 +46,8 @@
     "noImplicitOverride": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "importsNotUsedAsValues": "remove"
   },
   "include": [
     "next-env.d.ts",
