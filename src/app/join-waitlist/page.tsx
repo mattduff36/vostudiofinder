@@ -183,10 +183,28 @@ export default function JoinWaitlistPage() {
               <div className="space-y-3 text-gray-700">
                 <p>✓ Need a studio quickly? Find one near you.</p>
                 <p>✓ Have a great setup that could be making you extra money?</p>
-                <p>✓ Allow other voiceovers to use your studio.</p>
-                <p>✓ Set your fee, add demos, pictures and web links.</p>
-                <p>✓ Receive enquiries with name, contact details and requests.</p>
-                <p>✓ YOU decide if you are available.</p>
+                <p>✓ Allow other professionals to use your studio.</p>
+                <p>✓ Set your fee, add pictures and web links.</p>
+                <p>✓ Receive enquiries directly via your profile contact details.</p>
+                <p>✓ YOU decide if and when you are available.</p>
+              </div>
+            </div>
+
+            {/* Privacy & Control Section */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg border-2" style={{ borderColor: `${colors.primary}20` }}>
+              <h2 className="text-2xl font-bold mb-4" style={{ color: colors.primary }}>
+                Your Privacy, Your Control
+              </h2>
+              <div className="space-y-4 text-gray-700">
+                <p>
+                  <strong>Privacy is important to us.</strong> You have complete control over what information is visible on your profile and who can contact you.
+                </p>
+                <p>
+                  Choose to display or hide your email address, phone number, and studio address at any time. Update your visibility settings whenever you need—whether you want maximum exposure or prefer to stay more private.
+                </p>
+                <p>
+                  Your profile, your rules. Change your contact preferences as and when you see fit.
+                </p>
               </div>
             </div>
           </div>
