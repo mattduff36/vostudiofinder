@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Facebook, Twitter, Mail } from 'lucide-react';
+import { Twitter, Mail } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -19,7 +19,7 @@ export function Footer() {
             <div className="space-y-2 text-sm" style={{ color: '#ffffff' }}>
               <div className="flex items-center">
                 <Mail className="w-4 h-4 mr-2" />
-                <span>support@voiceoverstudiofinder.com</span>
+                <span>info@voiceoverstudiofinder.com</span>
               </div>
             </div>
           </div>
@@ -50,9 +50,6 @@ export function Footer() {
         <div className="pt-8 mt-8" style={{ borderTop: '1px solid #444444' }}>
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-6 mb-4 md:mb-0">
-              <a href="https://facebook.com/voiceoverstudiofinder" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>
-                <Facebook className="w-5 h-5" />
-              </a>
               <a href="https://twitter.com/VOStudioFinder" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>
                 <Twitter className="w-5 h-5" />
               </a>
@@ -63,7 +60,6 @@ export function Footer() {
               <div className="flex space-x-4">
                 <a href="/privacy" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Privacy Policy</a>
                 <a href="/terms" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Terms of Service</a>
-                <a href="/cookies" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Cookie Policy</a>
               </div>
             </div>
           </div>
