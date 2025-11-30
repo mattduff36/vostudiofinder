@@ -178,10 +178,10 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
                 <p className="text-sm text-yellow-700">
                   <span className="font-medium">Profile not active.</span> If you are the owner of this profile and wish to re-activate it, contact us:{' '}
                   <a 
-                    href="mailto:info@voiceoverstudiofinder.com" 
+                    href="mailto:support@voiceoverstudiofinder.com" 
                     className="font-medium underline text-yellow-700 hover:text-yellow-600"
                   >
-                    info@voiceoverstudiofinder.com
+                    support@voiceoverstudiofinder.com
                   </a>
                 </p>
               </div>

@@ -19,7 +19,7 @@ export function Footer() {
             <div className="space-y-2 text-sm" style={{ color: '#ffffff' }}>
               <div className="flex items-center">
                 <Mail className="w-4 h-4 mr-2" />
-                <span>info@voiceoverstudiofinder.com</span>
+                <span>support@voiceoverstudiofinder.com</span>
               </div>
             </div>
           </div>
