@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { colors } from '@/components/home/HomePage';
 import { Building, Users, Star, Check, ArrowRight } from 'lucide-react';
+import { Footer } from '@/components/home/Footer';
 
 export default function JoinWaitlistPage() {
   const [formData, setFormData] = useState({ name: '', email: '' });
@@ -108,9 +109,9 @@ export default function JoinWaitlistPage() {
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pb-16">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-12">
           <Image
             src="/images/voiceover-studio-finder-header-logo2-black.png"
             alt="VoiceoverStudioFinder"
@@ -121,31 +122,21 @@ export default function JoinWaitlistPage() {
           />
         </div>
 
-        {/* Full Width Header Section */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4 text-center" style={{ color: colors.primary }}>
-            Join Our Growing Community
-          </h1>
-          <div className="max-w-3xl mx-auto text-center space-y-4">
-            <p className="text-xl text-gray-700">
-              We're almost ready to accept new studio owners to join our community and list their studio with us.
-            </p>
-            <p className="text-lg text-gray-600">
-              VoiceoverStudioFinder is currently in its final testing phase. We're fine-tuning the platform, ensuring everything works perfectly for our studio owners and voice artists alike.
-            </p>
-            <p className="text-lg text-gray-600">
-              Register your interest now, and we'll notify you the moment we're ready to welcome new members.
-            </p>
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Left Column - Form */}
           <div className="lg:sticky lg:top-8">
             <div className="bg-white/90 backdrop-blur-sm py-8 px-6 shadow-xl sm:rounded-lg">
-              <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: colors.textPrimary }}>
+              <h2 className="text-3xl font-bold mb-4 text-center" style={{ color: colors.primary }}>
                 Join the Waitlist
               </h2>
+              <div className="mb-6 text-center space-y-3">
+                <p className="text-lg text-gray-700">
+                  We're almost ready to accept new studio owners to join our community.
+                </p>
+                <p className="text-gray-600">
+                  Register your interest now, and we'll notify you the moment we're ready to welcome new members.
+                </p>
+              </div>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -261,27 +252,32 @@ export default function JoinWaitlistPage() {
                 <p>✓ YOU decide if and when you are available.</p>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Privacy & Control Section */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg border-2" style={{ borderColor: `${colors.primary}20` }}>
-              <h2 className="text-2xl font-bold mb-4" style={{ color: colors.primary }}>
-                Your Privacy, Your Control
-              </h2>
-              <div className="space-y-4 text-gray-700">
-                <p>
-                  <strong>Privacy is important to us.</strong> You have complete control over what information is visible on your profile and who can contact you.
-                </p>
-                <p>
-                  Choose to display or hide your email address, phone number, and studio address at any time. Update your visibility settings whenever you need—whether you want maximum exposure or prefer to stay more private.
-                </p>
-                <p>
-                  Your profile, your rules. Change your contact preferences as and when you see fit.
-                </p>
-              </div>
+        {/* Privacy Section - Full Width Above Footer */}
+        <div className="mt-16 max-w-4xl mx-auto">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-8 shadow-xl">
+            <h2 className="text-3xl font-bold mb-6 text-center" style={{ color: colors.primary }}>
+              Your Privacy, Your Control
+            </h2>
+            <div className="space-y-4 text-gray-700 text-center max-w-3xl mx-auto">
+              <p className="text-lg">
+                <strong>Privacy is important to us.</strong> You have complete control over what information is visible on your profile and who can contact you.
+              </p>
+              <p>
+                Choose to display or hide your email address, phone number, and studio address at any time. Update your visibility settings whenever you need—whether you want maximum exposure or prefer to stay more private.
+              </p>
+              <p className="font-semibold" style={{ color: colors.primary }}>
+                Your profile, your rules. Change your contact preferences as and when you see fit.
+              </p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
