@@ -446,16 +446,20 @@ export function StudiosPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 flex items-center justify-center" style={{ height: '120px' }}>
           <div className="text-center">
             <h1 
-              className="text-2xl font-bold whitespace-nowrap sm:text-3xl md:text-4xl lg:text-5xl" 
+              className="font-bold whitespace-nowrap mt-2" 
               style={{ 
-                color: '#ffffff'
+                color: '#ffffff',
+                fontSize: 'clamp(1.5rem, 4vw, 3rem)' // Responsive: 24px (mobile) to 48px (desktop)
               }}
             >
               {dynamicH1Text}
             </h1>
             <h2 
-              className="text-xs sm:text-sm mt-2 font-normal"
-              style={{ color: '#ffffff' }}
+              className="mt-2 font-normal"
+              style={{ 
+                color: '#ffffff',
+                fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)' // Responsive: 12px (mobile) to 14px (desktop)
+              }}
             >
               Find voiceover, recording and podcast studios near you
             </h2>
@@ -597,7 +601,7 @@ export function StudiosPage() {
                 overflowY: 'auto'
               } : {}}
             >
-              <h3 className="text-base font-semibold text-gray-900 mb-4">Filter Studios</h3>
+              <h3 className="font-semibold text-gray-900 mb-4" style={{ fontSize: '1rem' }}>Filter Studios</h3>
               <SearchFilters
                 initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
