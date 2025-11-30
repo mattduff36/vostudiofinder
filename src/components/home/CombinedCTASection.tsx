@@ -148,21 +148,17 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
           "Voiceover Studio Finder was created when my own studio started earning money while I sat answering emails. Emmerdale actors would pop in to record. Chris Kamara now books my booth because it's nearby. Travelling voiceovers with last-minute jobs used it too. Over time, it became pretty damn lucrative.
         </p>
         <br />
-        <br />
         <p className="text-sm leading-relaxed text-white">
           I wanted other voiceovers to earn the same extra income, and to show agencies that amazing studios exist outside London and Manchester.
         </p>
-        <br />
         <br />
         <p className="text-sm leading-relaxed text-white">
           Talking to other voice artists, it became clear that lots of great studios sit empty… while voiceovers and agencies urgently need reliable, local places to record.
         </p>
         <br />
-        <br />
         <p className="text-sm leading-relaxed text-white">
           So I built the platform I wished existed: a clean, simple, no-commission way to connect the two."
         </p>
-        <br />
         <br />
         <p className="text-xs font-semibold text-red-500 text-right">
           - British Male Voiceover Guy Harris, Founder
