@@ -459,7 +459,7 @@ export function StudiosPage() {
               style={{ 
                 color: '#ffffff',
                 fontSize: 'clamp(0.75rem, 1.5vw, 1rem)', // Responsive: 12px (mobile) to 16px (desktop) - increased desktop
-                marginTop: '0.125rem', // 2px - very tight spacing
+                marginTop: '-0.5rem', // Negative margin to pull subtitle closer
                 marginBottom: 0
               }}
             >
