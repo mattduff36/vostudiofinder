@@ -330,7 +330,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   className="text-lg font-bold mb-3"
                   style={{ color: colors.textPrimary }}
                 >
-                  Add Your Studio Here
+                  Add Your Studio Here!
                 </p>
 
                 {/* Placeholder Description */}
