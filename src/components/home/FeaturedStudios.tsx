@@ -68,6 +68,17 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
     return () => observer.disconnect();
   }, []);
 
+  // Calculate how many placeholder cards to show (always show 6 total cards)
+  const maxCards = 6;
+  const realStudiosCount = Math.min(studios.length, 3); // Show max 3 real studios
+  const placeholderCount = maxCards - realStudiosCount;
+  
+  // Take only the first 3 studios
+  const displayStudios = studios.slice(0, 3);
+  
+  // Create placeholder card data
+  const placeholders = Array(placeholderCount).fill(null);
+
   if (studios.length === 0) {
     return (
       <div className="relative py-16 overflow-hidden">
@@ -124,7 +135,8 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          {studios.map((studio) => (
+          {/* Real Studio Cards */}
+          {displayStudios.map((studio) => (
               <div
                 key={studio.id}
                 onClick={() => window.location.href = `/${studio.owner?.username}`}
@@ -284,6 +296,59 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   </div>
                 </div>
               </div>
+          ))}
+          
+          {/* Placeholder Cards */}
+          {placeholders.map((_, index) => (
+            <div
+              key={`placeholder-${index}`}
+              onClick={() => window.location.href = '/auth/signup'}
+              className="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-300 hover:scale-[1.02] transition-all duration-300 flex flex-col h-full cursor-pointer group"
+            >
+              {/* Placeholder Image Area */}
+              <div className="aspect-[25/12] bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg overflow-hidden relative flex items-center justify-center">
+                <div className="text-center px-4">
+                  <svg 
+                    className="w-16 h-16 mx-auto mb-2 text-gray-400 group-hover:text-primary transition-colors" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={1.5} 
+                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" 
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="p-3 sm:p-4 flex flex-col flex-grow justify-center text-center">
+                {/* Placeholder Title - styled like H3 but using p tag for SEO */}
+                <p 
+                  className="text-lg font-bold mb-3"
+                  style={{ color: colors.textPrimary }}
+                >
+                  Add Your Studio Here
+                </p>
+
+                {/* Placeholder Description */}
+                <p className="text-sm mb-4 leading-relaxed" style={{ color: colors.textSecondary }}>
+                  Get featured on the homepage from day one. Reach thousands of voiceovers searching for recording spaces.
+                </p>
+
+                {/* CTA Button */}
+                <div className="mt-auto">
+                  <div 
+                    className="px-4 py-2 text-white text-sm font-medium rounded transition-all group-hover:shadow-md" 
+                    style={{ backgroundColor: colors.primary }}
+                  >
+                    List Your Studio
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
 
