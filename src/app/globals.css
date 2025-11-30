@@ -215,6 +215,7 @@ h6,
 
 p {
   margin: 0;
+  padding-bottom: 8px;
 }
 
 /* Custom bounce animation for studio card selection */
