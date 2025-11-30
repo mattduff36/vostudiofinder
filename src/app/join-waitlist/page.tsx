@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { colors } from '@/components/home/HomePage';
-import { Building, Users, Star, Check, ArrowRight } from 'lucide-react';
+import { Building, Users, Star, Check, ArrowRight, Shield } from 'lucide-react';
 import { Footer } from '@/components/home/Footer';
 
 export default function JoinWaitlistPage() {
@@ -241,6 +241,15 @@ export default function JoinWaitlistPage() {
                   <div>
                     <h3 className="font-semibold text-lg mb-1">Full Control</h3>
                     <p className="text-gray-600">You decide your availability, rates, and who you work with. Enquiries arrive directly to you with no middlemen.</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${colors.primary}20` }}>
+                    <Shield className="w-6 h-6" style={{ color: colors.primary }} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1">Privacy First</h3>
+                    <p className="text-gray-600">Control what information is visible on your profile. Show or hide your contact details whenever you choose—your privacy, your rules.</p>
                   </div>
                 </div>
               </div>
