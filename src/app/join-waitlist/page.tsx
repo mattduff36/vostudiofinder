@@ -251,46 +251,6 @@ export default function JoinWaitlistPage() {
         </div>
       </div>
 
-      {/* Combined Platform & Privacy Section - Full Width, Styled Like Footer */}
-      <div style={{ backgroundColor: '#000000', color: '#ffffff' }}>
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
-            {/* Left Column - Platform Description */}
-            <div>
-              <h2 className="text-2xl font-bold mb-6" style={{ color: '#ffffff' }}>
-                Described as the "Airbnb of Voiceover Studios"
-              </h2>
-              <div className="space-y-3" style={{ color: '#cccccc' }}>
-                <p>✓ Need a studio quickly? Find one near you.</p>
-                <p>✓ Have a great setup that could be making you extra money?</p>
-                <p>✓ Allow other professionals to use your studio.</p>
-                <p>✓ Set your fee, add pictures and web links.</p>
-                <p>✓ Receive enquiries directly via your profile contact details.</p>
-                <p>✓ YOU decide if and when you are available.</p>
-              </div>
-            </div>
-
-            {/* Right Column - Privacy */}
-            <div>
-              <h2 className="text-2xl font-bold mb-6" style={{ color: '#ffffff' }}>
-                Your Privacy, Your Control
-              </h2>
-              <div className="space-y-4" style={{ color: '#cccccc' }}>
-                <p>
-                  <strong style={{ color: '#ffffff' }}>Privacy is important to us.</strong> You have complete control over what information is visible on your profile and who can contact you.
-                </p>
-                <p>
-                  Choose to display or hide your email address, phone number, and studio address at any time. Update your visibility settings whenever you need—whether you want maximum exposure or prefer to stay more private.
-                </p>
-                <p className="font-semibold" style={{ color: colors.primary }}>
-                  Your profile, your rules. Change your contact preferences as and when you see fit.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Footer */}
       <Footer />
     </div>
