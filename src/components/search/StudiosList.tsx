@@ -128,13 +128,11 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
                   />
                 )}
                 
-                {/* Studio Name */}
+                {/* Studio Name - H3 for SEO */}
                 <h3 
-                  className="flex-1"
+                  className="flex-1 text-sm font-bold"
                   style={{ 
                     color: colors.textPrimary,
-                    fontSize: '14px',
-                    fontWeight: 700,
                     margin: 0,
                     padding: 0,
                     lineHeight: 1,
