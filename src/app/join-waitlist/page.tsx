@@ -121,24 +121,96 @@ export default function JoinWaitlistPage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* Left Column - Information */}
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-4xl font-bold mb-4" style={{ color: colors.primary }}>
-                Join Our Growing Community
-              </h1>
-              <p className="text-xl text-gray-700 mb-6">
-                We're almost ready to accept new studio owners to join our community and list their studio with us.
-              </p>
-              <p className="text-lg text-gray-600 mb-4">
-                VoiceoverStudioFinder is currently in its final testing phase. We're fine-tuning the platform, ensuring everything works perfectly for our studio owners and voice artists alike.
-              </p>
-              <p className="text-lg text-gray-600">
-                Register your interest now, and we'll notify you the moment we're ready to welcome new members.
-              </p>
-            </div>
+        {/* Full Width Header Section */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold mb-4 text-center" style={{ color: colors.primary }}>
+            Join Our Growing Community
+          </h1>
+          <div className="max-w-3xl mx-auto text-center space-y-4">
+            <p className="text-xl text-gray-700">
+              We're almost ready to accept new studio owners to join our community and list their studio with us.
+            </p>
+            <p className="text-lg text-gray-600">
+              VoiceoverStudioFinder is currently in its final testing phase. We're fine-tuning the platform, ensuring everything works perfectly for our studio owners and voice artists alike.
+            </p>
+            <p className="text-lg text-gray-600">
+              Register your interest now, and we'll notify you the moment we're ready to welcome new members.
+            </p>
+          </div>
+        </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          {/* Left Column - Form */}
+          <div className="lg:sticky lg:top-8">
+            <div className="bg-white/90 backdrop-blur-sm py-8 px-6 shadow-xl sm:rounded-lg">
+              <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: colors.textPrimary }}>
+                Join the Waitlist
+              </h2>
+              
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                    placeholder="your.email@example.com"
+                  />
+                </div>
+
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-4 px-6 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: colors.primary, color: '#ffffff' }}
+                >
+                  {isSubmitting ? 'Joining...' : 'Join the Waitlist'}
+                </button>
+
+                <p className="text-sm text-gray-500 text-center">
+                  We'll only use your information to notify you when we launch. No spam, we promise.
+                </p>
+              </form>
+
+              <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+                <p className="text-sm text-gray-600">
+                  Already a member?{' '}
+                  <Link href="/auth/signin" className="font-semibold hover:underline" style={{ color: colors.primary }}>
+                    Sign In
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Information */}
+          <div className="space-y-8">
             {/* Features Grid */}
             <div className="space-y-6">
               <h2 className="text-2xl font-bold" style={{ color: colors.textPrimary }}>
@@ -204,75 +276,6 @@ export default function JoinWaitlistPage() {
                 </p>
                 <p>
                   Your profile, your rules. Change your contact preferences as and when you see fit.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Form */}
-          <div className="lg:sticky lg:top-8">
-            <div className="bg-white/90 backdrop-blur-sm py-8 px-6 shadow-xl sm:rounded-lg">
-              <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: colors.textPrimary }}>
-                Join the Waitlist
-              </h2>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                    placeholder="Enter your full name"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                    placeholder="your.email@example.com"
-                  />
-                </div>
-
-                {error && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-600">{error}</p>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-4 px-6 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: colors.primary, color: '#ffffff' }}
-                >
-                  {isSubmitting ? 'Joining...' : 'Join the Waitlist'}
-                </button>
-
-                <p className="text-sm text-gray-500 text-center">
-                  We'll only use your information to notify you when we launch. No spam, we promise.
-                </p>
-              </form>
-
-              <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-                <p className="text-sm text-gray-600">
-                  Already a member?{' '}
-                  <Link href="/auth/signin" className="font-semibold hover:underline" style={{ color: colors.primary }}>
-                    Sign In
-                  </Link>
                 </p>
               </div>
             </div>
