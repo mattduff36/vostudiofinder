@@ -449,7 +449,7 @@ export function StudiosPage() {
               className="font-bold whitespace-nowrap mt-2" 
               style={{ 
                 color: '#ffffff',
-                fontSize: 'clamp(1.5rem, 4vw, 3rem)' // Responsive: 24px (mobile) to 48px (desktop)
+                fontSize: 'clamp(1.5rem, 3.5vw, 2rem)' // Responsive: 24px (mobile) to 32px (desktop) - reduced desktop
               }}
             >
               {dynamicH1Text}
@@ -458,7 +458,7 @@ export function StudiosPage() {
               className="mt-2 font-normal"
               style={{ 
                 color: '#ffffff',
-                fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)' // Responsive: 12px (mobile) to 14px (desktop)
+                fontSize: 'clamp(0.75rem, 1.5vw, 1rem)' // Responsive: 12px (mobile) to 16px (desktop) - increased desktop
               }}
             >
               Find voiceover, recording and podcast studios near you
@@ -601,7 +601,7 @@ export function StudiosPage() {
                 overflowY: 'auto'
               } : {}}
             >
-              <h3 className="font-semibold text-gray-900 mb-4" style={{ fontSize: '1rem' }}>Filter Studios</h3>
+              <h3 className="font-semibold text-gray-900 mb-4" style={{ fontSize: '0.875rem' }}>Filter Studios</h3>
               <SearchFilters
                 initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
