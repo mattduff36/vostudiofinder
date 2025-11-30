@@ -446,11 +446,12 @@ export function StudiosPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 flex items-center justify-center" style={{ height: '120px' }}>
           <div className="text-center">
             <h1 
-              className="font-bold whitespace-nowrap" 
+              className="font-bold" 
               style={{ 
                 color: '#ffffff',
                 fontSize: 'clamp(1.5rem, 3.5vw, 2rem)', // Responsive: 24px (mobile) to 32px (desktop) - reduced desktop
-                marginTop: '0.25rem' // Reduced from mt-2 (0.5rem) by 50%
+                marginTop: '0.25rem', // Reduced from mt-2 (0.5rem) by 50%
+                whiteSpace: 'normal' // Allow text wrapping for long location names
               }}
             >
               {dynamicH1Text}
