@@ -361,6 +361,15 @@ model users {
   user_profiles                                              user_profiles?
 }
 
+model waitlist {
+  id         String   @id
+  name       String
+  email      String
+  created_at DateTime @default(now())
+
+  @@index([created_at])
+}
+
 enum ContentType {
   REVIEW
   MESSAGE
