@@ -23,6 +23,7 @@ interface Studio {
   description: string;
   studio_studio_types: Array<{ studio_type: string }>;
   location: string;
+  city?: string;
   address: string;
   averageRating?: number;
   reviewCount?: number;
@@ -37,6 +38,8 @@ interface Studio {
   is_verified?: boolean;
   owner?: {
     username: string;
+    display_name?: string;
+    avatar_url?: string;
   };
 }
 
@@ -148,40 +151,79 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                     </div>
                   )}
                   
-                  {/* Studio Type Badge - moved to bottom right of image */}
-                  {studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] && (
-                    <div className="absolute bottom-2 right-2">
-                      <span className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}>
-                        {studio.studio_studio_types[0].studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4 sm:p-6 flex flex-col flex-grow max-h-[340px]">
-                  {/* Studio Name with Verified Badge */}
-                  <h3 className="studio-card-title-featured flex items-start gap-2" style={{ color: colors.textPrimary }}>
-                    <span className="flex-1">{studio.name} </span>
-                    {studio.is_verified && (
+                  {/* Studio Types Badges - show up to 2 types plus count */}
+                  <div className="absolute bottom-2 right-2 flex flex-wrap gap-1">
+                    {studio.studio_studio_types.slice(0, 2).map((type, index) => (
                       <span 
-                        className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help flex-shrink-0 mt-0.5" 
-                        title="Verified studio — approved by our team"
+                        key={index}
+                        className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" 
+                        style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}
                       >
-                        <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
-                          <path d="M5 13l4 4L19 7"></path>
-                        </svg>
+                        {type.studio_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                      </span>
+                    ))}
+                    {studio.studio_studio_types.length > 2 && (
+                      <span 
+                        className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" 
+                        style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}
+                      >
+                        +{studio.studio_studio_types.length - 2}
                       </span>
                     )}
-                  </h3>
+                  </div>
+                </div>
 
-                  {/* Location and Description - combined, limited to 4 lines maximum */}
-                  <div className="mb-4">
-                    <div className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
-                      {/* Location - use user_profiles.location */}
-                      {studio.location && studio.location.trim() && (
-                        <div className="flex items-start mb-2">
+                <div className="p-3 sm:p-4 flex flex-col flex-grow">
+                  {/* Studio Name with Avatar and Verified Badge - matching StudiosList styling */}
+                  <div className="flex items-center gap-2 mb-2">
+                    {/* Avatar - Small square image on the left */}
+                    {studio.owner?.avatar_url && (
+                      <Image
+                        src={studio.owner.avatar_url}
+                        alt={`${studio.owner.display_name || studio.name} avatar`}
+                        width={28}
+                        height={28}
+                        className="rounded-md object-cover flex-shrink-0"
+                      />
+                    )}
+                    
+                    {/* Studio Name */}
+                    <h3 
+                      className="flex-1"
+                      style={{ 
+                        color: colors.textPrimary,
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        margin: 0,
+                        padding: 0,
+                        lineHeight: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>{studio.name}</span>
+                      {studio.is_verified && (
+                        <span 
+                          className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help flex-shrink-0" 
+                          title="Verified studio — approved by our team"
+                        >
+                          <svg className="w-2 h-2 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                            <path d="M5 13l4 4L19 7"></path>
+                          </svg>
+                        </span>
+                      )}
+                    </h3>
+                  </div>
+
+                  {/* Location and Description */}
+                  <div className="mb-3">
+                    <div className="text-sm leading-snug" style={{ color: colors.textSecondary }}>
+                      {/* Location - Show city if available, otherwise fall back to location */}
+                      {(studio.city || studio.location) && (
+                        <div className="flex items-start mb-1.5">
                           <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="line-clamp-1">{studio.location}</span>
+                          <span className="line-clamp-1">{studio.city || studio.location}</span>
                         </div>
                       )}
                       
@@ -190,31 +232,13 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                         const description = cleanDescription(studio.description);
                         if (!description) return null;
                         
-                        // Calculate available lines (4 total, minus 1 if location exists)
-                        const availableLines = studio.location && studio.location.trim() ? 3 : 4;
-                        // More conservative character limit per line (roughly 45 chars per line)
-                        const seeMoreText = '..... See More';
-                        const maxChars = (availableLines * 45) - seeMoreText.length;
-                        
                         return (
                           <div 
-                            className="overflow-hidden"
-                            style={{ 
-                              maxHeight: studio.location && studio.location.trim() ? '4.5rem' : '6rem', // 3 or 4 lines at 1.5rem line-height
-                              lineHeight: '1.5rem'
-                            }}
+                            className="line-clamp-3 text-sm leading-snug"
+                            style={{ color: 'inherit' }}
                             title={description}
                           >
-                            {(() => {
-                              if (description.length > maxChars) {
-                                const truncated = description.substring(0, maxChars).trim();
-                                // Find the last complete word to avoid cutting mid-word
-                                const lastSpace = truncated.lastIndexOf(' ');
-                                const finalText = lastSpace > maxChars - 15 ? truncated.substring(0, lastSpace) : truncated;
-                                return finalText + seeMoreText;
-                              }
-                              return description;
-                            })()}
+                            {description}
                           </div>
                         );
                       })()}
@@ -223,7 +247,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
 
                   {/* Services */}
                   {studio.studio_services && studio.studio_services.length > 0 && (
-                    <div className="mb-4">
+                    <div className="mb-3">
                       <div className="flex flex-wrap gap-1">
                         {studio.studio_services.slice(0, 2).map((service: any, index: number) => (
                           <span

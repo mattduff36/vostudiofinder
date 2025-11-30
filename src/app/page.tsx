@@ -111,9 +111,14 @@ export default async function Home() {
     description: studio.users?.user_profiles?.short_about || '', // Use short_about as description
     latitude: studio.latitude ? Number(studio.latitude) : null,
     longitude: studio.longitude ? Number(studio.longitude) : null,
-    owner: studio.users ? { username: studio.users.username } : undefined, // Map users to owner for component
-    location: studio.users?.user_profiles?.location || '', // Use user_profiles.location for featured studios
-    address: studio.address || '', // Ensure address is available (but use location for display)
+    owner: studio.users ? { 
+      username: studio.users.username,
+      display_name: studio.users.display_name,
+      avatar_url: studio.users.avatar_url,
+    } : undefined, // Map users to owner for component with avatar
+    location: studio.users?.user_profiles?.location || '', // Keep location for backward compatibility
+    city: studio.city || '', // Add city field for display
+    address: studio.address || '', // Ensure address is available
     // Pass studio_images directly with snake_case
     studio_images: studio.studio_images?.map(img => ({
       image_url: img.image_url,
