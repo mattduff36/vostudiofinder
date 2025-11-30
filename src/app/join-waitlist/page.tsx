@@ -111,7 +111,7 @@ export default function JoinWaitlistPage() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 pb-16">
         {/* Logo */}
-        <div className="flex justify-center mb-12">
+        <div className="flex justify-center mb-8">
           <Image
             src="/images/voiceover-studio-finder-header-logo2-black.png"
             alt="VoiceoverStudioFinder"
@@ -122,21 +122,28 @@ export default function JoinWaitlistPage() {
           />
         </div>
 
+        {/* Full Width Intro Section (without title) */}
+        <div className="mb-12">
+          <div className="max-w-3xl mx-auto text-center space-y-4">
+            <p className="text-xl text-gray-700">
+              We're almost ready to accept new studio owners to join our community and list their studio with us.
+            </p>
+            <p className="text-lg text-gray-600">
+              VoiceoverStudioFinder is currently in its final testing phase. We're fine-tuning the platform, ensuring everything works perfectly for our studio owners and voice artists alike.
+            </p>
+            <p className="text-lg text-gray-600">
+              Register your interest now, and we'll notify you the moment we're ready to welcome new members.
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Left Column - Form */}
           <div className="lg:sticky lg:top-8">
             <div className="bg-white/90 backdrop-blur-sm py-8 px-6 shadow-xl sm:rounded-lg">
-              <h2 className="text-3xl font-bold mb-4 text-center" style={{ color: colors.primary }}>
+              <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: colors.textPrimary }}>
                 Join the Waitlist
               </h2>
-              <div className="mb-6 text-center space-y-3">
-                <p className="text-lg text-gray-700">
-                  We're almost ready to accept new studio owners to join our community.
-                </p>
-                <p className="text-gray-600">
-                  Register your interest now, and we'll notify you the moment we're ready to welcome new members.
-                </p>
-              </div>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
