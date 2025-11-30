@@ -9,43 +9,6 @@ import { abbreviateAddress } from '@/lib/utils/address';
 import Image from 'next/image';
 import { StudioMarkerModal } from '@/components/maps/StudioMarkerModal';
 
-// Custom hook for dynamic text sizing
-function useDynamicTextSize(text: string, containerWidth: number, maxFontSize: number = 48) {
-  const [fontSize, setFontSize] = useState(maxFontSize);
-  const measureRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (!measureRef.current || !containerWidth || containerWidth === 0) return;
-
-    const measureElement = measureRef.current;
-    let currentSize = maxFontSize;
-    
-    // Binary search for optimal font size
-    let minSize = 12;
-    let maxSize = maxFontSize;
-    
-    while (minSize <= maxSize) {
-      currentSize = Math.floor((minSize + maxSize) / 2);
-      measureElement.style.fontSize = `${currentSize}px`;
-      measureElement.style.fontWeight = 'bold';
-      measureElement.textContent = text;
-      
-      const textWidth = measureElement.scrollWidth;
-      const availableWidth = containerWidth - 48; // Account for padding
-      
-      if (textWidth <= availableWidth) {
-        minSize = currentSize + 1;
-      } else {
-        maxSize = currentSize - 1;
-      }
-    }
-    
-    setFontSize(Math.max(maxSize, 16)); // Minimum 16px
-  }, [text, containerWidth, maxFontSize]);
-
-  return { fontSize, measureRef };
-}
-
 interface Studio {
   id: string;
   name: string;
@@ -109,9 +72,6 @@ export function StudiosPage() {
   const [stickyStyles, setStickyStyles] = useState<{width: number; left: number} | null>(null);
   const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
-  const titleContainerRef = useRef<HTMLDivElement>(null);
   
   // Studio marker modal state
   const [modalStudio, setModalStudio] = useState<{
@@ -130,36 +90,6 @@ export function StudiosPage() {
     }
     return 'Studios Available Worldwide';
   }, [searchParams]);
-
-  // Use dynamic text sizing hook
-  const { fontSize, measureRef } = useDynamicTextSize(dynamicH1Text, containerWidth, 48);
-
-  // Track container width and mobile state for dynamic text sizing
-  useEffect(() => {
-    const updateDimensions = () => {
-      if (titleContainerRef.current) {
-        setContainerWidth(titleContainerRef.current.offsetWidth);
-      }
-      setIsMobile(window.innerWidth < 640);
-    };
-
-    // Initial measurement
-    updateDimensions();
-
-    // Set up resize observer
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    if (titleContainerRef.current) {
-      resizeObserver.observe(titleContainerRef.current);
-    }
-
-    // Also listen to window resize as fallback
-    window.addEventListener('resize', updateDimensions);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', updateDimensions);
-    };
-  }, []);
 
   // Function to clear previous studio selection outline
   const clearPreviousSelection = () => {
@@ -513,36 +443,23 @@ export function StudiosPage() {
             background: 'linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 1))' 
           }}
         ></div>
-        <div ref={titleContainerRef} className="relative z-10 max-w-7xl mx-auto px-6 flex items-center justify-center" style={{ height: '120px' }}>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 flex items-center justify-center" style={{ height: '120px' }}>
           <div className="text-center">
             <h1 
-              className="font-bold whitespace-nowrap sm:text-3xl md:text-4xl lg:text-5xl" 
+              className="text-2xl font-bold whitespace-nowrap sm:text-3xl md:text-4xl lg:text-5xl" 
               style={{ 
-                color: '#ffffff',
-                fontSize: isMobile ? `${fontSize}px` : undefined
+                color: '#ffffff'
               }}
             >
               {dynamicH1Text}
             </h1>
             <h2 
-              className="text-base sm:text-lg md:text-xl mt-3 font-normal"
+              className="text-sm sm:text-base mt-2 font-normal"
               style={{ color: '#ffffff' }}
             >
               Find voiceover, recording and podcast studios near you
             </h2>
           </div>
-          {/* Hidden measurement element */}
-          <span 
-            ref={measureRef}
-            style={{
-              position: 'absolute',
-              visibility: 'hidden',
-              whiteSpace: 'nowrap',
-              fontSize: '48px',
-              fontWeight: 'bold'
-            }}
-            aria-hidden="true"
-          />
         </div>
       </div>
 
@@ -680,7 +597,7 @@ export function StudiosPage() {
                 overflowY: 'auto'
               } : {}}
             >
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Studios</h3>
+              <h3 className="text-base font-semibold text-gray-900 mb-4">Filter Studios</h3>
               <SearchFilters
                 initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
