@@ -446,10 +446,11 @@ export function StudiosPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 flex items-center justify-center" style={{ height: '120px' }}>
           <div className="text-center">
             <h1 
-              className="font-bold whitespace-nowrap mt-2" 
+              className="font-bold whitespace-nowrap" 
               style={{ 
                 color: '#ffffff',
-                fontSize: 'clamp(1.5rem, 3.5vw, 2rem)' // Responsive: 24px (mobile) to 32px (desktop) - reduced desktop
+                fontSize: 'clamp(1.5rem, 3.5vw, 2rem)', // Responsive: 24px (mobile) to 32px (desktop) - reduced desktop
+                marginTop: '0.25rem' // Reduced from mt-2 (0.5rem) by 50%
               }}
             >
               {dynamicH1Text}
@@ -459,8 +460,8 @@ export function StudiosPage() {
               style={{ 
                 color: '#ffffff',
                 fontSize: 'clamp(0.75rem, 1.5vw, 1rem)', // Responsive: 12px (mobile) to 16px (desktop) - increased desktop
-                marginTop: '-0.5rem', // Negative margin to pull subtitle closer
-                marginBottom: 0
+                marginTop: '-1rem', // Increased negative margin to pull even closer
+                marginBottom: '0.5rem' // Added bottom padding (same as original mt-2)
               }}
             >
               Find voiceover, recording and podcast studios near you
