@@ -97,9 +97,9 @@ export default function JoinWaitlistPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Background Image */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 h-full">
         <Image
           src="/background-images/21920-5.jpg"
           alt="Waitlist background"
@@ -109,7 +109,8 @@ export default function JoinWaitlistPage() {
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 pb-16">
+      <div className="relative z-10 py-12 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4">
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Image
@@ -261,24 +262,25 @@ export default function JoinWaitlistPage() {
             </div>
           </div>
         </div>
+        </div>
+      </div>
 
-        {/* Privacy Section - Full Width Above Footer */}
-        <div className="mt-16 max-w-4xl mx-auto">
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-8 shadow-xl">
-            <h2 className="text-3xl font-bold mb-6 text-center" style={{ color: colors.primary }}>
-              Your Privacy, Your Control
-            </h2>
-            <div className="space-y-4 text-gray-700 text-center max-w-3xl mx-auto">
-              <p className="text-lg">
-                <strong>Privacy is important to us.</strong> You have complete control over what information is visible on your profile and who can contact you.
-              </p>
-              <p>
-                Choose to display or hide your email address, phone number, and studio address at any time. Update your visibility settings whenever you need—whether you want maximum exposure or prefer to stay more private.
-              </p>
-              <p className="font-semibold" style={{ color: colors.primary }}>
-                Your profile, your rules. Change your contact preferences as and when you see fit.
-              </p>
-            </div>
+      {/* Privacy Section - Full Width, Styled Like Footer */}
+      <div style={{ backgroundColor: '#000000', color: '#ffffff' }}>
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <h2 className="text-3xl font-bold mb-6 text-center" style={{ color: '#ffffff' }}>
+            Your Privacy, Your Control
+          </h2>
+          <div className="space-y-4 text-center max-w-3xl mx-auto">
+            <p className="text-lg" style={{ color: '#ffffff' }}>
+              <strong>Privacy is important to us.</strong> You have complete control over what information is visible on your profile and who can contact you.
+            </p>
+            <p style={{ color: '#cccccc' }}>
+              Choose to display or hide your email address, phone number, and studio address at any time. Update your visibility settings whenever you need—whether you want maximum exposure or prefer to stay more private.
+            </p>
+            <p className="font-semibold text-lg" style={{ color: colors.primary }}>
+              Your profile, your rules. Change your contact preferences as and when you see fit.
+            </p>
           </div>
         </div>
       </div>
