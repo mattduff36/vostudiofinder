@@ -454,7 +454,7 @@ export function StudiosPage() {
               {dynamicH1Text}
             </h1>
             <h2 
-              className="text-sm sm:text-base mt-2 font-normal"
+              className="text-xs sm:text-sm mt-2 font-normal"
               style={{ color: '#ffffff' }}
             >
               Find voiceover, recording and podcast studios near you
