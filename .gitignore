@@ -60,3 +60,17 @@ next-env.d.ts
 temp/
 *.log
 console-log.txt
+
+# Documentation (internal use only)
+/docs/
+
+# Session summaries and development notes
+*_SUMMARY.md
+*_SESSION_*.md
+CURRENT_SESSION_*.md
+NEXT_SESSION_*.md
+
+# Build artifacts and logs
+build-*.txt
+error-log.txt
+geocode-*.log
