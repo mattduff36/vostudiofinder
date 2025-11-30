@@ -455,10 +455,12 @@ export function StudiosPage() {
               {dynamicH1Text}
             </h1>
             <h2 
-              className="mt-1 font-normal"
+              className="font-normal"
               style={{ 
                 color: '#ffffff',
-                fontSize: 'clamp(0.75rem, 1.5vw, 1rem)' // Responsive: 12px (mobile) to 16px (desktop) - increased desktop
+                fontSize: 'clamp(0.75rem, 1.5vw, 1rem)', // Responsive: 12px (mobile) to 16px (desktop) - increased desktop
+                marginTop: '0.25rem', // 4px - override global CSS margin
+                marginBottom: 0
               }}
             >
               Find voiceover, recording and podcast studios near you
