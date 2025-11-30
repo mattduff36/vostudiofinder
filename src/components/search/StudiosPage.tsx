@@ -455,7 +455,7 @@ export function StudiosPage() {
               {dynamicH1Text}
             </h1>
             <h2 
-              className="mt-2 font-normal"
+              className="mt-1 font-normal"
               style={{ 
                 color: '#ffffff',
                 fontSize: 'clamp(0.75rem, 1.5vw, 1rem)' // Responsive: 12px (mobile) to 16px (desktop) - increased desktop
