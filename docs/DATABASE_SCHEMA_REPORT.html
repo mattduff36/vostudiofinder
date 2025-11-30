@@ -14,6 +14,11 @@
         padding: 40px;
         background-color: #f8f9fa;
     }
+    
+    p {
+        margin: 10px 0;
+        line-height: 1.6;
+    }
 
     /* Headings */
     h1 {
@@ -25,29 +30,29 @@
         text-align: center;
     }
     h2 {
-        font-size: 22pt;
+        font-size: 20pt;
         color: #0f766e; /* Teal */
         border-left: 6px solid #0f766e;
         padding-left: 20px;
-        margin-top: 50px;
+        margin-top: 40px;
         background-color: #f0fdfa;
-        padding-top: 10px;
-        padding-bottom: 10px;
+        padding-top: 8px;
+        padding-bottom: 8px;
         border-radius: 4px;
     }
     h3 {
-        font-size: 18pt;
+        font-size: 16pt;
         color: #1f2937;
-        margin-top: 35px;
-        margin-bottom: 15px;
-        border-bottom: 2px solid #e5e7eb;
-        padding-bottom: 5px;
-    }
-    h4 {
-        font-size: 14pt;
-        color: #4b5563;
         margin-top: 25px;
         margin-bottom: 10px;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 4px;
+    }
+    h4 {
+        font-size: 13pt;
+        color: #4b5563;
+        margin-top: 20px;
+        margin-bottom: 8px;
     }
 
     /* Header Info */
@@ -64,7 +69,7 @@
     table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         background-color: white;
         border-radius: 8px;
@@ -74,18 +79,20 @@
         background-color: #1e3a8a;
         color: #ffffff;
         text-align: left;
-        padding: 14px;
+        padding: 10px 12px;
         font-weight: 600;
-        font-size: 11pt;
+        font-size: 10pt;
         border: none;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        line-height: 1.3;
     }
     td {
-        padding: 12px 14px;
+        padding: 8px 12px;
         border: 1px solid #e5e7eb;
         vertical-align: top;
-        font-size: 10.5pt;
+        font-size: 10pt;
+        line-height: 1.4;
     }
     /* Zebra Striping */
     tbody tr:nth-child(even) {
@@ -133,91 +140,97 @@
     /* Info Box */
     .info-box {
         background-color: #fffbeb;
-        border-left: 6px solid #f59e0b;
-        padding: 20px;
-        margin: 25px 0;
+        border-left: 5px solid #f59e0b;
+        padding: 15px;
+        margin: 20px 0;
         border-radius: 4px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        font-size: 10pt;
+        line-height: 1.5;
     }
     .info-box strong {
         color: #92400e;
-        font-size: 11pt;
+        font-size: 10.5pt;
     }
     
     /* Stats Grid */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 50px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 40px;
     }
     .stat-card {
         background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
         color: white;
-        padding: 25px;
-        border-radius: 10px;
+        padding: 20px;
+        border-radius: 8px;
         text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 3px 5px rgba(0,0,0,0.1);
         transition: transform 0.2s ease;
     }
     .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 10px rgba(0,0,0,0.15);
     }
     .stat-number {
-        font-size: 32pt;
+        font-size: 28pt;
         font-weight: bold;
         display: block;
         margin-bottom: 5px;
+        line-height: 1;
     }
     .stat-label {
-        font-size: 10pt;
+        font-size: 9pt;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        opacity: 0.9;
+        letter-spacing: 0.8px;
+        opacity: 0.95;
+        line-height: 1.2;
     }
 
     /* Code blocks */
     pre {
         background-color: #1f2937;
         color: #f9fafb;
-        padding: 20px;
+        padding: 15px;
         border-radius: 8px;
         overflow-x: auto;
         font-family: 'Consolas', 'Monaco', monospace;
-        font-size: 9.5pt;
+        font-size: 9pt;
         line-height: 1.5;
+        margin: 15px 0;
     }
 
     /* Relationship Diagram */
     .diagram {
         background-color: #f1f5f9;
-        padding: 25px;
+        padding: 20px;
         border-radius: 8px;
         font-family: 'Consolas', monospace;
         white-space: pre;
         overflow-x: auto;
         border: 2px solid #cbd5e1;
-        font-size: 9.5pt;
-        line-height: 1.6;
-        margin: 20px 0;
+        font-size: 9pt;
+        line-height: 1.5;
+        margin: 15px 0;
     }
 
     /* Section spacing */
     section {
         background-color: white;
-        padding: 30px;
-        margin-bottom: 30px;
+        padding: 25px;
+        margin-bottom: 25px;
         border-radius: 8px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
     /* Lists */
-    ul {
-        line-height: 1.8;
+    ul, ol {
+        line-height: 1.6;
+        margin: 10px 0;
     }
     li {
-        margin-bottom: 8px;
+        margin-bottom: 5px;
     }
 
     /* Emphasis */
