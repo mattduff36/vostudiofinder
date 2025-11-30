@@ -47,14 +47,16 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete entry');
+        const data = await response.json();
+        console.error('Delete failed:', data);
+        throw new Error(data.error || 'Failed to delete entry');
       }
 
       // Refresh the page to show updated list
       router.refresh();
     } catch (error) {
       console.error('Error deleting entry:', error);
-      alert('Failed to delete entry. Please try again.');
+      alert(`Failed to delete entry: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDeletingId(null);
     }
