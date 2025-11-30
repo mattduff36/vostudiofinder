@@ -6,14 +6,13 @@ import {
   TrendingUp, 
   Building, 
   Activity, 
-  Globe, 
   Search, 
   FileText, 
   MessageSquare,
   Users 
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'network' | 'query' | 'schema' | 'faq' | 'waitlist';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'query' | 'schema' | 'faq' | 'waitlist';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -30,7 +29,6 @@ const tabs: TabConfig[] = [
   { id: 'overview', label: 'Overview', icon: TrendingUp, href: '/admin' },
   { id: 'studios', label: 'Studios', icon: Building, href: '/admin/studios' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
-  { id: 'network', label: 'Network', icon: Globe, href: '/admin/network' },
   { id: 'waitlist', label: 'Waiting List', icon: Users, href: '/admin/waitlist' },
   { id: 'query', label: 'Query', icon: Search, href: '/admin/query' },
   { id: 'schema', label: 'Schema', icon: FileText, href: '/admin/schema' },
