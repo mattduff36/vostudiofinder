@@ -2,11 +2,12 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, MessageCircle, Book, Phone, Mail } from 'lucide-react';
+import { Search, Book, Mail, Building, Users, Star } from 'lucide-react';
 import { useState } from 'react';
 import { PageHero } from '@/components/common/PageHero';
 import { colors } from '../../components/home/HomePage';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Footer } from '@/components/home/Footer';
 
 export default function HelpPage() {
   const [openFAQ, setOpenFAQ] = useState<string | null>(null);
@@ -117,21 +118,13 @@ export default function HelpPage() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
         
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
           <Link href="/studios" className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow text-center">
             <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${colors.primary}20` }}>
               <Search className="w-8 h-8" style={{ color: colors.primary }} />
             </div>
             <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>Browse Studios</h3>
             <p style={{ color: colors.textSecondary }}>Start exploring our collection of professional recording studios</p>
-          </Link>
-
-          <Link href="/contact" className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow text-center">
-            <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${colors.primary}20` }}>
-              <MessageCircle className="w-8 h-8" style={{ color: colors.primary }} />
-            </div>
-            <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>Contact Support</h3>
-            <p style={{ color: colors.textSecondary }}>Get in touch with our support team for personalized help</p>
           </Link>
 
           <Link href="/auth/signup" className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow text-center">
@@ -141,6 +134,69 @@ export default function HelpPage() {
             <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>List Your Studio</h3>
             <p style={{ color: colors.textSecondary }}>Join our community and start earning from your studio space</p>
           </Link>
+        </div>
+
+        {/* How It Works Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-8 md:p-12 shadow-lg mb-16">
+          <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: colors.textPrimary }}>How It Works</h2>
+          
+          <div className="max-w-3xl mx-auto space-y-8">
+            {/* For Studio Owners */}
+            <div>
+              <h3 className="text-2xl font-semibold mb-6" style={{ color: colors.primary }}>For Studio Owners</h3>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${colors.primary}20` }}>
+                    <Star className="w-6 h-6" style={{ color: colors.primary }} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-lg mb-1">No Commission</h4>
+                    <p className="text-gray-600">Keep 100% of what you earn. Just £25/year to list your studio—one booking often pays for the whole year.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${colors.primary}20` }}>
+                    <Users className="w-6 h-6" style={{ color: colors.primary }} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-lg mb-1">Global Reach</h4>
+                    <p className="text-gray-600">Get discovered by thousands of voice artists worldwide. Connect with travelling voiceovers and agencies needing local studios.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${colors.primary}20` }}>
+                    <Building className="w-6 h-6" style={{ color: colors.primary }} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-lg mb-1">Full Control</h4>
+                    <p className="text-gray-600">You decide your availability, rates, and who you work with. Enquiries arrive directly to you with no middlemen.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* For Voice Artists */}
+            <div>
+              <h3 className="text-2xl font-semibold mb-6" style={{ color: colors.primary }}>For Voice Artists</h3>
+              <div className="space-y-3 text-gray-700">
+                <p>✓ <strong>Find studios quickly:</strong> Search for professional recording spaces near you.</p>
+                <p>✓ <strong>Direct contact:</strong> Connect directly with studio owners via their contact details.</p>
+                <p>✓ <strong>Transparent information:</strong> View studio photos, equipment, services, and pricing.</p>
+                <p>✓ <strong>Book on your terms:</strong> All bookings and arrangements are made directly between you and the studio owner.</p>
+              </div>
+            </div>
+
+            {/* Platform Features */}
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4" style={{ color: colors.textPrimary }}>What Makes Us Different</h3>
+              <div className="space-y-2 text-gray-700">
+                <p>✓ <strong>Privacy first:</strong> Control what information is visible on your profile.</p>
+                <p>✓ <strong>No commission fees:</strong> We don't take a cut of your bookings.</p>
+                <p>✓ <strong>Simple annual membership:</strong> One flat fee per year for unlimited listings.</p>
+                <p>✓ <strong>Direct communication:</strong> All enquiries go straight to you—we're just the platform.</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* FAQ Section */}
@@ -206,32 +262,25 @@ export default function HelpPage() {
         <div className="mt-16 rounded-lg p-8 text-center" style={{ backgroundColor: `${colors.primary}10` }}>
           <h2 className="text-2xl font-bold mb-4" style={{ color: colors.textPrimary }}>Still Need Help?</h2>
           <p className="text-gray-700 mb-6 text-center" style={{ maxWidth: '768px', margin: '0 auto' }}>
-            Can't find the answer you're looking for? Our support team is here to help you get the most out of VoiceoverStudioFinder.
+            Can't find the answer you're looking for? We're here to help you get the most out of VoiceoverStudioFinder.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ maxWidth: '768px', margin: '0 auto' }}>
-            <div className="flex items-center justify-center space-x-3">
-              <Mail className="w-5 h-5" style={{ color: colors.primary }} />
-              <span style={{ color: colors.textSecondary }}>support@voiceoverstudiofinder.com</span>
-            </div>
-            <div className="flex items-center justify-center space-x-3">
-              <Phone className="w-5 h-5" style={{ color: colors.primary }} />
-              <span style={{ color: colors.textSecondary }}>+1 (555) 123-4567</span>
-            </div>
-          </div>
-          <div className="mt-4">
-            <Link
-              href="/contact"
-              className="inline-flex items-center px-6 py-3 text-white rounded-lg transition-colors"
-              style={{ backgroundColor: colors.primary }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryHover}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
+          <div className="flex items-center justify-center space-x-3">
+            <Mail className="w-6 h-6" style={{ color: colors.primary }} />
+            <a 
+              href="mailto:support@voiceoverstudiofinder.com"
+              className="text-lg font-medium transition-colors hover:underline"
+              style={{ color: colors.primary }}
             >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Contact Support
-            </Link>
+              support@voiceoverstudiofinder.com
+            </a>
           </div>
+          <p className="mt-4 text-sm text-gray-600">
+            For any questions or issues, please email us and we'll get back to you as soon as possible.
+          </p>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }

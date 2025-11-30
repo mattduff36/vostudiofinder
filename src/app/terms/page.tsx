@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { PageHero } from '@/components/common/PageHero';
+import { Footer } from '@/components/home/Footer';
 
 export default function TermsPage() {
 
@@ -220,6 +221,8 @@ export default function TermsPage() {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }
