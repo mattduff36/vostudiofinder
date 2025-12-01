@@ -16,39 +16,47 @@ RESEND_FROM_EMAIL="VoiceoverStudioFinder <support@voiceoverstudiofinder.com>"
 
 ## Testing the Email Service
 
-### Method 1: Using the Test Script (Recommended)
+⚠️ **Important:** The test email endpoint requires **admin authentication** for security. You must be signed in as an admin user to send test emails.
+
+### Method 1: Using the Admin Panel (Recommended)
 
 1. Make sure the dev server is running:
    ```bash
    npm run dev
    ```
 
-2. In a new terminal, run the test script with your email:
+2. Sign in to the admin panel at `http://localhost:3000/admin`
+
+3. Navigate to the test email page (or use the API directly with your session cookie)
+
+### Method 2: Using the Test Script
+
+**Note:** This method requires you to be signed in as an admin in your browser first, as it needs authentication.
+
+1. Sign in as an admin at `http://localhost:3000/admin`
+
+2. Run the test script:
    ```bash
    node test-email.js your-email@example.com
    ```
 
 3. Check your inbox for the test email!
 
-### Method 2: Using curl
+### Method 3: Using curl (Requires Admin Session)
+
+You need to include your session cookie for authentication:
 
 ```bash
+# First, get your session cookie from the browser after signing in as admin
 curl -X POST http://localhost:3000/api/test-email \
   -H "Content-Type: application/json" \
+  -H "Cookie: next-auth.session-token=YOUR_SESSION_TOKEN" \
   -d '{"to":"your-email@example.com"}'
 ```
 
-### Method 3: Using Postman or any API client
+### Method 4: Direct API Testing (Development Only)
 
-- **URL:** `http://localhost:3000/api/test-email`
-- **Method:** `POST`
-- **Headers:** `Content-Type: application/json`
-- **Body:**
-  ```json
-  {
-    "to": "your-email@example.com"
-  }
-  ```
+For development, you can temporarily bypass auth by modifying the endpoint, but **never deploy this to production**.
 
 ## Email Service Features
 
