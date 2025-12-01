@@ -120,10 +120,10 @@ export default function JoinWaitlistPage() {
         <div className="mb-12">
           <div className="max-w-3xl mx-auto text-center space-y-4">
             <p className="text-xl text-gray-700">
-              We're almost ready to accept new studio owners to join our community and list their studio with us.
+              We're almost ready to welcome new studio owners to the platform.
             </p>
             <p className="text-lg text-gray-600">
-              VoiceoverStudioFinder is currently in its final testing phase. We're fine-tuning the platform, ensuring everything works perfectly for our studio owners and voice artists alike.
+              VoiceoverStudioFinder is in its final testing phase — we're fine-tuning every detail to make sure the experience is smooth, reliable, and genuinely useful for both studio owners and voice artists.
             </p>
           </div>
         </div>
@@ -215,7 +215,7 @@ export default function JoinWaitlistPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg mb-1">No Commission</h3>
-                    <p className="text-gray-600">Keep 100% of what you earn. Just £25/year to list your studio—one booking often pays for the whole year.</p>
+                    <p className="text-gray-600">Keep 100% of what you earn. It's just £25/year to list your studio — and one booking more than covers the whole year.</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -224,7 +224,7 @@ export default function JoinWaitlistPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg mb-1">Global Reach</h3>
-                    <p className="text-gray-600">Get discovered by thousands of voice artists worldwide. Connect with traveling voiceovers and agencies needing local studios.</p>
+                    <p className="text-gray-600">Be discovered by thousands of voice artists, agencies, and production teams worldwide. Ideal for travelling voiceovers who need a trusted local studio.</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -233,7 +233,7 @@ export default function JoinWaitlistPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg mb-1">Full Control</h3>
-                    <p className="text-gray-600">You decide your availability, rates, and who you work with. Enquiries arrive directly to you with no middlemen.</p>
+                    <p className="text-gray-600">Set your own availability, prices, and session rules. All enquiries go straight to you — no middlemen, no interference.</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -242,7 +242,7 @@ export default function JoinWaitlistPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg mb-1">Privacy First</h3>
-                    <p className="text-gray-600">Control what information is visible on your profile. Show or hide your contact details whenever you choose—your privacy, your rules.</p>
+                    <p className="text-gray-600">You choose what information is visible. Display your contact details or hide them — your studio, your privacy, your call.</p>
                   </div>
                 </div>
               </div>
