@@ -29,7 +29,7 @@ export default function TestEmailPage() {
   }
 
   // @ts-ignore
-  if (session?.user?.user_type !== 'admin') {
+  if (session?.user?.role !== 'ADMIN') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

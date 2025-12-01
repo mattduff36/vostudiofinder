@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Additional security: Only admin users can send test emails
-    // @ts-ignore - user_type exists on session.user from our auth config
-    if (session.user?.user_type !== 'admin') {
+    // @ts-ignore - role exists on session.user from our auth config
+    if (session.user?.role !== 'ADMIN') {
       return NextResponse.json(
         { success: false, error: 'Forbidden - Admin access required' },
         { status: 403 }
