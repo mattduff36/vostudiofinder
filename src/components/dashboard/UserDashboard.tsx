@@ -279,14 +279,6 @@ export function UserDashboard({ data }: UserDashboardProps) {
                   </ul>
                 </div>
               </div>
-
-              {/* Additional Dashboard Sections Coming Soon */}
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center">
-                <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-text-primary mb-2">
-                  More Features Coming Soon
-                </h3>
-              </div>
             </>
           ) : (
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center">
