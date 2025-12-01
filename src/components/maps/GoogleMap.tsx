@@ -616,6 +616,15 @@ export function GoogleMap({
       willCreateMarkers: !!(mapInstanceRef.current && markers.length > 0)
     });
     
+    // Define cleanup function to be used by all code paths
+    const cleanupClusterTimeout = () => {
+      if (clusterRenderTimeoutRef.current !== null) {
+        clearTimeout(clusterRenderTimeoutRef.current);
+        clusterRenderTimeoutRef.current = null;
+        console.log('🧹 Cleared cluster render timeout on cleanup');
+      }
+    };
+    
     if (!mapInstanceRef.current) {
       console.log('❌ No map instance for markers, skipping');
       // If we have markers but no map yet, retry after a short delay
@@ -636,9 +645,12 @@ export function GoogleMap({
             createStudioMarkers(mapInstanceRef.current, markers);
           }
         }, 100);
-        return () => clearTimeout(retryTimeout);
+        return () => {
+          clearTimeout(retryTimeout);
+          cleanupClusterTimeout();
+        };
       }
-      return;
+      return cleanupClusterTimeout;
     }
 
     // Clear existing markers and clusterer
@@ -654,10 +666,10 @@ export function GoogleMap({
     // Reset markers ready state when clearing
     setMarkersReady(false);
 
-    // If no markers, return early
+    // If no markers, return early with cleanup
     if (markers.length === 0) {
       console.log('❌ No markers to display');
-      return;
+      return cleanupClusterTimeout;
     }
     
     console.log('✨ Creating new markers. Count:', markers.length);
@@ -668,14 +680,8 @@ export function GoogleMap({
     // Set markers as ready after creation
     setMarkersReady(true);
     
-    // Cleanup: clear the cluster render timeout if the effect is re-run or unmounted
-    return () => {
-      if (clusterRenderTimeoutRef.current !== null) {
-        clearTimeout(clusterRenderTimeoutRef.current);
-        clusterRenderTimeoutRef.current = null;
-        console.log('🧹 Cleared cluster render timeout on cleanup');
-      }
-    };
+    // Return cleanup function
+    return cleanupClusterTimeout;
   }, [markers, selectedMarkerId]);
 
   // Update search radius circle and center marker
