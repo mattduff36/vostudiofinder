@@ -128,10 +128,12 @@ export function GoogleMap({
   // Helper function to create studio markers
   const createStudioMarkers = useCallback((mapInstance: any, markerData: any[]) => {
     console.log('🏭 Creating studio markers:', markerData.length);
+    console.log('📊 Current map zoom level:', mapInstance.getZoom());
     
     // Determine the actual max zoom based on studio types (same logic as map initialization)
     const hasHomeStudios = markerData.some(marker => marker.studio_type === 'HOME');
     const actualMaxZoom = hasHomeStudios ? 13 : 15;
+    console.log('🔍 Clustering config:', { hasHomeStudios, actualMaxZoom, clusterMaxZoom: actualMaxZoom - 1 });
     console.log('📍 Marker data:', markerData.map(m => ({ 
       id: m.id, 
       name: m.title, 
@@ -229,6 +231,7 @@ export function GoogleMap({
 
     // Create marker clusterer for grouping with custom cluster marker
     if (newMarkers.length > 0) {
+      console.log('🔧 Initializing MarkerClusterer with maxZoom:', actualMaxZoom - 1);
       markerClustererRef.current = new MarkerClusterer({
         markers: newMarkers,
         map: mapInstance,
@@ -473,6 +476,16 @@ export function GoogleMap({
     });
     
     map.addListener('zoom_changed', () => {
+      const currentZoom = map.getZoom();
+      const markerCount = markersRef.current?.length || 0;
+      const clusterCount = markerClustererRef.current ? 'active' : 'inactive';
+      console.log('🔎 Zoom changed:', { 
+        zoom: currentZoom, 
+        markers: markerCount,
+        clusterer: clusterCount,
+        userInteracted: hasUserInteractedRef.current 
+      });
+      
       // Only count as user interaction if it's not programmatic
       if (isUserInitiated) {
         handleUserInteraction();
@@ -600,7 +613,9 @@ export function GoogleMap({
     }
 
     // Clear existing markers and clusterer
+    console.log('🧹 Clearing existing markers. Current count:', markersRef.current.length);
     if (markerClustererRef.current) {
+      console.log('🧹 Clearing marker clusterer');
       markerClustererRef.current.clearMarkers();
       markerClustererRef.current = null;
     }
@@ -615,6 +630,8 @@ export function GoogleMap({
       console.log('❌ No markers to display');
       return;
     }
+    
+    console.log('✨ Creating new markers. Count:', markers.length);
     
     createStudioMarkers(mapInstanceRef.current, markers);
     
