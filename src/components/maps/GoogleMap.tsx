@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { MarkerClusterer } from '@googlemaps/markerclusterer';
+import { MarkerClusterer, GridAlgorithm } from '@googlemaps/markerclusterer';
 import { createRoot } from 'react-dom/client';
 import { StudioMarkerTooltip } from './StudioMarkerTooltip';
 import { MapLocation } from '@/lib/maps';
@@ -228,6 +228,7 @@ export function GoogleMap({
       markerClustererRef.current = new MarkerClusterer({
         markers: newMarkers,
         map: mapInstance,
+        algorithm: new GridAlgorithm({ maxZoom: 18 }), // Break clusters at zoom 18+ (max zoom is 21)
         renderer: {
           render: ({ count, position }) => {
             console.log('🔢 Creating cluster marker for', count, 'studios at', position);
