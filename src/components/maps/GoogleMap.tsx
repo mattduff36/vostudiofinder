@@ -228,7 +228,7 @@ export function GoogleMap({
       markerClustererRef.current = new MarkerClusterer({
         markers: newMarkers,
         map: mapInstance,
-        algorithm: new GridAlgorithm({ maxZoom: 18 }), // Break clusters at zoom 18+ (max zoom is 21)
+        algorithm: new GridAlgorithm({ maxZoom: 20 }), // Cluster up to zoom 20, break apart at 21 (max zoom)
         renderer: {
           render: ({ count, position }) => {
             console.log('🔢 Creating cluster marker for', count, 'studios at', position);
