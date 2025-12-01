@@ -318,7 +318,7 @@ export function GoogleMap({
       // At low zoom levels, ensure clusters are calculated
       // Use longer timeout to ensure the MarkerClusterer has finished its internal setup
       // and React's strict mode double-render has completed
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         if (markerClustererRef.current) {
           console.log('🔄 Low zoom detected, triggering cluster render');
           markerClustererRef.current.render();
@@ -326,7 +326,13 @@ export function GoogleMap({
           console.warn('⚠️ MarkerClusterer ref is null, cannot trigger initial render');
         }
       }, 250);
+      
+      // Return timeout ID for cleanup
+      return timeoutId;
     }
+    
+    // Return null if no timeout was created
+    return null;
     
     // Trigger auto-zoom after markers are created
     if (searchCenter && searchRadius && markerData.length > 0 && !hasUserInteractedRef.current) {
@@ -653,13 +659,19 @@ export function GoogleMap({
     
     console.log('✨ Creating new markers. Count:', markers.length);
     
-    createStudioMarkers(mapInstanceRef.current, markers);
+    // Store the timeout ID returned from createStudioMarkers for cleanup
+    const clusterRenderTimeout = createStudioMarkers(mapInstanceRef.current, markers);
     
     // Set markers as ready after creation
     setMarkersReady(true);
     
-    // No cleanup needed for this effect
-    return;
+    // Cleanup: clear the cluster render timeout if the effect is re-run or unmounted
+    return () => {
+      if (clusterRenderTimeout !== null) {
+        clearTimeout(clusterRenderTimeout);
+        console.log('🧹 Cleared cluster render timeout on cleanup');
+      }
+    };
   }, [markers, selectedMarkerId]);
 
   // Update search radius circle and center marker
