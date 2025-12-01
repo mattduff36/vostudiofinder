@@ -6,6 +6,7 @@ import { DashboardTabs, DashboardTab } from './DashboardTabs';
 import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
 import { ImageGalleryManager } from './ImageGalleryManager';
+import { Footer } from '@/components/home/Footer';
 
 interface DashboardContentProps {
   dashboardData: any;
@@ -62,6 +63,11 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderTabContent()}
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-10">
+        <Footer />
       </div>
     </div>
   );

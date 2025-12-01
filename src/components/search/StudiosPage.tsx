@@ -8,6 +8,7 @@ import { GoogleMap } from '@/components/maps/GoogleMap';
 import { abbreviateAddress } from '@/lib/utils/address';
 import Image from 'next/image';
 import { StudioMarkerModal } from '@/components/maps/StudioMarkerModal';
+import { Footer } from '@/components/home/Footer';
 
 interface Studio {
   id: string;
@@ -728,6 +729,9 @@ export function StudiosPage() {
           onClose={handleCloseModal}
         />
       )}
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
