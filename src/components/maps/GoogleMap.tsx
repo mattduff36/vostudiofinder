@@ -308,13 +308,16 @@ export function GoogleMap({
     
     console.log('🎯 Studio markers created successfully!');
     
-    // Wait for map tiles to load, then trigger a zoom change to force clustering
+    // Wait for map tiles to load, then trigger a zoom bounce to force initial clustering
     (window.google.maps as any).event.addListenerOnce(mapInstance, 'tilesloaded', () => {
-      console.log('🗺️ Map tiles loaded, triggering cluster refresh');
-      // Trigger a minimal zoom change to force MarkerClusterer to recalculate
+      console.log('🗺️ Map tiles loaded, triggering cluster refresh with zoom bounce');
       const currentZoom = mapInstance.getZoom();
-      if (currentZoom) {
-        mapInstance.setZoom(currentZoom);
+      if (currentZoom !== undefined) {
+        // Briefly zoom in then back to force MarkerClusterer to calculate clusters
+        mapInstance.setZoom(currentZoom + 0.1);
+        setTimeout(() => {
+          mapInstance.setZoom(currentZoom);
+        }, 50);
       }
     });
     
