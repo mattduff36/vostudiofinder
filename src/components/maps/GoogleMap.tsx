@@ -74,6 +74,7 @@ export function GoogleMap({
   const markerClustererRef = useRef<MarkerClusterer | null>(null);
   const circleRef = useRef<any>(null);
   const centerMarkerRef = useRef<any>(null);
+  const clusterRenderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   // Track if user has interacted with the map (use ref for synchronous updates)
   const hasUserInteractedRef = useRef(false);
@@ -308,6 +309,13 @@ export function GoogleMap({
     
     console.log('🎯 Studio markers created successfully!');
     
+    // Clear any existing cluster render timeout before creating a new one
+    if (clusterRenderTimeoutRef.current !== null) {
+      clearTimeout(clusterRenderTimeoutRef.current);
+      clusterRenderTimeoutRef.current = null;
+      console.log('🧹 Cleared previous cluster render timeout');
+    }
+    
     // Ensure clusters render on initial load
     // Check current zoom level and trigger cluster render if needed
     const currentZoom = mapInstance.getZoom();
@@ -318,21 +326,16 @@ export function GoogleMap({
       // At low zoom levels, ensure clusters are calculated
       // Use longer timeout to ensure the MarkerClusterer has finished its internal setup
       // and React's strict mode double-render has completed
-      const timeoutId = setTimeout(() => {
+      clusterRenderTimeoutRef.current = setTimeout(() => {
         if (markerClustererRef.current) {
           console.log('🔄 Low zoom detected, triggering cluster render');
           markerClustererRef.current.render();
         } else {
           console.warn('⚠️ MarkerClusterer ref is null, cannot trigger initial render');
         }
+        clusterRenderTimeoutRef.current = null; // Clear ref after timeout fires
       }, 250);
-      
-      // Return timeout ID for cleanup
-      return timeoutId;
     }
-    
-    // Return null if no timeout was created
-    return null;
     
     // Trigger auto-zoom after markers are created
     if (searchCenter && searchRadius && markerData.length > 0 && !hasUserInteractedRef.current) {
@@ -659,16 +662,17 @@ export function GoogleMap({
     
     console.log('✨ Creating new markers. Count:', markers.length);
     
-    // Store the timeout ID returned from createStudioMarkers for cleanup
-    const clusterRenderTimeout = createStudioMarkers(mapInstanceRef.current, markers);
+    // Create studio markers (cluster render timeout is managed via ref internally)
+    createStudioMarkers(mapInstanceRef.current, markers);
     
     // Set markers as ready after creation
     setMarkersReady(true);
     
     // Cleanup: clear the cluster render timeout if the effect is re-run or unmounted
     return () => {
-      if (clusterRenderTimeout !== null) {
-        clearTimeout(clusterRenderTimeout);
+      if (clusterRenderTimeoutRef.current !== null) {
+        clearTimeout(clusterRenderTimeoutRef.current);
+        clusterRenderTimeoutRef.current = null;
         console.log('🧹 Cleared cluster render timeout on cleanup');
       }
     };
