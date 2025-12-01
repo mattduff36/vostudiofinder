@@ -305,9 +305,14 @@ export function GoogleMap({
         },
       });
       
-      // Force render clusters after creation
-      console.log('🔄 Forcing initial cluster render');
-      markerClustererRef.current.render();
+      // Wait for map to be idle before forcing cluster render
+      console.log('🔄 Waiting for map idle event to render clusters');
+      (window.google.maps as any).event.addListenerOnce(mapInstance, 'idle', () => {
+        if (markerClustererRef.current) {
+          console.log('🎯 Map idle - forcing cluster render');
+          markerClustererRef.current.render();
+        }
+      });
     }
     
     console.log('🎯 Studio markers created successfully!');
