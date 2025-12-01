@@ -1,7 +1,7 @@
 // Email service for sending notifications and transactional emails
-// import { Resend } from 'resend'; // TEMPORARILY DISABLED
+import { Resend } from 'resend';
 
-// const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_key'); // TEMPORARILY DISABLED
+const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_key');
 
 export interface EmailOptions {
   to: string;
@@ -12,19 +12,6 @@ export interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    // TEMPORARILY DISABLED - Resend API is disabled
-    console.log('📧 Email service is temporarily disabled:', {
-      to: options.to,
-      subject: options.subject,
-      from: options.from || 'noreply@voiceoverstudiofinder.com',
-      htmlLength: options.html.length,
-    });
-    
-    console.log('⚠️ Resend API is temporarily disabled - email not sent');
-    return false;
-
-    // ORIGINAL CODE (commented out):
-    /*
     // Validate required environment variable
     if (!process.env.RESEND_API_KEY) {
       console.error('❌ RESEND_API_KEY environment variable is not set');
@@ -38,7 +25,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     }
 
     // Set default sender if not provided
-    const fromEmail = options.from || 'noreply@voiceoverstudiofinder.com';
+    const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || 'noreply@voiceoverstudiofinder.com';
     
     console.log('📧 Sending email via Resend:', {
       to: options.to,
@@ -61,7 +48,6 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 
     console.log('✅ Email sent successfully via Resend:', result.data?.id);
     return true;
-    */
   } catch (error) {
     console.error('❌ Failed to send email:', error);
     return false;
