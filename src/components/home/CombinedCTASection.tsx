@@ -195,7 +195,7 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
             Why I Built This Platform
           </h2>
           
-          <div className="grid grid-cols-1 lg:grid-cols-[42%_58%] gap-2 lg:gap-3 items-center min-h-[500px]">
+          <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-2 lg:gap-3 items-center min-h-[500px]">
             {/* Image on Left - Fade + Ken Burns effect, cycles through 3 images */}
             <div className={`relative rounded-lg overflow-hidden shadow-2xl transition-opacity duration-600 ${
               imageVisible ? 'opacity-100' : 'opacity-0'
