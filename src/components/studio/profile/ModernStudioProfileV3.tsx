@@ -7,6 +7,7 @@ import { cleanDescription } from '@/lib/utils/text';
 import { SimpleStudioMap } from '@/components/maps/SimpleStudioMap';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { formatRateWithCurrency } from '@/lib/utils/currency';
+import { Footer } from '@/components/home/Footer';
 import clsx from 'clsx';
 
 // Force rebuild: Updated types for connection9-12 and custom_connection_methods
@@ -768,6 +769,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

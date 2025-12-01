@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Clock, User, Tag } from 'lucide-react';
 import Image from 'next/image';
 import { PageHero } from '@/components/common/PageHero';
+import { Footer } from '@/components/home/Footer';
 
 // Color scheme from the site
 const colors = {
@@ -179,6 +180,11 @@ export default function BlogPage() {
         {selectedLayout === 'clean' && <CleanLayout posts={samplePosts} />}
         {selectedLayout === 'minimal' && <MinimalLayout posts={samplePosts} />}
         {selectedLayout === 'studio' && <StudioLayout posts={samplePosts} />}
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-10">
+        <Footer />
       </div>
     </div>
   );
