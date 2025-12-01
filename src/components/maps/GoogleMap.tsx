@@ -376,7 +376,7 @@ export function GoogleMap({
         }
       }, 200); // Small delay to ensure markers are fully rendered
     }
-  }, [searchCenter, searchRadius]);
+  }, [searchCenter, searchRadius, activeInfoWindow, setActiveInfoWindow]);
 
   // Load Google Maps script
   useEffect(() => {

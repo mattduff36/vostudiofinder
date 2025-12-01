@@ -1,8 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { emailService } from '@/lib/email/email-service';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication - only authenticated users can send test emails
+    const session = await getServerSession(authOptions);
+    
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Please sign in' },
+        { status: 401 }
+      );
+    }
+
+    // Additional security: Only admin users can send test emails
+    // @ts-ignore - user_type exists on session.user from our auth config
+    if (session.user?.user_type !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { to } = body;
 
