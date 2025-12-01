@@ -313,15 +313,19 @@ export function GoogleMap({
     const currentZoom = mapInstance.getZoom();
     console.log('📊 Current zoom after marker creation:', currentZoom);
     
-    if (currentZoom && currentZoom < 10 && markerClustererRef.current) {
+    // Check if zoom is a valid number (including 0) and below threshold
+    if (typeof currentZoom === 'number' && currentZoom < 10) {
       // At low zoom levels, ensure clusters are calculated
-      // Use setTimeout to ensure the MarkerClusterer has finished its internal setup
+      // Use longer timeout to ensure the MarkerClusterer has finished its internal setup
+      // and React's strict mode double-render has completed
       setTimeout(() => {
         if (markerClustererRef.current) {
           console.log('🔄 Low zoom detected, triggering cluster render');
           markerClustererRef.current.render();
+        } else {
+          console.warn('⚠️ MarkerClusterer ref is null, cannot trigger initial render');
         }
-      }, 100);
+      }, 250);
     }
     
     // Trigger auto-zoom after markers are created
