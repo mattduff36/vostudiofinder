@@ -265,6 +265,16 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           required
         />
         <Input
+          label="Username"
+          value={profile?.username || ''}
+          onChange={(e) => handleBasicChange('username', e.target.value)}
+          helperText="Used in profile URL"
+          required
+        />
+      </div>
+      
+      <div>
+        <Input
           label="Email"
           type="email"
           value={profile?.email || ''}

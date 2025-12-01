@@ -71,7 +71,7 @@ export async function GET(
     const studioData = {
       id: studio.id,
       username: studio.users?.username, // Use actual username for URLs
-      display_name: studio.users?.username, // Use actual username for display
+      display_name: studio.users?.display_name, // Use actual display name
       email: studio.users?.email,
       status: studio.status?.toLowerCase(),
       joined: studio.created_at,
@@ -242,6 +242,7 @@ export async function PUT(
 
     // Prepare user updates
     const userUpdateData: any = {};
+    if (body.display_name !== undefined) userUpdateData.display_name = body.display_name; // Display name field
     if (body.username !== undefined) userUpdateData.username = body.username; // Username field updates actual username
     if (body.email !== undefined) userUpdateData.email = body.email;
     if (body.avatar_image !== undefined) userUpdateData.avatar_url = body.avatar_image; // Avatar image
