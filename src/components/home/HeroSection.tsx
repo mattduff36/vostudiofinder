@@ -83,9 +83,9 @@ export function HeroSection() {
           </p>
 
           {/* Enhanced Search Form */}
-          <div className={`max-w-4xl mx-auto mt-8 sm:mt-10 md:mt-12 px-4 transition-all duration-1000 ${
+          <div className={`max-w-4xl mx-auto mt-8 sm:mt-10 md:mt-12 px-4 transition-all duration-700 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`} style={{ transitionDelay: '0.6s' }}>
+          }`} style={{ transitionDelay: '0.2s' }}>
             <EnhancedSearchBar
               placeholder="Studio Search..."
               showRadius={true}
