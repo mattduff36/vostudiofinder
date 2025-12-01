@@ -304,18 +304,19 @@ export function GoogleMap({
           },
         },
       });
-      
-      // Wait for map to be idle before forcing cluster render
-      console.log('🔄 Waiting for map idle event to render clusters');
-      (window.google.maps as any).event.addListenerOnce(mapInstance, 'idle', () => {
-        if (markerClustererRef.current) {
-          console.log('🎯 Map idle - forcing cluster render');
-          markerClustererRef.current.render();
-        }
-      });
     }
     
     console.log('🎯 Studio markers created successfully!');
+    
+    // Wait for map tiles to load, then trigger a zoom change to force clustering
+    (window.google.maps as any).event.addListenerOnce(mapInstance, 'tilesloaded', () => {
+      console.log('🗺️ Map tiles loaded, triggering cluster refresh');
+      // Trigger a minimal zoom change to force MarkerClusterer to recalculate
+      const currentZoom = mapInstance.getZoom();
+      if (currentZoom) {
+        mapInstance.setZoom(currentZoom);
+      }
+    });
     
     // Trigger auto-zoom after markers are created
     if (searchCenter && searchRadius && markerData.length > 0 && !hasUserInteractedRef.current) {
