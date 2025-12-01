@@ -188,7 +188,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const updateStudio = (field: string, value: any) => {
     setProfile(prev => prev ? {
       ...prev,
-      studio: { ...prev.studio, [field]: value } as any,
+      studio: { ...(prev.studio || {}), [field]: value } as any,
     } : null);
   };
 
