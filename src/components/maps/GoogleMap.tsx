@@ -128,6 +128,10 @@ export function GoogleMap({
   // Helper function to create studio markers
   const createStudioMarkers = useCallback((mapInstance: any, markerData: any[]) => {
     console.log('🏭 Creating studio markers:', markerData.length);
+    
+    // Determine the actual max zoom based on studio types (same logic as map initialization)
+    const hasHomeStudios = markerData.some(marker => marker.studio_type === 'HOME');
+    const actualMaxZoom = hasHomeStudios ? 13 : 15;
     console.log('📍 Marker data:', markerData.map(m => ({ 
       id: m.id, 
       name: m.title, 
@@ -228,7 +232,7 @@ export function GoogleMap({
       markerClustererRef.current = new MarkerClusterer({
         markers: newMarkers,
         map: mapInstance,
-        algorithm: new GridAlgorithm({ maxZoom: 20 }), // Cluster up to zoom 20, break apart at 21 (max zoom)
+        algorithm: new GridAlgorithm({ maxZoom: actualMaxZoom - 1 }), // Break clusters 1 level before map max zoom
         renderer: {
           render: ({ count, position }) => {
             console.log('🔢 Creating cluster marker for', count, 'studios at', position);
