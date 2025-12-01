@@ -145,7 +145,7 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
     return (
       <>
         <p className="text-sm leading-relaxed text-white text-left">
-          "Voiceover Studio Finder was created when my own studio started earning money while I sat answering emails. Emmerdale actors would pop in to record. Chris Kamara now books my booth because it's nearby. Travelling voiceovers with last-minute jobs used it too. Over time, it became pretty damn lucrative.
+          "Voiceover Studio Finder was created when my own studio earnt money while I sat answering emails. Emmerdale actors would pop in to record. Chris Kamara now books my booth because it's nearby. Travelling voiceovers with last-minute jobs used it too. Over time, it became pretty damn lucrative.
         </p>
         <br />
         <p className="text-sm leading-relaxed text-white text-left">
