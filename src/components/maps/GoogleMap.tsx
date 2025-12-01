@@ -75,11 +75,11 @@ export function GoogleMap({
   const circleRef = useRef<any>(null);
   const centerMarkerRef = useRef<any>(null);
   const clusterRenderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const activeInfoWindowRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   // Track if user has interacted with the map (use ref for synchronous updates)
   const hasUserInteractedRef = useRef(false);
   const [markersReady, setMarkersReady] = useState(false);
-  const [activeInfoWindow, setActiveInfoWindow] = useState<any>(null);
   const [scrollZoomEnabled, setScrollZoomEnabled] = useState(false);
 
 
@@ -186,8 +186,8 @@ export function GoogleMap({
       if (data.studio && !data.onClick) {
         marker.addListener('click', () => {
           // Close existing info window
-          if (activeInfoWindow) {
-            activeInfoWindow.close();
+          if (activeInfoWindowRef.current) {
+            activeInfoWindowRef.current.close();
           }
 
           // Create new info window
@@ -205,7 +205,7 @@ export function GoogleMap({
               isPopup={true}
               onClose={() => {
                 infoWindow.close();
-                setActiveInfoWindow(null);
+                activeInfoWindowRef.current = null;
               }}
             />
           );
@@ -213,12 +213,12 @@ export function GoogleMap({
           infoWindow.setContent(container);
           infoWindow.open(mapInstance, marker);
           
-          // Update active info window state
-          setActiveInfoWindow(infoWindow);
+          // Update active info window ref
+          activeInfoWindowRef.current = infoWindow;
           
-          // Add listener to clear state when info window is closed
+          // Add listener to clear ref when info window is closed
           infoWindow.addListener('closeclick', () => {
-            setActiveInfoWindow(null);
+            activeInfoWindowRef.current = null;
           });
         });
       }
@@ -376,7 +376,7 @@ export function GoogleMap({
         }
       }, 200); // Small delay to ensure markers are fully rendered
     }
-  }, [searchCenter, searchRadius, activeInfoWindow, setActiveInfoWindow]);
+  }, [searchCenter, searchRadius]);
 
   // Load Google Maps script
   useEffect(() => {
@@ -556,9 +556,9 @@ export function GoogleMap({
     // Add click listener for location selection and info window closing
     map.addListener('click', (event: any) => {
       // Close active info window when clicking on map
-      if (activeInfoWindow) {
-        activeInfoWindow.close();
-        setActiveInfoWindow(null);
+      if (activeInfoWindowRef.current) {
+        activeInfoWindowRef.current.close();
+        activeInfoWindowRef.current = null;
       }
       
       // Handle location selection
