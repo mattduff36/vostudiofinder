@@ -308,17 +308,18 @@ export function GoogleMap({
     
     console.log('🎯 Studio markers created successfully!');
     
-    // Wait for map tiles to load, then trigger a zoom bounce to force initial clustering
-    (window.google.maps as any).event.addListenerOnce(mapInstance, 'tilesloaded', () => {
-      console.log('🗺️ Map tiles loaded, triggering cluster refresh with zoom bounce');
+    // Ensure clusters render on initial load by listening for map idle event
+    // The MarkerClusterer needs the map to be fully initialized before it can calculate clusters
+    const idleListener = mapInstance.addListener('idle', () => {
+      console.log('💤 Map idle - checking if clusters need manual refresh');
       const currentZoom = mapInstance.getZoom();
-      if (currentZoom !== undefined) {
-        // Briefly zoom in then back to force MarkerClusterer to calculate clusters
-        mapInstance.setZoom(currentZoom + 0.1);
-        setTimeout(() => {
-          mapInstance.setZoom(currentZoom);
-        }, 50);
+      if (currentZoom && currentZoom < 10 && markerClustererRef.current) {
+        // At low zoom levels, ensure clusters are calculated
+        console.log('🔄 Low zoom detected, triggering cluster render');
+        markerClustererRef.current.render();
       }
+      // Remove this listener after first idle event
+      (window.google.maps as any).event.removeListener(idleListener);
     });
     
     // Trigger auto-zoom after markers are created
