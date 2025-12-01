@@ -729,7 +729,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           className="flex items-center gap-2"
         >
           <Eye className="w-4 h-4" />
-          Preview Profile
+          View Profile
         </Button>
         <Button
           onClick={handleSave}
