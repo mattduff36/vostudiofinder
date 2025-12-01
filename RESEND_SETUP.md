@@ -10,7 +10,7 @@ Add these variables to your `.env.local` file:
 
 ```bash
 # Email Service (Resend)
-RESEND_API_KEY="re_4kgMLnJX_FRphLu6dC6iX97te3DBKtmfs"
+RESEND_API_KEY="re_your-resend-api-key-here"
 RESEND_FROM_EMAIL="VoiceoverStudioFinder <support@voiceoverstudiofinder.com>"
 ```
 
@@ -29,18 +29,11 @@ RESEND_FROM_EMAIL="VoiceoverStudioFinder <support@voiceoverstudiofinder.com>"
 
 3. Navigate to the test email page (or use the API directly with your session cookie)
 
-### Method 2: Using the Test Script
+### Method 2: Using the Test Script (DEPRECATED)
 
-**Note:** This method requires you to be signed in as an admin in your browser first, as it needs authentication.
+**⚠️ Note:** The test script (`test-email.js`) cannot authenticate with the API endpoint and will always fail. Please use Method 1 (Admin Panel) instead.
 
-1. Sign in as an admin at `http://localhost:3000/admin`
-
-2. Run the test script:
-   ```bash
-   node test-email.js your-email@example.com
-   ```
-
-3. Check your inbox for the test email!
+The script is kept for reference only and requires manual session cookie management to work.
 
 ### Method 3: Using curl (Requires Admin Session)
 
@@ -95,7 +88,7 @@ await emailService.sendEmail({
 1. **Check environment variables:**
    ```bash
    # Make sure these are in .env.local
-   RESEND_API_KEY="re_4kgMLnJX_FRphLu6dC6iX97te3DBKtmfs"
+   RESEND_API_KEY="re_your-resend-api-key-here"
    RESEND_FROM_EMAIL="VoiceoverStudioFinder <support@voiceoverstudiofinder.com>"
    ```
 

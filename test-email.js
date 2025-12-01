@@ -1,15 +1,21 @@
 /**
  * Test Email Script
  * 
- * This script sends a test email to verify Resend integration.
+ * ⚠️ DEPRECATED: This script cannot authenticate with the API endpoint.
  * 
- * Usage:
- *   node test-email.js your-email@example.com
+ * Please use the admin web interface instead:
+ * 1. Navigate to http://localhost:3000/admin/test-email
+ * 2. Sign in as admin
+ * 3. Enter recipient email and click "Send Test Email"
+ * 
+ * This script is kept for reference only.
  */
 
 const testEmail = async (recipientEmail) => {
   try {
-    console.log('🚀 Sending test email to:', recipientEmail);
+    console.log('⚠️  WARNING: This script will fail due to authentication requirements.');
+    console.log('Please use the admin panel at: http://localhost:3000/admin/test-email\n');
+    console.log('🚀 Attempting to send test email to:', recipientEmail);
     
     const response = await fetch('http://localhost:3000/api/test-email', {
       method: 'POST',

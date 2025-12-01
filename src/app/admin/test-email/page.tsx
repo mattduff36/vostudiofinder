@@ -157,7 +157,7 @@ export default function TestEmailPage() {
               <div className="flex justify-between">
                 <span>API Key:</span>
                 <span className="font-mono text-xs">
-                  {process.env.NEXT_PUBLIC_RESEND_API_KEY ? '✓ Configured' : '✗ Not set'}
+                  Configured (server-side)
                 </span>
               </div>
               <div className="flex justify-between">
