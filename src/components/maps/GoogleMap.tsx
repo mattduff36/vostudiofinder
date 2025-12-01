@@ -304,6 +304,10 @@ export function GoogleMap({
           },
         },
       });
+      
+      // Force render clusters after creation
+      console.log('🔄 Forcing initial cluster render');
+      markerClustererRef.current.render();
     }
     
     console.log('🎯 Studio markers created successfully!');
