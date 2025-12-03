@@ -273,27 +273,13 @@ export function Navbar({ session }: NavbarProps) {
                 </button>
                 <button
                   onClick={() => router.push('/auth/signup')}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                    isScrolled || !isHomePage 
+                      ? 'text-white hover:opacity-90' 
+                      : 'text-white border border-white hover:bg-white hover:text-red-600'
+                  }`}
                   style={{
-                    backgroundColor: isScrolled || !isHomePage ? colors.primary : 'transparent',
-                    color: isScrolled || !isHomePage ? '#ffffff' : '#ffffff',
-                    border: isScrolled || !isHomePage ? 'none' : '1px solid #ffffff'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (isScrolled || !isHomePage) {
-                      e.currentTarget.style.backgroundColor = colors.primaryHover;
-                    } else {
-                      e.currentTarget.style.backgroundColor = '#ffffff';
-                      e.currentTarget.style.color = colors.primary;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (isScrolled || !isHomePage) {
-                      e.currentTarget.style.backgroundColor = colors.primary;
-                    } else {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = '#ffffff';
-                    }
+                    backgroundColor: isScrolled || !isHomePage ? colors.primary : 'transparent'
                   }}
                 >
                   List Your Studio

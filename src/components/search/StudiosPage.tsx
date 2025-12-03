@@ -92,8 +92,12 @@ export function StudiosPage() {
     return 'Studios Available Worldwide';
   }, [searchParams]);
 
-  // Function to clear previous studio selection outline
-  const clearPreviousSelection = () => {
+  // Function to handle studio marker click - opens modal and adds outline
+  const handleStudioMarkerClick = useCallback((studio: any, event: any) => {
+    // Close any existing modal
+    setModalStudio(null);
+    
+    // Clear previous selection - directly clear any existing outlines
     if (selectedStudioId) {
       const previousElement = document.getElementById(`studio-${selectedStudioId}`);
       if (previousElement) {
@@ -102,15 +106,8 @@ export function StudiosPage() {
         previousElement.classList.remove('animate-bounce-once');
       }
     }
-  };
-
-  // Function to handle studio marker click - opens modal and adds outline
-  const handleStudioMarkerClick = useCallback((studio: any, event: any) => {
-    // Close any existing modal
-    setModalStudio(null);
     
-    // Clear previous selection and set new one
-    clearPreviousSelection();
+    // Set new selected studio
     setSelectedStudioId(studio.id);
     
     // Add red outline to the studio card if it exists on current page
@@ -135,7 +132,7 @@ export function StudiosPage() {
       studio_images: studio.studio_images,
       position: markerPosition,
     });
-  }, []); // Empty deps - function doesn't depend on any props/state
+  }, [selectedStudioId]); // Include selectedStudioId in dependencies
 
   // Function to close the modal
   const handleCloseModal = useCallback(() => {
@@ -327,7 +324,14 @@ export function StudiosPage() {
 
   // Clear selection when search parameters change (new search from URL)
   useEffect(() => {
-    clearPreviousSelection();
+    if (selectedStudioId) {
+      const previousElement = document.getElementById(`studio-${selectedStudioId}`);
+      if (previousElement) {
+        previousElement.style.outline = '';
+        previousElement.style.outlineOffset = '';
+        previousElement.classList.remove('animate-bounce-once');
+      }
+    }
     setSelectedStudioId(null);
   }, [searchParams.toString()]);
 
@@ -338,7 +342,14 @@ export function StudiosPage() {
     console.log('🔍 HandleSearch called with filters:', filters);
     
     // Clear any selected studio when performing a new search
-    clearPreviousSelection();
+    if (selectedStudioId) {
+      const previousElement = document.getElementById(`studio-${selectedStudioId}`);
+      if (previousElement) {
+        previousElement.style.outline = '';
+        previousElement.style.outlineOffset = '';
+        previousElement.classList.remove('animate-bounce-once');
+      }
+    }
     setSelectedStudioId(null);
     
     const params = new URLSearchParams();
