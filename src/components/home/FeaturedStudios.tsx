@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
 import { colors } from './HomePage';
+
 /*
 SAVED CODE - Fade-out gradient feature for future use:
 <div className="relative flex-grow mb-4 overflow-hidden">
@@ -16,6 +17,7 @@ SAVED CODE - Fade-out gradient feature for future use:
   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
 </div>
 */
+
 interface Studio {
   id: string;
   name: string;
@@ -39,13 +41,18 @@ interface Studio {
     username: string;
     display_name?: string;
     avatar_url?: string;
+  };
 }
+
 interface FeaturedStudiosProps {
   studios: Studio[];
+}
+
 export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
   const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -55,11 +62,14 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
       },
       { threshold: 0.2 }
     );
+
     if (sectionRef.current) {
       observer.observe(sectionRef.current);
     }
+
     return () => observer.disconnect();
   }, []);
+
   // Calculate how many placeholder cards to show (always show 6 total cards)
   const maxCards = 6;
   const realStudiosCount = Math.min(studios.length, 5); // Show max 5 real studios
@@ -67,8 +77,10 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
   
   // Take only the first 5 studios
   const displayStudios = studios.slice(0, 5);
+  
   // Create placeholder card data
   const placeholders = Array(placeholderCount).fill(null);
+
   if (studios.length === 0) {
     return (
       <div className="relative py-16 overflow-hidden">
@@ -92,8 +104,11 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           <Button onClick={() => router.push('/auth/signup')}>
             Add Your Studio
           </Button>
+        </div>
       </div>
+    );
   }
+
   return (
     <div ref={sectionRef} className="relative py-8 overflow-hidden">
       {/* Background Image */}
@@ -105,16 +120,22 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           className="object-cover opacity-10"
           priority={false}
         />
+      </div>
       <div className="relative z-10 pt-0 pb-6 sm:py-8 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className={`text-center mb-8 sm:mb-12 transition-all duration-1000 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
           <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4" style={{ color: colors.textPrimary }}>
+            Featured Studios
+          </h2>
           <p className={`text-base sm:text-lg md:text-xl text-center transition-all duration-1000 ease-out px-4 ${
             isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.2s', color: colors.textSecondary, maxWidth: '768px', margin: '0 auto' }}>
             These are a handful of some of our favourite studios listed.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Real Studio Cards */}
           {displayStudios.map((studio) => (
@@ -156,20 +177,29 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                       </span>
                     ))}
                     {studio.studio_studio_types.length > 2 && (
+                      <span 
+                        className="inline-block px-2 py-1 text-xs font-medium rounded shadow-lg" 
+                        style={{ backgroundColor: '#f3f4f6', color: '#000000', border: 'none' }}
+                      >
                         +{studio.studio_studio_types.length - 2}
+                      </span>
                     )}
                   </div>
                 </div>
+
                 <div className="p-3 sm:p-4 flex flex-col flex-grow">
                   {/* Studio Name with Avatar and Verified Badge - matching StudiosList styling */}
                   <div className="flex items-center gap-2 mb-2">
                     {/* Avatar - Small square image on the left */}
                     {studio.owner?.avatar_url && (
+                      <Image
                         src={studio.owner.avatar_url}
                         alt={`${studio.owner.display_name || studio.name} avatar`}
                         width={28}
                         height={28}
                         className="rounded-md object-cover flex-shrink-0"
+                      />
+                    )}
                     
                     {/* Studio Name */}
                     <h3 
@@ -198,6 +228,8 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                         </span>
                       )}
                     </h3>
+                  </div>
+
                   {/* Location and Description */}
                   <div className="mb-3">
                     <div className="text-sm leading-snug" style={{ color: colors.textSecondary }}>
@@ -207,6 +239,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                           <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
                           <span className="line-clamp-1">{studio.city || studio.location}</span>
                         </div>
+                      )}
                       
                       {/* Description with line limit - only show if content exists */}
                       {(() => {
@@ -223,6 +256,9 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                           </div>
                         );
                       })()}
+                    </div>
+                  </div>
+
                   {/* Services */}
                   {studio.studio_services && studio.studio_services.length > 0 && (
                     <div className="mb-3">
@@ -232,14 +268,19 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                             key={index}
                             className="inline-block px-2 py-1 bg-gray-100 text-xs rounded"
                             style={{ color: colors.textSecondary }}
+                          >
                             {service.service.replace(/_/g, ' ')}
                           </span>
                         ))}
                         {studio.studio_services.length > 2 && (
                           <span className="inline-block px-2 py-1 bg-gray-100 text-xs rounded" style={{ color: colors.textSecondary }}>
                             +{studio.studio_services.length - 2} more
+                          </span>
                         )}
                       </div>
+                    </div>
+                  )}
+
                   {/* Stats & CTA */}
                   <div className="flex items-center justify-between mt-auto pt-2">
                     <div className="flex items-center space-x-3 text-sm" style={{ color: colors.textSecondary }}>
@@ -247,8 +288,15 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                         <div className="flex items-center">
                           <Star className="w-4 h-4 text-yellow-400 mr-1" />
                           <span>{studio._count?.reviews}</span>
+                        </div>
+                      )}
+                    </div>
+                    
                     <div className="px-3 py-1.5 text-white text-sm font-medium rounded transition-colors pointer-events-none" style={{ backgroundColor: colors.primary }}>
                       View Details
+                    </div>
+                  </div>
+                </div>
               </div>
           ))}
           
@@ -267,6 +315,8 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                   fill
                   className="object-cover"
                 />
+              </div>
+
               <div className="p-3 sm:p-4 flex flex-col flex-grow justify-center text-center">
                 {/* Placeholder Title - styled like H3 but using p tag for SEO */}
                 <p 
@@ -275,9 +325,12 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                 >
                   Add Your Studio Here!
                 </p>
+
                 {/* Placeholder Description */}
                 <p className="text-sm mb-4 leading-relaxed" style={{ color: colors.textSecondary }}>
                   Get featured on the homepage from day one. Reach thousands of voiceovers searching for recording spaces.
+                </p>
+
                 {/* CTA Button */}
                 <div className="mt-auto">
                   <div 
@@ -285,7 +338,13 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
                     style={{ backgroundColor: colors.primary }}
                   >
                     List Your Studio
+                  </div>
+                </div>
+              </div>
             </div>
+          ))}
+        </div>
+
         {/* View All Studios Button */}
         <div className="text-center mt-12">
           <button 
@@ -295,5 +354,9 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           >
             View All Studios
           </button>
+        </div>
+        </div>
+      </div>
     </div>
   );
+}
