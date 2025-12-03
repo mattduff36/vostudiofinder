@@ -6,24 +6,19 @@ import { Button } from '@/components/ui/Button';
 import { loadStripe } from '@stripe/stripe-js';
 import { Check, Building } from 'lucide-react';
 import Image from 'next/image';
-
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
 export function MembershipPayment() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   // Get user data from URL params (passed from signup form)
   const email = searchParams?.get('email') || '';
   const name = searchParams?.get('name') || '';
   const username = searchParams?.get('username') || '';
-
   const handlePayment = async () => {
     setIsLoading(true);
     setError(null);
-
     try {
       const response = await fetch('/api/stripe/create-membership-checkout', {
         method: 'POST',
@@ -37,13 +32,10 @@ export function MembershipPayment() {
           priceId: process.env.NEXT_PUBLIC_STRIPE_MEMBERSHIP_PRICE_ID,
         }),
       });
-
     const { sessionId, url, error: apiError } = await response.json();
-
     if (apiError) {
       throw new Error(apiError);
     }
-
     // Stripe.js v8 uses direct URL redirect instead of redirectToCheckout
     if (url) {
       window.location.href = url;
@@ -54,14 +46,11 @@ export function MembershipPayment() {
         // This is no longer supported in v8, but keeping as fallback
         window.location.href = `https://checkout.stripe.com/pay/${sessionId}`;
       }
-    }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Payment failed');
     } finally {
       setIsLoading(false);
-    }
   };
-
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Background Image */}
@@ -74,7 +63,6 @@ export function MembershipPayment() {
           priority={false}
         />
       </div>
-
       <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-2xl">
         {/* Logo */}
         <div className="flex justify-center mb-8">
@@ -87,7 +75,6 @@ export function MembershipPayment() {
             className="h-auto"
           />
         </div>
-
         <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-lg overflow-hidden">
           {/* Pricing Header */}
           <div className="bg-[#d42027] px-8 py-6 text-white text-center">
@@ -95,7 +82,6 @@ export function MembershipPayment() {
             <div className="text-lg opacity-90">per year</div>
             <div className="text-sm opacity-75 mt-1">Exceptional value for global reach</div>
           </div>
-
           {/* Features List */}
           <div className="px-8 py-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
@@ -120,7 +106,6 @@ export function MembershipPayment() {
                 </li>
               ))}
             </ul>
-
             {/* User Info */}
             {(email || name) && (
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
@@ -129,14 +114,10 @@ export function MembershipPayment() {
                 {email && <p className="text-sm text-gray-600">Email: {email}</p>}
               </div>
             )}
-
             {/* Error Display */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
                 <p className="text-red-700 text-sm">{error}</p>
-              </div>
-            )}
-
             {/* Action Buttons */}
             <div className="flex flex-col space-y-4">
               <Button
@@ -148,24 +129,15 @@ export function MembershipPayment() {
                 Complete Membership Purchase
               </Button>
               
-              <Button
                 onClick={() => router.back()}
                 variant="outline"
                 className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
-                disabled={isLoading}
-              >
                 Go Back
-              </Button>
             </div>
-
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-500">
                 Secure payment powered by Stripe • Cancel anytime
               </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
