@@ -47,7 +47,7 @@
     "@hookform/resolvers": "^5.2.1",
     "@libsql/client": "^0.15.15",
     "@paralleldrive/cuid2": "^3.0.4",
-    "@prisma/adapter-libsql": "^6.16.3",
+    "@prisma/adapter-libsql": "^7.1.0",
     "@prisma/client": "^6.16.3",
     "@sentry/nextjs": "^10.17.0",
     "@stripe/stripe-js": "^8.0.0",
