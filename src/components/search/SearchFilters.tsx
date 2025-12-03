@@ -138,10 +138,6 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3 space-y-6">
-      {/* Centered header title */}
-      <div className="mb-3">
-        <h3 className="text-lg font-bold text-gray-900 text-center">Filter Studios</h3>
-      </div>
       {/* Optional Clear All button */}
       {hasActiveFilters && (
         <div className="flex justify-end mb-2">
