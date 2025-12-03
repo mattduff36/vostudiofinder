@@ -74,6 +74,7 @@ export function StudiosPage() {
   const [isFilterSticky, setIsFilterSticky] = useState(false);
   const [stickyStyles, setStickyStyles] = useState<{width: number; left: number} | null>(null);
   const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
+  const [viewedStudioIds, setViewedStudioIds] = useState<string[]>([]); // Track viewing history
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   
   // Studio marker modal state
@@ -107,17 +108,21 @@ export function StudiosPage() {
         previousElement.style.outlineOffset = '';
         previousElement.classList.remove('animate-bounce-once');
       }
+      
+      // Add previously selected studio to viewing history (if it's different from the new one)
+      if (selectedStudioId !== studio.id) {
+        setViewedStudioIds(prev => {
+          // Remove the studio if it's already in the history, then add it to the front
+          const filtered = prev.filter(id => id !== selectedStudioId);
+          return [selectedStudioId, ...filtered];
+        });
+      }
     }
     
     // Set new selected studio
     setSelectedStudioId(studio.id);
     
-    // Add red outline to the studio card if it exists on current page
-    const element = document.getElementById(`studio-${studio.id}`);
-    if (element) {
-      element.style.outline = '2px solid #dc2626'; // red-600
-      element.style.outlineOffset = '2px';
-    }
+    // Note: We don't add red outline anymore since the card will be moved to filter area
     
     // Get marker position from the map click event
     // The event should contain the marker's screen position
@@ -187,6 +192,38 @@ export function StudiosPage() {
         })()),
       }));
   }, [searchResults, handleStudioMarkerClick]);
+
+  // Reorder studios based on viewing history, and exclude currently selected studio
+  const displayStudios = useMemo(() => {
+    if (!searchResults) return [];
+    
+    // Filter out the currently selected studio (it will be shown in the filter sidebar)
+    const studiosForGrid = searchResults.studios.filter(
+      studio => studio.id !== selectedStudioId
+    );
+    
+    // Separate viewed and not-viewed studios
+    const viewedStudios: Studio[] = [];
+    const otherStudios: Studio[] = [];
+    
+    studiosForGrid.forEach(studio => {
+      if (viewedStudioIds.includes(studio.id)) {
+        viewedStudios.push(studio);
+      } else {
+        otherStudios.push(studio);
+      }
+    });
+    
+    // Sort viewed studios by their position in viewedStudioIds array
+    viewedStudios.sort((a, b) => {
+      const indexA = viewedStudioIds.indexOf(a.id);
+      const indexB = viewedStudioIds.indexOf(b.id);
+      return indexA - indexB;
+    });
+    
+    // Return viewed studios first, then other studios
+    return [...viewedStudios, ...otherStudios];
+  }, [searchResults, selectedStudioId, viewedStudioIds]);
 
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
   const heroSectionRef = useRef<HTMLDivElement>(null);
@@ -324,7 +361,7 @@ export function StudiosPage() {
     };
   }, [isFilterSticky]);
 
-  // Clear selection when search parameters change (new search from URL)
+  // Clear selection and viewing history when search parameters change (new search from URL)
   useEffect(() => {
     if (selectedStudioId) {
       const previousElement = document.getElementById(`studio-${selectedStudioId}`);
@@ -335,6 +372,7 @@ export function StudiosPage() {
       }
     }
     setSelectedStudioId(null);
+    setViewedStudioIds([]); // Clear viewing history on new search
   }, [searchParams.toString()]);
 
   // Handle pending studio selection after navigation
@@ -343,7 +381,7 @@ export function StudiosPage() {
   const handleSearch = (filters: Record<string, any>) => {
     console.log('🔍 HandleSearch called with filters:', filters);
     
-    // Clear any selected studio when performing a new search
+    // Clear any selected studio and viewing history when performing a new search
     if (selectedStudioId) {
       const previousElement = document.getElementById(`studio-${selectedStudioId}`);
       if (previousElement) {
@@ -353,6 +391,7 @@ export function StudiosPage() {
       }
     }
     setSelectedStudioId(null);
+    setViewedStudioIds([]); // Clear viewing history on new search
     
     const params = new URLSearchParams();
     
@@ -635,8 +674,8 @@ export function StudiosPage() {
                 onSearch={handleSearch}
               />
 
-              {/* Selected Studio Details - Shows when a map marker is clicked */}
-              {modalStudio && selectedStudioId && searchResults && (() => {
+              {/* Selected Studio Card - Shows when a map marker is clicked */}
+              {selectedStudioId && searchResults && (() => {
                 const selectedStudio = searchResults.studios.find(s => s.id === selectedStudioId);
                 if (!selectedStudio) return null;
                 
@@ -652,6 +691,8 @@ export function StudiosPage() {
                       owner: selectedStudio.owner,
                       studio_studio_types: selectedStudio.studio_studio_types,
                       studio_services: selectedStudio.studio_services,
+                      studio_images: selectedStudio.studio_images,
+                      _count: selectedStudio._count,
                     }}
                   />
                 );
@@ -735,7 +776,7 @@ export function StudiosPage() {
                 {/* Studios List - Desktop: Always shown, Mobile: Only in list view */}
                 <div className={`${mobileView === 'map' ? 'hidden lg:block' : 'block'}`}>
                   <StudiosList
-                    studios={searchResults.studios}
+                    studios={displayStudios}
                     pagination={searchResults.pagination}
                     onLoadMore={loadMore}
                     loadingMore={loadingMore}
