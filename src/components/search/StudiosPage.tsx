@@ -76,8 +76,6 @@ export function StudiosPage() {
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [isFilterSticky, setIsFilterSticky] = useState(false);
-  const [stickyStyles, setStickyStyles] = useState<{width: number; left: number; top?: number} | null>(null);
   const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
   const [viewedStudioIds, setViewedStudioIds] = useState<string[]>([]); // Track viewing history
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -235,10 +233,6 @@ export function StudiosPage() {
   }, [searchResults, selectedStudioId, viewedStudioIds]);
 
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
-  const heroSectionRef = useRef<HTMLDivElement>(null);
-  const filterSidebarRef = useRef<HTMLDivElement>(null);
-  const filterContainerRef = useRef<HTMLDivElement>(null);
-  const footerRef = useRef<HTMLDivElement>(null);
 
   // Search function - for initial load or filter changes
   const performSearch = async (params: URLSearchParams, resetOffset: boolean = true) => {
@@ -310,86 +304,6 @@ export function StudiosPage() {
     performSearch(params);
   }, [searchParams.toString()]);
 
-  // Handle sticky filter sidebar with optimized scroll handling
-  useEffect(() => {
-    let ticking = false;
-    let scrollTimeout: NodeJS.Timeout;
-    
-    const handleScroll = () => {
-      // Debounce scroll events to prevent excessive re-renders
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        if (!ticking) {
-          requestAnimationFrame(() => {
-            if (!heroSectionRef.current || !filterSidebarRef.current || !footerRef.current) {
-              ticking = false;
-              return;
-            }
-            
-            const heroSection = heroSectionRef.current;
-            const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
-            const navbarHeight = 80;
-            const scrollPosition = window.scrollY + navbarHeight;
-            const isPastHero = scrollPosition >= heroBottom;
-            
-            // Check if sidebar would overlap footer
-            const sidebarElement = filterSidebarRef.current;
-            const footer = footerRef.current;
-            const footerTop = footer.offsetTop;
-            const sidebarHeight = sidebarElement.offsetHeight;
-            const defaultStickyTop = 112; // navbar + padding
-            const buffer = 32;
-            
-            // Calculate where the bottom of the sidebar would be
-            const sidebarBottom = window.scrollY + defaultStickyTop + sidebarHeight;
-            const wouldOverlapFooter = sidebarBottom > footerTop - buffer;
-            
-            // Sidebar should be sticky if we're past the hero section
-            const shouldBeSticky = isPastHero;
-            
-            // Only update if state actually changes
-            if (shouldBeSticky !== isFilterSticky) {
-              setIsFilterSticky(shouldBeSticky);
-            }
-            
-            // Update styles when sticky (adjust top if near footer)
-            if (shouldBeSticky) {
-              const sidebarRect = sidebarElement.getBoundingClientRect();
-              let adjustedTop = defaultStickyTop;
-              
-              // If sidebar would overlap footer, push it up
-              if (wouldOverlapFooter) {
-                // Calculate how much to push up: footerTop - scrollY - sidebarHeight - buffer
-                adjustedTop = footerTop - window.scrollY - sidebarHeight - buffer;
-              }
-              
-              setStickyStyles({
-                width: sidebarRect.width,
-                left: sidebarRect.left,
-                top: adjustedTop
-              });
-            } else {
-              // Clear styles when not sticky
-              setStickyStyles(null);
-            }
-            
-            ticking = false;
-          });
-          ticking = true;
-        }
-      }, 16); // Throttle to ~60fps
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
-    handleScroll(); // Check initial position
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-      clearTimeout(scrollTimeout);
-    };
-  }, [isFilterSticky]);
 
   // Clear selection and viewing history when search parameters change (new search from URL)
   useEffect(() => {
@@ -496,9 +410,9 @@ export function StudiosPage() {
 
 
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden -mt-20">
+    <div className="min-h-screen flex flex-col bg-white relative -mt-20">
       {/* Background Image for main content */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <Image
           src="/background-images/21920-5.jpg"
           alt="Studios page background texture"
@@ -508,8 +422,10 @@ export function StudiosPage() {
         />
       </div>
 
-      {/* Header Section - Simplified */}
-      <div ref={heroSectionRef} className="relative overflow-hidden pt-20" style={{ height: '200px' }}>
+      {/* Main Content Area */}
+      <main className="relative z-10 flex-1">
+        {/* Header Section - Simplified */}
+        <div className="relative overflow-hidden pt-20" style={{ height: '200px' }}>
         <div className="absolute inset-0">
           <Image
             src="/background-images/21920-3.jpg"
@@ -669,21 +585,15 @@ export function StudiosPage() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
-          <div ref={filterContainerRef} className="lg:col-span-1 hidden lg:block">
-            {/* Placeholder to maintain layout when filter becomes fixed */}
-            {isFilterSticky && <div style={{ height: '600px' }} />}
-            
+          <aside className="lg:col-span-1 hidden lg:block">
             <div 
-              ref={filterSidebarRef}
-              className={isFilterSticky ? 'fixed z-30' : 'sticky top-8'}
-              style={isFilterSticky && stickyStyles ? {
-                width: `${stickyStyles.width}px`,
-                left: `${stickyStyles.left}px`,
-                top: `${stickyStyles.top || 112}px`,
-                maxHeight: 'calc(100vh - 144px)',
+              className="sticky"
+              style={{
+                top: '112px', // 80px navbar + 32px padding
+                maxHeight: 'calc(100vh - 144px)', // 112px top + 32px bottom buffer
                 overflowY: 'auto',
                 overflowX: 'hidden'
-              } : {}}
+              }}
             >
               <SearchFilters
                 initialFilters={useMemo(() => ({
@@ -745,7 +655,7 @@ export function StudiosPage() {
                 );
               })()}
             </div>
-          </div>
+          </aside>
 
           {/* Results Area */}
           <div className="lg:col-span-3">
@@ -839,24 +749,23 @@ export function StudiosPage() {
         </div>
       </div>
       
-      {/* Studio Marker Modal */}
-      {modalStudio && (
-        <StudioMarkerModal
-          studio={{
-            id: modalStudio.id,
-            name: modalStudio.name,
-            ...(modalStudio.users && { users: modalStudio.users }),
-            ...(modalStudio.studio_images && { studio_images: modalStudio.studio_images }),
-          }}
-          position={modalStudio.position}
-          onClose={handleCloseModal}
-        />
-      )}
+        {/* Studio Marker Modal */}
+        {modalStudio && (
+          <StudioMarkerModal
+            studio={{
+              id: modalStudio.id,
+              name: modalStudio.name,
+              ...(modalStudio.users && { users: modalStudio.users }),
+              ...(modalStudio.studio_images && { studio_images: modalStudio.studio_images }),
+            }}
+            position={modalStudio.position}
+            onClose={handleCloseModal}
+          />
+        )}
+      </main>
       
-      {/* Footer */}
-      <div ref={footerRef}>
-        <Footer />
-      </div>
+      {/* Footer - Outside main content */}
+      <Footer />
     </div>
   );
 }
