@@ -62,7 +62,7 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
     <div className="space-y-6">
 
       {/* Studios Grid - Using FeaturedStudios card design */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 justify-items-center">
         {studios.map((studio) => (
           <div
             key={studio.id}
@@ -72,11 +72,7 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
                 window.open(`/${studio.owner.username}`, '_blank', 'noopener,noreferrer');
               }
             }}
-            className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} group`}
-            style={{
-              width: '268.02px',
-              maxWidth: '100%'
-            }}
+            className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} group w-full`}
           >
             {/* Studio Image */}
             <div className="aspect-[25/12] bg-gray-200 rounded-t-lg overflow-hidden relative">
@@ -174,21 +170,21 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
                     </div>
                   )}
                   
-                  {/* Description with line limit - only show if content exists */}
-                  {(() => {
-                    const description = cleanDescription(studio.description);
-                    if (!description) return null;
-                    
-                    return (
-                      <div 
-                        className="line-clamp-3 text-sm leading-snug"
-                        style={{ color: 'inherit' }}
-                        title={description}
-                      >
-                        {description}
-                      </div>
-                    );
-                  })()}
+                    {/* Description with line limit - only show if content exists */}
+                    {(() => {
+                      const description = cleanDescription(studio.description);
+                      if (!description) return null;
+
+                      return (
+                        <div
+                          className="line-clamp-4 text-sm leading-snug"
+                          style={{ color: 'inherit' }}
+                          title={description}
+                        >
+                          {description}
+                        </div>
+                      );
+                    })()}
                 </div>
               </div>
 
