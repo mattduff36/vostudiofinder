@@ -44,6 +44,11 @@ interface SearchResponse {
     longitude: number | null;
     studio_studio_types: Array<{ studio_type: string }>;
     is_verified: boolean;
+    users?: {
+      username?: string | null;
+      avatar_url?: string | null;
+    };
+    studio_images?: Array<{ image_url: string; alt_text?: string }>;
   }>;
   pagination: {
     page: number;
@@ -712,22 +717,21 @@ export function StudiosPage() {
                       description: '', // Not available in mapMarkers
                       studio_studio_types: markerData.studio_studio_types || [],
                       address: '', // Not available in mapMarkers
-                      city: '',
                       is_verified: markerData.is_verified || false,
-                      latitude: markerData.latitude ?? undefined,
-                      longitude: markerData.longitude ?? undefined,
-                      owner: markerData.users ? {
-                        id: '', // Not available in mapMarkers
-                        display_name: markerData.users.username || '', // Use username as display name fallback
-                        username: markerData.users.username || '',
-                        avatar_url: markerData.users.avatar_url ?? undefined,
-                      } : undefined,
+                      is_premium: false,
                       studio_services: [], // Not available in mapMarkers
                       studio_images: markerData.studio_images || [],
                       _count: { reviews: 0 }, // Not available in mapMarkers
-                      is_premium: false,
-                      website_url: undefined,
-                      phone: undefined,
+                      ...(markerData.latitude != null && { latitude: markerData.latitude }),
+                      ...(markerData.longitude != null && { longitude: markerData.longitude }),
+                      ...(markerData.users && {
+                        owner: {
+                          id: '', // Not available in mapMarkers
+                          display_name: markerData.users.username || '', // Use username as display name fallback
+                          username: markerData.users.username || '',
+                          ...(markerData.users.avatar_url && { avatar_url: markerData.users.avatar_url }),
+                        }
+                      }),
                     };
                   }
                 }
@@ -736,19 +740,7 @@ export function StudiosPage() {
                 
                 return (
                   <SelectedStudioDetails
-                    studio={{
-                      id: selectedStudio.id,
-                      name: selectedStudio.name,
-                      description: selectedStudio.description,
-                      city: selectedStudio.city,
-                      address: selectedStudio.address,
-                      is_verified: selectedStudio.is_verified,
-                      owner: selectedStudio.owner,
-                      studio_studio_types: selectedStudio.studio_studio_types,
-                      studio_services: selectedStudio.studio_services,
-                      studio_images: selectedStudio.studio_images,
-                      _count: selectedStudio._count,
-                    }}
+                    studio={selectedStudio}
                   />
                 );
               })()}
