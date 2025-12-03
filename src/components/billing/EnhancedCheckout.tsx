@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { PaymentMethodSelector, PaymentMethod } from './PaymentMethodSelector';
+import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { loadStripe } from '@stripe/stripe-js';
 
 interface EnhancedCheckoutProps {
@@ -25,7 +25,6 @@ export function EnhancedCheckout({
 }: EnhancedCheckoutProps) {
   const router = useRouter();
   const { data: session } = useSession();
-  const [selectedMethod] = useState<PaymentMethod>('stripe'); // Stripe only now
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

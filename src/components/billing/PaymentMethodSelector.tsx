@@ -3,12 +3,6 @@
 // Note: Simplified to Stripe only - PayPal removed per cleanup
 export type PaymentMethod = 'stripe';
 
-interface PaymentMethodSelectorProps {
-  onMethodSelect: (method: PaymentMethod) => void;
-  selectedMethod?: PaymentMethod;
-  isLoading?: boolean;
-}
-
 export function PaymentMethodSelector() {
   // Stripe only - no selection needed anymore
   return (

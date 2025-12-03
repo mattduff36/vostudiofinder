@@ -1,9 +1,9 @@
 // Optional: configure or set up a testing framework before each test.
-// If you delete this file, remove `setupFilesAfterEnv` from `jest.config.js`
+// If you delete this file, remove `setupFilesAfterEnv` from `jest.config.cjs`
 
 // Used for __tests__/testing-library.js
 // Learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom'
+require('@testing-library/jest-dom');
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -84,16 +84,14 @@ Object.defineProperty(window, 'scrollTo', {
 })
 
 // Mock window.location
-Object.defineProperty(window, 'location', {
-  writable: true,
-  value: {
-    href: 'http://localhost:3000',
-    origin: 'http://localhost:3000',
-    pathname: '/',
-    search: '',
-    hash: '',
-    assign: jest.fn(),
-    replace: jest.fn(),
-    reload: jest.fn(),
-  },
-})
+delete window.location;
+window.location = {
+  href: 'http://localhost:3000',
+  origin: 'http://localhost:3000',
+  pathname: '/',
+  search: '',
+  hash: '',
+  assign: jest.fn(),
+  replace: jest.fn(),
+  reload: jest.fn(),
+};

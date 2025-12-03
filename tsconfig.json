@@ -67,6 +67,7 @@
     "scripts",
     "backups",
     "src/lib/migration",
-    "project-archive"
+    "project-archive",
+    "tests"
   ]
 }

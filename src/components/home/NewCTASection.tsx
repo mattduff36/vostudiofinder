@@ -1,15 +1,10 @@
 'use client';
 
-import { Session } from 'next-auth';
 import { Mic, Building, Users, CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { colors } from './HomePage';
-
-interface NewCTASectionProps {
-  session: Session | null;
-}
 
 export function NewCTASection() {
   const [isVisible, setIsVisible] = useState(false);

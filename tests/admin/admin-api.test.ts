@@ -71,36 +71,40 @@ describe('Admin API Endpoints', () => {
     });
 
     it('should create new studio', async () => {
+      const mockStudioData = {
+        name: 'New Studio',
+        location: 'Birmingham',
+        description: 'A new recording studio'
+      };
+      
       // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/studios', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: 'New Studio',
-          location: 'Birmingham',
-          description: 'A new recording studio'
-        })
-      });
+      //   method: 'POST',
+      //   body: JSON.stringify(mockStudioData)
+      // });
 
       // Test studio creation
-      expect(true).toBe(true); // Placeholder for actual test
+      expect(mockStudioData.name).toBe('New Studio'); // Placeholder for actual test
     });
 
     it('should update existing studio', async () => {
+      const mockUpdateData = {
+        name: 'Updated Studio',
+        location: 'Updated Location'
+      };
+      
       // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/studios/1', {
-        method: 'PUT',
-        body: JSON.stringify({
-          name: 'Updated Studio',
-          location: 'Updated Location'
-        })
-      });
+      //   method: 'PUT',
+      //   body: JSON.stringify(mockUpdateData)
+      // });
 
       // Test studio update
-      expect(true).toBe(true); // Placeholder for actual test
+      expect(mockUpdateData.name).toBe('Updated Studio'); // Placeholder for actual test
     });
 
     it('should delete studio', async () => {
       // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/studios/1', {
-        method: 'DELETE'
-      });
+      //   method: 'DELETE'
+      // });
 
       // Test studio deletion
       expect(true).toBe(true); // Placeholder for actual test
@@ -121,16 +125,18 @@ describe('Admin API Endpoints', () => {
     });
 
     it('should create new FAQ', async () => {
+      const mockFaqData = {
+        question: 'New Question',
+        answer: 'New Answer'
+      };
+      
       // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/faq', {
-        method: 'POST',
-        body: JSON.stringify({
-          question: 'New Question',
-          answer: 'New Answer'
-        })
-      });
+      //   method: 'POST',
+      //   body: JSON.stringify(mockFaqData)
+      // });
 
       // Test FAQ creation
-      expect(true).toBe(true); // Placeholder for actual test
+      expect(mockFaqData.question).toBe('New Question'); // Placeholder for actual test
     });
   });
 

@@ -40,7 +40,7 @@ export function HomePage({ session, featuredStudios, stats }: HomePageProps) {
       <CombinedCTASection session={session} stats={stats} />
       
       {/* New CTA Section */}
-      <NewCTASection session={session} />
+      <NewCTASection />
       
       {/* Footer */}
       <Footer />
