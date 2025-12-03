@@ -269,6 +269,23 @@ export function StudiosPage() {
       }));
   }, [searchResults, handleMarkerClick]);
 
+  // Count visible markers on the map (for showing/hiding Filter by Map Area button)
+  const visibleMarkerCount = useMemo(() => {
+    if (!mapBounds || !memoizedMarkers.length) return memoizedMarkers.length;
+    
+    return memoizedMarkers.filter(marker => {
+      const lat = marker.position.lat;
+      const lng = marker.position.lng;
+      
+      return (
+        lat >= mapBounds.south &&
+        lat <= mapBounds.north &&
+        lng >= mapBounds.west &&
+        lng <= mapBounds.east
+      );
+    }).length;
+  }, [memoizedMarkers, mapBounds]);
+
   // Reorder studios based on viewing history, and exclude currently selected studio
   const displayStudios = useMemo(() => {
     if (!searchResults) return [];
