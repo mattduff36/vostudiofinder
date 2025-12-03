@@ -222,10 +222,10 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const sections = [
     { id: 'basic', label: 'Basic Info' },
     { id: 'contact', label: 'Contact & Location' },
-    { id: 'privacy', label: 'Privacy Settings' },
     { id: 'rates', label: 'Rates & Pricing' },
     { id: 'social', label: 'Social Media' },
     { id: 'connections', label: 'Connections' },
+    { id: 'privacy', label: 'Privacy Settings' },
   ];
 
   return (
