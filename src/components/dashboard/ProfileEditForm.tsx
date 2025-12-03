@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Save, Eye, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -171,28 +171,28 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     }
   };
 
-  const updateUser = (field: string, value: any) => {
+  const updateUser = useCallback((field: string, value: any) => {
     setProfile(prev => prev ? {
       ...prev,
       user: { ...prev.user, [field]: value },
     } : null);
-  };
+  }, []);
 
-  const updateProfile = (field: string, value: any) => {
+  const updateProfile = useCallback((field: string, value: any) => {
     setProfile(prev => prev ? {
       ...prev,
       profile: { ...prev.profile, [field]: value },
     } : null);
-  };
+  }, []);
 
-  const updateStudio = (field: string, value: any) => {
+  const updateStudio = useCallback((field: string, value: any) => {
     setProfile(prev => prev ? {
       ...prev,
       studio: { ...(prev.studio || {}), [field]: value } as any,
     } : null);
-  };
+  }, []);
 
-  const toggleStudioType = (type: string) => {
+  const toggleStudioType = useCallback((type: string) => {
     setProfile(prev => {
       if (!prev) return null;
       const types = prev.studio_types || [];
@@ -201,7 +201,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         : [...types, type];
       return { ...prev, studio_types: newTypes };
     });
-  };
+  }, []);
 
   if (loading) {
     return (

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { CheckCircle, Circle } from 'lucide-react';
 
 interface ProfileCompletionProgressProps {
@@ -45,8 +46,8 @@ interface ProfileField {
 }
 
 export function ProfileCompletionProgress({ profileData }: ProfileCompletionProgressProps) {
-  // Count social media links (need at least 2)
-  const socialMediaCount = [
+  // Count social media links (need at least 2) - memoized to prevent recalculation on every render
+  const socialMediaCount = useMemo(() => [
     profileData.facebook_url,
     profileData.twitter_url,
     profileData.linkedin_url,
@@ -54,7 +55,15 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
     profileData.youtube_url,
     profileData.vimeo_url,
     profileData.soundcloud_url,
-  ].filter(url => url && url.trim() !== '').length;
+  ].filter(url => url && url.trim() !== '').length, [
+    profileData.facebook_url,
+    profileData.twitter_url,
+    profileData.linkedin_url,
+    profileData.instagram_url,
+    profileData.youtube_url,
+    profileData.vimeo_url,
+    profileData.soundcloud_url,
+  ]);
 
   // Check if at least one connection method is selected
   const hasConnectionMethod = !!(
@@ -68,8 +77,8 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
     profileData.connection8 === '1'
   );
 
-  // REQUIRED fields - must complete all 11 to publish profile (each worth ~5.88%)
-  const requiredFields: ProfileField[] = [
+  // REQUIRED fields - must complete all 11 to publish profile (each worth ~5.88%) - memoized
+  const requiredFields = useMemo((): ProfileField[] => [
     { label: 'Username', completed: !!(profileData.username && profileData.username.trim()), weight: 5.88, required: true },
     { label: 'Display Name', completed: !!(profileData.display_name && profileData.display_name.trim()), weight: 5.88, required: true },
     { label: 'Email', completed: !!(profileData.email && profileData.email.trim()), weight: 5.88, required: true },
@@ -81,17 +90,17 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
     { label: 'Connection Methods', completed: hasConnectionMethod, weight: 5.88, required: true },
     { label: 'Website URL', completed: !!(profileData.website_url && profileData.website_url.trim()), weight: 5.88, required: true },
     { label: 'At least 1 image', completed: (profileData.images_count || 0) >= 1, weight: 5.92, required: true }, // 5.92 to balance to 100
-  ];
+  ], [profileData.username, profileData.display_name, profileData.email, profileData.studio_name, profileData.short_about, profileData.about, profileData.studio_types_count, profileData.location, hasConnectionMethod, profileData.website_url, profileData.images_count]);
 
-  // OPTIONAL fields - boost profile quality, also count toward 100% (each worth ~5.88%)
-  const optionalFields: ProfileField[] = [
+  // OPTIONAL fields - boost profile quality, also count toward 100% (each worth ~5.88%) - memoized
+  const optionalFields = useMemo((): ProfileField[] => [
     { label: 'Avatar', completed: !!(profileData.avatar_url && profileData.avatar_url.trim()), weight: 5.88, required: false },
     { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), weight: 5.88, required: false },
     { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, weight: 5.88, required: false },
     { label: 'Session Rate Tier(s)', completed: !!(profileData.rate_tier_1 && (typeof profileData.rate_tier_1 === 'number' ? profileData.rate_tier_1 > 0 : parseFloat(profileData.rate_tier_1) > 0)), weight: 5.88, required: false },
     { label: 'Equipment List', completed: !!(profileData.equipment_list && profileData.equipment_list.trim()), weight: 5.88, required: false },
     { label: 'Services Offered', completed: !!(profileData.services_offered && profileData.services_offered.trim()), weight: 5.88, required: false },
-  ];
+  ], [profileData.avatar_url, profileData.phone, socialMediaCount, profileData.rate_tier_1, profileData.equipment_list, profileData.services_offered]);
 
   // Calculate completion percentage from ALL 17 fields (required + optional)
   const allFields = [...requiredFields, ...optionalFields];
