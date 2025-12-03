@@ -426,6 +426,55 @@ export function GoogleMap({
     const maxZoom = hasHomeStudios ? 14 : 16; // +1 zoom level with privacy-protecting styles
 
     const googleMaps = window.google.maps as any;
+    
+    // Define minimal styles (used for all zoom levels except max)
+    const defaultStyles = [
+      {
+        featureType: 'poi',
+        elementType: 'labels',
+        stylers: [{ visibility: 'off' }], // Hide POI labels at all zoom levels
+      },
+      {
+        featureType: 'transit',
+        elementType: 'labels',
+        stylers: [{ visibility: 'simplified' }], // Simplify transit labels
+      },
+    ];
+    
+    // Privacy-protecting styles (only used at maximum zoom level)
+    const maxZoomPrivacyStyles = [
+      {
+        featureType: 'poi',
+        elementType: 'labels',
+        stylers: [{ visibility: 'off' }],
+      },
+      {
+        featureType: 'transit',
+        elementType: 'labels',
+        stylers: [{ visibility: 'off' }],
+      },
+      {
+        featureType: 'road',
+        elementType: 'labels',
+        stylers: [{ visibility: 'off' }], // Hide all road/street names at max zoom
+      },
+      {
+        featureType: 'administrative',
+        elementType: 'labels',
+        stylers: [{ visibility: 'off' }], // Hide neighborhood names at max zoom
+      },
+      {
+        featureType: 'administrative.locality',
+        elementType: 'labels',
+        stylers: [{ visibility: 'on' }], // Keep city names for orientation
+      },
+      {
+        featureType: 'water',
+        elementType: 'labels',
+        stylers: [{ visibility: 'on' }], // Keep water names for orientation
+      },
+    ];
+    
     const map = new googleMaps.Map(mapRef.current, {
       center: { lat: center.lat, lng: center.lng },
       zoom,
@@ -444,39 +493,20 @@ export function GoogleMap({
       fullscreenControlOptions: {
         position: googleMaps.ControlPosition.RIGHT_TOP,
       },
-      // Custom styling - hide labels for privacy while maintaining map usability
-      styles: [
-        {
-          featureType: 'poi',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }], // Hide points of interest labels
-        },
-        {
-          featureType: 'transit',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }], // Hide transit labels
-        },
-        {
-          featureType: 'road',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }], // Hide all road/street names
-        },
-        {
-          featureType: 'administrative',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }], // Hide neighborhood, district names
-        },
-        {
-          featureType: 'administrative.locality',
-          elementType: 'labels',
-          stylers: [{ visibility: 'on' }], // Keep city names visible for orientation
-        },
-        {
-          featureType: 'water',
-          elementType: 'labels',
-          stylers: [{ visibility: 'on' }], // Keep water body names for orientation
-        },
-      ],
+      // Start with default minimal styles
+      styles: defaultStyles,
+    });
+    
+    // Add zoom change listener to apply privacy styles only at maximum zoom
+    map.addListener('zoom_changed', () => {
+      const currentZoom = map.getZoom();
+      if (currentZoom === maxZoom) {
+        console.log('🔒 Maximum zoom reached - applying privacy-protecting styles');
+        map.setOptions({ styles: maxZoomPrivacyStyles });
+      } else if (currentZoom < maxZoom) {
+        console.log('🔓 Below maximum zoom - using default styles');
+        map.setOptions({ styles: defaultStyles });
+      }
     });
 
     mapInstanceRef.current = map;
