@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
       studio_studio_types: searchParams.get('studioTypes')?.split(',') || searchParams.get('studio_type')?.split(',') || searchParams.get('type')?.split(',') || undefined, // Support multiple parameters
       studio_services: searchParams.get('services')?.split(',') || undefined,
       equipment: searchParams.get('equipment')?.split(',') || undefined, // New equipment parameter
+      studioId: searchParams.get('studioId') || undefined, // Specific studio ID for fetching single studio
       page: parseInt(searchParams.get('page') || '1'),
       limit: parseInt(searchParams.get('limit') || '18'),
       offset: parseInt(searchParams.get('offset') || '0'), // New offset parameter for load-more pattern
@@ -117,6 +118,13 @@ export async function GET(request: NextRequest) {
       is_profile_visible: true, // Only show visible profiles
       AND: [],
     };
+
+    // If searching for a specific studio ID, add it to the where clause
+    if (validatedParams.studioId) {
+      (where.AND as Prisma.studiosWhereInput[]).push({
+        id: validatedParams.studioId,
+      });
+    }
 
     // Enhanced full-text search in name, description, and services
     if (validatedParams.query) {
