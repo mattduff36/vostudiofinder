@@ -81,7 +81,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
         className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col w-full ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'}`}
         style={{
           border: '3px solid #EF4444', // Red border directly on edge
-          minHeight: '420px'
+          minHeight: '360px'
         }}
       >
         {/* Studio Image */}

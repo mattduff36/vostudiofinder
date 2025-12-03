@@ -74,7 +74,7 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
             }}
             className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} group w-full`}
             style={{
-              minHeight: '420px'
+              minHeight: '360px'
             }}
           >
             {/* Studio Image */}
