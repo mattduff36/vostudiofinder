@@ -100,9 +100,6 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
       return total + (field.completed ? field.weight : 0);
     }, 0)
   );
-
-  // Check if all required fields are complete (profile ready to go live)
-  const allRequiredComplete = requiredFields.every(field => field.completed);
   
   // Count completed optional fields
   const completedOptionalCount = optionalFields.filter(field => field.completed).length;
