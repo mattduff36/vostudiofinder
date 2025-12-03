@@ -329,7 +329,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
                     <li>📣 Link your social media to showcase your work</li>
                     <li>🧠 A good description helps with your SEO</li>
                     <li>🏆 Reach 85% completion to become eligible for Verified status</li>
-                    <li>⭐ Only profiles which are 100% complete, can be shown on the home page as a Featured Studio</li>
+                    <li>⭐ Only profiles which are 100% complete can be shown on the home page as a Featured Studio</li>
                     <li>🌍 Add your location and website for better visibility in search results</li>
                     <li>🎯 Upload a strong featured image – it's the first thing clients see</li>
                     <li>💬 Include a short "intro" that sums up your studio or voice style</li>
