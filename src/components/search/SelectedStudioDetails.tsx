@@ -70,7 +70,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
   };
 
   return (
-    <div className="mt-4">
+    <div className="mt-4 px-2">
       <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
         Selected Studio
       </div>
@@ -78,7 +78,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
       {/* Full Studio Card - matching StudiosList design with red border to indicate selection */}
       <div
         onClick={handleCardClick}
-        className={`bg-white border rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex flex-col animate-bounce-once ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'}`}
+        className={`bg-white border rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'}`}
         style={{
           outline: '4px solid #EF4444',
           outlineOffset: '4px',

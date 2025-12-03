@@ -592,7 +592,7 @@ export function StudiosPage() {
                 top: '112px', // 80px navbar + 32px padding
                 maxHeight: 'calc(100vh - 144px)', // 112px top + 32px bottom buffer
                 overflowY: 'auto',
-                overflowX: 'hidden'
+                overflowX: 'visible' // Allow outline to show outside
               }}
             >
               <SearchFilters
