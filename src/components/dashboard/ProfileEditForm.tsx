@@ -314,14 +314,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             <div>
               <Input
                 label="Studio Name"
-                value={profile.studio?.name || ''}
-                onChange={(e) => updateStudio('name', e.target.value)}
-                maxLength={30}
-              />
-              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                <span>Your studio or business name</span>
-                <span>{(profile.studio?.name || '').length}/30 characters</span>
-              </div>
+              value={profile.studio?.name || ''}
+              onChange={(e) => updateStudio('name', e.target.value)}
+              maxLength={35}
+            />
+            <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+              <span>Your studio or business name</span>
+              <span>{(profile.studio?.name || '').length}/35 characters</span>
+            </div>
             </div>
 
             <div>

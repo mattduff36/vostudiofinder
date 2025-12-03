@@ -137,7 +137,7 @@ export const userProfileUpdateSchema = z.object({
   studio_name: z
     .string()
     .min(2, 'Studio name must be at least 2 characters')
-    .max(30, 'Studio name must be less than 30 characters')
+    .max(35, 'Studio name must be less than 35 characters')
     .optional(),
   equipment_list: z.string().max(1000).optional(),
   services_offered: z.string().max(1000).optional(),

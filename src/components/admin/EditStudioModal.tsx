@@ -290,11 +290,11 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           onChange={(e) => {
             const value = e.target.value;
             const truncatedValue = value.length > 30 ? value.substring(0, 30) : value;
-            handleMetaChange('studio_name', truncatedValue);
-          }}
-          maxLength={30}
-          placeholder="e.g. VoiceoverGuy - Yorkshire"
-        />
+          handleMetaChange('studio_name', truncatedValue);
+        }}
+        maxLength={35}
+        placeholder="e.g. VoiceoverGuy - Yorkshire"
+      />
         <div className="flex justify-between items-center text-xs mt-1">
           <span className="text-gray-500">Studio display name shown in listings</span>
           <span 
@@ -302,10 +302,10 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               (profile?._meta?.studio_name || '').length > 25 
                 ? 'text-orange-600 font-medium' 
                 : 'text-gray-400'
-            }`}
-          >
-            {(profile?._meta?.studio_name || '').length}/30 characters
-          </span>
+          }`}
+        >
+          {(profile?._meta?.studio_name || '').length}/35 characters
+        </span>
         </div>
       </div>
 
