@@ -284,7 +284,9 @@ export function StudiosPage() {
         logger.warn('⚠️ Filtering by map area is ON but mapBounds is null!');
         logger.warn('This will result in NO studios being shown.');
       } else {
-        logger.log('🗺️ Filtering studios by map bounds:', mapBounds);
+        logger.log('🗺️ Filtering studios by map bounds:');
+        logger.log(`  North: ${mapBounds.north}, South: ${mapBounds.south}`);
+        logger.log(`  East: ${mapBounds.east}, West: ${mapBounds.west}`);
         const beforeFilter = studiosForGrid.length;
         
         studiosForGrid = studiosForGrid.filter(studio => {
@@ -293,15 +295,16 @@ export function StudiosPage() {
           const lat = typeof studio.latitude === 'number' ? studio.latitude : parseFloat(String(studio.latitude));
           const lng = typeof studio.longitude === 'number' ? studio.longitude : parseFloat(String(studio.longitude));
           
-          const isInBounds = (
-            lat >= mapBounds.south &&
-            lat <= mapBounds.north &&
-            lng >= mapBounds.west &&
-            lng <= mapBounds.east
-          );
+          const latInBounds = lat >= mapBounds.south && lat <= mapBounds.north;
+          const lngInBounds = lng >= mapBounds.west && lng <= mapBounds.east;
+          const isInBounds = latInBounds && lngInBounds;
           
           if (!isInBounds) {
-            logger.log(`  ❌ Studio ${studio.name} (${lat}, ${lng}) is OUTSIDE bounds`);
+            logger.log(`  ❌ ${studio.name} (${lat}, ${lng})`);
+            logger.log(`     Lat in bounds? ${latInBounds} (${mapBounds.south} <= ${lat} <= ${mapBounds.north})`);
+            logger.log(`     Lng in bounds? ${lngInBounds} (${mapBounds.west} <= ${lng} <= ${mapBounds.east})`);
+          } else {
+            logger.log(`  ✅ ${studio.name} (${lat}, ${lng}) is IN bounds`);
           }
           
           return isInBounds;
