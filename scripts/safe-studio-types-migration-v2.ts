@@ -5,7 +5,7 @@
  * This script uses raw SQL to avoid Prisma client issues
  */
 
-import { PrismaClient, StudioType } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 

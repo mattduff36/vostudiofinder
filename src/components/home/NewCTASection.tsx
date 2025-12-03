@@ -11,7 +11,7 @@ interface NewCTASectionProps {
   session: Session | null;
 }
 
-export function NewCTASection({ }: NewCTASectionProps) {
+export function NewCTASection() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {

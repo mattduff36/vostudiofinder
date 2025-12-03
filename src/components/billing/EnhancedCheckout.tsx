@@ -127,11 +127,7 @@ export function EnhancedCheckout({
       </div>
 
       {/* Payment Method Selection */}
-      <PaymentMethodSelector
-        onMethodSelect={() => {}} // No-op since we only have Stripe now
-        selectedMethod={selectedMethod}
-        isLoading={isLoading}
-      />
+      <PaymentMethodSelector />
 
       {/* Error Display */}
       {error && (

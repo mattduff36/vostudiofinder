@@ -86,7 +86,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         style={{
           ...variantStyles,
-          ...(props.style || {})
+          ...props.style
         }}
         ref={ref}
         disabled={disabled || loading}

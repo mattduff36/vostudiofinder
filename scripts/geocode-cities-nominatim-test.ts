@@ -65,6 +65,7 @@ async function geocodeAddressWithNominatim(address: string): Promise<string | nu
     
     return city || null;
   } catch (error) {
+    console.error('Geocoding failed:', error);
     return null;
   }
 }
