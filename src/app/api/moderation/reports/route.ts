@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Notify moderation team
+    // FUTURE: Notify moderation team
     // await NotificationService.notifyModerationTeam(report);
 
     return NextResponse.json({

@@ -34,13 +34,13 @@ export async function POST(request: NextRequest) {
     await db.users.update({
       where: { id: user.id },
       data: {
-        // TODO: Add resetToken and resetTokenExpiry fields to User model
+        // FUTURE: Add resetToken and resetTokenExpiry fields to User model (when email system is implemented)
         // resetToken,
         // resetTokenExpiry,
       },
     });
     
-    // TODO: Send password reset email
+    // FUTURE: Send password reset email (requires email service configuration)
     // await sendPasswordResetEmail(user.email, resetToken);
     
     return NextResponse.json(

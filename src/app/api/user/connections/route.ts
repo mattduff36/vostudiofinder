@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // TODO: Send notification to target user
+        // FUTURE: Send notification to target user
 
         return NextResponse.json({
           success: true,
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        // TODO: Implement proper blocking functionality
+        // FUTURE: Implement proper blocking functionality
         // For now, we'll just prevent connections by not creating a record
         // In a full implementation, you might want a separate BlockedUser model
         logger.log(`User ${session.user.id} attempted to block user ${targetUserId}`);

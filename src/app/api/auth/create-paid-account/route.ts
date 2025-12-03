@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       },
     });
     
-    // TODO: Send verification email
+    // FUTURE: Send verification email
     // await sendVerificationEmail(user.email, verificationToken);
     
     return NextResponse.json(

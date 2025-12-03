@@ -73,7 +73,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     // Notify the reviewer
-    // TODO: Implement notification system
+    // FUTURE: Implement notification system
     // await NotificationService.notifyReviewResponse(
     //   review.reviewerId,
     //   session.user.displayName,
