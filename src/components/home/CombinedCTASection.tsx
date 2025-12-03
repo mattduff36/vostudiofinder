@@ -161,7 +161,14 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
         </p>
         <br />
         <p className="text-xs font-semibold text-red-500 text-left">
-          - British Male Voiceover Guy Harris, Founder
+          - <a 
+              href="https://www.voiceoverguy.co.uk" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:underline transition-all duration-200"
+            >
+              British Male Voiceover Guy Harris, Founder
+            </a>
         </p>
       </>
     );
