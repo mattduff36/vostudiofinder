@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
@@ -657,10 +657,7 @@ export function StudiosPage() {
                 
                 return (
                   <SelectedStudioDetails
-                    studio={{
-                      ...selectedStudio,
-                      city: selectedStudio.city || undefined
-                    }}
+                    studio={selectedStudio}
                   />
                 );
               })()}
