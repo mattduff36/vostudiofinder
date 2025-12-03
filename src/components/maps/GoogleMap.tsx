@@ -32,6 +32,7 @@ interface GoogleMapProps {
   searchCenter?: MapLocation | null;
   searchRadius?: number | null;
   onLocationSelect?: (location: MapLocation) => void;
+  onBoundsChanged?: (bounds: { north: number; south: number; east: number; west: number }) => void;
   height?: string;
   className?: string;
   selectedMarkerId?: string | null;
@@ -43,6 +44,7 @@ export function GoogleMap({
   markers = [],
   searchCenter,
   searchRadius,
+  onBoundsChanged,
   onLocationSelect,
   height = '400px',
   className = '',
@@ -634,6 +636,23 @@ export function GoogleMap({
       }
     });
 
+    // Add bounds change listener to notify parent of map viewport changes
+    if (onBoundsChanged) {
+      map.addListener('bounds_changed', () => {
+        const bounds = map.getBounds();
+        if (bounds) {
+          const ne = bounds.getNorthEast();
+          const sw = bounds.getSouthWest();
+          onBoundsChanged({
+            north: ne.lat(),
+            south: sw.lat(),
+            east: ne.lng(),
+            west: sw.lng(),
+          });
+        }
+      });
+    }
+
     // Add zoom change listener to update clustering
     map.addListener('zoom_changed', () => {
       // Force re-render of clusterer when zoom changes
@@ -641,7 +660,7 @@ export function GoogleMap({
         markerClustererRef.current.render();
       }
     });
-  }, [isLoaded, center, zoom, onLocationSelect, markers]);
+  }, [isLoaded, center, zoom, onLocationSelect, onBoundsChanged, markers]);
 
   // Handle scroll zoom toggle
   useEffect(() => {
