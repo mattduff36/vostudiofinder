@@ -590,12 +590,13 @@ export function StudiosPage() {
               className="sticky"
               style={{
                 top: '112px', // 80px navbar + 32px padding
-                maxHeight: 'calc(100vh - 144px)', // 112px top + 32px bottom buffer
-                overflowY: 'auto',
-                paddingRight: '8px' // Space for scrollbar
-                // Note: overflowX defaults to 'visible', allowing red outline to extend outside
               }}
             >
+              {/* Filter Studios Title - matching Selected Studio styling */}
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                Filter Studios
+              </div>
+              
               <SearchFilters
                 initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
