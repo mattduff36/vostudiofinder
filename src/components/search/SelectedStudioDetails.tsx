@@ -62,6 +62,14 @@ function cleanDescription(description: string | undefined): string {
 
 export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
   const description = cleanDescription(studio.description);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  // Trigger animation only on first mount
+  useEffect(() => {
+    if (!hasAnimated) {
+      setHasAnimated(true);
+    }
+  }, [hasAnimated]);
 
   const handleCardClick = () => {
     if (studio.owner?.username) {
@@ -78,7 +86,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
       {/* Full Studio Card - matching StudiosList design with red border to indicate selection */}
       <div
         onClick={handleCardClick}
-        className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col w-full ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'}`}
+        className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col w-full ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} ${!hasAnimated ? 'animate-slide-in-up' : ''}`}
         style={{
           border: '3px solid #EF4444', // Red border directly on edge
           minHeight: '360px'
