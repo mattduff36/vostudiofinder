@@ -650,7 +650,10 @@ export function StudiosPage() {
                 
                 return (
                   <SelectedStudioDetails
-                    studio={selectedStudio}
+                    studio={{
+                      ...selectedStudio,
+                      city: selectedStudio.city || undefined
+                    }}
                   />
                 );
               })()}
