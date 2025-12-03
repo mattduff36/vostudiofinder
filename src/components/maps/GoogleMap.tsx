@@ -254,6 +254,16 @@ export function GoogleMap({
           maxZoom: actualMaxZoom - 1,
           radius: adjustedGridSize // SuperCluster uses radius instead of gridSize
         }),
+        onClusterClick: (event, cluster, map) => {
+          logger.log('🖱️ Cluster clicked - zooming to cluster area');
+          const currentZoom = map.getZoom() || 2;
+          const newZoom = Math.min(currentZoom + 3, actualMaxZoom);
+          
+          map.setZoom(newZoom);
+          map.panTo(cluster.position);
+          
+          logger.log(`📍 Zoomed from ${currentZoom} to ${newZoom} at position:`, cluster.position);
+        },
         renderer: {
           render: ({ count, position }) => {
             logger.log('🔢 Creating cluster marker for', count, 'studios at', position);

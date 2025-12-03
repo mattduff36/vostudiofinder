@@ -485,7 +485,19 @@ export function StudiosPage() {
   // Handle map bounds changes
   const handleBoundsChanged = useCallback((bounds: { north: number; south: number; east: number; west: number }) => {
     logger.log('🗺️ Map bounds changed:', bounds);
-    setMapBounds(bounds);
+    // Only update if bounds have changed significantly (to avoid infinite loops during animations)
+    setMapBounds(prevBounds => {
+      if (!prevBounds) return bounds;
+      
+      const threshold = 0.0001; // ~11 meters
+      const hasChanged = 
+        Math.abs(prevBounds.north - bounds.north) > threshold ||
+        Math.abs(prevBounds.south - bounds.south) > threshold ||
+        Math.abs(prevBounds.east - bounds.east) > threshold ||
+        Math.abs(prevBounds.west - bounds.west) > threshold;
+      
+      return hasChanged ? bounds : prevBounds;
+    });
   }, []);
 
   // Toggle filtering by map area

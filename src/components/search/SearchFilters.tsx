@@ -22,6 +22,7 @@ interface SearchFiltersProps {
   onSearch: (filters: Record<string, any>) => void;
   onFilterByMapArea?: () => void;
   isFilteringByMapArea?: boolean;
+  visibleMarkerCount?: number;
 }
 
 export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount }: SearchFiltersProps) {
@@ -309,12 +310,6 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
               Showing {visibleMarkerCount || 0} studios visible on map
             </p>
           )}
-        </div>
-      )}
-      {!onFilterByMapArea && visibleMarkerCount && visibleMarkerCount > 30 && (
-        <div className="text-xs text-gray-500 text-center p-2 bg-gray-50 rounded">
-          <p>💡 Zoom in to use "Filter by Map Area"</p>
-          <p className="mt-1">({visibleMarkerCount} studios visible)</p>
         </div>
       )}
 
