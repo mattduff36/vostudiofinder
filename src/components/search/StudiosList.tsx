@@ -17,7 +17,7 @@ interface Studio {
   phone?: string;
   is_premium: boolean;
   is_verified: boolean;
-  owner: {
+  owner?: {
     id: string;
     display_name: string;
     username: string;
