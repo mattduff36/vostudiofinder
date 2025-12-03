@@ -245,13 +245,23 @@ export function UserDashboard({ data }: UserDashboardProps) {
                     <p className="text-xs text-gray-600">
                       {isProfileVisible ? 'Visible' : 'Hidden'}
                     </p>
+                    {!allRequiredComplete && (
+                      <p className="text-xs text-amber-600 mt-0.5">
+                        Complete required fields first
+                      </p>
+                    )}
                   </div>
                 </div>
-                <Toggle
-                  checked={isProfileVisible}
-                  onChange={handleVisibilityToggle}
-                  disabled={saving}
-                />
+                <div 
+                  title={!allRequiredComplete ? 'Complete all required profile fields before making your profile visible' : ''}
+                  className="relative"
+                >
+                  <Toggle
+                    checked={isProfileVisible}
+                    onChange={handleVisibilityToggle}
+                    disabled={saving || !allRequiredComplete}
+                  />
+                </div>
               </div>
             )}
           </div>
