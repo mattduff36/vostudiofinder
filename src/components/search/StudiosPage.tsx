@@ -660,23 +660,15 @@ export function StudiosPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
           <div ref={filterContainerRef} className="lg:col-span-1 hidden lg:block">
-            {/* Placeholder to maintain layout when filter becomes fixed */}
-            {isFilterSticky && <div style={{ height: '600px' }} />}
-            
             <div 
               ref={filterSidebarRef}
-              className={`${
-                isFilterSticky 
-                  ? 'fixed z-30' 
-                  : 'sticky top-8'
-              }`}
-              style={isFilterSticky && stickyStyles ? { 
-                width: `${stickyStyles.width}px`,
-                left: `${stickyStyles.left}px`,
-                top: '112px', // 80px navbar + 32px padding (same as top-8)
-                maxHeight: 'calc(100vh - 7rem)', // Adjusted for the extra top space
-                overflowY: 'auto'
-              } : {}}
+              className="sticky"
+              style={{
+                top: '112px', // 80px navbar + 32px padding (top-8)
+                maxHeight: 'calc(100vh - 144px)', // Leave space for navbar + padding + footer buffer
+                overflowY: 'auto',
+                overflowX: 'hidden'
+              }}
             >
               <SearchFilters
                 initialFilters={useMemo(() => ({
