@@ -34,16 +34,26 @@ function cleanDescription(description: string | undefined): string {
   // Remove excessive whitespace
   cleaned = cleaned.replace(/\s+/g, ' ').trim();
   
-  // Remove common placeholder text
+  // Remove common placeholder text - only if description is essentially JUST placeholder text
   const placeholderTexts = [
     'add studio description here',
     'studio description',
     'description here',
-    'enter description'
+    'enter description',
+    'add description',
+    'description',
+    'enter your description'
   ];
   
-  const lowerCleaned = cleaned.toLowerCase();
-  if (placeholderTexts.some(placeholder => lowerCleaned.includes(placeholder))) {
+  const lowerCleaned = cleaned.toLowerCase().trim();
+  // Check if the entire description is essentially just placeholder text
+  // (exact match or placeholder text with minimal additional characters)
+  if (placeholderTexts.some(placeholder => lowerCleaned === placeholder || lowerCleaned === placeholder + '.')) {
+    return '';
+  }
+  
+  // Also check if description is extremely short (likely placeholder)
+  if (lowerCleaned.length < 10 && placeholderTexts.some(placeholder => lowerCleaned.includes(placeholder))) {
     return '';
   }
   

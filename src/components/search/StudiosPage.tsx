@@ -147,7 +147,6 @@ export function StudiosPage() {
     if (!searchResults) return [];
     
     const allStudios = searchResults.mapMarkers || searchResults.studios;
-    console.log('📍 Building markers from:', allStudios.length, 'studios');
     
     return allStudios
       .filter(studio => studio.latitude && studio.longitude)
