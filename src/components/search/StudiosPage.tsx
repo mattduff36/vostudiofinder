@@ -279,20 +279,36 @@ export function StudiosPage() {
     );
     
     // If filtering by map area, only show studios within the current map bounds
-    if (isFilteringByMapArea && mapBounds) {
-      studiosForGrid = studiosForGrid.filter(studio => {
-        if (!studio.latitude || !studio.longitude) return false;
+    if (isFilteringByMapArea) {
+      if (!mapBounds) {
+        logger.warn('⚠️ Filtering by map area is ON but mapBounds is null!');
+        logger.warn('This will result in NO studios being shown.');
+      } else {
+        logger.log('🗺️ Filtering studios by map bounds:', mapBounds);
+        const beforeFilter = studiosForGrid.length;
         
-        const lat = typeof studio.latitude === 'number' ? studio.latitude : parseFloat(String(studio.latitude));
-        const lng = typeof studio.longitude === 'number' ? studio.longitude : parseFloat(String(studio.longitude));
+        studiosForGrid = studiosForGrid.filter(studio => {
+          if (!studio.latitude || !studio.longitude) return false;
+          
+          const lat = typeof studio.latitude === 'number' ? studio.latitude : parseFloat(String(studio.latitude));
+          const lng = typeof studio.longitude === 'number' ? studio.longitude : parseFloat(String(studio.longitude));
+          
+          const isInBounds = (
+            lat >= mapBounds.south &&
+            lat <= mapBounds.north &&
+            lng >= mapBounds.west &&
+            lng <= mapBounds.east
+          );
+          
+          if (!isInBounds) {
+            logger.log(`  ❌ Studio ${studio.name} (${lat}, ${lng}) is OUTSIDE bounds`);
+          }
+          
+          return isInBounds;
+        });
         
-        return (
-          lat >= mapBounds.south &&
-          lat <= mapBounds.north &&
-          lng >= mapBounds.west &&
-          lng <= mapBounds.east
-        );
-      });
+        logger.log(`📊 Filtered from ${beforeFilter} to ${studiosForGrid.length} studios`);
+      }
     }
     
     // Separate viewed and not-viewed studios
@@ -410,13 +426,20 @@ export function StudiosPage() {
 
   // Handle map bounds changes
   const handleBoundsChanged = useCallback((bounds: { north: number; south: number; east: number; west: number }) => {
+    logger.log('🗺️ Map bounds changed:', bounds);
     setMapBounds(bounds);
   }, []);
 
   // Toggle filtering by map area
   const handleFilterByMapArea = useCallback(() => {
-    setIsFilteringByMapArea(prev => !prev);
-  }, []);
+    setIsFilteringByMapArea(prev => {
+      const newValue = !prev;
+      logger.log('🗺️ Filtering by map area:', newValue);
+      logger.log('📍 Current mapBounds:', mapBounds);
+      logger.log('📊 Total studios in search results:', searchResults?.studios.length || 0);
+      return newValue;
+    });
+  }, [mapBounds, searchResults]);
 
   const handleSearch = (filters: Record<string, any>) => {
     logger.log('🔍 HandleSearch called with filters:', filters);
