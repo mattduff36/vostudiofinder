@@ -72,7 +72,7 @@ export function StudiosPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [isFilterSticky, setIsFilterSticky] = useState(false);
-  const [stickyStyles, setStickyStyles] = useState<{width: number; left: number} | null>(null);
+  const [stickyStyles, setStickyStyles] = useState<{width: number; left: number; top?: number} | null>(null);
   const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
   const [viewedStudioIds, setViewedStudioIds] = useState<string[]>([]); // Track viewing history
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -318,35 +318,53 @@ export function StudiosPage() {
       scrollTimeout = setTimeout(() => {
         if (!ticking) {
           requestAnimationFrame(() => {
-            if (!heroSectionRef.current || !filterSidebarRef.current) {
+            if (!heroSectionRef.current || !filterSidebarRef.current || !footerRef.current) {
               ticking = false;
               return;
             }
             
             const heroSection = heroSectionRef.current;
             const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
-            const navbarHeight = 80; // Approximate navbar height
+            const navbarHeight = 80;
             const scrollPosition = window.scrollY + navbarHeight;
+            const isPastHero = scrollPosition >= heroBottom;
             
-            // Sidebar should stick after scrolling past the hero section
-            const shouldBeSticky = scrollPosition >= heroBottom;
+            // Check if sidebar would overlap footer
+            const sidebarElement = filterSidebarRef.current;
+            const footer = footerRef.current;
+            const footerTop = footer.offsetTop;
+            const sidebarHeight = sidebarElement.offsetHeight;
+            const defaultStickyTop = 112; // navbar + padding
+            const buffer = 32;
+            
+            // Calculate where the bottom of the sidebar would be
+            const sidebarBottom = window.scrollY + defaultStickyTop + sidebarHeight;
+            const wouldOverlapFooter = sidebarBottom > footerTop - buffer;
+            
+            // Sidebar should be sticky if we're past the hero section
+            const shouldBeSticky = isPastHero;
             
             // Only update if state actually changes
             if (shouldBeSticky !== isFilterSticky) {
-              // Calculate dimensions when transitioning to sticky
-              if (shouldBeSticky) {
-                const sidebarElement = filterSidebarRef.current;
-                const sidebarRect = sidebarElement.getBoundingClientRect();
-                const sidebarLeft = sidebarRect.left;
-                
-                setStickyStyles({
-                  width: sidebarRect.width,
-                  left: sidebarLeft
-                });
+              setIsFilterSticky(shouldBeSticky);
+            }
+            
+            // Update styles when sticky (adjust top if near footer)
+            if (shouldBeSticky) {
+              const sidebarRect = sidebarElement.getBoundingClientRect();
+              let adjustedTop = defaultStickyTop;
+              
+              // If sidebar would overlap footer, push it up
+              if (wouldOverlapFooter) {
+                // Calculate how much to push up: footerTop - scrollY - sidebarHeight - buffer
+                adjustedTop = footerTop - window.scrollY - sidebarHeight - buffer;
               }
               
-              // Update sticky state
-              setIsFilterSticky(shouldBeSticky);
+              setStickyStyles({
+                width: sidebarRect.width,
+                left: sidebarRect.left,
+                top: adjustedTop
+              });
             }
             
             ticking = false;
@@ -655,8 +673,8 @@ export function StudiosPage() {
               style={isFilterSticky && stickyStyles ? {
                 width: `${stickyStyles.width}px`,
                 left: `${stickyStyles.left}px`,
-                top: '112px', // 80px navbar + 32px padding
-                maxHeight: 'calc(100vh - 144px)', // Leave space for navbar + padding + footer buffer
+                top: `${stickyStyles.top || 112}px`,
+                maxHeight: 'calc(100vh - 144px)',
                 overflowY: 'auto',
                 overflowX: 'hidden'
               } : {}}
@@ -693,20 +711,16 @@ export function StudiosPage() {
                       description: '', // Not available in mapMarkers
                       studio_studio_types: markerData.studio_studio_types || [],
                       address: '', // Not available in mapMarkers
-                      city: undefined,
-                      is_verified: markerData.is_verified,
-                      latitude: markerData.latitude,
-                      longitude: markerData.longitude,
+                      city: '',
+                      is_verified: markerData.is_verified || false,
+                      latitude: markerData.latitude ?? undefined,
+                      longitude: markerData.longitude ?? undefined,
                       owner: markerData.users ? {
                         id: '', // Not available in mapMarkers
-                        display_name: '', // Not available in mapMarkers
+                        display_name: markerData.users.username || '', // Use username as display name fallback
                         username: markerData.users.username || '',
-                        avatar_url: markerData.users.avatar_url,
-                      } : {
-                        id: '',
-                        display_name: '',
-                        username: '',
-                      },
+                        avatar_url: markerData.users.avatar_url ?? undefined,
+                      } : undefined,
                       studio_services: [], // Not available in mapMarkers
                       studio_images: markerData.studio_images || [],
                       _count: { reviews: 0 }, // Not available in mapMarkers
@@ -847,7 +861,9 @@ export function StudiosPage() {
       )}
       
       {/* Footer */}
-      <Footer />
+      <div ref={footerRef}>
+        <Footer />
+      </div>
     </div>
   );
 }
