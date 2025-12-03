@@ -68,34 +68,35 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
     profileData.connection8 === '1'
   );
 
-  // REQUIRED fields - must complete all 11 to publish profile (each worth ~9.09%)
+  // REQUIRED fields - must complete all 11 to publish profile (each worth ~5.88%)
   const requiredFields: ProfileField[] = [
-    { label: 'Username', completed: !!(profileData.username && profileData.username.trim()), weight: 9.09, required: true },
-    { label: 'Display Name', completed: !!(profileData.display_name && profileData.display_name.trim()), weight: 9.09, required: true },
-    { label: 'Email', completed: !!(profileData.email && profileData.email.trim()), weight: 9.09, required: true },
-    { label: 'Studio Name', completed: !!(profileData.studio_name && profileData.studio_name.trim()), weight: 9.09, required: true },
-    { label: 'Short About', completed: !!(profileData.short_about && profileData.short_about.trim()), weight: 9.09, required: true },
-    { label: 'Full About', completed: !!(profileData.about && profileData.about.trim()), weight: 9.09, required: true },
-    { label: 'Studio Type selected', completed: (profileData.studio_types_count || 0) >= 1, weight: 9.09, required: true },
-    { label: 'Location', completed: !!(profileData.location && profileData.location.trim()), weight: 9.09, required: true },
-    { label: 'Connection Methods', completed: hasConnectionMethod, weight: 9.09, required: true },
-    { label: 'Website URL', completed: !!(profileData.website_url && profileData.website_url.trim()), weight: 9.09, required: true },
-    { label: 'At least 1 image', completed: (profileData.images_count || 0) >= 1, weight: 9.11, required: true }, // 9.11 to round to 100
+    { label: 'Username', completed: !!(profileData.username && profileData.username.trim()), weight: 5.88, required: true },
+    { label: 'Display Name', completed: !!(profileData.display_name && profileData.display_name.trim()), weight: 5.88, required: true },
+    { label: 'Email', completed: !!(profileData.email && profileData.email.trim()), weight: 5.88, required: true },
+    { label: 'Studio Name', completed: !!(profileData.studio_name && profileData.studio_name.trim()), weight: 5.88, required: true },
+    { label: 'Short About', completed: !!(profileData.short_about && profileData.short_about.trim()), weight: 5.88, required: true },
+    { label: 'Full About', completed: !!(profileData.about && profileData.about.trim()), weight: 5.88, required: true },
+    { label: 'Studio Type selected', completed: (profileData.studio_types_count || 0) >= 1, weight: 5.88, required: true },
+    { label: 'Location', completed: !!(profileData.location && profileData.location.trim()), weight: 5.88, required: true },
+    { label: 'Connection Methods', completed: hasConnectionMethod, weight: 5.88, required: true },
+    { label: 'Website URL', completed: !!(profileData.website_url && profileData.website_url.trim()), weight: 5.88, required: true },
+    { label: 'At least 1 image', completed: (profileData.images_count || 0) >= 1, weight: 5.92, required: true }, // 5.92 to balance to 100
   ];
 
-  // OPTIONAL fields - boost profile quality but not required for publishing
+  // OPTIONAL fields - boost profile quality, also count toward 100% (each worth ~5.88%)
   const optionalFields: ProfileField[] = [
-    { label: 'Avatar', completed: !!(profileData.avatar_url && profileData.avatar_url.trim()), weight: 0, required: false },
-    { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), weight: 0, required: false },
-    { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, weight: 0, required: false },
-    { label: 'Session Rate Tier(s)', completed: !!(profileData.rate_tier_1 && profileData.rate_tier_1 > 0), weight: 0, required: false },
-    { label: 'Equipment List', completed: !!(profileData.equipment_list && profileData.equipment_list.trim()), weight: 0, required: false },
-    { label: 'Services Offered', completed: !!(profileData.services_offered && profileData.services_offered.trim()), weight: 0, required: false },
+    { label: 'Avatar', completed: !!(profileData.avatar_url && profileData.avatar_url.trim()), weight: 5.88, required: false },
+    { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), weight: 5.88, required: false },
+    { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, weight: 5.88, required: false },
+    { label: 'Session Rate Tier(s)', completed: !!(profileData.rate_tier_1 && profileData.rate_tier_1 > 0), weight: 5.88, required: false },
+    { label: 'Equipment List', completed: !!(profileData.equipment_list && profileData.equipment_list.trim()), weight: 5.88, required: false },
+    { label: 'Services Offered', completed: !!(profileData.services_offered && profileData.services_offered.trim()), weight: 5.88, required: false },
   ];
 
-  // Calculate completion percentage based ONLY on required fields
+  // Calculate completion percentage from ALL 17 fields (required + optional)
+  const allFields = [...requiredFields, ...optionalFields];
   const completionPercentage = Math.round(
-    requiredFields.reduce((total, field) => {
+    allFields.reduce((total, field) => {
       return total + (field.completed ? field.weight : 0);
     }, 0)
   );
