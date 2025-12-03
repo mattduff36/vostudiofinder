@@ -547,10 +547,9 @@ export function EnhancedSearchBar({
                 ref={inputRef}
                 type="text"
                 placeholder={placeholder}
-                className="w-full h-10 pl-8 pr-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-transparent"
+                className="w-full h-10 pl-8 pr-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                 style={{ 
-                  color: colors.textPrimary, 
-                  '--tw-ring-color': colors.primary 
+                  color: colors.textPrimary
                 } as React.CSSProperties}
                 value={query}
                 onChange={(e) => {

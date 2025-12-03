@@ -282,7 +282,7 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
                 type="checkbox"
                 checked={filters.studio_studio_types.includes(option.value)}
                 onChange={() => handleStudioTypeToggle(option.value)}
-                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="rounded border-gray-300 text-red-600 focus:ring-gray-400"
               />
               <span className="text-sm text-black">{option.label}</span>
             </label>

@@ -523,7 +523,7 @@ export function EnhancedLocationFilter({
         value={query}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        className={`w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${className}`}
+        className={`w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent ${className}`}
         autoComplete="off"
       />
       
@@ -555,7 +555,7 @@ export function EnhancedLocationFilter({
         <div ref={dropdownRef} className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
           {isLoadingPlaces && (
             <div className="px-3 py-2 text-xs text-gray-500 flex items-center gap-2">
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-500"></div>
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-400"></div>
               Loading places...
             </div>
           )}
