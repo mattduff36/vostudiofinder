@@ -181,7 +181,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
               {/* Description */}
               {description && (
                 <div 
-                  className="line-clamp-4 text-sm leading-snug"
+                  className="line-clamp-5 text-sm leading-snug"
                   style={{ color: 'inherit' }}
                   title={description}
                 >
