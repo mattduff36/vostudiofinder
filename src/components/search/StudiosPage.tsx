@@ -236,6 +236,7 @@ export function StudiosPage() {
   const filterSidebarRef = useRef<HTMLDivElement>(null);
   const filterContainerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
+  const [isNearFooter, setIsNearFooter] = useState(false);
 
   // Search function - for initial load or filter changes
   const performSearch = async (params: URLSearchParams, resetOffset: boolean = true) => {
@@ -341,21 +342,28 @@ export function StudiosPage() {
             const stickyTop = navbarHeight + 32; // 80px navbar + 32px padding (top-8)
             const sidebarBottom = window.scrollY + stickyTop + sidebarHeight;
             
-            // Sidebar should be sticky if:
-            // 1. We're past the hero section AND
-            // 2. The sidebar bottom wouldn't overlap the footer (with 32px buffer)
-            const shouldBeSticky = isPastHero && (sidebarBottom < footerTop - 32);
+            // Check if we're near the footer (within buffer distance)
+            const footerBuffer = 32;
+            const nearFooter = isPastHero && (sidebarBottom >= footerTop - footerBuffer);
+            
+            // Sidebar should be sticky if we're past hero and NOT near footer
+            const shouldBeSticky = isPastHero && !nearFooter;
+            
+            // Update near footer state
+            if (nearFooter !== isNearFooter) {
+              setIsNearFooter(nearFooter);
+            }
             
             // Only update if state actually changes
             if (shouldBeSticky !== isFilterSticky) {
-              // Calculate dimensions when transitioning to sticky
-              if (shouldBeSticky) {
+              // Calculate dimensions when transitioning to/from sticky
+              if (shouldBeSticky || nearFooter) {
                 const sidebarRect = sidebarElement.getBoundingClientRect();
-                const sidebarLeft = sidebarRect.left;
+                const containerRect = filterContainerRef.current?.getBoundingClientRect();
                 
                 setStickyStyles({
                   width: sidebarRect.width,
-                  left: sidebarLeft
+                  left: containerRect?.left || sidebarRect.left
                 });
               }
               
@@ -379,7 +387,7 @@ export function StudiosPage() {
       window.removeEventListener('resize', handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [isFilterSticky]);
+  }, [isFilterSticky, isNearFooter]);
 
   // Clear selection and viewing history when search parameters change (new search from URL)
   useEffect(() => {
@@ -661,20 +669,21 @@ export function StudiosPage() {
           {/* Filters Sidebar */}
           <div ref={filterContainerRef} className="lg:col-span-1 hidden lg:block">
             {/* Placeholder to maintain layout when filter becomes fixed */}
-            {isFilterSticky && <div style={{ height: '600px' }} />}
+            {(isFilterSticky || isNearFooter) && <div style={{ height: '600px' }} />}
             
             <div 
               ref={filterSidebarRef}
               className={`${
-                isFilterSticky 
+                (isFilterSticky || isNearFooter)
                   ? 'fixed z-30' 
                   : 'sticky top-8'
               }`}
-              style={isFilterSticky && stickyStyles ? { 
+              style={(isFilterSticky || isNearFooter) && stickyStyles ? { 
                 width: `${stickyStyles.width}px`,
                 left: `${stickyStyles.left}px`,
-                top: '112px', // 80px navbar + 32px padding (same as top-8)
-                maxHeight: 'calc(100vh - 7rem)', // Adjusted for the extra top space
+                top: isNearFooter ? 'auto' : '112px', // When near footer, remove top positioning
+                bottom: isNearFooter ? '32px' : 'auto', // When near footer, stick to bottom with buffer
+                maxHeight: 'calc(100vh - 7rem)',
                 overflowY: 'auto'
               } : {}}
             >
