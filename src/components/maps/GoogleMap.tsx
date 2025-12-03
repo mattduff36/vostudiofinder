@@ -423,7 +423,7 @@ export function GoogleMap({
 
     // Check if any markers are HOME studios to determine max zoom
     const hasHomeStudios = markers.some(marker => marker.studio_type === 'HOME');
-    const maxZoom = hasHomeStudios ? 13 : 15; // Limit zoom for privacy (2 steps closer than previous setting)
+    const maxZoom = hasHomeStudios ? 14 : 16; // +1 zoom level with privacy-protecting styles
 
     const googleMaps = window.google.maps as any;
     const map = new googleMaps.Map(mapRef.current, {
@@ -444,17 +444,37 @@ export function GoogleMap({
       fullscreenControlOptions: {
         position: googleMaps.ControlPosition.RIGHT_TOP,
       },
-      // Custom styling
+      // Custom styling - hide labels for privacy while maintaining map usability
       styles: [
         {
           featureType: 'poi',
           elementType: 'labels',
-          stylers: [{ visibility: 'off' }],
+          stylers: [{ visibility: 'off' }], // Hide points of interest labels
         },
         {
           featureType: 'transit',
           elementType: 'labels',
-          stylers: [{ visibility: 'simplified' }],
+          stylers: [{ visibility: 'off' }], // Hide transit labels
+        },
+        {
+          featureType: 'road',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }], // Hide all road/street names
+        },
+        {
+          featureType: 'administrative',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }], // Hide neighborhood, district names
+        },
+        {
+          featureType: 'administrative.locality',
+          elementType: 'labels',
+          stylers: [{ visibility: 'on' }], // Keep city names visible for orientation
+        },
+        {
+          featureType: 'water',
+          elementType: 'labels',
+          stylers: [{ visibility: 'on' }], // Keep water body names for orientation
         },
       ],
     });
