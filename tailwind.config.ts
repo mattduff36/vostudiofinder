@@ -87,9 +87,20 @@ const config: Config = {
             transform: 'translateY(0) scale(1)' 
           },
         },
+        'slide-in-left': {
+          '0%': { 
+            opacity: '0', 
+            transform: 'translateX(-100%) scale(0.8)' 
+          },
+          '100%': { 
+            opacity: '1', 
+            transform: 'translateX(0) scale(1)' 
+          },
+        },
       },
       animation: {
         'slide-in-up': 'slide-in-up 1s ease-out forwards',
+        'slide-in-left': 'slide-in-left 1.2s ease-out forwards',
       },
     },
   },
