@@ -31,6 +31,9 @@ interface ProfileCompletionProgressProps {
     website_url?: string | undefined;
     images_count?: number | undefined;
     studio_types_count?: number | undefined;
+    avatar_url?: string | undefined;
+    equipment_list?: string | undefined;
+    services_offered?: string | undefined;
   };
 }
 
@@ -38,6 +41,7 @@ interface ProfileField {
   label: string;
   completed: boolean;
   weight: number; // How much this field contributes to completion (out of 100)
+  required: boolean; // Whether this field is required for profile to go live
 }
 
 export function ProfileCompletionProgress({ profileData }: ProfileCompletionProgressProps) {
@@ -64,30 +68,43 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
     profileData.connection8 === '1'
   );
 
-  // Define all 14 fields required for profile completion (each worth ~7.14%)
-  const fields: ProfileField[] = [
-    { label: 'Display Name', completed: !!(profileData.display_name && profileData.display_name.trim()), weight: 7.14 },
-    { label: 'Username', completed: !!(profileData.username && profileData.username.trim()), weight: 7.14 },
-    { label: 'Short About', completed: !!(profileData.short_about && profileData.short_about.trim()), weight: 7.14 },
-    { label: 'Full About', completed: !!(profileData.about && profileData.about.trim()), weight: 7.14 },
-    { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), weight: 7.14 },
-    { label: 'Location', completed: !!(profileData.location && profileData.location.trim()), weight: 7.14 },
-    { label: 'Studio Name', completed: !!(profileData.studio_name && profileData.studio_name.trim()), weight: 7.14 },
-    { label: 'Connection Methods', completed: hasConnectionMethod, weight: 7.14 },
-    { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, weight: 7.14 },
-    { label: 'Website URL', completed: !!(profileData.website_url && profileData.website_url.trim()), weight: 7.14 },
-    { label: 'At least 1 image', completed: (profileData.images_count || 0) >= 1, weight: 7.14 },
-    { label: 'Studio Type selected', completed: (profileData.studio_types_count || 0) >= 1, weight: 7.14 },
-    { label: 'Rate Tier 1', completed: !!(profileData.rate_tier_1 && profileData.rate_tier_1 > 0), weight: 7.14 },
-    { label: 'Email', completed: !!(profileData.email && profileData.email.trim()), weight: 7.16 }, // 7.16 to round up to 100
+  // REQUIRED fields - must complete all 11 to publish profile (each worth ~9.09%)
+  const requiredFields: ProfileField[] = [
+    { label: 'Username', completed: !!(profileData.username && profileData.username.trim()), weight: 9.09, required: true },
+    { label: 'Display Name', completed: !!(profileData.display_name && profileData.display_name.trim()), weight: 9.09, required: true },
+    { label: 'Email', completed: !!(profileData.email && profileData.email.trim()), weight: 9.09, required: true },
+    { label: 'Studio Name', completed: !!(profileData.studio_name && profileData.studio_name.trim()), weight: 9.09, required: true },
+    { label: 'Short About', completed: !!(profileData.short_about && profileData.short_about.trim()), weight: 9.09, required: true },
+    { label: 'Full About', completed: !!(profileData.about && profileData.about.trim()), weight: 9.09, required: true },
+    { label: 'Studio Type selected', completed: (profileData.studio_types_count || 0) >= 1, weight: 9.09, required: true },
+    { label: 'Location', completed: !!(profileData.location && profileData.location.trim()), weight: 9.09, required: true },
+    { label: 'Connection Methods', completed: hasConnectionMethod, weight: 9.09, required: true },
+    { label: 'Website URL', completed: !!(profileData.website_url && profileData.website_url.trim()), weight: 9.09, required: true },
+    { label: 'At least 1 image', completed: (profileData.images_count || 0) >= 1, weight: 9.11, required: true }, // 9.11 to round to 100
   ];
 
-  // Calculate completion percentage
+  // OPTIONAL fields - boost profile quality but not required for publishing
+  const optionalFields: ProfileField[] = [
+    { label: 'Avatar', completed: !!(profileData.avatar_url && profileData.avatar_url.trim()), weight: 0, required: false },
+    { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), weight: 0, required: false },
+    { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, weight: 0, required: false },
+    { label: 'Session Rate Tier(s)', completed: !!(profileData.rate_tier_1 && profileData.rate_tier_1 > 0), weight: 0, required: false },
+    { label: 'Equipment List', completed: !!(profileData.equipment_list && profileData.equipment_list.trim()), weight: 0, required: false },
+    { label: 'Services Offered', completed: !!(profileData.services_offered && profileData.services_offered.trim()), weight: 0, required: false },
+  ];
+
+  // Calculate completion percentage based ONLY on required fields
   const completionPercentage = Math.round(
-    fields.reduce((total, field) => {
+    requiredFields.reduce((total, field) => {
       return total + (field.completed ? field.weight : 0);
     }, 0)
   );
+
+  // Check if all required fields are complete (profile ready to go live)
+  const allRequiredComplete = requiredFields.every(field => field.completed);
+  
+  // Count completed optional fields
+  const completedOptionalCount = optionalFields.filter(field => field.completed).length;
 
   // Circle SVG parameters
   const radius = 70;
@@ -111,9 +128,9 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
     <div>
       <h2 className="text-2xl font-semibold mb-6 text-gray-900">Profile Completion</h2>
       
-      <div className="flex flex-col md:flex-row gap-8 items-center">
+      <div className="flex flex-col md:flex-row gap-8 items-start">
         {/* Circular Progress */}
-        <div className="relative flex items-center justify-center">
+        <div className="relative flex items-center justify-center flex-shrink-0">
           <svg width="180" height="180" className="transform -rotate-90">
             {/* Background circle */}
             <circle
@@ -149,22 +166,70 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
 
         {/* Completion checklist */}
         <div className="flex-1">
+          {/* Profile Status Warning */}
+          {!allRequiredComplete && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-800 font-medium">
+                ⚠️ Complete all required fields before your profile can go live
+              </p>
+            </div>
+          )}
+          
+          {allRequiredComplete && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800 font-medium">
+                ✅ All required fields complete! Your profile is ready to publish
+              </p>
+            </div>
+          )}
+
           <p className="text-sm text-gray-600 mb-4">
-            Complete your profile to increase visibility and attract more clients
+            Complete required fields to publish your profile. Optional fields help attract more clients.
           </p>
-          <div className="space-y-2">
-            {fields.map((field, index) => (
-              <div key={index} className="flex items-center gap-2">
-                {field.completed ? (
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                ) : (
-                  <Circle className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                )}
-                <span className={`text-sm ${field.completed ? 'text-gray-700' : 'text-gray-500'}`}>
-                  {field.label}
-                </span>
-              </div>
-            ))}
+
+          {/* REQUIRED SECTION */}
+          <div className="mb-4">
+            <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">
+              Required
+            </h3>
+            <div className="space-y-2">
+              {requiredFields.map((field, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  {field.completed ? (
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  )}
+                  <span className={`text-sm ${field.completed ? 'text-gray-700' : 'text-gray-500'}`}>
+                    {field.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* DIVIDER */}
+          <div className="border-t border-gray-300 my-4"></div>
+
+          {/* OPTIONAL SECTION */}
+          <div>
+            <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">
+              Optional ({completedOptionalCount}/{optionalFields.length} completed)
+            </h3>
+            <div className="space-y-2">
+              {optionalFields.map((field, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  {field.completed ? (
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  )}
+                  <span className={`text-sm ${field.completed ? 'text-gray-700' : 'text-gray-400'}`}>
+                    {field.label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
