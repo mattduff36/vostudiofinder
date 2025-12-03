@@ -67,21 +67,13 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
 
   // Keep animation class applied for full duration
   useEffect(() => {
-    console.log('🎬 SelectedStudioDetails mounted - animation should start');
-    console.log('hasAnimated initial:', hasAnimated);
-    
     // Use requestAnimationFrame to ensure the animation starts after initial render
     requestAnimationFrame(() => {
-      console.log('🎬 requestAnimationFrame fired');
       const timer = setTimeout(() => {
-        console.log('🎬 Animation complete - removing animation class');
         setHasAnimated(true);
       }, 800); // Match animation duration
       
-      return () => {
-        console.log('🎬 Cleanup - clearing timer');
-        clearTimeout(timer);
-      };
+      return () => clearTimeout(timer);
     });
   }, []); // Empty dependency array - runs once on mount only
 
