@@ -83,15 +83,7 @@ Object.defineProperty(window, 'scrollTo', {
   value: jest.fn(),
 })
 
-// Mock window.location
-delete window.location;
-window.location = {
-  href: 'http://localhost:3000',
-  origin: 'http://localhost:3000',
-  pathname: '/',
-  search: '',
-  hash: '',
-  assign: jest.fn(),
-  replace: jest.fn(),
-  reload: jest.fn(),
-};
+// Mock window.location methods
+// Note: In jsdom, window.location is a special object that cannot be fully mocked
+// Individual methods need to be spied on in tests using jest.spyOn(window.location, 'assign')
+// The default jsdom location object will be used, which is sufficient for most tests
