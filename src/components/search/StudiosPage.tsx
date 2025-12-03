@@ -108,6 +108,13 @@ export function StudiosPage() {
   const fetchAndAddStudio = async (studioId: string) => {
     if (!searchResults) return;
     
+    // Double-check if studio already exists before fetching
+    const alreadyExists = searchResults.studios.some(s => s.id === studioId);
+    if (alreadyExists) {
+      console.log('⏭️ Studio already in results, skipping fetch');
+      return;
+    }
+    
     try {
       console.log(`📡 Fetching studio ${studioId} to add to results...`);
       
@@ -125,20 +132,30 @@ export function StudiosPage() {
       if (response.ok) {
         const data = await response.json();
         if (data.studios && data.studios.length > 0) {
+          const fetchedStudio = data.studios[0];
+          
           // Add the fetched studio to the existing results
           setSearchResults(prev => {
             if (!prev) return data;
-            // Check if studio already exists to avoid duplicates
-            const exists = prev.studios.some(s => s.id === studioId);
-            if (exists) return prev;
+            
+            // Final check to prevent duplicates (in case of race conditions)
+            const stillExists = prev.studios.some(s => s.id === fetchedStudio.id);
+            if (stillExists) {
+              console.log('⚠️ Race condition: Studio already added, skipping');
+              return prev;
+            }
             
             return {
               ...prev,
-              studios: [...prev.studios, data.studios[0]], // Add to end of array
+              studios: [...prev.studios, fetchedStudio], // Add to end of array
             };
           });
           console.log('✅ Studio added to results');
+        } else {
+          console.warn('⚠️ No studio data returned from API');
         }
+      } else {
+        console.error('❌ API request failed:', response.status);
       }
     } catch (error) {
       console.error('❌ Error fetching studio:', error);
