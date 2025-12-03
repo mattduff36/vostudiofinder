@@ -1,5 +1,4 @@
 'use client';
-import { logger } from '@/lib/logger';
 
 import { useState, useEffect, useMemo } from 'react';
 import { 
@@ -10,6 +9,8 @@ import {
 } from 'lucide-react';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
 import { Toggle } from '@/components/ui/Toggle';
+import { logger } from '@/lib/logger';
+import type { ProfileData } from '@/types/profile';
 
 interface UserDashboardProps {
   data: {
@@ -123,7 +124,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
   }, []);
 
   // Compute if all required fields are complete (recalculates whenever profileData changes)
-  const allRequiredComplete = useMemo(() => {
+  const allRequiredComplete = useMemo((): boolean => {
     if (!profileData) return false;
     
     // Check if at least one connection method is selected
