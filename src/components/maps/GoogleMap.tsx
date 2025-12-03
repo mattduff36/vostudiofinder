@@ -256,6 +256,13 @@ export function GoogleMap({
         }),
         onClusterClick: (event, cluster, map) => {
           logger.log('🖱️ Cluster clicked - zooming to cluster area');
+          
+          // Mark as user interaction to prevent auto-centering
+          if (!hasUserInteractedRef.current) {
+            logger.log('👤 Cluster click - disabling auto-zoom');
+            hasUserInteractedRef.current = true;
+          }
+          
           const currentZoom = map.getZoom() || 2;
           const newZoom = Math.min(currentZoom + 3, actualMaxZoom);
           
