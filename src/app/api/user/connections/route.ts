@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
         // TODO: Implement proper blocking functionality
         // For now, we'll just prevent connections by not creating a record
         // In a full implementation, you might want a separate BlockedUser model
-        console.log(`User ${session.user.id} attempted to block user ${targetUserId}`);
+        logger.log(`User ${session.user.id} attempted to block user ${targetUserId}`);
 
         return NextResponse.json({
           success: true,

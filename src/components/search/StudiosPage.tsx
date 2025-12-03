@@ -8,6 +8,7 @@ import { GoogleMap } from '@/components/maps/GoogleMap';
 import { abbreviateAddress } from '@/lib/utils/address';
 import Image from 'next/image';
 import { StudioMarkerModal } from '@/components/maps/StudioMarkerModal';
+import { logger } from '@/lib/logger';
 import { Footer } from '@/components/home/Footer';
 import { SelectedStudioDetails } from './SelectedStudioDetails';
 
@@ -113,12 +114,12 @@ export function StudiosPage() {
     // Double-check if studio already exists before fetching
     const alreadyExists = searchResults.studios.some(s => s.id === studioId);
     if (alreadyExists) {
-      console.log('⏭️ Studio already in results, skipping fetch');
+      logger.log('⏭️ Studio already in results, skipping fetch');
       return;
     }
     
     try {
-      console.log(`📡 Fetching studio ${studioId} to add to results...`);
+      logger.log(`📡 Fetching studio ${studioId} to add to results...`);
       
       // Use the existing search API with current filters but target the specific studio
       const params = new URLSearchParams();
@@ -143,7 +144,7 @@ export function StudiosPage() {
             // Final check to prevent duplicates (in case of race conditions)
             const stillExists = prev.studios.some(s => s.id === fetchedStudio.id);
             if (stillExists) {
-              console.log('⚠️ Race condition: Studio already added, skipping');
+              logger.log('⚠️ Race condition: Studio already added, skipping');
               return prev;
             }
             
@@ -152,15 +153,15 @@ export function StudiosPage() {
               studios: [...prev.studios, fetchedStudio], // Add to end of array
             };
           });
-          console.log('✅ Studio added to results');
+          logger.log('✅ Studio added to results');
         } else {
           console.warn('⚠️ No studio data returned from API');
         }
       } else {
-        console.error('❌ API request failed:', response.status);
+        logger.error('❌ API request failed:', response.status);
       }
     } catch (error) {
-      console.error('❌ Error fetching studio:', error);
+      logger.error('❌ Error fetching studio:', error);
     }
   };
 
@@ -332,10 +333,10 @@ export function StudiosPage() {
         const data = await response.json();
         setSearchResults(data);
       } else {
-        console.error('Search failed:', response.status, response.statusText);
+        logger.error('Search failed:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Search error:', error);
+      logger.error('Search error:', error);
     } finally {
       setLoading(false);
     }
@@ -374,10 +375,10 @@ export function StudiosPage() {
           };
         });
       } else {
-        console.error('Load more failed:', response.status, response.statusText);
+        logger.error('Load more failed:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Load more error:', error);
+      logger.error('Load more error:', error);
     } finally {
       setLoadingMore(false);
     }
@@ -418,7 +419,7 @@ export function StudiosPage() {
   }, []);
 
   const handleSearch = (filters: Record<string, any>) => {
-    console.log('🔍 HandleSearch called with filters:', filters);
+    logger.log('🔍 HandleSearch called with filters:', filters);
     
     // Clear any selected studio and viewing history when performing a new search
     if (selectedStudioId) {
@@ -439,7 +440,7 @@ export function StudiosPage() {
       if (key === 'lat' || key === 'lng') {
         if (typeof value === 'number') {
           params.set(key, value.toString());
-          console.log(`📍 Added coordinate ${key}: ${value}`);
+          logger.log(`📍 Added coordinate ${key}: ${value}`);
         }
       } 
       // Regular handling for other values
@@ -466,15 +467,15 @@ export function StudiosPage() {
         !filters.hasOwnProperty('lat') && !filters.hasOwnProperty('lng')) {
       params.set('lat', currentLat);
       params.set('lng', currentLng);
-      console.log('📍 Preserved coordinates from URL:', { lat: currentLat, lng: currentLng });
+      logger.log('📍 Preserved coordinates from URL:', { lat: currentLat, lng: currentLng });
     } else if (filters.hasOwnProperty('lat') && filters.lat === undefined) {
-      console.log('📍 Coordinates explicitly cleared - not preserving from URL');
+      logger.log('📍 Coordinates explicitly cleared - not preserving from URL');
     }
 
     // Reset to first page when searching
     params.set('page', '1');
     
-    console.log('🚀 Final URL params:', params.toString());
+    logger.log('🚀 Final URL params:', params.toString());
     router.push(`/studios?${params.toString()}`);
   };
 

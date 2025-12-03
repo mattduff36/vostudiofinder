@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -27,13 +28,13 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
   const [filters, setFilters] = useState(initialFilters);
 
   useEffect(() => {
-    console.log('Updating filters with initialFilters:', initialFilters);
+    logger.log('Updating filters with initialFilters:', initialFilters);
     setFilters(initialFilters);
   }, [initialFilters]);
 
   const handleFilterChange = (key: string, value: any) => {
-    console.log(`HandleFilterChange called - key: ${key}, value: ${value}`);
-    console.log('Current filters state:', filters);
+    logger.log(`HandleFilterChange called - key: ${key}, value: ${value}`);
+    logger.log('Current filters state:', filters);
     
     const newFilters = { ...filters, [key]: value };
     
@@ -41,21 +42,21 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
     if (filters.lat && filters.lng) {
       newFilters.lat = filters.lat;
       newFilters.lng = filters.lng;
-      console.log('Preserving coordinates:', { lat: filters.lat, lng: filters.lng });
+      logger.log('Preserving coordinates:', { lat: filters.lat, lng: filters.lng });
     } else {
-      console.log('No coordinates to preserve - filters.lat:', filters.lat, 'filters.lng:', filters.lng);
+      logger.log('No coordinates to preserve - filters.lat:', filters.lat, 'filters.lng:', filters.lng);
     }
     
-    console.log('Final newFilters being sent to onSearch:', newFilters);
+    logger.log('Final newFilters being sent to onSearch:', newFilters);
     
     setFilters(newFilters);
     
     // RULE: Only trigger search if there's a location (except for location changes themselves)
     if (key === 'location' || (newFilters.location && newFilters.location.trim() !== '')) {
-      console.log('✅ Triggering search - location exists or location is being changed');
+      logger.log('✅ Triggering search - location exists or location is being changed');
       onSearch(newFilters);
     } else {
-      console.log('🚫 Skipping search - no location provided');
+      logger.log('🚫 Skipping search - no location provided');
     }
   };
 
@@ -78,10 +79,10 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
   //   
   //   // RULE: Only trigger search if there's a location
   //   if (newFilters.location && newFilters.location.trim() !== '') {
-  //     console.log('✅ Service toggle triggering search - location exists');
+  //     logger.log('✅ Service toggle triggering search - location exists');
   //     onSearch(newFilters);
   //   } else {
-  //     console.log('🚫 Service toggle skipping search - no location provided');
+  //     logger.log('🚫 Service toggle skipping search - no location provided');
   //   }
   // };
 
@@ -181,14 +182,14 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
                 newFilters.lat = lat;
                 newFilters.lng = lng;
                 
-                console.log('Location selected - coordinates extracted:', { lat, lng });
-                console.log('New filters with coordinates:', newFilters);
+                logger.log('Location selected - coordinates extracted:', { lat, lng });
+                logger.log('New filters with coordinates:', newFilters);
                 
                 // Set state first, then immediately trigger search
                 setFilters(newFilters);
                 onSearch(newFilters);
               } else {
-                console.log('Just typing location, no coordinates - not searching');
+                logger.log('Just typing location, no coordinates - not searching');
                 // Just typing, update state but don't search
                 setFilters(newFilters);
               }
@@ -201,7 +202,7 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
                 newFilters.lat = filters.lat;
                 newFilters.lng = filters.lng;
               }
-              console.log('Enter key pressed - triggering search with coordinates:', 
+              logger.log('Enter key pressed - triggering search with coordinates:', 
                           filters.lat && filters.lng ? { lat: filters.lat, lng: filters.lng } : 'none');
               onSearch(newFilters);
             }}
@@ -239,7 +240,7 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
                   newRadius = Math.round(25 + ((sliderValue - 75) / 25) * 25); // 75-100% maps to 25-50
                 }
                 
-                console.log(`Radius changed to ${newRadius} - triggering immediate search`);
+                logger.log(`Radius changed to ${newRadius} - triggering immediate search`);
                 handleFilterChange('radius', newRadius);
               }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"

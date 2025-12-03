@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -112,9 +113,9 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       
       const data = await response.json();
       setProfile(data.profile);
-      console.log('[Admin Modal] Profile visibility:', data.profile._meta?.is_profile_visible);
+      logger.log('[Admin Modal] Profile visibility:', data.profile._meta?.is_profile_visible);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
     }
@@ -185,7 +186,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       onSave();
       onClose();
     } catch (error) {
-      console.error('Error saving profile:', error);
+      logger.error('Error saving profile:', error);
       alert('Failed to save profile. Please try again.');
     } finally {
       setSaving(false);
@@ -220,7 +221,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       onSave();
       setShowSuccessModal(true);
     } catch (error) {
-      console.error('Error saving profile:', error);
+      logger.error('Error saving profile:', error);
       alert('Failed to save profile. Please try again.');
     } finally {
       setSaving(false);

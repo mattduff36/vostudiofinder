@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
@@ -290,26 +291,26 @@ export async function PUT(
         
         // Only geocode if coordinates aren't being manually changed
         if (!coordinatesManuallyChanged) {
-          console.log(`[Geocoding] Full address changed, geocoding: ${body._meta.full_address}`);
+          logger.log(`[Geocoding] Full address changed, geocoding: ${body._meta.full_address}`);
           const { geocodeAddress } = await import('@/lib/maps');
           const geocodeResult = await geocodeAddress(body._meta.full_address);
           if (geocodeResult) {
-            console.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}`);
+            logger.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}`);
             studioUpdateData.latitude = geocodeResult.lat;
             studioUpdateData.longitude = geocodeResult.lng;
           } else {
-            console.log(`[Geocoding] Failed to geocode address: ${body._meta.full_address}`);
+            logger.log(`[Geocoding] Failed to geocode address: ${body._meta.full_address}`);
           }
         } else {
-          console.log(`[Geocoding] Skipped - coordinates manually changed`);
+          logger.log(`[Geocoding] Skipped - coordinates manually changed`);
         }
       } else if (!existingStudio.latitude || !existingStudio.longitude) {
         // Address hasn't changed but coordinates are empty - geocode anyway
-        console.log(`[Geocoding] Coordinates empty, geocoding existing address: ${body._meta.full_address}`);
+        logger.log(`[Geocoding] Coordinates empty, geocoding existing address: ${body._meta.full_address}`);
         const { geocodeAddress } = await import('@/lib/maps');
         const geocodeResult = await geocodeAddress(body._meta.full_address);
         if (geocodeResult) {
-          console.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}`);
+          logger.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}`);
           studioUpdateData.latitude = geocodeResult.lat;
           studioUpdateData.longitude = geocodeResult.lng;
         }
