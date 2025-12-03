@@ -437,6 +437,16 @@ export function StudiosPage() {
       logger.log('🗺️ Filtering by map area:', newValue);
       logger.log('📍 Current mapBounds:', mapBounds);
       logger.log('📊 Total studios in search results:', searchResults?.studios.length || 0);
+      
+      // If enabling filtering but mapBounds is null, warn the user
+      if (newValue && !mapBounds) {
+        logger.warn('⚠️ mapBounds is null! Attempting to get current bounds from map...');
+        // The map bounds should update shortly via the bounds_changed listener
+        // Return false to prevent enabling until bounds are available
+        alert('Please wait for the map to fully load before filtering by map area.');
+        return false;
+      }
+      
       return newValue;
     });
   }, [mapBounds, searchResults]);
