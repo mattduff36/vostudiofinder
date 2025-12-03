@@ -127,6 +127,16 @@ export function StudiosPage() {
       return studioData.id;
     });
     
+    // Apply outline to newly selected studio card if it exists on current page
+    // Use setTimeout to ensure the DOM is ready after state update
+    setTimeout(() => {
+      const newElement = document.getElementById(`studio-${studioData.id}`);
+      if (newElement) {
+        newElement.style.outline = '2px solid #dc2626'; // red-600
+        newElement.style.outlineOffset = '2px';
+      }
+    }, 0);
+    
     // Open modal
     const markerPosition = {
       x: event?.clientX || window.innerWidth / 2,
@@ -225,6 +235,7 @@ export function StudiosPage() {
   const heroSectionRef = useRef<HTMLDivElement>(null);
   const filterSidebarRef = useRef<HTMLDivElement>(null);
   const filterContainerRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
 
   // Search function - for initial load or filter changes
   const performSearch = async (params: URLSearchParams, resetOffset: boolean = true) => {

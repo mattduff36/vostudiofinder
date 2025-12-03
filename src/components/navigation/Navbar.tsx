@@ -276,11 +276,11 @@ export function Navbar({ session }: NavbarProps) {
                   className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
                     isScrolled || !isHomePage 
                       ? 'text-white hover:opacity-90' 
-                      : 'text-white border border-white hover:bg-white hover:text-red-600'
+                      : 'text-white border border-white bg-transparent hover:bg-white hover:text-red-600'
                   }`}
-                  style={{
-                    backgroundColor: isScrolled || !isHomePage ? colors.primary : 'transparent'
-                  }}
+                  style={isScrolled || !isHomePage ? {
+                    backgroundColor: colors.primary
+                  } : undefined}
                 >
                   List Your Studio
                 </button>
