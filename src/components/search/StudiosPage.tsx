@@ -79,6 +79,7 @@ export function StudiosPage() {
   const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
   const [viewedStudioIds, setViewedStudioIds] = useState<string[]>([]); // Track viewing history
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [fetchedStudio, setFetchedStudio] = useState<Studio | null>(null); // Store individually fetched studio
   
   // Studio marker modal state
   const [modalStudio, setModalStudio] = useState<{
@@ -105,7 +106,7 @@ export function StudiosPage() {
   }, []);
 
   // Stable marker click handler (doesn't depend on selectedStudioId)
-  const handleMarkerClick = useCallback((studioData: any, event: any) => {
+  const handleMarkerClick = useCallback(async (studioData: any, event: any) => {
     // Close any existing modal
     setModalStudio(null);
     
@@ -127,6 +128,32 @@ export function StudiosPage() {
       const filtered = prevIds.filter(id => id !== studioData.id);
       return [studioData.id, ...filtered];
     });
+    
+    // Check if we need to fetch full studio data
+    // (This happens when clicking a marker for a studio not in current paginated results)
+    if (searchResults) {
+      const studioInResults = searchResults.studios.find(s => s.id === studioData.id);
+      if (!studioInResults) {
+        try {
+          console.log(`📡 Fetching full data for studio: ${studioData.id}`);
+          const response = await fetch(`/api/studios/${studioData.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setFetchedStudio(data.studio);
+            console.log('✅ Full studio data fetched successfully');
+          } else {
+            console.error('❌ Failed to fetch studio data');
+            setFetchedStudio(null);
+          }
+        } catch (error) {
+          console.error('❌ Error fetching studio:', error);
+          setFetchedStudio(null);
+        }
+      } else {
+        // Studio is in current results, clear any previously fetched data
+        setFetchedStudio(null);
+      }
+    }
     
     // Apply outline to newly selected studio card if it exists on current page
     // Use setTimeout to ensure the DOM is ready after state update
@@ -151,7 +178,7 @@ export function StudiosPage() {
       studio_images: studioData.studio_images,
       position: markerPosition,
     });
-  }, []); // No dependencies - uses setters with callbacks
+  }, [searchResults]); // No dependencies - uses setters with callbacks
 
   // Memoize markers array to prevent unnecessary re-renders
   const memoizedMarkers = useMemo(() => {
@@ -614,46 +641,39 @@ export function StudiosPage() {
               />
 
               {/* Selected Studio Card - Shows when a map marker is clicked */}
-              {selectedStudioId && searchResults && (() => {
-                // First try to find in paginated studios (has full data)
-                let selectedStudio = searchResults.studios.find(s => s.id === selectedStudioId);
+              {selectedStudioId && (() => {
+                // Priority 1: Check if it's a fetched studio (from API call)
+                if (fetchedStudio && fetchedStudio.id === selectedStudioId) {
+                  return (
+                    <SelectedStudioDetails
+                      studio={fetchedStudio}
+                    />
+                  );
+                }
                 
-                // If not in paginated studios, look in mapMarkers (all studios, limited fields)
-                if (!selectedStudio && searchResults.mapMarkers) {
-                  const markerData = searchResults.mapMarkers.find(m => m.id === selectedStudioId);
-                  if (markerData) {
-                    // Convert mapMarker data to studio format (with limited fields)
-                    selectedStudio = {
-                      id: markerData.id,
-                      name: markerData.name,
-                      description: '', // Not available in mapMarkers
-                      studio_studio_types: markerData.studio_studio_types || [],
-                      address: '', // Not available in mapMarkers
-                      is_verified: markerData.is_verified || false,
-                      is_premium: false,
-                      studio_services: [], // Not available in mapMarkers
-                      studio_images: markerData.studio_images || [],
-                      _count: { reviews: 0 }, // Not available in mapMarkers
-                      ...(markerData.latitude != null && { latitude: markerData.latitude }),
-                      ...(markerData.longitude != null && { longitude: markerData.longitude }),
-                      ...(markerData.users && {
-                        owner: {
-                          id: '', // Not available in mapMarkers
-                          display_name: markerData.users.username || '', // Use username as display name fallback
-                          username: markerData.users.username || '',
-                          ...(markerData.users.avatar_url && { avatar_url: markerData.users.avatar_url }),
-                        }
-                      }),
-                    };
+                // Priority 2: Find in paginated studios (has full data)
+                if (searchResults) {
+                  const selectedStudio = searchResults.studios.find(s => s.id === selectedStudioId);
+                  if (selectedStudio) {
+                    return (
+                      <SelectedStudioDetails
+                        studio={selectedStudio}
+                      />
+                    );
                   }
                 }
                 
-                if (!selectedStudio) return null;
-                
+                // Priority 3: Fallback - show loading state
                 return (
-                  <SelectedStudioDetails
-                    studio={selectedStudio}
-                  />
+                  <div className="mt-4">
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Selected Studio
+                    </div>
+                    <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-8 text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: '#d42027' }}></div>
+                      <p className="mt-4 text-sm text-gray-500">Loading studio details...</p>
+                    </div>
+                  </div>
                 );
               })()}
             </div>
