@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       display_name: validatedData.display_name,
     });
     
-    // TODO: Send verification email
+    // FUTURE: Send verification email
     // await sendVerificationEmail(user.email, verificationToken);
     
     return NextResponse.json(

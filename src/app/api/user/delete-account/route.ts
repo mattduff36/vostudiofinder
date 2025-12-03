@@ -124,7 +124,7 @@ export async function DELETE(request: NextRequest) {
       });
     });
     
-    // TODO: Send account deletion confirmation email
+    // FUTURE: Send account deletion confirmation email
     // await emailService.sendAccountDeletionConfirmation({
     //   email: user.email,
     //   display_name: session.user.display_name,

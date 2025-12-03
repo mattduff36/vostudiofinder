@@ -26,7 +26,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     // Send notification email to studio owner
-    // TODO: Implement email notification
+    // FUTURE: Implement email notification
 
     return NextResponse.json({
       success: true,
