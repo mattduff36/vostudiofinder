@@ -75,10 +75,15 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
         Selected Studio
       </div>
 
-      {/* Full Studio Card - matching StudiosList design */}
+      {/* Full Studio Card - matching StudiosList design with red border to indicate selection */}
       <div
         onClick={handleCardClick}
-        className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'}`}
+        className={`bg-white border rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex flex-col animate-bounce-once ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'}`}
+        style={{
+          outline: '4px solid #EF4444',
+          outlineOffset: '4px',
+          borderColor: '#FECACA' // Light red border
+        }}
       >
         {/* Studio Image */}
         <div className="aspect-[25/12] bg-gray-200 rounded-t-lg overflow-hidden relative">
