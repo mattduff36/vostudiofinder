@@ -9,7 +9,7 @@ interface PaymentMethodSelectorProps {
   isLoading?: boolean;
 }
 
-export function PaymentMethodSelector({}: PaymentMethodSelectorProps) {
+export function PaymentMethodSelector() {
   // Stripe only - no selection needed anymore
   return (
     <div className="space-y-4">

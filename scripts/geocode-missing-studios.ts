@@ -51,8 +51,7 @@ async function geocodeMissingStudios() {
   const studiosWithoutCoords = await prisma.studios.findMany({
     where: {
       address: {
-        not: null,
-        not: '',
+        not: { in: [null, ''] },
       },
       OR: [
         { latitude: null },

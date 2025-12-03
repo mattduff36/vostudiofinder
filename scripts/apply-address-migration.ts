@@ -87,6 +87,7 @@ async function applyAddressMigration() {
       }
     } catch (error: any) {
       console.log('⚠️  Could not verify migration (columns may not exist yet)');
+      console.error('Migration verification error:', error.message);
       console.log('   This is normal if the migration just ran. Please verify manually.');
     }
 
