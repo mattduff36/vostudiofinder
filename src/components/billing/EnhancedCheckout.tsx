@@ -23,6 +23,7 @@ export function EnhancedCheckout({
   planName,
   planPrice,
 }: EnhancedCheckoutProps) {
+  const router = useRouter();
   const { data: session } = useSession();
   const [selectedMethod] = useState<PaymentMethod>('stripe'); // Stripe only now
   const [isLoading, setIsLoading] = useState(false);
