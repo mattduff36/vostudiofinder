@@ -254,7 +254,7 @@ export function GoogleMap({
           maxZoom: actualMaxZoom - 1,
           radius: adjustedGridSize // SuperCluster uses radius instead of gridSize
         }),
-        onClusterClick: (event, cluster, map) => {
+        onClusterClick: (_event, cluster, map) => {
           logger.log('🖱️ Cluster clicked - zooming to cluster area');
           
           // Mark as user interaction to prevent auto-centering
