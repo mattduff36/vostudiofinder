@@ -95,63 +95,60 @@ export function StudiosPage() {
     return 'Studios Available Worldwide';
   }, [searchParams]);
 
-  // Function to handle studio marker click - opens modal and adds outline
-  const handleStudioMarkerClick = useCallback((studio: any, event: any) => {
-    // Close any existing modal
-    setModalStudio(null);
-    
-    // Clear previous selection - directly clear any existing outlines
-    if (selectedStudioId) {
-      const previousElement = document.getElementById(`studio-${selectedStudioId}`);
-      if (previousElement) {
-        previousElement.style.outline = '';
-        previousElement.style.outlineOffset = '';
-        previousElement.classList.remove('animate-bounce-once');
-      }
-      
-      // Add previously selected studio to viewing history (if it's different from the new one)
-      if (selectedStudioId !== studio.id) {
-        setViewedStudioIds(prev => {
-          // Remove the studio if it's already in the history, then add it to the front
-          const filtered = prev.filter(id => id !== selectedStudioId);
-          return [selectedStudioId, ...filtered];
-        });
-      }
-    }
-    
-    // Set new selected studio
-    setSelectedStudioId(studio.id);
-    
-    // Note: We don't add red outline anymore since the card will be moved to filter area
-    
-    // Get marker position from the map click event
-    // The event should contain the marker's screen position
-    const markerPosition = {
-      x: event?.clientX || window.innerWidth / 2,
-      y: event?.clientY || window.innerHeight / 2,
-    };
-    
-    // Open modal with studio info
-    setModalStudio({
-      id: studio.id,
-      name: studio.name,
-      users: studio.users,
-      studio_images: studio.studio_images,
-      position: markerPosition,
-    });
-  }, [selectedStudioId]); // Include selectedStudioId in dependencies
-
   // Function to close the modal
   const handleCloseModal = useCallback(() => {
     setModalStudio(null);
     // Keep the outline on the card when modal closes
   }, []);
 
+  // Stable marker click handler (doesn't depend on selectedStudioId)
+  const handleMarkerClick = useCallback((studioData: any, event: any) => {
+    // Close any existing modal
+    setModalStudio(null);
+    
+    // Clear previous selection outline
+    setSelectedStudioId(prev => {
+      if (prev) {
+        const previousElement = document.getElementById(`studio-${prev}`);
+        if (previousElement) {
+          previousElement.style.outline = '';
+          previousElement.style.outlineOffset = '';
+          previousElement.classList.remove('animate-bounce-once');
+        }
+        
+        // Add to viewing history
+        if (prev !== studioData.id) {
+          setViewedStudioIds(prevIds => {
+            const filtered = prevIds.filter(id => id !== prev);
+            return [prev, ...filtered];
+          });
+        }
+      }
+      return studioData.id;
+    });
+    
+    // Open modal
+    const markerPosition = {
+      x: event?.clientX || window.innerWidth / 2,
+      y: event?.clientY || window.innerHeight / 2,
+    };
+    
+    setModalStudio({
+      id: studioData.id,
+      name: studioData.name,
+      users: studioData.users,
+      studio_images: studioData.studio_images,
+      position: markerPosition,
+    });
+  }, []); // No dependencies - uses setters with callbacks
+
   // Memoize markers array to prevent unnecessary re-renders
   const memoizedMarkers = useMemo(() => {
     if (!searchResults) return [];
     
     const allStudios = searchResults.mapMarkers || searchResults.studios;
+    console.log('📍 Building markers from:', allStudios.length, 'studios');
+    
     return allStudios
       .filter(studio => studio.latitude && studio.longitude)
       .map(studio => ({
@@ -164,7 +161,7 @@ export function StudiosPage() {
           const studioData: any = studio;
           // mapMarkers use 'users', studios use 'owner'
           const userData = studioData.users || studioData.owner;
-          handleStudioMarkerClick({
+          handleMarkerClick({
             id: studio.id,
             name: studio.name,
             users: userData?.username ? { 
@@ -191,7 +188,7 @@ export function StudiosPage() {
           } : {};
         })()),
       }));
-  }, [searchResults, handleStudioMarkerClick]);
+  }, [searchResults, handleMarkerClick]);
 
   // Reorder studios based on viewing history, and exclude currently selected studio
   const displayStudios = useMemo(() => {
@@ -676,7 +673,44 @@ export function StudiosPage() {
 
               {/* Selected Studio Card - Shows when a map marker is clicked */}
               {selectedStudioId && searchResults && (() => {
-                const selectedStudio = searchResults.studios.find(s => s.id === selectedStudioId);
+                // First try to find in paginated studios (has full data)
+                let selectedStudio = searchResults.studios.find(s => s.id === selectedStudioId);
+                
+                // If not in paginated studios, look in mapMarkers (all studios, limited fields)
+                if (!selectedStudio && searchResults.mapMarkers) {
+                  const markerData = searchResults.mapMarkers.find(m => m.id === selectedStudioId);
+                  if (markerData) {
+                    // Convert mapMarker data to studio format (with limited fields)
+                    selectedStudio = {
+                      id: markerData.id,
+                      name: markerData.name,
+                      description: '', // Not available in mapMarkers
+                      studio_studio_types: markerData.studio_studio_types || [],
+                      address: '', // Not available in mapMarkers
+                      city: undefined,
+                      is_verified: markerData.is_verified,
+                      latitude: markerData.latitude,
+                      longitude: markerData.longitude,
+                      owner: markerData.users ? {
+                        id: '', // Not available in mapMarkers
+                        display_name: '', // Not available in mapMarkers
+                        username: markerData.users.username || '',
+                        avatar_url: markerData.users.avatar_url,
+                      } : {
+                        id: '',
+                        display_name: '',
+                        username: '',
+                      },
+                      studio_services: [], // Not available in mapMarkers
+                      studio_images: markerData.studio_images || [],
+                      _count: { reviews: 0 }, // Not available in mapMarkers
+                      is_premium: false,
+                      website_url: undefined,
+                      phone: undefined,
+                    };
+                  }
+                }
+                
                 if (!selectedStudio) return null;
                 
                 return (
