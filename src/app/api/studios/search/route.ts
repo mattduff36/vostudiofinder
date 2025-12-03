@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { studioSearchSchema } from '@/lib/validations/studio';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
@@ -161,16 +162,16 @@ export async function GET(request: NextRequest) {
         // First check if we already have coordinates from URL parameters
         if (validatedParams.lat && validatedParams.lng) {
           searchCoordinates = { lat: validatedParams.lat, lng: validatedParams.lng };
-          console.log(`Using existing coordinates for "${validatedParams.location}":`, searchCoordinates);
+          logger.log(`Using existing coordinates for "${validatedParams.location}":`, searchCoordinates);
         } else {
           // Use Google Maps API to geocode the search location
           try {
             const geocodeResult = await geocodeAddress(validatedParams.location);
             if (geocodeResult) {
               searchCoordinates = { lat: geocodeResult.lat, lng: geocodeResult.lng };
-              console.log(`Geocoded "${validatedParams.location}" to:`, searchCoordinates);
+              logger.log(`Geocoded "${validatedParams.location}" to:`, searchCoordinates);
             } else {
-              console.warn(`Failed to geocode location: ${validatedParams.location}`);
+              logger.warn(`Failed to geocode location: ${validatedParams.location}`);
               // Fall back to text-based address search
               (where.AND as Prisma.studiosWhereInput[]).push({
                 address: { contains: validatedParams.location, mode: 'insensitive' },
@@ -379,7 +380,7 @@ export async function GET(request: NextRequest) {
         })
         .filter((studio): studio is NonNullable<typeof studio> => studio !== null);
 
-      console.log(`Found ${allStudios.length} studios within ${validatedParams.radius} miles of ${validatedParams.location}`);
+      logger.log(`Found ${allStudios.length} studios within ${validatedParams.radius} miles of ${validatedParams.location}`);
     } else {
       allStudios = fetchedStudios;
     }

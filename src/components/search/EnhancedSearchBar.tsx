@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/logger';
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -36,7 +37,7 @@ export function EnhancedSearchBar({
   showRadius = true,
   onSearch
 }: EnhancedSearchBarProps) {
-  console.log('🚀 EnhancedSearchBar component rendered');
+  logger.log('🚀 EnhancedSearchBar component rendered');
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -65,9 +66,9 @@ export function EnhancedSearchBar({
       try {
         const location = await getCurrentLocation();
         setUserLocation(location);
-        console.log('🌍 User location obtained:', location);
+        logger.log('🌍 User location obtained:', location);
       } catch (error) {
-        console.warn('Could not get user location for distance sorting:', error);
+        logger.warn('Could not get user location for distance sorting:', error);
       }
     };
 
@@ -120,21 +121,21 @@ export function EnhancedSearchBar({
     }
 
     try {
-      console.log('🔎 fetchSuggestions called with:', searchQuery);
+      logger.log('🔎 fetchSuggestions called with:', searchQuery);
       const type = detectSearchType(searchQuery);
-      console.log('🎯 Detected search type:', type);
+      logger.log('🎯 Detected search type:', type);
       
       let allSuggestions: SearchSuggestion[] = [];
 
       // Search for users only if it looks like a username search
       if (type === 'user' || searchQuery.length >= 3) {
         try {
-          console.log('🔍 Searching for users...');
+          logger.log('🔍 Searching for users...');
           const userSuggestions = await fetchUserSuggestions(searchQuery);
-          console.log('👥 Found user suggestions:', userSuggestions.length);
+          logger.log('👥 Found user suggestions:', userSuggestions.length);
           allSuggestions = [...allSuggestions, ...userSuggestions];
         } catch (error) {
-          console.warn('User search error:', error);
+          logger.warn('User search error:', error);
         }
       }
 
@@ -142,12 +143,12 @@ export function EnhancedSearchBar({
       if (window.google?.maps?.places) {
         setIsLoadingPlaces(true);
         try {
-          console.log('🗺️ Searching Google Places...');
+          logger.log('🗺️ Searching Google Places...');
           const placeSuggestions = await fetchGooglePlaces(searchQuery);
-          console.log('📍 Found place suggestions:', placeSuggestions.length);
+          logger.log('📍 Found place suggestions:', placeSuggestions.length);
           allSuggestions = [...allSuggestions, ...placeSuggestions];
         } catch (error) {
-          console.warn('Google Places error:', error);
+          logger.warn('Google Places error:', error);
         } finally {
           setIsLoadingPlaces(false);
         }
@@ -158,8 +159,8 @@ export function EnhancedSearchBar({
         index === self.findIndex(s => s.text.toLowerCase() === suggestion.text.toLowerCase())
       );
 
-      console.log('📋 All suggestions before sorting:', uniqueSuggestions);
-      console.log('🌍 User location for distance calculation:', userLocation);
+      logger.log('📋 All suggestions before sorting:', uniqueSuggestions);
+      logger.log('🌍 User location for distance calculation:', userLocation);
 
       // Sort by relevance and distance
       uniqueSuggestions.sort((a, b) => {
@@ -189,14 +190,14 @@ export function EnhancedSearchBar({
       });
 
       const finalSuggestions = uniqueSuggestions.slice(0, 8);
-      console.log('✅ Final suggestions to display:', finalSuggestions);
-      console.log('🔓 Setting isOpen to:', finalSuggestions.length > 0);
+      logger.log('✅ Final suggestions to display:', finalSuggestions);
+      logger.log('🔓 Setting isOpen to:', finalSuggestions.length > 0);
       
       setSuggestions(finalSuggestions);
       setIsOpen(finalSuggestions.length > 0);
       setSelectedIndex(-1);
     } catch (error) {
-      console.error('Failed to fetch suggestions:', error);
+      logger.error('Failed to fetch suggestions:', error);
     }
   };
 
@@ -269,7 +270,7 @@ export function EnhancedSearchBar({
                         let displayText = '';
                         let locationText = '';
                         
-                        console.log('🏢 Place details:', { 
+                        logger.log('🏢 Place details:', { 
                           name: place.name, 
                           formatted_address: place.formatted_address,
                           types: place.types 
@@ -280,7 +281,7 @@ export function EnhancedSearchBar({
                         // Always use the full formatted address as the display text
                         displayText = fullAddress;
                         locationText = ''; // Don't use location text since we're showing everything in main text
-                        console.log('📍 Location suggestion:', displayText);
+                        logger.log('📍 Location suggestion:', displayText);
 
                         detailResolve({
                           id: `place-${place.place_id}`,
@@ -316,7 +317,7 @@ export function EnhancedSearchBar({
                 const validResults = detailResults.filter((result): result is SearchSuggestion => result !== null);
                 resolve(validResults);
               } catch (error) {
-                console.warn('Error getting place details:', error);
+                logger.warn('Error getting place details:', error);
                 resolve([]);
               }
             } else {
@@ -337,7 +338,7 @@ export function EnhancedSearchBar({
       
       return uniqueResults.slice(0, 5); // Limit to 5 total suggestions
     } catch (error) {
-      console.warn('Error fetching Google Places suggestions:', error);
+      logger.warn('Error fetching Google Places suggestions:', error);
       return [];
     }
   };
@@ -377,7 +378,7 @@ export function EnhancedSearchBar({
         };
       });
     } catch (error) {
-      console.error('Error fetching user suggestions:', error);
+      logger.error('Error fetching user suggestions:', error);
       return [];
     }
   };
@@ -483,7 +484,7 @@ export function EnhancedSearchBar({
           params.set('lng', geocodedCoords.lng.toString());
         }
       } catch (error) {
-        console.warn('Geocoding failed:', error);
+        logger.warn('Geocoding failed:', error);
       }
     }
 
@@ -492,7 +493,7 @@ export function EnhancedSearchBar({
       onSearch(locationName, coordinates, showRadius ? radius : undefined);
     }
 
-    console.log('Location search:', { locationName, coordinates, params: params.toString() });
+    logger.log('Location search:', { locationName, coordinates, params: params.toString() });
 
     // Navigate to studios page
     router.push(`/studios?${params.toString()}`);
@@ -554,7 +555,7 @@ export function EnhancedSearchBar({
                 value={query}
                 onChange={(e) => {
                   const newValue = e.target.value;
-                  console.log('⌨️ Input onChange triggered with:', newValue);
+                  logger.log('⌨️ Input onChange triggered with:', newValue);
                   setQuery(newValue);
                   
                   // Clear selected location if user is typing something new

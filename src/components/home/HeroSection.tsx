@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,7 +10,7 @@ import { EnhancedSearchBar } from '../search/EnhancedSearchBar';
 import Image from 'next/image';
 
 export function HeroSection() {
-  console.log('🏠 HeroSection component rendered');
+  logger.log('🏠 HeroSection component rendered');
   const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -19,7 +20,7 @@ export function HeroSection() {
 
 
   const handleSearch = (location: string, coordinates?: { lat: number; lng: number }, radius?: number) => {
-    console.log('Location search initiated:', { location, coordinates, radius });
+    logger.log('Location search initiated:', { location, coordinates, radius });
     
     // Build URL parameters for studios page
     const params = new URLSearchParams();

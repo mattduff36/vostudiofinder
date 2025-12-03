@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -57,7 +58,7 @@ export async function DELETE(request: NextRequest) {
     }
     
     // Log the deletion request
-    console.log(`Account deletion requested for user ${user.email}`, {
+    logger.log(`Account deletion requested for user ${user.email}`, {
       user_id: user.id,
       reason: reason || 'No reason provided',
       timestamp: new Date().toISOString(),

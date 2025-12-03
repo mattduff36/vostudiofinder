@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { constructWebhookEvent, handleSubscriptionSuccess, handleSubscriptionCancellation, stripe } from '@/lib/stripe';
 import { db } from '@/lib/db';
 import { headers } from 'next/headers';
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
         const session = event.data.object;
         
         if (session.mode === 'subscription') {
-          console.log('Checkout session completed for subscription:', session.id);
+          logger.log('Checkout session completed for subscription:', session.id);
           
           // The subscription will be handled in the subscription.created event
           // Here we can update any checkout-specific data if needed
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object;
-        console.log('Payment succeeded for invoice:', invoice.id);
+        logger.log('Payment succeeded for invoice:', invoice.id);
         
         // Get customer details
         const customer = await stripe.customers.retrieve(invoice.customer as string);
@@ -155,7 +156,7 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object;
-        console.log('Payment failed for invoice:', invoice.id);
+        logger.log('Payment failed for invoice:', invoice.id);
         
         // Get customer details
         const customer = await stripe.customers.retrieve(invoice.customer as string);
@@ -181,7 +182,7 @@ export async function POST(request: NextRequest) {
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        logger.log(`Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });

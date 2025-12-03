@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect, useMemo } from 'react';
 import { 
@@ -102,11 +103,11 @@ export function UserDashboard({ data }: UserDashboardProps) {
           if (result.data.studio) {
             const visible = result.data.studio.is_profile_visible !== false;
             setIsProfileVisible(visible);
-            console.log('[Dashboard] Profile visibility loaded:', visible);
+            logger.log('[Dashboard] Profile visibility loaded:', visible);
           }
         }
       } catch (err) {
-        console.error('Failed to fetch profile:', err);
+        logger.error('Failed to fetch profile:', err);
       } finally {
         setLoading(false);
       }
@@ -152,7 +153,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
       (profileData.studio?.images?.length || 0) >= 1
     );
 
-    console.log('[Dashboard] Required fields complete:', requiredFieldsComplete);
+    logger.log('[Dashboard] Required fields complete:', requiredFieldsComplete);
     return requiredFieldsComplete;
   }, [profileData]);
 
@@ -172,16 +173,16 @@ export function UserDashboard({ data }: UserDashboardProps) {
 
       if (response.ok) {
         setIsProfileVisible(visible);
-        console.log('✅ Profile visibility updated successfully to:', visible);
+        logger.log('✅ Profile visibility updated successfully to:', visible);
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Failed to update profile visibility:', errorData);
+        logger.error('Failed to update profile visibility:', errorData);
         alert('Failed to update profile visibility. Please try again.');
         // Revert on error
         setIsProfileVisible(!visible);
       }
     } catch (err) {
-      console.error('Error updating profile visibility:', err);
+      logger.error('Error updating profile visibility:', err);
       alert('Error updating profile visibility. Please try again.');
       // Revert on error
       setIsProfileVisible(!visible);

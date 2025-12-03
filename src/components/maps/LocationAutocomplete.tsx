@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/logger';
 
 import { useEffect, useRef, useState } from 'react';
 import { MapPin, Search } from 'lucide-react';
@@ -36,29 +37,29 @@ export function LocationAutocomplete({
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     
-    console.log('🗝️ Google Maps API Key check:', apiKey ? 'CONFIGURED' : 'MISSING');
+    logger.log('🗝️ Google Maps API Key check:', apiKey ? 'CONFIGURED' : 'MISSING');
     
     if (!apiKey) {
-      console.warn('❌ Google Maps API key not configured - autocomplete will not work');
+      logger.warn('❌ Google Maps API key not configured - autocomplete will not work');
       return;
     }
 
     if (window.google && window.google.maps && window.google.maps.places) {
-      console.log('✅ Google Maps already loaded');
+      logger.log('✅ Google Maps already loaded');
       setIsLoaded(true);
       return;
     }
 
-    console.log('📡 Loading Google Maps script...');
+    logger.log('📡 Loading Google Maps script...');
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
     script.onload = () => {
-      console.log('✅ Google Maps script loaded successfully');
+      logger.log('✅ Google Maps script loaded successfully');
       setIsLoaded(true);
     };
     script.onerror = () => {
-      console.error('❌ Failed to load Google Maps script');
+      logger.error('❌ Failed to load Google Maps script');
     };
     document.head.appendChild(script);
 
@@ -72,11 +73,11 @@ export function LocationAutocomplete({
   // Initialize autocomplete
   useEffect(() => {
     if (!isLoaded || !inputRef.current || autocompleteRef.current) {
-      console.log('🚫 Autocomplete init skipped:', { isLoaded, hasInput: !!inputRef.current, hasAutocomplete: !!autocompleteRef.current });
+      logger.log('🚫 Autocomplete init skipped:', { isLoaded, hasInput: !!inputRef.current, hasAutocomplete: !!autocompleteRef.current });
       return;
     }
 
-    console.log('🎯 Initializing Google Places Autocomplete...');
+    logger.log('🎯 Initializing Google Places Autocomplete...');
     
     const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
       types: ['(cities)'], // Restrict to cities, regions, and countries
@@ -84,14 +85,14 @@ export function LocationAutocomplete({
     });
 
     autocompleteRef.current = autocomplete;
-    console.log('✅ Autocomplete initialized successfully');
+    logger.log('✅ Autocomplete initialized successfully');
 
     // Listen for place selection
     autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace();
       
       if (place && place.formatted_address) {
-        console.log('🎯 Autocomplete place selected:', place.formatted_address, 'with geometry:', !!place.geometry);
+        logger.log('🎯 Autocomplete place selected:', place.formatted_address, 'with geometry:', !!place.geometry);
         setIsAutocompleteSelection(true);
         onChangeRef.current(place.formatted_address, place);
         
@@ -114,11 +115,11 @@ export function LocationAutocomplete({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Skip manual typing changes if autocomplete selection just happened
     if (isAutocompleteSelection) {
-      console.log('🚫 Skipping manual input change during autocomplete selection');
+      logger.log('🚫 Skipping manual input change during autocomplete selection');
       return;
     }
     
-    console.log('✍️ Manual typing detected:', e.target.value);
+    logger.log('✍️ Manual typing detected:', e.target.value);
     onChange(e.target.value);
   };
 

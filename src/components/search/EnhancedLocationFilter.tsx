@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/logger';
 
 import React, { useState, useRef } from 'react';
 import { Search, MapPin } from 'lucide-react';
@@ -53,9 +54,9 @@ export function EnhancedLocationFilter({
       try {
         const location = await getCurrentLocation();
         setUserLocation(location);
-        console.log('🌍 User location obtained for filters:', location);
+        logger.log('🌍 User location obtained for filters:', location);
       } catch (error) {
-        console.warn('Could not get user location for distance sorting:', error);
+        logger.warn('Could not get user location for distance sorting:', error);
       }
     };
 
@@ -112,21 +113,21 @@ export function EnhancedLocationFilter({
     }
 
     try {
-      console.log('🔎 fetchSuggestions called with:', searchQuery);
+      logger.log('🔎 fetchSuggestions called with:', searchQuery);
       const type = detectSearchType(searchQuery);
-      console.log('🎯 Detected search type:', type);
+      logger.log('🎯 Detected search type:', type);
       
       let allSuggestions: SearchSuggestion[] = [];
 
       // Search for users only if it looks like a username search
       if (type === 'user' || searchQuery.length >= 3) {
         try {
-          console.log('🔍 Searching for users...');
+          logger.log('🔍 Searching for users...');
           const userSuggestions = await fetchUserSuggestions(searchQuery);
-          console.log('👥 Found user suggestions:', userSuggestions.length);
+          logger.log('👥 Found user suggestions:', userSuggestions.length);
           allSuggestions = [...allSuggestions, ...userSuggestions];
         } catch (error) {
-          console.warn('User search error:', error);
+          logger.warn('User search error:', error);
         }
       }
 
@@ -134,12 +135,12 @@ export function EnhancedLocationFilter({
       if (window.google?.maps?.places) {
         setIsLoadingPlaces(true);
         try {
-          console.log('🗺️ Searching Google Places...');
+          logger.log('🗺️ Searching Google Places...');
           const placeSuggestions = await fetchGooglePlaces(searchQuery);
-          console.log('📍 Found place suggestions:', placeSuggestions.length);
+          logger.log('📍 Found place suggestions:', placeSuggestions.length);
           allSuggestions = [...allSuggestions, ...placeSuggestions];
         } catch (error) {
-          console.warn('Google Places error:', error);
+          logger.warn('Google Places error:', error);
         } finally {
           setIsLoadingPlaces(false);
         }
@@ -148,7 +149,7 @@ export function EnhancedLocationFilter({
       // If no Google Places suggestions and it looks like a location search, add a fallback
       const hasLocationSuggestions = allSuggestions.some(s => s.type === 'location');
       if (!hasLocationSuggestions && type === 'location' && searchQuery.length >= 3) {
-        console.log('🔄 Adding fallback location suggestion for:', searchQuery);
+        logger.log('🔄 Adding fallback location suggestion for:', searchQuery);
         allSuggestions.push({
           id: `fallback-${searchQuery}`,
           text: searchQuery,
@@ -162,8 +163,8 @@ export function EnhancedLocationFilter({
         index === self.findIndex(s => s.text.toLowerCase() === suggestion.text.toLowerCase())
       );
 
-      console.log('📋 All suggestions before sorting:', uniqueSuggestions);
-      console.log('🌍 User location for distance calculation:', userLocation);
+      logger.log('📋 All suggestions before sorting:', uniqueSuggestions);
+      logger.log('🌍 User location for distance calculation:', userLocation);
 
       // Sort by relevance and distance
       uniqueSuggestions.sort((a, b) => {
@@ -193,25 +194,25 @@ export function EnhancedLocationFilter({
       });
 
       const finalSuggestions = uniqueSuggestions.slice(0, 8);
-      console.log('✅ Final suggestions to display:', finalSuggestions);
-      console.log('🔓 Setting isOpen to:', finalSuggestions.length > 0);
+      logger.log('✅ Final suggestions to display:', finalSuggestions);
+      logger.log('🔓 Setting isOpen to:', finalSuggestions.length > 0);
       
       setSuggestions(finalSuggestions);
       setIsOpen(finalSuggestions.length > 0);
       setSelectedIndex(-1);
     } catch (error) {
-      console.error('Failed to fetch suggestions:', error);
+      logger.error('Failed to fetch suggestions:', error);
     }
   };
 
   // Fetch Google Places suggestions with coordinates for distance calculation
   const fetchGooglePlaces = async (searchQuery: string): Promise<SearchSuggestion[]> => {
     if (!window.google?.maps?.places) {
-      console.warn('🚫 Google Maps Places API not available');
+      logger.warn('🚫 Google Maps Places API not available');
       return [];
     }
     
-    console.log('🗺️ Google Places API available, fetching suggestions for:', searchQuery);
+    logger.log('🗺️ Google Places API available, fetching suggestions for:', searchQuery);
 
     const places = window.google.maps.places as any;
     const autocompleteService = new places.AutocompleteService();
@@ -276,7 +277,7 @@ export function EnhancedLocationFilter({
                         let displayText = '';
                         let locationText = '';
                         
-                        console.log('🏢 Place details:', { 
+                        logger.log('🏢 Place details:', { 
                           name: place.name, 
                           formatted_address: place.formatted_address,
                           types: place.types 
@@ -286,11 +287,11 @@ export function EnhancedLocationFilter({
                           // It's a business/establishment - show "Business Name - Address"
                           displayText = place.name;
                           locationText = place.formatted_address;
-                          console.log('✅ Business/establishment detected:', displayText, '-', locationText);
+                          logger.log('✅ Business/establishment detected:', displayText, '-', locationText);
                         } else {
                           // It's just a location - show address only
                           displayText = place.formatted_address || place.name || prediction.description;
-                          console.log('📍 General location detected:', displayText);
+                          logger.log('📍 General location detected:', displayText);
                         }
 
                         detailResolve({
@@ -326,7 +327,7 @@ export function EnhancedLocationFilter({
                 const validResults = detailResults.filter((result): result is SearchSuggestion => result !== null);
                 resolve(validResults);
               } catch (error) {
-                console.warn('Error getting place details:', error);
+                logger.warn('Error getting place details:', error);
                 resolve([]);
               }
             } else {
@@ -347,7 +348,7 @@ export function EnhancedLocationFilter({
       
       return uniqueResults.slice(0, 5); // Limit to 5 total suggestions
     } catch (error) {
-      console.warn('Error fetching Google Places suggestions:', error);
+      logger.warn('Error fetching Google Places suggestions:', error);
       return [];
     }
   };
@@ -387,7 +388,7 @@ export function EnhancedLocationFilter({
         };
       });
     } catch (error) {
-      console.error('Error fetching user suggestions:', error);
+      logger.error('Error fetching user suggestions:', error);
       return [];
     }
   };
@@ -445,7 +446,7 @@ export function EnhancedLocationFilter({
 
   // Handle suggestion selection
   const handleSelect = (suggestion: SearchSuggestion) => {
-    console.log('🎯 Suggestion selected:', suggestion);
+    logger.log('🎯 Suggestion selected:', suggestion);
     
     if (suggestion.type === 'location') {
       setQuery(suggestion.text);
@@ -461,7 +462,7 @@ export function EnhancedLocationFilter({
         place_id: suggestion.metadata?.place_id
       } : undefined;
       
-      console.log('📍 Location selected, calling onChange with:', suggestion.text, placeDetails);
+      logger.log('📍 Location selected, calling onChange with:', suggestion.text, placeDetails);
       onChange(suggestion.text, placeDetails);
     } else if (suggestion.type === 'user') {
       // For users, use their actual location address from metadata
@@ -478,7 +479,7 @@ export function EnhancedLocationFilter({
         formatted_address: actualLocation
       } : undefined;
       
-      console.log('👤 User selected, calling onChange with:', actualLocation, placeDetails);
+      logger.log('👤 User selected, calling onChange with:', actualLocation, placeDetails);
       onChange(actualLocation, placeDetails);
     }
     
@@ -494,14 +495,14 @@ export function EnhancedLocationFilter({
       const clickedInsideInput = inputRef.current && inputRef.current.contains(target);
       const clickedInsideDropdown = dropdownRef.current && dropdownRef.current.contains(target);
       
-      console.log('🖱️ Click outside check:', {
+      logger.log('🖱️ Click outside check:', {
         clickedInsideInput,
         clickedInsideDropdown,
         willClose: !clickedInsideInput && !clickedInsideDropdown
       });
       
       if (!clickedInsideInput && !clickedInsideDropdown) {
-        console.log('🚪 Closing dropdown due to outside click');
+        logger.log('🚪 Closing dropdown due to outside click');
         setIsOpen(false);
         setSelectedIndex(-1);
       }
@@ -570,13 +571,13 @@ export function EnhancedLocationFilter({
                   : 'hover:bg-gray-50 text-gray-900'
               }`}
               onMouseDown={(e) => {
-                console.log('🖱️ Suggestion mouse down:', suggestion.text);
+                logger.log('🖱️ Suggestion mouse down:', suggestion.text);
                 e.preventDefault();
                 e.stopPropagation();
                 handleSelect(suggestion);
               }}
               onClick={(e) => {
-                console.log('🖱️ Suggestion clicked:', suggestion.text);
+                logger.log('🖱️ Suggestion clicked:', suggestion.text);
                 e.preventDefault();
                 e.stopPropagation();
               }}

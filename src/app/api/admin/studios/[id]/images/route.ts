@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -16,10 +17,10 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log('🚀 Image upload API called');
+  logger.log('🚀 Image upload API called');
   
   try {
-    console.log('🔐 Checking authentication...');
+    logger.log('🔐 Checking authentication...');
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -27,7 +28,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('✅ Session found:', { userId: session.user.id, role: session.user.role });
+    logger.log('✅ Session found:', { userId: session.user.id, role: session.user.role });
 
     // Check if user is admin
     if (session.user.role !== Role.ADMIN) {
@@ -35,11 +36,11 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
     }
 
-    console.log('✅ Admin verified');
+    logger.log('✅ Admin verified');
 
     // Check if Cloudinary is configured
     const cloudinaryConfigured = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
-    console.log('☁️ Cloudinary configured:', cloudinaryConfigured);
+    logger.log('☁️ Cloudinary configured:', cloudinaryConfigured);
     
     if (!cloudinaryConfigured) {
       console.error('❌ Cloudinary environment variables not configured');
@@ -49,15 +50,15 @@ export async function POST(
       }, { status: 500 });
     }
 
-    console.log('📦 Awaiting params...');
+    logger.log('📦 Awaiting params...');
     const studioId = (await params).id;
-    console.log('✅ Studio ID:', studioId);
-    console.log('📝 Parsing form data...');
+    logger.log('✅ Studio ID:', studioId);
+    logger.log('📝 Parsing form data...');
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const alt_text = formData.get('alt_text') as string;
 
-    console.log('📁 File received:', { 
+    logger.log('📁 File received:', { 
       hasFile: !!file, 
       fileName: file?.name, 
       fileSize: file?.size,
@@ -69,7 +70,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'No file uploaded' }, { status: 400 });
     }
 
-    console.log('🔍 Looking up studio...');
+    logger.log('🔍 Looking up studio...');
     const studio = await db.studios.findUnique({
       where: { id: studioId },
       include: { studio_images: true },
@@ -80,20 +81,20 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Studio not found' }, { status: 404 });
     }
 
-    console.log('✅ Studio found:', { id: studio.id, imageCount: studio.studio_images.length });
+    logger.log('✅ Studio found:', { id: studio.id, imageCount: studio.studio_images.length });
 
     if (studio.studio_images.length >= 10) {
       console.error('❌ Too many images:', studio.studio_images.length);
       return NextResponse.json({ success: false, error: 'Maximum 10 images allowed per studio' }, { status: 400 });
     }
 
-    console.log('🔄 Converting file to buffer...');
+    logger.log('🔄 Converting file to buffer...');
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    console.log('✅ Buffer created:', buffer.length, 'bytes');
+    logger.log('✅ Buffer created:', buffer.length, 'bytes');
 
-    console.log('☁️ Uploading to Cloudinary via direct API...');
-    console.log('☁️ Cloudinary config being used:', {
+    logger.log('☁️ Uploading to Cloudinary via direct API...');
+    logger.log('☁️ Cloudinary config being used:', {
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
       api_key_length: process.env.CLOUDINARY_API_KEY?.length,
       api_secret_length: process.env.CLOUDINARY_API_SECRET?.length,
@@ -117,7 +118,7 @@ export async function POST(
     cloudinaryFormData.append('api_key', process.env.CLOUDINARY_API_KEY!);
     cloudinaryFormData.append('signature', signature);
     
-    console.log('📤 Posting to Cloudinary API...');
+    logger.log('📤 Posting to Cloudinary API...');
     const cloudinaryResponse = await fetch(
       `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
       {
@@ -126,7 +127,7 @@ export async function POST(
       }
     );
     
-    console.log('📥 Cloudinary response status:', cloudinaryResponse.status);
+    logger.log('📥 Cloudinary response status:', cloudinaryResponse.status);
     
     if (!cloudinaryResponse.ok) {
       const errorText = await cloudinaryResponse.text();
@@ -135,7 +136,7 @@ export async function POST(
     }
     
     const cloudinaryResult = await cloudinaryResponse.json();
-    console.log('✅ Cloudinary upload success:', { 
+    logger.log('✅ Cloudinary upload success:', { 
       secure_url: cloudinaryResult.secure_url,
       public_id: cloudinaryResult.public_id 
     });

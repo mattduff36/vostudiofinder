@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { StudioMarkerTooltip } from './StudioMarkerTooltip';
 import { MapLocation } from '@/lib/maps';
 import { colors } from '@/components/home/HomePage';
+import { logger } from '@/lib/logger';
 
 interface GoogleMapProps {
   center: MapLocation;
@@ -54,7 +55,7 @@ export function GoogleMap({
   
   // Debug logging
   useEffect(() => {
-    console.log('🗺️ GoogleMap props:', {
+    logger.log('🗺️ GoogleMap props:', {
       searchCenter,
       searchRadius,
       hasSearchCenter: !!searchCenter,
@@ -65,7 +66,7 @@ export function GoogleMap({
   // Reset user interaction state when new search parameters are provided
   useEffect(() => {
     if (searchCenter && searchRadius) {
-      console.log('🔄 New search parameters detected - resetting user interaction state');
+      logger.log('🔄 New search parameters detected - resetting user interaction state');
       hasUserInteractedRef.current = false;
       setMarkersReady(false); // Reset markers ready state for new search
     }
@@ -89,17 +90,17 @@ export function GoogleMap({
   const createCircleAndMarker = useCallback((mapInstance: any, center: MapLocation, radius: number) => {
     // Clear existing circle and center marker
     if (circleRef.current) {
-      console.log('🗑️ Clearing existing circle');
+      logger.log('🗑️ Clearing existing circle');
       circleRef.current.setMap(null);
       circleRef.current = null;
     }
     if (centerMarkerRef.current) {
-      console.log('🗑️ Clearing existing center marker');
+      logger.log('🗑️ Clearing existing center marker');
       centerMarkerRef.current.setMap(null);
       centerMarkerRef.current = null;
     }
 
-    console.log('✅ Creating circle and center marker:', { center, radius });
+    logger.log('✅ Creating circle and center marker:', { center, radius });
     
     // Add the search radius circle
     const googleMaps = window.google.maps as any;
@@ -125,19 +126,19 @@ export function GoogleMap({
     circleRef.current = circle;
     centerMarkerRef.current = centerMarker;
     
-    console.log('🎯 Circle and marker created successfully!');
+    logger.log('🎯 Circle and marker created successfully!');
   }, []);
 
   // Helper function to create studio markers
   const createStudioMarkers = useCallback((mapInstance: any, markerData: any[]) => {
-    console.log('🏭 Creating studio markers:', markerData.length);
-    console.log('📊 Current map zoom level:', mapInstance.getZoom());
+    logger.log('🏭 Creating studio markers:', markerData.length);
+    logger.log('📊 Current map zoom level:', mapInstance.getZoom());
     
     // Determine the actual max zoom based on studio types (same logic as map initialization)
     const hasHomeStudios = markerData.some(marker => marker.studio_type === 'HOME');
     const actualMaxZoom = hasHomeStudios ? 13 : 15;
-    console.log('🔍 Clustering config:', { hasHomeStudios, actualMaxZoom, clusterMaxZoom: actualMaxZoom - 1 });
-    console.log('📍 Marker data:', markerData.map(m => ({ 
+    logger.log('🔍 Clustering config:', { hasHomeStudios, actualMaxZoom, clusterMaxZoom: actualMaxZoom - 1 });
+    logger.log('📍 Marker data:', markerData.map(m => ({ 
       id: m.id, 
       name: m.title, 
       lat: m.position.lat, 
@@ -170,7 +171,7 @@ export function GoogleMap({
           
           // Mark that user has interacted with the map (disable auto-zoom)
           if (!hasUserInteractedRef.current) {
-            console.log('👤 User clicked marker - disabling auto-zoom');
+            logger.log('👤 User clicked marker - disabling auto-zoom');
             hasUserInteractedRef.current = true;
           }
           
@@ -230,22 +231,22 @@ export function GoogleMap({
 
     markersRef.current = newMarkers;
     
-    console.log(`✅ Created ${newMarkers.length} individual markers`);
+    logger.log(`✅ Created ${newMarkers.length} individual markers`);
 
     // Detect browser zoom level and adjust grid size accordingly
     const devicePixelRatio = window.devicePixelRatio || 1;
     const browserZoomLevel = Math.round(devicePixelRatio * 100);
-    console.log('🔍 Browser zoom detected:', browserZoomLevel + '%', 'devicePixelRatio:', devicePixelRatio);
+    logger.log('🔍 Browser zoom detected:', browserZoomLevel + '%', 'devicePixelRatio:', devicePixelRatio);
     
     // Adjust grid size for clustering based on browser zoom to ensure proper clustering
     // Default gridSize is 60px, but we need to scale it with devicePixelRatio
     // At 90% zoom (0.9 ratio), use larger grid; at 110% zoom (1.1 ratio), use smaller grid
     const adjustedGridSize = Math.round(60 / devicePixelRatio);
-    console.log('📐 Adjusted grid size for clustering:', adjustedGridSize, 'px (default: 60px)');
+    logger.log('📐 Adjusted grid size for clustering:', adjustedGridSize, 'px (default: 60px)');
 
     // Create marker clusterer for grouping with custom cluster marker
     if (newMarkers.length > 0) {
-      console.log('🔧 Initializing MarkerClusterer with maxZoom:', actualMaxZoom - 1, 'gridSize:', adjustedGridSize);
+      logger.log('🔧 Initializing MarkerClusterer with maxZoom:', actualMaxZoom - 1, 'gridSize:', adjustedGridSize);
       markerClustererRef.current = new MarkerClusterer({
         markers: newMarkers,
         map: mapInstance,
@@ -255,7 +256,7 @@ export function GoogleMap({
         }),
         renderer: {
           render: ({ count, position }) => {
-            console.log('🔢 Creating cluster marker for', count, 'studios at', position);
+            logger.log('🔢 Creating cluster marker for', count, 'studios at', position);
             
             // Create a canvas to combine the marker2 image with custom text
             const canvas = document.createElement('canvas');
@@ -316,26 +317,26 @@ export function GoogleMap({
               title: `${count} studios`,
             });
             
-            console.log('✅ Cluster marker created successfully');
+            logger.log('✅ Cluster marker created successfully');
             return marker;
           },
         },
       });
     }
     
-    console.log('🎯 Studio markers created successfully!');
+    logger.log('🎯 Studio markers created successfully!');
     
     // Clear any existing cluster render timeout before creating a new one
     if (clusterRenderTimeoutRef.current !== null) {
       clearTimeout(clusterRenderTimeoutRef.current);
       clusterRenderTimeoutRef.current = null;
-      console.log('🧹 Cleared previous cluster render timeout');
+      logger.log('🧹 Cleared previous cluster render timeout');
     }
     
     // Ensure clusters render on initial load
     // Check current zoom level and trigger cluster render if needed
     const currentZoom = mapInstance.getZoom();
-    console.log('📊 Current zoom after marker creation:', currentZoom);
+    logger.log('📊 Current zoom after marker creation:', currentZoom);
     
     // Check if zoom is a valid number (including 0) and below threshold
     if (typeof currentZoom === 'number' && currentZoom < 10) {
@@ -344,10 +345,10 @@ export function GoogleMap({
       // and React's strict mode double-render has completed
       clusterRenderTimeoutRef.current = setTimeout(() => {
         if (markerClustererRef.current) {
-          console.log('🔄 Low zoom detected, triggering cluster render');
+          logger.log('🔄 Low zoom detected, triggering cluster render');
           markerClustererRef.current.render();
         } else {
-          console.warn('⚠️ MarkerClusterer ref is null, cannot trigger initial render');
+          logger.warn('⚠️ MarkerClusterer ref is null, cannot trigger initial render');
         }
         clusterRenderTimeoutRef.current = null; // Clear ref after timeout fires
       }, 250);
@@ -355,7 +356,7 @@ export function GoogleMap({
     
     // Trigger auto-zoom after markers are created
     if (searchCenter && searchRadius && markerData.length > 0 && !hasUserInteractedRef.current) {
-      console.log('🔍 Triggering auto-zoom from marker creation');
+      logger.log('🔍 Triggering auto-zoom from marker creation');
       setTimeout(() => {
         if (mapInstance && !hasUserInteractedRef.current) {
           const bounds = new (window.google.maps as any).LatLngBounds();
@@ -368,7 +369,7 @@ export function GoogleMap({
             bounds.extend(new (window.google.maps as any).LatLng(marker.position.lat, marker.position.lng));
           });
           
-          console.log('🔍 Auto-zooming to fit all studios within search radius (from marker creation)');
+          logger.log('🔍 Auto-zooming to fit all studios within search radius (from marker creation)');
           mapInstance.fitBounds(bounds, {
             top: 50,
             right: 50,
@@ -399,7 +400,7 @@ export function GoogleMap({
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     
     if (!apiKey) {
-      console.warn('Google Maps API key not configured');
+      logger.warn('Google Maps API key not configured');
       return;
     }
 
@@ -503,10 +504,10 @@ export function GoogleMap({
     map.addListener('zoom_changed', () => {
       const currentZoom = map.getZoom();
       if (currentZoom === maxZoom) {
-        console.log('🔒 Maximum zoom reached - applying privacy-protecting styles');
+        logger.log('🔒 Maximum zoom reached - applying privacy-protecting styles');
         map.setOptions({ styles: maxZoomPrivacyStyles });
       } else if (currentZoom < maxZoom) {
-        console.log('🔓 Below maximum zoom - using default styles');
+        logger.log('🔓 Below maximum zoom - using default styles');
         map.setOptions({ styles: defaultStyles });
       }
     });
@@ -559,7 +560,7 @@ export function GoogleMap({
     
     const handleUserInteraction = () => {
       if (!hasUserInteractedRef.current && isUserInitiated) {
-        console.log('👤 User interaction detected - disabling auto-zoom');
+        logger.log('👤 User interaction detected - disabling auto-zoom');
         hasUserInteractedRef.current = true;
       }
     };
@@ -574,7 +575,7 @@ export function GoogleMap({
       const currentZoom = map.getZoom();
       const markerCount = markersRef.current?.length || 0;
       const clusterCount = markerClustererRef.current ? 'active' : 'inactive';
-      console.log('🔎 Zoom changed:', { 
+      logger.log('🔎 Zoom changed:', { 
         zoom: currentZoom, 
         markers: markerCount,
         clusterer: clusterCount,
@@ -590,7 +591,7 @@ export function GoogleMap({
     // Also consider any click on the map as user interaction
     map.addListener('click', () => {
       if (!hasUserInteractedRef.current) {
-        console.log('👤 User clicked map - disabling auto-zoom');
+        logger.log('👤 User clicked map - disabling auto-zoom');
         hasUserInteractedRef.current = true;
       }
     });
@@ -687,13 +688,13 @@ export function GoogleMap({
         };
       }
       
-      console.log(`🖱️ Scroll zoom ${scrollZoomEnabled ? 'enabled' : 'disabled'}`);
+      logger.log(`🖱️ Scroll zoom ${scrollZoomEnabled ? 'enabled' : 'disabled'}`);
     }
   }, [scrollZoomEnabled]);
 
   // Update markers with clustering and enhanced features
   useEffect(() => {
-    console.log('🎯 Markers useEffect called:', { 
+    logger.log('🎯 Markers useEffect called:', { 
       hasMap: !!mapInstanceRef.current, 
       markersCount: markers.length,
       willCreateMarkers: !!(mapInstanceRef.current && markers.length > 0)
@@ -704,18 +705,18 @@ export function GoogleMap({
       if (clusterRenderTimeoutRef.current !== null) {
         clearTimeout(clusterRenderTimeoutRef.current);
         clusterRenderTimeoutRef.current = null;
-        console.log('🧹 Cleared cluster render timeout on cleanup');
+        logger.log('🧹 Cleared cluster render timeout on cleanup');
       }
     };
     
     if (!mapInstanceRef.current) {
-      console.log('❌ No map instance for markers, skipping');
+      logger.log('❌ No map instance for markers, skipping');
       // If we have markers but no map yet, retry after a short delay
       if (markers.length > 0) {
-        console.log('⏳ Retrying marker creation in 100ms...');
+        logger.log('⏳ Retrying marker creation in 100ms...');
         const retryTimeout = setTimeout(() => {
           if (mapInstanceRef.current && markers.length > 0) {
-            console.log('🔄 Retry: Creating markers after map loaded');
+            logger.log('🔄 Retry: Creating markers after map loaded');
             // Trigger marker creation by calling this effect again
             // We'll do this by clearing and recreating markers
             if (markerClustererRef.current) {
@@ -737,9 +738,9 @@ export function GoogleMap({
     }
 
     // Clear existing markers and clusterer
-    console.log('🧹 Clearing existing markers. Current count:', markersRef.current.length);
+    logger.log('🧹 Clearing existing markers. Current count:', markersRef.current.length);
     if (markerClustererRef.current) {
-      console.log('🧹 Clearing marker clusterer');
+      logger.log('🧹 Clearing marker clusterer');
       markerClustererRef.current.clearMarkers();
       markerClustererRef.current = null;
     }
@@ -751,11 +752,11 @@ export function GoogleMap({
 
     // If no markers, return early with cleanup
     if (markers.length === 0) {
-      console.log('❌ No markers to display');
+      logger.log('❌ No markers to display');
       return cleanupClusterTimeout;
     }
     
-    console.log('✨ Creating new markers. Count:', markers.length);
+    logger.log('✨ Creating new markers. Count:', markers.length);
     
     // Create studio markers (cluster render timeout is managed via ref internally)
     createStudioMarkers(mapInstanceRef.current, markers);
@@ -769,7 +770,7 @@ export function GoogleMap({
 
   // Update search radius circle and center marker
   useEffect(() => {
-    console.log('🔵 Circle useEffect called:', { 
+    logger.log('🔵 Circle useEffect called:', { 
       hasMap: !!mapInstanceRef.current, 
       searchCenter, 
       searchRadius,
@@ -777,13 +778,13 @@ export function GoogleMap({
     });
     
     if (!mapInstanceRef.current) {
-      console.log('❌ No map instance, skipping circle creation');
+      logger.log('❌ No map instance, skipping circle creation');
       // If we have search data but no map yet, retry after a short delay
       if (searchCenter && searchRadius) {
-        console.log('⏳ Retrying circle creation in 100ms...');
+        logger.log('⏳ Retrying circle creation in 100ms...');
         const retryTimeout = setTimeout(() => {
           if (mapInstanceRef.current && searchCenter && searchRadius) {
-            console.log('🔄 Retry: Creating circle after map loaded');
+            logger.log('🔄 Retry: Creating circle after map loaded');
             createCircleAndMarker(mapInstanceRef.current, searchCenter, searchRadius);
           }
         }, 100);
@@ -796,7 +797,7 @@ export function GoogleMap({
     if (searchCenter && searchRadius) {
       createCircleAndMarker(mapInstanceRef.current, searchCenter, searchRadius);
     } else {
-      console.log('❌ Not creating circle - missing searchCenter or searchRadius:', { searchCenter, searchRadius });
+      logger.log('❌ Not creating circle - missing searchCenter or searchRadius:', { searchCenter, searchRadius });
     }
     
     // No cleanup needed for this effect
@@ -806,11 +807,11 @@ export function GoogleMap({
   // Auto-zoom to fit all studios within search radius optimally (Rules 1 & 2)
   useEffect(() => {
     if (!mapInstanceRef.current) {
-      console.log('🚫 Auto-zoom skipped: No map instance');
+      logger.log('🚫 Auto-zoom skipped: No map instance');
       return;
     }
     
-    console.log('🔍 Auto-zoom effect called:', { 
+    logger.log('🔍 Auto-zoom effect called:', { 
       hasSearchCenter: !!searchCenter, 
       searchRadius, 
       markersCount: markers.length,
@@ -834,7 +835,7 @@ export function GoogleMap({
         bounds.extend(new (window.google.maps as any).LatLng(marker.position.lat, marker.position.lng));
       });
       
-      console.log('🔍 Auto-zooming to fit all studios within search radius (prioritizing studio visibility)');
+      logger.log('🔍 Auto-zooming to fit all studios within search radius (prioritizing studio visibility)');
       mapInstanceRef.current.fitBounds(bounds, {
         top: 50,
         right: 50,
@@ -867,7 +868,7 @@ export function GoogleMap({
         bounds.extend(new (window.google.maps as any).LatLng(marker.position.lat, marker.position.lng));
       });
       
-      console.log('🔍 Auto-zooming to fit all studio markers');
+      logger.log('🔍 Auto-zooming to fit all studio markers');
       mapInstanceRef.current.fitBounds(bounds, {
         top: 50,
         right: 50,
@@ -896,10 +897,10 @@ export function GoogleMap({
   // Update center when prop changes (only if user hasn't interacted)
   useEffect(() => {
     if (mapInstanceRef.current && !hasUserInteractedRef.current) {
-      console.log('🎯 Updating map center to:', center);
+      logger.log('🎯 Updating map center to:', center);
       mapInstanceRef.current.setCenter({ lat: center.lat, lng: center.lng });
     } else if (hasUserInteractedRef.current) {
-      console.log('🚫 Skipping center update - user has interacted with map');
+      logger.log('🚫 Skipping center update - user has interacted with map');
     }
   }, [center]);
 
