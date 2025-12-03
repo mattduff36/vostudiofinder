@@ -24,7 +24,7 @@ interface SearchFiltersProps {
   isFilteringByMapArea?: boolean;
 }
 
-export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea }: SearchFiltersProps) {
+export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount }: SearchFiltersProps) {
   const [filters, setFilters] = useState(initialFilters);
 
   useEffect(() => {
@@ -293,7 +293,7 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
         </div>
       </div>
 
-      {/* Filter by Map Area */}
+      {/* Filter by Map Area - Only show when 30 or fewer markers visible */}
       {onFilterByMapArea && (
         <div>
           <Button
@@ -306,9 +306,15 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
           </Button>
           {isFilteringByMapArea && (
             <p className="text-xs text-gray-500 mt-2 text-center">
-              Showing studios visible on map
+              Showing {visibleMarkerCount || 0} studios visible on map
             </p>
           )}
+        </div>
+      )}
+      {!onFilterByMapArea && visibleMarkerCount && visibleMarkerCount > 30 && (
+        <div className="text-xs text-gray-500 text-center p-2 bg-gray-50 rounded">
+          <p>💡 Zoom in to use "Filter by Map Area"</p>
+          <p className="mt-1">({visibleMarkerCount} studios visible)</p>
         </div>
       )}
 

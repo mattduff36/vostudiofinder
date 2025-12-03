@@ -273,45 +273,41 @@ export function StudiosPage() {
   const displayStudios = useMemo(() => {
     if (!searchResults) return [];
     
-    // Filter out the currently selected studio (it will be shown in the filter sidebar)
-    let studiosForGrid = searchResults.studios.filter(
-      studio => studio.id !== selectedStudioId
-    );
+    // When filtering by map area, we want to show ALL studios in the map bounds,
+    // not just those from the current search results
+    let studiosForGrid: Studio[];
     
-    // If filtering by map area, only show studios within the current map bounds
-    if (isFilteringByMapArea) {
-      if (!mapBounds) {
-        logger.warn('⚠️ Filtering by map area is ON but mapBounds is null!');
-        logger.warn('This will result in NO studios being shown.');
-      } else {
-        logger.log('🗺️ Filtering studios by map bounds:');
-        logger.log(`  North: ${mapBounds.north}, South: ${mapBounds.south}`);
-        logger.log(`  East: ${mapBounds.east}, West: ${mapBounds.west}`);
-        const beforeFilter = studiosForGrid.length;
+    if (isFilteringByMapArea && mapBounds) {
+      // Use ALL studios from search results (ignoring pagination)
+      // In the future, this could fetch from a separate API endpoint for all studios
+      logger.log('🗺️ Filtering by map area - using all available studios');
+      logger.log(`  Map bounds: N:${mapBounds.north}, S:${mapBounds.south}, E:${mapBounds.east}, W:${mapBounds.west}`);
+      
+      studiosForGrid = searchResults.studios.filter(studio => {
+        // Skip the selected studio
+        if (studio.id === selectedStudioId) return false;
         
-        studiosForGrid = studiosForGrid.filter(studio => {
-          if (!studio.latitude || !studio.longitude) return false;
-          
-          const lat = typeof studio.latitude === 'number' ? studio.latitude : parseFloat(String(studio.latitude));
-          const lng = typeof studio.longitude === 'number' ? studio.longitude : parseFloat(String(studio.longitude));
-          
-          const latInBounds = lat >= mapBounds.south && lat <= mapBounds.north;
-          const lngInBounds = lng >= mapBounds.west && lng <= mapBounds.east;
-          const isInBounds = latInBounds && lngInBounds;
-          
-          if (!isInBounds) {
-            logger.log(`  ❌ ${studio.name} (${lat}, ${lng})`);
-            logger.log(`     Lat in bounds? ${latInBounds} (${mapBounds.south} <= ${lat} <= ${mapBounds.north})`);
-            logger.log(`     Lng in bounds? ${lngInBounds} (${mapBounds.west} <= ${lng} <= ${mapBounds.east})`);
-          } else {
-            logger.log(`  ✅ ${studio.name} (${lat}, ${lng}) is IN bounds`);
-          }
-          
-          return isInBounds;
-        });
+        if (!studio.latitude || !studio.longitude) return false;
         
-        logger.log(`📊 Filtered from ${beforeFilter} to ${studiosForGrid.length} studios`);
-      }
+        const lat = typeof studio.latitude === 'number' ? studio.latitude : parseFloat(String(studio.latitude));
+        const lng = typeof studio.longitude === 'number' ? studio.longitude : parseFloat(String(studio.longitude));
+        
+        const isInBounds = (
+          lat >= mapBounds.south &&
+          lat <= mapBounds.north &&
+          lng >= mapBounds.west &&
+          lng <= mapBounds.east
+        );
+        
+        return isInBounds;
+      });
+      
+      logger.log(`📊 Map area filter: ${studiosForGrid.length} studios in bounds`);
+    } else {
+      // Normal mode: use search results and filter out selected studio
+      studiosForGrid = searchResults.studios.filter(
+        studio => studio.id !== selectedStudioId
+      );
     }
     
     // Separate viewed and not-viewed studios
@@ -747,10 +743,11 @@ export function StudiosPage() {
                     lng: parseFloat(searchParams.get('lng')!)
                   } : {})
                 }), [searchParams])}
-                onSearch={handleSearch}
-                onFilterByMapArea={handleFilterByMapArea}
-                isFilteringByMapArea={isFilteringByMapArea}
-              />
+              onSearch={handleSearch}
+              onFilterByMapArea={visibleMarkerCount <= 30 ? handleFilterByMapArea : undefined}
+              isFilteringByMapArea={isFilteringByMapArea}
+              visibleMarkerCount={visibleMarkerCount}
+            />
 
               {/* Selected Studio Card - Shows when a map marker is clicked */}
               {selectedStudioId && searchResults && (() => {
