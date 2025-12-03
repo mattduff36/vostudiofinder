@@ -76,7 +76,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
       const timer = setTimeout(() => {
         console.log('🎬 Animation complete - removing animation class');
         setHasAnimated(true);
-      }, 1200); // Match animation duration
+      }, 800); // Match animation duration
       
       return () => {
         console.log('🎬 Cleanup - clearing timer');
@@ -100,7 +100,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
       {/* Full Studio Card - matching StudiosList design with red border to indicate selection */}
       <div
         onClick={handleCardClick}
-        className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col w-full ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} ${!hasAnimated ? 'animate-slide-in-left' : ''}`}
+        className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col w-full ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} ${!hasAnimated ? 'animate-expand-center' : ''}`}
         style={{
           border: '3px solid #EF4444', // Red border directly on edge
           minHeight: '360px'
