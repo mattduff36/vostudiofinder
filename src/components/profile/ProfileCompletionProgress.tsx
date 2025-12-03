@@ -167,64 +167,6 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
 
         {/* Completion checklist */}
         <div className="flex-1">
-          {/* Profile Status Messages */}
-          {!allRequiredComplete && (
-            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-sm text-amber-800 font-medium">
-                ⚠️ Complete all required fields before your profile can go live
-              </p>
-            </div>
-          )}
-          
-          {allRequiredComplete && completionPercentage < 85 && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm text-green-800 font-medium">
-                ✅ Your profile can go live!
-              </p>
-              <p className="text-xs text-green-700 mt-1">
-                Reach 85% to become eligible for Verified status
-              </p>
-            </div>
-          )}
-
-          {allRequiredComplete && completionPercentage >= 85 && completionPercentage < 100 && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium">
-                🎯 Eligible for Verified status!
-              </p>
-              <p className="text-xs text-blue-700 mt-1">
-                Complete all fields (100%) to be eligible as a Featured Studio on the home page
-              </p>
-            </div>
-          )}
-
-          {completionPercentage === 100 && (
-            <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-              <p className="text-sm text-purple-800 font-medium">
-                ⭐ Perfect profile! Eligible for Featured Studio status
-              </p>
-              <p className="text-xs text-purple-700 mt-1">
-                Your profile is complete and can be featured on the home page
-              </p>
-            </div>
-          )}
-
-          {/* Milestone Progress Info */}
-          <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-            <p className="text-xs font-semibold text-gray-700 mb-2">Profile Milestones:</p>
-            <ul className="text-xs text-gray-600 space-y-1">
-              <li className={allRequiredComplete ? 'text-green-600 font-medium' : ''}>
-                {allRequiredComplete ? '✅' : '○'} Go Live: Complete all required fields
-              </li>
-              <li className={completionPercentage >= 85 ? 'text-blue-600 font-medium' : ''}>
-                {completionPercentage >= 85 ? '✅' : '○'} Verified Status: Reach 85% completion
-              </li>
-              <li className={completionPercentage === 100 ? 'text-purple-600 font-medium' : ''}>
-                {completionPercentage === 100 ? '✅' : '○'} Featured Studio: Reach 100% completion
-              </li>
-            </ul>
-          </div>
-
           {/* REQUIRED SECTION */}
           <div className="mb-4">
             <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">
