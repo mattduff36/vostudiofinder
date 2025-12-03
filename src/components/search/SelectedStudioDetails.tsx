@@ -78,11 +78,9 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
       {/* Full Studio Card - matching StudiosList design with red border to indicate selection */}
       <div
         onClick={handleCardClick}
-        className={`bg-white border rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'}`}
+        className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'}`}
         style={{
-          outline: '4px solid #EF4444',
-          outlineOffset: '4px',
-          borderColor: '#FECACA' // Light red border
+          border: '3px solid #EF4444' // Red border directly on edge
         }}
       >
         {/* Studio Image */}
