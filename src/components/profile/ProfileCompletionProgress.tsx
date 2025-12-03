@@ -27,7 +27,7 @@ interface ProfileCompletionProgressProps {
     connection6?: string | undefined;
     connection7?: string | undefined;
     connection8?: string | undefined;
-    rate_tier_1?: number | null | undefined;
+    rate_tier_1?: number | string | null | undefined;
     website_url?: string | undefined;
     images_count?: number | undefined;
     studio_types_count?: number | undefined;
@@ -88,7 +88,7 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
     { label: 'Avatar', completed: !!(profileData.avatar_url && profileData.avatar_url.trim()), weight: 5.88, required: false },
     { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), weight: 5.88, required: false },
     { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, weight: 5.88, required: false },
-    { label: 'Session Rate Tier(s)', completed: !!(profileData.rate_tier_1 && profileData.rate_tier_1 > 0), weight: 5.88, required: false },
+    { label: 'Session Rate Tier(s)', completed: !!(profileData.rate_tier_1 && (typeof profileData.rate_tier_1 === 'number' ? profileData.rate_tier_1 > 0 : parseFloat(profileData.rate_tier_1) > 0)), weight: 5.88, required: false },
     { label: 'Equipment List', completed: !!(profileData.equipment_list && profileData.equipment_list.trim()), weight: 5.88, required: false },
     { label: 'Services Offered', completed: !!(profileData.services_offered && profileData.services_offered.trim()), weight: 5.88, required: false },
   ];
