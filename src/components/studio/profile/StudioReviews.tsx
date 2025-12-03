@@ -3,15 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { useRouter } from 'next/navigation';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
-import { useRouter } from 'next/navigation';
 import { ReviewsList } from '@/components/reviews/ReviewsList';
-import { useRouter } from 'next/navigation';
 import { Star, Users, Plus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 interface StudioReviewsProps {
   studio: {
