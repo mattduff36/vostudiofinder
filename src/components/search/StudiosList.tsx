@@ -67,8 +67,12 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
           <div
             key={studio.id}
             id={`studio-${studio.id}`}
-            onClick={() => window.open(`/${studio.owner?.username}`, '_blank', 'noopener,noreferrer')}
-            className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col cursor-pointer group"
+            onClick={() => {
+              if (studio.owner?.username) {
+                window.open(`/${studio.owner.username}`, '_blank', 'noopener,noreferrer');
+              }
+            }}
+            className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} group`}
           >
             {/* Studio Image */}
             <div className="aspect-[25/12] bg-gray-200 rounded-t-lg overflow-hidden relative">

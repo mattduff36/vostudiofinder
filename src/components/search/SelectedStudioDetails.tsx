@@ -63,6 +63,12 @@ function cleanDescription(description: string | undefined): string {
 export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
   const description = cleanDescription(studio.description);
 
+  const handleCardClick = () => {
+    if (studio.owner?.username) {
+      window.open(`/${studio.owner.username}`, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <div className="mt-4">
       <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
@@ -71,8 +77,8 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
 
       {/* Full Studio Card - matching StudiosList design */}
       <div
-        onClick={() => window.open(`/${studio.owner?.username}`, '_blank', 'noopener,noreferrer')}
-        className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col cursor-pointer"
+        onClick={handleCardClick}
+        className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'}`}
       >
         {/* Studio Image */}
         <div className="aspect-[25/12] bg-gray-200 rounded-t-lg overflow-hidden relative">
@@ -210,7 +216,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
               {(studio._count?.reviews ?? 0) > 0 && (
                 <div className="flex items-center">
                   <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                  <span>{studio._count.reviews}</span>
+                  <span>{studio._count?.reviews}</span>
                 </div>
               )}
             </div>

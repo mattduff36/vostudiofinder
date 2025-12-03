@@ -24,7 +24,7 @@ interface Studio {
   is_verified: boolean;
   latitude?: number;
   longitude?: number;
-  owner: {
+  owner?: {
     id: string;
     display_name: string;
     username: string;
@@ -106,7 +106,7 @@ export function StudiosPage() {
     // Close any existing modal
     setModalStudio(null);
     
-    // Clear previous selection outline
+    // Clear previous selection outline and update history
     setSelectedStudioId(prev => {
       if (prev) {
         const previousElement = document.getElementById(`studio-${prev}`);
@@ -115,16 +115,14 @@ export function StudiosPage() {
           previousElement.style.outlineOffset = '';
           previousElement.classList.remove('animate-bounce-once');
         }
-        
-        // Add to viewing history
-        if (prev !== studioData.id) {
-          setViewedStudioIds(prevIds => {
-            const filtered = prevIds.filter(id => id !== prev);
-            return [prev, ...filtered];
-          });
-        }
       }
       return studioData.id;
+    });
+    
+    // Update viewing history separately (no race condition)
+    setViewedStudioIds(prevIds => {
+      const filtered = prevIds.filter(id => id !== studioData.id);
+      return [studioData.id, ...filtered];
     });
     
     // Apply outline to newly selected studio card if it exists on current page
@@ -365,6 +363,9 @@ export function StudiosPage() {
                 left: sidebarRect.left,
                 top: adjustedTop
               });
+            } else {
+              // Clear styles when not sticky
+              setStickyStyles(null);
             }
             
             ticking = false;
