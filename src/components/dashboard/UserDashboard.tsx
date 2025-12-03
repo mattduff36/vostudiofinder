@@ -258,6 +258,9 @@ export function UserDashboard({ data }: UserDashboardProps) {
                       website_url: profileData.studio?.website_url,
                       images_count: profileData.studio?.images?.length || 0,
                       studio_types_count: profileData.studio?.studio_types?.length || 0,
+                      avatar_url: profileData.user?.avatar_url,
+                      equipment_list: profileData.profile?.equipment_list,
+                      services_offered: profileData.profile?.services_offered,
                     }}
                   />
                 </div>
