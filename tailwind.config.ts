@@ -97,10 +97,24 @@ const config: Config = {
             transform: 'translateX(0) scale(1)' 
           },
         },
+        'expand-center': {
+          '0%': { 
+            opacity: '0', 
+            transform: 'scale(0) rotate(-5deg)' 
+          },
+          '60%': { 
+            transform: 'scale(1.05) rotate(2deg)' 
+          },
+          '100%': { 
+            opacity: '1', 
+            transform: 'scale(1) rotate(0deg)' 
+          },
+        },
       },
       animation: {
         'slide-in-up': 'slide-in-up 1s ease-out forwards',
         'slide-in-left': 'slide-in-left 1.2s ease-out forwards',
+        'expand-center': 'expand-center 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
       },
     },
   },
