@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+
 interface Notification {
   id: string;
   type: string;
@@ -12,6 +14,7 @@ interface Notification {
   created_at: string;
   actionUrl?: string;
 }
+
 export function NotificationBell() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -19,23 +22,29 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     if (session?.user) {
       fetchNotifications();
       fetchUnreadCount();
     }
   }, [session]);
+
+  useEffect(() => {
     // Listen for real-time notifications
     const handleNotification = (event: CustomEvent) => {
       const newNotification = event.detail;
       setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
       setUnreadCount(prev => prev + 1);
     };
+
     window.addEventListener('notification', handleNotification as EventListener);
     
     return () => {
       window.removeEventListener('notification', handleNotification as EventListener);
+    };
   }, []);
+
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
@@ -48,34 +57,67 @@ export function NotificationBell() {
       console.error('Failed to fetch notifications:', error);
     } finally {
       setIsLoading(false);
+    }
   };
+
   const fetchUnreadCount = async () => {
+    try {
       const response = await fetch('/api/user/notifications/count');
+      if (response.ok) {
+        const data = await response.json();
         setUnreadCount(data.count || 0);
+      }
+    } catch (error) {
       console.error('Failed to fetch unread count:', error);
+    }
+  };
+
   const markAsRead = async (notificationId: string) => {
+    try {
       const response = await fetch(`/api/user/notifications/${notificationId}/read`, {
         method: 'PATCH',
       });
       
+      if (response.ok) {
         setNotifications(prev => 
           prev.map(n => 
             n.id === notificationId ? { ...n, read: true } : n
           )
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
       console.error('Failed to mark notification as read:', error);
+    }
+  };
+
   const markAllAsRead = async () => {
+    try {
       const response = await fetch('/api/user/notifications/read-all', {
+        method: 'PATCH',
+      });
+      
+      if (response.ok) {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         setUnreadCount(0);
+      }
+    } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
+    }
+  };
+
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.read) {
       markAsRead(notification.id);
+    }
+    
     if (notification.actionUrl) {
       window.location.href = notification.actionUrl;
+    }
+    
     setIsOpen(false);
+  };
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'MESSAGE_RECEIVED':
@@ -94,17 +136,24 @@ export function NotificationBell() {
         return '❌';
       default:
         return '🔔';
+    }
+  };
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  };
+
   if (!session?.user) {
     return null;
   }
+
   return (
     <div className="relative">
       {/* Notification Bell Button */}
@@ -133,6 +182,7 @@ export function NotificationBell() {
           </span>
         )}
       </button>
+
       {/* Notifications Dropdown */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
@@ -149,6 +199,7 @@ export function NotificationBell() {
               )}
             </div>
           </div>
+
           <div className="max-h-96 overflow-y-auto">
             {isLoading ? (
               <div className="p-4 text-center text-gray-500">
@@ -159,6 +210,7 @@ export function NotificationBell() {
               <div className="p-8 text-center text-gray-500">
                 <div className="text-4xl mb-2">🔔</div>
                 <p>No notifications yet</p>
+              </div>
             ) : (
               notifications.map((notification) => (
                 <div
@@ -167,6 +219,7 @@ export function NotificationBell() {
                   className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
                     !notification.read ? 'bg-blue-50' : ''
                   }`}
+                >
                   <div className="flex items-start space-x-3">
                     <div className="text-2xl">
                       {getNotificationIcon(notification.type)}
@@ -187,10 +240,14 @@ export function NotificationBell() {
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
                         {formatTimeAgo(notification.created_at)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))
             )}
+          </div>
+
           {notifications.length > 0 && (
             <div className="p-3 border-t border-gray-200 text-center">
               <button
@@ -202,13 +259,18 @@ export function NotificationBell() {
               >
                 View all notifications
               </button>
+            </div>
           )}
         </div>
       )}
+
       {/* Backdrop */}
+      {isOpen && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => setIsOpen(false)}
         />
+      )}
     </div>
   );
+}

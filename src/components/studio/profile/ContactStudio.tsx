@@ -3,19 +3,29 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { z } from 'zod';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
+import { useRouter } from 'next/navigation';
 import { Mail, Phone, User, Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
 const contactSchema = z.object({
   subject: z.string().min(5, 'Subject must be at least 5 characters long').max(200),
   message: z.string().min(10, 'Message must be at least 10 characters long').max(2000),
   contactEmail: z.string().email('Please enter a valid email address').optional(),
   contactPhone: z.string().optional(),
 });
+
 type ContactFormData = z.infer<typeof contactSchema>;
+
 interface ContactStudioProps {
   studio: {
     id: string;
@@ -30,12 +40,14 @@ interface ContactStudioProps {
     };
   };
 }
+
 export function ContactStudio({ studio }: ContactStudioProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -50,10 +62,12 @@ export function ContactStudio({ studio }: ContactStudioProps) {
       contactPhone: '',
     },
   });
+
   const submitMessage = async (data: ContactFormData) => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
+
     try {
       const response = await fetch('/api/messages', {
         method: 'POST',
@@ -66,10 +80,13 @@ export function ContactStudio({ studio }: ContactStudioProps) {
           ...data,
         }),
       });
+
       const result = await response.json();
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to send message');
       }
+
       setSuccess('Your message has been sent successfully! The studio owner will receive your inquiry and respond directly.');
       reset();
     } catch (err) {
@@ -77,6 +94,8 @@ export function ContactStudio({ studio }: ContactStudioProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Contact Options */}
@@ -101,27 +120,42 @@ export function ContactStudio({ studio }: ContactStudioProps) {
                   </a>
                 )}
                 {studio.website_url && (
+                  <a
                     href={studio.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="block text-sm text-primary-600 hover:text-primary-700"
+                  >
                     Visit Website
+                  </a>
+                )}
+              </div>
             </div>
           )}
+
           {/* Message Owner */}
           <div className="text-center">
             <div className="w-12 h-12 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <Mail className="w-6 h-6 text-accent-600" />
+            </div>
             <h3 className="font-medium text-text-primary mb-2">Send Message</h3>
             <p className="text-sm text-text-secondary">
               Contact the studio owner directly through our secure messaging system
             </p>
           </div>
+
           {/* Response Time */}
+          <div className="text-center">
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <Clock className="w-6 h-6 text-green-600" />
+            </div>
             <h3 className="font-medium text-text-primary mb-2">Quick Response</h3>
+            <p className="text-sm text-text-secondary">
               Most studio owners respond within 24 hours
+            </p>
+          </div>
         </div>
+
         {/* Studio Owner Info */}
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
           <div className="flex items-center space-x-3">
@@ -134,26 +168,39 @@ export function ContactStudio({ studio }: ContactStudioProps) {
             ) : (
               <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
                 <User className="w-6 h-6 text-gray-600" />
+              </div>
             )}
             <div>
               <p className="font-medium text-text-primary">{studio.owner.display_name}</p>
               <p className="text-sm text-text-secondary">Studio Owner • @{studio.owner.username}</p>
+            </div>
+          </div>
+        </div>
       </div>
+
       {/* Contact Form */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-medium text-text-primary mb-4">Send a Message</h3>
+
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
             <p className="text-sm text-red-600">{error}</p>
+          </div>
         )}
+
         {success && (
           <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
             <p className="text-sm text-green-600">{success}</p>
+          </div>
+        )}
+
         {!session ? (
           <div className="text-center py-8">
             <Mail className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-text-primary mb-2">Sign in to Contact Studio</h3>
             <p className="text-text-secondary mb-4">
               You need to be signed in to send messages to studio owners.
+            </p>
             <div className="space-x-4">
               <Button
                 onClick={() => router.push('/auth/signin')}
@@ -161,8 +208,13 @@ export function ContactStudio({ studio }: ContactStudioProps) {
               >
                 Sign In
               </Button>
+              <Button
                 onClick={() => router.push('/auth/signup')}
+              >
                 Sign Up
+              </Button>
+            </div>
+          </div>
         ) : (
           <form onSubmit={handleSubmit(submitMessage)} className="space-y-6">
             {/* Subject */}
@@ -172,7 +224,9 @@ export function ContactStudio({ studio }: ContactStudioProps) {
               error={errors.subject?.message || ''}
               {...register('subject')}
             />
+
             {/* Message */}
+            <div>
               <label className="block text-sm font-medium text-text-primary mb-2">
                 Message *
               </label>
@@ -181,9 +235,12 @@ export function ContactStudio({ studio }: ContactStudioProps) {
                 placeholder="Hi! I'm interested in booking your studio for a voiceover project. Could you please provide more information about availability, rates, and booking process?"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 {...register('message')}
+              />
               {errors.message && (
                 <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>
               )}
+            </div>
+
             {/* Contact Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
@@ -193,12 +250,18 @@ export function ContactStudio({ studio }: ContactStudioProps) {
                 error={errors.contactEmail?.message || ''}
                 helperText="We'll use your account email if not provided"
                 {...register('contactEmail')}
+              />
+
+              <Input
                 label="Your Phone (optional)"
                 type="tel"
                 placeholder="+1 (555) 123-4567"
                 error={errors.contactPhone?.message || ''}
                 helperText="For urgent inquiries"
                 {...register('contactPhone')}
+              />
+            </div>
+
             {/* Tips */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="text-sm font-medium text-blue-900 mb-2">💡 Tips for Better Response</h4>
@@ -208,12 +271,22 @@ export function ContactStudio({ studio }: ContactStudioProps) {
                 <li>• Ask specific questions about equipment or services</li>
                 <li>• Be professional and courteous</li>
               </ul>
+            </div>
+
             {/* Submit */}
             <div className="flex justify-end">
+              <Button
                 type="submit"
                 loading={isLoading}
                 disabled={isLoading}
+              >
                 {isLoading ? 'Sending...' : 'Send Message'}
+              </Button>
+            </div>
           </form>
+        )}
+      </div>
     </div>
   );
+}
+
