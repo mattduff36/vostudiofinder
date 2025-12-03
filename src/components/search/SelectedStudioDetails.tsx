@@ -67,11 +67,14 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
 
   // Keep animation class applied for full duration
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setHasAnimated(true);
-    }, 700); // Match animation duration
-    
-    return () => clearTimeout(timer);
+    // Use requestAnimationFrame to ensure the animation starts after initial render
+    requestAnimationFrame(() => {
+      const timer = setTimeout(() => {
+        setHasAnimated(true);
+      }, 1000); // Match animation duration
+      
+      return () => clearTimeout(timer);
+    });
   }, []); // Empty dependency array - runs once on mount only
 
   const handleCardClick = () => {
