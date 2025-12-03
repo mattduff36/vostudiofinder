@@ -656,6 +656,9 @@ export function StudiosPage() {
               className="sticky"
               style={{
                 top: '112px', // 80px navbar + 32px padding
+                maxHeight: 'calc(100vh - 144px)', // 112px top + 32px bottom buffer
+                overflowY: 'auto',
+                paddingRight: '8px' // Space for scrollbar
               }}
             >
               {/* Filter Studios Title - matching Selected Studio styling */}

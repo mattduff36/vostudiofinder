@@ -120,6 +120,7 @@ export const studioSearchSchema = z.object({
   studio_studio_types: z.array(z.string()).optional(), // Changed to string array to handle multiple types and NLP-detected types
   studio_services: z.array(z.string()).optional(), // Changed to string array for flexibility
   equipment: z.array(z.string()).optional(), // New equipment parameter
+  studioId: z.string().optional(), // For fetching a specific studio by ID
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(18), // Default to 18 for initial load
   offset: z.number().min(0).default(0), // New offset parameter for load-more pattern
