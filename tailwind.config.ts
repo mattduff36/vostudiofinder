@@ -80,16 +80,16 @@ const config: Config = {
         'slide-in-up': {
           '0%': { 
             opacity: '0', 
-            transform: 'translateY(20px)' 
+            transform: 'translateY(40px) scale(0.95)' 
           },
           '100%': { 
             opacity: '1', 
-            transform: 'translateY(0)' 
+            transform: 'translateY(0) scale(1)' 
           },
         },
       },
       animation: {
-        'slide-in-up': 'slide-in-up 0.4s ease-out',
+        'slide-in-up': 'slide-in-up 0.7s ease-out forwards',
       },
     },
   },

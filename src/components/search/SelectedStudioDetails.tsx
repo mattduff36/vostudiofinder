@@ -65,9 +65,13 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
   const description = cleanDescription(studio.description);
   const [hasAnimated, setHasAnimated] = useState(false);
 
-  // Trigger animation only on first mount
+  // Keep animation class applied for full duration
   useEffect(() => {
-    setHasAnimated(true);
+    const timer = setTimeout(() => {
+      setHasAnimated(true);
+    }, 700); // Match animation duration
+    
+    return () => clearTimeout(timer);
   }, []); // Empty dependency array - runs once on mount only
 
   const handleCardClick = () => {
