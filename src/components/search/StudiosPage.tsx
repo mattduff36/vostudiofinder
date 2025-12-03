@@ -590,18 +590,12 @@ export function StudiosPage() {
               className="sticky"
               style={{
                 top: '112px', // 80px navbar + 32px padding
-                maxHeight: 'calc(100vh - 144px)' // 112px top + 32px bottom buffer
+                maxHeight: 'calc(100vh - 144px)', // 112px top + 32px bottom buffer
+                overflowY: 'auto',
+                paddingRight: '8px' // Space for scrollbar
+                // Note: overflowX defaults to 'visible', allowing red outline to extend outside
               }}
             >
-              {/* Inner scrollable container - allows red outline to extend outside */}
-              <div
-                style={{
-                  maxHeight: 'calc(100vh - 144px)',
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
-                  paddingRight: '8px' // Space for scrollbar
-                }}
-              >
               <SearchFilters
                 initialFilters={useMemo(() => ({
                   location: searchParams.get('location') || '',
@@ -661,7 +655,6 @@ export function StudiosPage() {
                   />
                 );
               })()}
-              </div>
             </div>
           </aside>
 
