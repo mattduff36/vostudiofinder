@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { Users, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface StudioMarkerTooltipProps {
   studio: {
@@ -27,9 +28,11 @@ export function StudioMarkerTooltip({
   showCloseButton = false,
   isPopup = false 
 }: StudioMarkerTooltipProps) {
+  const router = useRouter();
+  
   const handleProfileClick = () => {
     if (studio.owner?.username) {
-      window.location.href = `/${studio.owner.username}`;
+      router.push(`/${studio.owner.username}`);
     }
   };
 

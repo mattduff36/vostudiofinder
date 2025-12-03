@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Star } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
 import { colors } from './HomePage';
@@ -48,6 +49,7 @@ interface FeaturedStudiosProps {
 }
 
 export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
+  const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -99,7 +101,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           <p className="mb-8" style={{ color: colors.textSecondary }}>
             No featured studios available yet. Be the first to add your studio!
           </p>
-          <Button onClick={() => window.location.href = '/auth/signup'}>
+          <Button onClick={() => router.push('/auth/signup')}>
             Add Your Studio
           </Button>
         </div>
@@ -302,7 +304,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           {placeholders.map((_, index) => (
             <div
               key={`placeholder-${index}`}
-              onClick={() => window.location.href = '/auth/signup'}
+              onClick={() => router.push('/auth/signup')}
               className="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-300 hover:scale-[1.02] transition-all duration-300 flex flex-col h-full cursor-pointer group"
             >
               {/* Placeholder Image Area */}
@@ -346,7 +348,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
         {/* View All Studios Button */}
         <div className="text-center mt-12">
           <button 
-            onClick={() => window.location.href = '/studios'}
+            onClick={() => router.push('/studios')}
             className="px-8 py-3 font-medium rounded-lg transition-all duration-300 hover:shadow-lg" 
             style={{ border: `1px solid ${colors.primary}`, color: colors.primary, backgroundColor: 'transparent' }}
           >

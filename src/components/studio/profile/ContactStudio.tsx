@@ -1,13 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { z } from 'zod';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
+import { useRouter } from 'next/navigation';
 import { Mail, Phone, User, Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const contactSchema = z.object({
   subject: z.string().min(5, 'Subject must be at least 5 characters long').max(200),
@@ -34,6 +42,7 @@ interface ContactStudioProps {
 }
 
 export function ContactStudio({ studio }: ContactStudioProps) {
+  const router = useRouter();
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -194,13 +203,13 @@ export function ContactStudio({ studio }: ContactStudioProps) {
             </p>
             <div className="space-x-4">
               <Button
-                onClick={() => window.location.href = '/auth/signin'}
+                onClick={() => router.push('/auth/signin')}
                 variant="outline"
               >
                 Sign In
               </Button>
               <Button
-                onClick={() => window.location.href = '/auth/signup'}
+                onClick={() => router.push('/auth/signup')}
               >
                 Sign Up
               </Button>

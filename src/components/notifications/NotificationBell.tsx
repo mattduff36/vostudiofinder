@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface Notification {
   id: string;
@@ -14,6 +16,7 @@ interface Notification {
 }
 
 export function NotificationBell() {
+  const router = useRouter();
   const { data: session } = useSession();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -249,7 +252,7 @@ export function NotificationBell() {
             <div className="p-3 border-t border-gray-200 text-center">
               <button
                 onClick={() => {
-                  window.location.href = '/dashboard/notifications';
+                  router.push('/dashboard/notifications');
                   setIsOpen(false);
                 }}
                 className="text-sm text-blue-600 hover:text-blue-800"

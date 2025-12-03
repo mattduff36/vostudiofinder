@@ -1,11 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { useRouter } from 'next/navigation';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
+import { useRouter } from 'next/navigation';
 import { ReviewsList } from '@/components/reviews/ReviewsList';
+import { useRouter } from 'next/navigation';
 import { Star, Users, Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface StudioReviewsProps {
   studio: {
@@ -29,6 +35,7 @@ interface StudioReviewsProps {
 }
 
 export function StudioReviews({ studio, canReview }: StudioReviewsProps) {
+  const router = useRouter();
   const { data: session } = useSession();
   const [showReviewForm, setShowReviewForm] = useState(false);
 
@@ -161,13 +168,13 @@ export function StudioReviews({ studio, canReview }: StudioReviewsProps) {
           </p>
           <div className="space-x-4">
             <Button
-              onClick={() => window.location.href = '/auth/signin'}
+              onClick={() => router.push('/auth/signin')}
               variant="outline"
             >
               Sign In
             </Button>
             <Button
-              onClick={() => window.location.href = '/auth/signup'}
+              onClick={() => router.push('/auth/signup')}
             >
               Sign Up
             </Button>

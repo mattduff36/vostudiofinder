@@ -1,10 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { useRouter } from 'next/navigation';
 import { PaymentMethodSelector, PaymentMethod } from './PaymentMethodSelector';
+import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
+import { useRouter } from 'next/navigation';
 
 interface EnhancedCheckoutProps {
   studio_id: string;
@@ -18,6 +23,7 @@ interface EnhancedCheckoutProps {
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export function EnhancedCheckout({
+  const router = useRouter();
   studio_id,
   planName,
   planPrice,
@@ -73,7 +79,7 @@ export function EnhancedCheckout({
     return (
       <div className="text-center py-8">
         <p className="text-gray-600 mb-4">Please sign in to upgrade your studio</p>
-        <Button onClick={() => window.location.href = '/auth/signin'}>
+        <Button onClick={() => router.push('/auth/signin')}>
           Sign In
         </Button>
       </div>
