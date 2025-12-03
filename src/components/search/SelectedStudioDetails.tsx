@@ -68,13 +68,23 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
   // Keep animation class applied for full duration
   useEffect(() => {
     // Use requestAnimationFrame to ensure the animation starts after initial render
-    requestAnimationFrame(() => {
+    const rafId = requestAnimationFrame(() => {
       const timer = setTimeout(() => {
         setHasAnimated(true);
       }, 800); // Match animation duration
       
-      return () => clearTimeout(timer);
+      // Store timer for cleanup
+      (window as any).__selectedStudioTimer = timer;
     });
+    
+    // Proper cleanup: cancel RAF and clear timeout
+    return () => {
+      cancelAnimationFrame(rafId);
+      if ((window as any).__selectedStudioTimer) {
+        clearTimeout((window as any).__selectedStudioTimer);
+        delete (window as any).__selectedStudioTimer;
+      }
+    };
   }, []); // Empty dependency array - runs once on mount only
 
   const handleCardClick = () => {
