@@ -85,7 +85,7 @@ interface UserDashboardProps {
 
 export function UserDashboard({ data }: UserDashboardProps) {
   const { user } = data;
-  const [profileData, setProfileData] = useState<any>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProfileVisible, setIsProfileVisible] = useState(true);
   const [saving, setSaving] = useState(false);
