@@ -160,12 +160,13 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
           So I built the platform I wished existed: a clean, simple, no-commission way to connect the two."
         </p>
         <br />
-        <p className="text-xs font-semibold text-red-500 text-left">
-          -             <a 
+        <p className="text-xs font-semibold text-left">
+          <span className="text-red-500">-</span>{' '}
+            <a 
               href="https://www.voiceoverguy.co.uk" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-red-600 hover:underline transition-all duration-200"
+              className="text-red-500 hover:text-red-600 hover:underline transition-all duration-200 font-semibold"
             >
               British Male Voiceover Guy Harris, Founder
             </a>
