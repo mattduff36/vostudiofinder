@@ -100,7 +100,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
       {/* Full Studio Card - matching StudiosList design with red border to indicate selection */}
       <div
         onClick={handleCardClick}
-        className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col w-full ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} ${!hasAnimated ? 'animate-slide-in-up' : ''}`}
+        className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col w-full ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} ${!hasAnimated ? 'animate-slide-in-left' : ''}`}
         style={{
           border: '3px solid #EF4444', // Red border directly on edge
           minHeight: '360px'
