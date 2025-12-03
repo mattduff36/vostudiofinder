@@ -279,6 +279,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
 
     return (
       <>
+        {/* Safe: JSON.stringify ensures no XSS risk for structured data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(cleanedStructuredData) }}
