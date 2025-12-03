@@ -111,7 +111,7 @@ export function GooglePlacesAutocomplete({
         placeholder={placeholder}
         value={inputValue}
         onChange={handleInputChange}
-        className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent"
       />
       
       {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
