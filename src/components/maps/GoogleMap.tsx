@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { MarkerClusterer, GridAlgorithm } from '@googlemaps/markerclusterer';
+import { MarkerClusterer, SuperClusterAlgorithm } from '@googlemaps/markerclusterer';
 import { createRoot } from 'react-dom/client';
 import { StudioMarkerTooltip } from './StudioMarkerTooltip';
 import { MapLocation } from '@/lib/maps';
@@ -230,13 +230,27 @@ export function GoogleMap({
     
     console.log(`✅ Created ${newMarkers.length} individual markers`);
 
+    // Detect browser zoom level and adjust grid size accordingly
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    const browserZoomLevel = Math.round(devicePixelRatio * 100);
+    console.log('🔍 Browser zoom detected:', browserZoomLevel + '%', 'devicePixelRatio:', devicePixelRatio);
+    
+    // Adjust grid size for clustering based on browser zoom to ensure proper clustering
+    // Default gridSize is 60px, but we need to scale it with devicePixelRatio
+    // At 90% zoom (0.9 ratio), use larger grid; at 110% zoom (1.1 ratio), use smaller grid
+    const adjustedGridSize = Math.round(60 / devicePixelRatio);
+    console.log('📐 Adjusted grid size for clustering:', adjustedGridSize, 'px (default: 60px)');
+
     // Create marker clusterer for grouping with custom cluster marker
     if (newMarkers.length > 0) {
-      console.log('🔧 Initializing MarkerClusterer with maxZoom:', actualMaxZoom - 1);
+      console.log('🔧 Initializing MarkerClusterer with maxZoom:', actualMaxZoom - 1, 'gridSize:', adjustedGridSize);
       markerClustererRef.current = new MarkerClusterer({
         markers: newMarkers,
         map: mapInstance,
-        algorithm: new GridAlgorithm({ maxZoom: actualMaxZoom - 1 }), // Break clusters 1 level before map max zoom
+        algorithm: new SuperClusterAlgorithm({ 
+          maxZoom: actualMaxZoom - 1,
+          radius: adjustedGridSize // SuperCluster uses radius instead of gridSize
+        }),
         renderer: {
           render: ({ count, position }) => {
             console.log('🔢 Creating cluster marker for', count, 'studios at', position);
