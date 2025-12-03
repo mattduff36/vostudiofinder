@@ -79,6 +79,8 @@ export function StudiosPage() {
   const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
   const [viewedStudioIds, setViewedStudioIds] = useState<string[]>([]); // Track viewing history
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [isFilteringByMapArea, setIsFilteringByMapArea] = useState(false);
+  const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
   
   // Studio marker modal state
   const [modalStudio, setModalStudio] = useState<{
@@ -271,9 +273,26 @@ export function StudiosPage() {
     if (!searchResults) return [];
     
     // Filter out the currently selected studio (it will be shown in the filter sidebar)
-    const studiosForGrid = searchResults.studios.filter(
+    let studiosForGrid = searchResults.studios.filter(
       studio => studio.id !== selectedStudioId
     );
+    
+    // If filtering by map area, only show studios within the current map bounds
+    if (isFilteringByMapArea && mapBounds) {
+      studiosForGrid = studiosForGrid.filter(studio => {
+        if (!studio.latitude || !studio.longitude) return false;
+        
+        const lat = typeof studio.latitude === 'number' ? studio.latitude : parseFloat(String(studio.latitude));
+        const lng = typeof studio.longitude === 'number' ? studio.longitude : parseFloat(String(studio.longitude));
+        
+        return (
+          lat >= mapBounds.south &&
+          lat <= mapBounds.north &&
+          lng >= mapBounds.west &&
+          lng <= mapBounds.east
+        );
+      });
+    }
     
     // Separate viewed and not-viewed studios
     const viewedStudios: Studio[] = [];
@@ -296,7 +315,7 @@ export function StudiosPage() {
     
     // Return viewed studios first, then other studios
     return [...viewedStudios, ...otherStudios];
-  }, [searchResults, selectedStudioId, viewedStudioIds]);
+  }, [searchResults, selectedStudioId, viewedStudioIds, isFilteringByMapArea, mapBounds]);
 
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
 
@@ -387,6 +406,16 @@ export function StudiosPage() {
 
   // Handle pending studio selection after navigation
   // Removed old pendingStudioSelection logic - no longer needed with modal approach
+
+  // Handle map bounds changes
+  const handleBoundsChanged = useCallback((bounds: { north: number; south: number; east: number; west: number }) => {
+    setMapBounds(bounds);
+  }, []);
+
+  // Toggle filtering by map area
+  const handleFilterByMapArea = useCallback(() => {
+    setIsFilteringByMapArea(prev => !prev);
+  }, []);
 
   const handleSearch = (filters: Record<string, any>) => {
     console.log('🔍 HandleSearch called with filters:', filters);
@@ -620,6 +649,8 @@ export function StudiosPage() {
                   handleSearch(filters);
                   setShowMobileFilters(false);
                 }}
+                onFilterByMapArea={handleFilterByMapArea}
+                isFilteringByMapArea={isFilteringByMapArea}
               />
             </div>
 
@@ -680,6 +711,8 @@ export function StudiosPage() {
                   } : {})
                 }), [searchParams])}
                 onSearch={handleSearch}
+                onFilterByMapArea={handleFilterByMapArea}
+                isFilteringByMapArea={isFilteringByMapArea}
               />
 
               {/* Selected Studio Card - Shows when a map marker is clicked */}
@@ -732,6 +765,7 @@ export function StudiosPage() {
                     searchCenter={searchResults.searchCoordinates || null}
                     searchRadius={parseInt(searchParams.get('radius') || '10')}
                     selectedMarkerId={null}
+                    onBoundsChanged={handleBoundsChanged}
                     height="100%"
                     className="rounded-lg border border-gray-200"
                   />
@@ -751,6 +785,7 @@ export function StudiosPage() {
                       searchCenter={searchResults.searchCoordinates || null}
                       searchRadius={parseInt(searchParams.get('radius') || '10')}
                       selectedMarkerId={null}
+                      onBoundsChanged={handleBoundsChanged}
                       height="100%"
                       className="rounded-lg border border-gray-200"
                     />

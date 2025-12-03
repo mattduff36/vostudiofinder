@@ -19,9 +19,11 @@ interface SearchFiltersProps {
     lng?: number;
   };
   onSearch: (filters: Record<string, any>) => void;
+  onFilterByMapArea?: () => void;
+  isFilteringByMapArea?: boolean;
 }
 
-export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) {
+export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea }: SearchFiltersProps) {
   const [filters, setFilters] = useState(initialFilters);
 
   useEffect(() => {
@@ -290,8 +292,24 @@ export function SearchFilters({ initialFilters, onSearch }: SearchFiltersProps) 
         </div>
       </div>
 
-
-
+      {/* Filter by Map Area */}
+      {onFilterByMapArea && (
+        <div>
+          <Button
+            onClick={onFilterByMapArea}
+            variant={isFilteringByMapArea ? "primary" : "outline"}
+            className="w-full"
+            size="sm"
+          >
+            {isFilteringByMapArea ? '✓ Filtering by Map Area' : 'Filter by Map Area'}
+          </Button>
+          {isFilteringByMapArea && (
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              Showing studios visible on map
+            </p>
+          )}
+        </div>
+      )}
 
 
     </div>
