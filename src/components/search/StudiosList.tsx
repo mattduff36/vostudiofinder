@@ -177,7 +177,7 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
 
                       return (
                         <div
-                          className="line-clamp-4 text-sm leading-snug"
+                          className="line-clamp-5 text-sm leading-snug"
                           style={{ color: 'inherit' }}
                           title={description}
                         >
