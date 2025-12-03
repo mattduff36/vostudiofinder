@@ -80,7 +80,7 @@ const config: Config = {
         'slide-in-up': {
           '0%': { 
             opacity: '0', 
-            transform: 'translateY(40px) scale(0.95)' 
+            transform: 'translateY(80px) scale(0.9)' 
           },
           '100%': { 
             opacity: '1', 
@@ -89,7 +89,7 @@ const config: Config = {
         },
       },
       animation: {
-        'slide-in-up': 'slide-in-up 0.7s ease-out forwards',
+        'slide-in-up': 'slide-in-up 1s ease-out forwards',
       },
     },
   },
