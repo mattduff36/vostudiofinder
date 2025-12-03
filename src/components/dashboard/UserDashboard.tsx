@@ -89,42 +89,6 @@ export function UserDashboard({ data }: UserDashboardProps) {
   const [isProfileVisible, setIsProfileVisible] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Check if all required fields are complete
-  const checkRequiredFieldsComplete = (data: any) => {
-    if (!data) return false;
-    
-    // Check if at least one connection method is selected
-    const hasConnectionMethod = !!(
-      data.profile?.connection1 === '1' || 
-      data.profile?.connection2 === '1' || 
-      data.profile?.connection3 === '1' || 
-      data.profile?.connection4 === '1' || 
-      data.profile?.connection5 === '1' || 
-      data.profile?.connection6 === '1' || 
-      data.profile?.connection7 === '1' || 
-      data.profile?.connection8 === '1'
-    );
-
-    // Check all 11 required fields
-    const requiredFieldsComplete = !!(
-      data.user?.username?.trim() &&
-      data.user?.display_name?.trim() &&
-      data.user?.email?.trim() &&
-      data.profile?.studio_name?.trim() &&
-      data.profile?.short_about?.trim() &&
-      data.profile?.about?.trim() &&
-      (data.studio?.studio_types?.length || 0) >= 1 &&
-      data.profile?.location?.trim() &&
-      hasConnectionMethod &&
-      data.studio?.website_url?.trim() &&
-      (data.studio?.images?.length || 0) >= 1
-    );
-
-    return requiredFieldsComplete;
-  };
-
-  const [allRequiredComplete, setAllRequiredComplete] = useState(false);
-
   // Fetch profile data for completion progress
   useEffect(() => {
     const fetchProfile = async () => {
@@ -134,16 +98,11 @@ export function UserDashboard({ data }: UserDashboardProps) {
           const result = await response.json();
           setProfileData(result.data);
           
-          // Check if required fields are complete
-          const requiredComplete = checkRequiredFieldsComplete(result.data);
-          setAllRequiredComplete(requiredComplete);
-          
           // Set initial visibility state from studio data
           if (result.data.studio) {
             const visible = result.data.studio.is_profile_visible !== false;
             setIsProfileVisible(visible);
             console.log('[Dashboard] Profile visibility loaded:', visible);
-            console.log('[Dashboard] Required fields complete:', requiredComplete);
           }
         }
       } catch (err) {
@@ -161,6 +120,41 @@ export function UserDashboard({ data }: UserDashboardProps) {
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
+
+  // Compute if all required fields are complete (recalculates whenever profileData changes)
+  const allRequiredComplete = useMemo(() => {
+    if (!profileData) return false;
+    
+    // Check if at least one connection method is selected
+    const hasConnectionMethod = !!(
+      profileData.profile?.connection1 === '1' || 
+      profileData.profile?.connection2 === '1' || 
+      profileData.profile?.connection3 === '1' || 
+      profileData.profile?.connection4 === '1' || 
+      profileData.profile?.connection5 === '1' || 
+      profileData.profile?.connection6 === '1' || 
+      profileData.profile?.connection7 === '1' || 
+      profileData.profile?.connection8 === '1'
+    );
+
+    // Check all 11 required fields
+    const requiredFieldsComplete = !!(
+      profileData.user?.username?.trim() &&
+      profileData.user?.display_name?.trim() &&
+      profileData.user?.email?.trim() &&
+      profileData.profile?.studio_name?.trim() &&
+      profileData.profile?.short_about?.trim() &&
+      profileData.profile?.about?.trim() &&
+      (profileData.studio?.studio_types?.length || 0) >= 1 &&
+      profileData.profile?.location?.trim() &&
+      hasConnectionMethod &&
+      profileData.studio?.website_url?.trim() &&
+      (profileData.studio?.images?.length || 0) >= 1
+    );
+
+    console.log('[Dashboard] Required fields complete:', requiredFieldsComplete);
+    return requiredFieldsComplete;
+  }, [profileData]);
 
   // Handle profile visibility toggle
   const handleVisibilityToggle = async (visible: boolean) => {
