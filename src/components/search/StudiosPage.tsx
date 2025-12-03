@@ -318,7 +318,7 @@ export function StudiosPage() {
       scrollTimeout = setTimeout(() => {
         if (!ticking) {
           requestAnimationFrame(() => {
-            if (!heroSectionRef.current || !filterSidebarRef.current) {
+            if (!heroSectionRef.current || !filterSidebarRef.current || !footerRef.current) {
               ticking = false;
               return;
             }
@@ -328,22 +328,35 @@ export function StudiosPage() {
             const navbarHeight = 80; // Approximate navbar height
             const scrollPosition = window.scrollY + navbarHeight;
             
-            const shouldBeSticky = scrollPosition >= heroBottom;
+            // Check if we're past the hero section
+            const isPastHero = scrollPosition >= heroBottom;
+            
+            // Check if the sidebar would overlap the footer
+            const footer = footerRef.current;
+            const footerTop = footer.offsetTop;
+            const sidebarElement = filterSidebarRef.current;
+            const sidebarHeight = sidebarElement.offsetHeight;
+            
+            // Calculate where the bottom of the sidebar would be if it's sticky
+            const stickyTop = navbarHeight + 32; // 80px navbar + 32px padding (top-8)
+            const sidebarBottom = window.scrollY + stickyTop + sidebarHeight;
+            
+            // Sidebar should be sticky if:
+            // 1. We're past the hero section AND
+            // 2. The sidebar bottom wouldn't overlap the footer (with 32px buffer)
+            const shouldBeSticky = isPastHero && (sidebarBottom < footerTop - 32);
             
             // Only update if state actually changes
             if (shouldBeSticky !== isFilterSticky) {
               // Calculate dimensions when transitioning to sticky
               if (shouldBeSticky) {
-                const sidebarElement = filterSidebarRef.current;
-                if (sidebarElement) {
-                  const sidebarRect = sidebarElement.getBoundingClientRect();
-                  const sidebarLeft = sidebarRect.left;
-                  
-                  setStickyStyles({
-                    width: sidebarRect.width,
-                    left: sidebarLeft
-                  });
-                }
+                const sidebarRect = sidebarElement.getBoundingClientRect();
+                const sidebarLeft = sidebarRect.left;
+                
+                setStickyStyles({
+                  width: sidebarRect.width,
+                  left: sidebarLeft
+                });
               }
               
               // Update sticky state
@@ -851,7 +864,9 @@ export function StudiosPage() {
       )}
       
       {/* Footer */}
-      <Footer />
+      <div ref={footerRef}>
+        <Footer />
+      </div>
     </div>
   );
 }
