@@ -79,7 +79,6 @@ export function StudiosPage() {
   const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
   const [viewedStudioIds, setViewedStudioIds] = useState<string[]>([]); // Track viewing history
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [fetchedStudio, setFetchedStudio] = useState<Studio | null>(null); // Store individually fetched studio
   
   // Studio marker modal state
   const [modalStudio, setModalStudio] = useState<{
@@ -105,6 +104,47 @@ export function StudiosPage() {
     // Keep the outline on the card when modal closes
   }, []);
 
+  // Fetch a single studio and add it to results (similar to Load More)
+  const fetchAndAddStudio = async (studioId: string) => {
+    if (!searchResults) return;
+    
+    try {
+      console.log(`📡 Fetching studio ${studioId} to add to results...`);
+      
+      // Use the existing search API with current filters but target the specific studio
+      const params = new URLSearchParams();
+      searchParams.forEach((value, key) => {
+        params.set(key, value);
+      });
+      
+      // Search for this specific studio ID
+      params.set('studioId', studioId);
+      params.set('limit', '1');
+      
+      const response = await fetch(`/api/studios/search?${params.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.studios && data.studios.length > 0) {
+          // Add the fetched studio to the existing results
+          setSearchResults(prev => {
+            if (!prev) return data;
+            // Check if studio already exists to avoid duplicates
+            const exists = prev.studios.some(s => s.id === studioId);
+            if (exists) return prev;
+            
+            return {
+              ...prev,
+              studios: [...prev.studios, data.studios[0]], // Add to end of array
+            };
+          });
+          console.log('✅ Studio added to results');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error fetching studio:', error);
+    }
+  };
+
   // Stable marker click handler (doesn't depend on selectedStudioId)
   const handleMarkerClick = useCallback(async (studioData: any, event: any) => {
     // Close any existing modal
@@ -129,29 +169,11 @@ export function StudiosPage() {
       return [studioData.id, ...filtered];
     });
     
-    // Check if we need to fetch full studio data
-    // (This happens when clicking a marker for a studio not in current paginated results)
+    // Check if studio is in current results, if not fetch it
     if (searchResults) {
       const studioInResults = searchResults.studios.find(s => s.id === studioData.id);
       if (!studioInResults) {
-        try {
-          console.log(`📡 Fetching full data for studio: ${studioData.id}`);
-          const response = await fetch(`/api/studios/${studioData.id}`);
-          if (response.ok) {
-            const data = await response.json();
-            setFetchedStudio(data.studio);
-            console.log('✅ Full studio data fetched successfully');
-          } else {
-            console.error('❌ Failed to fetch studio data');
-            setFetchedStudio(null);
-          }
-        } catch (error) {
-          console.error('❌ Error fetching studio:', error);
-          setFetchedStudio(null);
-        }
-      } else {
-        // Studio is in current results, clear any previously fetched data
-        setFetchedStudio(null);
+        await fetchAndAddStudio(studioData.id);
       }
     }
     
@@ -178,7 +200,7 @@ export function StudiosPage() {
       studio_images: studioData.studio_images,
       position: markerPosition,
     });
-  }, [searchResults]); // No dependencies - uses setters with callbacks
+  }, [searchResults, searchParams]); // Dependencies for fetchAndAddStudio
 
   // Memoize markers array to prevent unnecessary re-renders
   const memoizedMarkers = useMemo(() => {
@@ -641,39 +663,28 @@ export function StudiosPage() {
               />
 
               {/* Selected Studio Card - Shows when a map marker is clicked */}
-              {selectedStudioId && (() => {
-                // Priority 1: Check if it's a fetched studio (from API call)
-                if (fetchedStudio && fetchedStudio.id === selectedStudioId) {
+              {selectedStudioId && searchResults && (() => {
+                const selectedStudio = searchResults.studios.find(s => s.id === selectedStudioId);
+                
+                if (!selectedStudio) {
+                  // Show loading state while studio is being fetched
                   return (
-                    <SelectedStudioDetails
-                      studio={fetchedStudio}
-                    />
+                    <div className="mt-4">
+                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        Selected Studio
+                      </div>
+                      <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-8 text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: '#d42027' }}></div>
+                        <p className="mt-4 text-sm text-gray-500">Loading studio details...</p>
+                      </div>
+                    </div>
                   );
                 }
                 
-                // Priority 2: Find in paginated studios (has full data)
-                if (searchResults) {
-                  const selectedStudio = searchResults.studios.find(s => s.id === selectedStudioId);
-                  if (selectedStudio) {
-                    return (
-                      <SelectedStudioDetails
-                        studio={selectedStudio}
-                      />
-                    );
-                  }
-                }
-                
-                // Priority 3: Fallback - show loading state
                 return (
-                  <div className="mt-4">
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                      Selected Studio
-                    </div>
-                    <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-8 text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: '#d42027' }}></div>
-                      <p className="mt-4 text-sm text-gray-500">Loading studio details...</p>
-                    </div>
-                  </div>
+                  <SelectedStudioDetails
+                    studio={selectedStudio}
+                  />
                 );
               })()}
             </div>
