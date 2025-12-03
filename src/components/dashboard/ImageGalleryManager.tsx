@@ -411,8 +411,9 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
           </div>
 
           {!isAdminMode && (
-            <p className="text-xs text-gray-500 mt-4">
-              💡 Tip: Drag and drop images to reorder them. The first image is your featured image.
+            <p className="text-xs text-gray-500 mt-8">
+              💡 <strong>Tip:</strong> Drag and drop images to reorder them. The first image is your featured image.<br />
+              <span className="text-gray-400">Optimum size: 1200×800px (landscape) for best quality across all devices.</span>
             </p>
           )}
         </div>
