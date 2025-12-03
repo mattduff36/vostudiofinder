@@ -815,7 +815,7 @@ export function StudiosPage() {
                   } : {})
                 }), [searchParams])}
               onSearch={handleSearch}
-              onFilterByMapArea={visibleMarkerCount <= 30 ? handleFilterByMapArea : undefined}
+              {...(visibleMarkerCount <= 30 && { onFilterByMapArea: handleFilterByMapArea })}
               isFilteringByMapArea={isFilteringByMapArea}
               visibleMarkerCount={visibleMarkerCount}
             />
