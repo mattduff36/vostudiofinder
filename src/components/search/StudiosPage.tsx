@@ -9,6 +9,7 @@ import { abbreviateAddress } from '@/lib/utils/address';
 import Image from 'next/image';
 import { StudioMarkerModal } from '@/components/maps/StudioMarkerModal';
 import { Footer } from '@/components/home/Footer';
+import { SelectedStudioDetails } from './SelectedStudioDetails';
 
 interface Studio {
   id: string;
@@ -16,6 +17,7 @@ interface Studio {
   description: string;
   studio_studio_types: Array<{ studio_type: string }>;
   address: string;
+  city?: string;
   website_url?: string;
   phone?: string;
   is_premium: boolean;
@@ -632,6 +634,28 @@ export function StudiosPage() {
                 }), [searchParams])}
                 onSearch={handleSearch}
               />
+
+              {/* Selected Studio Details - Shows when a map marker is clicked */}
+              {modalStudio && selectedStudioId && searchResults && (() => {
+                const selectedStudio = searchResults.studios.find(s => s.id === selectedStudioId);
+                if (!selectedStudio) return null;
+                
+                return (
+                  <SelectedStudioDetails
+                    studio={{
+                      id: selectedStudio.id,
+                      name: selectedStudio.name,
+                      description: selectedStudio.description,
+                      city: selectedStudio.city,
+                      address: selectedStudio.address,
+                      is_verified: selectedStudio.is_verified,
+                      owner: selectedStudio.owner,
+                      studio_studio_types: selectedStudio.studio_studio_types,
+                      studio_services: selectedStudio.studio_services,
+                    }}
+                  />
+                );
+              })()}
             </div>
           </div>
 
