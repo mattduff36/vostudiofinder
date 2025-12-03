@@ -87,6 +87,7 @@ export async function GET(request: NextRequest) {
       studio_services: searchParams.get('services')?.split(',') || undefined,
       equipment: searchParams.get('equipment')?.split(',') || undefined, // New equipment parameter
       studioId: searchParams.get('studioId') || undefined, // Specific studio ID for fetching single studio
+      ids: searchParams.get('ids')?.split(',') || undefined, // Multiple studio IDs for map area filtering
       page: parseInt(searchParams.get('page') || '1'),
       limit: parseInt(searchParams.get('limit') || '18'),
       offset: parseInt(searchParams.get('offset') || '0'), // New offset parameter for load-more pattern
@@ -124,6 +125,13 @@ export async function GET(request: NextRequest) {
     if (validatedParams.studioId) {
       (where.AND as Prisma.studiosWhereInput[]).push({
         id: validatedParams.studioId,
+      });
+    }
+
+    // If searching for multiple studio IDs (for map area filtering), add them to the where clause
+    if (validatedParams.ids && validatedParams.ids.length > 0) {
+      (where.AND as Prisma.studiosWhereInput[]).push({
+        id: { in: validatedParams.ids },
       });
     }
 

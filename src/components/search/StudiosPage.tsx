@@ -286,40 +286,82 @@ export function StudiosPage() {
     }).length;
   }, [memoizedMarkers, mapBounds]);
 
+  // Studios filtered by map area - fetched separately
+  const [mapAreaStudios, setMapAreaStudios] = useState<Studio[]>([]);
+  const [loadingMapArea, setLoadingMapArea] = useState(false);
+
+  // Fetch studios by their IDs when filtering by map area
+  useEffect(() => {
+    if (!isFilteringByMapArea || !mapBounds || !memoizedMarkers.length) {
+      setMapAreaStudios([]);
+      return;
+    }
+
+    const fetchMapAreaStudios = async () => {
+      setLoadingMapArea(true);
+      logger.log('🗺️ Fetching studios for map area filter');
+      
+      // Get all marker IDs within map bounds
+      const studioIdsInBounds = memoizedMarkers
+        .filter(marker => {
+          const lat = marker.position.lat;
+          const lng = marker.position.lng;
+          return (
+            lat >= mapBounds.south &&
+            lat <= mapBounds.north &&
+            lng >= mapBounds.west &&
+            lng <= mapBounds.east
+          );
+        })
+        .map(marker => marker.id);
+
+      logger.log(`📍 Found ${studioIdsInBounds.length} markers in map bounds`);
+
+      if (studioIdsInBounds.length === 0) {
+        setMapAreaStudios([]);
+        setLoadingMapArea(false);
+        return;
+      }
+
+      try {
+        // Fetch all studios with those IDs
+        const params = new URLSearchParams();
+        params.set('ids', studioIdsInBounds.join(','));
+        params.set('limit', '1000'); // Get all studios
+        
+        const response = await fetch(`/api/studios/search?${params.toString()}`);
+        if (response.ok) {
+          const data = await response.json();
+          logger.log(`✅ Fetched ${data.studios.length} studios for map area`);
+          setMapAreaStudios(data.studios);
+        } else {
+          logger.error('❌ Failed to fetch map area studios');
+          setMapAreaStudios([]);
+        }
+      } catch (error) {
+        logger.error('❌ Error fetching map area studios:', error);
+        setMapAreaStudios([]);
+      } finally {
+        setLoadingMapArea(false);
+      }
+    };
+
+    fetchMapAreaStudios();
+  }, [isFilteringByMapArea, mapBounds, memoizedMarkers]);
+
   // Reorder studios based on viewing history, and exclude currently selected studio
   const displayStudios = useMemo(() => {
     if (!searchResults) return [];
     
-    // When filtering by map area, we want to show ALL studios in the map bounds,
-    // not just those from the current search results
+    // When filtering by map area, use the fetched map area studios
     let studiosForGrid: Studio[];
     
-    if (isFilteringByMapArea && mapBounds) {
-      // Use ALL studios from search results (ignoring pagination)
-      // In the future, this could fetch from a separate API endpoint for all studios
-      logger.log('🗺️ Filtering by map area - using all available studios');
-      logger.log(`  Map bounds: N:${mapBounds.north}, S:${mapBounds.south}, E:${mapBounds.east}, W:${mapBounds.west}`);
-      
-      studiosForGrid = searchResults.studios.filter(studio => {
-        // Skip the selected studio
-        if (studio.id === selectedStudioId) return false;
-        
-        if (!studio.latitude || !studio.longitude) return false;
-        
-        const lat = typeof studio.latitude === 'number' ? studio.latitude : parseFloat(String(studio.latitude));
-        const lng = typeof studio.longitude === 'number' ? studio.longitude : parseFloat(String(studio.longitude));
-        
-        const isInBounds = (
-          lat >= mapBounds.south &&
-          lat <= mapBounds.north &&
-          lng >= mapBounds.west &&
-          lng <= mapBounds.east
-        );
-        
-        return isInBounds;
-      });
-      
-      logger.log(`📊 Map area filter: ${studiosForGrid.length} studios in bounds`);
+    if (isFilteringByMapArea && mapAreaStudios.length > 0) {
+      logger.log(`🗺️ Using ${mapAreaStudios.length} studios from map area filter`);
+      studiosForGrid = mapAreaStudios.filter(studio => studio.id !== selectedStudioId);
+    } else if (isFilteringByMapArea && loadingMapArea) {
+      // Still loading map area studios
+      return [];
     } else {
       // Normal mode: use search results and filter out selected studio
       studiosForGrid = searchResults.studios.filter(
@@ -348,7 +390,7 @@ export function StudiosPage() {
     
     // Return viewed studios first, then other studios
     return [...viewedStudios, ...otherStudios];
-  }, [searchResults, selectedStudioId, viewedStudioIds, isFilteringByMapArea, mapBounds]);
+  }, [searchResults, selectedStudioId, viewedStudioIds, isFilteringByMapArea, mapAreaStudios, loadingMapArea]);
 
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
 
