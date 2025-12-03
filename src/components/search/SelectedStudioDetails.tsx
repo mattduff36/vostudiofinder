@@ -71,7 +71,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
     const rafId = requestAnimationFrame(() => {
       const timer = setTimeout(() => {
         setHasAnimated(true);
-      }, 800); // Match animation duration
+      }, 400); // Match animation duration
       
       // Store timer for cleanup
       (window as any).__selectedStudioTimer = timer;
@@ -102,7 +102,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
       {/* Full Studio Card - matching StudiosList design with red border to indicate selection */}
       <div
         onClick={handleCardClick}
-        className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col w-full ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} animate-expand-center`}
+        className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col w-full ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} ${!hasAnimated ? 'animate-expand-center' : ''}`}
         style={{
           border: '3px solid #EF4444', // Red border directly on edge
           minHeight: '360px'
