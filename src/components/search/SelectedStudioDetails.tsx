@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { MapPin, Star } from 'lucide-react';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
