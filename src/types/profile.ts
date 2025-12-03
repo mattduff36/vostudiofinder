@@ -121,7 +121,7 @@ export interface ProfileCompletionData {
   connection6?: string;
   connection7?: string;
   connection8?: string;
-  rate_tier_1?: number | null;
+  rate_tier_1?: number | string | null;
   website_url?: string;
   images_count?: number;
   studio_types_count?: number;
