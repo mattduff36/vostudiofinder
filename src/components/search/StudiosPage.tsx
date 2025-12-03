@@ -318,7 +318,7 @@ export function StudiosPage() {
       scrollTimeout = setTimeout(() => {
         if (!ticking) {
           requestAnimationFrame(() => {
-            if (!heroSectionRef.current || !filterSidebarRef.current || !footerRef.current) {
+            if (!heroSectionRef.current || !filterSidebarRef.current) {
               ticking = false;
               return;
             }
@@ -328,28 +328,14 @@ export function StudiosPage() {
             const navbarHeight = 80; // Approximate navbar height
             const scrollPosition = window.scrollY + navbarHeight;
             
-            // Check if we're past the hero section
-            const isPastHero = scrollPosition >= heroBottom;
-            
-            // Check if the sidebar would overlap the footer
-            const footer = footerRef.current;
-            const footerTop = footer.offsetTop;
-            const sidebarElement = filterSidebarRef.current;
-            const sidebarHeight = sidebarElement.offsetHeight;
-            
-            // Calculate where the bottom of the sidebar would be if it's sticky
-            const stickyTop = navbarHeight + 32; // 80px navbar + 32px padding (top-8)
-            const sidebarBottom = window.scrollY + stickyTop + sidebarHeight;
-            
-            // Sidebar should be sticky if:
-            // 1. We're past the hero section AND
-            // 2. The sidebar bottom wouldn't overlap the footer (with 32px buffer)
-            const shouldBeSticky = isPastHero && (sidebarBottom < footerTop - 32);
+            // Sidebar should stick after scrolling past the hero section
+            const shouldBeSticky = scrollPosition >= heroBottom;
             
             // Only update if state actually changes
             if (shouldBeSticky !== isFilterSticky) {
               // Calculate dimensions when transitioning to sticky
               if (shouldBeSticky) {
+                const sidebarElement = filterSidebarRef.current;
                 const sidebarRect = sidebarElement.getBoundingClientRect();
                 const sidebarLeft = sidebarRect.left;
                 
@@ -660,15 +646,20 @@ export function StudiosPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
           <div ref={filterContainerRef} className="lg:col-span-1 hidden lg:block">
+            {/* Placeholder to maintain layout when filter becomes fixed */}
+            {isFilterSticky && <div style={{ height: '600px' }} />}
+            
             <div 
               ref={filterSidebarRef}
-              className="sticky"
-              style={{
-                top: '112px', // 80px navbar + 32px padding (top-8)
+              className={isFilterSticky ? 'fixed z-30' : 'sticky top-8'}
+              style={isFilterSticky && stickyStyles ? {
+                width: `${stickyStyles.width}px`,
+                left: `${stickyStyles.left}px`,
+                top: '112px', // 80px navbar + 32px padding
                 maxHeight: 'calc(100vh - 144px)', // Leave space for navbar + padding + footer buffer
                 overflowY: 'auto',
                 overflowX: 'hidden'
-              }}
+              } : {}}
             >
               <SearchFilters
                 initialFilters={useMemo(() => ({
@@ -856,9 +847,7 @@ export function StudiosPage() {
       )}
       
       {/* Footer */}
-      <div ref={footerRef}>
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
 }
