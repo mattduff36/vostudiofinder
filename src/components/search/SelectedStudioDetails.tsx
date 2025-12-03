@@ -67,10 +67,8 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
 
   // Trigger animation only on first mount
   useEffect(() => {
-    if (!hasAnimated) {
-      setHasAnimated(true);
-    }
-  }, [hasAnimated]);
+    setHasAnimated(true);
+  }, []); // Empty dependency array - runs once on mount only
 
   const handleCardClick = () => {
     if (studio.owner?.username) {
