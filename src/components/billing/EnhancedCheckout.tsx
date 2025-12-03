@@ -3,14 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { useRouter } from 'next/navigation';
 import { PaymentMethodSelector, PaymentMethod } from './PaymentMethodSelector';
-import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
-import { useRouter } from 'next/navigation';
-
 interface EnhancedCheckoutProps {
   studio_id: string;
   planName: string;
@@ -19,9 +14,7 @@ interface EnhancedCheckoutProps {
   onSuccess?: () => void;
   onError?: (error: string) => void;
 }
-
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
 export function EnhancedCheckout({
   const router = useRouter();
   studio_id,
@@ -32,12 +25,10 @@ export function EnhancedCheckout({
   const [selectedMethod] = useState<PaymentMethod>('stripe'); // Stripe only now
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const handleStripeCheckout = async () => {
     try {
       setIsLoading(true);
       setError(null);
-
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: {
@@ -48,13 +39,10 @@ export function EnhancedCheckout({
           priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
         }),
       });
-
       if (!response.ok) {
         throw new Error('Failed to create checkout session');
       }
-
     const { sessionId, url } = await response.json();
-
     // Stripe.js v8 uses direct URL redirect instead of redirectToCheckout
     if (url) {
       window.location.href = url;
@@ -65,16 +53,13 @@ export function EnhancedCheckout({
         window.location.href = `https://checkout.stripe.com/pay/${sessionId}`;
       } else {
         throw new Error('Stripe failed to load');
-      }
     }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Payment failed';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
-    }
   };
-
   if (!session) {
     return (
       <div className="text-center py-8">
@@ -85,7 +70,6 @@ export function EnhancedCheckout({
       </div>
     );
   }
-
   return (
     <div className="space-y-8" style={{ maxWidth: '768px', margin: '0 auto' }}>
       {/* Plan Summary */}
@@ -101,7 +85,6 @@ export function EnhancedCheckout({
               £{planPrice.toFixed(2)}
             </p>
             <p className="text-sm text-gray-600">per year</p>
-          </div>
         </div>
         
         <div className="mt-4 pt-4 border-t border-gray-200">
@@ -110,33 +93,17 @@ export function EnhancedCheckout({
               <span className="text-green-500 mr-2">✓</span>
               Featured studio listing
             </li>
-            <li className="flex items-center">
-              <span className="text-green-500 mr-2">✓</span>
               Priority placement in search results
-            </li>
-            <li className="flex items-center">
-              <span className="text-green-500 mr-2">✓</span>
               Unlimited photo uploads
-            </li>
-            <li className="flex items-center">
-              <span className="text-green-500 mr-2">✓</span>
               Enhanced profile customization
-            </li>
-            <li className="flex items-center">
-              <span className="text-green-500 mr-2">✓</span>
               Detailed analytics and insights
-            </li>
           </ul>
-        </div>
-      </div>
-
       {/* Payment Method Selection */}
       <PaymentMethodSelector
         onMethodSelect={() => {}} // No-op since we only have Stripe now
         selectedMethod={selectedMethod}
         isLoading={isLoading}
       />
-
       {/* Error Display */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -147,10 +114,7 @@ export function EnhancedCheckout({
               </svg>
             </div>
             <p className="text-red-800">{error}</p>
-          </div>
-        </div>
       )}
-
       {/* Checkout Button */}
       <div className="text-center">
         <Button
@@ -162,32 +126,20 @@ export function EnhancedCheckout({
             <div className="flex items-center justify-center">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
               Processing...
-            </div>
           ) : (
             'Subscribe with Card'
           )}
-        </Button>
-        
         <p className="text-xs text-gray-500 mt-4">
           You can cancel anytime. No hidden fees or long-term commitments.
         </p>
-      </div>
-
       {/* Trust Indicators */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center text-sm text-gray-600">
         <div className="flex items-center justify-center">
           <span className="text-green-500 mr-2">🔒</span>
           SSL Encrypted
-        </div>
-        <div className="flex items-center justify-center">
           <span className="text-blue-500 mr-2">💳</span>
           Stripe Secure
-        </div>
-        <div className="flex items-center justify-center">
           <span className="text-purple-500 mr-2">↩️</span>
           Cancel Anytime
-        </div>
-      </div>
     </div>
   );
-}

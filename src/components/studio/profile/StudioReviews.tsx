@@ -3,16 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { useRouter } from 'next/navigation';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
-import { useRouter } from 'next/navigation';
 import { ReviewsList } from '@/components/reviews/ReviewsList';
-import { useRouter } from 'next/navigation';
 import { Star, Users, Plus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-
 interface StudioReviewsProps {
   studio: {
     id: string;
@@ -33,19 +27,16 @@ interface StudioReviewsProps {
   };
   canReview: boolean;
 }
-
 export function StudioReviews({ studio, canReview }: StudioReviewsProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const [showReviewForm, setShowReviewForm] = useState(false);
-
   // Calculate rating distribution
   const ratingDistribution = [5, 4, 3, 2, 1].map(rating => {
     const count = studio.reviews.filter(review => review.rating === rating).length;
     const percentage = studio.reviews.length > 0 ? (count / studio.reviews.length) * 100 : 0;
     return { rating, count, percentage };
   });
-
   return (
     <div className="space-y-8">
       {/* Reviews Summary */}
@@ -68,7 +59,6 @@ export function StudioReviews({ studio, canReview }: StudioReviewsProps) {
             </Button>
           )}
         </div>
-
         {studio.reviews.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Overall Rating */}
@@ -87,12 +77,10 @@ export function StudioReviews({ studio, canReview }: StudioReviewsProps) {
                     }`}
                   />
                 ))}
-              </div>
               <p className="text-text-secondary">
                 Based on {studio._count.reviews} reviews
               </p>
             </div>
-
             {/* Rating Distribution */}
             <div className="space-y-2">
               {ratingDistribution.map(({ rating, count, percentage }) => (
@@ -108,27 +96,21 @@ export function StudioReviews({ studio, canReview }: StudioReviewsProps) {
                   </div>
                   <span className="text-sm text-text-secondary w-8">
                     {count}
-                  </span>
                 </div>
               ))}
-            </div>
-          </div>
         ) : (
           <div className="text-center py-8">
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-text-primary mb-2">No Reviews Yet</h3>
             <p className="text-text-secondary mb-4">
               Be the first to share your experience with {studio.name}
-            </p>
             {canReview && (
               <Button onClick={() => setShowReviewForm(true)}>
                 Write the First Review
               </Button>
             )}
-          </div>
         )}
       </div>
-
       {/* Review Form */}
       {showReviewForm && (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -142,9 +124,7 @@ export function StudioReviews({ studio, canReview }: StudioReviewsProps) {
             }}
             onCancel={() => setShowReviewForm(false)}
           />
-        </div>
       )}
-
       {/* Reviews List */}
       {studio.reviews.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200">
@@ -152,11 +132,7 @@ export function StudioReviews({ studio, canReview }: StudioReviewsProps) {
             <h3 className="text-lg font-medium text-text-primary">
               Recent Reviews ({studio.reviews.length})
             </h3>
-          </div>
           <ReviewsList reviews={studio.reviews} />
-        </div>
-      )}
-
       {/* Authentication Prompt */}
       {!session && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
@@ -167,20 +143,10 @@ export function StudioReviews({ studio, canReview }: StudioReviewsProps) {
             Sign in to share your experience with {studio.name} and help other voice professionals.
           </p>
           <div className="space-x-4">
-            <Button
               onClick={() => router.push('/auth/signin')}
               variant="outline"
-            >
               Sign In
-            </Button>
-            <Button
               onClick={() => router.push('/auth/signup')}
-            >
               Sign Up
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
-}
