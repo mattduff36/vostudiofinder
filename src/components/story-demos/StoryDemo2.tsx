@@ -172,7 +172,7 @@ export function StoryDemo2() {
       <div className="relative z-10 py-8 w-full">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-12 text-center text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-            Why I Built This Platform
+            Why Voiceover Studio Finder Exists
           </h2>
           
           {displaySection < 4 && (
