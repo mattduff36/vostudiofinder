@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       studioId: searchParams.get('studioId') || undefined, // Specific studio ID for fetching single studio
       ids: searchParams.get('ids')?.split(',') || undefined, // Multiple studio IDs for map area filtering
       page: parseInt(searchParams.get('page') || '1'),
-      limit: parseInt(searchParams.get('limit') || '18'),
+      limit: parseInt(searchParams.get('limit') || '30'),
       offset: parseInt(searchParams.get('offset') || '0'), // New offset parameter for load-more pattern
       sortBy: searchParams.get('sortBy') || 'name',
       sort_order: searchParams.get('sort_order') || 'asc',

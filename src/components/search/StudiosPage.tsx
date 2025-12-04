@@ -399,7 +399,7 @@ export function StudiosPage() {
     setLoading(true);
     if (resetOffset) {
       params.set('offset', '0');
-      params.set('limit', '18'); // Initial load: 18 studios
+      params.set('limit', '30'); // Initial load: 30 studios
     }
     try {
       const response = await fetch(`/api/studios/search?${params.toString()}`);
