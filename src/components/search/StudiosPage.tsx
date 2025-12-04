@@ -737,7 +737,7 @@ export function StudiosPage() {
           />
           
           {/* Modal Content - positioned below navbar */}
-          <div className="relative h-full bg-white mt-20">
+          <div className="relative bg-white mt-20" style={{ height: 'calc(100vh - 5rem)' }}>
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
               <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
@@ -753,13 +753,16 @@ export function StudiosPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="overflow-y-auto p-6" style={{ height: 'calc(100vh - 80px - 64px - 88px)' }}>
+            <div className="overflow-y-auto p-6" style={{ height: 'calc(100vh - 5rem - 64px - 88px)' }}>
               <SearchFilters
                 initialFilters={mobileFiltersInitialState}
                 onSearch={(filters) => {
                   handleSearch(filters);
                   setShowMobileFilters(false);
                 }}
+                onFilterByMapArea={handleFilterByMapArea}
+                isFilteringByMapArea={isFilteringByMapArea}
+                visibleMarkerCount={visibleMarkerCount}
               />
             </div>
 

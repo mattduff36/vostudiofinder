@@ -411,14 +411,12 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
             ))}
           </div>
 
-          {!isAdminMode && (
-            <div className="mt-8 pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-500">
-                💡 <strong>Tip:</strong> Drag and drop images to reorder them. The first image is your featured image.<br />
-                <span className="text-gray-400">Optimum size: 1200×800px (landscape) for best quality across all devices.</span>
-              </p>
-            </div>
-          )}
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <p className="text-xs text-gray-500">
+              💡 <strong>Tip:</strong> Drag and drop images to reorder them. The first image is your featured image.<br />
+              <span className="text-gray-400">Optimum size: 1200×800px (landscape) for best quality across all devices.</span>
+            </p>
+          </div>
         </div>
       ) : (
         <div className={`text-center ${isAdminMode ? '' : 'px-6 pb-6'}`}>
