@@ -624,7 +624,7 @@ export function StudiosPage() {
       {/* Main Content Area */}
       <main className="relative z-10 flex-1">
         {/* Header Section - Simplified */}
-        <div className="relative overflow-hidden pt-20" style={{ height: '200px' }}>
+        <div className="relative overflow-hidden pt-20" style={{ height: '180px' }}>
         <div className="absolute inset-0">
           <Image
             src="/background-images/21920-3.jpg"
@@ -641,26 +641,27 @@ export function StudiosPage() {
             background: 'linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 1))' 
           }}
         ></div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 flex items-center justify-center" style={{ height: '120px' }}>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-center" style={{ height: '100px' }}>
           <div className="text-center">
             <h1 
-              className="font-bold" 
+              className="font-bold px-2" 
               style={{ 
                 color: '#ffffff',
-                fontSize: 'clamp(1.5rem, 3.5vw, 2rem)', // Responsive: 24px (mobile) to 32px (desktop) - reduced desktop
-                marginTop: '0.25rem', // Reduced from mt-2 (0.5rem) by 50%
-                whiteSpace: 'normal' // Allow text wrapping for long location names
+                fontSize: 'clamp(1.25rem, 3.5vw, 2rem)', // Responsive: 20px (mobile) to 32px (desktop)
+                marginTop: '0.25rem',
+                whiteSpace: 'normal', // Allow text wrapping for long location names
+                lineHeight: '1.2'
               }}
             >
               {dynamicH1Text}
             </h1>
             <h2 
-              className="font-normal"
+              className="font-normal px-2 hidden sm:block"
               style={{ 
                 color: '#ffffff',
-                fontSize: 'clamp(0.75rem, 1.5vw, 1rem)', // Responsive: 12px (mobile) to 16px (desktop) - increased desktop
-                marginTop: '-1rem', // Increased negative margin to pull even closer
-                marginBottom: '0.5rem' // Added bottom padding (same as original mt-2)
+                fontSize: 'clamp(0.75rem, 1.5vw, 1rem)', // Responsive: 12px (mobile) to 16px (desktop)
+                marginTop: '0.5rem',
+                marginBottom: '0.5rem'
               }}
             >
               Find voiceover, recording and podcast studios near you
@@ -671,19 +672,20 @@ export function StudiosPage() {
 
 
       {/* Mobile Controls */}
-      <div className="lg:hidden sticky top-20 z-30 bg-white border-b border-gray-200 px-6 py-3">
-        <div className="flex space-x-3">
+      <div className="lg:hidden sticky top-20 z-30 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 shadow-sm">
+        <div className="flex space-x-2 sm:space-x-3">
           {/* Filter Button */}
           <button
             onClick={() => setShowMobileFilters(true)}
-            className="flex items-center justify-center flex-1 py-3 px-4 bg-white border-2 border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200 relative"
+            className="flex items-center justify-center flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-gray-300 rounded-lg font-medium text-sm sm:text-base text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 relative"
+            aria-label={`Open filters${getActiveFilterCount() > 0 ? ` (${getActiveFilterCount()} active)` : ''}`}
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
             </svg>
             Filters
             {getActiveFilterCount() > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center">
                 {getActiveFilterCount()}
               </span>
             )}
@@ -693,29 +695,33 @@ export function StudiosPage() {
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setMobileView('list')}
-              className={`flex items-center justify-center px-3 py-2 rounded-md font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center justify-center px-2.5 sm:px-3 py-2 rounded-md font-medium text-xs sm:text-sm transition-all duration-200 ${
                 mobileView === 'list'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
+              aria-label="List view"
+              aria-pressed={mobileView === 'list'}
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
               </svg>
-              List
+              <span className="hidden xs:inline">List</span>
             </button>
             <button
               onClick={() => setMobileView('map')}
-              className={`flex items-center justify-center px-3 py-2 rounded-md font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center justify-center px-2.5 sm:px-3 py-2 rounded-md font-medium text-xs sm:text-sm transition-all duration-200 ${
                 mobileView === 'map'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
+              aria-label="Map view"
+              aria-pressed={mobileView === 'map'}
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
-              Map
+              <span className="hidden xs:inline">Map</span>
             </button>
           </div>
         </div>
@@ -723,43 +729,42 @@ export function StudiosPage() {
 
       {/* Mobile Filter Modal */}
       {showMobileFilters && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-[60] lg:hidden">
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowMobileFilters(false)}
           />
           
-          {/* Modal Content */}
-          <div className="relative h-full bg-white">
+          {/* Modal Content - positioned below navbar */}
+          <div className="relative h-full bg-white mt-20">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
               <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
               <button
                 onClick={() => setShowMobileFilters(false)}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors -mr-2"
+                aria-label="Close filters"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="overflow-y-auto p-6" style={{ height: 'calc(100vh - 80px - 64px - 88px)' }}>
               <SearchFilters
                 initialFilters={mobileFiltersInitialState}
                 onSearch={(filters) => {
                   handleSearch(filters);
                   setShowMobileFilters(false);
                 }}
-                onFilterByMapArea={handleFilterByMapArea}
-                isFilteringByMapArea={isFilteringByMapArea}
               />
             </div>
 
             {/* Modal Footer */}
-            <div className="border-t border-gray-200 p-4">
+            <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white p-4 shadow-lg">
               <div className="flex space-x-3">
                 <button
                   onClick={() => {
@@ -783,8 +788,8 @@ export function StudiosPage() {
         </div>
       )}
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {/* Filters Sidebar */}
           <aside className="lg:col-span-1 hidden lg:block">
             <div 
@@ -873,7 +878,7 @@ export function StudiosPage() {
 
                 {/* Mobile: Conditional Map View */}
                 {mobileView === 'map' && (
-                  <div className="lg:hidden h-[500px]">
+                  <div className="lg:hidden h-[400px] sm:h-[500px]">
                     <GoogleMap
                       key={`mobile-map-${searchResults.searchCoordinates ? `${searchResults.searchCoordinates.lat}-${searchResults.searchCoordinates.lng}` : 'global'}`}
                       center={searchResults.searchCoordinates 

@@ -539,16 +539,16 @@ export function EnhancedSearchBar({
   return (
     <div className={`relative ${className}`}>
       {/* Main Search Input */}
-      <div className="bg-white rounded-xl p-2 shadow-2xl">
-        <div className="flex gap-3">
-          <div className="flex-1">
+      <div className="bg-white rounded-xl p-2 sm:p-2 shadow-2xl">
+        <div className="flex gap-2 sm:gap-3">
+          <div className="flex-1 min-w-0">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: colors.textSubtle }} />
               <input
                 ref={inputRef}
                 type="text"
                 placeholder={placeholder}
-                className="w-full h-10 pl-8 pr-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
+                className="w-full h-10 pl-8 pr-2 sm:pr-3 text-sm sm:text-base border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                 style={{ 
                   color: colors.textPrimary
                 } as React.CSSProperties}
@@ -581,7 +581,7 @@ export function EnhancedSearchBar({
           
           {/* Search Button */}
           <button
-            className="h-10 px-4 font-semibold rounded-lg transition-all duration-300 hover:shadow-lg"
+            className="h-10 px-3 sm:px-4 text-sm sm:text-base font-semibold rounded-lg transition-all duration-300 hover:shadow-lg flex-shrink-0"
             style={{ backgroundColor: colors.primary, color: colors.background }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryHover}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
@@ -628,9 +628,9 @@ export function EnhancedSearchBar({
 
       {/* Radius Slider - Moved Below Search Bar */}
       {showRadius && (
-        <div className="mt-6 p-4 bg-transparent">
+        <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-transparent">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-white">
+            <label className="text-xs sm:text-sm font-medium text-white">
               Search Radius: <span className="font-bold">{radius} miles</span>
             </label>
             <span></span>
@@ -664,7 +664,7 @@ export function EnhancedSearchBar({
               
               setRadius(newRadius);
             }}
-            className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider"
+            className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider touch-none"
             style={{
               background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${(() => {
                 // Convert radius to percentage for visual progress bar
@@ -680,7 +680,7 @@ export function EnhancedSearchBar({
               })()}%, rgba(255, 255, 255, 0.3) 100%)`
             }}
           />
-          <div className="flex justify-between text-xs text-white opacity-70 mt-1">
+          <div className="flex justify-between text-xs text-white opacity-70 mt-1 px-1">
             <span>1mi</span>
             <span>5mi</span>
             <span>10mi</span>

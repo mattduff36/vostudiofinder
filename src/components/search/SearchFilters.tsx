@@ -294,9 +294,9 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
         </div>
       </div>
 
-      {/* Filter by Map Area - Only show when 30 or fewer markers visible */}
+      {/* Filter by Map Area - Only show on desktop when 30 or fewer markers visible */}
       {onFilterByMapArea && (
-        <div>
+        <div className="hidden lg:block">
           <Button
             onClick={onFilterByMapArea}
             variant={isFilteringByMapArea ? "primary" : "outline"}
