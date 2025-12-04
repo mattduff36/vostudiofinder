@@ -120,10 +120,10 @@ export default function JoinWaitlistPage() {
         <div className="mb-12">
           <div className="max-w-3xl mx-auto text-center space-y-4">
             <p className="text-xl text-gray-700">
-              We're almost ready to welcome new studio owners to the platform.
+              We're almost ready to welcome new studios to the platform.
             </p>
             <p className="text-lg text-gray-600">
-              VoiceoverStudioFinder is in its final testing phase — we're fine-tuning every detail to make sure the experience is smooth, reliable, and genuinely useful for both studio owners and voice artists.
+              VoiceoverStudioFinder is in its final testing phase. We're fine-tuning every detail to make sure the experience is smooth, reliable, and genuinely useful for both studio owners and voice artists. We'd love to add you and your studio.
             </p>
           </div>
         </div>
@@ -215,7 +215,7 @@ export default function JoinWaitlistPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg mb-1">No Commission</h3>
-                    <p className="text-gray-600">Keep 100% of what you earn. It's just £25/year to list your studio — and one booking more than covers the whole year.</p>
+                    <p className="text-gray-600">Keep 100% of what you earn. No stupid monthly payments! It's just £25/year to list your studio! One booking more than covers the listing fee.</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -224,7 +224,7 @@ export default function JoinWaitlistPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg mb-1">Global Reach</h3>
-                    <p className="text-gray-600">Be discovered by thousands of voice artists, agencies, and production teams worldwide. Ideal for travelling voiceovers who need a trusted local studio.</p>
+                    <p className="text-gray-600">Be discovered by thousands of voice artists, agencies, and production teams worldwide. Ideal for travelling voiceovers who need a trusted local studio for a last minute job.</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
