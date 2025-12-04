@@ -110,7 +110,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
   }
 
   return (
-    <div ref={sectionRef} className="relative py-8 overflow-hidden">
+    <div ref={sectionRef} className="relative py-6 sm:py-8 overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -121,15 +121,15 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           priority={false}
         />
       </div>
-      <div className="relative z-10 pt-0 pb-6 sm:py-8 w-full">
+      <div className="relative z-10 pt-0 pb-4 sm:pb-6 md:py-8 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className={`text-center mb-8 sm:mb-12 transition-all duration-1000 ${
+        <div className={`text-center mb-6 sm:mb-8 md:mb-12 transition-all duration-1000 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4" style={{ color: colors.textPrimary }}>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3 md:mb-4" style={{ color: colors.textPrimary }}>
             Featured Studios
           </h2>
-          <p className={`text-base sm:text-lg md:text-xl text-center transition-all duration-1000 ease-out px-4 ${
+          <p className={`text-sm sm:text-base md:text-lg lg:text-xl text-center transition-all duration-1000 ease-out px-4 ${
             isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.2s', color: colors.textSecondary, maxWidth: '768px', margin: '0 auto' }}>
             These are a handful of some of our favourite studios listed.
@@ -346,10 +346,10 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
         </div>
 
         {/* View All Studios Button */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-8 sm:mt-10 md:mt-12">
           <button 
             onClick={() => router.push('/studios')}
-            className="px-8 py-3 font-medium rounded-lg transition-all duration-300 hover:shadow-lg" 
+            className="px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-medium rounded-lg transition-all duration-300 hover:shadow-lg" 
             style={{ border: `1px solid ${colors.primary}`, color: colors.primary, backgroundColor: 'transparent' }}
           >
             View All Studios

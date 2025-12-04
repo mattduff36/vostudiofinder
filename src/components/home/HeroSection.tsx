@@ -63,7 +63,7 @@ export function HeroSection() {
       {/* Hero Content */}
       <div className="relative z-10 py-12 sm:py-16 md:py-20 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <h1 className={`hp1 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-center transition-all duration-1000 delay-200 leading-tight ${
+          <h1 className={`hp1 text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-3 sm:mb-4 md:mb-6 text-center transition-all duration-1000 delay-200 leading-tight ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ color: '#ffffff' }}>
             Find a<br className="hidden sm:block"/>
@@ -71,20 +71,20 @@ export function HeroSection() {
             <span style={{ color: colors.primary }}>Voiceover Recording Studio</span>
           </h1>
           
-          <h2 className={`text-xl sm:text-2xl md:text-3xl font-semibold text-center mb-3 transition-all duration-1000 ease-out px-4 ${
+          <h2 className={`text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-center mb-2 sm:mb-3 transition-all duration-1000 ease-out px-4 ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.4s', color: '#ffffff', maxWidth: '768px', margin: '0 auto 1rem auto' }}>
+          }`} style={{ transitionDelay: '0.4s', color: '#ffffff', maxWidth: '768px', margin: '0 auto 0.5rem auto' }}>
             Professional Voiceover, Podcast & Broadcast Studios Worldwide
           </h2>
           
-          <p className={`text-base sm:text-lg text-center transition-all duration-1000 ease-out px-4 ${
+          <p className={`text-sm sm:text-base md:text-lg text-center transition-all duration-1000 ease-out px-4 mb-4 sm:mb-0 ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.5s', color: '#ffffff', maxWidth: '768px', margin: '0 auto' }}>
+          }`} style={{ transitionDelay: '0.5s', color: '#ffffff', maxWidth: '768px', margin: '0 auto 1rem auto' }}>
             Verified locations. No commission. Direct studio contact.
           </p>
 
           {/* Enhanced Search Form */}
-          <div className={`max-w-4xl mx-auto mt-8 sm:mt-10 md:mt-12 px-4 transition-all duration-700 ${
+          <div className={`max-w-4xl mx-auto mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 transition-all duration-700 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ transitionDelay: '0.2s' }}>
             <EnhancedSearchBar

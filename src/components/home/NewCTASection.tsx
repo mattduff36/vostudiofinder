@@ -50,7 +50,7 @@ export function NewCTASection() {
   ];
 
   return (
-    <div className="relative py-16 overflow-hidden" style={{ backgroundColor: colors.background }}>
+    <div className="relative py-10 sm:py-12 md:py-16 overflow-hidden" style={{ backgroundColor: colors.background }}>
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -64,13 +64,13 @@ export function NewCTASection() {
       
       {/* Content */}
       <div className="relative z-10 w-full">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.textPrimary }}>
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 px-2" style={{ color: colors.textPrimary }}>
               The Easiest Way for Voice Artists and Studios to Work Together
             </h2>
-            <p className={`text-lg md:text-xl text-center transition-all duration-1000 ease-out ${
+            <p className={`text-sm sm:text-base md:text-lg lg:text-xl text-center transition-all duration-1000 ease-out px-2 ${
               isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
             }`} style={{ 
               transitionDelay: '0.2s', 
@@ -83,31 +83,31 @@ export function NewCTASection() {
           </div>
 
           {/* Three Column Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 mb-10 sm:mb-12 md:mb-16">
             {sections.map((section, index) => (
-              <div key={index} className="flex flex-col">
+              <div key={index} className="flex flex-col px-2">
                 {/* Icon */}
                 <div 
-                  className="w-16 h-16 rounded-lg flex items-center justify-center mb-6"
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg flex items-center justify-center mb-4 sm:mb-6"
                   style={{ backgroundColor: colors.primary }}
                 >
-                  <section.icon className="w-8 h-8 text-white" />
+                  <section.icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
                 </div>
                 
                 {/* Title */}
-                <h3 className="text-xl font-semibold mb-6" style={{ color: colors.textPrimary }}>
+                <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6" style={{ color: colors.textPrimary }}>
                   {section.title}
                 </h3>
                 
                 {/* Points */}
-                <ul className="space-y-3">
+                <ul className="space-y-2.5 sm:space-y-3">
                   {section.points.map((point, pointIndex) => (
-                    <li key={pointIndex} className="flex items-start gap-3">
+                    <li key={pointIndex} className="flex items-start gap-2.5 sm:gap-3">
                       <CheckCircle2 
-                        className="w-5 h-5 flex-shrink-0 mt-0.5" 
+                        className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5" 
                         style={{ color: colors.primary }}
                       />
-                      <span className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
+                      <span className="text-xs sm:text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
                         {point}
                       </span>
                     </li>
@@ -118,17 +118,17 @@ export function NewCTASection() {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-2">
             <Link 
               href="/auth/signup" 
-              className="px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl" 
+              className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" 
               style={{ backgroundColor: colors.primary, color: '#ffffff' }}
             >
               List Your Studio - £25/year
             </Link>
             <Link 
               href="/studios" 
-              className="px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl" 
+              className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" 
               style={{ 
                 border: `2px solid ${colors.primary}`, 
                 color: colors.primary, 
