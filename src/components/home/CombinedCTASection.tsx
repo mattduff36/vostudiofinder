@@ -200,7 +200,7 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
           <h2 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-12 transition-all duration-1000 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-            Why I Built This Platform
+            Why Voiceover Studio Finder Exists
           </h2>
           
           <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-2 lg:gap-3 items-center min-h-[500px]">
