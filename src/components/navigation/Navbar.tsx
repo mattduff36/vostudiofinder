@@ -191,7 +191,7 @@ export function Navbar({ session }: NavbarProps) {
               
               {/* Loading Logo - Fades in and pulses */}
               <Image
-                src="/images/voiceover-studio-finder-logo-loading.png"
+                src="/images/voiceover-studio-finder-logo-loading2.png"
                 alt="Loading..."
                 width={logoSize.width}
                 height={logoSize.height}
