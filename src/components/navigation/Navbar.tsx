@@ -127,6 +127,7 @@ export function Navbar({ session }: NavbarProps) {
       }, 300);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [pathname, isLogoLoading]);
 
   // Handle logo click with loading animation
