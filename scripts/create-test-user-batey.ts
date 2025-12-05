@@ -7,8 +7,14 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Creating test user: Ady Batt (bateystudios)...\n');
 
+  // Get password from environment variable (never commit passwords to git!)
+  const password = process.env.BATEY_TEST_PASSWORD;
+  if (!password) {
+    throw new Error('BATEY_TEST_PASSWORD environment variable is required');
+  }
+
   // Hash the password
-  const hashedPassword = await bcrypt.hash('B@teyStudios123', 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   // Generate IDs
   const userId = randomUUID();
@@ -49,7 +55,7 @@ async function main() {
         city: '', // Empty until user adds full address
         is_premium: false,
         is_verified: false,
-        is_profile_visible: true,
+        is_profile_visible: false, // Default to hidden for new profiles
         status: 'ACTIVE',
         created_at: new Date(),
         updated_at: new Date(),
@@ -69,7 +75,7 @@ async function main() {
     console.log('\nLogin credentials:');
     console.log(`  Email: adrian.batt@outlook.com`);
     console.log(`  Username: bateystudios`);
-    console.log(`  Password: B@teyStudios123`);
+    console.log(`  Password: [from BATEY_TEST_PASSWORD env var]`);
     console.log('\nProfile URL: /profile/bateystudios');
     console.log('\nNote: user_profiles table is empty - user can build profile through the site');
     console.log('');
