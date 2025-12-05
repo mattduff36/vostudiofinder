@@ -233,26 +233,32 @@ export function GoogleMap({
     
     logger.log(`✅ Created ${newMarkers.length} individual markers`);
 
-    // Detect browser zoom level and adjust grid size accordingly
+    // Detect browser zoom level and viewport width for clustering adjustments
     const devicePixelRatio = window.devicePixelRatio || 1;
     const browserZoomLevel = Math.round(devicePixelRatio * 100);
+    const isMobile = window.innerWidth < 768; // Mobile breakpoint
     logger.log('🔍 Browser zoom detected:', browserZoomLevel + '%', 'devicePixelRatio:', devicePixelRatio);
+    logger.log('📱 Device type:', isMobile ? 'Mobile' : 'Desktop', 'viewport width:', window.innerWidth);
     
-    // Adjust grid size for clustering based on browser zoom to ensure proper clustering
-    // Default gridSize is 60px, but we need to scale it with devicePixelRatio
-    // At 90% zoom (0.9 ratio), use larger grid; at 110% zoom (1.1 ratio), use smaller grid
-    const adjustedGridSize = Math.round(60 / devicePixelRatio);
-    logger.log('📐 Adjusted grid size for clustering:', adjustedGridSize, 'px (default: 60px)');
+    // Adjust grid size for clustering based on browser zoom and device type
+    // Mobile needs much larger radius to prevent overlapping cluster markers
+    // Default gridSize is 60px, but mobile needs 120px+ to prevent touching markers
+    const baseGridSize = isMobile ? 120 : 60;
+    const adjustedGridSize = Math.round(baseGridSize / devicePixelRatio);
+    logger.log('📐 Adjusted grid size for clustering:', adjustedGridSize, 'px (base:', baseGridSize, 'px, mobile:', isMobile, ')');
 
     // Create marker clusterer for grouping with custom cluster marker
     if (newMarkers.length > 0) {
-      logger.log('🔧 Initializing MarkerClusterer with maxZoom:', actualMaxZoom - 1, 'gridSize:', adjustedGridSize);
+      // Set minimum cluster size - higher for mobile to reduce low-numbered clusters
+      const minClusterSize = isMobile ? 5 : 2; // Mobile: only cluster if 5+ markers, Desktop: 2+
+      logger.log('🔧 Initializing MarkerClusterer with maxZoom:', actualMaxZoom - 1, 'radius:', adjustedGridSize, 'minSize:', minClusterSize);
       markerClustererRef.current = new MarkerClusterer({
         markers: newMarkers,
         map: mapInstance,
         algorithm: new SuperClusterAlgorithm({ 
           maxZoom: actualMaxZoom - 1,
-          radius: adjustedGridSize // SuperCluster uses radius instead of gridSize
+          radius: adjustedGridSize, // SuperCluster uses radius instead of gridSize
+          minPoints: minClusterSize // Minimum number of points to form a cluster
         }),
         onClusterClick: (_event, cluster, map) => {
           logger.log('🖱️ Cluster clicked - zooming to cluster area');

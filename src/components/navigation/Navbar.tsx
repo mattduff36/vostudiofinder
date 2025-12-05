@@ -41,6 +41,7 @@ export function Navbar({ session }: NavbarProps) {
   const [containerWidth, setContainerWidth] = useState(0);
   const [isClient, setIsClient] = useState(false);
   const [showEditButton, setShowEditButton] = useState(false);
+  const [isLogoLoading, setIsLogoLoading] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
 
   // Calculate logo dimensions
@@ -117,6 +118,24 @@ export function Navbar({ session }: NavbarProps) {
     setIsMenuOpen(false);
   }, [pathname]);
 
+  // Handle logo loading animation - stop loading when navigation completes
+  useEffect(() => {
+    if (isLogoLoading) {
+      // Stop loading after a minimum of 300ms (smooth animation) + when pathname changes
+      const timer = setTimeout(() => {
+        setIsLogoLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, isLogoLoading]);
+
+  // Handle logo click with loading animation
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsLogoLoading(true);
+    router.push('/');
+  };
+
   // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -148,23 +167,46 @@ export function Navbar({ session }: NavbarProps) {
           {/* Logo */}
           <Link 
             href="/" 
-            className="transition-opacity hover:opacity-80 cursor-pointer"
+            onClick={handleLogoClick}
+            className="relative cursor-pointer"
           >
-            <Image
-              src={isScrolled || !isHomePage 
-                ? "/images/voiceover-studio-finder-header-logo2-black.png" 
-                : "/images/voiceover-studio-finder-header-logo2-white.png"
-              }
-              alt="VoiceoverStudioFinder"
-              width={logoSize.width}
-              height={logoSize.height}
-              priority
-              style={{
-                width: `${logoSize.width}px`,
-                height: `${logoSize.height}px`,
-                maxWidth: '100%'
-              }}
-            />
+            <div className="relative">
+              {/* Normal Logo */}
+              <Image
+                src={isScrolled || !isHomePage 
+                  ? "/images/voiceover-studio-finder-header-logo2-black.png" 
+                  : "/images/voiceover-studio-finder-header-logo2-white.png"
+                }
+                alt="VoiceoverStudioFinder"
+                width={logoSize.width}
+                height={logoSize.height}
+                priority
+                className={`transition-opacity duration-300 ${isLogoLoading ? 'opacity-0' : 'opacity-100 hover:opacity-80'}`}
+                style={{
+                  width: `${logoSize.width}px`,
+                  height: `${logoSize.height}px`,
+                  maxWidth: '100%'
+                }}
+              />
+              
+              {/* Loading Logo - Fades in and pulses */}
+              <Image
+                src="/images/voiceover-studio-finder-logo-loading.png"
+                alt="Loading..."
+                width={logoSize.width}
+                height={logoSize.height}
+                priority
+                className={`absolute top-0 left-0 transition-opacity duration-300 ${
+                  isLogoLoading ? 'opacity-100 animate-pulse' : 'opacity-0'
+                }`}
+                style={{
+                  width: `${logoSize.width}px`,
+                  height: `${logoSize.height}px`,
+                  maxWidth: '100%',
+                  pointerEvents: 'none'
+                }}
+              />
+            </div>
           </Link>
           
           {/* Desktop Navigation */}
