@@ -226,15 +226,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       price: formatRateWithCurrency(profile.rate_tier_3, country) 
     });
   }
-  
-  // Fallback rates if none are set
-  if (rates.length === 0) {
-    rates.push(
-      { duration: '15 minutes', price: formatRateWithCurrency('80', country) },
-      { duration: '30 minutes', price: formatRateWithCurrency('100', country) },
-      { duration: '60 minutes', price: formatRateWithCurrency('125', country) }
-    );
-  }
 
   // Email and contact handling
   const canContactViaEmail = profile?.show_email !== false && studio.owner.email;

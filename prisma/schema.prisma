@@ -217,7 +217,7 @@ model studios {
   phone                 String?
   is_premium            Boolean                 @default(false)
   is_verified           Boolean                 @default(false)
-  is_profile_visible    Boolean                 @default(true)
+  is_profile_visible    Boolean                 @default(false)
   status                StudioStatus            @default(ACTIVE)
   created_at            DateTime                @default(now())
   updated_at            DateTime
@@ -303,7 +303,7 @@ model user_profiles {
   show_email              Boolean  @default(false)
   show_phone              Boolean  @default(false)
   show_address            Boolean  @default(false)
-  show_directions         Boolean  @default(true) // NEW: Visibility toggle for directions
+  show_directions         Boolean  @default(false) // NEW: Visibility toggle for directions
   use_coordinates_for_map Boolean  @default(false) // Force using coordinates instead of address for map display
   created_at              DateTime @default(now())
   updated_at              DateTime
