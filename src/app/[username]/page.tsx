@@ -296,7 +296,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             abbreviated_address: studio.abbreviated_address || '',
             studio_studio_types: studio.studio_studio_types && studio.studio_studio_types.length > 0 
               ? studio.studio_studio_types.map(st => st.studio_type) 
-              : ['VOICEOVER'],
+              : [],
             owner: {
               ...studio.users,
               avatar_url: studio.users.avatar_url || '',
