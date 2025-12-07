@@ -25,7 +25,7 @@ export default function AuthCallbackPage() {
 
   // Show loading state while checking authentication
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center h-[calc(100vh-5rem)]">
       <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
     </div>
   );

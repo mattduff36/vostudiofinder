@@ -40,7 +40,7 @@ export default function JoinWaitlistPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen relative overflow-hidden flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="h-[calc(100vh-5rem)] relative overflow-hidden flex flex-col justify-start sm:justify-center py-8 sm:py-12 sm:px-6 lg:px-8">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
