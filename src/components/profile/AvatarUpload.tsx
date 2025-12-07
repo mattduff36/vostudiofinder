@@ -165,16 +165,16 @@ export function AvatarUpload({
                 </div>
               )}
               
-              {/* Mobile - always show button below - only for empty state */}
+              {/* Mobile - show button inside avatar box - only for empty state */}
               {!hasAvatar && (
-                <div className="md:hidden absolute -bottom-10 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                <div className="md:hidden absolute inset-0 flex items-center justify-center">
                   <button
                     type="button"
-                    className={`text-xs px-3 py-1 rounded border ${
+                    className={`text-xs px-3 py-1.5 rounded border ${
                       variant === 'admin' 
                         ? 'border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white' 
                         : 'border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white'
-                    } transition-colors`}
+                    } transition-colors font-medium`}
                     onClick={handleClick}
                   >
                     Upload

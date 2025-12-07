@@ -24,7 +24,7 @@ export default async function SigninPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen relative overflow-hidden flex flex-col justify-center py-4 sm:py-12 sm:px-6 lg:px-8">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -36,20 +36,20 @@ export default async function SigninPage() {
         />
       </div>
       
-      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
+      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md px-4">
+        <div className="flex justify-center mb-6 sm:mb-0">
           <Image
             src="/images/voiceover-studio-finder-header-logo2-black.png"
             alt="VoiceoverStudioFinder"
             width={450}
             height={71}
             priority
-            className="h-auto"
+            className="h-auto max-w-full"
           />
         </div>
       </div>
 
-      <div className="relative z-10 mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="relative z-10 mt-6 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-white/90 backdrop-blur-sm py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <SigninForm />
         </div>
