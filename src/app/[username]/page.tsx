@@ -397,6 +397,11 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         latitude: Number(studio.latitude),
         longitude: Number(studio.longitude),
       } : undefined,
+      hasMap: studio.latitude && studio.longitude ? `https://www.google.com/maps?q=${Number(studio.latitude)},${Number(studio.longitude)}` : undefined,
+      areaServed: {
+        '@type': 'AdministrativeArea',
+        name: 'United Kingdom',
+      },
       aggregateRating: studio.reviews.length > 0 ? {
         '@type': 'AggregateRating',
         ratingValue: averageRating.toFixed(1),
