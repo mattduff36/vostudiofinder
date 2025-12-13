@@ -81,7 +81,8 @@ export function LocationAutocomplete({
     
     const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
       types: ['(cities)'], // Restrict to cities, regions, and countries
-      fields: ['place_id', 'formatted_address', 'name', 'geometry', 'address_components']
+      fields: ['place_id', 'formatted_address', 'name', 'geometry', 'address_components'],
+      componentRestrictions: { country: ['gb', 'us', 'ca', 'au'] }, // Prioritize UK first
     });
 
     autocompleteRef.current = autocomplete;

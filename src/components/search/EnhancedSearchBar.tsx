@@ -230,9 +230,13 @@ export function EnhancedSearchBar({
           {
             input: searchQuery,
             types: types,
-            // Remove country restrictions for landmarks and tourist attractions to allow global search
+            // Bias results towards UK (center of London) for better local results
+            // This prioritizes UK locations while still allowing global search
+            location: new window.google.maps.LatLng(51.5074, -0.1278), // London, UK
+            radius: 50000, // 50km radius bias
+            // For landmarks/establishments, prioritize UK but allow global search if needed
             ...(types.includes('establishment') || types.includes('tourist_attraction') || types.includes('natural_feature') || types.includes('park') 
-              ? {} 
+              ? { componentRestrictions: { country: ['gb', 'us', 'ca', 'au'] } } // UK first, then others
               : { componentRestrictions: { country: ['us', 'gb', 'ca', 'au'] } })
           },
           async (predictions: any[], status: any) => {
