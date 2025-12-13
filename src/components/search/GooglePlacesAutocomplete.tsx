@@ -70,6 +70,7 @@ export function GooglePlacesAutocomplete({
       const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
         types: ['establishment', 'geocode'],
         fields: ['place_id', 'formatted_address', 'name', 'types', 'geometry'],
+        componentRestrictions: { country: ['gb', 'us', 'ca', 'au'] }, // Prioritize UK first
       });
 
       autocomplete.addListener('place_changed', () => {
