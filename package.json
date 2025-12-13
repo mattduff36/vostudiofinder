@@ -24,6 +24,8 @@
     "db:studio": "prisma studio",
     "migrate:studio-types": "tsx scripts/migrate-studio-types.ts",
     "migrate:studio-types:dry": "tsx scripts/migrate-studio-types.ts --dry-run",
+    "privacy:disable-visibility": "tsx scripts/disable-all-visibility-settings.ts",
+    "privacy:disable-visibility:dry": "tsx scripts/disable-all-visibility-settings.ts --dry-run",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:build": "docker-compose build",
