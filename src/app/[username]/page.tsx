@@ -8,6 +8,30 @@ interface UsernamePageProps {
   params: Promise<{ username: string }>;
 }
 
+// Generate static params for all active studios with visible profiles
+export async function generateStaticParams() {
+  const users = await db.users.findMany({
+    where: {
+      studios: {
+        some: {
+          status: 'ACTIVE',
+          is_profile_visible: true,
+        },
+      },
+    },
+    select: {
+      username: true,
+    },
+  });
+
+  return users.map((user) => ({
+    username: user.username,
+  }));
+}
+
+// Revalidate every hour to keep content fresh while maintaining static generation benefits
+export const revalidate = 3600;
+
 export async function generateMetadata({ params }: UsernamePageProps): Promise<Metadata> {
   const { username } = await params;
   
@@ -20,6 +44,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
         select: {
           short_about: true,
           twitter_url: true,
+          phone: true,
         },
       },
       studios: {
@@ -30,6 +55,8 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
           address: true,
           full_address: true,
           abbreviated_address: true,
+          city: true,
+          phone: true,
           studio_images: {
             take: 1,
             orderBy: { sort_order: 'asc' },
@@ -46,6 +73,10 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   if (!user || !user.studios.length) {
     return {
       title: 'Studio Not Found - VoiceoverStudioFinder',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -55,6 +86,10 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   if (!studio) {
     return {
       title: 'Studio Not Found - VoiceoverStudioFinder',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -65,40 +100,68 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   // Use short_about if available, otherwise fall back to description
   const description = profile?.short_about || studio.description?.substring(0, 160) || `${studio.name} recording studio`;
 
+  // Location-aware description
+  const locationSuffix = studio.city ? ` in ${studio.city}` : (studio.abbreviated_address ? ` in ${studio.abbreviated_address}` : '');
+  const fullDescription = description.endsWith('.') ? description : `${description}.`;
+  const seoDescription = `${fullDescription} Professional voiceover recording studio${locationSuffix}. Book now for your next project.`;
+
   // Use first image or fallback to logo
   const ogImage = studio.studio_images?.[0]?.image_url || `${baseUrl}/images/voiceover-studio-finder-header-logo2-black.png`;
 
   // Check if user has Twitter handle
   const hasTwitter = profile?.twitter_url && profile.twitter_url.trim().length > 0;
 
+  // Enhanced keywords with location
+  const locationKeywords = studio.city ? `${studio.city} recording studio, ${studio.city} voiceover studio, ` : '';
+  const keywords = `${locationKeywords}recording studio, ${studio.name}, voiceover, audio production, professional studio, ${studio.abbreviated_address || studio.full_address || studio.address || ''}`;
+
   const metadata: Metadata = {
-    title: `${studio.name} - Recording Studio | VoiceoverStudioFinder`,
-    description: description,
-    keywords: `recording studio, ${studio.name}, voiceover, audio production, ${studio.abbreviated_address || studio.full_address || studio.address || ''}`,
+    title: `${studio.name}${locationSuffix} - Recording Studio | VoiceoverStudioFinder`,
+    description: seoDescription.substring(0, 160),
+    keywords: keywords,
+    authors: [{ name: studio.name }],
+    creator: studio.name,
+    publisher: 'VoiceoverStudioFinder',
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
-      title: studio.name,
-      description: description,
+      title: `${studio.name}${locationSuffix}`,
+      description: seoDescription.substring(0, 160),
       type: 'website',
       url: pageUrl,
       siteName: 'VoiceoverStudioFinder',
+      locale: 'en_GB',
       images: [
         {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: `${studio.name} - Recording Studio`,
+          alt: `${studio.name} - Professional Recording Studio${locationSuffix}`,
         },
       ],
     },
   };
 
   // Only add Twitter metadata if user has a Twitter handle
-  if (hasTwitter) {
+  if (hasTwitter && profile.twitter_url) {
     metadata.twitter = {
       card: 'summary_large_image',
-      title: studio.name,
-      description: description,
+      title: `${studio.name}${locationSuffix}`,
+      description: seoDescription.substring(0, 160),
       images: [ogImage],
+      creator: profile.twitter_url,
     };
   }
 
@@ -112,7 +175,53 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
   const user = await db.users.findUnique({
     where: { username },
     include: {
-      user_profiles: true,
+      user_profiles: {
+        select: {
+          short_about: true,
+          about: true,
+          phone: true,
+          location: true,
+          facebook_url: true,
+          twitter_url: true,
+          x_url: true,
+          linkedin_url: true,
+          instagram_url: true,
+          youtube_url: true,
+          vimeo_url: true,
+          soundcloud_url: true,
+          is_crb_checked: true,
+          is_featured: true,
+          is_spotlight: true,
+          verification_level: true,
+          home_studio_description: true,
+          equipment_list: true,
+          services_offered: true,
+          show_email: true,
+          show_phone: true,
+          show_address: true,
+          show_directions: true,
+          use_coordinates_for_map: true,
+          rate_tier_1: true,
+          rate_tier_2: true,
+          rate_tier_3: true,
+          show_rates: true,
+          studio_name: true,
+          last_name: true,
+          connection1: true,
+          connection2: true,
+          connection3: true,
+          connection4: true,
+          connection5: true,
+          connection6: true,
+          connection7: true,
+          connection8: true,
+          connection9: true,
+          connection10: true,
+          connection11: true,
+          connection12: true,
+          custom_connection_methods: true,
+        },
+      },
       user_metadata: true,
       studios: {
         where: { status: 'ACTIVE' },
@@ -211,22 +320,76 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://voiceoverstudiofinder.com';
     const pageUrl = `${baseUrl}/${username}`;
 
-    // Get description from user_profiles.short_about with fallback
-    const businessDescription = user.user_profiles?.short_about || 
-                                studio.description || 
-                                'Voiceover recording studio available for hire in the UK.';
+    // Get description from user_profiles with fallback and content safeguard
+    let businessDescription = user.user_profiles?.about || 
+                              user.user_profiles?.short_about || 
+                              studio.description || 
+                              '';
+    
+    // Content safeguard: Ensure minimum unique content for SEO
+    // If description is too short, supplement with contextual information
+    const descriptionWordCount = businessDescription.split(/\s+/).length;
+    if (descriptionWordCount < 50) {
+      const locationContext = studio.city ? ` located in ${studio.city}` : '';
+      const servicesContext = studio.studio_services?.length > 0 
+        ? ` Offering ${studio.studio_services.map(s => s.service.toLowerCase()).join(', ')}`
+        : '';
+      const typesContext = studio.studio_studio_types?.length > 0
+        ? `. This ${studio.studio_studio_types.map(t => t.studio_type.toLowerCase()).join(' and ')} is ideal for voiceover professionals`
+        : '';
+      
+      const supplementalContent = `Professional voiceover recording studio${locationContext}.${servicesContext}${typesContext}. Equipped for high-quality audio production and voice recording sessions. Contact us to discuss your project requirements and book a session.`;
+      
+      businessDescription = businessDescription 
+        ? `${businessDescription} ${supplementalContent}`
+        : supplementalContent;
+    }
+    
+    // Fallback if still empty
+    if (!businessDescription.trim()) {
+      businessDescription = 'Voiceover recording studio available for hire in the UK.';
+    }
 
+    // Parse address for structured data
+    const fullAddress = studio.full_address || studio.address || '';
+    const addressParts = fullAddress.split(',').map(part => part.trim());
+    
+    // Extract city and postal code if available
+    const cityName = studio.city || (addressParts.length > 1 ? addressParts[addressParts.length - 2] : '');
+    const lastPart = addressParts[addressParts.length - 1];
+    const postalCode = lastPart ? (lastPart.match(/[A-Z]{1,2}\d{1,2}\s?\d[A-Z]{2}/)?.[0] || '') : '';
+    
+    // Get phone number (prefer studio.phone, fallback to profile.phone)
+    const phoneNumber = studio.phone || user.user_profiles?.phone || undefined;
+    
+    // Build sameAs array with available social media and website URLs
+    const sameAsLinks = [
+      studio.website_url,
+      user.user_profiles?.facebook_url,
+      user.user_profiles?.x_url || user.user_profiles?.twitter_url,
+      user.user_profiles?.linkedin_url,
+      user.user_profiles?.instagram_url,
+      user.user_profiles?.youtube_url,
+      user.user_profiles?.vimeo_url,
+      user.user_profiles?.soundcloud_url,
+    ].filter((url): url is string => !!url && url.trim().length > 0);
+    
     // Generate structured data for SEO (LocalBusiness schema)
     const structuredData = {
       '@context': 'https://schema.org',
       '@type': 'LocalBusiness',
+      additionalType: 'https://schema.org/RecordingStudio',
       '@id': pageUrl,
       name: studio.name,
       description: businessDescription,
       url: pageUrl,
+      telephone: phoneNumber,
       address: (studio.full_address || studio.address) ? {
         '@type': 'PostalAddress',
-        streetAddress: studio.full_address || studio.address || '',
+        streetAddress: addressParts[0] || studio.full_address || studio.address || '',
+        addressLocality: cityName,
+        addressRegion: 'England',
+        postalCode: postalCode,
         addressCountry: 'GB',
       } : undefined,
       geo: studio.latitude && studio.longitude ? {
@@ -256,9 +419,49 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         reviewBody: review.content,
         datePublished: review.created_at.toISOString(),
       })),
-      // Use only the first (main) image
-      image: studio.studio_images[0]?.image_url || undefined,
-      priceRange: '$$',
+      // Use ImageObject for primary image
+      image: studio.studio_images[0] ? {
+        '@type': 'ImageObject',
+        url: studio.studio_images[0].image_url,
+        caption: studio.studio_images[0].alt_text || `${studio.name} recording studio`,
+      } : undefined,
+      priceRange: '££',
+      openingHoursSpecification: {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        opens: '09:00',
+        closes: '18:00',
+        description: 'By appointment - contact studio for availability',
+      },
+      sameAs: sameAsLinks.length > 0 ? sameAsLinks : undefined,
+      knowsAbout: ['Voiceover Recording', 'Audio Production', 'Sound Engineering', 'Voice Recording'],
+      slogan: user.user_profiles?.short_about || undefined,
+    };
+    
+    // BreadcrumbList schema for navigation
+    const breadcrumbSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: baseUrl,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Studios',
+          item: `${baseUrl}/studios`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: studio.name,
+          item: pageUrl,
+        },
+      ],
     };
 
     // Remove undefined values from structured data
@@ -277,12 +480,25 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       )
     };
 
+    // Clean breadcrumb schema (no undefined values)
+    const cleanedBreadcrumbSchema = JSON.parse(
+      JSON.stringify(breadcrumbSchema, (_key, value) => value === undefined ? null : value)
+    );
+    Object.keys(cleanedBreadcrumbSchema).forEach(key => 
+      cleanedBreadcrumbSchema[key] === null && delete cleanedBreadcrumbSchema[key]
+    );
+
     return (
       <>
-        {/* Safe: JSON.stringify ensures no XSS risk for structured data */}
+        {/* LocalBusiness structured data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(cleanedStructuredData) }}
+        />
+        {/* BreadcrumbList structured data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(cleanedBreadcrumbSchema) }}
         />
         <ModernStudioProfileV3 
           studio={({
