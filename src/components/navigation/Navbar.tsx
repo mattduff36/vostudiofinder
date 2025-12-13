@@ -182,7 +182,7 @@ export function Navbar({ session }: NavbarProps) {
                 width={logoSize.width}
                 height={logoSize.height}
                 priority
-                className={`transition-opacity duration-300 ${isLogoLoading ? 'opacity-0' : 'opacity-100 hover:opacity-80'}`}
+                className={`transition-opacity duration-300 ${isLogoLoading ? 'opacity-0 md:opacity-100' : 'opacity-100'} hover:opacity-80`}
                 style={{
                   width: `${logoSize.width}px`,
                   height: `${logoSize.height}px`,
@@ -190,14 +190,14 @@ export function Navbar({ session }: NavbarProps) {
                 }}
               />
               
-              {/* Loading Logo - Fades in and pulses */}
+              {/* Loading Logo - Fades in and pulses (mobile only) */}
               <Image
                 src="/images/voiceover-studio-finder-logo-loading2.png"
                 alt="Loading..."
                 width={logoSize.width}
                 height={logoSize.height}
                 priority
-                className={`absolute top-0 left-0 transition-opacity duration-300 ${
+                className={`absolute top-0 left-0 transition-opacity duration-300 md:opacity-0 ${
                   isLogoLoading ? 'opacity-100 animate-pulse' : 'opacity-0'
                 }`}
                 style={{
