@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: 'https://voiceoverstudiofinder.com',
     images: [
       {
-        url: 'https://www.voiceoverstudiofinder.com/images/homepage.jpg',
+        url: 'https://voiceoverstudiofinder.com/images/homepage.jpg',
         width: 1200,
         height: 630,
         alt: 'VoiceoverStudioFinder - Find Professional Recording Studios',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: 'VoiceoverStudioFinder',
     description: 'Find Professional Recording Studios for Voiceover Work',
     site: '@VOStudioFinder',
-    images: ['https://www.voiceoverstudiofinder.com/images/homepage.jpg'],
+    images: ['https://voiceoverstudiofinder.com/images/homepage.jpg'],
   },
 };
 
