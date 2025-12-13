@@ -294,8 +294,20 @@ export function EnhancedSearchBar({
                         
                         const fullAddress = place.formatted_address || place.name || prediction.description;
                         
-                        // Always use the full formatted address as the display text
-                        displayText = fullAddress;
+                        // For establishments/landmarks, show the name prominently
+                        // Check if this is a business/landmark (has a distinct name different from address)
+                        const isEstablishment = place.name && 
+                                               place.formatted_address && 
+                                               !place.formatted_address.startsWith(place.name);
+                        
+                        if (isEstablishment) {
+                          // Show name first, then abbreviated address
+                          displayText = `${place.name} - ${place.formatted_address}`;
+                        } else {
+                          // For regular locations (cities, areas), show the full address
+                          displayText = fullAddress;
+                        }
+                        
                         locationText = ''; // Don't use location text since we're showing everything in main text
                         logger.log('📍 Location suggestion:', displayText);
 
