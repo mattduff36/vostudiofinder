@@ -54,6 +54,7 @@ export function EnhancedSearchBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const radiusDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get user's current location for distance calculations
   const [locationRequested, setLocationRequested] = React.useState(false);
@@ -80,6 +81,18 @@ export function EnhancedSearchBar({
 
     getUserLocation();
   }, [locationRequested]);
+
+  // Cleanup timeouts on unmount
+  React.useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      if (radiusDebounceRef.current) {
+        clearTimeout(radiusDebounceRef.current);
+      }
+    };
+  }, []);
 
 
   // Detect search type - location or user
@@ -176,9 +189,9 @@ export function EnhancedSearchBar({
         if (aExact && !bExact) return -1;
         if (!aExact && bExact) return 1;
         
-        // Then prioritize users over locations
-        if (a.type === 'user' && b.type !== 'user') return -1;
-        if (a.type !== 'user' && b.type === 'user') return 1;
+        // Then prioritize locations over users (blue pins before green pins)
+        if (a.type === 'location' && b.type !== 'location') return -1;
+        if (a.type !== 'location' && b.type === 'location') return 1;
         
         // For items of the same type, sort by distance if available
         if (a.type === b.type) {
@@ -563,6 +576,11 @@ export function EnhancedSearchBar({
     }
   };
 
+  // Helper function to detect if device is mobile
+  const isMobileDevice = () => {
+    return typeof window !== 'undefined' && window.innerWidth < 768;
+  };
+
 
   return (
     <div className={`relative ${className}`}>
@@ -622,7 +640,7 @@ export function EnhancedSearchBar({
 
       {/* Suggestions Dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-[60] w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-80 overflow-auto">
+        <div className="absolute z-[100] w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-80 overflow-auto">
           {isLoadingPlaces && (
             <div className="px-4 py-2 text-sm text-gray-500 border-b">
               <div className="flex items-center gap-2">
@@ -690,7 +708,20 @@ export function EnhancedSearchBar({
                 newRadius = Math.round(25 + ((sliderValue - 75) / 25) * 25); // 75-100% maps to 25-50
               }
               
+              // Update radius immediately for UI feedback
               setRadius(newRadius);
+              
+              // Debounce the search: 1s on mobile, 500ms on desktop
+              if (radiusDebounceRef.current) {
+                clearTimeout(radiusDebounceRef.current);
+              }
+              
+              const delay = isMobileDevice() ? 1000 : 500;
+              radiusDebounceRef.current = setTimeout(() => {
+                logger.log(`Radius search triggered after ${delay}ms delay: ${newRadius} miles`);
+                // The search will be triggered when the user clicks the Search button
+                // No need to trigger here since radius is used in handleSearch
+              }, delay);
             }}
             className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider touch-none"
             style={{
