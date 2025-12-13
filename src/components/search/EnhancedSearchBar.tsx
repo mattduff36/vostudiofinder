@@ -183,29 +183,30 @@ export function EnhancedSearchBar({
 
       // Sort by relevance and distance
       uniqueSuggestions.sort((a, b) => {
-        // Prioritize exact matches first
-        const aExact = a.text.toLowerCase().startsWith(searchQuery.toLowerCase());
-        const bExact = b.text.toLowerCase().startsWith(searchQuery.toLowerCase());
-        if (aExact && !bExact) return -1;
-        if (!aExact && bExact) return 1;
+        // FIRST: Prioritize locations over users (blue pins before green pins)
+        if (a.type === 'location' && b.type === 'user') return -1;
+        if (a.type === 'user' && b.type === 'location') return 1;
         
-        // Then prioritize locations over users (blue pins before green pins)
-        if (a.type === 'location' && b.type !== 'location') return -1;
-        if (a.type !== 'location' && b.type === 'location') return 1;
-        
-        // For items of the same type, sort by distance if available
+        // SECOND: Within same type, prioritize exact matches
         if (a.type === b.type) {
-          // If both have distance, sort by distance (closest first)
+          const aExact = a.text.toLowerCase().startsWith(searchQuery.toLowerCase());
+          const bExact = b.text.toLowerCase().startsWith(searchQuery.toLowerCase());
+          if (aExact && !bExact) return -1;
+          if (!aExact && bExact) return 1;
+          
+          // THIRD: For items of same type and same exact-match status, sort by distance
           if (a.distance !== undefined && b.distance !== undefined) {
             return a.distance - b.distance;
           }
           // If only one has distance, prioritize it
           if (a.distance !== undefined && b.distance === undefined) return -1;
           if (a.distance === undefined && b.distance !== undefined) return 1;
+          
+          // Fallback to alphabetical sorting
+          return a.text.localeCompare(b.text);
         }
         
-        // Fallback to alphabetical sorting
-        return a.text.localeCompare(b.text);
+        return 0;
       });
 
       const finalSuggestions = uniqueSuggestions.slice(0, 8);
@@ -583,7 +584,7 @@ export function EnhancedSearchBar({
 
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative z-[100] ${className}`}>
       {/* Main Search Input */}
       <div className="bg-white rounded-xl p-2 sm:p-2 shadow-2xl">
         <div className="flex gap-2 sm:gap-3">
