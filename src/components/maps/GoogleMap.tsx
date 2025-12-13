@@ -86,7 +86,7 @@ export function GoogleMap({
   const [scrollZoomEnabled, setScrollZoomEnabled] = useState(false);
 
 
-  // Helper function to create circle and marker
+  // Helper function to create circle (center marker hidden to avoid blocking studio markers)
   const createCircleAndMarker = useCallback((mapInstance: any, center: MapLocation, radius: number) => {
     // Clear existing circle and center marker
     if (circleRef.current) {
@@ -100,7 +100,7 @@ export function GoogleMap({
       centerMarkerRef.current = null;
     }
 
-    logger.log('✅ Creating circle and center marker:', { center, radius });
+    logger.log('✅ Creating search radius circle:', { center, radius });
     
     // Add the search radius circle
     const googleMaps = window.google.maps as any;
@@ -115,18 +115,13 @@ export function GoogleMap({
       radius: radius * 1609.34, // Convert miles to meters
     });
 
-    // Add the center pin (standard Google Maps red pin)
-    const centerMarker = new googleMaps.Marker({
-      position: { lat: center.lat, lng: center.lng },
-      map: mapInstance,
-      title: 'Search Center',
-      // Use default Google Maps red pin (no custom icon needed)
-    });
+    // Center pin removed - it was blocking studio markers underneath
+    // The radius circle clearly shows the search area without needing a center pin
 
     circleRef.current = circle;
-    centerMarkerRef.current = centerMarker;
+    // centerMarkerRef is intentionally left null
     
-    logger.log('🎯 Circle and marker created successfully!');
+    logger.log('🎯 Search radius circle created successfully!');
   }, []);
 
   // Helper function to create studio markers
@@ -959,13 +954,14 @@ export function GoogleMap({
   return (
     <div 
       ref={mapRef}
-      className={`rounded-lg overflow-hidden ${className}`}
+      className={`rounded-lg ${className}`}
       style={{ 
         height,
         position: 'relative',
         zIndex: 1,
         // Ensure map captures mouse events properly
         pointerEvents: 'auto'
+        // Don't use overflow:hidden - it clips map controls in Safari
       }}
       data-testid="google-map"
     />
