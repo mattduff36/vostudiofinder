@@ -239,7 +239,7 @@ export function EnhancedSearchBar({
 
         // If user location is available, bias results towards user's location
         if (userLocation) {
-          requestOptions.location = new window.google.maps.LatLng(userLocation.lat, userLocation.lng);
+          requestOptions.location = new (window.google.maps as any).LatLng(userLocation.lat, userLocation.lng);
           requestOptions.radius = 50000; // 50km radius bias around user's location
         }
 
