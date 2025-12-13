@@ -1,7 +1,7 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 
 import { X } from 'lucide-react';
@@ -27,11 +27,21 @@ interface SearchFiltersProps {
 
 export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount }: SearchFiltersProps) {
   const [filters, setFilters] = useState(initialFilters);
+  const radiusDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     logger.log('Updating filters with initialFilters:', initialFilters);
     setFilters(initialFilters);
   }, [initialFilters]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (radiusDebounceRef.current) {
+        clearTimeout(radiusDebounceRef.current);
+      }
+    };
+  }, []);
 
   const handleFilterChange = (key: string, value: any) => {
     logger.log(`HandleFilterChange called - key: ${key}, value: ${value}`);
@@ -140,6 +150,11 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
     onSearch(newFilters);
   };
 
+  // Helper function to detect if device is mobile
+  const isMobileDevice = () => {
+    return typeof window !== 'undefined' && window.innerWidth < 768;
+  };
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3 space-y-6">
       {/* Optional Clear All button */}
@@ -241,8 +256,21 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
                   newRadius = Math.round(25 + ((sliderValue - 75) / 25) * 25); // 75-100% maps to 25-50
                 }
                 
-                logger.log(`Radius changed to ${newRadius} - triggering immediate search`);
-                handleFilterChange('radius', newRadius);
+                // Update radius immediately for UI feedback
+                setFilters({ ...filters, radius: newRadius });
+                
+                // Debounce the search: 1s on mobile, 500ms on desktop
+                if (radiusDebounceRef.current) {
+                  clearTimeout(radiusDebounceRef.current);
+                }
+                
+                const delay = isMobileDevice() ? 1000 : 500;
+                logger.log(`Radius changed to ${newRadius} - will trigger search after ${delay}ms`);
+                
+                radiusDebounceRef.current = setTimeout(() => {
+                  logger.log(`Radius search triggered after ${delay}ms delay: ${newRadius} miles`);
+                  handleFilterChange('radius', newRadius);
+                }, delay);
               }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               style={{
