@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   keywords: 'voiceover, recording studio, audio production, voice talent, studio rental, ISDN, Source Connect',
   openGraph: {
     title: 'VoiceoverStudioFinder',
-    description: 'Find Professional Recording Studios for Voiceover Work',
+    description: 'Professional voiceover, podcast & recording studios worldwide',
     type: 'website',
     locale: 'en_US',
     siteName: 'VoiceoverStudioFinder',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'VoiceoverStudioFinder',
-    description: 'Find Professional Recording Studios for Voiceover Work',
+    description: 'Professional voiceover, podcast & recording studios worldwide',
     site: '@VOStudioFinder',
     images: ['https://voiceoverstudiofinder.com/images/homepage.jpg'],
   },
