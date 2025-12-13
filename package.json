@@ -38,6 +38,7 @@
     "test:coverage": "jest --coverage",
     "audit:quick": "npm run lint:fast && npm run deps:check",
     "audit:full": "npm run type-check && npm run lint && npm run lint:fast && npm run deps:check",
+    "cleanup:neon-branches": "tsx scripts/cleanup-neon-branches.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -59,7 +60,7 @@
     "ioredis": "^5.8.1",
     "lucide-react": "^0.554.0",
     "nanoid": "^5.1.6",
-    "next": "^16.0.7",
+    "next": "^16.0.9",
     "next-auth": "^4.24.11",
     "prisma": "^6.16.3",
     "react": "^19.2.0",
