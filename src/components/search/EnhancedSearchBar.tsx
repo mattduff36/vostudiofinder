@@ -55,11 +55,17 @@ export function EnhancedSearchBar({
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Get user's current location for distance calculations (lazy-loaded)
+  // Get user's current location for distance calculations
   const [locationRequested, setLocationRequested] = React.useState(false);
   
+  // Request user location on component mount for better search results
   React.useEffect(() => {
-    // Only fetch location after user starts typing (to reduce initial load time)
+    // Automatically request location when component mounts
+    setLocationRequested(true);
+  }, []);
+  
+  React.useEffect(() => {
+    // Only fetch location after permission is requested
     if (!locationRequested) return;
     
     const getUserLocation = async () => {
