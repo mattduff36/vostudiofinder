@@ -14,31 +14,44 @@ Sets the following fields to `false` for ALL user profiles:
 
 ## Usage
 
-### Dry Run (Preview Changes)
+### Step 1: Dry Run (Preview Changes) - ALWAYS RUN THIS FIRST
 
 First, run in dry-run mode to see what will be changed without actually making changes:
 
 ```bash
-npm run tsx scripts/disable-all-visibility-settings.ts -- --dry-run
+npm run privacy:disable-visibility:dry
 ```
 
-or
-
+**Alternative commands:**
 ```bash
+# Using tsx directly
 tsx scripts/disable-all-visibility-settings.ts --dry-run
 ```
 
-### Apply Changes
+This will:
+- ✅ Show which database you're connected to (with masked credentials)
+- ✅ List all profiles that will be affected
+- ✅ Show exactly which settings will be disabled
+- ✅ **NOT make any changes** to the database
+
+### Step 2: Review the Output
+
+Carefully review the dry-run output to ensure you're:
+- Connected to the correct database
+- Updating the expected number of profiles
+- Comfortable with the changes
+
+### Step 3: Apply Changes
 
 Once you've reviewed the dry-run output and are ready to apply changes:
 
 ```bash
-npm run tsx scripts/disable-all-visibility-settings.ts
+npm run privacy:disable-visibility
 ```
 
-or
-
+**Alternative commands:**
 ```bash
+# Using tsx directly
 tsx scripts/disable-all-visibility-settings.ts
 ```
 
@@ -56,6 +69,9 @@ The script will show:
 ### Example Output
 
 ```
+🔗 Connected to database:
+   postgresql://user:***@host.neon.tech/database
+
 🔍 Checking user profiles...
 
 Found 150 user profiles
@@ -117,12 +133,24 @@ Before running this script on production:
 pg_dump -h your-host -U your-user -d your-database > backup_before_visibility_changes.sql
 ```
 
+## Running Locally
+
+This script is designed to run locally in your development environment. It will:
+1. Load environment variables from `.env.local` (or `.env`)
+2. Connect to your database (Neon PostgreSQL)
+3. Show which database it's connecting to (with masked password)
+4. Apply changes to the connected database
+
+**Important:** Since your dev and production environments share the same database, changes made locally will affect production data immediately.
+
 ## Environment Variables Required
 
-Make sure your `.env` file has:
+Make sure your `.env.local` file has:
 ```env
 DATABASE_URL="postgresql://..."
 ```
+
+The script will automatically load this when you run it.
 
 ## Technical Details
 

@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import dotenv from 'dotenv';
+import { config } from 'dotenv';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from .env.local or .env
+config();
 
 const prisma = new PrismaClient();
 
@@ -24,6 +24,19 @@ const prisma = new PrismaClient();
 
 async function disableAllVisibilitySettings() {
   const isDryRun = process.argv.includes('--dry-run');
+
+  // Show database connection info for safety
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    console.error('❌ ERROR: DATABASE_URL not found in environment variables');
+    console.error('Make sure you have .env.local file with DATABASE_URL set\n');
+    process.exit(1);
+  }
+
+  // Mask the database URL for security but show enough to identify it
+  const maskedUrl = dbUrl.replace(/:[^:@]+@/, ':***@');
+  console.log('🔗 Connected to database:');
+  console.log(`   ${maskedUrl}\n`);
 
   console.log('🔍 Checking user profiles...\n');
 
