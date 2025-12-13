@@ -65,6 +65,19 @@ export default async function RootLayout({
   return (
     <html lang='en'>
       <head>
+        {/* Google Analytics - Placed immediately after opening <head> tag */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-JKPCYM50W7"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-JKPCYM50W7');
+          `}
+        </Script>
         <meta 
           name="viewport" 
           content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" 
