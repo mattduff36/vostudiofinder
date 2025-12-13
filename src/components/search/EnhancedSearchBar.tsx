@@ -232,19 +232,25 @@ export function EnhancedSearchBar({
     // Make parallel requests for different types
     const promises = searchTypes.map((types) => {
       return new Promise<SearchSuggestion[]>((resolve) => {
+        const requestOptions: any = {
+          input: searchQuery,
+          types: types,
+        };
+
+        // If user location is available, bias results towards user's location
+        if (userLocation) {
+          requestOptions.location = new window.google.maps.LatLng(userLocation.lat, userLocation.lng);
+          requestOptions.radius = 50000; // 50km radius bias around user's location
+        }
+
+        // Add country restrictions to keep results relevant (but not UK-biased)
+        if (!types.includes('establishment') && !types.includes('tourist_attraction') && 
+            !types.includes('natural_feature') && !types.includes('park')) {
+          requestOptions.componentRestrictions = { country: ['us', 'gb', 'ca', 'au', 'ie', 'nz'] };
+        }
+
         autocompleteService.getPlacePredictions(
-          {
-            input: searchQuery,
-            types: types,
-            // Bias results towards UK (center of London) for better local results
-            // This prioritizes UK locations while still allowing global search
-            location: new window.google.maps.LatLng(51.5074, -0.1278), // London, UK
-            radius: 50000, // 50km radius bias
-            // For landmarks/establishments, prioritize UK but allow global search if needed
-            ...(types.includes('establishment') || types.includes('tourist_attraction') || types.includes('natural_feature') || types.includes('park') 
-              ? { componentRestrictions: { country: ['gb', 'us', 'ca', 'au'] } } // UK first, then others
-              : { componentRestrictions: { country: ['us', 'gb', 'ca', 'au'] } })
-          },
+          requestOptions,
           async (predictions: any[], status: any) => {
             if (status === places.PlacesServiceStatus.OK && predictions) {
               // Get details for each prediction to obtain coordinates
