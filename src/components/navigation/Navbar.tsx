@@ -111,7 +111,7 @@ export function Navbar({ session }: NavbarProps) {
       document.removeEventListener('scroll', handleScroll);
       clearInterval(checkScrollInterval);
     };
-  }, [isScrolled]);
+  }, []);
 
   // Track container width for dynamic logo sizing (client-side only)
   useEffect(() => {
