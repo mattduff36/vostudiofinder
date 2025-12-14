@@ -352,19 +352,14 @@ export function Navbar({ session }: NavbarProps) {
             <div className="px-6 py-4 space-y-3">
               <Link 
                 href="/studios" 
-                className={`block py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                  pathname === '/studios' 
-                    ? 'text-white' 
-                    : 'text-gray-900 hover:text-white hover:bg-red-500'
-                }`}
-                style={pathname === '/studios' ? { backgroundColor: colors.primary } : {}}
+                className="block py-2 px-3 rounded-md text-sm font-medium text-gray-700 hover:text-white hover:bg-red-500 transition-colors"
               >
                 Studios
               </Link>
               {/* Blog - Coming Soon */}
               <div className="relative group">
                 <span 
-                  className="block py-2 px-3 rounded-md text-sm font-medium text-gray-900 cursor-not-allowed opacity-50"
+                  className="block py-2 px-3 rounded-md text-sm font-medium text-gray-700 cursor-not-allowed"
                 >
                   Blog
                   <span className="ml-2 text-xs">(Coming soon!)</span>
