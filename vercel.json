@@ -96,6 +96,18 @@
       "destination": "/api/health"
     }
   ],
+  "redirects": [
+    {
+      "source": "/upgrade",
+      "destination": "/auth/signin",
+      "permanent": true
+    },
+    {
+      "source": "/register",
+      "destination": "/join-waitlist",
+      "permanent": true
+    }
+  ],
   "env": {
     "NODE_ENV": "production"
   },
