@@ -355,7 +355,7 @@ export function Navbar({ session }: NavbarProps) {
                 className={`block py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                   pathname === '/studios' 
                     ? 'text-white' 
-                    : 'text-gray-700 hover:text-white hover:bg-red-500'
+                    : 'text-black hover:text-white hover:bg-red-500'
                 }`}
                 style={pathname === '/studios' ? { backgroundColor: colors.primary } : {}}
               >
@@ -364,7 +364,7 @@ export function Navbar({ session }: NavbarProps) {
               {/* Blog - Coming Soon */}
               <div className="relative group">
                 <span 
-                  className="block py-2 px-3 rounded-md text-sm font-medium text-gray-400 cursor-not-allowed"
+                  className="block py-2 px-3 rounded-md text-sm font-medium text-black cursor-not-allowed opacity-50"
                 >
                   Blog
                   <span className="ml-2 text-xs">(Coming soon!)</span>
