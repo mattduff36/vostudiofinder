@@ -629,7 +629,6 @@ export function EnhancedSearchBar({
               />
               </div>
             </div>
-          </div>
           
           {/* Search Button */}
           <button
@@ -646,6 +645,7 @@ export function EnhancedSearchBar({
           >
             Search
           </button>
+          </div>
         </div>
 
         {/* Suggestions Dropdown */}
