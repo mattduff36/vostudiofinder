@@ -26,12 +26,27 @@ interface SearchFiltersProps {
 }
 
 export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount }: SearchFiltersProps) {
-  const [filters, setFilters] = useState(initialFilters);
+  // If no studio types are selected, default to all types
+  const filtersWithDefaults = {
+    ...initialFilters,
+    studio_studio_types: initialFilters.studio_studio_types.length === 0 
+      ? [studio_type.HOME, studio_type.RECORDING, studio_type.PODCAST]
+      : initialFilters.studio_studio_types
+  };
+  
+  const [filters, setFilters] = useState(filtersWithDefaults);
   const radiusDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     logger.log('Updating filters with initialFilters:', initialFilters);
-    setFilters(initialFilters);
+    // Apply defaults when updating from URL params
+    const updatedFilters = {
+      ...initialFilters,
+      studio_studio_types: initialFilters.studio_studio_types.length === 0 
+        ? [studio_type.HOME, studio_type.RECORDING, studio_type.PODCAST]
+        : initialFilters.studio_studio_types
+    };
+    setFilters(updatedFilters);
   }, [initialFilters]);
 
   // Cleanup timeout on unmount
@@ -146,8 +161,16 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
     }
     
     setFilters(newFilters);
-    // Apply filters instantly
-    onSearch(newFilters);
+    
+    // On mobile: only update state, don't trigger search
+    // User will click "Apply" button to search
+    // On desktop: trigger search immediately
+    if (!isMobileDevice()) {
+      logger.log('Desktop: Studio type toggled - triggering immediate search');
+      onSearch(newFilters);
+    } else {
+      logger.log('Mobile: Studio type toggled - waiting for user to click Apply');
+    }
   };
 
   // Helper function to detect if device is mobile
@@ -259,13 +282,26 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
                 // Update radius immediately for UI feedback
                 setFilters({ ...filters, radius: newRadius });
                 
-                // Debounce the search: 1s on mobile, 500ms on desktop
+                // On mobile: only update the state, don't trigger search
+                // User will trigger search by clicking "Apply" button in modal
+                const isMobile = isMobileDevice();
+                
+                if (isMobile) {
+                  logger.log(`Mobile: Radius changed to ${newRadius} - waiting for user to click Apply`);
+                  // Clear any existing timeout to prevent accidental search
+                  if (radiusDebounceRef.current) {
+                    clearTimeout(radiusDebounceRef.current);
+                  }
+                  return; // Exit early - don't trigger search
+                }
+                
+                // Desktop: Debounce the search with 500ms delay
                 if (radiusDebounceRef.current) {
                   clearTimeout(radiusDebounceRef.current);
                 }
                 
-                const delay = isMobileDevice() ? 1000 : 500;
-                logger.log(`Radius changed to ${newRadius} - will trigger search after ${delay}ms`);
+                const delay = 500;
+                logger.log(`Desktop: Radius changed to ${newRadius} - will trigger search after ${delay}ms`);
                 
                 radiusDebounceRef.current = setTimeout(() => {
                   logger.log(`Radius search triggered after ${delay}ms delay: ${newRadius} miles`);
@@ -304,7 +340,41 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
         <label className="block text-sm font-medium text-black mb-3">
           Studio Types
         </label>
-        <div className="space-y-2">
+        {/* Mobile: Card-style buttons */}
+        <div className="space-y-3 lg:hidden">
+          {studioTypeOptions.map(option => {
+            const isSelected = filters.studio_studio_types.includes(option.value);
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handleStudioTypeToggle(option.value)}
+                className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                  isSelected
+                    ? 'border-red-600 bg-red-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300 active:bg-gray-50'
+                }`}
+              >
+                <span className={`text-base font-medium ${isSelected ? 'text-red-600' : 'text-gray-900'}`}>
+                  {option.label}
+                </span>
+                <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  isSelected
+                    ? 'border-red-600 bg-red-600'
+                    : 'border-gray-300 bg-white'
+                }`}>
+                  {isSelected && (
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {/* Desktop: Original checkbox style */}
+        <div className="hidden lg:block space-y-2">
           {studioTypeOptions.map(option => (
             <label
               key={option.value}

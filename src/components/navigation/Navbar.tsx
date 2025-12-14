@@ -370,6 +370,7 @@ export function Navbar({ session }: NavbarProps) {
                 href="/studios" 
                 className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium"
                 style={{ color: '#111827' }}
+                onClick={() => setIsMenuOpen(false)}
               >
                 Studios
               </Link>
@@ -379,6 +380,7 @@ export function Navbar({ session }: NavbarProps) {
                 href="/about" 
                 className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium"
                 style={{ color: '#111827' }}
+                onClick={() => setIsMenuOpen(false)}
               >
                 About
               </Link>
@@ -399,7 +401,10 @@ export function Navbar({ session }: NavbarProps) {
                       Welcome, {session.user.display_name}
                     </div>
                     <button
-                      onClick={() => router.push('/dashboard')}
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        router.push('/dashboard');
+                      }}
                       className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
                     >
                       Dashboard
@@ -408,14 +413,20 @@ export function Navbar({ session }: NavbarProps) {
                       <>
                         {showEditButton && (
                           <button
-                            onClick={handleEditClick}
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              handleEditClick();
+                            }}
                             className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black"
                           >
                             EDIT
                           </button>
                         )}
                         <button
-                          onClick={() => router.push('/admin')}
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            router.push('/admin');
+                          }}
                           className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black"
                         >
                           ADMIN
@@ -423,7 +434,10 @@ export function Navbar({ session }: NavbarProps) {
                       </>
                     )}
                     <button
-                      onClick={() => signOut({ callbackUrl: '/' })}
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        signOut({ callbackUrl: '/' });
+                      }}
                       className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
                     >
                       Logout
@@ -432,13 +446,19 @@ export function Navbar({ session }: NavbarProps) {
                 ) : (
                   <>
                     <button
-                      onClick={() => router.push('/auth/signin')}
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        router.push('/auth/signin');
+                      }}
                       className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
                     >
                       Sign In
                     </button>
                     <button
-                      onClick={() => router.push('/auth/signup')}
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        router.push('/auth/signup');
+                      }}
                       className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white"
                       style={{ backgroundColor: colors.primary }}
                     >
