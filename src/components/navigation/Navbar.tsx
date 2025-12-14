@@ -350,21 +350,21 @@ export function Navbar({ session }: NavbarProps) {
         {isMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
             <div className="px-6 py-4 space-y-3">
+              {/* Studios Link */}
               <Link 
                 href="/studios" 
-                className="block py-2 px-3 rounded-md text-sm font-medium text-gray-700"
+                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
               >
                 Studios
               </Link>
-              {/* Blog - Coming Soon */}
-              <div className="relative group">
-                <span 
-                  className="block py-2 px-3 rounded-md text-sm font-medium text-gray-700 cursor-not-allowed"
-                >
-                  Blog
-                  <span className="ml-2 text-xs">(Coming soon!)</span>
-                </span>
-              </div>
+              
+              {/* Blog - Coming Soon (Disabled) */}
+              <span 
+                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900 opacity-50 cursor-not-allowed"
+              >
+                Blog
+                <span className="ml-2 text-xs">(Coming soon!)</span>
+              </span>
               
               <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
                 {session ? (
@@ -374,7 +374,7 @@ export function Navbar({ session }: NavbarProps) {
                     </div>
                     <button
                       onClick={() => router.push('/dashboard')}
-                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-700 hover:text-white hover:bg-red-500 transition-colors"
+                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
                     >
                       Dashboard
                     </button>
@@ -383,14 +383,14 @@ export function Navbar({ session }: NavbarProps) {
                         {showEditButton && (
                           <button
                             onClick={handleEditClick}
-                            className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 transition-colors"
+                            className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black"
                           >
                             EDIT
                           </button>
                         )}
                         <button
                           onClick={() => router.push('/admin')}
-                          className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 transition-colors"
+                          className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black"
                         >
                           ADMIN
                         </button>
@@ -398,7 +398,7 @@ export function Navbar({ session }: NavbarProps) {
                     )}
                     <button
                       onClick={() => signOut({ callbackUrl: '/' })}
-                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-700 hover:text-white hover:bg-red-500 transition-colors"
+                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
                     >
                       Logout
                     </button>
@@ -407,13 +407,13 @@ export function Navbar({ session }: NavbarProps) {
                   <>
                     <button
                       onClick={() => router.push('/auth/signin')}
-                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-700 hover:text-white hover:bg-red-500 transition-colors"
+                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
                     >
                       Sign In
                     </button>
                     <button
                       onClick={() => router.push('/auth/signup')}
-                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white transition-colors"
+                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white"
                       style={{ backgroundColor: colors.primary }}
                     >
                       List Your Studio
