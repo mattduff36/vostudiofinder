@@ -52,6 +52,7 @@ export function EnhancedSearchBar({
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const radiusDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -584,15 +585,16 @@ export function EnhancedSearchBar({
 
 
   return (
-    <div className={`relative ${className} w-full max-w-full`}>
-      {/* Main Search Input */}
-      <div className="bg-white rounded-xl p-2 sm:p-2 shadow-2xl w-full max-w-full">
-        <div className="flex gap-2 sm:gap-3 w-full max-w-full">
-          <div className="flex-1 min-w-0">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: colors.textSubtle }} />
-              <input
-                ref={inputRef}
+    <div className={`${className} w-full max-w-full`}>
+      <div className="relative">
+        {/* Main Search Input */}
+        <div className="bg-white rounded-xl p-2 sm:p-2 shadow-2xl w-full max-w-full">
+          <div className="flex gap-2 sm:gap-3 w-full max-w-full">
+            <div className="flex-1 min-w-0">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: colors.textSubtle }} />
+                <input
+                  ref={inputRef}
                 type="text"
                 placeholder={placeholder}
                 className="w-full h-10 pl-8 pr-2 sm:pr-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
@@ -647,9 +649,15 @@ export function EnhancedSearchBar({
         </div>
       </div>
 
-      {/* Suggestions Dropdown */}
-      {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-[50] w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-80 overflow-auto">
+        {/* Suggestions Dropdown */}
+        {isOpen && suggestions.length > 0 && (
+          <div 
+            ref={dropdownRef}
+            className="absolute z-[9999] w-full bg-white border-2 border-gray-300 rounded-lg shadow-2xl max-h-80 overflow-auto mt-2"
+            style={{
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+            }}
+          >
           {isLoadingPlaces && (
             <div className="px-4 py-2 text-sm text-gray-500 border-b">
               <div className="flex items-center gap-2">
@@ -678,8 +686,9 @@ export function EnhancedSearchBar({
               </div>
             </div>
           ))}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Radius Slider - Moved Below Search Bar */}
       {showRadius && (
@@ -757,7 +766,6 @@ export function EnhancedSearchBar({
           </div>
         </div>
       )}
-
     </div>
   );
 }

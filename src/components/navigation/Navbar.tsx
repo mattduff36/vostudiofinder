@@ -77,13 +77,41 @@ export function Navbar({ session }: NavbarProps) {
 
   // Handle scroll effect
   useEffect(() => {
+    // Function to get scroll position from any scrollable element
+    const getScrollPosition = () => {
+      return window.scrollY || 
+             document.documentElement.scrollTop || 
+             document.body.scrollTop || 
+             0;
+    };
+    
+    // Set initial scroll state
+    setIsScrolled(getScrollPosition() > 10);
+    
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      const scrollPos = getScrollPosition();
+      setIsScrolled(scrollPos > 10);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    // Listen to scroll on multiple targets to ensure we catch it
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Also check periodically as a fallback (in case scroll events don't fire)
+    const checkScrollInterval = setInterval(() => {
+      const scrollPos = getScrollPosition();
+      const shouldBeScrolled = scrollPos > 10;
+      if (shouldBeScrolled !== isScrolled) {
+        setIsScrolled(shouldBeScrolled);
+      }
+    }, 100);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('scroll', handleScroll);
+      clearInterval(checkScrollInterval);
+    };
+  }, [isScrolled]);
 
   // Track container width for dynamic logo sizing (client-side only)
   useEffect(() => {
