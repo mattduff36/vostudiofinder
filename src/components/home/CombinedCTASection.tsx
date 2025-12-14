@@ -176,9 +176,9 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
   };
 
   return (
-    <div ref={sectionRef} className="relative py-6 sm:py-8 overflow-hidden">
+    <div ref={sectionRef} className="relative py-6 sm:py-8 overflow-hidden w-full max-w-full">
       {/* Background Banner Image */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 overflow-hidden">
         <Image
           src="/bottom-banner.jpg"
           alt="Professional recording studio"
