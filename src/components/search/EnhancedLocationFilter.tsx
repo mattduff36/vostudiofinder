@@ -553,7 +553,13 @@ export function EnhancedLocationFilter({
 
       {/* Suggestions Dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <div ref={dropdownRef} className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+        <div
+          ref={dropdownRef}
+          className="absolute z-[9999] w-full bg-white border-2 border-gray-300 rounded-lg shadow-2xl max-h-60 overflow-auto mt-1"
+          style={{
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+          }}
+        >
           {isLoadingPlaces && (
             <div className="px-3 py-2 text-xs text-gray-500 flex items-center gap-2">
               <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-400"></div>
