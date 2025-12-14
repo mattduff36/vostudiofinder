@@ -352,7 +352,7 @@ export function Navbar({ session }: NavbarProps) {
             <div className="px-6 py-4 space-y-3">
               <Link 
                 href="/studios" 
-                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-700 hover:text-white hover:bg-red-500 transition-colors"
+                className="block py-2 px-3 rounded-md text-sm font-medium text-gray-700"
               >
                 Studios
               </Link>
