@@ -101,9 +101,8 @@ export function Navbar({ session }: NavbarProps) {
     const checkScrollInterval = setInterval(() => {
       const scrollPos = getScrollPosition();
       const shouldBeScrolled = scrollPos > 10;
-      if (shouldBeScrolled !== isScrolled) {
-        setIsScrolled(shouldBeScrolled);
-      }
+      // React will only re-render if the state actually changes
+      setIsScrolled(shouldBeScrolled);
     }, 100);
     
     return () => {
