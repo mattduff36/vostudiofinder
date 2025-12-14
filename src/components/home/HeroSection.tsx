@@ -61,7 +61,7 @@ export function HeroSection() {
         </div>
 
       {/* Hero Content */}
-      <div className="relative z-50 py-6 sm:py-12 md:py-16 lg:py-20 w-full">
+      <div className="relative z-[90] py-6 sm:py-12 md:py-16 lg:py-20 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <h1 className={`hp1 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 md:mb-6 text-center transition-all duration-1000 delay-200 leading-tight ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
