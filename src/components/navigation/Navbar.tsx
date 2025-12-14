@@ -157,7 +157,7 @@ export function Navbar({ session }: NavbarProps) {
 
   return (
     <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
         isScrolled || !isHomePage 
           ? 'bg-white shadow-lg' 
           : 'bg-transparent'
@@ -348,7 +348,7 @@ export function Navbar({ session }: NavbarProps) {
 
         {/* Mobile Menu Dropdown */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
             <div className="px-6 py-4 space-y-3">
               <Link 
                 href="/studios" 
