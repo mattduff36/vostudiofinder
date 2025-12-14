@@ -157,13 +157,13 @@ export function Navbar({ session }: NavbarProps) {
 
   return (
     <nav 
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 w-full max-w-full ${
         isScrolled || !isHomePage 
           ? 'bg-white shadow-lg' 
           : 'bg-transparent'
       }`}
     >
-      <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4">
+      <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4 w-full">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link 

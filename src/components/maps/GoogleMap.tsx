@@ -957,11 +957,14 @@ export function GoogleMap({
       className={`rounded-lg ${className}`}
       style={{ 
         height,
+        width: '100%',
+        maxWidth: '100%',
         position: 'relative',
         zIndex: 1,
         // Ensure map captures mouse events properly
-        pointerEvents: 'auto'
-        // Don't use overflow:hidden - it clips map controls in Safari
+        pointerEvents: 'auto',
+        // Prevent map from causing horizontal scroll
+        containIntrinsicSize: 'auto 400px'
       }}
       data-testid="google-map"
     />

@@ -5,8 +5,8 @@ import { X, Mail } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer style={{ backgroundColor: '#000000', color: '#ffffff' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <footer className="w-full max-w-full overflow-x-hidden" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">

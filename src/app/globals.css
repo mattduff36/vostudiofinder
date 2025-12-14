@@ -116,6 +116,9 @@
 html,
 body {
   height: 100%;
+  overflow-x: hidden;
+  max-width: 100%;
+  position: relative;
 }
 
 body {

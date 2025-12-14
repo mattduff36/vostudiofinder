@@ -50,9 +50,9 @@ export function NewCTASection() {
   ];
 
   return (
-    <div className="relative py-10 sm:py-12 md:py-16 overflow-hidden" style={{ backgroundColor: colors.background }}>
+    <div className="relative py-10 sm:py-12 md:py-16 overflow-hidden w-full max-w-full" style={{ backgroundColor: colors.background }}>
       {/* Background Image */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 overflow-hidden">
         <Image
           src="/background-images/21920-3.jpg"
           alt="Professional recording studio"

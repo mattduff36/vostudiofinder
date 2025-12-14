@@ -609,9 +609,9 @@ export function StudiosPage() {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-white relative -mt-20">
+    <div className="min-h-screen flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full">
       {/* Background Image for main content */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <Image
           src="/background-images/21920-5.jpg"
           alt="Studios page background texture"
