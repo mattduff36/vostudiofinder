@@ -584,10 +584,10 @@ export function EnhancedSearchBar({
 
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className} w-full max-w-full`}>
       {/* Main Search Input */}
-      <div className="bg-white rounded-xl p-2 sm:p-2 shadow-2xl">
-        <div className="flex gap-2 sm:gap-3">
+      <div className="bg-white rounded-xl p-2 sm:p-2 shadow-2xl w-full max-w-full">
+        <div className="flex gap-2 sm:gap-3 w-full max-w-full">
           <div className="flex-1 min-w-0">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: colors.textSubtle }} />
@@ -595,9 +595,12 @@ export function EnhancedSearchBar({
                 ref={inputRef}
                 type="text"
                 placeholder={placeholder}
-                className="w-full h-10 pl-8 pr-2 sm:pr-3 text-sm sm:text-base border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
+                className="w-full h-10 pl-8 pr-2 sm:pr-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                 style={{ 
-                  color: colors.textPrimary
+                  color: colors.textPrimary,
+                  fontSize: '16px', // Minimum 16px to prevent iOS zoom
+                  maxWidth: '100%',
+                  touchAction: 'manipulation'
                 } as React.CSSProperties}
                 value={query}
                 onChange={(e) => {
@@ -628,8 +631,13 @@ export function EnhancedSearchBar({
           
           {/* Search Button */}
           <button
-            className="h-10 px-3 sm:px-4 text-sm sm:text-base font-semibold rounded-lg transition-all duration-300 hover:shadow-lg flex-shrink-0"
-            style={{ backgroundColor: colors.primary, color: colors.background }}
+            className="h-10 px-3 sm:px-4 font-semibold rounded-lg transition-all duration-300 hover:shadow-lg flex-shrink-0 whitespace-nowrap"
+            style={{ 
+              backgroundColor: colors.primary, 
+              color: colors.background,
+              fontSize: '16px', // Match input font-size for consistency
+              minWidth: 'fit-content'
+            }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryHover}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
             onClick={handleSearch}

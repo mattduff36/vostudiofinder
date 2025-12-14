@@ -28,6 +28,7 @@ export function Footer() {
           <div>
             <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4" style={{ color: '#ffffff' }}>Quick Links</h4>
             <ul className="space-y-2 text-sm" style={{ color: '#cccccc' }}>
+              <li><Link href="/about" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>About</Link></li>
               <li><Link href="/help" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Help Centre</Link></li>
             </ul>
           </div>

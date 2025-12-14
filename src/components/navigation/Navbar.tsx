@@ -227,6 +227,21 @@ export function Navbar({ session }: NavbarProps) {
             >
               Studios
             </Link>
+            <Link 
+              href="/about" 
+              className={`transition-colors ${pathname === '/about' ? 'font-semibold' : ''}`}
+              style={{ 
+                color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+              }}
+            >
+              About
+            </Link>
             {/* Blog - Coming Soon */}
             <div className="relative group">
               <span 
@@ -348,7 +363,7 @@ export function Navbar({ session }: NavbarProps) {
 
         {/* Mobile Menu Dropdown */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-[110]">
             <div className="px-6 py-4 space-y-3">
               {/* Studios Link */}
               <Link 
@@ -357,6 +372,15 @@ export function Navbar({ session }: NavbarProps) {
                 style={{ color: '#111827' }}
               >
                 Studios
+              </Link>
+              
+              {/* About Link */}
+              <Link 
+                href="/about" 
+                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium"
+                style={{ color: '#111827' }}
+              >
+                About
               </Link>
               
               {/* Blog - Coming Soon (Disabled) */}
