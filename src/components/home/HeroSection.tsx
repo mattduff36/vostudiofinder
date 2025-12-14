@@ -61,7 +61,7 @@ export function HeroSection() {
         </div>
 
       {/* Hero Content */}
-      <div className="relative z-[110] py-6 sm:py-12 md:py-16 lg:py-20 w-full">
+      <div className="relative z-10 py-6 sm:py-12 md:py-16 lg:py-20 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <h1 className={`hp1 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 md:mb-6 text-center transition-all duration-1000 delay-200 leading-tight ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -84,9 +84,9 @@ export function HeroSection() {
           </p>
 
           {/* Enhanced Search Form */}
-          <div className={`max-w-4xl mx-auto mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 transition-all duration-700 ${
+          <div className={`max-w-4xl mx-auto mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 transition-all duration-700 w-full ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`} style={{ transitionDelay: '0.2s' }}>
+          }`} style={{ transitionDelay: '0.2s', maxWidth: 'calc(100% - 2rem)' }}>
             <EnhancedSearchBar
               placeholder="Studio Search..."
               showRadius={true}
