@@ -111,3 +111,5 @@ If you prefer to delete branches manually:
 1. Go to [Neon Console](https://console.neon.tech) → Branches
 2. Click on each preview branch
 3. Click **Delete** or **⋯** menu → **Delete branch**
+
+
