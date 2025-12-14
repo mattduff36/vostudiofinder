@@ -627,7 +627,7 @@ export function EnhancedSearchBar({
                 onKeyDown={handleKeyDown}
                 autoComplete="off"
               />
-              
+              </div>
             </div>
           </div>
           
@@ -647,7 +647,6 @@ export function EnhancedSearchBar({
             Search
           </button>
         </div>
-      </div>
 
         {/* Suggestions Dropdown */}
         {isOpen && suggestions.length > 0 && (
