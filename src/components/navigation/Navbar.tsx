@@ -353,14 +353,16 @@ export function Navbar({ session }: NavbarProps) {
               {/* Studios Link */}
               <Link 
                 href="/studios" 
-                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
+                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium"
+                style={{ color: '#111827' }}
               >
                 Studios
               </Link>
               
               {/* Blog - Coming Soon (Disabled) */}
               <span 
-                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900 opacity-50 cursor-not-allowed"
+                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium opacity-50 cursor-not-allowed"
+                style={{ color: '#111827' }}
               >
                 Blog
                 <span className="ml-2 text-xs">(Coming soon!)</span>
