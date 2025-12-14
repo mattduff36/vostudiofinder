@@ -94,7 +94,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
             priority={false}
           />
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
+        <div className="relative max-w-7xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-4" style={{ color: colors.textPrimary }}>
             Featured Studios
           </h2>
@@ -121,7 +121,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           priority={false}
         />
       </div>
-      <div className="relative z-10 pt-0 pb-4 sm:pb-6 md:py-8 w-full">
+      <div className="relative pt-0 pb-4 sm:pb-6 md:py-8 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className={`text-center mb-6 sm:mb-8 md:mb-12 transition-all duration-1000 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
