@@ -44,9 +44,9 @@ export function HeroSection() {
   };
 
   return (
-    <div className="relative text-white overflow-hidden min-h-screen flex items-center" style={{ minHeight: '100dvh' }}>
+    <div className="relative text-white overflow-visible min-h-screen flex items-center w-full max-w-full" style={{ minHeight: '100dvh' }}>
         {/* Background Image */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 overflow-hidden">
           <Image
             src="/bottom-banner.jpg"
             alt="Professional recording studio"
