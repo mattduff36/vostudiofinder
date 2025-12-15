@@ -37,9 +37,9 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    // Get studios with pagination
+    // Get studio profiles with pagination
     const [studios, total] = await Promise.all([
-      db.studios.findMany({
+      db.studio_profiles.findMany({
         where,
         include: {
           users: {
@@ -47,12 +47,6 @@ export async function GET(request: NextRequest) {
               display_name: true,
               email: true,
               username: true,
-              user_profiles: {
-                select: {
-                  is_featured: true,
-                  is_spotlight: true
-                }
-              }
             }
           },
           studio_studio_types: {
@@ -65,7 +59,7 @@ export async function GET(request: NextRequest) {
         take: limit,
         skip: offset
       }),
-      db.studios.count({ where })
+      db.studio_profiles.count({ where })
     ]);
 
     const hasMore = offset + limit < total;
