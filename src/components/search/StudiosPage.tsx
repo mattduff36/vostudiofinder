@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { SearchFilters } from './SearchFilters';
+import { SearchFilters, SearchFiltersRef } from './SearchFilters';
 import { StudiosList } from './StudiosList';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 import { abbreviateAddress } from '@/lib/utils/address';
@@ -82,6 +82,7 @@ export function StudiosPage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [isFilteringByMapArea, setIsFilteringByMapArea] = useState(false);
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
+  const mobileFiltersRef = useRef<SearchFiltersRef>(null);
   
   // Studio marker modal state
   const [modalStudio, setModalStudio] = useState<{
@@ -755,6 +756,7 @@ export function StudiosPage() {
             {/* Modal Body */}
             <div className="overflow-y-auto p-6" style={{ height: 'calc(100vh - 5rem - 64px - 88px)' }}>
               <SearchFilters
+                ref={mobileFiltersRef}
                 initialFilters={mobileFiltersInitialState}
                 onSearch={(filters) => {
                   handleSearch(filters);
@@ -779,7 +781,11 @@ export function StudiosPage() {
                   Clear All
                 </button>
                 <button
-                  onClick={() => setShowMobileFilters(false)}
+                  onClick={() => {
+                    // Call applyFilters on the SearchFilters component to trigger search with current state
+                    mobileFiltersRef.current?.applyFilters();
+                    setShowMobileFilters(false);
+                  }}
                   className="flex-1 py-3 px-4 rounded-lg font-medium text-white transition-colors"
                   style={{ backgroundColor: '#d42027' }}
                 >

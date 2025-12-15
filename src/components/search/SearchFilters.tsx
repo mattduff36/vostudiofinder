@@ -1,7 +1,7 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Button } from '@/components/ui/Button';
 
 import { X } from 'lucide-react';
@@ -25,7 +25,11 @@ interface SearchFiltersProps {
   visibleMarkerCount?: number;
 }
 
-export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount }: SearchFiltersProps) {
+export interface SearchFiltersRef {
+  applyFilters: () => void;
+}
+
+export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount }, ref) {
   // If no studio types are selected, default to all types
   const filtersWithDefaults = {
     ...initialFilters,
@@ -36,6 +40,20 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
   
   const [filters, setFilters] = useState(filtersWithDefaults);
   const radiusDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Expose applyFilters method to parent component via ref
+  useImperativeHandle(ref, () => ({
+    applyFilters: () => {
+      logger.log('🔍 Apply button clicked - triggering search with current filters:', filters);
+      // Only trigger search if there's a location
+      if (filters.location && filters.location.trim() !== '') {
+        logger.log('✅ Triggering search from Apply button');
+        onSearch(filters);
+      } else {
+        logger.log('🚫 Skipping search - no location provided');
+      }
+    }
+  }), [filters, onSearch]);
 
   useEffect(() => {
     logger.log('Updating filters with initialFilters:', initialFilters);
@@ -414,4 +432,4 @@ export function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isF
 
     </div>
   );
-}
+});
