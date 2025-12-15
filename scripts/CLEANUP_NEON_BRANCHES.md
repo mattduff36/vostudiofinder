@@ -113,3 +113,6 @@ If you prefer to delete branches manually:
 3. Click **Delete** or **⋯** menu → **Delete branch**
 
 
+
+
+
