@@ -45,14 +45,13 @@ export async function POST(request: NextRequest) {
         }
       }
       
-      // Create the studio
-      const newStudio = await tx.studios.create({
+      // Create the studio profile
+      const newStudio = await tx.studio_profiles.create({
         data: {
           id: randomBytes(12).toString('base64url'), // Generate unique ID
-          owner_id: session.user.id,
+          user_id: session.user.id,
           name: validatedData.name,
           description: validatedData.description,
-          address: validatedData.address || null, // Legacy field
           full_address: validatedData.full_address || null,
           abbreviated_address: validatedData.abbreviated_address || null,
           city: validatedData.city || '',
@@ -109,8 +108,8 @@ export async function POST(request: NextRequest) {
       return newStudio;
     });
     
-    // Fetch the complete studio data to return
-    const completeStudio = await db.studios.findUnique({
+    // Fetch the complete studio profile data to return
+    const completeStudio = await db.studio_profiles.findUnique({
       where: { id: studio.id },
       include: {
         studio_studio_types: true,
