@@ -99,7 +99,7 @@ model pending_subscriptions {
   payment_method         PaymentMethod
   created_at             DateTime      @default(now())
   updated_at             DateTime
-  studios                studios       @relation(fields: [studio_id], references: [id], onDelete: Cascade)
+  studio_profiles        studio_profiles @relation(fields: [studio_id], references: [id], onDelete: Cascade)
   users                  users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
@@ -154,7 +154,7 @@ model reviews {
   review_responses                 review_responses?
   users_reviews_owner_idTousers    users             @relation("reviews_owner_idTousers", fields: [owner_id], references: [id])
   users_reviews_reviewer_idTousers users             @relation("reviews_reviewer_idTousers", fields: [reviewer_id], references: [id])
-  studios                          studios           @relation(fields: [studio_id], references: [id], onDelete: Cascade)
+  studio_profiles                  studio_profiles   @relation(fields: [studio_id], references: [id], onDelete: Cascade)
 }
 
 model saved_searches {
@@ -176,19 +176,19 @@ model sessions {
 }
 
 model studio_images {
-  id         String  @id
-  studio_id  String
-  image_url  String
-  alt_text   String?
-  sort_order Int     @default(0)
-  studios    studios @relation(fields: [studio_id], references: [id], onDelete: Cascade)
+  id              String          @id
+  studio_id       String
+  image_url       String
+  alt_text        String?
+  sort_order      Int             @default(0)
+  studio_profiles studio_profiles @relation(fields: [studio_id], references: [id], onDelete: Cascade)
 }
 
 model studio_services {
-  id        String      @id
-  studio_id String
-  service   ServiceType
-  studios   studios     @relation(fields: [studio_id], references: [id], onDelete: Cascade)
+  id              String          @id
+  studio_id       String
+  service         ServiceType
+  studio_profiles studio_profiles @relation(fields: [studio_id], references: [id], onDelete: Cascade)
 
   @@unique([studio_id, service])
 }
@@ -197,36 +197,106 @@ model studio_studio_types {
   id          String     @id
   studio_id   String
   studio_type StudioType
-  studios     studios    @relation(fields: [studio_id], references: [id], onDelete: Cascade)
+  studio_profiles studio_profiles @relation(fields: [studio_id], references: [id], onDelete: Cascade)
 
   @@unique([studio_id, studio_type])
 }
 
-model studios {
-  id                    String                  @id
-  owner_id              String
-  name                  String
-  description           String?
-  address               String?                 // Legacy field - kept for backward compatibility
-  full_address          String?                // Full address for geocoding
-  abbreviated_address   String?                // Abbreviated address for display
-  city                  String                  // City extracted from full_address
-  latitude              Decimal?                @db.Decimal(10, 8)
-  longitude             Decimal?                @db.Decimal(11, 8)
-  website_url           String?
-  phone                 String?
-  is_premium            Boolean                 @default(false)
-  is_verified           Boolean                 @default(false)
-  is_profile_visible    Boolean                 @default(false)
-  status                StudioStatus            @default(ACTIVE)
-  created_at            DateTime                @default(now())
-  updated_at            DateTime
-  pending_subscriptions pending_subscriptions[]
-  reviews               reviews[]
-  studio_images         studio_images[]
-  studio_services       studio_services[]
-  studio_studio_types   studio_studio_types[]
-  users                 users                   @relation(fields: [owner_id], references: [id])
+model studio_profiles {
+  id                      String                  @id
+  user_id                 String                  @unique
+  
+  // Studio identity
+  name                    String
+  description             String?
+  short_about             String?
+  about                   String?
+  
+  // Location
+  full_address            String?
+  abbreviated_address     String?
+  city                    String                  @default("")
+  location                String?
+  latitude                Decimal?                @db.Decimal(10, 8)
+  longitude               Decimal?                @db.Decimal(11, 8)
+  
+  // Contact
+  phone                   String?
+  website_url             String?
+  show_email              Boolean                 @default(false)
+  show_phone              Boolean                 @default(false)
+  show_address            Boolean                 @default(false)
+  show_directions         Boolean                 @default(false)
+  
+  // Professional
+  equipment_list          String?
+  services_offered        String?
+  home_studio_description String?
+  last_name               String?
+  
+  // Pricing
+  rate_tier_1             String?
+  rate_tier_2             String?
+  rate_tier_3             String?
+  show_rates              Boolean                 @default(false)
+  
+  // Social media
+  facebook_url            String?
+  twitter_url             String?
+  x_url                   String?
+  linkedin_url            String?
+  instagram_url           String?
+  tiktok_url              String?
+  threads_url             String?
+  youtube_url             String?
+  vimeo_url               String?
+  soundcloud_url          String?
+  
+  // Connections
+  connection1             String?                 @db.VarChar(10)
+  connection2             String?                 @db.VarChar(10)
+  connection3             String?                 @db.VarChar(10)
+  connection4             String?                 @db.VarChar(10)
+  connection5             String?                 @db.VarChar(10)
+  connection6             String?                 @db.VarChar(10)
+  connection7             String?                 @db.VarChar(10)
+  connection8             String?                 @db.VarChar(10)
+  connection9             String?                 @db.VarChar(10)
+  connection10            String?                 @db.VarChar(10)
+  connection11            String?                 @db.VarChar(10)
+  connection12            String?                 @db.VarChar(10)
+  custom_connection_methods String[]
+  
+  // Status
+  status                  StudioStatus            @default(ACTIVE)
+  is_premium              Boolean                 @default(false)
+  is_verified             Boolean                 @default(false)
+  is_profile_visible      Boolean                 @default(true)
+  is_featured             Boolean                 @default(false)
+  is_spotlight            Boolean                 @default(false)
+  is_crb_checked          Boolean                 @default(false)
+  verification_level      String                  @default("none")
+  use_coordinates_for_map Boolean                 @default(false)
+  
+  // Timestamps
+  created_at              DateTime                @default(now())
+  updated_at              DateTime
+  
+  // Relations
+  users                   users                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  studio_images           studio_images[]
+  studio_services         studio_services[]
+  studio_studio_types     studio_studio_types[]
+  reviews                 reviews[]
+  pending_subscriptions   pending_subscriptions[]
+  
+  @@index([user_id])
+  @@index([city])
+  @@index([status])
+  @@index([is_premium])
+  @@index([is_verified])
+  @@index([is_featured])
+  @@index([verification_level])
 }
 
 model subscriptions {
@@ -271,62 +341,7 @@ model user_metadata {
   @@index([user_id])
 }
 
-model user_profiles {
-  id                      String   @id
-  user_id                 String   @unique
-  last_name               String?
-  phone                   String?
-  about                   String?
-  short_about             String?
-  location                String?
-  rate_tier_1             String?
-  rate_tier_2             String?
-  rate_tier_3             String?
-  show_rates              Boolean  @default(false)
-  facebook_url            String?
-  twitter_url             String?  // Legacy field, kept for backward compatibility
-  x_url                   String?  // NEW: Renamed from Twitter to X
-  linkedin_url            String?
-  instagram_url           String?
-  tiktok_url              String?  // NEW: TikTok social media
-  threads_url             String?  // NEW: Threads social media
-  youtube_url             String?
-  vimeo_url               String?  // Kept in DB, hidden in UI
-  soundcloud_url          String?
-  is_crb_checked          Boolean  @default(false)
-  is_featured             Boolean  @default(false)
-  is_spotlight            Boolean  @default(false)
-  verification_level      String   @default("none")
-  home_studio_description String?
-  equipment_list          String?
-  services_offered        String?
-  show_email              Boolean  @default(false)
-  show_phone              Boolean  @default(false)
-  show_address            Boolean  @default(false)
-  show_directions         Boolean  @default(false) // NEW: Visibility toggle for directions
-  use_coordinates_for_map Boolean  @default(false) // Force using coordinates instead of address for map display
-  created_at              DateTime @default(now())
-  updated_at              DateTime
-  studio_name             String?
-  connection1                 String?  @db.VarChar(10)
-  connection2                 String?  @db.VarChar(10)
-  connection3                 String?  @db.VarChar(10)
-  connection4                 String?  @db.VarChar(10)
-  connection5                 String?  @db.VarChar(10)
-  connection6                 String?  @db.VarChar(10)
-  connection7                 String?  @db.VarChar(10)
-  connection8                 String?  @db.VarChar(10)
-  connection9                 String?  @db.VarChar(10)
-  connection10                String?  @db.VarChar(10)
-  connection11                String?  @db.VarChar(10)
-  connection12                String?  @db.VarChar(10)
-  custom_connection_methods   String[]
-  users                       users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([is_featured])
-  @@index([is_spotlight])
-  @@index([verification_level])
-}
+// REMOVED: user_profiles model merged into studio_profiles
 
 model users {
   id                                                         String                  @id
@@ -353,12 +368,11 @@ model users {
   reviews_reviews_reviewer_idTousers                         reviews[]               @relation("reviews_reviewer_idTousers")
   saved_searches                                             saved_searches[]
   sessions                                                   sessions[]
-  studios                                                    studios[]
+  studio_profiles                                            studio_profiles?
   subscriptions                                              subscriptions[]
   user_connections_user_connections_connected_user_idTousers user_connections[]      @relation("user_connections_connected_user_idTousers")
   user_connections_user_connections_user_idTousers           user_connections[]      @relation("user_connections_user_idTousers")
   user_metadata                                              user_metadata[]
-  user_profiles                                              user_profiles?
 }
 
 model waitlist {
