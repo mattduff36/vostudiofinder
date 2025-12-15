@@ -17,7 +17,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
-    const updatedStudio = await db.studios.update({
+    const updatedStudio = await db.studio_profiles.update({
       where: { id: studioId },
             data: {
         status,

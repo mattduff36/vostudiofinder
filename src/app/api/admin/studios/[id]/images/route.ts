@@ -71,7 +71,7 @@ export async function POST(
     }
 
     logger.log('🔍 Looking up studio...');
-    const studio = await db.studios.findUnique({
+    const studio = await db.studio_profiles.findUnique({
       where: { id: studioId },
       include: { studio_images: true },
     });

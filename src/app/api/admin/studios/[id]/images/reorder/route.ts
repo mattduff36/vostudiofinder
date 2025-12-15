@@ -28,7 +28,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Invalid image IDs' }, { status: 400 });
     }
 
-    const studio = await db.studios.findUnique({
+    const studio = await db.studio_profiles.findUnique({
       where: { id: studioId },
       select: { id: true },
     });

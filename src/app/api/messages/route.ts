@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     
     // Verify studio exists if provided
     if (validatedData.studio_id) {
-      const studio = await db.studios.findUnique({
+      const studio = await db.studio_profiles.findUnique({
         where: { id: validatedData.studio_id },
         select: { id: true, name: true },
       });

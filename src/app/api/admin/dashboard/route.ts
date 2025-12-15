@@ -22,8 +22,8 @@ export async function GET() {
       totalFaqs,
       totalUsers
     ] = await Promise.all([
-      db.studios.count(),
-      db.studios.count({
+      db.studio_profiles.count(),
+      db.studio_profiles.count({
         where: {
           status: 'ACTIVE'
         }
