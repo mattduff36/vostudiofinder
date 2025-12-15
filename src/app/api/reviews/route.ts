@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const validatedData = createReviewSchema.parse(body);
     
     // Check if studio exists and is active
-    const studio = await db.studios.findUnique({
+    const studio = await db.studio_profiles.findUnique({
       where: { 
         id: validatedData.studio_id,
         status: 'ACTIVE',
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Prevent users from reviewing their own studios
-    if (studio.owner_id === session.user.id) {
+    if (studio.user_id === session.user.id) {
       return NextResponse.json(
         { error: 'You cannot review your own studio' },
         { status: 400 }
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         id: randomBytes(12).toString('base64url'), // Generate unique ID
         studio_id: validatedData.studio_id,
         reviewer_id: session.user.id,
-        owner_id: studio.owner_id,
+        owner_id: studio.user_id,
         rating: validatedData.rating,
         content: validatedData.content,
         is_anonymous: validatedData.isAnonymous,
