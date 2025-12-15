@@ -25,7 +25,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check if the studio exists and belongs to the user
-    const existingStudio = await db.studios.findUnique({
+    const existingStudio = await db.studio_profiles.findUnique({
       where: { id },
       include: {
         users: {
@@ -41,7 +41,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Studio not found' }, { status: 404 });
     }
 
-    if (existingStudio.owner_id !== session.user.id) {
+    if (existingStudio.user_id !== session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -98,7 +98,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update the studio
-    const updatedStudio = await db.studios.update({
+    const updatedStudio = await db.studio_profiles.update({
       where: { id },
       data: updateFields,
       include: {
