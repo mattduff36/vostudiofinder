@@ -55,8 +55,8 @@ export function ProfessionalNetwork({
                          (user.profile?.location && user.profile.location.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesFilter = filterType === 'all' || 
-                         (filterType === 'studio_owners' && user.studios && user.studios.length > 0) ||
-                         (filterType === 'voice_artists' && (!user.studios || user.studios.length === 0));
+                         (filterType === 'studio_owners' && user.studio_profiles) ||
+                         (filterType === 'voice_artists' && !user.studio_profiles);
     
     return matchesSearch && matchesFilter;
   });
@@ -66,7 +66,7 @@ export function ProfessionalNetwork({
     if (user.profile?.is_featured) badges.push({ label: 'Featured', color: 'bg-yellow-100 text-yellow-800', icon: Star });
     if (user.profile?.is_spotlight) badges.push({ label: 'Spotlight', color: 'bg-purple-100 text-purple-800', icon: Award });
     if (user.profile?.is_crb_checked) badges.push({ label: 'CRB', color: 'bg-green-100 text-green-800', icon: Shield });
-    if (user.studios && user.studios.length > 0) badges.push({ label: 'Studio Owner', color: 'bg-blue-100 text-blue-800', icon: Building });
+    if (user.studio_profiles) badges.push({ label: 'Studio Owner', color: 'bg-blue-100 text-blue-800', icon: Building });
 
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
@@ -161,10 +161,10 @@ export function ProfessionalNetwork({
                   <Users className="w-3 h-3 mr-1" />
                   {user._count.connections} connections
                 </span>
-                {user._count.studios > 0 && (
+                {user.studio_profiles && (
                   <span className="flex items-center">
                     <Building className="w-3 h-3 mr-1" />
-                    {user._count.studios} studios
+                    Studio Owner
                   </span>
                 )}
               </div>
