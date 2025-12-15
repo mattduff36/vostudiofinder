@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id;
 
     // Get user's active studio
-    const studio = await db.studios.findFirst({
-      where: { owner_id: userId, status: 'ACTIVE' },
+    const studio = await db.studio_profiles.findFirst({
+      where: { user_id: userId, status: 'ACTIVE' },
     });
 
     if (!studio) {

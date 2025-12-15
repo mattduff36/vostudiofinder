@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
       suggestions = [];
     } else if (searchType === 'location') {
       // Prioritize location searches
-      const locations = await db.studios.findMany({
+      const locations = await db.studio_profiles.findMany({
         where: {
           AND: [
             { status: 'ACTIVE' },
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
       })));
     } else if (searchType === 'studio') {
       // Prioritize studio searches
-      const studios = await db.studios.findMany({
+      const studios = await db.studio_profiles.findMany({
         where: {
           AND: [
             { status: 'ACTIVE' },
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
     } else {
       // General search - mix all types
       const [studios, locations, services] = await Promise.all([
-        db.studios.findMany({
+        db.studio_profiles.findMany({
           where: {
             AND: [
               { status: 'ACTIVE' },
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
           },
           take: 3,
         }),
-        db.studios.findMany({
+        db.studio_profiles.findMany({
           where: {
             AND: [
               { status: 'ACTIVE' },

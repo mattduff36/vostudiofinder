@@ -53,15 +53,15 @@ export async function GET() {
     ] = await Promise.all([
       // Basic counts
       db.users.count(),
-      db.studios.count(),
+      db.studio_profiles.count(),
       db.reviews.count(),
       db.contacts.count(),
       
       // Studio metrics
-      db.studios.count({ where: { status: 'ACTIVE' } }),
-      db.studios.count({ where: { is_verified: true } }),
-      db.studios.count({ where: { users: { user_profiles: { isNot: null } } } }),
-      db.studios.groupBy({
+      db.studio_profiles.count({ where: { status: 'ACTIVE' } }),
+      db.studio_profiles.count({ where: { is_verified: true } }),
+      db.studio_profiles.count({ where: { users: { user_profiles: { isNot: null } } } }),
+      db.studio_profiles.groupBy({
         by: ['status'],
         _count: { status: true }
       }),
@@ -78,7 +78,7 @@ export async function GET() {
         _avg: { rating: true },
         _count: { id: true }
       }),
-      db.studios.findMany({
+      db.studio_profiles.findMany({
         take: 10,
         where: {
           reviews: {
@@ -138,7 +138,7 @@ export async function GET() {
         orderBy: { created_at: 'desc' },
         select: { created_at: true }
       }),
-      db.studios.findMany({
+      db.studio_profiles.findMany({
         take: 10,
         orderBy: { created_at: 'desc' },
         select: {
