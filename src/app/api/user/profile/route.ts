@@ -9,8 +9,7 @@ import { db } from '@/lib/db';
  * 
  * Returns:
  * - User basic info (email, username, display_name, etc.)
- * - User profile (extended data from user_profiles table)
- * - Studio information (if user owns a studio)
+ * - Studio profile (merged data from studio_profiles table)
  * - Studio types, services, and images
  * - User metadata
  */
@@ -32,9 +31,7 @@ export async function GET() {
     const user = await db.users.findUnique({
       where: { id: userId },
       include: {
-        user_profiles: true,
-        user_metadata: true,
-        studios: {
+        studio_profiles: {
           where: { status: 'ACTIVE' },
           include: {
             studio_studio_types: {
@@ -60,6 +57,7 @@ export async function GET() {
             },
           },
         },
+        user_metadata: true,
       },
     });
 
@@ -70,8 +68,8 @@ export async function GET() {
       );
     }
 
-    // Get primary studio (first active studio)
-    const studio = user.studios?.[0] || null;
+    // Get studio profile
+    const studioProfile = user.studio_profiles || null;
 
     // Transform metadata array into key-value object
     const metadata: Record<string, string> = {};
@@ -79,7 +77,7 @@ export async function GET() {
       metadata[meta.key] = meta.value || '';
     });
 
-    // Prepare response
+    // Prepare response (merged profile + studio data)
     const response = {
       success: true,
       data: {
@@ -94,77 +92,80 @@ export async function GET() {
           created_at: user.created_at,
           updated_at: user.updated_at,
         },
-        profile: user.user_profiles ? {
-          id: user.user_profiles.id,
-          user_id: user.user_profiles.user_id,
-          phone: user.user_profiles.phone,
-          about: user.user_profiles.about,
-          short_about: user.user_profiles.short_about,
-          location: user.user_profiles.location,
-          rate_tier_1: user.user_profiles.rate_tier_1 ? Number(user.user_profiles.rate_tier_1) : null,
-          rate_tier_2: user.user_profiles.rate_tier_2 ? Number(user.user_profiles.rate_tier_2) : null,
-          rate_tier_3: user.user_profiles.rate_tier_3 ? Number(user.user_profiles.rate_tier_3) : null,
-          show_rates: user.user_profiles.show_rates,
-          facebook_url: user.user_profiles.facebook_url,
-          twitter_url: user.user_profiles.twitter_url,
-          x_url: user.user_profiles.x_url,
-          linkedin_url: user.user_profiles.linkedin_url,
-          instagram_url: user.user_profiles.instagram_url,
-          tiktok_url: user.user_profiles.tiktok_url,
-          threads_url: user.user_profiles.threads_url,
-          youtube_url: user.user_profiles.youtube_url,
-          vimeo_url: user.user_profiles.vimeo_url,
-          soundcloud_url: user.user_profiles.soundcloud_url,
-          connection1: user.user_profiles.connection1,
-          connection2: user.user_profiles.connection2,
-          connection3: user.user_profiles.connection3,
-          connection4: user.user_profiles.connection4,
-          connection5: user.user_profiles.connection5,
-          connection6: user.user_profiles.connection6,
-          connection7: user.user_profiles.connection7,
-          connection8: user.user_profiles.connection8,
-          connection9: user.user_profiles.connection9,
-          connection10: user.user_profiles.connection10,
-          connection11: user.user_profiles.connection11,
-          connection12: user.user_profiles.connection12,
-          custom_connection_methods: user.user_profiles.custom_connection_methods || [],
-          show_email: user.user_profiles.show_email,
-          show_phone: user.user_profiles.show_phone,
-          show_address: user.user_profiles.show_address,
-          show_directions: user.user_profiles.show_directions,
-          is_crb_checked: user.user_profiles.is_crb_checked,
-          is_featured: user.user_profiles.is_featured,
-          is_spotlight: user.user_profiles.is_spotlight,
-          verification_level: user.user_profiles.verification_level,
-          home_studio_description: user.user_profiles.home_studio_description,
-          equipment_list: user.user_profiles.equipment_list,
-          services_offered: user.user_profiles.services_offered,
-          studio_name: user.user_profiles.studio_name,
-          created_at: user.user_profiles.created_at,
-          updated_at: user.user_profiles.updated_at,
-        } : null,
-        studio: studio ? {
-          id: studio.id,
-          owner_id: studio.owner_id,
-          name: studio.name,
-          description: studio.description,
-          address: studio.address, // Legacy field
-          full_address: studio.full_address,
-          abbreviated_address: studio.abbreviated_address,
-          city: studio.city,
-          latitude: studio.latitude ? Number(studio.latitude) : null,
-          longitude: studio.longitude ? Number(studio.longitude) : null,
-          website_url: studio.website_url,
-          phone: studio.phone,
-          is_premium: studio.is_premium,
-          is_verified: studio.is_verified,
-          is_profile_visible: studio.is_profile_visible,
-          status: studio.status,
-          created_at: studio.created_at,
-          updated_at: studio.updated_at,
-          studio_types: studio.studio_studio_types?.map(st => st.studio_type) || [],
-          services: studio.studio_services?.map(ss => ss.service) || [],
-          images: studio.studio_images || [],
+        profile: studioProfile ? {
+          id: studioProfile.id,
+          user_id: studioProfile.user_id,
+          // Studio identity
+          name: studioProfile.name,
+          description: studioProfile.description,
+          short_about: studioProfile.short_about,
+          about: studioProfile.about,
+          // Location
+          full_address: studioProfile.full_address,
+          abbreviated_address: studioProfile.abbreviated_address,
+          city: studioProfile.city,
+          location: studioProfile.location,
+          latitude: studioProfile.latitude ? Number(studioProfile.latitude) : null,
+          longitude: studioProfile.longitude ? Number(studioProfile.longitude) : null,
+          // Contact
+          phone: studioProfile.phone,
+          website_url: studioProfile.website_url,
+          show_email: studioProfile.show_email,
+          show_phone: studioProfile.show_phone,
+          show_address: studioProfile.show_address,
+          show_directions: studioProfile.show_directions,
+          // Professional
+          equipment_list: studioProfile.equipment_list,
+          services_offered: studioProfile.services_offered,
+          home_studio_description: studioProfile.home_studio_description,
+          last_name: studioProfile.last_name,
+          // Pricing
+          rate_tier_1: studioProfile.rate_tier_1 ? Number(studioProfile.rate_tier_1) : null,
+          rate_tier_2: studioProfile.rate_tier_2 ? Number(studioProfile.rate_tier_2) : null,
+          rate_tier_3: studioProfile.rate_tier_3 ? Number(studioProfile.rate_tier_3) : null,
+          show_rates: studioProfile.show_rates,
+          // Social media
+          facebook_url: studioProfile.facebook_url,
+          twitter_url: studioProfile.twitter_url,
+          x_url: studioProfile.x_url,
+          linkedin_url: studioProfile.linkedin_url,
+          instagram_url: studioProfile.instagram_url,
+          tiktok_url: studioProfile.tiktok_url,
+          threads_url: studioProfile.threads_url,
+          youtube_url: studioProfile.youtube_url,
+          vimeo_url: studioProfile.vimeo_url,
+          soundcloud_url: studioProfile.soundcloud_url,
+          // Connections
+          connection1: studioProfile.connection1,
+          connection2: studioProfile.connection2,
+          connection3: studioProfile.connection3,
+          connection4: studioProfile.connection4,
+          connection5: studioProfile.connection5,
+          connection6: studioProfile.connection6,
+          connection7: studioProfile.connection7,
+          connection8: studioProfile.connection8,
+          connection9: studioProfile.connection9,
+          connection10: studioProfile.connection10,
+          connection11: studioProfile.connection11,
+          connection12: studioProfile.connection12,
+          custom_connection_methods: studioProfile.custom_connection_methods || [],
+          // Status
+          status: studioProfile.status,
+          is_premium: studioProfile.is_premium,
+          is_verified: studioProfile.is_verified,
+          is_profile_visible: studioProfile.is_profile_visible,
+          is_featured: studioProfile.is_featured,
+          is_spotlight: studioProfile.is_spotlight,
+          is_crb_checked: studioProfile.is_crb_checked,
+          verification_level: studioProfile.verification_level,
+          use_coordinates_for_map: studioProfile.use_coordinates_for_map,
+          // Timestamps
+          created_at: studioProfile.created_at,
+          updated_at: studioProfile.updated_at,
+          // Related data
+          studio_types: studioProfile.studio_studio_types?.map(st => st.studio_type) || [],
+          services: studioProfile.studio_services?.map(ss => ss.service) || [],
+          images: studioProfile.studio_images || [],
         } : null,
         metadata,
       },
@@ -182,12 +183,11 @@ export async function GET() {
 
 /**
  * PUT /api/user/profile
- * Update user profile (supports partial updates)
+ * Update user studio profile (supports partial updates)
  * 
  * Request body:
  * - user: { display_name?, username? }
- * - profile: { phone?, about?, short_about?, location?, rates, social media, connections, etc. }
- * - studio: { name?, description?, address?, website_url?, phone? }
+ * - profile: { all studio_profiles fields merged from former profile + studio }
  * - studio_types: string[]
  * - services: string[]
  */
@@ -233,171 +233,175 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Update user_profiles table if needed
-    if (body.profile) {
+    // Update studio_profiles table (merged profile + studio data)
+    if (body.profile || body.studio) {
       const profileUpdates: any = {};
       
-      // Text fields
-      if (body.profile.phone !== undefined) profileUpdates.phone = body.profile.phone;
-      if (body.profile.about !== undefined) profileUpdates.about = body.profile.about;
-      if (body.profile.short_about !== undefined) profileUpdates.short_about = body.profile.short_about;
-      if (body.profile.location !== undefined) profileUpdates.location = body.profile.location;
+      // Merge updates from both body.profile and body.studio (for backwards compatibility)
+      const updates = { ...body.profile, ...body.studio };
       
-      // Rate fields (convert numbers to strings for database)
-      if (body.profile.rate_tier_1 !== undefined) {
-        profileUpdates.rate_tier_1 = body.profile.rate_tier_1 !== null ? String(body.profile.rate_tier_1) : null;
+      // Studio identity
+      if (updates.name !== undefined) profileUpdates.name = updates.name;
+      if (updates.description !== undefined) profileUpdates.description = updates.description;
+      if (updates.short_about !== undefined) profileUpdates.short_about = updates.short_about;
+      if (updates.about !== undefined) profileUpdates.about = updates.about;
+      
+      // Location
+      if (updates.full_address !== undefined) profileUpdates.full_address = updates.full_address;
+      if (updates.abbreviated_address !== undefined) profileUpdates.abbreviated_address = updates.abbreviated_address;
+      if (updates.city !== undefined) profileUpdates.city = updates.city;
+      if (updates.location !== undefined) profileUpdates.location = updates.location;
+      
+      // Contact
+      if (updates.phone !== undefined) profileUpdates.phone = updates.phone;
+      if (updates.website_url !== undefined) profileUpdates.website_url = updates.website_url;
+      if (updates.show_email !== undefined) profileUpdates.show_email = updates.show_email;
+      if (updates.show_phone !== undefined) profileUpdates.show_phone = updates.show_phone;
+      if (updates.show_address !== undefined) profileUpdates.show_address = updates.show_address;
+      if (updates.show_directions !== undefined) profileUpdates.show_directions = updates.show_directions;
+      
+      // Professional
+      if (updates.equipment_list !== undefined) profileUpdates.equipment_list = updates.equipment_list;
+      if (updates.services_offered !== undefined) profileUpdates.services_offered = updates.services_offered;
+      if (updates.home_studio_description !== undefined) profileUpdates.home_studio_description = updates.home_studio_description;
+      if (updates.last_name !== undefined) profileUpdates.last_name = updates.last_name;
+      
+      // Pricing (convert numbers to strings)
+      if (updates.rate_tier_1 !== undefined) {
+        profileUpdates.rate_tier_1 = updates.rate_tier_1 !== null ? String(updates.rate_tier_1) : null;
       }
-      if (body.profile.rate_tier_2 !== undefined) {
-        profileUpdates.rate_tier_2 = body.profile.rate_tier_2 !== null ? String(body.profile.rate_tier_2) : null;
+      if (updates.rate_tier_2 !== undefined) {
+        profileUpdates.rate_tier_2 = updates.rate_tier_2 !== null ? String(updates.rate_tier_2) : null;
       }
-      if (body.profile.rate_tier_3 !== undefined) {
-        profileUpdates.rate_tier_3 = body.profile.rate_tier_3 !== null ? String(body.profile.rate_tier_3) : null;
+      if (updates.rate_tier_3 !== undefined) {
+        profileUpdates.rate_tier_3 = updates.rate_tier_3 !== null ? String(updates.rate_tier_3) : null;
       }
-      if (body.profile.show_rates !== undefined) profileUpdates.show_rates = body.profile.show_rates;
+      if (updates.show_rates !== undefined) profileUpdates.show_rates = updates.show_rates;
       
-      // Social media fields
-      if (body.profile.facebook_url !== undefined) profileUpdates.facebook_url = body.profile.facebook_url;
-      if (body.profile.twitter_url !== undefined) profileUpdates.twitter_url = body.profile.twitter_url;
-      if (body.profile.x_url !== undefined) profileUpdates.x_url = body.profile.x_url;
-      if (body.profile.linkedin_url !== undefined) profileUpdates.linkedin_url = body.profile.linkedin_url;
-      if (body.profile.instagram_url !== undefined) profileUpdates.instagram_url = body.profile.instagram_url;
-      if (body.profile.tiktok_url !== undefined) profileUpdates.tiktok_url = body.profile.tiktok_url;
-      if (body.profile.threads_url !== undefined) profileUpdates.threads_url = body.profile.threads_url;
-      if (body.profile.youtube_url !== undefined) profileUpdates.youtube_url = body.profile.youtube_url;
-      if (body.profile.vimeo_url !== undefined) profileUpdates.vimeo_url = body.profile.vimeo_url;
-      if (body.profile.soundcloud_url !== undefined) profileUpdates.soundcloud_url = body.profile.soundcloud_url;
+      // Social media
+      if (updates.facebook_url !== undefined) profileUpdates.facebook_url = updates.facebook_url;
+      if (updates.twitter_url !== undefined) profileUpdates.twitter_url = updates.twitter_url;
+      if (updates.x_url !== undefined) profileUpdates.x_url = updates.x_url;
+      if (updates.linkedin_url !== undefined) profileUpdates.linkedin_url = updates.linkedin_url;
+      if (updates.instagram_url !== undefined) profileUpdates.instagram_url = updates.instagram_url;
+      if (updates.tiktok_url !== undefined) profileUpdates.tiktok_url = updates.tiktok_url;
+      if (updates.threads_url !== undefined) profileUpdates.threads_url = updates.threads_url;
+      if (updates.youtube_url !== undefined) profileUpdates.youtube_url = updates.youtube_url;
+      if (updates.vimeo_url !== undefined) profileUpdates.vimeo_url = updates.vimeo_url;
+      if (updates.soundcloud_url !== undefined) profileUpdates.soundcloud_url = updates.soundcloud_url;
       
-      // Connection methods
-      if (body.profile.connection1 !== undefined) profileUpdates.connection1 = body.profile.connection1;
-      if (body.profile.connection2 !== undefined) profileUpdates.connection2 = body.profile.connection2;
-      if (body.profile.connection3 !== undefined) profileUpdates.connection3 = body.profile.connection3;
-      if (body.profile.connection4 !== undefined) profileUpdates.connection4 = body.profile.connection4;
-      if (body.profile.connection5 !== undefined) profileUpdates.connection5 = body.profile.connection5;
-      if (body.profile.connection6 !== undefined) profileUpdates.connection6 = body.profile.connection6;
-      if (body.profile.connection7 !== undefined) profileUpdates.connection7 = body.profile.connection7;
-      if (body.profile.connection8 !== undefined) profileUpdates.connection8 = body.profile.connection8;
-      if (body.profile.connection9 !== undefined) profileUpdates.connection9 = body.profile.connection9;
-      if (body.profile.connection10 !== undefined) profileUpdates.connection10 = body.profile.connection10;
-      if (body.profile.connection11 !== undefined) profileUpdates.connection11 = body.profile.connection11;
-      if (body.profile.connection12 !== undefined) profileUpdates.connection12 = body.profile.connection12;
-      
-      // Custom connection methods
-      if (body.profile.custom_connection_methods !== undefined) {
-        profileUpdates.custom_connection_methods = Array.isArray(body.profile.custom_connection_methods)
-          ? body.profile.custom_connection_methods.filter((m: string) => m && m.trim()).slice(0, 2)
+      // Connections
+      if (updates.connection1 !== undefined) profileUpdates.connection1 = updates.connection1;
+      if (updates.connection2 !== undefined) profileUpdates.connection2 = updates.connection2;
+      if (updates.connection3 !== undefined) profileUpdates.connection3 = updates.connection3;
+      if (updates.connection4 !== undefined) profileUpdates.connection4 = updates.connection4;
+      if (updates.connection5 !== undefined) profileUpdates.connection5 = updates.connection5;
+      if (updates.connection6 !== undefined) profileUpdates.connection6 = updates.connection6;
+      if (updates.connection7 !== undefined) profileUpdates.connection7 = updates.connection7;
+      if (updates.connection8 !== undefined) profileUpdates.connection8 = updates.connection8;
+      if (updates.connection9 !== undefined) profileUpdates.connection9 = updates.connection9;
+      if (updates.connection10 !== undefined) profileUpdates.connection10 = updates.connection10;
+      if (updates.connection11 !== undefined) profileUpdates.connection11 = updates.connection11;
+      if (updates.connection12 !== undefined) profileUpdates.connection12 = updates.connection12;
+      if (updates.custom_connection_methods !== undefined) {
+        profileUpdates.custom_connection_methods = Array.isArray(updates.custom_connection_methods)
+          ? updates.custom_connection_methods.filter((m: string) => m && m.trim()).slice(0, 2)
           : [];
       }
       
-      // Visibility settings
-      if (body.profile.show_email !== undefined) profileUpdates.show_email = body.profile.show_email;
-      if (body.profile.show_phone !== undefined) profileUpdates.show_phone = body.profile.show_phone;
-      if (body.profile.show_address !== undefined) profileUpdates.show_address = body.profile.show_address;
-      if (body.profile.show_directions !== undefined) profileUpdates.show_directions = body.profile.show_directions;
+      // Status
+      if (updates.is_profile_visible !== undefined) profileUpdates.is_profile_visible = updates.is_profile_visible;
+      if (updates.use_coordinates_for_map !== undefined) profileUpdates.use_coordinates_for_map = updates.use_coordinates_for_map;
       
-      // Other fields
-      if (body.profile.studio_name !== undefined) profileUpdates.studio_name = body.profile.studio_name;
-      if (body.profile.equipment_list !== undefined) profileUpdates.equipment_list = body.profile.equipment_list;
-      if (body.profile.services_offered !== undefined) profileUpdates.services_offered = body.profile.services_offered;
-      if (body.profile.home_studio_description !== undefined) profileUpdates.home_studio_description = body.profile.home_studio_description;
+      // Geocode full_address if being updated and coordinates aren't manually set
+      if (updates.full_address !== undefined && updates.full_address && 
+          updates.latitude === undefined && updates.longitude === undefined) {
+        const { geocodeAddress } = await import('@/lib/maps');
+        const geocodeResult = await geocodeAddress(updates.full_address);
+        if (geocodeResult) {
+          profileUpdates.latitude = geocodeResult.lat;
+          profileUpdates.longitude = geocodeResult.lng;
+        }
+      }
 
       if (Object.keys(profileUpdates).length > 0) {
-        // Check if profile exists
-        const existingProfile = await db.user_profiles.findUnique({
+        // Check if studio profile exists
+        const existingProfile = await db.studio_profiles.findUnique({
           where: { user_id: userId },
         });
 
         if (existingProfile) {
-          await db.user_profiles.update({
+          await db.studio_profiles.update({
             where: { user_id: userId },
-            data: profileUpdates,
-          });
-        } else {
-          // Create profile if it doesn't exist
-          await db.user_profiles.create({
             data: {
-              user_id: userId,
               ...profileUpdates,
+              updated_at: new Date(),
             },
           });
-        }
-      }
-    }
-
-    // Update studio table if needed
-    if (body.studio) {
-      // Get user's active studio
-      const studio = await db.studios.findFirst({
-        where: { owner_id: userId, status: 'ACTIVE' },
-      });
-
-      if (studio) {
-        const studioUpdates: any = {};
-        
-        if (body.studio.name !== undefined) studioUpdates.name = body.studio.name;
-        if (body.studio.description !== undefined) studioUpdates.description = body.studio.description;
-        if (body.studio.address !== undefined) studioUpdates.address = body.studio.address; // Legacy field
-        if (body.studio.full_address !== undefined) studioUpdates.full_address = body.studio.full_address;
-        if (body.studio.abbreviated_address !== undefined) studioUpdates.abbreviated_address = body.studio.abbreviated_address;
-        if (body.studio.city !== undefined) studioUpdates.city = body.studio.city;
-        if (body.studio.website_url !== undefined) studioUpdates.website_url = body.studio.website_url;
-        if (body.studio.phone !== undefined) studioUpdates.phone = body.studio.phone;
-        if (body.studio.is_profile_visible !== undefined) studioUpdates.is_profile_visible = body.studio.is_profile_visible;
-        
-        // Geocode full_address if it's being updated and coordinates aren't manually set
-        if (body.studio.full_address !== undefined && body.studio.full_address && 
-            body.studio.latitude === undefined && body.studio.longitude === undefined) {
-          const { geocodeAddress } = await import('@/lib/maps');
-          const geocodeResult = await geocodeAddress(body.studio.full_address);
-          if (geocodeResult) {
-            studioUpdates.latitude = geocodeResult.lat;
-            studioUpdates.longitude = geocodeResult.lng;
-          }
-        }
-
-        if (Object.keys(studioUpdates).length > 0) {
-          await db.studios.update({
-            where: { id: studio.id },
-            data: studioUpdates,
+        } else {
+          // Create studio profile if it doesn't exist (shouldn't happen after migration)
+          const { randomBytes } = await import('crypto');
+          await db.studio_profiles.create({
+            data: {
+              id: randomBytes(12).toString('hex'),
+              user_id: userId,
+              name: updates.name || 'My Studio', // Required field
+              city: updates.city || '', // Required field with default
+              ...profileUpdates,
+              updated_at: new Date(),
+            },
           });
         }
 
         // Update studio types if provided
         if (body.studio_types && Array.isArray(body.studio_types)) {
-          // Delete existing types
-          await db.studio_studio_types.deleteMany({
-            where: { studio_id: studio.id },
+          const profile = await db.studio_profiles.findUnique({
+            where: { user_id: userId },
           });
           
-          // Create new types
-          if (body.studio_types.length > 0) {
-            const { randomBytes } = await import('crypto');
-            await db.studio_studio_types.createMany({
-              data: body.studio_types.map((type: string) => ({
-                id: randomBytes(12).toString('hex'),
-                studio_id: studio.id,
-                studio_type: type,
-              })),
+          if (profile) {
+            // Delete existing types
+            await db.studio_studio_types.deleteMany({
+              where: { studio_id: profile.id },
             });
+            
+            // Create new types
+            if (body.studio_types.length > 0) {
+              const { randomBytes } = await import('crypto');
+              await db.studio_studio_types.createMany({
+                data: body.studio_types.map((type: string) => ({
+                  id: randomBytes(12).toString('hex'),
+                  studio_id: profile.id,
+                  studio_type: type,
+                })),
+              });
+            }
           }
         }
 
         // Update services if provided
         if (body.services && Array.isArray(body.services)) {
-          // Delete existing services
-          await db.studio_services.deleteMany({
-            where: { studio_id: studio.id },
+          const profile = await db.studio_profiles.findUnique({
+            where: { user_id: userId },
           });
           
-          // Create new services
-          if (body.services.length > 0) {
-            const { randomBytes } = await import('crypto');
-            await db.studio_services.createMany({
-              data: body.services.map((service: string) => ({
-                id: randomBytes(12).toString('hex'),
-                studio_id: studio.id,
-                service: service,
-              })),
+          if (profile) {
+            // Delete existing services
+            await db.studio_services.deleteMany({
+              where: { studio_id: profile.id },
             });
+            
+            // Create new services
+            if (body.services.length > 0) {
+              const { randomBytes } = await import('crypto');
+              await db.studio_services.createMany({
+                data: body.services.map((service: string) => ({
+                  id: randomBytes(12).toString('hex'),
+                  studio_id: profile.id,
+                  service: service,
+                })),
+              });
+            }
           }
         }
       }
@@ -407,8 +411,7 @@ export async function PUT(request: NextRequest) {
     const updatedUser = await db.users.findUnique({
       where: { id: userId },
       include: {
-        user_profiles: true,
-        studios: {
+        studio_profiles: {
           where: { status: 'ACTIVE' },
           include: {
             studio_studio_types: true,
