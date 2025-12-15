@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where clause
-    const where: Prisma.studiosWhereInput = {
+    const where: Prisma.studio_profilesWhereInput = {
       status: 'ACTIVE',
       is_profile_visible: true, // Only show visible profiles
       AND: [],
@@ -123,21 +123,21 @@ export async function GET(request: NextRequest) {
 
     // If searching for a specific studio ID, add it to the where clause
     if (validatedParams.studioId) {
-      (where.AND as Prisma.studiosWhereInput[]).push({
+      (where.AND as Prisma.studio_profilesWhereInput[]).push({
         id: validatedParams.studioId,
       });
     }
 
     // If searching for multiple studio IDs (for map area filtering), add them to the where clause
     if (validatedParams.ids && validatedParams.ids.length > 0) {
-      (where.AND as Prisma.studiosWhereInput[]).push({
+      (where.AND as Prisma.studio_profilesWhereInput[]).push({
         id: { in: validatedParams.ids },
       });
     }
 
     // Enhanced full-text search in name, description, and services
     if (validatedParams.query) {
-      (where.AND as Prisma.studiosWhereInput[]).push({
+      (where.AND as Prisma.studio_profilesWhereInput[]).push({
         OR: [
           // Exact name match (highest priority)
           { name: { equals: validatedParams.query, mode: 'insensitive' } },
@@ -323,7 +323,7 @@ export async function GET(request: NextRequest) {
     let hasMore: boolean;
 
     // Fetch all matching studios (we'll apply prioritization and pagination in memory)
-    const fetchedStudios = await db.studios.findMany({
+    const fetchedStudios = await db.studio_profiles.findMany({
       where,
       include: {
         users: {
@@ -332,11 +332,6 @@ export async function GET(request: NextRequest) {
             display_name: true,
             username: true,
             avatar_url: true,
-            user_profiles: {
-              select: {
-                short_about: true,
-              },
-            },
           },
         },
         studio_studio_types: {
@@ -426,7 +421,7 @@ export async function GET(request: NextRequest) {
       // Use the same filtering logic as the main query
       if (searchCoordinates && validatedParams.radius) {
         // Get all studios that match the search criteria (not just paginated results)
-        mapMarkers = await db.studios.findMany({
+        mapMarkers = await db.studio_profiles.findMany({
           where,
           select: {
             id: true,
@@ -472,7 +467,7 @@ export async function GET(request: NextRequest) {
         });
       } else {
         // Fallback to filtered results
-        mapMarkers = await db.studios.findMany({
+        mapMarkers = await db.studio_profiles.findMany({
           where,
           select: {
             id: true,
@@ -506,7 +501,7 @@ export async function GET(request: NextRequest) {
       }
     } else if (hasOtherFilters) {
       // For other filters, show all matching studios
-      mapMarkers = await db.studios.findMany({
+      mapMarkers = await db.studio_profiles.findMany({
         where,
         select: {
           id: true,
@@ -539,7 +534,7 @@ export async function GET(request: NextRequest) {
       });
     } else {
       // No filters - show ALL active and visible studios on map
-      mapMarkers = await db.studios.findMany({
+      mapMarkers = await db.studio_profiles.findMany({
         where: { status: 'ACTIVE', is_profile_visible: true },
         select: {
           id: true,
