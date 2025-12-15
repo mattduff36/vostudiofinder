@@ -161,64 +161,20 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
 export default async function UsernamePage({ params }: UsernamePageProps) {
   const { username } = await params;
 
-  // Find user by username and get their full profile with metadata
+  // Find user by username and get their studio profile with metadata
   const user = await db.users.findUnique({
     where: { username },
     include: {
-      user_profiles: {
-        select: {
-          short_about: true,
-          about: true,
-          phone: true,
-          location: true,
-          facebook_url: true,
-          twitter_url: true,
-          x_url: true,
-          linkedin_url: true,
-          instagram_url: true,
-          youtube_url: true,
-          vimeo_url: true,
-          soundcloud_url: true,
-          is_crb_checked: true,
-          is_featured: true,
-          is_spotlight: true,
-          verification_level: true,
-          home_studio_description: true,
-          equipment_list: true,
-          services_offered: true,
-          show_email: true,
-          show_phone: true,
-          show_address: true,
-          show_directions: true,
-          use_coordinates_for_map: true,
-          rate_tier_1: true,
-          rate_tier_2: true,
-          rate_tier_3: true,
-          show_rates: true,
-          studio_name: true,
-          last_name: true,
-          connection1: true,
-          connection2: true,
-          connection3: true,
-          connection4: true,
-          connection5: true,
-          connection6: true,
-          connection7: true,
-          connection8: true,
-          connection9: true,
-          connection10: true,
-          connection11: true,
-          connection12: true,
-          custom_connection_methods: true,
-        },
-      },
-      user_metadata: true,
-      studios: {
+      studio_profiles: {
         where: { status: 'ACTIVE' },
         include: {
           users: {
-            include: {
-              user_profiles: true,
+            select: {
+              id: true,
+              display_name: true,
+              username: true,
+              avatar_url: true,
+              email: true,
             },
           },
           studio_services: {
@@ -268,11 +224,11 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     notFound();
   }
 
-  // If user has a studio, show studio profile, otherwise show user profile
-  const hasStudio = user.studios && user.studios.length > 0;
+  // If user has a studio profile, show it
+  const studioProfile = user.studio_profiles;
   
-  if (hasStudio) {
-    const studio = user.studios[0];
+  if (studioProfile) {
+    const studio = studioProfile;
     
     if (!studio) {
       return <div>Studio not found</div>;
@@ -283,13 +239,13 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       // Serialize user data to avoid Decimal serialization issues
       const serializedUser = {
         ...user,
-        studios: user.studios.map(s => ({
-          ...s,
-          status: s.status,
-          is_profile_visible: s.is_profile_visible,
-          latitude: s.latitude ? Number(s.latitude) : null,
-          longitude: s.longitude ? Number(s.longitude) : null,
-        }))
+        studio_profiles: {
+          ...studio,
+          status: studio.status,
+          is_profile_visible: studio.is_profile_visible,
+          latitude: studio.latitude ? Number(studio.latitude) : null,
+          longitude: studio.longitude ? Number(studio.longitude) : null,
+        }
       };
       
       return (
@@ -310,9 +266,9 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://voiceoverstudiofinder.com';
     const pageUrl = `${baseUrl}/${username}`;
 
-    // Get description from user_profiles with fallback and content safeguard
-    let businessDescription = user.user_profiles?.about || 
-                              user.user_profiles?.short_about || 
+    // Get description from studio profile with fallback and content safeguard
+    let businessDescription = studio.about || 
+                              studio.short_about || 
                               studio.description || 
                               '';
     
@@ -349,19 +305,19 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     const lastPart = addressParts[addressParts.length - 1];
     const postalCode = lastPart ? (lastPart.match(/[A-Z]{1,2}\d{1,2}\s?\d[A-Z]{2}/)?.[0] || '') : '';
     
-    // Get phone number (prefer studio.phone, fallback to profile.phone)
-    const phoneNumber = studio.phone || user.user_profiles?.phone || undefined;
+    // Get phone number from studio profile
+    const phoneNumber = studio.phone || undefined;
     
     // Build sameAs array with available social media and website URLs
     const sameAsLinks = [
       studio.website_url,
-      user.user_profiles?.facebook_url,
-      user.user_profiles?.x_url || user.user_profiles?.twitter_url,
-      user.user_profiles?.linkedin_url,
-      user.user_profiles?.instagram_url,
-      user.user_profiles?.youtube_url,
-      user.user_profiles?.vimeo_url,
-      user.user_profiles?.soundcloud_url,
+      studio.facebook_url,
+      studio.x_url || studio.twitter_url,
+      studio.linkedin_url,
+      studio.instagram_url,
+      studio.youtube_url,
+      studio.vimeo_url,
+      studio.soundcloud_url,
     ].filter((url): url is string => !!url && url.trim().length > 0);
     
     // Generate structured data for SEO (LocalBusiness schema)
@@ -430,7 +386,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       },
       sameAs: sameAsLinks.length > 0 ? sameAsLinks : undefined,
       knowsAbout: ['Voiceover Recording', 'Audio Production', 'Sound Engineering', 'Voice Recording'],
-      slogan: user.user_profiles?.short_about || undefined,
+      slogan: studio.short_about || undefined,
     };
     
     // BreadcrumbList schema for navigation
@@ -511,51 +467,51 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             owner: {
               ...studio.users,
               avatar_url: studio.users.avatar_url || '',
-            profile: studio.users.user_profiles ? {
-              studio_name: studio.users.user_profiles.studio_name,
-              last_name: studio.users.user_profiles.last_name,
-              phone: studio.users.user_profiles.phone,
-              about: studio.users.user_profiles.about,
-              short_about: studio.users.user_profiles.short_about,
-              location: studio.users.user_profiles.location,
-              rate_tier_1: studio.users.user_profiles.rate_tier_1,
-              rate_tier_2: studio.users.user_profiles.rate_tier_2,
-              rate_tier_3: studio.users.user_profiles.rate_tier_3,
-              show_rates: studio.users.user_profiles.show_rates,
-              facebook_url: studio.users.user_profiles.facebook_url,
-              twitter_url: studio.users.user_profiles.twitter_url,
-              linkedin_url: studio.users.user_profiles.linkedin_url,
-              instagram_url: studio.users.user_profiles.instagram_url,
-              youtube_url: studio.users.user_profiles.youtube_url,
-              vimeo_url: studio.users.user_profiles.vimeo_url,
-              soundcloud_url: studio.users.user_profiles.soundcloud_url,
-              is_crb_checked: studio.users.user_profiles.is_crb_checked,
-              is_featured: studio.users.user_profiles.is_featured,
-              is_spotlight: studio.users.user_profiles.is_spotlight,
-              verification_level: studio.users.user_profiles.verification_level,
-              home_studio_description: studio.users.user_profiles.home_studio_description,
-              equipment_list: studio.users.user_profiles.equipment_list,
-              services_offered: studio.users.user_profiles.services_offered,
-              show_email: studio.users.user_profiles.show_email,
-              show_phone: studio.users.user_profiles.show_phone,
-              show_address: studio.users.user_profiles.show_address,
-              show_directions: studio.users.user_profiles.show_directions,
-              use_coordinates_for_map: studio.users.user_profiles.use_coordinates_for_map,
-              // Connection types
-              connection1: studio.users.user_profiles.connection1,
-              connection2: studio.users.user_profiles.connection2,
-              connection3: studio.users.user_profiles.connection3,
-              connection4: studio.users.user_profiles.connection4,
-              connection5: studio.users.user_profiles.connection5,
-              connection6: studio.users.user_profiles.connection6,
-              connection7: studio.users.user_profiles.connection7,
-              connection8: studio.users.user_profiles.connection8,
-              connection9: studio.users.user_profiles.connection9,
-              connection10: studio.users.user_profiles.connection10,
-              connection11: studio.users.user_profiles.connection11,
-              connection12: studio.users.user_profiles.connection12,
-              custom_connection_methods: studio.users.user_profiles.custom_connection_methods,
-            } : null,
+              profile: {
+                studio_name: studio.name,
+                last_name: studio.last_name,
+                phone: studio.phone,
+                about: studio.about,
+                short_about: studio.short_about,
+                location: studio.location,
+                rate_tier_1: studio.rate_tier_1,
+                rate_tier_2: studio.rate_tier_2,
+                rate_tier_3: studio.rate_tier_3,
+                show_rates: studio.show_rates,
+                facebook_url: studio.facebook_url,
+                twitter_url: studio.twitter_url,
+                linkedin_url: studio.linkedin_url,
+                instagram_url: studio.instagram_url,
+                youtube_url: studio.youtube_url,
+                vimeo_url: studio.vimeo_url,
+                soundcloud_url: studio.soundcloud_url,
+                is_crb_checked: studio.is_crb_checked,
+                is_featured: studio.is_featured,
+                is_spotlight: studio.is_spotlight,
+                verification_level: studio.verification_level,
+                home_studio_description: studio.home_studio_description,
+                equipment_list: studio.equipment_list,
+                services_offered: studio.services_offered,
+                show_email: studio.show_email,
+                show_phone: studio.show_phone,
+                show_address: studio.show_address,
+                show_directions: studio.show_directions,
+                use_coordinates_for_map: studio.use_coordinates_for_map,
+                // Connection types
+                connection1: studio.connection1,
+                connection2: studio.connection2,
+                connection3: studio.connection3,
+                connection4: studio.connection4,
+                connection5: studio.connection5,
+                connection6: studio.connection6,
+                connection7: studio.connection7,
+                connection8: studio.connection8,
+                connection9: studio.connection9,
+                connection10: studio.connection10,
+                connection11: studio.connection11,
+                connection12: studio.connection12,
+                custom_connection_methods: studio.custom_connection_methods,
+              },
             },
             ...(studio.website_url ? { website_url: studio.website_url } : {}),
             ...(studio.phone ? { phone: studio.phone } : {}),
