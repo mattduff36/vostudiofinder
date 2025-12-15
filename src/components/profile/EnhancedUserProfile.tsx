@@ -22,7 +22,7 @@ interface EnhancedUserProfileProps {
   user: User & {
     profile?: UserProfile | null;
     metadata?: UserMetadata[];
-    studios?: Array<{ status: string; is_profile_visible?: boolean }>;
+    studio_profiles?: { status: string; is_profile_visible?: boolean } | null;
   };
   isHidden?: boolean;
 }
@@ -30,7 +30,7 @@ interface EnhancedUserProfileProps {
 export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProfileProps) {
   const profile = user.profile;
   const metadata = user.metadata || [];
-  const hasInactiveStudio = !isHidden && user.studios && user.studios.length > 0 && user.studios[0]?.status === 'INACTIVE';
+  const hasInactiveStudio = !isHidden && user.studio_profiles && user.studio_profiles.status === 'INACTIVE';
   
   // Helper function to get metadata value
   // const getMetadata = (key: string) => {
