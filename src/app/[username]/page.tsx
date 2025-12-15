@@ -8,15 +8,13 @@ interface UsernamePageProps {
   params: Promise<{ username: string }>;
 }
 
-// Generate static params for all active studios with visible profiles
+// Generate static params for all active studio profiles with visible profiles
 export async function generateStaticParams() {
   const users = await db.users.findMany({
     where: {
-      studios: {
-        some: {
-          status: 'ACTIVE',
-          is_profile_visible: true,
-        },
+      studio_profiles: {
+        status: 'ACTIVE',
+        is_profile_visible: true,
       },
     },
     select: {
@@ -35,28 +33,22 @@ export const revalidate = 3600;
 export async function generateMetadata({ params }: UsernamePageProps): Promise<Metadata> {
   const { username } = await params;
   
-  // Find user by username and get their studio with profile data
+  // Find user by username and get their studio profile data
   const user = await db.users.findUnique({
     where: { username },
     select: {
       display_name: true,
-      user_profiles: {
-        select: {
-          short_about: true,
-          twitter_url: true,
-          phone: true,
-        },
-      },
-      studios: {
+      studio_profiles: {
         where: { status: 'ACTIVE' },
         select: {
           name: true,
           description: true,
-          address: true,
+          short_about: true,
           full_address: true,
           abbreviated_address: true,
           city: true,
           phone: true,
+          twitter_url: true,
           studio_images: {
             take: 1,
             orderBy: { sort_order: 'asc' },
@@ -65,12 +57,11 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
             },
           },
         },
-        take: 1, // Assuming one studio per user
       },
     },
   });
 
-  if (!user || !user.studios.length) {
+  if (!user || !user.studio_profiles) {
     return {
       title: 'Studio Not Found - VoiceoverStudioFinder',
       robots: {
@@ -80,8 +71,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     };
   }
 
-  const studio = user.studios[0];
-  const profile = user.user_profiles;
+  const studio = user.studio_profiles;
   
   if (!studio) {
     return {
@@ -98,7 +88,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const pageUrl = `${baseUrl}/${username}`;
 
   // Use short_about if available, otherwise fall back to description
-  const description = profile?.short_about || studio.description?.substring(0, 160) || `${studio.name} recording studio`;
+  const description = studio?.short_about || studio.description?.substring(0, 160) || `${studio.name} recording studio`;
 
   // Location-aware description
   const locationSuffix = studio.city ? ` in ${studio.city}` : (studio.abbreviated_address ? ` in ${studio.abbreviated_address}` : '');
@@ -109,11 +99,11 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const ogImage = studio.studio_images?.[0]?.image_url || `${baseUrl}/images/voiceover-studio-finder-header-logo2-black.png`;
 
   // Check if user has Twitter handle
-  const hasTwitter = profile?.twitter_url && profile.twitter_url.trim().length > 0;
+  const hasTwitter = studio?.twitter_url && studio.twitter_url.trim().length > 0;
 
   // Enhanced keywords with location
   const locationKeywords = studio.city ? `${studio.city} recording studio, ${studio.city} voiceover studio, ` : '';
-  const keywords = `${locationKeywords}recording studio, ${studio.name}, voiceover, audio production, professional studio, ${studio.abbreviated_address || studio.full_address || studio.address || ''}`;
+  const keywords = `${locationKeywords}recording studio, ${studio.name}, voiceover, audio production, professional studio, ${studio.abbreviated_address || studio.full_address || ''}`;
 
   const metadata: Metadata = {
     title: `${studio.name}${locationSuffix} - Recording Studio | VoiceoverStudioFinder`,
@@ -155,13 +145,13 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   };
 
   // Only add Twitter metadata if user has a Twitter handle
-  if (hasTwitter && profile.twitter_url) {
+  if (hasTwitter && studio.twitter_url) {
     metadata.twitter = {
       card: 'summary_large_image',
       title: `${studio.name}${locationSuffix}`,
       description: seoDescription.substring(0, 160),
       images: [ogImage],
-      creator: profile.twitter_url,
+      creator: studio.twitter_url,
     };
   }
 

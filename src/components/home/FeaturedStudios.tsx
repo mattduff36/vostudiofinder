@@ -110,7 +110,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
   }
 
   return (
-    <div ref={sectionRef} className="relative z-[10] py-6 sm:py-8 overflow-hidden w-full max-w-full">
+    <div id="featured-studios" ref={sectionRef} className="relative z-[10] py-6 sm:py-8 overflow-hidden w-full max-w-full">
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
         <Image
