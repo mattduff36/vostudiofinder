@@ -81,7 +81,7 @@ export default async function RootLayout({
         </Script>
         <meta 
           name="viewport" 
-          content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" 
+          content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" 
         />
         {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
           <Script
