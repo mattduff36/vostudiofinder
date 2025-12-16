@@ -11,7 +11,6 @@ import { logger } from '@/lib/logger';
 
 // Phase 4: Mobile dashboard components
 import { QuickActions, QuickAction } from './mobile/QuickActions';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface DashboardContentProps {
   dashboardData: any;
@@ -100,15 +99,12 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
-        // Hide desktop overview on mobile when Phase 4 is enabled
-        if (isMobileFeatureEnabled(4)) {
-          return (
-            <div className="hidden md:block">
-              <UserDashboard data={dashboardData} />
-            </div>
-          );
-        }
-        return <UserDashboard data={dashboardData} />;
+        // Hide desktop overview on mobile
+        return (
+          <div className="hidden md:block">
+            <UserDashboard data={dashboardData} />
+          </div>
+        );
       
       case 'edit-profile':
         return <ProfileEditForm userId={dashboardData.user.id} />;
@@ -146,14 +142,12 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
       </div>
 
       {/* Tabs with proper z-index (Desktop only) */}
-      <div className={`relative z-20 ${isMobileFeatureEnabled(4) ? 'hidden md:block' : ''}`}>
+      <div className="relative z-20 hidden md:block">
         <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
-      {/* Phase 4: Mobile Dashboard Components */}
-      {isMobileFeatureEnabled(4) && (
-        <>
-          {activeTab === 'overview' ? (
+      {/* Mobile Dashboard Components */}
+      {activeTab === 'overview' ? (
             // Overview: Show only quick actions (stats removed per user request)
             <>
               <QuickActions 
@@ -189,12 +183,10 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
               </button>
             </div>
           )}
-        </>
-      )}
 
       {/* Content */}
       <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
-        isMobileFeatureEnabled(4) && activeTab === 'overview' ? 'py-0 md:py-8' : 'py-8'
+        activeTab === 'overview' ? 'py-0 md:py-8' : 'py-8'
       }`}>
         {renderTabContent()}
       </div>

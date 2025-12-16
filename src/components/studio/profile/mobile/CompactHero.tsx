@@ -12,7 +12,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Check, MapPin } from 'lucide-react';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface CompactHeroProps {
   studioName: string;
@@ -37,9 +36,6 @@ export function CompactHero({
   const [imageError, setImageError] = useState(false);
 
   // Phase 3 feature gate
-  if (!isMobileFeatureEnabled(3)) {
-    return null;
-  }
 
   const heroImageUrl = heroImage || '/images/placeholder-studio.jpg';
   const shouldShowAddress = showAddress !== false;

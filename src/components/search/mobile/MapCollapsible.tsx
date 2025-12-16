@@ -3,13 +3,12 @@
  * 
  * Always expanded on Map View tab, fills remaining viewport space
  * 
- * Only visible on mobile (< 768px), feature-gated by Phase 2.
+ * Only visible on mobile (< 768px).
  */
 'use client';
 
 import { MapPin, Maximize2 } from 'lucide-react';
 import { GoogleMap } from '@/components/maps/GoogleMap';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface MapCollapsibleProps {
   markers: Array<{
@@ -44,11 +43,6 @@ export function MapCollapsible({
   onBoundsChanged,
   selectedMarkerId,
 }: MapCollapsibleProps) {
-  // Phase 2 feature gate
-  if (!isMobileFeatureEnabled(2)) {
-    return null;
-  }
-
   const markerCount = markers.length;
 
   // Transform markers to GoogleMap format

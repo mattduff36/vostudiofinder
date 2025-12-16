@@ -11,7 +11,6 @@
 
 import { useState, useEffect } from 'react';
 import { MessageCircle, Phone, MoreHorizontal, Mail, Globe } from 'lucide-react';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface ContactBarProps {
   phone?: string | undefined;
@@ -35,9 +34,6 @@ export function ContactBar({
   const [showMenu, setShowMenu] = useState(false);
 
   // Phase 3 feature gate
-  if (!isMobileFeatureEnabled(3)) {
-    return null;
-  }
 
   // Hide/show bar based on scroll direction
   useEffect(() => {

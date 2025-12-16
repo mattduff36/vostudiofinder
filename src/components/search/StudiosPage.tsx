@@ -13,7 +13,6 @@ import { StudioMarkerModal } from '@/components/maps/StudioMarkerModal';
 import { logger } from '@/lib/logger';
 import { Footer } from '@/components/home/Footer';
 import { SelectedStudioDetails } from './SelectedStudioDetails';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface Studio {
   id: string;
@@ -399,7 +398,7 @@ export function StudiosPage() {
 
   // Control body overflow when on mobile map view to prevent scrollbar
   useEffect(() => {
-    if (isMobileFeatureEnabled(2) && mobileView === 'map' && window.innerWidth < 768) {
+    if (mobileView === 'map' && window.innerWidth < 768) {
       document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = '';
@@ -623,7 +622,7 @@ export function StudiosPage() {
 
 
   return (
-    <div className={`min-h-screen flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full ${isMobileFeatureEnabled(2) && mobileView === 'map' ? 'md:overflow-y-auto overflow-y-hidden' : ''}`}>
+    <div className={`min-h-screen flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full ${mobileView === 'map' ? 'md:overflow-y-auto overflow-y-hidden' : ''}`}>
       {/* Background Image for main content */}
       <div className="absolute inset-x-0 top-0 bottom-16 md:bottom-0 pointer-events-none overflow-hidden">
         <Image
@@ -840,10 +839,9 @@ export function StudiosPage() {
                   />
                 </div>
 
-                {/* Mobile: Map - Phase 2 - Only show on Map View tab */}
-                {isMobileFeatureEnabled(2) ? (
-                  mobileView === 'map' && (
-                    <MapCollapsible
+                {/* Mobile: Map - Only show on Map View tab */}
+                {mobileView === 'map' && (
+                  <MapCollapsible
                       markers={searchResults.mapMarkers || searchResults.studios}
                       center={searchResults.searchCoordinates 
                         ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
@@ -857,28 +855,7 @@ export function StudiosPage() {
                       selectedMarkerId={null}
                     />
                   )
-                ) : (
-                  /* Fallback: Original mobile map view */
-                  mobileView === 'map' && (
-                    <div className="lg:hidden h-[400px] sm:h-[500px]">
-                      <GoogleMap
-                        key={`mobile-map-${searchResults.searchCoordinates ? `${searchResults.searchCoordinates.lat}-${searchResults.searchCoordinates.lng}` : 'global'}`}
-                        center={searchResults.searchCoordinates 
-                          ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
-                          : { lat: 20, lng: 0 }
-                        }
-                        zoom={searchResults.searchCoordinates ? 10 : 2}
-                        markers={memoizedMarkers}
-                        searchCenter={searchResults.searchCoordinates || null}
-                        searchRadius={parseInt(searchParams.get('radius') || '10')}
-                        selectedMarkerId={null}
-                        onBoundsChanged={handleBoundsChanged}
-                        height="100%"
-                        className="rounded-lg border border-gray-200"
-                      />
-                    </div>
-                  )
-                )}
+                }
 
                 {/* Active Filters Display - Below map, above cards */}
                 {(searchParams.get('location') || searchParams.get('studio_type') || searchParams.get('services') || searchParams.get('radius')) && (

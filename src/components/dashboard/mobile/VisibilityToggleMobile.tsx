@@ -10,7 +10,6 @@
 
 import { useState } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface VisibilityToggleMobileProps {
   initialVisibility: boolean;
@@ -23,9 +22,6 @@ export function VisibilityToggleMobile({
   const [saving, setSaving] = useState(false);
 
   // Phase 4 feature gate
-  if (!isMobileFeatureEnabled(4)) {
-    return null;
-  }
 
   const handleToggle = async () => {
     setSaving(true);
