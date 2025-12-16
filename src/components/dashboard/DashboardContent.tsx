@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { DashboardTabs, DashboardTab } from './DashboardTabs';
 import { UserDashboard } from './UserDashboard';
@@ -19,8 +19,28 @@ interface DashboardContentProps {
 export function DashboardContent({ dashboardData }: DashboardContentProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
 
+  // Listen to URL hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1); // Remove '#'
+      if (hash && ['edit-profile', 'images', 'settings'].includes(hash)) {
+        setActiveTab(hash as DashboardTab);
+      } else {
+        setActiveTab('overview');
+      }
+    };
+
+    // Set initial tab from hash
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const handleQuickAction = (action: QuickAction) => {
     setActiveTab(action);
+    window.location.hash = action;
   };
 
   const renderTabContent = () => {
