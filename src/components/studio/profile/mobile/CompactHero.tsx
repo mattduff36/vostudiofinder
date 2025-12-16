@@ -11,7 +11,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { BadgeCheck, Star } from 'lucide-react';
+import { BadgeCheck } from 'lucide-react';
 import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface CompactHeroProps {
@@ -21,8 +21,6 @@ interface CompactHeroProps {
   ownerAvatarUrl?: string | undefined;
   heroImage?: string | undefined;
   isVerified: boolean;
-  averageRating: number;
-  reviewCount: number;
 }
 
 export function CompactHero({
@@ -31,8 +29,6 @@ export function CompactHero({
   ownerAvatarUrl,
   heroImage,
   isVerified,
-  averageRating,
-  reviewCount,
 }: CompactHeroProps) {
   const [imageError, setImageError] = useState(false);
 
@@ -83,32 +79,17 @@ export function CompactHero({
 
           {/* Studio Name & Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2 mb-1">
+            <div className="flex items-center space-x-2">
               <h1 className="text-gray-900 font-bold text-xl leading-tight">
                 {studioName}
               </h1>
               {isVerified && (
                 <BadgeCheck
-                  className="w-5 h-5 text-blue-500 flex-shrink-0"
+                  className="w-5 h-5 text-green-600 flex-shrink-0"
                   aria-label="Verified studio"
                 />
               )}
             </div>
-
-            {/* Rating */}
-            {reviewCount > 0 ? (
-              <div className="flex items-center space-x-1">
-                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" aria-hidden="true" />
-                <span className="text-gray-700 text-sm font-medium">
-                  {averageRating.toFixed(1)}
-                </span>
-                <span className="text-gray-500 text-xs">
-                  ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
-                </span>
-              </div>
-            ) : (
-              <span className="text-gray-500 text-sm">No reviews yet</span>
-            )}
           </div>
         </div>
       </div>

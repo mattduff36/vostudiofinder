@@ -240,7 +240,8 @@ export async function PUT(request: NextRequest) {
       const profileUpdates: any = {};
       
       // Merge updates from both body.profile and body.studio (for backwards compatibility)
-      const updates = { ...body.profile, ...body.studio };
+      // Note: body.profile is spread last so it takes precedence over body.studio for conflicting fields
+      const updates = { ...body.studio, ...body.profile };
       
       // Studio identity
       if (updates.name !== undefined) profileUpdates.name = updates.name;

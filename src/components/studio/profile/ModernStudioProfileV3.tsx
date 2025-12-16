@@ -15,7 +15,6 @@ import { CompactHero } from './mobile/CompactHero';
 import { ContactBar } from './mobile/ContactBar';
 import { AboutCollapsible } from './mobile/AboutCollapsible';
 import { ServicesListCompact } from './mobile/ServicesListCompact';
-import { ReviewsCompact } from './mobile/ReviewsCompact';
 import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 // Force rebuild: Updated types for connection9-12 and custom_connection_methods
@@ -304,18 +303,32 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           ownerAvatarUrl={studio.owner.avatar_url}
           heroImage={displayImages[0]?.image_url}
           isVerified={studio.is_verified}
-          averageRating={averageRating}
-          reviewCount={studio._count.reviews}
         />
       )}
 
       {/* Phase 3: Mobile Components (< 768px only) */}
       {isMobileFeatureEnabled(3) && (
         <>
-          {/* Website Button - Full Width */}
-          {studio.website_url && (
-            <div className="bg-white border-b border-gray-200 md:hidden px-4 py-3">
-              <a
+          {/* Top Action Button - Same logic as desktop Studio Details section */}
+          <div className="bg-white border-b border-gray-200 md:hidden px-4 py-3">
+            {canContactViaEmail ? (
+              <a 
+                href={getMailtoLink()} 
+                rel="nofollow noopener noreferrer"
+                onClick={(e) => {
+                  if (!e.isTrusted) {
+                    e.preventDefault();
+                  }
+                }}
+                className="block w-full"
+              >
+                <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors font-medium">
+                  <Mail className="w-5 h-5" aria-hidden="true" />
+                  <span>Message Studio</span>
+                </button>
+              </a>
+            ) : studio.website_url && (profile?.show_email === false) ? (
+              <a 
                 href={studio.website_url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -324,11 +337,18 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors font-medium">
                   <Globe className="w-5 h-5" aria-hidden="true" />
                   <span>Visit Website</span>
-                  <ExternalLink className="w-4 h-4" aria-hidden="true" />
                 </button>
               </a>
-            </div>
-          )}
+            ) : (
+              <button 
+                onClick={handleContactClick}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors font-medium"
+              >
+                <MessageCircle className="w-5 h-5" aria-hidden="true" />
+                <span>Contact Studio</span>
+              </button>
+            )}
+          </div>
 
           {/* Contact Info */}
           {((profile?.show_phone !== false && (profile?.phone || studio.phone)) || 
@@ -359,11 +379,12 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           )}
 
           <AboutCollapsible
-            location={studio.full_address || studio.abbreviated_address || studio.address}
+            location={studio.abbreviated_address || studio.address}
             city={undefined}
             about={profile?.about || profile?.short_about || studio.description}
             equipmentList={profile?.equipment_list}
             studioTypes={studio.studio_studio_types}
+            showAddress={profile?.show_address}
           />
 
           {/* Rates Section */}
@@ -447,11 +468,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           )}
 
           <ServicesListCompact services={studio.studio_services} />
-          <ReviewsCompact
-            reviews={studio.reviews}
-            averageRating={averageRating}
-            totalReviews={studio._count.reviews}
-          />
+          
           {/* Mobile Map Section */}
           {studio.latitude && studio.longitude && (
             <div className="bg-white border-b border-gray-200 md:hidden">
@@ -465,13 +482,29 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     fullAddress={studio.full_address || studio.address || ''}
                   />
                 </div>
-                <button
-                  onClick={handleGetDirections}
-                  className="mt-3 w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors"
-                >
-                  <MapPin className="w-5 h-5" aria-hidden="true" />
-                  <span className="font-medium">Get Directions</span>
-                </button>
+                {/* Button under map - Same logic as desktop */}
+                {profile?.show_directions !== false ? (
+                  <button
+                    onClick={handleGetDirections}
+                    disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
+                    className="mt-3 w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ExternalLink className="w-5 h-5" aria-hidden="true" />
+                    <span className="font-medium">Get directions</span>
+                  </button>
+                ) : studio.website_url ? (
+                  <a
+                    href={studio.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full mt-3"
+                  >
+                    <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors">
+                      <ExternalLink className="w-5 h-5" aria-hidden="true" />
+                      <span className="font-medium">Visit Website</span>
+                    </button>
+                  </a>
+                ) : null}
               </div>
             </div>
           )}
