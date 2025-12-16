@@ -1,9 +1,9 @@
 /**
  * CompactHero - Mobile-Optimized Profile Hero Section
  * 
- * Compact 120px height vs desktop's larger hero
- * 80x80px avatar positioned bottom-left
- * Name overlay with shadow for readability
+ * Two-part design:
+ * 1. Full-width hero image (no overlay text)
+ * 2. Avatar and basic info section below
  * 
  * Only visible on mobile (< 768px), feature-gated by Phase 3.
  */
@@ -44,9 +44,9 @@ export function CompactHero({
   const heroImageUrl = heroImage || '/images/placeholder-studio.jpg';
 
   return (
-    <div className="md:hidden relative w-full h-[120px] bg-gray-900">
-      {/* Hero Background Image */}
-      <div className="absolute inset-0">
+    <div className="md:hidden bg-white">
+      {/* Hero Image - Full Width */}
+      <div className="relative w-full aspect-[16/9] bg-gray-200">
         <Image
           src={heroImageUrl}
           alt={`${studioName} hero image`}
@@ -56,27 +56,25 @@ export function CompactHero({
           sizes="100vw"
           onError={() => setImageError(true)}
         />
-        {/* Gradient Overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/70" />
       </div>
 
-      {/* Content Overlay */}
-      <div className="relative h-full flex items-end p-4">
-        <div className="flex items-end space-x-3 w-full">
+      {/* Studio Info Card */}
+      <div className="px-4 py-4 border-b border-gray-200">
+        <div className="flex items-start space-x-3">
           {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-200">
+          <div className="flex-shrink-0">
+            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 shadow-sm bg-gray-100">
               {ownerAvatarUrl && !imageError ? (
                 <Image
                   src={ownerAvatarUrl}
                   alt={ownerDisplayName}
-                  width={80}
-                  height={80}
+                  width={64}
+                  height={64}
                   className="object-cover"
                   onError={() => setImageError(true)}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-[#d42027] text-white text-2xl font-bold">
+                <div className="w-full h-full flex items-center justify-center bg-[#d42027] text-white text-xl font-bold">
                   {ownerDisplayName.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -84,30 +82,32 @@ export function CompactHero({
           </div>
 
           {/* Studio Name & Info */}
-          <div className="flex-1 min-w-0 pb-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2 mb-1">
-              <h1 className="text-white font-bold text-xl leading-tight truncate">
+              <h1 className="text-gray-900 font-bold text-xl leading-tight">
                 {studioName}
               </h1>
               {isVerified && (
                 <BadgeCheck
-                  className="w-5 h-5 text-blue-400 flex-shrink-0"
+                  className="w-5 h-5 text-blue-500 flex-shrink-0"
                   aria-label="Verified studio"
                 />
               )}
             </div>
 
             {/* Rating */}
-            {reviewCount > 0 && (
+            {reviewCount > 0 ? (
               <div className="flex items-center space-x-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" aria-hidden="true" />
-                <span className="text-white text-sm font-medium">
+                <span className="text-gray-700 text-sm font-medium">
                   {averageRating.toFixed(1)}
                 </span>
-                <span className="text-white/80 text-xs">
+                <span className="text-gray-500 text-xs">
                   ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
                 </span>
               </div>
+            ) : (
+              <span className="text-gray-500 text-sm">No reviews yet</span>
             )}
           </div>
         </div>
