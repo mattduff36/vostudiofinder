@@ -30,12 +30,10 @@ export interface SearchFiltersRef {
 }
 
 export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount }, ref) {
-  // If no studio types are selected, default to all types
+  // Studio types are unchecked by default - users must select what they want
   const filtersWithDefaults = {
     ...initialFilters,
-    studio_studio_types: initialFilters.studio_studio_types.length === 0 
-      ? [studio_type.HOME, studio_type.RECORDING, studio_type.PODCAST]
-      : initialFilters.studio_studio_types
+    studio_studio_types: initialFilters.studio_studio_types || []
   };
   
   const [filters, setFilters] = useState(filtersWithDefaults);
@@ -57,12 +55,10 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
 
   useEffect(() => {
     logger.log('Updating filters with initialFilters:', initialFilters);
-    // Apply defaults when updating from URL params
+    // Studio types are unchecked by default - users must select what they want
     const updatedFilters = {
       ...initialFilters,
-      studio_studio_types: initialFilters.studio_studio_types.length === 0 
-        ? [studio_type.HOME, studio_type.RECORDING, studio_type.PODCAST]
-        : initialFilters.studio_studio_types
+      studio_studio_types: initialFilters.studio_studio_types || []
     };
     setFilters(updatedFilters);
   }, [initialFilters]);
@@ -402,7 +398,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                 type="checkbox"
                 checked={filters.studio_studio_types.includes(option.value)}
                 onChange={() => handleStudioTypeToggle(option.value)}
-                className="rounded border-gray-300 text-red-600 focus:ring-gray-400"
+                className="rounded"
               />
               <span className="text-sm text-black">{option.label}</span>
             </label>

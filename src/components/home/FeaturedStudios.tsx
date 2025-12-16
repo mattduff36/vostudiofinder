@@ -70,13 +70,16 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
     return () => observer.disconnect();
   }, []);
 
-  // Calculate how many placeholder cards to show (always show 6 total cards)
-  const maxCards = 6;
-  const realStudiosCount = Math.min(studios.length, 5); // Show max 5 real studios
+  // Calculate how many placeholder cards to show
+  // If 2 or fewer featured studios exist, show only 3 total cards (to avoid too many placeholders)
+  // Otherwise, show 6 total cards (max 5 real studios)
+  const maxCards = studios.length <= 2 ? 3 : 6;
+  const maxRealStudios = studios.length <= 2 ? 2 : 5;
+  const realStudiosCount = Math.min(studios.length, maxRealStudios);
   const placeholderCount = maxCards - realStudiosCount;
   
-  // Take only the first 5 studios
-  const displayStudios = studios.slice(0, 5);
+  // Take only the appropriate number of studios
+  const displayStudios = studios.slice(0, maxRealStudios);
   
   // Create placeholder card data
   const placeholders = Array(placeholderCount).fill(null);
