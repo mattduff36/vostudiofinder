@@ -34,6 +34,7 @@ interface MapCollapsibleProps {
   onMarkerClick: (data: any, event: any) => void;
   onBoundsChanged?: ((bounds: { north: number; south: number; east: number; west: number }) => void) | undefined;
   selectedMarkerId?: string | null;
+  initiallyExpanded?: boolean;
 }
 
 export function MapCollapsible({
@@ -45,8 +46,9 @@ export function MapCollapsible({
   onMarkerClick,
   onBoundsChanged,
   selectedMarkerId,
+  initiallyExpanded = false,
 }: MapCollapsibleProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
 
   // Phase 2 feature gate
   if (!isMobileFeatureEnabled(2)) {
