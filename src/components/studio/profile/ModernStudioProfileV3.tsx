@@ -296,14 +296,16 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
     <div className="min-h-screen bg-gray-50">
       {/* Phase 3: Mobile Compact Hero (< 768px only) */}
       {isMobileFeatureEnabled(3) && (
-        <CompactHero
-          studioName={studio.name}
-          ownerDisplayName={studio.owner.display_name}
-          ownerUsername={studio.owner.username}
-          ownerAvatarUrl={studio.owner.avatar_url}
-          heroImage={displayImages[0]?.image_url}
-          isVerified={studio.is_verified}
-        />
+      <CompactHero
+        studioName={studio.name}
+        ownerDisplayName={studio.owner.display_name}
+        ownerUsername={studio.owner.username}
+        ownerAvatarUrl={studio.owner.avatar_url}
+        heroImage={displayImages[0]?.image_url}
+        isVerified={studio.is_verified}
+        abbreviatedAddress={studio.abbreviated_address}
+        showAddress={profile?.show_address}
+      />
       )}
 
       {/* Phase 3: Mobile Components (< 768px only) */}
@@ -379,12 +381,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           )}
 
           <AboutCollapsible
-            location={studio.abbreviated_address || studio.address}
-            city={undefined}
             about={profile?.about || profile?.short_about || studio.description}
             equipmentList={profile?.equipment_list}
             studioTypes={studio.studio_studio_types}
-            showAddress={profile?.show_address}
           />
 
           {/* Rates Section */}

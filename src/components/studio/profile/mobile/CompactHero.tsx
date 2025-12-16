@@ -11,7 +11,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { BadgeCheck } from 'lucide-react';
+import { Check, MapPin } from 'lucide-react';
 import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface CompactHeroProps {
@@ -21,6 +21,8 @@ interface CompactHeroProps {
   ownerAvatarUrl?: string | undefined;
   heroImage?: string | undefined;
   isVerified: boolean;
+  abbreviatedAddress?: string | undefined;
+  showAddress?: boolean | null | undefined;
 }
 
 export function CompactHero({
@@ -29,6 +31,8 @@ export function CompactHero({
   ownerAvatarUrl,
   heroImage,
   isVerified,
+  abbreviatedAddress,
+  showAddress = true,
 }: CompactHeroProps) {
   const [imageError, setImageError] = useState(false);
 
@@ -38,6 +42,7 @@ export function CompactHero({
   }
 
   const heroImageUrl = heroImage || '/images/placeholder-studio.jpg';
+  const shouldShowAddress = showAddress !== false;
 
   return (
     <div className="md:hidden bg-white">
@@ -84,12 +89,22 @@ export function CompactHero({
                 {studioName}
               </h1>
               {isVerified && (
-                <BadgeCheck
-                  className="w-5 h-5 text-green-600 flex-shrink-0"
-                  aria-label="Verified studio"
-                />
+                <span
+                  className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-600 flex-shrink-0"
+                  title="Verified studio — approved by our team"
+                >
+                  <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                </span>
               )}
             </div>
+            
+            {/* Abbreviated Address */}
+            {shouldShowAddress && abbreviatedAddress && (
+              <div className="flex items-center space-x-1.5 mt-2">
+                <MapPin className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                <span className="text-sm text-gray-600">{abbreviatedAddress}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
