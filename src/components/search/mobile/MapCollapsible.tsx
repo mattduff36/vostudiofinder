@@ -79,14 +79,15 @@ export function MapCollapsible({
 
   return (
     <div 
-      className="md:hidden bg-white border-y border-gray-200"
+      className="md:hidden bg-white border-y border-gray-200 overflow-hidden"
       style={{
-        height: 'calc(100vh - 440px)', // Full height minus all chrome elements and padding
+        maxHeight: 'calc(100vh - 312px)', // Full viewport minus header (180px) + filters (67px) + bottom nav (65px)
+        height: 'calc(100vh - 312px)',
         minHeight: '300px' // Minimum height for usability
       }}
     >
       {/* Full-Screen Map View */}
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full overflow-hidden">
         {/* Map Container */}
         <div className="relative w-full h-full bg-gray-100">
           <GoogleMap
