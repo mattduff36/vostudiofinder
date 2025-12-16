@@ -72,7 +72,10 @@ export function BottomNav({ onMenuClick }: BottomNavProps) {
 
         {/* Menu button */}
         <button
-          onClick={onMenuClick}
+          onClick={(e) => {
+            e.stopPropagation();
+            onMenuClick();
+          }}
           className="flex flex-col items-center justify-center flex-1 h-full space-y-1 text-gray-600 hover:text-gray-900 transition-colors"
           aria-label="Open menu"
           aria-expanded="false"
