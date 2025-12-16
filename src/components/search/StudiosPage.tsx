@@ -612,7 +612,7 @@ export function StudiosPage() {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full">
+    <div className={`min-h-screen flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full ${isMobileFeatureEnabled(2) && mobileView === 'map' ? 'md:overflow-y-auto overflow-y-hidden' : ''}`}>
       {/* Background Image for main content */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <Image
@@ -625,7 +625,7 @@ export function StudiosPage() {
       </div>
 
       {/* Main Content Area */}
-      <main className="relative z-10 flex-1 mb-16 md:mb-0">
+      <main className="relative z-10 flex-1">
         {/* Header Section - Simplified */}
         <div className="relative overflow-hidden pt-20" style={{ height: '180px' }}>
         <div className="absolute inset-0">
