@@ -13,7 +13,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Home, Search, LayoutDashboard, Menu, LogIn } from 'lucide-react';
+import { Home, Search, LayoutDashboard, Menu, UserPlus } from 'lucide-react';
 import { Session } from 'next-auth';
 
 interface BottomNavProps {
@@ -37,17 +37,17 @@ export function BottomNav({ onMenuClick, session }: BottomNavProps) {
       href: '/studios',
       active: pathname === '/studios',
     },
-    // Dashboard or Login - conditional
+    // Dashboard or List Studio - conditional
     session ? {
       label: 'Dashboard',
       icon: LayoutDashboard,
       href: '/dashboard',
       active: pathname.startsWith('/dashboard'),
     } : {
-      label: 'Login',
-      icon: LogIn,
-      href: '/auth/signin',
-      active: pathname === '/auth/signin',
+      label: 'List Studio',
+      icon: UserPlus,
+      href: '/auth/signup',
+      active: pathname === '/auth/signup',
     },
   ];
 

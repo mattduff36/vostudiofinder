@@ -18,7 +18,6 @@ import {
   Settings,
   LogOut,
   LogIn,
-  UserPlus,
   Info,
   FileText,
   Edit,
@@ -191,19 +190,10 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
               {/* Sign In */}
               <Link
                 href="/auth/signin"
-                className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors mb-1"
+                className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
               >
                 <LogIn className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                 <span className="text-sm font-medium">Sign In</span>
-              </Link>
-
-              {/* List Your Studio (Primary CTA) */}
-              <Link
-                href="/auth/signup"
-                className="flex items-center justify-center space-x-2 px-4 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#a1181d] active:bg-[#8a1419] transition-colors shadow-sm"
-              >
-                <UserPlus className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                <span className="text-sm font-semibold">List Your Studio</span>
               </Link>
             </>
           )}
