@@ -9,9 +9,7 @@ import { ImageGalleryManager } from './ImageGalleryManager';
 import { Footer } from '@/components/home/Footer';
 
 // Phase 4: Mobile dashboard components
-import { StatsGridMobile } from './mobile/StatsGridMobile';
 import { QuickActions, QuickAction } from './mobile/QuickActions';
-import { VisibilityToggleMobile } from './mobile/VisibilityToggleMobile';
 import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface DashboardContentProps {
