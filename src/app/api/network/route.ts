@@ -40,18 +40,13 @@ async function getConnections(user_id: string) {
     include: {
       users_user_connections_connected_user_idTousers: {
         include: {
-          user_profiles: true,
-          studios: {
-            where: { status: 'ACTIVE' },
-            select: { id: true, name: true }
+          studio_profiles: {
+            select: { id: true, name: true, status: true }
           },
           _count: {
             select: {
               user_connections_user_connections_user_idTousers: {
                 where: { accepted: true }
-              },
-              studios: {
-                where: { status: 'ACTIVE' }
               }
             }
           }
@@ -98,14 +93,12 @@ async function getSuggestions(user_id: string) {
       },
       OR: [
         {
-          studios: {
-            some: {
-              status: 'ACTIVE'
-            }
+          studio_profiles: {
+            status: 'ACTIVE'
           }
         },
         {
-          user_profiles: {
+          studio_profiles: {
             OR: [
               { is_featured: true },
               { is_spotlight: true },
@@ -116,26 +109,21 @@ async function getSuggestions(user_id: string) {
       ]
     },
     include: {
-      user_profiles: true,
-      studios: {
-        where: { status: 'ACTIVE' },
-        select: { id: true, name: true }
+      studio_profiles: {
+        select: { id: true, name: true, status: true }
       },
       _count: {
         select: {
           user_connections_user_connections_user_idTousers: {
             where: { accepted: true }
-          },
-          studios: {
-            where: { status: 'ACTIVE' }
           }
         }
       }
     },
     take: 20,
     orderBy: [
-      { user_profiles: { is_featured: 'desc' } },
-      { user_profiles: { is_spotlight: 'desc' } },
+      { studio_profiles: { is_featured: 'desc' } },
+      { studio_profiles: { is_spotlight: 'desc' } },
       { created_at: 'desc' }
     ]
   });
@@ -158,10 +146,8 @@ async function getNetworkStats(user_id: string) {
       user_id: user_id,
       accepted: true,
       users_user_connections_connected_user_idTousers: {
-        studios: {
-          some: {
-            status: 'ACTIVE'
-          }
+        studio_profiles: {
+          status: 'ACTIVE'
         }
       }
     }

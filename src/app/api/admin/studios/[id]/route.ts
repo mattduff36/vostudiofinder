@@ -43,12 +43,16 @@ export async function GET(
     const studioId = (await params).id;
     
     // Get studio with owner and profile data using Prisma
-    const studio = await prisma.studios.findUnique({
+    const studio = await prisma.studio_profiles.findUnique({
       where: { id: studioId },
       include: {
         users: {
-          include: {
-            user_profiles: true
+          select: {
+            id: true,
+            display_name: true,
+            username: true,
+            email: true,
+            avatar_url: true
           }
         },
         studio_studio_types: {
@@ -76,55 +80,54 @@ export async function GET(
       email: studio.users?.email,
       status: studio.status?.toLowerCase(),
       joined: studio.created_at,
-      last_name: decodeHtmlEntities(studio.users?.user_profiles?.last_name || ''),
-      location: studio.users?.user_profiles?.location || '',
-      address: studio.address || '', // Legacy field
+      last_name: decodeHtmlEntities(studio.last_name || ''),
+      location: studio.location || '',
       full_address: studio.full_address || '',
       abbreviated_address: studio.abbreviated_address || '',
       city: studio.city || '',
       phone: studio.phone || '',
       url: studio.website_url || '',
-      instagram: studio.users?.user_profiles?.instagram_url || '',
-      youtubepage: studio.users?.user_profiles?.youtube_url || '',
-      about: decodeHtmlEntities(studio.users?.user_profiles?.about || ''),
+      instagram: studio.instagram_url || '',
+      youtubepage: studio.youtube_url || '',
+      about: decodeHtmlEntities(studio.about || ''),
       latitude: studio.latitude ? parseFloat(studio.latitude.toString()) : null,
       longitude: studio.longitude ? parseFloat(studio.longitude.toString()) : null,
-      shortabout: decodeHtmlEntities(studio.users?.user_profiles?.short_about || ''),
+      shortabout: decodeHtmlEntities(studio.short_about || ''),
       category: '', // Not in new schema
-      facebook: studio.users?.user_profiles?.facebook_url || '',
-      twitter: studio.users?.user_profiles?.twitter_url || '',
-      linkedin: studio.users?.user_profiles?.linkedin_url || '',
-      soundcloud: studio.users?.user_profiles?.soundcloud_url || '',
-      vimeo: studio.users?.user_profiles?.vimeo_url || '',
+      facebook: studio.facebook_url || '',
+      twitter: studio.twitter_url || '',
+      linkedin: studio.linkedin_url || '',
+      soundcloud: studio.soundcloud_url || '',
+      vimeo: studio.vimeo_url || '',
       verified: studio.is_verified,
-      featured: studio.users?.user_profiles?.is_featured || false,
+      featured: studio.is_featured || false,
       avatar_image: studio.users?.avatar_url || '',
       is_profile_visible: studio.is_profile_visible,
       // Rate data from profile (decode HTML entities)
-      rates1: decodeHtmlEntities(studio.users?.user_profiles?.rate_tier_1 || ''),
-      rates2: decodeHtmlEntities(studio.users?.user_profiles?.rate_tier_2 || ''),
-      rates3: decodeHtmlEntities(studio.users?.user_profiles?.rate_tier_3 || ''),
-      showrates: studio.users?.user_profiles?.show_rates || false,
+      rates1: decodeHtmlEntities(studio.rate_tier_1 || ''),
+      rates2: decodeHtmlEntities(studio.rate_tier_2 || ''),
+      rates3: decodeHtmlEntities(studio.rate_tier_3 || ''),
+      showrates: studio.show_rates || false,
       // Contact preferences
-      showemail: studio.users?.user_profiles?.show_email || false,
-      showphone: studio.users?.user_profiles?.show_phone || false,
-      showaddress: studio.users?.user_profiles?.show_address || false,
-      showdirections: studio.users?.user_profiles?.show_directions !== false, // Default true
-      use_coordinates_for_map: studio.users?.user_profiles?.use_coordinates_for_map || false,
+      showemail: studio.show_email || false,
+      showphone: studio.show_phone || false,
+      showaddress: studio.show_address || false,
+      showdirections: studio.show_directions !== false, // Default true
+      use_coordinates_for_map: studio.use_coordinates_for_map || false,
       // Connection types
-      connection1: studio.users?.user_profiles?.connection1 || '',
-      connection2: studio.users?.user_profiles?.connection2 || '',
-      connection3: studio.users?.user_profiles?.connection3 || '',
-      connection4: studio.users?.user_profiles?.connection4 || '',
-      connection5: studio.users?.user_profiles?.connection5 || '',
-      connection6: studio.users?.user_profiles?.connection6 || '',
-      connection7: studio.users?.user_profiles?.connection7 || '',
-      connection8: studio.users?.user_profiles?.connection8 || '',
-      connection9: studio.users?.user_profiles?.connection9 || '',
-      connection10: studio.users?.user_profiles?.connection10 || '',
-      connection11: studio.users?.user_profiles?.connection11 || '',
-      connection12: studio.users?.user_profiles?.connection12 || '',
-      custom_connection_methods: studio.users?.user_profiles?.custom_connection_methods || []
+      connection1: studio.connection1 || '',
+      connection2: studio.connection2 || '',
+      connection3: studio.connection3 || '',
+      connection4: studio.connection4 || '',
+      connection5: studio.connection5 || '',
+      connection6: studio.connection6 || '',
+      connection7: studio.connection7 || '',
+      connection8: studio.connection8 || '',
+      connection9: studio.connection9 || '',
+      connection10: studio.connection10 || '',
+      connection11: studio.connection11 || '',
+      connection12: studio.connection12 || '',
+      custom_connection_methods: studio.custom_connection_methods || []
     };
     
     // Structure the data to match what the frontend expects
@@ -144,7 +147,6 @@ export async function GET(
         studio_name: studio.name, // Actual studio name from studios table
         last_name: studioData.last_name,
         location: studioData.location,
-        address: studioData.address, // Legacy field
         full_address: studioData.full_address,
         abbreviated_address: studioData.abbreviated_address,
         city: studioData.city,
@@ -175,7 +177,7 @@ export async function GET(
         showphone: studioData.showphone ? '1' : '0',
         showaddress: studioData.showaddress ? '1' : '0',
         showdirections: studioData.showdirections ? '1' : '0',
-        use_coordinates_for_map: studio.users?.user_profiles?.use_coordinates_for_map || false,
+        use_coordinates_for_map: studio.use_coordinates_for_map || false,
         is_profile_visible: studioData.is_profile_visible,
         // Connection types
         connection1: studioData.connection1 || '0',
@@ -226,12 +228,16 @@ export async function PUT(
     const body = await request.json();
 
     // Check if studio exists
-    const existingStudio = await prisma.studios.findUnique({
+    const existingStudio = await prisma.studio_profiles.findUnique({
       where: { id: studioId },
       include: {
         users: {
-          include: {
-            user_profiles: true
+          select: {
+            id: true,
+            display_name: true,
+            username: true,
+            email: true,
+            avatar_url: true
           }
         }
       }
@@ -342,8 +348,8 @@ export async function PUT(
       const isFeatured = body._meta.featured === '1' || body._meta.featured === true;
       
       // If trying to feature this studio, check if limit is reached
-      if (isFeatured && !existingStudio.users?.user_profiles?.is_featured) {
-        const featuredCount = await prisma.user_profiles.count({
+      if (isFeatured && !existingStudio.is_featured) {
+        const featuredCount = await prisma.studio_profiles.count({
           where: { is_featured: true }
         });
         
@@ -395,14 +401,14 @@ export async function PUT(
       // Update user if there are user changes
       if (Object.keys(userUpdateData).length > 0) {
         await tx.users.update({
-          where: { id: existingStudio.owner_id },
+          where: { id: existingStudio.user_id },
           data: userUpdateData
         });
       }
 
       // Update studio if there are studio changes
       if (Object.keys(studioUpdateData).length > 0) {
-        await tx.studios.update({
+        await tx.studio_profiles.update({
           where: { id: studioId },
           data: studioUpdateData
         });
@@ -433,12 +439,12 @@ export async function PUT(
 
       // Update profile if there are profile changes
       if (Object.keys(profileUpdateData).length > 0) {
-        await tx.user_profiles.upsert({
-          where: { user_id: existingStudio.owner_id },
+        await tx.studio_profiles.upsert({
+          where: { user_id: existingStudio.user_id },
           update: profileUpdateData,
           create: {
             id: randomBytes(12).toString('base64url'), // Generate ID for new profiles
-            user_id: existingStudio.owner_id,
+            user_id: existingStudio.user_id,
             created_at: new Date(),
             updated_at: new Date(),
             ...profileUpdateData
@@ -448,7 +454,7 @@ export async function PUT(
     });
 
     // Fetch the updated studio to return updated coordinates
-    const updatedStudio = await prisma.studios.findUnique({
+    const updatedStudio = await prisma.studio_profiles.findUnique({
       where: { id: studioId },
       select: {
         latitude: true,
@@ -494,7 +500,7 @@ export async function DELETE(
     const studioId = (await params).id;
 
     // Delete the studio
-    await prisma.studios.delete({
+    await prisma.studio_profiles.delete({
       where: { id: studioId },
     });
 

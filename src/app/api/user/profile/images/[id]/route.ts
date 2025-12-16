@@ -35,9 +35,9 @@ export async function PUT(
     const image = await db.studio_images.findUnique({
       where: { id },
       include: {
-        studios: {
+        studio_profiles: {
           select: {
-            owner_id: true,
+            user_id: true,
           },
         },
       },
@@ -50,7 +50,7 @@ export async function PUT(
       );
     }
 
-    if (image.studios.owner_id !== userId) {
+    if (image.studio_profiles.user_id !== userId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 403 }
@@ -110,10 +110,10 @@ export async function DELETE(
     const image = await db.studio_images.findUnique({
       where: { id },
       include: {
-        studios: {
+        studio_profiles: {
           select: {
             id: true,
-            owner_id: true,
+            user_id: true,
           },
         },
       },
@@ -126,7 +126,7 @@ export async function DELETE(
       );
     }
 
-    if (image.studios.owner_id !== userId) {
+    if (image.studio_profiles.user_id !== userId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 403 }
@@ -143,7 +143,7 @@ export async function DELETE(
 
     // Reorder remaining images
     const remainingImages = await db.studio_images.findMany({
-      where: { studio_id: image.studios.id },
+      where: { studio_id: image.studio_profiles.id },
       orderBy: { sort_order: 'asc' },
     });
 

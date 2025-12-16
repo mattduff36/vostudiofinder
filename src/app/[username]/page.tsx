@@ -297,7 +297,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     }
 
     // Parse address for structured data
-    const fullAddress = studio.full_address || studio.address || '';
+    const fullAddress = studio.full_address || '';
     const addressParts = fullAddress.split(',').map(part => part.trim());
     
     // Extract city and postal code if available
@@ -330,9 +330,9 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       description: businessDescription,
       url: pageUrl,
       telephone: phoneNumber,
-      address: (studio.full_address || studio.address) ? {
+      address: studio.full_address ? {
         '@type': 'PostalAddress',
-        streetAddress: addressParts[0] || studio.full_address || studio.address || '',
+        streetAddress: addressParts[0] || studio.full_address || '',
         addressLocality: cityName,
         addressRegion: 'England',
         postalCode: postalCode,
@@ -458,7 +458,6 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               return rest as any;
             })(),
             description: studio.description || '',
-            address: studio.address || '', // Legacy field
             full_address: studio.full_address || '',
             abbreviated_address: studio.abbreviated_address || '',
             studio_studio_types: studio.studio_studio_types && studio.studio_studio_types.length > 0 

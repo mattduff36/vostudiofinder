@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       },
       select: {
         id: true,
-        owner_id: true,
+        user_id: true,
         name: true,
       },
     });
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
             avatar_url: true,
           },
         },
-        studios: {
+        studio_profiles: {
           select: {
             name: true,
           },

@@ -26,7 +26,7 @@ export default async function AdminPage() {
     recentReviews,
   ] = await Promise.all([
     db.users.count(),
-    db.studios.count({ where: { status: 'ACTIVE' } }),
+    db.studio_profiles.count({ where: { status: 'ACTIVE' } }),
     db.reviews.count(),
     db.reviews.count({ where: { status: 'PENDING' } }),
     db.users.count({
@@ -36,7 +36,7 @@ export default async function AdminPage() {
         },
       },
     }),
-    db.studios.count({ where: { is_premium: true, status: 'ACTIVE' } }),
+    db.studio_profiles.count({ where: { is_premium: true, status: 'ACTIVE' } }),
     db.users.findMany({
       take: 5,
       orderBy: { created_at: 'desc' },
@@ -48,7 +48,7 @@ export default async function AdminPage() {
         created_at: true,
       },
     }),
-    db.studios.findMany({
+    db.studio_profiles.findMany({
       take: 5,
       orderBy: { created_at: 'desc' },
       include: {
@@ -73,7 +73,7 @@ export default async function AdminPage() {
             display_name: true,
           },
         },
-        studios: {
+        studio_profiles: {
           select: {
             name: true,
           },
@@ -112,7 +112,7 @@ export default async function AdminPage() {
         display_name: review.users_reviews_reviewer_idTousers.display_name,
       },
       studio: {
-        name: review.studios.name,
+        name: review.studio_profiles.name,
       },
     })),
   };

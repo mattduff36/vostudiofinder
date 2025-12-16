@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'activate':
-        const activateResult = await prisma.studios.updateMany({
+        const activateResult = await prisma.studio_profiles.updateMany({
           where: { id: { in: studioIds } },
           data: { status: 'ACTIVE' }
         });
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'deactivate':
-        const deactivateResult = await prisma.studios.updateMany({
+        const deactivateResult = await prisma.studio_profiles.updateMany({
           where: { id: { in: studioIds } },
           data: { status: 'INACTIVE' }
         });
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'delete':
-        const deleteResult = await prisma.studios.deleteMany({
+        const deleteResult = await prisma.studio_profiles.deleteMany({
           where: { id: { in: studioIds } }
         });
         result = {
@@ -65,12 +65,16 @@ export async function POST(request: NextRequest) {
 
       case 'export':
         // Get studio data for export
-        const exportResult = await prisma.studios.findMany({
+        const exportResult = await prisma.studio_profiles.findMany({
           where: { id: { in: studioIds } },
           include: {
             users: {
-              include: {
-                user_profiles: true
+              select: {
+                id: true,
+                display_name: true,
+                username: true,
+                email: true,
+                avatar_url: true
               }
             }
           },

@@ -70,11 +70,11 @@ export async function DELETE(request: NextRequest) {
       
       // 1. Delete studio-related data
       await tx.studio_services.deleteMany({
-        where: { studios: { owner_id: user.id } },
+        where: { studio_profiles: { user_id: user.id } },
       });
       
       await tx.studio_images.deleteMany({
-        where: { studios: { owner_id: user.id } },
+        where: { studio_profiles: { user_id: user.id } },
       });
       
       await tx.reviews.deleteMany({
@@ -84,8 +84,8 @@ export async function DELETE(request: NextRequest) {
         ]},
       });
       
-      await tx.studios.deleteMany({
-        where: { owner_id: user.id },
+      await tx.studio_profiles.deleteMany({
+        where: { user_id: user.id },
       });
       
       // 2. Delete messages

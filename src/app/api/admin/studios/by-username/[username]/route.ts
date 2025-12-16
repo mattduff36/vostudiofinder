@@ -20,13 +20,12 @@ export async function GET(
         email: true,
         username: true,
         display_name: true,
-        studios: {
+        studio_profiles: {
           where: { status: 'ACTIVE' },
           select: {
             id: true,
             name: true,
             description: true,
-            address: true, // Legacy field
             full_address: true,
             abbreviated_address: true,
             website_url: true,
@@ -44,19 +43,18 @@ export async function GET(
               },
             },
           },
-          take: 1,
         },
       },
     });
 
-    if (!user || !user.studios.length) {
+    if (!user || !user.studio_profiles || user.studio_profiles.status !== 'ACTIVE') {
       return NextResponse.json(
         { error: 'Studio not found' },
         { status: 404 }
       );
     }
 
-    const studio = user.studios[0];
+    const studio = user.studio_profiles;
 
     if (!studio) {
       return NextResponse.json(
@@ -75,7 +73,6 @@ export async function GET(
       status: studio.status,
       is_verified: studio.is_verified,
       is_premium: studio.is_premium,
-      address: studio.address, // Legacy field
       full_address: studio.full_address,
       abbreviated_address: studio.abbreviated_address,
       website_url: studio.website_url,

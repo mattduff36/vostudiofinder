@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const studio = await db.studio_profiles.findUnique({
       where: { 
         id: studio_id,
-        owner_id: session.user.id,
+        user_id: session.user.id,
       },
       select: {
         id: true,

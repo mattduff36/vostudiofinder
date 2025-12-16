@@ -29,9 +29,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const review = await db.reviews.findUnique({
       where: { id: reviewId },
       include: {
-        studios: {
+        studio_profiles: {
           select: {
-            owner_id: true,
+            user_id: true,
           },
         },
       },
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Only studio owner can respond
-    if (review.studios.owner_id !== session.user.id) {
+    if (review.studio_profiles.user_id !== session.user.id) {
       return NextResponse.json(
         { error: 'Only the studio owner can respond to reviews' },
         { status: 403 }

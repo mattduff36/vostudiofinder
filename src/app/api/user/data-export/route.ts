@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const userData = await db.users.findUnique({
       where: { id: session.user.id },
       include: {
-        studios: {
+        studio_profiles: {
           include: {
             studio_services: true,
             studio_images: true,
@@ -74,25 +74,25 @@ export async function GET(request: NextRequest) {
         created_at: userData.created_at,
         updated_at: userData.updated_at,
       },
-      studios: userData.studios.map(studio => ({
-        id: studio.id,
-        name: studio.name,
-        description: studio.description,
-        studio_studio_types: studio.studio_studio_types?.map(st => st.studio_type) || [],
-        address: studio.address,
-        latitude: studio.latitude,
-        longitude: studio.longitude,
-        website_url: studio.website_url,
-        phone: studio.phone,
-        is_premium: studio.is_premium,
-        is_verified: studio.is_verified,
-        status: studio.status,
-        created_at: studio.created_at,
-        updated_at: studio.updated_at,
-        studio_services: studio.studio_services,
-        studio_images: studio.studio_images,
-        reviews: studio.reviews.length,
-      })),
+      studio_profile: userData.studio_profiles ? {
+        id: userData.studio_profiles.id,
+        name: userData.studio_profiles.name,
+        description: userData.studio_profiles.description,
+        studio_studio_types: userData.studio_profiles.studio_studio_types?.map(st => st.studio_type) || [],
+        full_address: userData.studio_profiles.full_address,
+        latitude: userData.studio_profiles.latitude,
+        longitude: userData.studio_profiles.longitude,
+        website_url: userData.studio_profiles.website_url,
+        phone: userData.studio_profiles.phone,
+        is_premium: userData.studio_profiles.is_premium,
+        is_verified: userData.studio_profiles.is_verified,
+        status: userData.studio_profiles.status,
+        created_at: userData.studio_profiles.created_at,
+        updated_at: userData.studio_profiles.updated_at,
+        studio_services: userData.studio_profiles.studio_services,
+        studio_images: userData.studio_profiles.studio_images,
+        reviews: userData.studio_profiles.reviews.length,
+      } : null,
       reviewsWritten: userData.reviews_reviews_reviewer_idTousers.map(review => ({
         id: review.id,
         studio_id: review.studio_id,
