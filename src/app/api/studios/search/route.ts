@@ -402,7 +402,7 @@ export async function GET(request: NextRequest) {
     // Serialize Decimal fields and map short_about to description for JSON response
     const serializedStudios = studios.map(studio => ({
       ...studio,
-      description: studio.users?.user_profiles?.short_about || '', // Use short_about as description
+      description: studio.short_about || '', // short_about is now directly on studio_profiles
       latitude: studio.latitude ? Number(studio.latitude) : null,
       longitude: studio.longitude ? Number(studio.longitude) : null,
       owner: studio.users, // Map users to owner for backward compatibility with studio cards

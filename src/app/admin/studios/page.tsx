@@ -14,14 +14,12 @@ interface Studio {
   status: string;
   is_verified: boolean;
   is_premium: boolean;
+  is_featured?: boolean;
+  is_spotlight?: boolean;
   users: {
     display_name: string;
     email: string;
     username: string;
-    user_profiles?: {
-      is_featured?: boolean;
-      is_spotlight?: boolean;
-    };
   };
   created_at: string;
   updated_at: string;
@@ -449,7 +447,7 @@ export default function AdminStudiosPage() {
                                 👑
                               </span>
                             )}
-                            {studio.users?.user_profiles?.is_featured && (
+                            {studio.is_featured && (
                               <span 
                                 className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 cursor-help" 
                                 title="Featured Studio – displayed on homepage"
@@ -457,7 +455,7 @@ export default function AdminStudiosPage() {
                                 ⭐
                               </span>
                             )}
-                            {studio.users?.user_profiles?.is_spotlight && (
+                            {studio.is_spotlight && (
                               <span 
                                 className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800 cursor-help" 
                                 title="Spotlight Studio – highlighted in network"
