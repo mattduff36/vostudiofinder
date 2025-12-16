@@ -1,23 +1,24 @@
 /**
- * QuickActions - Mobile Quick Action Cards
+ * QuickActions - Mobile Dashboard Accordion
  * 
- * Replaces horizontal tabs with full-width action cards
+ * Accordion-style dashboard sections matching edit-profile design
  * Each card navigates to a specific dashboard section
  * 
  * Only visible on mobile (< 768px), feature-gated by Phase 4.
  */
 'use client';
 
-import { User, Image as ImageIcon, Settings, ChevronRight } from 'lucide-react';
+import { User, Image as ImageIcon, Settings, ChevronDown } from 'lucide-react';
 import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 export type QuickAction = 'edit-profile' | 'images' | 'settings';
 
 interface QuickActionsProps {
   onActionClick: (action: QuickAction) => void;
+  displayName?: string;
 }
 
-export function QuickActions({ onActionClick }: QuickActionsProps) {
+export function QuickActions({ onActionClick, displayName }: QuickActionsProps) {
   // Phase 4 feature gate
   if (!isMobileFeatureEnabled(4)) {
     return null;
@@ -29,53 +30,65 @@ export function QuickActions({ onActionClick }: QuickActionsProps) {
       label: 'Edit Profile',
       description: 'Update your personal information',
       icon: User,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
     },
     {
       id: 'images' as QuickAction,
       label: 'Manage Images',
       description: 'Upload and organize studio photos',
       icon: ImageIcon,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
     },
     {
       id: 'settings' as QuickAction,
       label: 'Settings',
       description: 'Configure your preferences',
       icon: Settings,
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-50',
     },
   ];
 
   return (
-    <div className="md:hidden bg-white border-b border-gray-200">
-      <div className="p-4">
-        <h2 className="text-sm font-semibold text-gray-900 mb-3">Quick Actions</h2>
-        <div className="space-y-2">
-          {actions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <button
-                key={action.id}
-                onClick={() => onActionClick(action.id)}
-                className="w-full flex items-center space-x-3 p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all text-left"
-              >
-                <div className={`flex-shrink-0 p-2 rounded-lg ${action.bgColor}`}>
-                  <Icon className={`w-5 h-5 ${action.color}`} aria-hidden="true" />
+    <div className="md:hidden space-y-3 px-4 py-6 bg-gray-50">
+      {/* Welcome Header */}
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold text-gray-900">
+          Welcome back{displayName ? `, ${displayName}` : ''}!
+        </h2>
+        <p className="text-sm text-gray-600 mt-1">
+          Choose an option to manage your profile
+        </p>
+      </div>
+
+      {/* Accordion Cards */}
+      {actions.map((action) => {
+        const Icon = action.icon;
+
+        return (
+          <div
+            key={action.id}
+            className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm"
+          >
+            {/* Action Button */}
+            <button
+              onClick={() => onActionClick(action.id)}
+              className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors active:bg-gray-100"
+            >
+              <div className="flex items-center space-x-3 flex-1">
+                <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-[#d42027]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{action.label}</p>
-                  <p className="text-xs text-gray-500 truncate">{action.description}</p>
+                  <p className="font-semibold text-gray-900 text-base">
+                    {action.label}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5 truncate">
+                    {action.description}
+                  </p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" aria-hidden="true" />
-              </button>
-            );
-          })}
-        </div>
-      </div>
+              </div>
+              <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }
