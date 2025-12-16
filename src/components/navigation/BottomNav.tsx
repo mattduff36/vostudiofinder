@@ -14,10 +14,8 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Home, Search, LayoutDashboard, Menu } from 'lucide-react';
-import { Session } from 'next-auth';
 
 interface BottomNavProps {
-  session: Session | null;
   onMenuClick: () => void;
 }
 
