@@ -3,8 +3,7 @@
  * 
  * Compact popup menu that appears from bottom-right:
  * - User profile section (if logged in)
- * - Quick links (Dashboard, Admin)
- * - Sign in/out actions
+ * - Quick links (About, Blog, Admin, Edit)
  * - Modern card-based design
  */
 'use client';
@@ -13,11 +12,8 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Session } from 'next-auth';
-import { signOut } from 'next-auth/react';
 import {
   Settings,
-  LogOut,
-  LogIn,
   Info,
   FileText,
   Edit,
@@ -165,37 +161,6 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
               <Edit className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
               <span className="text-sm font-medium">Edit Profile</span>
             </Link>
-          )}
-
-          {/* Auth Actions */}
-          {session ? (
-            <>
-              {/* Divider */}
-              <div className="my-2 border-t border-gray-100" />
-
-              {/* Sign Out */}
-              <button
-                onClick={() => signOut({ callbackUrl: '/' })}
-                className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
-              >
-                <LogOut className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                <span className="text-sm font-medium">Sign Out</span>
-              </button>
-            </>
-          ) : (
-            <>
-              {/* Divider */}
-              <div className="my-2 border-t border-gray-100" />
-
-              {/* Sign In */}
-              <Link
-                href="/auth/signin"
-                className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-              >
-                <LogIn className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                <span className="text-sm font-medium">Sign In</span>
-              </Link>
-            </>
           )}
         </div>
 
