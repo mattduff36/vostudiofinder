@@ -5,7 +5,7 @@ import { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { Menu, X, LogOut } from 'lucide-react';
+import { LogOut, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
@@ -36,7 +36,6 @@ interface NavbarProps {
 export function Navbar({ session }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const [isClient, setIsClient] = useState(false);
@@ -140,10 +139,6 @@ export function Navbar({ session }: NavbarProps) {
     };
   }, [isClient]);
 
-  // Close mobile menu when pathname changes
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [pathname]);
 
   // Handle logo loading animation - stop loading when navigation completes
   useEffect(() => {
@@ -164,21 +159,6 @@ export function Navbar({ session }: NavbarProps) {
     router.push('/');
   };
 
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isMenuOpen && !(event.target as Element).closest('nav')) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    if (isMenuOpen) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
-    
-    return undefined;
-  }, [isMenuOpen]);
 
   const isHomePage = pathname === '/' || pathname === '/studios';
 
@@ -373,130 +353,20 @@ export function Navbar({ session }: NavbarProps) {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Sign In/Out Button */}
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-md transition-all duration-200 hover:bg-red-50"
-            style={{ 
-              color: colors.primary,
-              border: `1px solid ${colors.primary}`
-            }}
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={isMenuOpen}
+            onClick={() => session ? signOut({ callbackUrl: '/' }) : router.push('/auth/signin')}
+            className={`md:hidden p-2 rounded-lg transition-all duration-300 ${
+              isScrolled || !isHomePage 
+                ? 'text-gray-600 hover:bg-gray-100' 
+                : 'text-white hover:bg-white/20'
+            }`}
+            aria-label={session ? 'Sign out' : 'Sign in'}
+            title={session ? 'Sign out' : 'Sign in'}
           >
-            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {session ? <LogOut size={20} /> : <LogIn size={20} />}
           </button>
         </div>
-
-        {/* Mobile Menu Dropdown */}
-        {isMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-[110]">
-            <div className="px-6 py-4 space-y-3">
-              {/* Studios Link */}
-              <Link 
-                href="/studios" 
-                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium"
-                style={{ color: '#111827' }}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Studios
-              </Link>
-              
-              {/* About Link */}
-              <Link 
-                href="/about" 
-                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium"
-                style={{ color: '#111827' }}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                About
-              </Link>
-              
-              {/* Blog - Coming Soon (Disabled) */}
-              <span 
-                className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium opacity-50 cursor-not-allowed"
-                style={{ color: '#111827' }}
-              >
-                Blog
-                <span className="ml-2 text-xs">(Coming soon!)</span>
-              </span>
-              
-              <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
-                {session ? (
-                  <>
-                    <div className="text-xs text-gray-500 px-3">
-                      Welcome, {session.user.display_name}
-                    </div>
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        router.push('/dashboard');
-                      }}
-                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
-                    >
-                      Dashboard
-                    </button>
-                    {session.user.email === 'admin@mpdee.co.uk' && (
-                      <>
-                        {showEditButton && (
-                          <button
-                            onClick={() => {
-                              setIsMenuOpen(false);
-                              handleEditClick();
-                            }}
-                            className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black"
-                          >
-                            EDIT
-                          </button>
-                        )}
-                        <button
-                          onClick={() => {
-                            setIsMenuOpen(false);
-                            router.push('/admin');
-                          }}
-                          className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white bg-black"
-                        >
-                          ADMIN
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        signOut({ callbackUrl: '/' });
-                      }}
-                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
-                    >
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        router.push('/auth/signin');
-                      }}
-                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-gray-900"
-                    >
-                      Sign In
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        router.push('/auth/signup');
-                      }}
-                      className="block w-full text-left py-2 px-3 rounded-md text-sm font-medium text-white"
-                      style={{ backgroundColor: colors.primary }}
-                    >
-                      List Your Studio
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   );
