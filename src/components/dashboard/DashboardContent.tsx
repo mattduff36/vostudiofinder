@@ -8,6 +8,12 @@ import { ProfileEditForm } from './ProfileEditForm';
 import { ImageGalleryManager } from './ImageGalleryManager';
 import { Footer } from '@/components/home/Footer';
 
+// Phase 4: Mobile dashboard components
+import { StatsGridMobile } from './mobile/StatsGridMobile';
+import { QuickActions, QuickAction } from './mobile/QuickActions';
+import { VisibilityToggleMobile } from './mobile/VisibilityToggleMobile';
+import { isMobileFeatureEnabled } from '@/lib/feature-flags';
+
 interface DashboardContentProps {
   dashboardData: any;
 }
@@ -15,9 +21,21 @@ interface DashboardContentProps {
 export function DashboardContent({ dashboardData }: DashboardContentProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
 
+  const handleQuickAction = (action: QuickAction) => {
+    setActiveTab(action);
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
+        // Hide desktop overview on mobile when Phase 4 is enabled
+        if (isMobileFeatureEnabled(4)) {
+          return (
+            <div className="hidden md:block">
+              <UserDashboard data={dashboardData} />
+            </div>
+          );
+        }
         return <UserDashboard data={dashboardData} />;
       
       case 'edit-profile':
@@ -55,13 +73,29 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
         />
       </div>
 
-      {/* Tabs with proper z-index */}
-      <div className="relative z-20">
+      {/* Tabs with proper z-index (Desktop only) */}
+      <div className={`relative z-20 ${isMobileFeatureEnabled(4) ? 'hidden md:block' : ''}`}>
         <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
+      {/* Phase 4: Mobile Dashboard Components */}
+      {isMobileFeatureEnabled(4) && activeTab === 'overview' && (
+        <>
+          <StatsGridMobile
+            studiosOwned={dashboardData.stats.studiosOwned}
+            reviewsWritten={dashboardData.stats.reviewsWritten}
+            totalConnections={dashboardData.stats.totalConnections}
+            unreadMessages={dashboardData.stats.unreadMessages}
+          />
+          <VisibilityToggleMobile initialVisibility={true} />
+          <QuickActions onActionClick={handleQuickAction} />
+        </>
+      )}
+
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${
+        isMobileFeatureEnabled(4) && activeTab !== 'overview' ? 'pt-4' : ''
+      }`}>
         {renderTabContent()}
       </div>
 
