@@ -13,6 +13,7 @@ import clsx from 'clsx';
 // Phase 3: Mobile profile components
 import { CompactHero } from './mobile/CompactHero';
 import { ContactBar } from './mobile/ContactBar';
+import { AboutCollapsible } from './mobile/AboutCollapsible';
 import { ServicesListCompact } from './mobile/ServicesListCompact';
 import { ReviewsCompact } from './mobile/ReviewsCompact';
 import { isMobileFeatureEnabled } from '@/lib/feature-flags';
@@ -311,12 +312,42 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       {/* Phase 3: Mobile Components (< 768px only) */}
       {isMobileFeatureEnabled(3) && (
         <>
+          <AboutCollapsible
+            location={studio.full_address || studio.abbreviated_address || studio.address}
+            city={undefined}
+            about={profile?.about || profile?.short_about || studio.description}
+            equipmentList={profile?.equipment_list}
+            studioTypes={studio.studio_studio_types}
+          />
           <ServicesListCompact services={studio.studio_services} />
           <ReviewsCompact
             reviews={studio.reviews}
             averageRating={averageRating}
             totalReviews={studio._count.reviews}
           />
+          {/* Mobile Map Section */}
+          {studio.latitude && studio.longitude && (
+            <div className="bg-white border-b border-gray-200">
+              <div className="px-4 py-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Location</h3>
+                <div className="h-48 bg-gray-100 rounded-lg overflow-hidden">
+                  <SimpleStudioMap
+                    latitude={studio.latitude}
+                    longitude={studio.longitude}
+                    address={studio.abbreviated_address || studio.address || studio.full_address || ''}
+                    fullAddress={studio.full_address || studio.address || ''}
+                  />
+                </div>
+                <button
+                  onClick={handleGetDirections}
+                  className="mt-3 w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors"
+                >
+                  <MapPin className="w-5 h-5" aria-hidden="true" />
+                  <span className="font-medium">Get Directions</span>
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
 
