@@ -312,6 +312,52 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       {/* Phase 3: Mobile Components (< 768px only) */}
       {isMobileFeatureEnabled(3) && (
         <>
+          {/* Website Button - Full Width */}
+          {studio.website_url && (
+            <div className="bg-white border-b border-gray-200 md:hidden px-4 py-3">
+              <a
+                href={studio.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full"
+              >
+                <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors font-medium">
+                  <Globe className="w-5 h-5" aria-hidden="true" />
+                  <span>Visit Website</span>
+                  <ExternalLink className="w-4 h-4" aria-hidden="true" />
+                </button>
+              </a>
+            </div>
+          )}
+
+          {/* Contact Info */}
+          {((profile?.show_phone !== false && (profile?.phone || studio.phone)) || 
+            (profile?.show_email !== false && studio.owner.email)) && (
+            <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Contact</h3>
+              <div className="space-y-2">
+                {profile?.show_phone !== false && (profile?.phone || studio.phone) && (
+                  <a
+                    href={`tel:${profile?.phone || studio.phone}`}
+                    className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <Phone className="w-5 h-5 text-[#d42027]" aria-hidden="true" />
+                    <span className="text-sm text-gray-700">{profile?.phone || studio.phone}</span>
+                  </a>
+                )}
+                {profile?.show_email !== false && studio.owner.email && (
+                  <a
+                    href={`mailto:${studio.owner.email}?subject=Enquiry about ${studio.name}`}
+                    className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <Mail className="w-5 h-5 text-[#d42027]" aria-hidden="true" />
+                    <span className="text-sm text-gray-700">{studio.owner.email}</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
           <AboutCollapsible
             location={studio.full_address || studio.abbreviated_address || studio.address}
             city={undefined}
@@ -319,6 +365,87 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             equipmentList={profile?.equipment_list}
             studioTypes={studio.studio_studio_types}
           />
+
+          {/* Rates Section */}
+          {profile?.show_rates !== false && rates.length > 0 && (
+            <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Rates</h3>
+              <div className="space-y-2">
+                {rates.map((rate, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700">{rate.duration}</span>
+                    <span className="text-sm font-semibold text-[#d42027]">{rate.price}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Connections Section */}
+          {(() => {
+            const standardConnections = [
+              { id: 'connection1', value: profile?.connection1, label: 'Zoom or Teams' },
+              { id: 'connection2', value: profile?.connection2, label: 'Google Hangouts' },
+              { id: 'connection3', value: profile?.connection3, label: 'Skype' },
+              { id: 'connection4', value: profile?.connection4, label: 'FaceTime' },
+              { id: 'connection5', value: profile?.connection5, label: 'Discord' },
+              { id: 'connection6', value: profile?.connection6, label: 'WhatsApp' },
+              { id: 'connection7', value: profile?.connection7, label: 'Slack' },
+              { id: 'connection8', value: profile?.connection8, label: 'Source Connect' },
+            ].filter(conn => conn.value === '1');
+
+            const customConnections = (profile?.custom_connection_methods || []).map((method, index) => ({
+              id: `custom_${index}`,
+              label: method,
+            }));
+
+            const allConnections = [...standardConnections, ...customConnections];
+
+            return allConnections.length > 0 ? (
+              <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Connections</h3>
+                <div className="flex flex-wrap gap-2">
+                  {allConnections.map((connection) => (
+                    <span
+                      key={connection.id}
+                      className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                    >
+                      {connection.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null;
+          })()}
+
+          {/* Social Media Links */}
+          {socialLinks.length > 0 && (
+            <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Social Media</h3>
+              <div className="flex flex-wrap gap-2">
+                {socialLinks.map((link, index) => {
+                  const Icon = link.icon;
+                  return (
+                    <a
+                      key={index}
+                      href={link.url || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={clsx(
+                        'flex items-center space-x-2 px-3 py-2 rounded-lg border transition-colors',
+                        link.color,
+                        'hover:opacity-80'
+                      )}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="text-xs font-medium">{link.platform}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <ServicesListCompact services={studio.studio_services} />
           <ReviewsCompact
             reviews={studio.reviews}
