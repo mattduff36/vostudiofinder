@@ -19,7 +19,9 @@ import {
   LogOut,
   LogIn,
   UserPlus,
-  LayoutDashboard,
+  Info,
+  FileText,
+  Edit,
 } from 'lucide-react';
 import { getUserDisplayName, getUserAvatarUrl } from '@/lib/auth-utils';
 
@@ -38,18 +40,6 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  // Prevent body scroll when drawer is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
   // Close on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -66,6 +56,17 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
 
   // Check if admin
   const isAdmin = session?.user?.email === 'admin@mpdee.co.uk';
+  
+  // Check if on profile page (for Edit button)
+  const isOnProfilePage = pathname !== '/' && 
+                          pathname !== '/studios' && 
+                          pathname !== '/about' && 
+                          pathname !== '/dashboard' &&
+                          pathname !== '/admin' &&
+                          !pathname.startsWith('/auth/') &&
+                          !pathname.startsWith('/help') &&
+                          !pathname.startsWith('/terms') &&
+                          !pathname.startsWith('/privacy');
 
   return (
     <>
@@ -118,37 +119,58 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
         )}
 
         {/* Quick Links */}
-        <div className="py-2 px-3 max-h-64 overflow-y-auto">
+        <div className="py-2 px-3 max-h-80 overflow-y-auto">
+          {/* About */}
+          <Link
+            href="/about"
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
+              pathname === '/about'
+                ? 'bg-red-50 text-[#d42027]'
+                : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
+            }`}
+          >
+            <Info className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+            <span className="text-sm font-medium">About</span>
+          </Link>
+
+          {/* Blog (Coming Soon) */}
+          <div className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 cursor-not-allowed mb-1">
+            <FileText className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+            <span className="text-sm font-medium">Blog</span>
+            <span className="ml-auto text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">
+              Coming soon
+            </span>
+          </div>
+
+          {/* Admin Panel (admin only) */}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
+                pathname === '/admin' || pathname.startsWith('/admin/')
+                  ? 'bg-red-50 text-[#d42027]'
+                  : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
+              }`}
+            >
+              <Settings className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+              <span className="text-sm font-medium">Admin Panel</span>
+            </Link>
+          )}
+
+          {/* Edit (admin only, when on profile page) */}
+          {isAdmin && isOnProfilePage && (
+            <Link
+              href={`${pathname}#edit`}
+              className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors mb-1"
+            >
+              <Edit className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+              <span className="text-sm font-medium">Edit Profile</span>
+            </Link>
+          )}
+
+          {/* Auth Actions */}
           {session ? (
             <>
-              {/* Dashboard Link */}
-              <Link
-                href="/dashboard"
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
-                  pathname === '/dashboard' || pathname.startsWith('/dashboard/')
-                    ? 'bg-red-50 text-[#d42027]'
-                    : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
-                }`}
-              >
-                <LayoutDashboard className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                <span className="text-sm font-medium">Dashboard</span>
-              </Link>
-
-              {/* Admin Link (if admin) */}
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
-                    pathname === '/admin' || pathname.startsWith('/admin/')
-                      ? 'bg-red-50 text-[#d42027]'
-                      : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
-                  }`}
-                >
-                  <Settings className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                  <span className="text-sm font-medium">Admin Panel</span>
-                </Link>
-              )}
-
               {/* Divider */}
               <div className="my-2 border-t border-gray-100" />
 
@@ -163,6 +185,9 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
             </>
           ) : (
             <>
+              {/* Divider */}
+              <div className="my-2 border-t border-gray-100" />
+
               {/* Sign In */}
               <Link
                 href="/auth/signin"

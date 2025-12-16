@@ -28,11 +28,14 @@ export function MobileShell({ session }: MobileShellProps) {
 
   return (
     <>
-      <BottomNav onMenuClick={() => setMenuOpen(true)} />
-      <MobileMenu 
-        isOpen={menuOpen} 
-        onClose={() => setMenuOpen(false)} 
-        session={session} 
+      <BottomNav 
+        onMenuClick={() => setMenuOpen(true)} 
+        session={session}
+      />
+      <MobileMenu
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        session={session}
       />
     </>
   );
