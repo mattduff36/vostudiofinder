@@ -2,9 +2,10 @@
 import { logger } from '@/lib/logger';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface StudioImage {
   id: string;
@@ -275,11 +276,13 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
     );
   }
 
+  const isMobile = isMobileFeatureEnabled(4);
+
   return (
     <div className={isAdminMode ? "" : "bg-white rounded-lg border border-gray-200 shadow-sm"}>
       {/* Header - Hidden in admin mode */}
       {!isAdminMode && (
-        <div className="border-b border-gray-200 px-6 py-4">
+        <div className="border-b border-gray-200 px-4 md:px-6 py-4">
           <h2 className="text-2xl font-bold text-gray-900">Manage Images</h2>
           <p className="text-sm text-gray-600 mt-1">
             Upload and organize your studio images ({images.length}/5)
@@ -289,19 +292,19 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
 
       {/* Error Message */}
       {error && (
-        <div className={`bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 ${isAdminMode ? 'mb-4' : 'mx-6 mt-4'}`}>
+        <div className={`bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 ${isAdminMode ? 'mb-4' : 'mx-4 md:mx-6 mt-4'}`}>
           {error}
         </div>
       )}
 
       {/* Upload Zone */}
-      <div className={isAdminMode ? "mb-4" : "p-6"}>
+      <div className={isAdminMode ? "mb-4" : "p-4 md:p-6"}>
         {images.length >= 5 ? (
           <div className={`border-2 border-gray-300 rounded-lg text-center bg-gray-50 ${
-            isAdminMode ? 'p-4' : 'p-8'
+            isAdminMode ? 'p-4' : 'p-6 md:p-8'
           }`}>
             <div className="flex flex-col items-center">
-              <ImageIcon className={`text-gray-400 ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
+              <ImageIcon className={`text-gray-400 ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-10 md:w-12 h-10 md:h-12 mb-3'}`} />
               <p className="text-sm font-medium text-gray-700 mb-1">
                 Maximum of 5 images reached
               </p>
@@ -315,7 +318,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             className={`border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-red-500 transition-colors cursor-pointer ${
-              isAdminMode ? 'p-4' : 'p-8'
+              isAdminMode ? 'p-4' : 'p-6 md:p-8'
             }`}
             onClick={() => fileInputRef.current?.click()}
           >
@@ -329,14 +332,14 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
             
             {uploading ? (
               <div className="flex flex-col items-center">
-                <Loader2 className={`text-red-600 animate-spin ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
+                <Loader2 className={`text-red-600 animate-spin ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-10 md:w-12 h-10 md:h-12 mb-3'}`} />
                 <p className="text-sm font-medium text-gray-700">Uploading...</p>
               </div>
             ) : (
               <div className="flex flex-col items-center">
-                <Upload className={`text-gray-400 ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-3'}`} />
+                <Upload className={`text-gray-400 ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-10 md:w-12 h-10 md:h-12 mb-3'}`} />
                 <p className="text-sm font-medium text-gray-700 mb-1">
-                  Drop images here or click to browse
+                  {isMobile ? 'Tap to upload image' : 'Drop images here or click to browse'}
                 </p>
                 <p className="text-xs text-gray-500">
                   PNG, JPG, WebP up to 5MB (max 5 images)
@@ -347,10 +350,11 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
         )}
       </div>
 
-      {/* Image Grid */}
+      {/* Image Grid - Desktop: Grid with drag-and-drop, Mobile: Card list with buttons */}
       {images.length > 0 ? (
-        <div className={isAdminMode ? "" : "px-6 pb-6"}>
-          <div className={`grid gap-3 ${isAdminMode ? 'grid-cols-3 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
+        <div className={isAdminMode ? "" : "px-4 md:px-6 pb-6"}>
+          {/* Desktop Grid */}
+          <div className={`hidden md:grid gap-3 ${isAdminMode ? 'grid-cols-3 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
             {images.map((image, index) => (
               <div
                 key={image.id}
@@ -411,16 +415,105 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
             ))}
           </div>
 
-          <div className="mt-8 pt-4 border-t border-gray-200">
+          {/* Mobile Card List */}
+          <div className="md:hidden space-y-3">
+            {images.map((image, index) => (
+              <div
+                key={image.id}
+                className={`bg-white border rounded-lg overflow-hidden shadow-sm ${
+                  index === 0 ? 'ring-2 ring-[#d42027]' : 'border-gray-200'
+                }`}
+              >
+                {/* Image Preview */}
+                <div className="relative aspect-[25/12] bg-gray-100">
+                  <img
+                    src={image.image_url}
+                    alt={image.alt_text || `Studio image ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Featured Badge */}
+                  {index === 0 && (
+                    <div className="absolute top-3 left-3 px-2.5 py-1.5 bg-[#d42027] text-white text-xs font-bold rounded shadow-lg flex items-center gap-1">
+                      <span>⭐</span>
+                      <span>Featured</span>
+                    </div>
+                  )}
+                  
+                  {/* Position Badge */}
+                  {index > 0 && (
+                    <div className="absolute top-3 left-3 w-8 h-8 bg-red-600 text-white text-sm font-bold rounded-full flex items-center justify-center shadow-lg">
+                      {index + 1}
+                    </div>
+                  )}
+                </div>
+
+                {/* Card Actions */}
+                <div className="p-3 space-y-2">
+                  {/* Alt Text Display/Edit */}
+                  {image.alt_text && (
+                    <div className="text-sm text-gray-700 mb-2">
+                      <span className="font-medium text-gray-500">Alt Text:</span> {image.alt_text}
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    {/* Reorder Buttons */}
+                    <div className="flex gap-1 flex-1">
+                      <button
+                        onClick={() => handleReorder(index, index - 1)}
+                        disabled={index === 0}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        title="Move up"
+                      >
+                        <ChevronUp className="w-4 h-4" />
+                        <span>Up</span>
+                      </button>
+                      <button
+                        onClick={() => handleReorder(index, index + 1)}
+                        disabled={index === images.length - 1}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        title="Move down"
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                        <span>Down</span>
+                      </button>
+                    </div>
+
+                    {/* Edit Button */}
+                    <button
+                      onClick={() => handleEditAltText(image)}
+                      className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      title="Edit alt text"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => handleDelete(image.id)}
+                      className="px-4 py-2.5 border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                      title="Delete image"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-500">
-              💡 <strong>Tip:</strong> Drag and drop images to reorder them. The first image is your featured image.<br />
+              💡 <strong>Tip:</strong> <span className="hidden md:inline">Drag and drop images to reorder them.</span><span className="md:hidden">Use the up/down buttons to reorder images.</span> The first image is your featured image.<br />
               <span className="text-gray-400">Optimum size: 1200×800px (landscape) for best quality across all devices.</span>
             </p>
           </div>
         </div>
       ) : (
-        <div className={`text-center ${isAdminMode ? '' : 'px-6 pb-6'}`}>
-          <ImageIcon className={`text-gray-300 mx-auto mb-3 ${isAdminMode ? 'w-12 h-12' : 'w-16 h-16'}`} />
+        <div className={`text-center ${isAdminMode ? '' : 'px-4 md:px-6 pb-6'}`}>
+          <ImageIcon className={`text-gray-300 mx-auto mb-3 ${isAdminMode ? 'w-12 h-12' : 'w-14 md:w-16 h-14 md:h-16'}`} />
           <p className="text-gray-500">No images uploaded yet</p>
           <p className="text-sm text-gray-400 mt-1">Upload your first image to get started</p>
         </div>
