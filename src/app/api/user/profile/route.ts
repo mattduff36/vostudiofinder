@@ -77,7 +77,7 @@ export async function GET() {
       metadata[meta.key] = meta.value || '';
     });
 
-    // Prepare response (merged profile + studio data)
+    // Prepare response - split into profile (user fields) and studio (studio fields) for frontend compatibility
     const response = {
       success: true,
       data: {
@@ -95,21 +95,12 @@ export async function GET() {
         profile: studioProfile ? {
           id: studioProfile.id,
           user_id: studioProfile.user_id,
-          // Studio identity
-          name: studioProfile.name,
-          description: studioProfile.description,
+          // Profile-specific fields (about, location, social, connections, settings)
           short_about: studioProfile.short_about,
           about: studioProfile.about,
-          // Location
-          full_address: studioProfile.full_address,
-          abbreviated_address: studioProfile.abbreviated_address,
-          city: studioProfile.city,
           location: studioProfile.location,
-          latitude: studioProfile.latitude ? Number(studioProfile.latitude) : null,
-          longitude: studioProfile.longitude ? Number(studioProfile.longitude) : null,
-          // Contact
+          // Contact settings
           phone: studioProfile.phone,
-          website_url: studioProfile.website_url,
           show_email: studioProfile.show_email,
           show_phone: studioProfile.show_phone,
           show_address: studioProfile.show_address,
@@ -149,7 +140,19 @@ export async function GET() {
           connection11: studioProfile.connection11,
           connection12: studioProfile.connection12,
           custom_connection_methods: studioProfile.custom_connection_methods || [],
-          // Status
+        } : null,
+        // Studio-specific fields (name, address, website)
+        studio: studioProfile ? {
+          id: studioProfile.id,
+          name: studioProfile.name,
+          description: studioProfile.description,
+          full_address: studioProfile.full_address,
+          abbreviated_address: studioProfile.abbreviated_address,
+          city: studioProfile.city,
+          latitude: studioProfile.latitude ? Number(studioProfile.latitude) : null,
+          longitude: studioProfile.longitude ? Number(studioProfile.longitude) : null,
+          website_url: studioProfile.website_url,
+          phone: studioProfile.phone,
           status: studioProfile.status,
           is_premium: studioProfile.is_premium,
           is_verified: studioProfile.is_verified,
@@ -159,10 +162,9 @@ export async function GET() {
           is_crb_checked: studioProfile.is_crb_checked,
           verification_level: studioProfile.verification_level,
           use_coordinates_for_map: studioProfile.use_coordinates_for_map,
-          // Timestamps
           created_at: studioProfile.created_at,
           updated_at: studioProfile.updated_at,
-          // Related data
+          // Related data as arrays of strings for frontend
           studio_types: studioProfile.studio_studio_types?.map(st => st.studio_type) || [],
           services: studioProfile.studio_services?.map(ss => ss.service) || [],
           images: studioProfile.studio_images || [],
