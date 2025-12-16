@@ -37,11 +37,12 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
   
   // Fetch featured studios for the homepage (available to all users)
-  // Only show studios where user_profiles.is_featured === true, limited to 6
+  // Only show studios where user_profiles.is_featured === true AND is_profile_visible === true, limited to 6
   const featuredStudiosRaw = await db.studio_profiles.findMany({
     where: {
       status: 'ACTIVE',
       is_featured: true,
+      is_profile_visible: true,
     },
     include: {
       users: {
