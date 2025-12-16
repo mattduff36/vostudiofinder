@@ -33,16 +33,16 @@ export function BottomNav({ session, onMenuClick }: BottomNavProps) {
       active: pathname === '/',
     },
     {
-      label: 'Search',
+      label: 'Studios',
       icon: Search,
       href: '/studios',
       active: pathname === '/studios',
     },
     {
-      label: session ? 'Dashboard' : 'More',
+      label: 'About',
       icon: LayoutDashboard,
-      href: session ? '/dashboard' : '/about',
-      active: session ? pathname.startsWith('/dashboard') : pathname === '/about',
+      href: '/about',
+      active: pathname === '/about',
     },
   ];
 

@@ -534,46 +534,49 @@ export function GoogleMap({
 
     mapInstanceRef.current = map;
 
-    // Create custom scroll zoom toggle button
-    const scrollZoomToggleDiv = document.createElement('div');
-    scrollZoomToggleDiv.style.margin = '10px';
-    scrollZoomToggleDiv.style.cursor = 'pointer';
-    
-    const scrollZoomButton = document.createElement('button');
-    scrollZoomButton.style.backgroundColor = '#fff';
-    scrollZoomButton.style.border = '2px solid #fff';
-    scrollZoomButton.style.borderRadius = '3px';
-    scrollZoomButton.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-    scrollZoomButton.style.color = 'rgb(25,25,25)';
-    scrollZoomButton.style.cursor = 'pointer';
-    scrollZoomButton.style.fontFamily = 'Roboto,Arial,sans-serif';
-    scrollZoomButton.style.fontSize = '16px';
-    scrollZoomButton.style.lineHeight = '38px';
-    scrollZoomButton.style.margin = '0';
-    scrollZoomButton.style.padding = '0 17px';
-    scrollZoomButton.style.textAlign = 'center';
-    scrollZoomButton.textContent = '🖱️ Scroll Zoom: Off';
-    scrollZoomButton.title = 'Click to enable scroll wheel zoom';
-    scrollZoomButton.type = 'button';
+    // Create custom scroll zoom toggle button (desktop only)
+    const isMobileDevice = window.innerWidth < 768;
+    if (!isMobileDevice) {
+      const scrollZoomToggleDiv = document.createElement('div');
+      scrollZoomToggleDiv.style.margin = '10px';
+      scrollZoomToggleDiv.style.cursor = 'pointer';
 
-    // Add hover effect
-    scrollZoomButton.addEventListener('mouseenter', () => {
-      scrollZoomButton.style.backgroundColor = '#f5f5f5';
-    });
-    scrollZoomButton.addEventListener('mouseleave', () => {
+      const scrollZoomButton = document.createElement('button');
       scrollZoomButton.style.backgroundColor = '#fff';
-    });
+      scrollZoomButton.style.border = '2px solid #fff';
+      scrollZoomButton.style.borderRadius = '3px';
+      scrollZoomButton.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+      scrollZoomButton.style.color = 'rgb(25,25,25)';
+      scrollZoomButton.style.cursor = 'pointer';
+      scrollZoomButton.style.fontFamily = 'Roboto,Arial,sans-serif';
+      scrollZoomButton.style.fontSize = '16px';
+      scrollZoomButton.style.lineHeight = '38px';
+      scrollZoomButton.style.margin = '0';
+      scrollZoomButton.style.padding = '0 17px';
+      scrollZoomButton.style.textAlign = 'center';
+      scrollZoomButton.textContent = '🖱️ Scroll Zoom: Off';
+      scrollZoomButton.title = 'Click to enable scroll wheel zoom';
+      scrollZoomButton.type = 'button';
 
-    // Add click handler to toggle scroll zoom
-    scrollZoomButton.addEventListener('click', () => {
-      setScrollZoomEnabled(prev => !prev);
-    });
+      // Add hover effect
+      scrollZoomButton.addEventListener('mouseenter', () => {
+        scrollZoomButton.style.backgroundColor = '#f5f5f5';
+      });
+      scrollZoomButton.addEventListener('mouseleave', () => {
+        scrollZoomButton.style.backgroundColor = '#fff';
+      });
 
-    scrollZoomToggleDiv.appendChild(scrollZoomButton);
-    map.controls[googleMaps.ControlPosition.TOP_LEFT].push(scrollZoomToggleDiv);
+      // Add click handler to toggle scroll zoom
+      scrollZoomButton.addEventListener('click', () => {
+        setScrollZoomEnabled(prev => !prev);
+      });
 
-    // Store button reference for updates
-    (map as any).scrollZoomButton = scrollZoomButton;
+      scrollZoomToggleDiv.appendChild(scrollZoomButton);
+      map.controls[googleMaps.ControlPosition.TOP_LEFT].push(scrollZoomToggleDiv);
+
+      // Store button reference for updates
+      (map as any).scrollZoomButton = scrollZoomButton;
+    }
 
     // Add user interaction listeners to track when user manipulates the map
     let isUserInitiated = false;

@@ -70,25 +70,32 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
   const displayName = session?.user ? getUserDisplayName(session.user) : '';
   const avatarUrl = session?.user ? getUserAvatarUrl(session.user) : undefined;
 
+  // Check if admin
+  const isAdmin = session?.user?.email === 'admin@mpdee.co.uk';
+
   const menuSections = [
     {
-      title: 'Discover',
+      title: 'Navigation',
       links: [
-        { label: 'Browse Studios', href: '/studios', icon: MapPin },
+        { label: 'Studios', href: '/studios', icon: MapPin },
         { label: 'About', href: '/about', icon: HelpCircle },
       ],
     },
   ];
 
   if (session) {
+    const accountLinks = [
+      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    ];
+
+    // Add admin links if admin
+    if (isAdmin) {
+      accountLinks.push({ label: 'Admin Panel', href: '/admin', icon: Settings });
+    }
+
     menuSections.push({
       title: 'My Account',
-      links: [
-        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { label: 'My Profile', href: '/dashboard/profile', icon: User },
-        { label: 'My Studio', href: '/dashboard/studio', icon: Building2 },
-        { label: 'Settings', href: '/dashboard/settings', icon: Settings },
-      ],
+      links: accountLinks,
     });
   }
 
@@ -197,18 +204,18 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
             ) : (
               <>
                 <Link
-                  href="/login"
+                  href="/auth/signin"
                   className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors mb-1"
                 >
                   <LogIn className="w-5 h-5" aria-hidden="true" />
                   <span className="text-sm font-medium">Sign In</span>
                 </Link>
                 <Link
-                  href="/register"
+                  href="/auth/signup"
                   className="flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#a1181d] transition-colors"
                 >
                   <UserPlus className="w-5 h-5" aria-hidden="true" />
-                  <span className="text-sm font-medium">Register</span>
+                  <span className="text-sm font-medium">List Your Studio</span>
                 </Link>
               </>
             )}
