@@ -844,7 +844,6 @@ export function StudiosPage() {
                       onMarkerClick={handleMarkerClick}
                       onBoundsChanged={handleBoundsChanged}
                       selectedMarkerId={null}
-                      initiallyExpanded={true}
                     />
                   )
                 ) : (

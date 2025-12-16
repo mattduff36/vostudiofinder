@@ -1,15 +1,13 @@
 /**
- * MapCollapsible - Collapsible Map View for Mobile
+ * MapCollapsible - Full-Screen Map View for Mobile
  * 
- * Collapsed state: 60px "Show Map" bar
- * Expanded state: 240px embedded map view
+ * Always expanded on Map View tab, fills remaining viewport space
  * 
  * Only visible on mobile (< 768px), feature-gated by Phase 2.
  */
 'use client';
 
-import { useState } from 'react';
-import { Map, MapPin, ChevronDown, ChevronUp, Maximize2 } from 'lucide-react';
+import { MapPin, Maximize2 } from 'lucide-react';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
@@ -34,7 +32,6 @@ interface MapCollapsibleProps {
   onMarkerClick: (data: any, event: any) => void;
   onBoundsChanged?: ((bounds: { north: number; south: number; east: number; west: number }) => void) | undefined;
   selectedMarkerId?: string | null;
-  initiallyExpanded?: boolean;
 }
 
 export function MapCollapsible({
@@ -46,10 +43,7 @@ export function MapCollapsible({
   onMarkerClick,
   onBoundsChanged,
   selectedMarkerId,
-  initiallyExpanded = false,
 }: MapCollapsibleProps) {
-  const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
-
   // Phase 2 feature gate
   if (!isMobileFeatureEnabled(2)) {
     return null;
@@ -84,86 +78,56 @@ export function MapCollapsible({
     }));
 
   return (
-    <div className="md:hidden bg-white border-y border-gray-200">
-      {/* Collapsed Bar */}
-      {!isExpanded && (
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-          aria-label="Show map"
-          aria-expanded="false"
-        >
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#d42027] bg-opacity-10 rounded-lg flex items-center justify-center">
-              <Map className="w-5 h-5 text-[#d42027]" aria-hidden="true" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold text-gray-900">View Map</p>
-              <p className="text-xs text-gray-500">
-                {markerCount} {markerCount === 1 ? 'studio' : 'studios'} in this area
-              </p>
-            </div>
-          </div>
-          <ChevronDown className="w-5 h-5 text-gray-400" aria-hidden="true" />
-        </button>
-      )}
+    <div 
+      className="md:hidden bg-white border-y border-gray-200"
+      style={{
+        height: 'calc(100vh - 240px)', // Full height minus header/nav (~240px)
+        minHeight: '400px' // Minimum height for usability
+      }}
+    >
+      {/* Full-Screen Map View */}
+      <div className="relative w-full h-full">
+        {/* Map Container */}
+        <div className="relative w-full h-full bg-gray-100">
+          <GoogleMap
+            center={center}
+            zoom={zoom}
+            markers={transformedMarkers}
+            searchCenter={searchCenter || null}
+            searchRadius={searchRadius || null}
+            selectedMarkerId={selectedMarkerId || null}
+            {...(onBoundsChanged ? { onBoundsChanged } : {})}
+            height="100%"
+          />
 
-      {/* Expanded Map View */}
-      {isExpanded && (
-        <div className="relative">
-          {/* Map Container */}
-          <div className="relative h-60 bg-gray-100">
-            <GoogleMap
-              center={center}
-              zoom={zoom}
-              markers={transformedMarkers}
-              searchCenter={searchCenter || null}
-              searchRadius={searchRadius || null}
-              selectedMarkerId={selectedMarkerId || null}
-              {...(onBoundsChanged ? { onBoundsChanged } : {})}
-              height="240px"
-            />
-
-            {/* Overlay Controls */}
-            <div className="absolute top-3 left-3 right-3 flex items-start justify-between pointer-events-none">
-              {/* Map Info Badge */}
-              <div className="bg-white rounded-lg shadow-md px-3 py-2 pointer-events-auto">
-                <div className="flex items-center space-x-2">
-                  <MapPin className="w-4 h-4 text-[#d42027]" aria-hidden="true" />
-                  <span className="text-xs font-medium text-gray-900">
-                    {markerCount} {markerCount === 1 ? 'Studio' : 'Studios'}
-                  </span>
-                </div>
+          {/* Overlay Controls */}
+          <div className="absolute top-3 left-3 right-3 flex items-start justify-between pointer-events-none">
+            {/* Map Info Badge */}
+            <div className="bg-white rounded-lg shadow-md px-3 py-2 pointer-events-auto">
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-[#d42027]" aria-hidden="true" />
+                <span className="text-xs font-medium text-gray-900">
+                  {markerCount} {markerCount === 1 ? 'Studio' : 'Studios'}
+                </span>
               </div>
-
-              {/* Full Screen Button (Future) */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // TODO: Implement full-screen map view in Phase 2.5
-                  alert('Full-screen map coming soon!');
-                }}
-                className="bg-white rounded-lg shadow-md p-2 pointer-events-auto hover:bg-gray-50 transition-colors"
-                aria-label="Expand to full screen"
-                title="Full screen map (coming soon)"
-              >
-                <Maximize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
-              </button>
             </div>
-          </div>
 
-          {/* Collapse Bar */}
-          <button
-            onClick={() => setIsExpanded(false)}
-            className="w-full px-4 py-3 flex items-center justify-center space-x-2 bg-white border-t border-gray-200 hover:bg-gray-50 transition-colors"
-            aria-label="Hide map"
-            aria-expanded="true"
-          >
-            <span className="text-sm font-medium text-gray-700">Hide Map</span>
-            <ChevronUp className="w-4 h-4 text-gray-500" aria-hidden="true" />
-          </button>
+            {/* Full Screen Button (Future) */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // TODO: Implement full-screen map view in Phase 2.5
+                alert('Full-screen map coming soon!');
+              }}
+              className="bg-white rounded-lg shadow-md p-2 pointer-events-auto hover:bg-gray-50 transition-colors"
+              aria-label="Expand to full screen"
+              title="Full screen map (coming soon)"
+            >
+              <Maximize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
+            </button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
