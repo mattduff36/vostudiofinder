@@ -3,8 +3,8 @@
  * 
  * Fixed bottom navigation with 4 primary actions:
  * - Home
- * - Search
- * - Dashboard/More
+ * - Studios
+ * - Dashboard/Login (conditional)
  * - Menu
  * 
  * Only visible on mobile (< 768px), hidden on desktop.
@@ -13,13 +13,15 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Home, Search, LayoutDashboard, Menu } from 'lucide-react';
+import { Home, Search, LayoutDashboard, Menu, LogIn } from 'lucide-react';
+import { Session } from 'next-auth';
 
 interface BottomNavProps {
   onMenuClick: () => void;
+  session: Session | null;
 }
 
-export function BottomNav({ onMenuClick }: BottomNavProps) {
+export function BottomNav({ onMenuClick, session }: BottomNavProps) {
   const pathname = usePathname();
 
   const navItems = [
@@ -35,11 +37,17 @@ export function BottomNav({ onMenuClick }: BottomNavProps) {
       href: '/studios',
       active: pathname === '/studios',
     },
-    {
-      label: 'About',
+    // Dashboard or Login - conditional
+    session ? {
+      label: 'Dashboard',
       icon: LayoutDashboard,
-      href: '/about',
-      active: pathname === '/about',
+      href: '/dashboard',
+      active: pathname.startsWith('/dashboard'),
+    } : {
+      label: 'Login',
+      icon: LogIn,
+      href: '/auth/signin',
+      active: pathname === '/auth/signin',
     },
   ];
 
