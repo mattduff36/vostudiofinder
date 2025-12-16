@@ -927,8 +927,10 @@ export function StudiosPage() {
         )}
       </main>
       
-      {/* Footer - Outside main content */}
-      <Footer />
+      {/* Footer - Desktop only */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   );
 }
