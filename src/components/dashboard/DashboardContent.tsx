@@ -82,15 +82,8 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
       {isMobileFeatureEnabled(4) && (
         <>
           {activeTab === 'overview' ? (
-            // Overview: Show stats, visibility, and quick actions
+            // Overview: Show only quick actions (stats removed per user request)
             <>
-              <StatsGridMobile
-                studiosOwned={dashboardData.stats.studiosOwned}
-                reviewsWritten={dashboardData.stats.reviewsWritten}
-                totalConnections={dashboardData.stats.totalConnections}
-                unreadMessages={dashboardData.stats.unreadMessages}
-              />
-              <VisibilityToggleMobile initialVisibility={true} />
               <QuickActions onActionClick={handleQuickAction} />
             </>
           ) : (

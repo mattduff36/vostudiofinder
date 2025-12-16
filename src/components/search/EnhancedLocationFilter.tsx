@@ -490,19 +490,17 @@ export function EnhancedLocationFilter({
 
   // Handle clicks outside to close suggestions
   React.useEffect(() => {
+    // Only add listener if dropdown is actually open
+    if (!isOpen) {
+      return;
+    }
+
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
       const clickedInsideInput = inputRef.current && inputRef.current.contains(target);
       const clickedInsideDropdown = dropdownRef.current && dropdownRef.current.contains(target);
-      
-      logger.log('🖱️ Click outside check:', {
-        clickedInsideInput,
-        clickedInsideDropdown,
-        willClose: !clickedInsideInput && !clickedInsideDropdown
-      });
-      
+
       if (!clickedInsideInput && !clickedInsideDropdown) {
-        logger.log('🚪 Closing dropdown due to outside click');
         setIsOpen(false);
         setSelectedIndex(-1);
       }
@@ -512,7 +510,7 @@ export function EnhancedLocationFilter({
     return () => {
       document.removeEventListener('mouseup', handleClickOutside);
     };
-  }, []);
+  }, [isOpen]);
 
   return (
     <div className="relative">
