@@ -10,6 +10,13 @@ import { formatRateWithCurrency } from '@/lib/utils/currency';
 import { Footer } from '@/components/home/Footer';
 import clsx from 'clsx';
 
+// Phase 3: Mobile profile components
+import { CompactHero } from './mobile/CompactHero';
+import { ContactBar } from './mobile/ContactBar';
+import { ServicesListCompact } from './mobile/ServicesListCompact';
+import { ReviewsCompact } from './mobile/ReviewsCompact';
+import { isMobileFeatureEnabled } from '@/lib/feature-flags';
+
 // Force rebuild: Updated types for connection9-12 and custom_connection_methods
 import { 
   MapPin, 
@@ -287,8 +294,36 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Phase 3: Mobile Compact Hero (< 768px only) */}
+      {isMobileFeatureEnabled(3) && (
+        <CompactHero
+          studioName={studio.name}
+          ownerDisplayName={studio.owner.display_name}
+          ownerUsername={studio.owner.username}
+          ownerAvatarUrl={studio.owner.avatar_url}
+          heroImage={displayImages[0]?.image_url}
+          isVerified={studio.is_verified}
+          averageRating={averageRating}
+          reviewCount={studio._count.reviews}
+        />
+      )}
+
+      {/* Phase 3: Mobile Components (< 768px only) */}
+      {isMobileFeatureEnabled(3) && (
+        <>
+          <ServicesListCompact services={studio.studio_services} />
+          <ReviewsCompact
+            reviews={studio.reviews}
+            averageRating={averageRating}
+            totalReviews={studio._count.reviews}
+          />
+        </>
+      )}
+
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${
+        isMobileFeatureEnabled(3) ? 'hidden md:block' : ''
+      }`}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Images & Main Content */}
           <div className="lg:col-span-2">
@@ -758,6 +793,18 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Phase 3: Mobile Contact Bar (< 768px only) */}
+      {isMobileFeatureEnabled(3) && (
+        <ContactBar
+          phone={studio.phone}
+          email={studio.owner.email}
+          websiteUrl={studio.website_url}
+          showPhone={profile?.show_phone !== false}
+          showEmail={profile?.show_email !== false}
+          onMessageClick={handleContactClick}
+        />
       )}
 
       {/* Footer */}
