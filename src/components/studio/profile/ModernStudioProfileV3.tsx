@@ -327,7 +327,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           />
           {/* Mobile Map Section */}
           {studio.latitude && studio.longitude && (
-            <div className="bg-white border-b border-gray-200">
+            <div className="bg-white border-b border-gray-200 md:hidden">
               <div className="px-4 py-4">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">Location</h3>
                 <div className="h-48 bg-gray-100 rounded-lg overflow-hidden">
