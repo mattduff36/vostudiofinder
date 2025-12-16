@@ -838,8 +838,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
         />
       )}
 
-      {/* Footer */}
-      <Footer />
+      {/* Footer - Desktop only */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   );
 }

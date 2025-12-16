@@ -139,8 +139,8 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
         {renderTabContent()}
       </div>
 
-      {/* Footer */}
-      <div className="relative z-10">
+      {/* Footer - Desktop only */}
+      <div className="hidden md:block relative z-10">
         <Footer />
       </div>
     </div>

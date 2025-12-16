@@ -42,8 +42,10 @@ export function HomePage({ session, featuredStudios, stats }: HomePageProps) {
       {/* New CTA Section */}
       <NewCTASection />
       
-      {/* Footer */}
-      <Footer />
+      {/* Footer - Desktop only */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   );
 }
