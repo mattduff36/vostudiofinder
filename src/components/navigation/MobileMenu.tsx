@@ -17,8 +17,6 @@ import { Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
 import {
   X,
-  User,
-  Building2,
   Settings,
   HelpCircle,
   LogOut,
