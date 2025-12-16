@@ -625,7 +625,7 @@ export function StudiosPage() {
       </div>
 
       {/* Main Content Area */}
-      <main className="relative z-10 flex-1">
+      <main className="relative z-10 flex-1 mb-16 md:mb-0">
         {/* Header Section - Simplified */}
         <div className="relative overflow-hidden pt-20" style={{ height: '180px' }}>
         <div className="absolute inset-0">
