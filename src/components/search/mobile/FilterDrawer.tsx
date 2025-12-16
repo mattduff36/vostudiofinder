@@ -11,7 +11,6 @@
 import { useEffect, useRef } from 'react';
 import { X, Filter } from 'lucide-react';
 import { SearchFilters, SearchFiltersRef } from '../SearchFilters';
-import { zIndex } from '@/lib/theme';
 import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface FilterDrawerProps {
@@ -84,7 +83,7 @@ export function FilterDrawer({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-300 md:hidden z-[${zIndex.backdrop}] ${
+        className={`fixed inset-0 bg-black transition-opacity duration-300 md:hidden z-[60] ${
           isOpen ? 'opacity-50' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
@@ -93,7 +92,7 @@ export function FilterDrawer({
 
       {/* Bottom Sheet Drawer */}
       <div
-        className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transform transition-transform duration-300 ease-out md:hidden z-[${zIndex.drawer}] ${
+        className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transform transition-transform duration-300 ease-out md:hidden z-[70] ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{ height: '85vh', maxHeight: '85vh' }}

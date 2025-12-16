@@ -26,7 +26,6 @@ import {
   MapPin,
 } from 'lucide-react';
 import { getUserDisplayName, getUserAvatarUrl } from '@/lib/auth-utils';
-import { zIndex } from '@/lib/theme';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -101,7 +100,7 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-300 md:hidden z-[${zIndex.backdrop}] ${
+        className={`fixed inset-0 bg-black transition-opacity duration-300 md:hidden z-[60] ${
           isOpen ? 'opacity-50' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
@@ -110,7 +109,7 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-in-out md:hidden z-[${zIndex.drawer}] ${
+        className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-in-out md:hidden z-[70] ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
