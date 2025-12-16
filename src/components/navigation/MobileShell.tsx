@@ -26,23 +26,12 @@ export function MobileShell({ session }: MobileShellProps) {
     return null;
   }
 
-  const handleMenuClick = () => {
-    console.log('🔵 Menu button clicked, setting menuOpen to true');
-    setMenuOpen(true);
-    console.log('🔵 menuOpen state updated');
-  };
-
-  console.log('🔵 MobileShell render, menuOpen:', menuOpen);
-
   return (
     <>
-      <BottomNav onMenuClick={handleMenuClick} />
+      <BottomNav onMenuClick={() => setMenuOpen(true)} />
       <MobileMenu 
         isOpen={menuOpen} 
-        onClose={() => {
-          console.log('🔵 Closing menu, setting menuOpen to false');
-          setMenuOpen(false);
-        }} 
+        onClose={() => setMenuOpen(false)} 
         session={session} 
       />
     </>
