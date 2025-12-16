@@ -22,6 +22,7 @@ interface AboutCollapsibleProps {
   about?: string | undefined;
   equipmentList?: string | null | undefined;
   studioTypes: string[];
+  showAddress?: boolean | null | undefined;
 }
 
 export function AboutCollapsible({
@@ -30,6 +31,7 @@ export function AboutCollapsible({
   about,
   equipmentList,
   studioTypes,
+  showAddress = true,
 }: AboutCollapsibleProps) {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false);
@@ -41,6 +43,9 @@ export function AboutCollapsible({
 
   const description = about ? cleanDescription(about) : '';
   const displayLocation = city || location || 'Location not specified';
+  
+  // Respect show_address privacy setting (show only if not explicitly false)
+  const shouldShowAddress = showAddress !== false;
 
   // Check if description is long enough to need expansion
   const descriptionLines = description.split('\n');
@@ -51,13 +56,15 @@ export function AboutCollapsible({
 
   return (
     <div className="md:hidden bg-white border-b border-gray-200">
-      {/* Location */}
-      <div className="px-4 pt-4 pb-2 border-b border-gray-100">
-        <div className="flex items-center space-x-2 text-gray-700">
-          <MapPin className="w-4 h-4 text-[#d42027] flex-shrink-0" aria-hidden="true" />
-          <span className="text-sm font-medium">{displayLocation}</span>
+      {/* Location - Only show if show_address is not false */}
+      {shouldShowAddress && location && (
+        <div className="px-4 pt-4 pb-2 border-b border-gray-100">
+          <div className="flex items-center space-x-2 text-gray-700">
+            <MapPin className="w-4 h-4 text-[#d42027] flex-shrink-0" aria-hidden="true" />
+            <span className="text-sm font-medium">{displayLocation}</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Studio Types */}
       {studioTypes.length > 0 && (
