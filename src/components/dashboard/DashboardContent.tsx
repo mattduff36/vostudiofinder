@@ -61,7 +61,7 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
   return (
     <div className="min-h-screen relative bg-gray-50">
       {/* Background Image - Fixed */}
-      <div className="fixed inset-0 z-0">
+      <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
           src="/background-images/21920-4.jpg"
           alt="Dashboard background texture"
