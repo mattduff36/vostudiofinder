@@ -5,8 +5,10 @@ import { MarkerClusterer, SuperClusterAlgorithm } from '@googlemaps/markercluste
 import { createRoot } from 'react-dom/client';
 import { StudioMarkerTooltip } from './StudioMarkerTooltip';
 import { MapLocation } from '@/lib/maps';
-import { colors } from '@/components/home/HomePage';
+import { theme } from '@/lib/theme';
 import { logger } from '@/lib/logger';
+
+const colors = theme.colors;
 
 interface GoogleMapProps {
   center: MapLocation;

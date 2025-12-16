@@ -1,16 +1,19 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { SearchFilters, SearchFiltersRef } from './SearchFilters';
+import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
 import { GoogleMap } from '@/components/maps/GoogleMap';
+import { FilterDrawer } from './mobile/FilterDrawer';
+import { MapCollapsible } from './mobile/MapCollapsible';
 import { abbreviateAddress } from '@/lib/utils/address';
 import Image from 'next/image';
 import { StudioMarkerModal } from '@/components/maps/StudioMarkerModal';
 import { logger } from '@/lib/logger';
 import { Footer } from '@/components/home/Footer';
 import { SelectedStudioDetails } from './SelectedStudioDetails';
+import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface Studio {
   id: string;
@@ -82,7 +85,6 @@ export function StudiosPage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [isFilteringByMapArea, setIsFilteringByMapArea] = useState(false);
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
-  const mobileFiltersRef = useRef<SearchFiltersRef>(null);
   
   // Studio marker modal state
   const [modalStudio, setModalStudio] = useState<{
@@ -728,74 +730,16 @@ export function StudiosPage() {
         </div>
       </div>
 
-      {/* Mobile Filter Modal */}
-      {showMobileFilters && (
-        <div className="fixed inset-0 z-[60] lg:hidden">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setShowMobileFilters(false)}
-          />
-          
-          {/* Modal Content - positioned below navbar */}
-          <div className="relative bg-white mt-20" style={{ height: 'calc(100vh - 5rem)' }}>
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
-              <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-              <button
-                onClick={() => setShowMobileFilters(false)}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors -mr-2"
-                aria-label="Close filters"
-              >
-                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="overflow-y-auto p-6" style={{ height: 'calc(100vh - 5rem - 64px - 88px)' }}>
-              <SearchFilters
-                ref={mobileFiltersRef}
-                initialFilters={mobileFiltersInitialState}
-                onSearch={(filters) => {
-                  handleSearch(filters);
-                  setShowMobileFilters(false);
-                }}
-                onFilterByMapArea={handleFilterByMapArea}
-                isFilteringByMapArea={isFilteringByMapArea}
-                visibleMarkerCount={visibleMarkerCount}
-              />
-            </div>
-
-            {/* Modal Footer */}
-            <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white p-4 shadow-lg">
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    router.push('/studios');
-                    setShowMobileFilters(false);
-                  }}
-                  className="flex-1 py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Clear All
-                </button>
-                <button
-                  onClick={() => {
-                    // Call applyFilters on the SearchFilters component to trigger search with current state
-                    mobileFiltersRef.current?.applyFilters();
-                    setShowMobileFilters(false);
-                  }}
-                  className="flex-1 py-3 px-4 rounded-lg font-medium text-white transition-colors"
-                  style={{ backgroundColor: '#d42027' }}
-                >
-                  Apply
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mobile Filter Drawer - Phase 2 */}
+      <FilterDrawer
+        isOpen={showMobileFilters}
+        onClose={() => setShowMobileFilters(false)}
+        initialFilters={mobileFiltersInitialState}
+        onSearch={handleSearch}
+        onFilterByMapArea={visibleMarkerCount <= 30 ? handleFilterByMapArea : undefined}
+        isFilteringByMapArea={isFilteringByMapArea}
+        visibleMarkerCount={visibleMarkerCount}
+      />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
@@ -885,25 +829,42 @@ export function StudiosPage() {
                   />
                 </div>
 
-                {/* Mobile: Conditional Map View */}
-                {mobileView === 'map' && (
-                  <div className="lg:hidden h-[400px] sm:h-[500px]">
-                    <GoogleMap
-                      key={`mobile-map-${searchResults.searchCoordinates ? `${searchResults.searchCoordinates.lat}-${searchResults.searchCoordinates.lng}` : 'global'}`}
-                      center={searchResults.searchCoordinates 
-                        ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
-                        : { lat: 20, lng: 0 }
-                      }
-                      zoom={searchResults.searchCoordinates ? 10 : 2}
-                      markers={memoizedMarkers}
-                      searchCenter={searchResults.searchCoordinates || null}
-                      searchRadius={parseInt(searchParams.get('radius') || '10')}
-                      selectedMarkerId={null}
-                      onBoundsChanged={handleBoundsChanged}
-                      height="100%"
-                      className="rounded-lg border border-gray-200"
-                    />
-                  </div>
+                {/* Mobile: Collapsible Map - Phase 2 */}
+                {isMobileFeatureEnabled(2) ? (
+                  <MapCollapsible
+                    markers={searchResults.mapMarkers || searchResults.studios}
+                    center={searchResults.searchCoordinates 
+                      ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
+                      : { lat: 20, lng: 0 }
+                    }
+                    zoom={searchResults.searchCoordinates ? 10 : 2}
+                    searchCenter={searchResults.searchCoordinates || null}
+                    searchRadius={parseInt(searchParams.get('radius') || '10')}
+                    onMarkerClick={handleMarkerClick}
+                    onBoundsChanged={handleBoundsChanged}
+                    selectedMarkerId={null}
+                  />
+                ) : (
+                  /* Fallback: Original mobile map view */
+                  mobileView === 'map' && (
+                    <div className="lg:hidden h-[400px] sm:h-[500px]">
+                      <GoogleMap
+                        key={`mobile-map-${searchResults.searchCoordinates ? `${searchResults.searchCoordinates.lat}-${searchResults.searchCoordinates.lng}` : 'global'}`}
+                        center={searchResults.searchCoordinates 
+                          ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
+                          : { lat: 20, lng: 0 }
+                        }
+                        zoom={searchResults.searchCoordinates ? 10 : 2}
+                        markers={memoizedMarkers}
+                        searchCenter={searchResults.searchCoordinates || null}
+                        searchRadius={parseInt(searchParams.get('radius') || '10')}
+                        selectedMarkerId={null}
+                        onBoundsChanged={handleBoundsChanged}
+                        height="100%"
+                        className="rounded-lg border border-gray-200"
+                      />
+                    </div>
+                  )
                 )}
 
                 {/* Active Filters Display - Below map, above cards */}

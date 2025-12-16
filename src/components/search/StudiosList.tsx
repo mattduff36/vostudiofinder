@@ -4,7 +4,9 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { MapPin, Star, Users } from 'lucide-react';
 import { cleanDescription } from '@/lib/utils/text';
-import { colors } from '@/components/home/HomePage';
+import { theme } from '@/lib/theme';
+
+const colors = theme.colors;
 
 interface Studio {
   id: string;
