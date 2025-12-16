@@ -15,7 +15,6 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Home, Search, LayoutDashboard, Menu } from 'lucide-react';
 import { Session } from 'next-auth';
-import { zIndex } from '@/lib/theme';
 
 interface BottomNavProps {
   session: Session | null;
@@ -48,7 +47,7 @@ export function BottomNav({ onMenuClick }: BottomNavProps) {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom md:hidden z-[${zIndex.bottomNav}]`}
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom md:hidden z-50"
       role="navigation"
       aria-label="Mobile navigation"
     >
