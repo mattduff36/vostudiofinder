@@ -4,14 +4,13 @@
  * Slides up from bottom (not full-screen), 75% viewport height.
  * Contains SearchFilters component with mobile-optimized layout.
  * 
- * Only visible on mobile (< 768px), feature-gated by Phase 2.
+ * Only visible on mobile (< 768px).
  */
 'use client';
 
 import { useEffect, useRef } from 'react';
 import { X, Filter } from 'lucide-react';
 import { SearchFilters, SearchFiltersRef } from '../SearchFilters';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface FilterDrawerProps {
   isOpen: boolean;
@@ -42,11 +41,6 @@ export function FilterDrawer({
   visibleMarkerCount,
 }: FilterDrawerProps) {
   const filtersRef = useRef<SearchFiltersRef>(null);
-
-  // Phase 2 feature gate
-  if (!isMobileFeatureEnabled(2)) {
-    return null;
-  }
 
   // Prevent body scroll when drawer is open
   useEffect(() => {

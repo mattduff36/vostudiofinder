@@ -5,7 +5,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface StudioImage {
   id: string;
@@ -276,7 +275,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
     );
   }
 
-  const isMobile = isMobileFeatureEnabled(4);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   return (
     <div className={isAdminMode ? "" : "bg-white rounded-lg border border-gray-200 shadow-sm"}>

@@ -10,7 +10,6 @@
 
 import { User, Image as ImageIcon, Settings, Eye, EyeOff } from 'lucide-react';
 import { Toggle } from '@/components/ui/Toggle';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 export type QuickAction = 'edit-profile' | 'images' | 'settings';
 
@@ -30,9 +29,6 @@ export function QuickActions({
   saving = false
 }: QuickActionsProps) {
   // Phase 4 feature gate
-  if (!isMobileFeatureEnabled(4)) {
-    return null;
-  }
 
   const actions = [
     {

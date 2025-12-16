@@ -10,7 +10,6 @@
 
 import { useState } from 'react';
 import { CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface ServicesListCompactProps {
   services: Array<{ service: string }>;
@@ -20,9 +19,6 @@ export function ServicesListCompact({ services }: ServicesListCompactProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Phase 3 feature gate
-  if (!isMobileFeatureEnabled(3)) {
-    return null;
-  }
 
   if (services.length === 0) {
     return null;

@@ -14,7 +14,6 @@
 import Image from 'next/image';
 import { MapPin, Star, BadgeCheck } from 'lucide-react';
 import { theme } from '@/lib/theme';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface Studio {
   id: string;
@@ -44,11 +43,6 @@ interface StudioCardCompactProps {
 }
 
 export function StudioCardCompact({ studio, onClick }: StudioCardCompactProps) {
-  // Phase 2 feature gate
-  if (!isMobileFeatureEnabled(2)) {
-    return null;
-  }
-
   const primaryImage = studio.studio_images[0]?.image_url || '/images/placeholder-studio.jpg';
   const studioTypes = studio.studio_studio_types
     .map((st) => st.studio_type)

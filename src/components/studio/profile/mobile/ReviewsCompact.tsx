@@ -11,7 +11,6 @@
 
 import { useState } from 'react';
 import { Star, ChevronDown, ChevronUp } from 'lucide-react';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface Review {
   id: string;
@@ -37,9 +36,6 @@ export function ReviewsCompact({
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Phase 3 feature gate
-  if (!isMobileFeatureEnabled(3)) {
-    return null;
-  }
 
   if (reviews.length === 0) {
     return (

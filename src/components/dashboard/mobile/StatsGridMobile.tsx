@@ -9,7 +9,6 @@
 'use client';
 
 import { Building2, MessageCircle, Users, Star } from 'lucide-react';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface StatsGridMobileProps {
   studiosOwned: number;
@@ -25,9 +24,6 @@ export function StatsGridMobile({
   unreadMessages,
 }: StatsGridMobileProps) {
   // Phase 4 feature gate
-  if (!isMobileFeatureEnabled(4)) {
-    return null;
-  }
 
   const stats = [
     {

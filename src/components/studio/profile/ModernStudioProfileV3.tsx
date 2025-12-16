@@ -15,7 +15,6 @@ import { CompactHero } from './mobile/CompactHero';
 import { ContactBar } from './mobile/ContactBar';
 import { AboutCollapsible } from './mobile/AboutCollapsible';
 import { ServicesListCompact } from './mobile/ServicesListCompact';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 // Force rebuild: Updated types for connection9-12 and custom_connection_methods
 import { 
@@ -294,8 +293,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Phase 3: Mobile Compact Hero (< 768px only) */}
-      {isMobileFeatureEnabled(3) && (
+      {/* Mobile Compact Hero (< 768px only) */}
       <CompactHero
         studioName={studio.name}
         ownerDisplayName={studio.owner.display_name}
@@ -306,11 +304,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
         abbreviatedAddress={studio.abbreviated_address}
         showAddress={profile?.show_address}
       />
-      )}
 
-      {/* Phase 3: Mobile Components (< 768px only) */}
-      {isMobileFeatureEnabled(3) && (
-        <>
+      {/* Mobile Components (< 768px only) */}
+      <>
           {/* Top Action Button - Same logic as desktop Studio Details section */}
           <div className="bg-white border-b border-gray-200 md:hidden px-4 py-3">
             {canContactViaEmail ? (
@@ -508,12 +504,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             </div>
           )}
         </>
-      )}
 
       {/* Main Content */}
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${
-        isMobileFeatureEnabled(3) ? 'hidden md:block' : ''
-      }`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden md:block">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Images & Main Content */}
           <div className="lg:col-span-2">
@@ -985,9 +978,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
         </div>
       )}
 
-      {/* Phase 3: Mobile Contact Bar (< 768px only) */}
-      {isMobileFeatureEnabled(3) && (
-        <ContactBar
+      {/* Mobile Contact Bar (< 768px only) */}
+      <ContactBar
           phone={studio.phone}
           email={studio.owner.email}
           websiteUrl={studio.website_url}
@@ -995,7 +987,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           showEmail={profile?.show_email !== false}
           onMessageClick={handleContactClick}
         />
-      )}
 
       {/* Footer - Desktop only */}
       <div className="hidden md:block">

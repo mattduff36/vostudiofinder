@@ -12,7 +12,6 @@ import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -747,8 +746,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       </div>
 
       {/* Mobile Accordion Sections */}
-      {isMobileFeatureEnabled(4) && (
-        <div className="md:hidden space-y-3 px-4 py-6">
+      <div className="md:hidden space-y-3 px-4 py-6">
           {sections.map((section) => {
             const Icon = section.icon;
             const isExpanded = expandedMobileSection === section.id;
@@ -793,7 +791,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             );
           })}
         </div>
-      )}
 
       {/* Desktop Content */}
       <div className="hidden md:block px-6 py-6 min-h-[400px]">
@@ -803,8 +800,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       </div>
 
       {/* Mobile Save Button - Sticky at bottom above nav */}
-      {isMobileFeatureEnabled(4) && (
-        <div className="md:hidden fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-40">
+      <div className="md:hidden fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-40">
           <Button
             onClick={handleSave}
             disabled={saving}
@@ -818,7 +814,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
-      )}
 
       {/* Desktop Footer Actions */}
       <div className="hidden md:flex border-t border-gray-200 px-6 py-4 bg-gray-50 items-center justify-between">

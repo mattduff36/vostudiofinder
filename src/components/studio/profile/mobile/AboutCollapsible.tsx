@@ -13,7 +13,6 @@
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Wrench } from 'lucide-react';
-import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 import { cleanDescription } from '@/lib/utils/text';
 
 interface AboutCollapsibleProps {
@@ -31,9 +30,6 @@ export function AboutCollapsible({
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false);
 
   // Phase 3 feature gate
-  if (!isMobileFeatureEnabled(3)) {
-    return null;
-  }
 
   const description = about ? cleanDescription(about) : '';
 
