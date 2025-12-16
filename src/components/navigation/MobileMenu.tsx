@@ -102,7 +102,10 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
         className={`fixed inset-0 bg-black transition-opacity duration-300 md:hidden z-[60] ${
           isOpen ? 'opacity-50' : 'opacity-0 pointer-events-none'
         }`}
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
         aria-hidden="true"
       />
 
