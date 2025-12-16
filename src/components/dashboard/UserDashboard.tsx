@@ -144,7 +144,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
       profileData.user?.username?.trim() &&
       profileData.user?.display_name?.trim() &&
       profileData.user?.email?.trim() &&
-      profileData.profile?.studio_name?.trim() &&
+      profileData.studio?.name?.trim() &&
       profileData.profile?.short_about?.trim() &&
       profileData.profile?.about?.trim() &&
       (profileData.studio?.studio_types?.length || 0) >= 1 &&
@@ -286,7 +286,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
                       short_about: profileData.profile?.short_about,
                       phone: profileData.profile?.phone,
                       location: profileData.profile?.location,
-                      studio_name: profileData.profile?.studio_name,
+                      studio_name: profileData.studio?.name,
                       facebook_url: profileData.profile?.facebook_url,
                       twitter_url: profileData.profile?.twitter_url,
                       linkedin_url: profileData.profile?.linkedin_url,
