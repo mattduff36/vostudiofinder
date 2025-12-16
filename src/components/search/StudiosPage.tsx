@@ -829,21 +829,24 @@ export function StudiosPage() {
                   />
                 </div>
 
-                {/* Mobile: Collapsible Map - Phase 2 */}
+                {/* Mobile: Map - Phase 2 - Only show on Map View tab */}
                 {isMobileFeatureEnabled(2) ? (
-                  <MapCollapsible
-                    markers={searchResults.mapMarkers || searchResults.studios}
-                    center={searchResults.searchCoordinates 
-                      ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
-                      : { lat: 20, lng: 0 }
-                    }
-                    zoom={searchResults.searchCoordinates ? 10 : 2}
-                    searchCenter={searchResults.searchCoordinates || null}
-                    searchRadius={parseInt(searchParams.get('radius') || '10')}
-                    onMarkerClick={handleMarkerClick}
-                    onBoundsChanged={handleBoundsChanged}
-                    selectedMarkerId={null}
-                  />
+                  mobileView === 'map' && (
+                    <MapCollapsible
+                      markers={searchResults.mapMarkers || searchResults.studios}
+                      center={searchResults.searchCoordinates 
+                        ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
+                        : { lat: 20, lng: 0 }
+                      }
+                      zoom={searchResults.searchCoordinates ? 10 : 2}
+                      searchCenter={searchResults.searchCoordinates || null}
+                      searchRadius={parseInt(searchParams.get('radius') || '10')}
+                      onMarkerClick={handleMarkerClick}
+                      onBoundsChanged={handleBoundsChanged}
+                      selectedMarkerId={null}
+                      initiallyExpanded={true}
+                    />
+                  )
                 ) : (
                   /* Fallback: Original mobile map view */
                   mobileView === 'map' && (
