@@ -102,7 +102,10 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
           {activeTab === 'overview' ? (
             // Overview: Show only quick actions (stats removed per user request)
             <>
-              <QuickActions onActionClick={handleQuickAction} />
+              <QuickActions 
+                onActionClick={handleQuickAction}
+                displayName={dashboardData?.user?.display_name || dashboardData?.user?.username || ''}
+              />
             </>
           ) : (
             // Sub-pages: Show back button
