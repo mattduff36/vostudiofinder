@@ -18,10 +18,9 @@ import {
 
 interface NetworkUser extends User {
   profile?: UserProfile | null;
-  studios?: any[];
+  studio_profiles?: any | null;
   _count?: {
     connections: number;
-    studios: number;
   };
 }
 

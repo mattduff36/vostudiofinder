@@ -20,8 +20,8 @@ export default async function DashboardPage() {
     userConnections,
   ] = await Promise.all([
     // User's studios (if they're a studio owner)
-    db.studios.findMany({
-      where: { owner_id: session.user.id },
+    db.studio_profiles.findMany({
+      where: { user_id: session.user.id },
       include: {
         studio_services: true,
         studio_images: {
@@ -44,7 +44,7 @@ export default async function DashboardPage() {
     db.reviews.findMany({
       where: { reviewer_id: session.user.id },
       include: {
-        studios: {
+        studio_profiles: {
           select: {
             id: true,
             name: true,
@@ -146,7 +146,7 @@ export default async function DashboardPage() {
       rating: review.rating,
       content: review.content || '',
       created_at: review.created_at,
-      studio: review.studios,
+      studio: review.studio_profiles,
     })),
     messages: userMessages.map(message => ({
       id: message.id,

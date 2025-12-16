@@ -33,10 +33,10 @@ export async function PUT(
 
     const existingImage = await db.studio_images.findUnique({
       where: { id: imageId },
-      include: { studios: { select: { id: true } } },
+      include: { studio_profiles: { select: { id: true } } },
     });
 
-    if (!existingImage || existingImage.studios.id !== studioId) {
+    if (!existingImage || existingImage.studio_profiles.id !== studioId) {
       return NextResponse.json({ success: false, error: 'Image not found' }, { status: 404 });
     }
 
@@ -78,17 +78,17 @@ export async function DELETE(
 
     const existingImage = await db.studio_images.findUnique({
       where: { id: imageId },
-      include: { studios: { select: { id: true } } },
+      include: { studio_profiles: { select: { id: true } } },
     });
 
-    if (!existingImage || existingImage.studios.id !== studioId) {
+    if (!existingImage || existingImage.studio_profiles.id !== studioId) {
       return NextResponse.json({ success: false, error: 'Image not found' }, { status: 404 });
     }
 
     // Delete from Cloudinary
     const publicId = existingImage.image_url.split('/').pop()?.split('.')[0];
     if (publicId) {
-      await cloudinary.uploader.destroy(`vosf/studios/${existingImage.studios.id}/${publicId}`);
+      await cloudinary.uploader.destroy(`vosf/studios/${existingImage.studio_profiles.id}/${publicId}`);
     }
 
     // Delete from database

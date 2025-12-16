@@ -26,12 +26,11 @@ export async function GET() {
       // Studio metrics
       activeStudios,
       verifiedStudios,
-      studiosWithProfiles,
+      totalStudioProfiles,
       studiosByStatus,
       
       // User metrics
       usersByRole,
-      usersWithProfiles,
       
       // Review metrics
       reviewStats,
@@ -60,7 +59,7 @@ export async function GET() {
       // Studio metrics
       db.studio_profiles.count({ where: { status: 'ACTIVE' } }),
       db.studio_profiles.count({ where: { is_verified: true } }),
-      db.studio_profiles.count({ where: { users: { user_profiles: { isNot: null } } } }),
+      db.studio_profiles.count(), // All studio profiles have users
       db.studio_profiles.groupBy({
         by: ['status'],
         _count: { status: true }
@@ -71,7 +70,6 @@ export async function GET() {
         by: ['role'],
         _count: { role: true }
       }),
-      db.user_profiles.count(),
       
       // Review metrics
       db.reviews.aggregate({
@@ -107,7 +105,7 @@ export async function GET() {
       }),
       
       // Profile data for connection analysis
-      db.user_profiles.findMany({
+      db.studio_profiles.findMany({
         select: {
           connection1: true,
           connection2: true,
@@ -280,8 +278,7 @@ export async function GET() {
         total_contacts: totalContacts,
         active_studios: activeStudios,
         verified_studios: verifiedStudios,
-        studios_with_profiles: studiosWithProfiles,
-        users_with_profiles: usersWithProfiles,
+        studios_with_profiles: totalStudioProfiles,
         accepted_contacts: acceptedContacts,
         avg_rating: reviewStats._avg.rating || 0,
         first_user_date: firstUser?.created_at?.toISOString() || null,

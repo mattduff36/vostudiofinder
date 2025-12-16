@@ -5,7 +5,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://voiceoverstudiofinder.com';
 
   // Get all active studios with their usernames
-  const studios = await db.studios.findMany({
+  const studios = await db.studio_profiles.findMany({
     where: { 
       status: 'ACTIVE',
       is_profile_visible: true,

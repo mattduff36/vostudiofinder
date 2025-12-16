@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
             },
           },
           // Address contains search terms
-          { address: { contains: validatedParams.query, mode: 'insensitive' } },
+          { full_address: { contains: validatedParams.query, mode: 'insensitive' } },
         ],
       });
     }
@@ -181,15 +181,15 @@ export async function GET(request: NextRequest) {
             } else {
               logger.warn(`Failed to geocode location: ${validatedParams.location}`);
               // Fall back to text-based address search
-              (where.AND as Prisma.studiosWhereInput[]).push({
-                address: { contains: validatedParams.location, mode: 'insensitive' },
+              (where.AND as Prisma.studio_profilesWhereInput[]).push({
+                full_address: { contains: validatedParams.location, mode: 'insensitive' },
               });
             }
           } catch (error) {
             console.error('Geocoding error:', error);
             // Fall back to text-based address search
-            (where.AND as Prisma.studiosWhereInput[]).push({
-              address: { contains: validatedParams.location, mode: 'insensitive' },
+            (where.AND as Prisma.studio_profilesWhereInput[]).push({
+              full_address: { contains: validatedParams.location, mode: 'insensitive' },
             });
           }
         }
@@ -199,8 +199,8 @@ export async function GET(request: NextRequest) {
         // Note: For better performance with large datasets, consider using PostGIS or similar
       } else {
         // Standard address search without radius
-        (where.AND as Prisma.studiosWhereInput[]).push({
-          address: { contains: validatedParams.location, mode: 'insensitive' },
+        (where.AND as Prisma.studio_profilesWhereInput[]).push({
+          full_address: { contains: validatedParams.location, mode: 'insensitive' },
         });
       }
     }
@@ -230,7 +230,7 @@ export async function GET(request: NextRequest) {
         .filter(type => type); // Remove any undefined values
 
       if (mappedTypes.length > 0) {
-        (where.AND as Prisma.studiosWhereInput[]).push({
+        (where.AND as Prisma.studio_profilesWhereInput[]).push({
           studio_studio_types: {
             some: {
               studio_type: {
@@ -266,7 +266,7 @@ export async function GET(request: NextRequest) {
         .filter(service => service); // Remove any undefined values
 
       if (mappedServices.length > 0) {
-        (where.AND as Prisma.studiosWhereInput[]).push({
+        (where.AND as Prisma.studio_profilesWhereInput[]).push({
           studio_services: {
             some: {
               service: {
@@ -287,13 +287,13 @@ export async function GET(request: NextRequest) {
         ],
       }));
 
-      (where.AND as Prisma.studiosWhereInput[]).push({
+      (where.AND as Prisma.studio_profilesWhereInput[]).push({
         OR: equipmentConditions,
       });
     }
 
     // Build order by clause
-    const orderBy: Prisma.studiosOrderByWithRelationInput[] = [];
+    const orderBy: Prisma.studio_profilesOrderByWithRelationInput[] = [];
     
     // Always prioritize premium studios
     orderBy.push({ is_premium: 'desc' });

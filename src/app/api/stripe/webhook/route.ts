@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
             });
             
             // Update studio to premium
-            await tx.studios.update({
+            await tx.studio_profiles.update({
               where: { id: studioId },
               data: { is_premium: true },
             });
@@ -114,12 +114,12 @@ export async function POST(request: NextRequest) {
           // Remove premium status from studio
           const sub = await tx.subscriptions.findUnique({
             where: { stripe_subscription_id: subscription.id },
-            include: { users: { include: { studios: true } } },
+            include: { users: { include: { studio_profiles: true } } },
           });
           
           if (sub) {
-            await tx.studios.updateMany({
-              where: { owner_id: sub.user_id },
+            await tx.studio_profiles.updateMany({
+              where: { user_id: sub.user_id },
               data: { is_premium: false },
             });
           }

@@ -82,21 +82,21 @@ export async function GET(request: NextRequest) {
         where: {
           AND: [
             { status: 'ACTIVE' },
-            { address: { contains: searchTerm, mode: 'insensitive' } },
+            { full_address: { contains: searchTerm, mode: 'insensitive' } },
           ],
         },
         select: {
-          address: true,
+          full_address: true,
           latitude: true,
           longitude: true,
         },
-        distinct: ['address'],
+        distinct: ['full_address'],
         take: 8,
       });
 
       suggestions.push(...locations.map((location, index) => ({
         id: `location-${index}`,
-        text: location.address,
+        text: location.full_address,
         type: 'location' as const,
         metadata: {
           coordinates: location.latitude && location.longitude ? {
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           name: true,
-          address: true,
+          full_address: true,
         },
         take: 8,
       });
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
         type: 'studio' as const,
         metadata: {
           studio_id: studio.id,
-          address: studio.address
+          full_address: studio.full_address
         }
       })));
     } else if (searchType === 'service' || searchType === 'equipment') {
@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            address: true,
+            full_address: true,
           },
           take: 3,
         }),
@@ -175,15 +175,15 @@ export async function GET(request: NextRequest) {
           where: {
             AND: [
               { status: 'ACTIVE' },
-              { address: { contains: searchTerm, mode: 'insensitive' } },
+              { full_address: { contains: searchTerm, mode: 'insensitive' } },
             ],
           },
           select: {
-            address: true,
+            full_address: true,
             latitude: true,
             longitude: true,
           },
-          distinct: ['address'],
+          distinct: ['full_address'],
           take: 3,
         }),
         Promise.resolve(['ISDN', 'SOURCE_CONNECT', 'SOURCE_CONNECT_NOW', 'CLEANFEED', 'SESSION_LINK_PRO', 'ZOOM', 'SKYPE', 'TEAMS']
@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
           type: 'studio' as const,
           metadata: {
             studio_id: studio.id,
-            address: studio.address
+            full_address: studio.full_address
           }
         })),
         ...locations.map((location, index) => {
@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
 
           return {
             id: `location-${index}`,
-            text: location.address,
+            text: location.full_address,
             type: 'location' as const,
             distance,
             metadata: {

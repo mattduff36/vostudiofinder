@@ -38,14 +38,10 @@ export default async function Home() {
   
   // Fetch featured studios for the homepage (available to all users)
   // Only show studios where user_profiles.is_featured === true, limited to 6
-  const featuredStudiosRaw = await db.studios.findMany({
+  const featuredStudiosRaw = await db.studio_profiles.findMany({
     where: {
       status: 'ACTIVE',
-      users: {
-        user_profiles: {
-          is_featured: true,
-        },
-      },
+      is_featured: true,
     },
     include: {
       users: {
@@ -53,13 +49,6 @@ export default async function Home() {
           display_name: true,
           username: true,
           avatar_url: true,
-          user_profiles: {
-            select: {
-              short_about: true,
-              location: true,
-              is_featured: true,
-            },
-          },
         },
       },
       studio_services: true,
@@ -99,10 +88,10 @@ export default async function Home() {
 
   // Get total counts for stats
   const [totalStudios, totalUsers, uniqueCountries] = await Promise.all([
-    db.studios.count({ where: { status: 'ACTIVE' } }),
+    db.studio_profiles.count({ where: { status: 'ACTIVE' } }),
     db.users.count(),
     // Count unique countries from user_profiles.location
-    db.user_profiles.findMany({
+    db.studio_profiles.findMany({
       select: { location: true },
       where: { location: { not: null } }
     }).then(profiles => {
@@ -118,7 +107,7 @@ export default async function Home() {
   // Convert Decimal fields to numbers and map short_about to description for client components
   const serializedStudios = featuredStudios.map(studio => ({
     ...studio,
-    description: studio.users?.user_profiles?.short_about || '', // Use short_about as description
+    description: studio.short_about || '', // Use short_about as description
     latitude: studio.latitude ? Number(studio.latitude) : null,
     longitude: studio.longitude ? Number(studio.longitude) : null,
     owner: studio.users ? { 
@@ -126,9 +115,9 @@ export default async function Home() {
       display_name: studio.users.display_name,
       avatar_url: studio.users.avatar_url,
     } : undefined, // Map users to owner for component with avatar
-    location: studio.users?.user_profiles?.location || '', // Keep location for backward compatibility
+    location: studio.location || '', // Keep location for backward compatibility
     city: studio.city || '', // Add city field for display
-    address: studio.address || '', // Ensure address is available
+    address: studio.full_address || '', // Ensure address is available
     // Pass studio_images directly with snake_case
     studio_images: studio.studio_images?.map(img => ({
       image_url: img.image_url,

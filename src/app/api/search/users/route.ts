@@ -30,23 +30,16 @@ export async function GET(request: NextRequest) {
         ]
       },
       include: {
-        user_profiles: {
+        studio_profiles: {
           select: {
             location: true,
-            studio_name: true,
-            last_name: true
-          }
-        },
-        studios: {
-          select: {
-            address: true,
+            name: true,
+            last_name: true,
+            full_address: true,
             latitude: true,
-            longitude: true
-          },
-          where: {
-            status: 'ACTIVE'
-          },
-          take: 1
+            longitude: true,
+            status: true
+          }
         }
       },
       take: 10
@@ -55,12 +48,12 @@ export async function GET(request: NextRequest) {
     // Format users for suggestions
     const formattedUsers = users.map(user => {
       // Prioritize studio address over profile location
-      const fullLocation = user.studios?.[0]?.address || user.user_profiles?.location || null;
+      const fullLocation = user.studio_profiles?.full_address || user.studio_profiles?.location || null;
       const abbreviatedLocation = fullLocation ? abbreviateAddress(fullLocation) : null;
-      const coordinates = user.studios?.[0]?.latitude && user.studios?.[0]?.longitude
+      const coordinates = user.studio_profiles?.latitude && user.studio_profiles?.longitude
         ? { 
-            lat: user.studios[0].latitude.toNumber(), 
-            lng: user.studios[0].longitude.toNumber() 
+            lat: user.studio_profiles.latitude.toNumber(), 
+            lng: user.studio_profiles.longitude.toNumber() 
           }
         : null;
 
