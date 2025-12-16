@@ -1,76 +1,71 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Dependencies
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Next.js
+.next/
+out/
+dist/
+build/
 
-# vercel
-.vercel
+# Production
+.vercel/
+.turbo/
 
-# typescript
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+
+# Testing
+coverage/
+.nyc_output/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+*.pem
+.vscode/
+.idea/
+
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-/src/generated/prisma
-
-# migration scripts
-/scripts/migration/
-/backups/
-/src/lib/migration/
-
-# Test artifacts
-/playwright-report/
-/test-results/
-*.tsbuildinfo
-
-# Migration artifacts (historical)
-/migration-scripts/
-
-# Temporary files and logs
-/temp/
-temp/
+# Logs
+logs/
 *.log
-console-log.txt
 
-# Documentation (internal use only)
-/docs/
+# Backups & Archives
+backups/
+*.dump
+*.backup
 
-# Session summaries and development notes
-*_SUMMARY.md
-*_SESSION_*.md
-CURRENT_SESSION_*.md
-NEXT_SESSION_*.md
+# Project Archive
+project-archive/
 
-# Build artifacts and logs
-build-*.txt
-error-log.txt
-geocode-*.log
+# Temporary files
+*.tmp
+*.temp
+assets/
+dev.log
+
+# Prisma
+prisma/*.backup
+
+# Sentry
+.sentryclirc
+
+# Documentation (keep in repo but ignore build artifacts)
+docs/**/*.tsbuildinfo
+
