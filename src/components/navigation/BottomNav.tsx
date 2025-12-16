@@ -1,10 +1,11 @@
 /**
  * BottomNav - Mobile Bottom Navigation Bar
  * 
- * Fixed bottom navigation with 4 primary actions:
+ * Fixed bottom navigation with primary actions:
  * - Home
  * - Studios
- * - Dashboard/Login (conditional)
+ * - Profile (when logged in)
+ * - Dashboard (when logged in) / List Studio (when not logged in)
  * - Menu
  * 
  * Only visible on mobile (< 768px), hidden on desktop.
@@ -13,7 +14,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Home, Search, LayoutDashboard, Menu, UserPlus } from 'lucide-react';
+import { Home, Search, LayoutDashboard, Menu, UserPlus, User } from 'lucide-react';
 import { Session } from 'next-auth';
 
 interface BottomNavProps {
@@ -24,6 +25,7 @@ interface BottomNavProps {
 export function BottomNav({ onMenuClick, session }: BottomNavProps) {
   const pathname = usePathname();
 
+  // Build navigation items based on auth state
   const navItems = [
     {
       label: 'Home',
@@ -37,7 +39,21 @@ export function BottomNav({ onMenuClick, session }: BottomNavProps) {
       href: '/studios',
       active: pathname === '/studios',
     },
-    // Dashboard or List Studio - conditional
+  ];
+
+  // Add Profile link if logged in
+  if (session) {
+    const username = session.user.username;
+    navItems.push({
+      label: 'Profile',
+      icon: User,
+      href: `/${username}`,
+      active: pathname === `/${username}`,
+    });
+  }
+
+  // Add Dashboard (logged in) or List Studio (not logged in)
+  navItems.push(
     session ? {
       label: 'Dashboard',
       icon: LayoutDashboard,
@@ -48,8 +64,8 @@ export function BottomNav({ onMenuClick, session }: BottomNavProps) {
       icon: UserPlus,
       href: '/auth/signup',
       active: pathname === '/auth/signup',
-    },
-  ];
+    }
+  );
 
   return (
     <nav

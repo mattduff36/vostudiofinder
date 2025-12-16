@@ -8,7 +8,7 @@
  */
 'use client';
 
-import { User, Image as ImageIcon, Settings, ChevronDown } from 'lucide-react';
+import { User, Image as ImageIcon, Settings } from 'lucide-react';
 import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 export type QuickAction = 'edit-profile' | 'images' | 'settings';
@@ -69,22 +69,19 @@ export function QuickActions({ onActionClick, displayName }: QuickActionsProps) 
             {/* Action Button */}
             <button
               onClick={() => onActionClick(action.id)}
-              className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors active:bg-gray-100"
+              className="w-full flex items-center space-x-3 p-4 text-left hover:bg-gray-50 transition-colors active:bg-gray-100"
             >
-              <div className="flex items-center space-x-3 flex-1">
-                <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-[#d42027]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-base">
-                    {action.label}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5 truncate">
-                    {action.description}
-                  </p>
-                </div>
+              <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                <Icon className="w-5 h-5 text-[#d42027]" />
               </div>
-              <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-gray-900 text-base">
+                  {action.label}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5 truncate">
+                  {action.description}
+                </p>
+              </div>
             </button>
           </div>
         );
