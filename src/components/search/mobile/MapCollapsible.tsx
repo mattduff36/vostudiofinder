@@ -81,8 +81,8 @@ export function MapCollapsible({
     <div 
       className="md:hidden bg-white border-y border-gray-200"
       style={{
-        height: 'calc(100vh - 312px)', // Full height minus header (180px) + filters (67px) + bottom nav (65px)
-        minHeight: '400px' // Minimum height for usability
+        height: 'calc(100vh - 376px)', // Full height minus header (180px) + filters (67px) + bottom nav (65px) + buffer (64px)
+        minHeight: '350px' // Minimum height for usability
       }}
     >
       {/* Full-Screen Map View */}
