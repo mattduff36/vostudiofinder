@@ -19,19 +19,30 @@ interface MobileShellProps {
 }
 
 export function MobileShell({ session }: MobileShellProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   // Phase 1 feature gate
   if (!isMobileFeatureEnabled(1)) {
     return null;
   }
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  const handleMenuClick = () => {
+    console.log('🔵 Menu button clicked, setting menuOpen to true');
+    setMenuOpen(true);
+    console.log('🔵 menuOpen state updated');
+  };
+
+  console.log('🔵 MobileShell render, menuOpen:', menuOpen);
 
   return (
     <>
-      <BottomNav onMenuClick={() => setMenuOpen(true)} />
+      <BottomNav onMenuClick={handleMenuClick} />
       <MobileMenu 
         isOpen={menuOpen} 
-        onClose={() => setMenuOpen(false)} 
+        onClose={() => {
+          console.log('🔵 Closing menu, setting menuOpen to false');
+          setMenuOpen(false);
+        }} 
         session={session} 
       />
     </>
