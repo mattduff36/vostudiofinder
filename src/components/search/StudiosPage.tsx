@@ -397,6 +397,17 @@ export function StudiosPage() {
 
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
 
+  // Control body overflow when on mobile map view to prevent scrollbar
+  useEffect(() => {
+    if (isMobileFeatureEnabled(2) && mobileView === 'map' && window.innerWidth < 768) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+    return undefined;
+  }, [mobileView]);
+
   // Search function - for initial load or filter changes
   const performSearch = async (params: URLSearchParams, resetOffset: boolean = true) => {
     setLoading(true);
