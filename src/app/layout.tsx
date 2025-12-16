@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Raleway } from 'next/font/google';
 import { getServerSession } from 'next-auth';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { Navbar } from '@/components/navigation/Navbar';
+import { MobileShell } from '@/components/navigation/MobileShell';
 import { authOptions } from '@/lib/auth';
 import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script';
@@ -94,9 +95,10 @@ export default async function RootLayout({
       >
         <SessionProvider session={session}>
           <Navbar session={session} />
-          <main className="pt-20">
+          <main className="pt-20 pb-16 md:pb-0">
             {children}
           </main>
+          <MobileShell session={session} />
         </SessionProvider>
         <Analytics />
       </body>
