@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Save, Eye, Loader2 } from 'lucide-react';
+import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -12,6 +12,7 @@ import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
+import { isMobileFeatureEnabled } from '@/lib/feature-flags';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -219,73 +220,31 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     );
   }
 
+  const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
+
   const sections = [
-    { id: 'basic', label: 'Basic Info' },
-    { id: 'contact', label: 'Contact & Location' },
-    { id: 'rates', label: 'Rates & Pricing' },
-    { id: 'social', label: 'Social Media' },
-    { id: 'connections', label: 'Connections' },
-    { id: 'privacy', label: 'Privacy Settings' },
+    { id: 'basic', label: 'Basic Info', icon: User, description: 'Display name, username, studio info' },
+    { id: 'contact', label: 'Contact & Location', icon: MapPin, description: 'Phone, email, address details' },
+    { id: 'rates', label: 'Rates & Pricing', icon: DollarSign, description: 'Pricing and rate tiers' },
+    { id: 'social', label: 'Social Media', icon: Share2, description: 'Social media profiles' },
+    { id: 'connections', label: 'Connections', icon: Wifi, description: 'Remote session connections' },
+    { id: 'privacy', label: 'Privacy Settings', icon: Eye, description: 'Visibility preferences' },
   ];
 
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-      {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        {/* Avatar */}
-        <AvatarUpload
-          currentAvatar={profile.user.avatar_url}
-          onAvatarChange={(url) => updateUser('avatar_url', url)}
-          size="medium"
-          editable={true}
-          userName={profile.user.display_name || profile.user.username}
-          variant="user"
-        />
-        
-        {/* Title and description */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Update your studio information and settings
-          </p>
-        </div>
-      </div>
+  const handleMobileSectionClick = (sectionId: string) => {
+    if (expandedMobileSection === sectionId) {
+      setExpandedMobileSection(null);
+    } else {
+      setExpandedMobileSection(sectionId);
+      setActiveSection(sectionId);
+    }
+  };
 
-      {/* Messages */}
-      {error && (
-        <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="mx-6 mt-4 bg-green-50 border border-green-200 rounded-lg p-4 text-green-700">
-          {success}
-        </div>
-      )}
-
-      {/* Section Navigation */}
-      <div className="border-b border-gray-200 px-6">
-        <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => setActiveSection(section.id)}
-              className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
-                activeSection === section.id
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {section.label}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Content */}
-      <div className="px-6 py-6 min-h-[400px] flex justify-center">
-        <div className="w-full max-w-5xl">
-        {activeSection === 'basic' && (
+  // Render content for a specific section
+  const renderSectionContent = (sectionId: string) => {
+    switch (sectionId) {
+      case 'basic':
+        return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
@@ -405,9 +364,10 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
             </div>
           </div>
-        )}
+        );
 
-        {activeSection === 'contact' && (
+      case 'contact':
+        return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
@@ -433,9 +393,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               value={profile.studio?.full_address || ''}
               onChange={(value) => {
                 updateStudio('full_address', value);
-                // Always auto-populate abbreviated address when full address changes
                 updateStudio('abbreviated_address', value);
-                // Auto-populate city from full address
                 updateStudio('city', extractCity(value));
               }}
               placeholder="Start typing your full address..."
@@ -468,49 +426,10 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               helperText="Your primary country of operation"
             />
           </div>
-        )}
+        );
 
-        {activeSection === 'privacy' && (
-          <div className="space-y-6">
-            <div>
-              <p className="text-sm text-gray-600 mb-4">
-                Control what information is visible on your public profile
-              </p>
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h3 className="font-medium text-gray-900 mb-3">Visibility Settings</h3>
-              <div className="space-y-3">
-                <Toggle
-                  label="Show Email"
-                  description="Display email on public profile"
-                  checked={profile.profile.show_email || false}
-                  onChange={(checked) => updateProfile('show_email', checked)}
-                />
-                <Toggle
-                  label="Show Phone"
-                  description="Display phone number on public profile"
-                  checked={profile.profile.show_phone || false}
-                  onChange={(checked) => updateProfile('show_phone', checked)}
-                />
-                <Toggle
-                  label="Show Address"
-                  description="Display full address on public profile"
-                  checked={profile.profile.show_address || false}
-                  onChange={(checked) => updateProfile('show_address', checked)}
-                />
-                <Toggle
-                  label="Show Directions"
-                  description="Display directions link on public profile"
-                  checked={profile.profile.show_directions !== false}
-                  onChange={(checked) => updateProfile('show_directions', checked)}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeSection === 'rates' && (
+      case 'rates':
+        return (
           <div className="space-y-6">
             <div>
               <p className="text-sm text-gray-600 mb-4">
@@ -572,9 +491,10 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               placeholder="e.g., Voice recording, audio editing, mixing, mastering..."
             />
           </div>
-        )}
+        );
 
-        {activeSection === 'social' && (
+      case 'social':
+        return (
           <div className="space-y-4">
             <p className="text-sm text-gray-600 mb-4">
               Add links to your social media profiles
@@ -644,9 +564,10 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               helperText="Your SoundCloud profile"
             />
           </div>
-        )}
+        );
 
-        {activeSection === 'connections' && (
+      case 'connections':
+        return (
           <div className="space-y-6">
             <div>
               <p className="text-sm text-gray-600 mb-4">
@@ -680,7 +601,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Custom Connection 1 */}
                 <div>
                   <Input
                     label="Custom Method 1"
@@ -690,7 +610,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                         ? [...profile.profile.custom_connection_methods] 
                         : [];
                       methods[0] = e.target.value;
-                      // Filter out empty strings but keep the structure
                       const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
                       updateProfile('custom_connection_methods', filtered.length > 0 && filtered.some(m => m) ? filtered : []);
                     }}
@@ -703,7 +622,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   </div>
                 </div>
 
-                {/* Custom Connection 2 */}
                 <div>
                   <Input
                     label="Custom Method 2"
@@ -713,7 +631,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                         ? [...profile.profile.custom_connection_methods] 
                         : [];
                       methods[1] = e.target.value;
-                      // Filter out empty strings but keep the structure
                       const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
                       updateProfile('custom_connection_methods', filtered.length > 0 && filtered.some(m => m) ? filtered : []);
                     }}
@@ -728,12 +645,184 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
             </div>
           </div>
-        )}
+        );
+
+      case 'privacy':
+        return (
+          <div className="space-y-6">
+            <div>
+              <p className="text-sm text-gray-600 mb-4">
+                Control what information is visible on your public profile
+              </p>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 mb-3">Visibility Settings</h3>
+              <div className="space-y-3">
+                <Toggle
+                  label="Show Email"
+                  description="Display email on public profile"
+                  checked={profile.profile.show_email || false}
+                  onChange={(checked) => updateProfile('show_email', checked)}
+                />
+                <Toggle
+                  label="Show Phone"
+                  description="Display phone number on public profile"
+                  checked={profile.profile.show_phone || false}
+                  onChange={(checked) => updateProfile('show_phone', checked)}
+                />
+                <Toggle
+                  label="Show Address"
+                  description="Display full address on public profile"
+                  checked={profile.profile.show_address || false}
+                  onChange={(checked) => updateProfile('show_address', checked)}
+                />
+                <Toggle
+                  label="Show Directions"
+                  description="Display directions link on public profile"
+                  checked={profile.profile.show_directions !== false}
+                  onChange={(checked) => updateProfile('show_directions', checked)}
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm md:block">
+      {/* Desktop Header */}
+      <div className="hidden md:flex border-b border-gray-200 px-6 py-4 items-center gap-4">
+        {/* Avatar */}
+        <AvatarUpload
+          currentAvatar={profile.user.avatar_url}
+          onAvatarChange={(url) => updateUser('avatar_url', url)}
+          size="medium"
+          editable={true}
+          userName={profile.user.display_name || profile.user.username}
+          variant="user"
+        />
+        
+        {/* Title and description */}
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Update your studio information and settings
+          </p>
         </div>
       </div>
 
-      {/* Footer Actions */}
-      <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
+      {/* Messages */}
+      {error && (
+        <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="mx-6 mt-4 bg-green-50 border border-green-200 rounded-lg p-4 text-green-700">
+          {success}
+        </div>
+      )}
+
+      {/* Desktop Section Navigation */}
+      <div className="hidden md:block border-b border-gray-200 px-6">
+        <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => setActiveSection(section.id)}
+              className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                activeSection === section.id
+                  ? 'border-red-500 text-red-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              {section.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Mobile Accordion Sections */}
+      {isMobileFeatureEnabled(4) && (
+        <div className="md:hidden space-y-3 px-4 py-6">
+          {sections.map((section) => {
+            const Icon = section.icon;
+            const isExpanded = expandedMobileSection === section.id;
+
+            return (
+              <div
+                key={section.id}
+                className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm"
+              >
+                {/* Section Header */}
+                <button
+                  onClick={() => handleMobileSectionClick(section.id)}
+                  className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors active:bg-gray-100"
+                >
+                  <div className="flex items-center space-x-3 flex-1">
+                    <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-[#d42027]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 text-base">
+                        {section.label}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">
+                        {section.description}
+                      </p>
+                    </div>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+                  )}
+                </button>
+
+                {/* Section Content */}
+                {isExpanded && (
+                  <div className="border-t border-gray-100 p-4 bg-gray-50">
+                    <div className="space-y-4">{renderSectionContent(section.id)}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Desktop Content */}
+      <div className="hidden md:block px-6 py-6 min-h-[400px]">
+        <div className="w-full max-w-5xl mx-auto">
+        {renderSectionContent(activeSection)}
+        </div>
+      </div>
+
+      {/* Mobile Save Button - Sticky at bottom above nav */}
+      {isMobileFeatureEnabled(4) && (
+        <div className="md:hidden fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-40">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full flex items-center justify-center gap-2"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      )}
+
+      {/* Desktop Footer Actions */}
+      <div className="hidden md:flex border-t border-gray-200 px-6 py-4 bg-gray-50 items-center justify-between">
         <Button
           onClick={handlePreview}
           variant="secondary"
