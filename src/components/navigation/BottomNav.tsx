@@ -22,7 +22,7 @@ interface BottomNavProps {
   onMenuClick: () => void;
 }
 
-export function BottomNav({ session, onMenuClick }: BottomNavProps) {
+export function BottomNav({ onMenuClick }: BottomNavProps) {
   const pathname = usePathname();
 
   const navItems = [
