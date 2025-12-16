@@ -107,6 +107,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [activeSection, setActiveSection] = useState('basic');
+  const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -219,8 +220,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       </div>
     );
   }
-
-  const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
 
   const sections = [
     { id: 'basic', label: 'Basic Info', icon: User, description: 'Display name, username, studio info' },
