@@ -38,7 +38,8 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
   // Close menu on route change
   useEffect(() => {
     onClose();
-  }, [pathname, onClose]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
