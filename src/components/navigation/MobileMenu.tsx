@@ -23,7 +23,6 @@ import {
   LogIn,
   UserPlus,
   LayoutDashboard,
-  MapPin,
 } from 'lucide-react';
 import { getUserDisplayName, getUserAvatarUrl } from '@/lib/auth-utils';
 
@@ -70,15 +69,15 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
   // Check if admin
   const isAdmin = session?.user?.email === 'admin@mpdee.co.uk';
 
-  const menuSections = [
-    {
-      title: 'Navigation',
-      links: [
-        { label: 'Studios', href: '/studios', icon: MapPin },
-        { label: 'About', href: '/about', icon: HelpCircle },
-      ],
-    },
-  ];
+  const menuSections = [];
+
+  // Add "More" section with Blog (coming soon)
+  menuSections.push({
+    title: 'More',
+    links: [
+      { label: 'Blog', href: '#', icon: HelpCircle, disabled: true, badge: 'Coming soon!' },
+    ],
+  });
 
   if (session) {
     const accountLinks = [
@@ -168,6 +167,26 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
                   {section.links.map((link) => {
                     const Icon = link.icon;
                     const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+                    const isDisabled = (link as any).disabled;
+                    const badge = (link as any).badge;
+                    
+                    if (isDisabled) {
+                      return (
+                        <div
+                          key={link.href}
+                          className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 cursor-not-allowed"
+                        >
+                          <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                          <span className="text-sm font-medium">{link.label}</span>
+                          {badge && (
+                            <span className="ml-auto text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">
+                              {badge}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    }
+                    
                     return (
                       <Link
                         key={link.href}

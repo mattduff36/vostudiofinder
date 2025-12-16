@@ -28,7 +28,7 @@ export function MobileShell({ session }: MobileShellProps) {
 
   return (
     <>
-      <BottomNav session={session} onMenuClick={() => setMenuOpen(true)} />
+      <BottomNav onMenuClick={() => setMenuOpen(true)} />
       <MobileMenu 
         isOpen={menuOpen} 
         onClose={() => setMenuOpen(false)} 
