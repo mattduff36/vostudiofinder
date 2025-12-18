@@ -87,7 +87,7 @@ export function ForgotPasswordForm() {
 
         <Button
           type="submit"
-          className="w-full"
+          className="w-full bg-red-600 hover:bg-red-700"
           loading={isLoading}
           disabled={isLoading || !!success}
         >
@@ -97,7 +97,7 @@ export function ForgotPasswordForm() {
         <div className="text-center">
           <a
             href="/auth/signin"
-            className="inline-flex items-center text-sm text-primary-600 hover:text-primary-500"
+            className="inline-flex items-center text-sm text-red-600 hover:text-red-700 font-medium"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Sign In

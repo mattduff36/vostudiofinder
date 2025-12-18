@@ -14,10 +14,29 @@ export function SigninForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams?.get('callbackUrl') || '/dashboard';
+  const verified = searchParams?.get('verified') === 'true';
+  const alreadyVerified = searchParams?.get('already') === 'true';
+  const verificationError = searchParams?.get('error');
   
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Map verification errors to user-friendly messages
+  const getVerificationErrorMessage = (errorCode: string | null) => {
+    switch (errorCode) {
+      case 'invalid_token':
+        return 'Invalid or expired verification link. Please request a new one.';
+      case 'token_expired':
+        return 'Your verification link has expired. Please request a new one.';
+      case 'verification_failed':
+        return 'Email verification failed. Please try again or contact support.';
+      default:
+        return null;
+    }
+  };
+
+  const verificationErrorMessage = getVerificationErrorMessage(verificationError);
 
   const {
     register,
@@ -69,6 +88,30 @@ export function SigninForm() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {verified && !alreadyVerified && (
+          <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-sm text-green-700 font-medium">
+              ✓ Email address verified! You can now sign in below.
+            </p>
+          </div>
+        )}
+
+        {alreadyVerified && (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700 font-medium">
+              ℹ️ Your email was already verified. You can sign in below.
+            </p>
+          </div>
+        )}
+
+        {verificationErrorMessage && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-700 font-medium">
+              ✕ {verificationErrorMessage}
+            </p>
+          </div>
+        )}
+
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-md">
             <p className="text-sm text-red-600">{error}</p>
@@ -118,7 +161,7 @@ export function SigninForm() {
           
           <a
             href="/auth/forgot-password"
-            className="text-sm text-primary-600 hover:text-primary-500"
+            className="text-sm text-red-600 hover:text-red-700 font-medium"
           >
             Forgot password?
           </a>
@@ -126,7 +169,7 @@ export function SigninForm() {
 
         <Button
           type="submit"
-          className="w-full"
+          className="w-full bg-red-600 hover:bg-red-700"
           loading={isLoading}
           disabled={isLoading}
         >
@@ -138,7 +181,7 @@ export function SigninForm() {
             Don't have an account?{' '}
             <a
               href="/auth/signup"
-              className="font-medium text-primary-600 hover:text-primary-500"
+              className="font-medium text-red-600 hover:text-red-700"
             >
               Sign up
             </a>
