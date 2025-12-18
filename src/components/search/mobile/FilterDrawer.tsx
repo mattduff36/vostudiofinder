@@ -106,8 +106,8 @@ export function FilterDrawer({
 
       {/* Compact Filter Dropdown */}
       <div
-        className={`fixed top-[160px] left-4 w-[calc(100vw-2rem)] max-w-md transform transition-all duration-300 ease-out md:hidden z-[70] ${
-          isOpen ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-8 opacity-0 scale-95 pointer-events-none'
+        className={`fixed top-[249px] left-4 w-[calc(100vw-2rem)] max-w-md transform transition-all duration-300 ease-out md:hidden z-[70] ${
+          isOpen ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95 pointer-events-none'
         }`}
         role="dialog"
         aria-modal="true"
