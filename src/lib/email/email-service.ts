@@ -1,5 +1,7 @@
 // Email service for sending notifications and transactional emails
 import { Resend } from 'resend';
+import { generatePasswordResetEmail } from './templates/password-reset';
+import { generateEmailVerificationEmail } from './templates/email-verification';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_key');
 
@@ -54,6 +56,48 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   }
 }
 
+/**
+ * Send password reset email
+ */
+export async function sendPasswordResetEmail(
+  to: string,
+  resetUrl: string
+): Promise<boolean> {
+  const html = generatePasswordResetEmail({
+    resetUrl,
+    userEmail: to,
+  });
+
+  return sendEmail({
+    to,
+    subject: 'Reset Your Password - VoiceoverStudioFinder',
+    html,
+  });
+}
+
+/**
+ * Send email verification email
+ */
+export async function sendVerificationEmail(
+  to: string,
+  displayName: string,
+  verificationUrl: string
+): Promise<boolean> {
+  const html = generateEmailVerificationEmail({
+    verificationUrl,
+    userEmail: to,
+    displayName,
+  });
+
+  return sendEmail({
+    to,
+    subject: 'Verify Your Email - VoiceoverStudioFinder',
+    html,
+  });
+}
+
 export const emailService = {
   sendEmail,
+  sendPasswordResetEmail,
+  sendVerificationEmail,
 };

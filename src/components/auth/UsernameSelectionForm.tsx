@@ -122,7 +122,7 @@ export function UsernameSelectionForm() {
       <div className="text-center">
         <h1 className="text-3xl font-bold text-text-primary">Choose Your Username</h1>
         <p className="mt-2 text-text-secondary">
-          Your username will be your profile URL: <span className="font-mono text-sm">voiceoverstudiofinder.com/<span className="text-primary-600">{selectedUsername || 'username'}</span></span>
+          Your username will be your profile URL: <span className="font-mono text-sm">voiceoverstudiofinder.com/<span className="text-red-600 font-semibold">{selectedUsername || 'username'}</span></span>
         </p>
       </div>
 
@@ -137,7 +137,7 @@ export function UsernameSelectionForm() {
           <h3 className="text-sm font-medium text-gray-700 mb-3">Suggested usernames:</h3>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+              <Loader2 className="w-6 h-6 animate-spin text-red-600" />
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
@@ -155,11 +155,11 @@ export function UsernameSelectionForm() {
                   className={`
                     relative p-3 rounded-lg border-2 text-left transition-all
                     ${suggestion.available
-                      ? 'border-gray-200 hover:border-primary-500 cursor-pointer'
+                      ? 'border-gray-200 hover:border-red-500 cursor-pointer'
                       : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50'
                     }
                     ${selectedUsername === suggestion.username
-                      ? 'border-primary-600 bg-primary-50'
+                      ? 'border-red-600 bg-red-50'
                       : ''
                     }
                   `}
@@ -167,7 +167,7 @@ export function UsernameSelectionForm() {
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-sm">{suggestion.username}</span>
                     {selectedUsername === suggestion.username && (
-                      <Check className="w-4 h-4 text-primary-600" />
+                      <Check className="w-4 h-4 text-red-600" />
                     )}
                   </div>
                   {!suggestion.available && (
@@ -216,7 +216,7 @@ export function UsernameSelectionForm() {
 
       <Button
         onClick={handleContinue}
-        className="w-full"
+        className="w-full bg-red-600 hover:bg-red-700"
         disabled={!selectedUsername || Boolean(customUsername && !customAvailable)}
       >
         Continue to Membership

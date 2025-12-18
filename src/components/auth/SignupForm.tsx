@@ -155,16 +155,16 @@ export function SignupForm() {
           <input
             type="checkbox"
             id="acceptTerms"
-            className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-form-border rounded"
+            className="mt-1 h-4 w-4 text-red-600 focus:ring-red-500 border-form-border rounded"
             {...register('acceptTerms')}
           />
           <label htmlFor="acceptTerms" className="text-sm text-text-secondary">
             I accept the{' '}
-            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-500">
+            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-700 font-medium">
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-500">
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-700 font-medium">
               Privacy Policy
             </a>
           </label>
@@ -175,7 +175,7 @@ export function SignupForm() {
 
         <Button
           type="submit"
-          className="w-full"
+          className="w-full bg-red-600 hover:bg-red-700"
           loading={isLoading}
           disabled={isLoading}
         >
@@ -187,7 +187,7 @@ export function SignupForm() {
             Already have an account?{' '}
             <a
               href="/auth/signin"
-              className="font-medium text-primary-600 hover:text-primary-500"
+              className="font-medium text-red-600 hover:text-red-700"
             >
               Sign in
             </a>
