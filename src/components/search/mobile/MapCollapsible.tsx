@@ -104,6 +104,7 @@ export function MapCollapsible({
         document.body.style.height = '';
       };
     }
+    return undefined;
   }, [supportsNativeFullscreen, isFullscreen]);
 
   // Fullscreen toggle function - memoized to prevent recreation
