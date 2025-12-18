@@ -20,6 +20,7 @@ export function Navbar({ session }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showEditButton, setShowEditButton] = useState(false);
   const [isLogoLoading, setIsLogoLoading] = useState(false);
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
 
   // Listen for profile edit handler events
@@ -39,6 +40,25 @@ export function Navbar({ session }: NavbarProps) {
       window.removeEventListener('profileEditHandlerReady', handleEditHandlerReady);
       window.removeEventListener('profileEditHandlerUnmount', handleEditHandlerUnmount);
     };
+  }, []);
+
+  // Monitor fullscreen state for hiding nav on mobile
+  useEffect(() => {
+    const checkFullscreen = () => {
+      setIsMapFullscreen(document.documentElement.hasAttribute('data-map-fullscreen'));
+    };
+
+    // Check initially
+    checkFullscreen();
+
+    // Create observer for attribute changes
+    const observer = new MutationObserver(checkFullscreen);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-map-fullscreen']
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   const handleEditClick = () => {
@@ -107,12 +127,12 @@ export function Navbar({ session }: NavbarProps) {
   const isHomePage = pathname === '/' || pathname === '/studios';
 
   return (
-    <nav 
+    <nav
       className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 w-full max-w-full ${
-        isScrolled || !isHomePage 
-          ? 'bg-white/70 md:bg-white backdrop-blur-lg shadow-lg' 
+        isScrolled || !isHomePage
+          ? 'bg-white/70 md:bg-white backdrop-blur-lg shadow-lg'
           : 'bg-transparent'
-      }`}
+      } ${isMapFullscreen ? 'md:block hidden' : ''}`}
     >
       <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4 w-full">
         <div className="flex items-center justify-between">
