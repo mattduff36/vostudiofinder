@@ -512,10 +512,7 @@ export function GoogleMap({
       },
       mapTypeControl: false,
       streetViewControl: false,
-      fullscreenControl: true,
-      fullscreenControlOptions: {
-        position: googleMaps.ControlPosition.RIGHT_TOP,
-      },
+      fullscreenControl: false, // Disabled - using custom fullscreen button instead
       // Start with default minimal styles
       styles: defaultStyles,
     });
