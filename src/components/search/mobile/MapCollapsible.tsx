@@ -75,9 +75,11 @@ export function MapCollapsible({
     <div 
       className="md:hidden bg-white border-y border-gray-200 overflow-hidden"
       style={{
-        height: '70vh', // Increased to ensure scrollable content
-        minHeight: '400px', // Increased minimum for better usability
-        maxHeight: '700px' // Increased cap for larger screens
+        // Calculate height: viewport - header (180px) - controls (67px) - bottom nav (64px) - padding (32px)
+        // Note: No top nav subtraction because -mt-20 cancels main's pt-20
+        // Padding: 2x green padding height (16px × 2 = 32px)
+        height: 'calc(100vh - 180px - 67px - 64px - 32px)',
+        minHeight: '300px' // Minimum for usability
       }}
     >
       {/* Full-Screen Map View */}

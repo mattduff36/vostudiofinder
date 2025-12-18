@@ -5,7 +5,7 @@ import { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { LogOut, LogIn } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
@@ -354,18 +354,28 @@ export function Navbar({ session }: NavbarProps) {
           </div>
 
           {/* Mobile Sign In/Out Button */}
-          <button
-            onClick={() => session ? signOut({ callbackUrl: '/' }) : router.push('/auth/signin')}
-            className={`md:hidden p-2 rounded-lg transition-all duration-300 ${
-              isScrolled || !isHomePage 
-                ? 'text-gray-600 hover:bg-gray-100' 
-                : 'text-white hover:bg-white/20'
-            }`}
-            aria-label={session ? 'Sign out' : 'Sign in'}
-            title={session ? 'Sign out' : 'Sign in'}
-          >
-            {session ? <LogOut size={20} /> : <LogIn size={20} />}
-          </button>
+          {session ? (
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className={`md:hidden p-2 rounded-lg transition-all duration-300 ${
+                isScrolled || !isHomePage 
+                  ? 'text-gray-600 hover:bg-gray-100' 
+                  : 'text-white hover:bg-white/20'
+              }`}
+              aria-label="Sign out"
+              title="Sign out"
+            >
+              <LogOut size={20} />
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push('/auth/signin')}
+              className="md:hidden px-3 py-1.5 rounded-lg transition-all duration-300 bg-[#d42027] hover:bg-[#b91c23] text-white text-sm font-medium"
+              aria-label="Sign in"
+            >
+              Sign In
+            </button>
+          )}
         </div>
       </div>
     </nav>
