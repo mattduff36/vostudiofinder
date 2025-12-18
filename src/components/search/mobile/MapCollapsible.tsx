@@ -47,7 +47,7 @@ export function MapCollapsible({
   const markerCount = markers.length;
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [supportsFullscreen, setSupportsFullscreen] = useState(false);
+  const [supportsNativeFullscreen, setSupportsNativeFullscreen] = useState(false);
   
   // Use actual viewport height for iOS compatibility
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
@@ -62,10 +62,10 @@ export function MapCollapsible({
     // Set initial height
     updateHeight();
     
-    // Check if fullscreen API is supported (not available on iOS Safari)
-    setSupportsFullscreen(!!document.documentElement.requestFullscreen);
+    // Check if native fullscreen API is supported (for Android/Desktop)
+    setSupportsNativeFullscreen(!!document.documentElement.requestFullscreen);
     
-    // Update on resize (when iOS toolbar shows/hides)
+    // Update on resize (when iOS toolbar shows/hides or orientation changes)
     window.addEventListener('resize', updateHeight);
     
     return () => {
@@ -73,41 +73,69 @@ export function MapCollapsible({
     };
   }, []);
 
-  // Handle fullscreen changes
+  // Handle native fullscreen changes (Android/Desktop only)
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      // Only update if using native fullscreen (not iOS CSS-based)
+      if (supportsNativeFullscreen) {
+        setIsFullscreen(!!document.fullscreenElement);
+      }
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
-  }, []);
+  }, [supportsNativeFullscreen]);
+
+  // Lock body scroll when in CSS-based fullscreen (iOS)
+  useEffect(() => {
+    if (!supportsNativeFullscreen && isFullscreen) {
+      // Prevent body scroll on iOS
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      
+      return () => {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+      };
+    }
+  }, [supportsNativeFullscreen, isFullscreen]);
 
   // Fullscreen toggle function - memoized to prevent recreation
   const toggleFullscreen = useCallback(async () => {
-    try {
-      if (!document.fullscreenElement) {
-        // Enter fullscreen
-        await mapContainerRef.current?.requestFullscreen();
-      } else {
-        // Exit fullscreen
-        await document.exitFullscreen();
+    if (supportsNativeFullscreen) {
+      // Use native Fullscreen API (Android/Desktop)
+      try {
+        if (!document.fullscreenElement) {
+          await mapContainerRef.current?.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
+      } catch (err) {
+        console.error('Error toggling fullscreen:', err);
       }
-    } catch (err) {
-      console.error('Error toggling fullscreen:', err);
+    } else {
+      // Use CSS-based fullscreen (iOS)
+      setIsFullscreen(!isFullscreen);
     }
-  }, []);
+  }, [supportsNativeFullscreen, isFullscreen]);
 
   // Wrap onMarkerClick to exit fullscreen before navigation - memoized to prevent recreation
   const handleMarkerClick = useCallback((data: any, event: any) => {
     // Exit fullscreen before opening modal/navigating
-    if (document.fullscreenElement) {
+    if (supportsNativeFullscreen && document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
+    } else if (!supportsNativeFullscreen && isFullscreen) {
+      // Exit CSS-based fullscreen on iOS
+      setIsFullscreen(false);
     }
     onMarkerClick(data, event);
-  }, [onMarkerClick]);
+  }, [onMarkerClick, supportsNativeFullscreen, isFullscreen]);
 
   // Transform markers to GoogleMap format - memoized to prevent unnecessary recalculation
   const transformedMarkers = useMemo(() => {
@@ -147,12 +175,14 @@ export function MapCollapsible({
   return (
     <div 
       ref={mapContainerRef}
-      className={`md:hidden bg-white overflow-hidden ${isFullscreen ? '' : 'border-y border-gray-200'}`}
+      className={`md:hidden bg-white overflow-hidden ${isFullscreen ? 'fixed inset-0 z-[9999]' : 'border-y border-gray-200'}`}
       style={{
-        // Calculate height: viewport - header (180px) - controls (67px) - bottom nav (64px) - padding (32px) = 343px total
-        // Use window.innerHeight on iOS instead of 100vh for accurate viewport measurement
-        height: isFullscreen ? '100vh' : mapHeight,
-        minHeight: isFullscreen ? '100vh' : '300px',
+        // In fullscreen (CSS or native): Fill entire viewport
+        // Normal mode: Calculate height minus other elements
+        height: isFullscreen 
+          ? (viewportHeight ? `${viewportHeight}px` : '100vh')
+          : mapHeight,
+        minHeight: isFullscreen ? undefined : '300px',
         width: isFullscreen ? '100vw' : undefined,
       }}
     >
@@ -183,24 +213,22 @@ export function MapCollapsible({
               </div>
             </div>
 
-            {/* Full Screen Button - Only show if browser supports Fullscreen API (not iOS Safari) */}
-            {supportsFullscreen && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFullscreen();
-                }}
-                className="bg-white rounded-lg shadow-md p-2 pointer-events-auto hover:bg-gray-50 transition-colors"
-                aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-                title={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-              >
-                {isFullscreen ? (
-                  <Minimize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
-                ) : (
-                  <Maximize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
-                )}
-              </button>
-            )}
+            {/* Full Screen Button - Works on all devices (native API or CSS-based) */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFullscreen();
+              }}
+              className="bg-white rounded-lg shadow-md p-2 pointer-events-auto hover:bg-gray-50 transition-colors"
+              aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+              title={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+            >
+              {isFullscreen ? (
+                <Minimize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
+              ) : (
+                <Maximize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
+              )}
+            </button>
           </div>
         </div>
       </div>
