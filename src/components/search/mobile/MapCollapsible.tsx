@@ -87,7 +87,7 @@ export function MapCollapsible({
     };
   }, [supportsNativeFullscreen]);
 
-  // Lock body scroll when in CSS-based fullscreen (iOS)
+  // Lock body scroll and hide nav bars when in CSS-based fullscreen (iOS)
   useEffect(() => {
     if (!supportsNativeFullscreen && isFullscreen) {
       // Prevent body scroll on iOS
@@ -95,12 +95,15 @@ export function MapCollapsible({
       document.body.style.position = 'fixed';
       document.body.style.width = '100%';
       document.body.style.height = '100%';
+      // Add data attribute to indicate fullscreen mode
+      document.documentElement.setAttribute('data-map-fullscreen', 'true');
       
       return () => {
         document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.width = '';
         document.body.style.height = '';
+        document.documentElement.removeAttribute('data-map-fullscreen');
       };
     }
     return undefined;

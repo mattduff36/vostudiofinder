@@ -84,6 +84,7 @@ export function StudiosPage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [isFilteringByMapArea, setIsFilteringByMapArea] = useState(false);
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   
   // Studio marker modal state
   const [modalStudio, setModalStudio] = useState<{
@@ -223,6 +224,25 @@ export function StudiosPage() {
       position: markerPosition,
     });
   }, [searchResults, searchParams]); // Dependencies for fetchAndAddStudio
+
+  // Monitor fullscreen state for hiding mobile controls
+  useEffect(() => {
+    const checkFullscreen = () => {
+      setIsMapFullscreen(document.documentElement.hasAttribute('data-map-fullscreen'));
+    };
+
+    // Check initially
+    checkFullscreen();
+
+    // Create observer for attribute changes
+    const observer = new MutationObserver(checkFullscreen);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-map-fullscreen']
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   // Memoize markers array to prevent unnecessary re-renders
   const memoizedMarkers = useMemo(() => {
@@ -677,7 +697,7 @@ export function StudiosPage() {
 
 
       {/* Mobile Controls */}
-      <div className="lg:hidden sticky top-20 z-30 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 shadow-sm">
+      <div className={`lg:hidden sticky top-20 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 shadow-sm ${isMapFullscreen ? 'hidden' : 'z-30'}`}>
         <div className="flex space-x-2 sm:space-x-3">
           {/* Filter Button */}
           <button

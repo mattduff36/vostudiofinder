@@ -143,9 +143,9 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
   };
 
   const studioTypeOptions = [
-    { value: studio_type.HOME, label: 'Home Studio' },
-    { value: studio_type.RECORDING, label: 'Recording Studio' },
-    { value: studio_type.PODCAST, label: 'Podcast Studio' },
+    { value: studio_type.HOME, label: 'Home', fullLabel: 'Home Studio' },
+    { value: studio_type.RECORDING, label: 'Recording', fullLabel: 'Recording Studio' },
+    { value: studio_type.PODCAST, label: 'Podcast', fullLabel: 'Podcast Studio' },
   ];
 
   // Disabled for now - not currently used in the UI
@@ -193,10 +193,10 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3 space-y-6">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-4 lg:px-6 py-2 lg:py-3 space-y-4 lg:space-y-6">
       {/* Optional Clear All button */}
       {hasActiveFilters && (
-        <div className="flex justify-end mb-2">
+        <div className="flex justify-end mb-1">
           <Button
             variant="ghost"
             size="sm"
@@ -212,10 +212,10 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
 
       {/* Location */}
       <div>
-        <label className="block text-sm font-medium text-black mb-3">
+        <label className="hidden lg:block text-sm font-medium text-black mb-2">
           Location
         </label>
-        <div className="space-y-3">
+        <div className="space-y-2">
           <EnhancedLocationFilter
             value={filters.location}
             onChange={(value, placeDetails) => {
@@ -351,11 +351,11 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
 
       {/* Studio Types */}
       <div>
-        <label className="block text-sm font-medium text-black mb-3">
+        <label className="block text-sm font-medium text-black mb-2">
           Studio Types
         </label>
-        {/* Mobile: Card-style buttons */}
-        <div className="space-y-3 lg:hidden">
+        {/* Mobile: Compact toggle buttons in a row */}
+        <div className="flex gap-2 lg:hidden">
           {studioTypeOptions.map(option => {
             const isSelected = filters.studio_studio_types.includes(option.value);
             return (
@@ -363,26 +363,13 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                 key={option.value}
                 type="button"
                 onClick={() => handleStudioTypeToggle(option.value)}
-                className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                className={`flex-1 px-3 py-2.5 rounded-lg border-2 transition-all text-sm font-medium ${
                   isSelected
-                    ? 'border-red-600 bg-red-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300 active:bg-gray-50'
+                    ? 'border-red-600 bg-red-50 text-red-600'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 active:bg-gray-50'
                 }`}
               >
-                <span className={`text-base font-medium ${isSelected ? 'text-red-600' : 'text-gray-900'}`}>
-                  {option.label}
-                </span>
-                <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                  isSelected
-                    ? 'border-red-600 bg-red-600'
-                    : 'border-gray-300 bg-white'
-                }`}>
-                  {isSelected && (
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
+                {option.label}
               </button>
             );
           })}
@@ -400,7 +387,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                 onChange={() => handleStudioTypeToggle(option.value)}
                 className="rounded"
               />
-              <span className="text-sm text-black">{option.label}</span>
+              <span className="text-sm text-black">{option.fullLabel}</span>
             </label>
           ))}
         </div>

@@ -8,8 +8,7 @@
  */
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { Filter } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { SearchFilters, SearchFiltersRef } from '../SearchFilters';
 
 interface FilterDrawerProps {
@@ -41,27 +40,55 @@ export function FilterDrawer({
   visibleMarkerCount,
 }: FilterDrawerProps) {
   const filtersRef = useRef<SearchFiltersRef>(null);
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
 
-  // Don't prevent body scroll for dropdown (unlike full-screen drawer)
-
-  // Close on escape key
+  // Monitor fullscreen state for hiding filter drawer
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+    const checkFullscreen = () => {
+      const fullscreen = document.documentElement.hasAttribute('data-map-fullscreen');
+      setIsMapFullscreen(fullscreen);
+      // Auto-close filter drawer if map goes fullscreen
+      if (fullscreen && isOpen) {
         onClose();
       }
     };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+
+    checkFullscreen();
+
+    const observer = new MutationObserver(checkFullscreen);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-map-fullscreen']
+    });
+
+    return () => observer.disconnect();
   }, [isOpen, onClose]);
 
-  const handleApplyFilters = () => {
-    // Trigger filters via ref, then close drawer
+  // Don't prevent body scroll for dropdown (unlike full-screen drawer)
+
+  const handleClose = () => {
+    // Apply filters when closing
     if (filtersRef.current) {
       filtersRef.current.applyFilters();
     }
     onClose();
   };
+
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Don't render if map is in fullscreen mode
+  if (isMapFullscreen) {
+    return null;
+  }
 
   return (
     <>
@@ -71,61 +98,31 @@ export function FilterDrawer({
           className="fixed inset-0 md:hidden z-[60]"
           onClick={(e) => {
             e.stopPropagation();
-            onClose();
+            handleClose();
           }}
           aria-hidden="true"
         />
       )}
 
-      {/* Compact Top-Left Dropdown Box */}
+      {/* Compact Filter Dropdown */}
       <div
-        className={`fixed top-[180px] left-4 w-[calc(100vw-2rem)] max-w-md bg-white rounded-xl shadow-2xl border border-gray-200 transform transition-all duration-300 ease-out md:hidden z-[70] ${
+        className={`fixed top-[160px] left-4 w-[calc(100vw-2rem)] max-w-md transform transition-all duration-300 ease-out md:hidden z-[70] ${
           isOpen ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-8 opacity-0 scale-95 pointer-events-none'
         }`}
-        style={{ maxHeight: 'calc(100vh - 220px)' }}
         role="dialog"
         aria-modal="true"
         aria-label="Filter studios"
       >
-        {/* Header */}
-        <div className="p-4 bg-gradient-to-br from-red-50 to-white border-b border-gray-100">
-          <div className="flex items-center space-x-2">
-            <Filter className="w-5 h-5 text-[#d42027]" aria-hidden="true" />
-            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-          </div>
-        </div>
+        <SearchFilters
+          ref={filtersRef}
+          initialFilters={initialFilters}
+          onSearch={onSearch}
+          {...(onFilterByMapArea ? { onFilterByMapArea } : {})}
+          {...(isFilteringByMapArea !== undefined ? { isFilteringByMapArea } : {})}
+          {...(visibleMarkerCount !== undefined ? { visibleMarkerCount } : {})}
+        />
 
-        {/* Scrollable Content */}
-        <div className="overflow-y-auto px-4 py-4" style={{ maxHeight: 'calc(100vh - 380px)' }}>
-          <SearchFilters
-            ref={filtersRef}
-            initialFilters={initialFilters}
-            onSearch={onSearch}
-            {...(onFilterByMapArea ? { onFilterByMapArea } : {})}
-            {...(isFilteringByMapArea !== undefined ? { isFilteringByMapArea } : {})}
-            {...(visibleMarkerCount !== undefined ? { visibleMarkerCount } : {})}
-          />
-        </div>
-
-        {/* Bottom Action Bar */}
-        <div className="p-3 bg-white border-t border-gray-100">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleApplyFilters}
-              className="flex-1 px-4 py-2.5 bg-[#d42027] text-white font-medium rounded-lg hover:bg-[#a1181d] transition-colors text-sm"
-            >
-              Apply Filters
-            </button>
-          </div>
-        </div>
-
-        {/* Arrow pointing to Filters button */}
+        {/* Arrow pointing up to Filters button */}
         <div className="absolute top-[-8px] left-6 w-4 h-4 bg-white border-l border-t border-gray-200 transform rotate-45" />
       </div>
     </>

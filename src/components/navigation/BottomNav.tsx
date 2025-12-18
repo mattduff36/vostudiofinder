@@ -14,6 +14,7 @@
  */
 'use client';
 
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Home, Search, LayoutDashboard, Menu, UserPlus, User } from 'lucide-react';
@@ -28,6 +29,26 @@ interface BottomNavProps {
 export function BottomNav({ onMenuClick, session }: BottomNavProps) {
   const pathname = usePathname();
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
+
+  // Monitor fullscreen state for hiding nav on mobile
+  useEffect(() => {
+    const checkFullscreen = () => {
+      setIsMapFullscreen(document.documentElement.hasAttribute('data-map-fullscreen'));
+    };
+
+    // Check initially
+    checkFullscreen();
+
+    // Create observer for attribute changes
+    const observer = new MutationObserver(checkFullscreen);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-map-fullscreen']
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   // Build navigation items based on auth state
   const navItems = [
@@ -75,7 +96,7 @@ export function BottomNav({ onMenuClick, session }: BottomNavProps) {
     <nav
       className={`fixed bottom-0 left-0 right-0 bg-white/70 backdrop-blur-lg border-t border-gray-200/50 safe-area-bottom md:hidden z-50 transition-transform duration-300 ${
         scrollDirection === 'down' && !isAtTop ? 'translate-y-full' : 'translate-y-0'
-      }`}
+      } ${isMapFullscreen ? 'hidden' : ''}`}
       role="navigation"
       aria-label="Mobile navigation"
     >
