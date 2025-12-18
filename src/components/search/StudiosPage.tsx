@@ -614,7 +614,7 @@ export function StudiosPage() {
 
 
   return (
-    <div className={`min-h-screen flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full ${mobileView === 'map' ? '-mb-16 md:mb-0' : ''}`}>
+    <div className={`${mobileView === 'map' ? 'min-h-0 md:min-h-screen' : 'min-h-screen'} flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full ${mobileView === 'map' ? '-mb-16 md:mb-0' : ''}`}>
       {/* Background Image for main content */}
       <div className={`absolute inset-x-0 top-0 pointer-events-none overflow-hidden ${mobileView === 'map' ? 'bottom-0 md:bottom-0' : 'bottom-16 md:bottom-0'}`}>
         <Image
