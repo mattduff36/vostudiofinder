@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import EditStudioModal from '@/components/admin/EditStudioModal';
+import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 
@@ -47,7 +48,9 @@ export default function AdminStudiosPage() {
   });
   const [editingStudio, setEditingStudio] = useState<Studio | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStudios();
@@ -269,7 +272,23 @@ export default function AdminStudiosPage() {
             {pagination.total} studios in the Voice Over Studio Finder network
           </p>
         </div>
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Add Studio
+        </button>
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <p className="text-green-800 font-medium">{successMessage}</p>
+        </div>
+      )}
 
       {/* Bulk Operations */}
       <AdminBulkOperations
@@ -544,6 +563,17 @@ export default function AdminStudiosPage() {
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
         onSave={handleSaveStudio}
+      />
+
+      <AddStudioModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={(message) => {
+          setSuccessMessage(message);
+          setStudios([]);
+          setPagination(prev => ({ ...prev, offset: 0 }));
+          setTimeout(() => setSuccessMessage(null), 10000);
+        }}
       />
         </div>
       </div>
