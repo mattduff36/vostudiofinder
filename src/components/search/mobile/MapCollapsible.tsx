@@ -203,7 +203,7 @@ export function MapCollapsible({
           />
 
           {/* Overlay Controls */}
-          <div className="absolute top-3 left-3 right-3 flex items-start justify-between pointer-events-none">
+          <div className="absolute top-3 left-3 right-3 flex items-start justify-between pointer-events-none z-10">
             {/* Map Info Badge */}
             <div className="bg-white rounded-lg shadow-md px-3 py-2 pointer-events-auto">
               <div className="flex items-center space-x-2">
