@@ -7,6 +7,7 @@
  */
 'use client';
 
+import { useState, useEffect } from 'react';
 import { MapPin, Maximize2 } from 'lucide-react';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 
@@ -44,6 +45,27 @@ export function MapCollapsible({
   selectedMarkerId,
 }: MapCollapsibleProps) {
   const markerCount = markers.length;
+  
+  // Use actual viewport height for iOS compatibility
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  
+  useEffect(() => {
+    // Function to get the actual visible viewport height
+    const updateHeight = () => {
+      // Use window.innerHeight which gives the actual visible viewport on iOS
+      setViewportHeight(window.innerHeight);
+    };
+    
+    // Set initial height
+    updateHeight();
+    
+    // Update on resize (when iOS toolbar shows/hides)
+    window.addEventListener('resize', updateHeight);
+    
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, []);
 
   // Transform markers to GoogleMap format
   const transformedMarkers = markers
@@ -71,14 +93,18 @@ export function MapCollapsible({
       } : {}),
     }));
 
+  // Calculate map height using actual viewport for iOS compatibility
+  const mapHeight = viewportHeight 
+    ? `${viewportHeight - 180 - 67 - 64 - 32}px` // Use measured viewport height
+    : 'calc(100vh - 343px)'; // Fallback for SSR/initial render
+
   return (
     <div 
       className="md:hidden bg-white border-y border-gray-200 overflow-hidden"
       style={{
-        // Calculate height: viewport - header (180px) - controls (67px) - bottom nav (64px) - padding (32px)
-        // Note: No top nav subtraction because -mt-20 cancels main's pt-20
-        // Padding: 2x green padding height (16px × 2 = 32px)
-        height: 'calc(100vh - 180px - 67px - 64px - 32px)',
+        // Calculate height: viewport - header (180px) - controls (67px) - bottom nav (64px) - padding (32px) = 343px total
+        // Use window.innerHeight on iOS instead of 100vh for accurate viewport measurement
+        height: mapHeight,
         minHeight: '300px' // Minimum for usability
       }}
     >
