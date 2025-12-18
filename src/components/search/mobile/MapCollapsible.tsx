@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { MapPin, Maximize2, Minimize2 } from 'lucide-react';
+import { Maximize2, Minimize2 } from 'lucide-react';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 
 interface MapCollapsibleProps {
@@ -203,17 +203,7 @@ export function MapCollapsible({
           />
 
           {/* Overlay Controls */}
-          <div className="absolute top-3 left-3 right-3 flex items-start justify-between pointer-events-none z-10">
-            {/* Map Info Badge */}
-            <div className="bg-white rounded-lg shadow-md px-3 py-2 pointer-events-auto">
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-[#d42027]" aria-hidden="true" />
-                <span className="text-xs font-medium text-gray-900">
-                  {markerCount} {markerCount === 1 ? 'Studio' : 'Studios'}
-                </span>
-              </div>
-            </div>
-
+          <div className="absolute top-3 right-3 pointer-events-none z-10">
             {/* Full Screen Button - Works on all devices (native API or CSS-based) */}
             <button
               onClick={(e) => {
