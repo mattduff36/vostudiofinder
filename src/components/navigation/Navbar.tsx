@@ -10,25 +10,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
 
-// Calculate logo dimensions with proper aspect ratio
-function calculateLogoDimensions(containerWidth: number, originalWidth: number = 384, originalHeight: number = 60, maxWidth: number = 300) {
-  if (!containerWidth || containerWidth === 0) {
-    // Default dimensions for SSR and initial render
-    const aspectRatio = originalHeight / originalWidth;
-    return { width: maxWidth, height: Math.round(maxWidth * aspectRatio * 100) / 100 };
-  }
-
-  // Calculate available width (accounting for padding and other elements)
-  const availableWidth = Math.min(containerWidth * 0.4, maxWidth); // Use max 40% of container width
-  const aspectRatio = originalHeight / originalWidth;
-  
-  // Calculate new dimensions maintaining aspect ratio
-  const newWidth = Math.max(Math.min(availableWidth, maxWidth), 150); // Minimum 150px width
-  const newHeight = Math.round(newWidth * aspectRatio * 100) / 100; // Round to avoid floating point precision issues
-  
-  return { width: newWidth, height: newHeight };
-}
-
 interface NavbarProps {
   session: Session | null;
 }
@@ -37,19 +18,9 @@ export function Navbar({ session }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [isClient, setIsClient] = useState(false);
   const [showEditButton, setShowEditButton] = useState(false);
   const [isLogoLoading, setIsLogoLoading] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
-
-  // Calculate logo dimensions
-  const logoSize = calculateLogoDimensions(isClient ? containerWidth : 0, 384, 60, 300);
-
-  // Handle client-side hydration
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   // Listen for profile edit handler events
   useEffect(() => {
@@ -111,33 +82,6 @@ export function Navbar({ session }: NavbarProps) {
     };
   }, []);
 
-  // Track container width for dynamic logo sizing (client-side only)
-  useEffect(() => {
-    if (!isClient) return;
-
-    const updateWidth = () => {
-      if (navContainerRef.current) {
-        setContainerWidth(navContainerRef.current.offsetWidth);
-      }
-    };
-
-    // Initial measurement
-    updateWidth();
-
-    // Set up resize observer
-    const resizeObserver = new ResizeObserver(updateWidth);
-    if (navContainerRef.current) {
-      resizeObserver.observe(navContainerRef.current);
-    }
-
-    // Also listen to window resize as fallback
-    window.addEventListener('resize', updateWidth);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', updateWidth);
-    };
-  }, [isClient]);
 
 
   // Handle logo loading animation - stop loading when navigation completes
@@ -186,31 +130,23 @@ export function Navbar({ session }: NavbarProps) {
                   : "/images/voiceover-studio-finder-header-logo2-white.png"
                 }
                 alt="VoiceoverStudioFinder"
-                width={logoSize.width}
-                height={logoSize.height}
+                width={384}
+                height={60}
                 priority
-                className={`transition-opacity duration-300 ${isLogoLoading ? 'opacity-0 md:opacity-100' : 'opacity-100'} hover:opacity-80`}
-                style={{
-                  width: `${logoSize.width}px`,
-                  height: `${logoSize.height}px`,
-                  maxWidth: '100%'
-                }}
+                className={`transition-opacity duration-300 ${isLogoLoading ? 'opacity-0 md:opacity-100' : 'opacity-100'} hover:opacity-80 w-[180px] sm:w-[220px] md:w-[280px] h-auto`}
               />
               
               {/* Loading Logo - Fades in and pulses (mobile only) */}
               <Image
                 src="/images/voiceover-studio-finder-logo-loading2.png"
                 alt="Loading..."
-                width={logoSize.width}
-                height={logoSize.height}
+                width={384}
+                height={60}
                 priority
                 className={`absolute top-0 left-0 transition-opacity duration-300 md:opacity-0 ${
                   isLogoLoading ? 'opacity-100 animate-pulse' : 'opacity-0'
-                }`}
+                } w-[180px] sm:w-[220px] md:w-[280px] h-auto`}
                 style={{
-                  width: `${logoSize.width}px`,
-                  height: `${logoSize.height}px`,
-                  maxWidth: '100%',
                   pointerEvents: 'none'
                 }}
               />
