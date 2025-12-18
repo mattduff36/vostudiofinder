@@ -875,8 +875,8 @@ export function StudiosPage() {
                   </div>
                 )}
 
-                {/* Studios List - Always shown to ensure scrollable content */}
-                <div>
+                {/* Studios List - Desktop: Always shown, Mobile: Only in list view */}
+                <div className={`${mobileView === 'map' ? 'hidden lg:block' : 'block'}`}>
                   <StudiosList
                     studios={displayStudios}
                     pagination={searchResults.pagination}

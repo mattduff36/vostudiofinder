@@ -73,7 +73,7 @@ export function MapCollapsible({
 
   return (
     <div 
-      className="md:hidden bg-white border-y border-gray-200 overflow-hidden"
+      className="md:hidden bg-white border-y border-gray-200 overflow-hidden mb-4"
       style={{
         height: '60vh', // Use viewport-relative height to allow document scroll
         minHeight: '280px', // Minimum height for usability
