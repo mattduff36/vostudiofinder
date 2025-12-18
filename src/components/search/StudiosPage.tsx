@@ -833,19 +833,23 @@ export function StudiosPage() {
 
                 {/* Mobile: Map - Only show on Map View tab */}
                 {mobileView === 'map' && (
-                  <MapCollapsible
-                      markers={searchResults.mapMarkers || searchResults.studios}
-                      center={searchResults.searchCoordinates 
-                        ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
-                        : { lat: 20, lng: 0 }
-                      }
-                      zoom={searchResults.searchCoordinates ? 10 : 2}
-                      searchCenter={searchResults.searchCoordinates || null}
-                      searchRadius={parseInt(searchParams.get('radius') || '10')}
-                      onMarkerClick={handleMarkerClick}
-                      onBoundsChanged={handleBoundsChanged}
-                      selectedMarkerId={null}
-                    />
+                  <>
+                    <MapCollapsible
+                        markers={searchResults.mapMarkers || searchResults.studios}
+                        center={searchResults.searchCoordinates 
+                          ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
+                          : { lat: 20, lng: 0 }
+                        }
+                        zoom={searchResults.searchCoordinates ? 10 : 2}
+                        searchCenter={searchResults.searchCoordinates || null}
+                        searchRadius={parseInt(searchParams.get('radius') || '10')}
+                        onMarkerClick={handleMarkerClick}
+                        onBoundsChanged={handleBoundsChanged}
+                        selectedMarkerId={null}
+                      />
+                    {/* Spacer to ensure gap and scrollable content */}
+                    <div className="h-20"></div>
+                  </>
                   )
                 }
 

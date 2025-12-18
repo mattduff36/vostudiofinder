@@ -73,11 +73,11 @@ export function MapCollapsible({
 
   return (
     <div 
-      className="md:hidden bg-white border-y border-gray-200 overflow-hidden mb-4"
+      className="md:hidden bg-white border-y border-gray-200 overflow-hidden"
       style={{
-        height: '60vh', // Use viewport-relative height to allow document scroll
-        minHeight: '280px', // Minimum height for usability
-        maxHeight: '600px' // Cap maximum height for very tall screens
+        height: '70vh', // Increased to ensure scrollable content
+        minHeight: '400px', // Increased minimum for better usability
+        maxHeight: '700px' // Increased cap for larger screens
       }}
     >
       {/* Full-Screen Map View */}
