@@ -9,7 +9,6 @@ import { LogOut, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
-import { useScrollDirection } from '@/hooks/useScrollDirection';
 
 // Calculate logo dimensions with proper aspect ratio
 function calculateLogoDimensions(containerWidth: number, originalWidth: number = 384, originalHeight: number = 60, maxWidth: number = 300) {
@@ -43,7 +42,6 @@ export function Navbar({ session }: NavbarProps) {
   const [showEditButton, setShowEditButton] = useState(false);
   const [isLogoLoading, setIsLogoLoading] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
-  const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
 
   // Calculate logo dimensions
   const logoSize = calculateLogoDimensions(isClient ? containerWidth : 0, 384, 60, 300);
@@ -170,8 +168,6 @@ export function Navbar({ session }: NavbarProps) {
         isScrolled || !isHomePage 
           ? 'bg-white/70 md:bg-white backdrop-blur-lg shadow-lg' 
           : 'bg-transparent'
-      } ${
-        scrollDirection === 'down' && !isAtTop ? 'md:translate-y-0 -translate-y-full' : 'translate-y-0'
       }`}
     >
       <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4 w-full">
