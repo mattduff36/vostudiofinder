@@ -44,7 +44,6 @@ export function MapCollapsible({
   onBoundsChanged,
   selectedMarkerId,
 }: MapCollapsibleProps) {
-  const markerCount = markers.length;
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [supportsNativeFullscreen, setSupportsNativeFullscreen] = useState(false);
