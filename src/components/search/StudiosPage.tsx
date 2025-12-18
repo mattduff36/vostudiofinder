@@ -396,16 +396,8 @@ export function StudiosPage() {
 
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
 
-  // Control body overflow when on mobile map view to prevent scrollbar
-  useEffect(() => {
-    if (mobileView === 'map' && window.innerWidth < 768) {
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
-      };
-    }
-    return undefined;
-  }, [mobileView]);
+  // Allow document scroll on mobile to enable iOS toolbar auto-hide
+  // The map view is now properly constrained without blocking document scroll
 
   // Search function - for initial load or filter changes
   const performSearch = async (params: URLSearchParams, resetOffset: boolean = true) => {
@@ -622,7 +614,7 @@ export function StudiosPage() {
 
 
   return (
-    <div className={`min-h-screen flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full ${mobileView === 'map' ? 'md:overflow-y-auto overflow-y-hidden' : ''}`}>
+    <div className="min-h-screen flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full">
       {/* Background Image for main content */}
       <div className="absolute inset-x-0 top-0 bottom-16 md:bottom-0 pointer-events-none overflow-hidden">
         <Image

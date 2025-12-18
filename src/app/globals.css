@@ -115,7 +115,7 @@
 /* Original VoiceoverStudioFinder Global Styles */
 html,
 body {
-  height: 100%;
+  height: auto;
   overflow-x: hidden;
   max-width: 100%;
   position: relative;
