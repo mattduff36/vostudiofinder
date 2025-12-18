@@ -2,15 +2,15 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
-import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
+import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
-  title: 'Forgot Password - VoiceoverStudioFinder',
-  description: 'Reset your password to regain access to your account',
+  title: 'Reset Password - VoiceoverStudioFinder',
+  description: 'Set a new password for your account',
 };
 
-export default async function ForgotPasswordPage() {
+export default async function ResetPasswordPage() {
   const session = await getServerSession(authOptions);
 
   // Redirect if already authenticated
@@ -29,7 +29,7 @@ export default async function ForgotPasswordPage() {
       <div className="absolute inset-0">
         <Image
           src="/background-images/21920-6.jpg"
-          alt="Forgot password background texture"
+          alt="Reset password background texture"
           fill
           className="object-cover opacity-10"
           priority={false}
@@ -51,7 +51,7 @@ export default async function ForgotPasswordPage() {
 
       <div className="relative z-10 mt-4 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-white/90 backdrop-blur-sm py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <ForgotPasswordForm />
+          <ResetPasswordForm />
         </div>
       </div>
     </div>

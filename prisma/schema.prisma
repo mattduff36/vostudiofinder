@@ -352,6 +352,8 @@ model users {
   role                                                       Role                    @default(USER)
   email_verified                                             Boolean                 @default(false)
   password                                                   String?
+  reset_token                                                String?
+  reset_token_expiry                                         DateTime?
   created_at                                                 DateTime                @default(now())
   updated_at                                                 DateTime
   accounts                                                   accounts[]

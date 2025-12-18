@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { forgotPasswordSchema } from '@/lib/validations/auth';
-// import { generateResetToken } from '@/lib/auth-utils';
+import { generateResetToken } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
+import { sendEmail } from '@/lib/email/email-service';
+import { generatePasswordResetEmail } from '@/lib/email/templates/password-reset';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +20,7 @@ export async function POST(request: NextRequest) {
     
     // Always return success to prevent email enumeration
     if (!user) {
+      console.log(`Password reset requested for non-existent email: ${validatedData.email}`);
       return NextResponse.json(
         {
           message: 'If an account with that email exists, we have sent a password reset link.',
@@ -27,21 +30,42 @@ export async function POST(request: NextRequest) {
     }
     
     // Generate reset token
-    // const resetToken = generateResetToken();
-    // const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+    const resetToken = await generateResetToken();
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
     
     // Save reset token to database
     await db.users.update({
       where: { id: user.id },
       data: {
-        // FUTURE: Add resetToken and resetTokenExpiry fields to User model (when email system is implemented)
-        // resetToken,
-        // resetTokenExpiry,
+        reset_token: resetToken,
+        reset_token_expiry: resetTokenExpiry,
+        updated_at: new Date(),
       },
     });
     
-    // FUTURE: Send password reset email (requires email service configuration)
-    // await sendPasswordResetEmail(user.email, resetToken);
+    // Build reset URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const resetUrl = `${baseUrl}/auth/reset-password?token=${resetToken}`;
+    
+    // Generate and send password reset email
+    const emailHtml = generatePasswordResetEmail({
+      resetUrl,
+      userEmail: user.email,
+    });
+    
+    const emailSent = await sendEmail({
+      to: user.email,
+      subject: 'Reset Your Password - VoiceoverStudioFinder',
+      html: emailHtml,
+    });
+    
+    if (!emailSent) {
+      console.error('Failed to send password reset email to:', user.email);
+      // Still return success to prevent email enumeration
+      // but log the error for debugging
+    } else {
+      console.log('Password reset email sent successfully to:', user.email);
+    }
     
     return NextResponse.json(
       {
