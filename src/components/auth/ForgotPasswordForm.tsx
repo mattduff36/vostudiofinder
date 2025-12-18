@@ -68,6 +68,9 @@ export function ForgotPasswordForm() {
         {success && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-md">
             <p className="text-sm text-green-600">{success}</p>
+            <p className="text-sm text-green-600 mt-2">
+              <strong>Don't forget to check your junk/spam folders!</strong>
+            </p>
           </div>
         )}
 

@@ -164,6 +164,25 @@ export function validatePassword(password: string): {
   };
 }
 
+/**
+ * Generate a secure random reset token
+ * @returns A URL-safe token string
+ */
+export async function generateResetToken(): Promise<string> {
+  const { randomBytes } = await import('crypto');
+  return randomBytes(32).toString('base64url');
+}
+
+/**
+ * Verify if reset token is still valid
+ * @param expiry - The token expiry timestamp
+ * @returns true if token is still valid
+ */
+export function isResetTokenValid(expiry: Date | null): boolean {
+  if (!expiry) return false;
+  return expiry.getTime() > Date.now();
+}
+
 // ============================================================================
 // Session Display Utilities (Mobile-Safe)
 // ============================================================================
