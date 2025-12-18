@@ -7,7 +7,7 @@
  */
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { MapPin, Maximize2, Minimize2 } from 'lucide-react';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 
@@ -81,8 +81,8 @@ export function MapCollapsible({
     };
   }, []);
 
-  // Fullscreen toggle function
-  const toggleFullscreen = async () => {
+  // Fullscreen toggle function - memoized to prevent recreation
+  const toggleFullscreen = useCallback(async () => {
     try {
       if (!document.fullscreenElement) {
         // Enter fullscreen
@@ -94,47 +94,51 @@ export function MapCollapsible({
     } catch (err) {
       console.error('Error toggling fullscreen:', err);
     }
-  };
+  }, []);
 
-  // Wrap onMarkerClick to exit fullscreen before navigation
-  const handleMarkerClick = (data: any, event: any) => {
+  // Wrap onMarkerClick to exit fullscreen before navigation - memoized to prevent recreation
+  const handleMarkerClick = useCallback((data: any, event: any) => {
     // Exit fullscreen before opening modal/navigating
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
     onMarkerClick(data, event);
-  };
+  }, [onMarkerClick]);
 
-  // Transform markers to GoogleMap format
-  const transformedMarkers = markers
-    .filter((m) => m.latitude && m.longitude)
-    .map((marker) => ({
-      id: marker.id,
-      position: { lat: marker.latitude!, lng: marker.longitude! },
-      title: marker.name,
-      studio_type: marker.studio_studio_types[0]?.studio_type || 'VOICEOVER',
-      is_verified: marker.is_verified,
-      onClick: (event: any) => handleMarkerClick(marker, event),
-      ...(marker.users?.username ? {
-        studio: {
-          id: marker.id,
-          name: marker.name,
-          owner: {
-            username: marker.users.username,
-            avatar_url: marker.users.avatar_url || undefined,
-          },
-          images: marker.studio_images?.map(img => ({
-            imageUrl: img.image_url,
-            ...(img.alt_text ? { alt_text: img.alt_text } : {}),
-          })) || [],
-        }
-      } : {}),
-    }));
+  // Transform markers to GoogleMap format - memoized to prevent unnecessary recalculation
+  const transformedMarkers = useMemo(() => {
+    return markers
+      .filter((m) => m.latitude && m.longitude)
+      .map((marker) => ({
+        id: marker.id,
+        position: { lat: marker.latitude!, lng: marker.longitude! },
+        title: marker.name,
+        studio_type: marker.studio_studio_types[0]?.studio_type || 'VOICEOVER',
+        is_verified: marker.is_verified,
+        onClick: (event: any) => handleMarkerClick(marker, event),
+        ...(marker.users?.username ? {
+          studio: {
+            id: marker.id,
+            name: marker.name,
+            owner: {
+              username: marker.users.username,
+              avatar_url: marker.users.avatar_url || undefined,
+            },
+            images: marker.studio_images?.map(img => ({
+              imageUrl: img.image_url,
+              ...(img.alt_text ? { alt_text: img.alt_text } : {}),
+            })) || [],
+          }
+        } : {}),
+      }));
+  }, [markers, handleMarkerClick]);
 
-  // Calculate map height using actual viewport for iOS compatibility
-  const mapHeight = viewportHeight 
-    ? `${viewportHeight - 180 - 67 - 64 - 32}px` // Use measured viewport height
-    : 'calc(100vh - 343px)'; // Fallback for SSR/initial render
+  // Calculate map height using actual viewport for iOS compatibility - memoized
+  const mapHeight = useMemo(() => {
+    return viewportHeight 
+      ? `${viewportHeight - 180 - 67 - 64 - 32}px` // Use measured viewport height
+      : 'calc(100vh - 343px)'; // Fallback for SSR/initial render
+  }, [viewportHeight]);
 
   return (
     <div 
