@@ -47,6 +47,7 @@ export function MapCollapsible({
   const markerCount = markers.length;
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [supportsFullscreen, setSupportsFullscreen] = useState(false);
   
   // Use actual viewport height for iOS compatibility
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
@@ -60,6 +61,9 @@ export function MapCollapsible({
     
     // Set initial height
     updateHeight();
+    
+    // Check if fullscreen API is supported (not available on iOS Safari)
+    setSupportsFullscreen(!!document.documentElement.requestFullscreen);
     
     // Update on resize (when iOS toolbar shows/hides)
     window.addEventListener('resize', updateHeight);
@@ -179,22 +183,24 @@ export function MapCollapsible({
               </div>
             </div>
 
-            {/* Full Screen Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFullscreen();
-              }}
-              className="bg-white rounded-lg shadow-md p-2 pointer-events-auto hover:bg-gray-50 transition-colors"
-              aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-              title={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-            >
-              {isFullscreen ? (
-                <Minimize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
-              ) : (
-                <Maximize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
-              )}
-            </button>
+            {/* Full Screen Button - Only show if browser supports Fullscreen API (not iOS Safari) */}
+            {supportsFullscreen && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFullscreen();
+                }}
+                className="bg-white rounded-lg shadow-md p-2 pointer-events-auto hover:bg-gray-50 transition-colors"
+                aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+                title={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
+                ) : (
+                  <Maximize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
