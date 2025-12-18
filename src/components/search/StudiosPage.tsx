@@ -614,9 +614,9 @@ export function StudiosPage() {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full">
+    <div className={`min-h-screen flex flex-col bg-white relative -mt-20 overflow-x-hidden w-full max-w-full ${mobileView === 'map' ? '-mb-16 md:mb-0' : ''}`}>
       {/* Background Image for main content */}
-      <div className="absolute inset-x-0 top-0 bottom-16 md:bottom-0 pointer-events-none overflow-hidden">
+      <div className={`absolute inset-x-0 top-0 pointer-events-none overflow-hidden ${mobileView === 'map' ? 'bottom-0 md:bottom-0' : 'bottom-16 md:bottom-0'}`}>
         <Image
           src="/background-images/21920-5.jpg"
           alt="Studios page background texture"
@@ -811,7 +811,7 @@ export function StudiosPage() {
                 <p className="mt-4 text-text-secondary">Searching studios...</p>
               </div>
             ) : searchResults ? (
-              <div className="space-y-6">
+              <div className={`${mobileView === 'map' ? 'md:space-y-6' : 'space-y-6'}`}>
                 {/* Desktop: Map Section - Always shown at top */}
                 <div className="hidden lg:block h-[400px]">
                   <GoogleMap
@@ -833,23 +833,19 @@ export function StudiosPage() {
 
                 {/* Mobile: Map - Only show on Map View tab */}
                 {mobileView === 'map' && (
-                  <>
-                    <MapCollapsible
-                        markers={searchResults.mapMarkers || searchResults.studios}
-                        center={searchResults.searchCoordinates 
-                          ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
-                          : { lat: 20, lng: 0 }
-                        }
-                        zoom={searchResults.searchCoordinates ? 10 : 2}
-                        searchCenter={searchResults.searchCoordinates || null}
-                        searchRadius={parseInt(searchParams.get('radius') || '10')}
-                        onMarkerClick={handleMarkerClick}
-                        onBoundsChanged={handleBoundsChanged}
-                        selectedMarkerId={null}
-                      />
-                    {/* Spacer to ensure gap and scrollable content */}
-                    <div className="h-20"></div>
-                  </>
+                  <MapCollapsible
+                      markers={searchResults.mapMarkers || searchResults.studios}
+                      center={searchResults.searchCoordinates 
+                        ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
+                        : { lat: 20, lng: 0 }
+                      }
+                      zoom={searchResults.searchCoordinates ? 10 : 2}
+                      searchCenter={searchResults.searchCoordinates || null}
+                      searchRadius={parseInt(searchParams.get('radius') || '10')}
+                      onMarkerClick={handleMarkerClick}
+                      onBoundsChanged={handleBoundsChanged}
+                      selectedMarkerId={null}
+                    />
                   )
                 }
 
