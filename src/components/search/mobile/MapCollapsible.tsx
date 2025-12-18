@@ -187,12 +187,13 @@ export function MapCollapsible({
           : mapHeight,
         minHeight: isFullscreen ? undefined : '300px',
         width: isFullscreen ? '100vw' : undefined,
+        touchAction: isFullscreen ? 'pan-x pan-y pinch-zoom' : undefined,
       }}
     >
       {/* Full-Screen Map View */}
-      <div className="relative w-full h-full overflow-hidden">
+      <div className="relative w-full h-full overflow-hidden" style={{ touchAction: 'pan-x pan-y pinch-zoom' }}>
         {/* Map Container */}
-        <div className="relative w-full h-full bg-gray-100">
+        <div className="relative w-full h-full bg-gray-100" style={{ touchAction: 'pan-x pan-y pinch-zoom' }}>
           <GoogleMap
             center={center}
             zoom={zoom}
