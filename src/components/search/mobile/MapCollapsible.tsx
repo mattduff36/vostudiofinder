@@ -7,8 +7,8 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
-import { MapPin, Maximize2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { MapPin, Maximize2, Minimize2 } from 'lucide-react';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 
 interface MapCollapsibleProps {
@@ -45,6 +45,8 @@ export function MapCollapsible({
   selectedMarkerId,
 }: MapCollapsibleProps) {
   const markerCount = markers.length;
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // Use actual viewport height for iOS compatibility
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
@@ -67,6 +69,42 @@ export function MapCollapsible({
     };
   }, []);
 
+  // Handle fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Fullscreen toggle function
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        // Enter fullscreen
+        await mapContainerRef.current?.requestFullscreen();
+      } else {
+        // Exit fullscreen
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      console.error('Error toggling fullscreen:', err);
+    }
+  };
+
+  // Wrap onMarkerClick to exit fullscreen before navigation
+  const handleMarkerClick = (data: any, event: any) => {
+    // Exit fullscreen before opening modal/navigating
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+    onMarkerClick(data, event);
+  };
+
   // Transform markers to GoogleMap format
   const transformedMarkers = markers
     .filter((m) => m.latitude && m.longitude)
@@ -76,7 +114,7 @@ export function MapCollapsible({
       title: marker.name,
       studio_type: marker.studio_studio_types[0]?.studio_type || 'VOICEOVER',
       is_verified: marker.is_verified,
-      onClick: (event: any) => onMarkerClick(marker, event),
+      onClick: (event: any) => handleMarkerClick(marker, event),
       ...(marker.users?.username ? {
         studio: {
           id: marker.id,
@@ -100,12 +138,14 @@ export function MapCollapsible({
 
   return (
     <div 
-      className="md:hidden bg-white border-y border-gray-200 overflow-hidden"
+      ref={mapContainerRef}
+      className={`md:hidden bg-white overflow-hidden ${isFullscreen ? '' : 'border-y border-gray-200'}`}
       style={{
         // Calculate height: viewport - header (180px) - controls (67px) - bottom nav (64px) - padding (32px) = 343px total
         // Use window.innerHeight on iOS instead of 100vh for accurate viewport measurement
-        height: mapHeight,
-        minHeight: '300px' // Minimum for usability
+        height: isFullscreen ? '100vh' : mapHeight,
+        minHeight: isFullscreen ? '100vh' : '300px',
+        width: isFullscreen ? '100vw' : undefined,
       }}
     >
       {/* Full-Screen Map View */}
@@ -135,18 +175,21 @@ export function MapCollapsible({
               </div>
             </div>
 
-            {/* Full Screen Button (Future) */}
+            {/* Full Screen Button */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                // TODO: Implement full-screen map view in Phase 2.5
-                alert('Full-screen map coming soon!');
+                toggleFullscreen();
               }}
               className="bg-white rounded-lg shadow-md p-2 pointer-events-auto hover:bg-gray-50 transition-colors"
-              aria-label="Expand to full screen"
-              title="Full screen map (coming soon)"
+              aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+              title={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
             >
-              <Maximize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
+              {isFullscreen ? (
+                <Minimize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
+              ) : (
+                <Maximize2 className="w-4 h-4 text-gray-600" aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>
