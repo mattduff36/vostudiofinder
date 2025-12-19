@@ -94,8 +94,8 @@ export function BottomNav({ onMenuClick, session }: BottomNavProps) {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 bg-white/70 backdrop-blur-lg border-t border-gray-200/50 safe-area-bottom md:hidden z-50 transition-transform duration-300 ${
-        scrollDirection === 'down' && !isAtTop ? 'translate-y-full' : 'translate-y-0'
+      className={`fixed bottom-0 left-0 right-0 bg-white/70 backdrop-blur-lg border-t border-gray-200/50 safe-area-bottom md:hidden z-50 transition-transform [.admin-modal-open_&]:hidden ${
+        scrollDirection === 'down' && !isAtTop ? 'translate-y-full duration-0' : 'translate-y-0 duration-300'
       } ${isMapFullscreen ? 'hidden' : ''}`}
       role="navigation"
       aria-label="Mobile navigation"

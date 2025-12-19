@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, X, Upload, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -63,6 +63,20 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
   const [selectedConnections, setSelectedConnections] = useState<Record<string, boolean>>({});
   const [images, setImages] = useState<ImageUpload[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Hide navigation when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('admin-modal-open');
+    } else {
+      document.body.classList.remove('admin-modal-open');
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('admin-modal-open');
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -499,4 +513,6 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
     </div>
   );
 }
+
+
 
