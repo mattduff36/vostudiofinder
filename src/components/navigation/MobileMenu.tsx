@@ -154,13 +154,21 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
 
           {/* Edit (admin only, when on profile page) */}
           {isAdmin && isOnProfilePage && (
-            <Link
-              href={`${pathname}#edit`}
-              className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors mb-1"
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                // Update the hash
+                window.location.hash = 'edit';
+                // Manually trigger hashchange event
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+                // Close the menu
+                onClose();
+              }}
+              className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors mb-1 w-full"
             >
               <Edit className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
               <span className="text-sm font-medium">Edit Profile</span>
-            </Link>
+            </button>
           )}
         </div>
 
