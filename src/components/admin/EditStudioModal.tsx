@@ -2,7 +2,7 @@
 import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, Save, X } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Toggle } from '@/components/ui/Toggle';
@@ -973,36 +973,40 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </div>
 
             {/* Sticky Action Buttons */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-between items-center">
-              <div className="flex gap-3 items-center">
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3 flex justify-between items-center gap-3 flex-wrap">
+              <div className="flex gap-2 items-center flex-wrap">
                 <button
                   onClick={handleViewProfile}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 >
-                  👁️ View Profile
+                  <Eye className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">View</span>
                 </button>
-                <div className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white">
-                  <span className="text-sm font-medium text-gray-700">Profile Visibility:</span>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-md bg-white">
+                  <span className="text-xs font-medium text-gray-700 hidden sm:inline">Visibility:</span>
                   <Toggle
                     checked={profile?._meta?.is_profile_visible !== false}
                     onChange={(checked) => handleMetaChange('is_profile_visible', checked)}
                   />
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <button
                   onClick={handleSaveOnly}
                   disabled={saving}
-                  className="px-6 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 border border-transparent rounded-md text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
-                  {saving ? 'Saving...' : 'Save'}
+                  <Save className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{saving ? 'Saving...' : 'Save'}</span>
                 </button>
                 <button
                   onClick={handleSaveAndClose}
                   disabled={saving}
-                  className="px-6 py-2 bg-purple-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 border border-transparent rounded-md text-xs font-medium text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
-                  {saving ? 'Saving...' : 'Save & Close'}
+                  <Save className="w-3.5 h-3.5" />
+                  <X className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{saving ? 'Saving...' : 'Close'}</span>
                 </button>
               </div>
             </div>
