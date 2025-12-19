@@ -90,7 +90,7 @@ export function ProfileEditButton({ username }: ProfileEditButtonProps) {
   return (
     <>
       {isLoading && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-8">
             <div className="flex items-center">
               <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
