@@ -411,6 +411,12 @@ export async function PUT(
         : [];
     }
 
+    // Merge all studio_profiles updates into one object
+    const allStudioProfileUpdates = {
+      ...studioUpdateData,
+      ...profileUpdateData
+    };
+
     // Perform updates using Prisma transactions
     await prisma.$transaction(async (tx) => {
       // Update user if there are user changes
@@ -421,11 +427,11 @@ export async function PUT(
         });
       }
 
-      // Update studio if there are studio changes
-      if (Object.keys(studioUpdateData).length > 0) {
+      // Update studio_profiles if there are any changes (merged from studioUpdateData and profileUpdateData)
+      if (Object.keys(allStudioProfileUpdates).length > 0) {
         await tx.studio_profiles.update({
           where: { id: studioId },
-          data: studioUpdateData
+          data: allStudioProfileUpdates
         });
       }
 
@@ -450,21 +456,6 @@ export async function PUT(
             });
           }
         }
-      }
-
-      // Update profile if there are profile changes
-      if (Object.keys(profileUpdateData).length > 0) {
-        await tx.studio_profiles.upsert({
-          where: { user_id: existingStudio.user_id },
-          update: profileUpdateData,
-          create: {
-            id: randomBytes(12).toString('base64url'), // Generate ID for new profiles
-            user_id: existingStudio.user_id,
-            created_at: new Date(),
-            updated_at: new Date(),
-            ...profileUpdateData
-          }
-        });
       }
     });
 
