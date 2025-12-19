@@ -175,7 +175,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save profile');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save profile');
       }
 
       await response.json();
@@ -187,7 +188,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       onClose();
     } catch (error) {
       logger.error('Error saving profile:', error);
-      alert('Failed to save profile. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save profile. Please try again.';
+      alert(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -210,7 +212,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save profile');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save profile');
       }
 
       await response.json();
@@ -222,7 +225,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       setShowSuccessModal(true);
     } catch (error) {
       logger.error('Error saving profile:', error);
-      alert('Failed to save profile. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save profile. Please try again.';
+      alert(errorMessage);
     } finally {
       setSaving(false);
     }
