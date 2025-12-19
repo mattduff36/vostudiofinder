@@ -848,8 +848,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 overflow-y-auto">
-        <div className="fixed inset-0 bg-black bg-opacity-50" />
+      <div className="fixed inset-0 z-[100] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100]" />
         <div className="flex min-h-full items-start justify-center p-4 pt-20">
           <div className="bg-white rounded-lg p-8">
             <div className="flex items-center">
@@ -864,8 +864,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   if (!profile) {
     return (
-      <div className="fixed inset-0 z-50 overflow-y-auto">
-        <div className="fixed inset-0 bg-black bg-opacity-50" />
+      <div className="fixed inset-0 z-[100] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100]" />
         <div className="flex min-h-full items-start justify-center p-4 pt-20">
           <div className="bg-white rounded-lg p-8">
             <p className="text-red-600">Profile not found</p>
@@ -877,15 +877,15 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   return (
     <div 
-      className="fixed inset-0 z-50 overflow-y-auto"
+      className="fixed inset-0 z-[100] overflow-y-auto"
       onClick={handleBackdropClick}
     >
       {/* Modal backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-60 transition-opacity" />
+      <div className="fixed inset-0 bg-black bg-opacity-60 transition-opacity z-[100]" />
       
       {/* Modal container */}
-      <div className="flex min-h-full items-start justify-center p-4 pt-20">
-        <div className="relative w-full max-w-7xl mx-auto">
+      <div className="flex min-h-full items-start justify-center p-4 pt-20 relative z-[101]">
+        <div className="relative w-full max-w-7xl mx-auto z-[101]">
           {/* Modal content */}
           <div className="bg-white rounded-xl shadow-2xl max-h-[90vh] overflow-hidden">
             {/* Modal header with close button */}
@@ -1000,7 +1000,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         {/* Success Modal */}
         {showSuccessModal && (
           <div 
-            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center cursor-pointer"
+            className="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center cursor-pointer"
             onClick={() => setShowSuccessModal(false)}
           >
             <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-4">
