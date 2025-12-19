@@ -74,13 +74,30 @@ export function ProfileEditButton({ username }: ProfileEditButtonProps) {
       handleEditClick();
     };
 
+    // Listen for hash changes (when clicking "Edit Profile" from mobile menu)
+    const handleHashChange = () => {
+      if (window.location.hash === '#edit') {
+        handleEditClick();
+        // Clear the hash after opening modal
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    };
+
+    // Check if page loaded with #edit hash
+    if (window.location.hash === '#edit') {
+      handleEditClick();
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+
     window.addEventListener('profileEditClick', handleEditEvent);
+    window.addEventListener('hashchange', handleHashChange);
     
     // Dispatch event to notify navbar that edit handler is available
     window.dispatchEvent(new CustomEvent('profileEditHandlerReady', { detail: { username } }));
 
     return () => {
       window.removeEventListener('profileEditClick', handleEditEvent);
+      window.removeEventListener('hashchange', handleHashChange);
       window.dispatchEvent(new Event('profileEditHandlerUnmount'));
     };
   }, [username]);
