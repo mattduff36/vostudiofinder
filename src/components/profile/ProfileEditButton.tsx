@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import EditStudioModal from '@/components/admin/EditStudioModal';
 
@@ -40,7 +40,7 @@ export function ProfileEditButton({ username }: ProfileEditButtonProps) {
     return () => setMounted(false);
   }, []);
 
-  const handleEditClick = async () => {
+  const handleEditClick = useCallback(async () => {
     setIsLoading(true);
     try {
       // Fetch the studio data for this username
@@ -56,7 +56,7 @@ export function ProfileEditButton({ username }: ProfileEditButtonProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [username]);
 
   const handleSave = () => {
     // Refresh the page to show updated data
@@ -77,17 +77,28 @@ export function ProfileEditButton({ username }: ProfileEditButtonProps) {
     // Listen for hash changes (when clicking "Edit Profile" from mobile menu)
     const handleHashChange = () => {
       if (window.location.hash === '#edit') {
-        handleEditClick();
-        // Clear the hash after opening modal
-        window.history.replaceState(null, '', window.location.pathname);
+        // Small delay to ensure component is ready
+        setTimeout(() => {
+          handleEditClick();
+          // Clear the hash after opening modal
+          window.history.replaceState(null, '', window.location.pathname);
+        }, 100);
       }
     };
 
-    // Check if page loaded with #edit hash
-    if (window.location.hash === '#edit') {
-      handleEditClick();
-      window.history.replaceState(null, '', window.location.pathname);
-    }
+    // Check if page loaded with #edit hash (with small delay)
+    const checkInitialHash = () => {
+      if (window.location.hash === '#edit') {
+        setTimeout(() => {
+          handleEditClick();
+          window.history.replaceState(null, '', window.location.pathname);
+        }, 100);
+      }
+    };
+
+    // Check immediately and after a short delay to catch any timing issues
+    checkInitialHash();
+    const hashCheckTimeout = setTimeout(checkInitialHash, 500);
 
     window.addEventListener('profileEditClick', handleEditEvent);
     window.addEventListener('hashchange', handleHashChange);
@@ -96,11 +107,12 @@ export function ProfileEditButton({ username }: ProfileEditButtonProps) {
     window.dispatchEvent(new CustomEvent('profileEditHandlerReady', { detail: { username } }));
 
     return () => {
+      clearTimeout(hashCheckTimeout);
       window.removeEventListener('profileEditClick', handleEditEvent);
       window.removeEventListener('hashchange', handleHashChange);
       window.dispatchEvent(new Event('profileEditHandlerUnmount'));
     };
-  }, [username]);
+  }, [username, handleEditClick]);
 
   if (!mounted) return null;
 
