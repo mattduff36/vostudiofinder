@@ -961,7 +961,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </div>
 
             {/* Sticky Action Buttons */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-between items-center">
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 pb-20 md:pb-4 flex justify-between items-center">
               <div className="flex gap-3 items-center">
                 <button
                   onClick={handleViewProfile}
