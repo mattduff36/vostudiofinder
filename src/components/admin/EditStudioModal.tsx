@@ -101,6 +101,18 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     if (studio && isOpen) {
       fetchProfile();
     }
+    
+    // Hide navigation when modal is open
+    if (isOpen) {
+      document.body.classList.add('admin-modal-open');
+    } else {
+      document.body.classList.remove('admin-modal-open');
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('admin-modal-open');
+    };
   }, [studio, isOpen]);
 
   const fetchProfile = async () => {
@@ -884,10 +896,10 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       <div className="fixed inset-0 bg-black bg-opacity-60 transition-opacity z-[100]" />
       
       {/* Modal container */}
-      <div className="flex min-h-full items-start justify-center p-4 pt-20 relative z-[101]">
+      <div className="flex min-h-full items-start justify-center p-4 relative z-[101]">
         <div className="relative w-full max-w-7xl mx-auto z-[101]">
           {/* Modal content */}
-          <div className="bg-white rounded-xl shadow-2xl max-h-[90vh] overflow-hidden">
+          <div className="bg-white rounded-xl shadow-2xl h-[calc(100vh-2rem)] overflow-hidden">
             {/* Modal header with close button */}
             <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 border-b border-red-800 flex justify-between items-center">
               <div className="flex items-center gap-4">
@@ -925,7 +937,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </div>
             
             {/* Modal body with scrollable content */}
-            <div className="overflow-y-auto max-h-[calc(90vh-220px)]">
+            <div className="overflow-y-auto max-h-[calc(100vh-14rem)]">
               {/* Tab Navigation */}
               <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
                 <nav className="flex space-x-8 px-6 overflow-x-auto" aria-label="Tabs">
@@ -961,7 +973,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </div>
 
             {/* Sticky Action Buttons */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 pb-20 md:pb-4 flex justify-between items-center">
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-between items-center">
               <div className="flex gap-3 items-center">
                 <button
                   onClick={handleViewProfile}

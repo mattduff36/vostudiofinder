@@ -128,7 +128,7 @@ export function Navbar({ session }: NavbarProps) {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 w-full max-w-full ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 w-full max-w-full [.admin-modal-open_&]:hidden ${
         isScrolled || !isHomePage
           ? 'bg-white/70 md:bg-white backdrop-blur-lg shadow-lg'
           : 'bg-transparent'
