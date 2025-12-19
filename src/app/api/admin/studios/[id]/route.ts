@@ -251,7 +251,22 @@ export async function PUT(
     const userUpdateData: any = {};
     if (body.display_name !== undefined) userUpdateData.display_name = body.display_name; // Display name field
     if (body.username !== undefined) userUpdateData.username = body.username; // Username field updates actual username
-    if (body.email !== undefined) userUpdateData.email = body.email;
+    
+    // Check if email is being changed and if it's already taken
+    if (body.email !== undefined && body.email !== existingStudio.users?.email) {
+      const existingEmailUser = await prisma.users.findUnique({
+        where: { email: body.email }
+      });
+      
+      if (existingEmailUser && existingEmailUser.id !== existingStudio.user_id) {
+        return NextResponse.json({ 
+          error: 'Email address is already in use by another account' 
+        }, { status: 400 });
+      }
+      
+      userUpdateData.email = body.email;
+    }
+    
     if (body.avatar_image !== undefined) userUpdateData.avatar_url = body.avatar_image; // Avatar image
 
     // Prepare studio updates
@@ -477,9 +492,31 @@ export async function PUT(
       city: updatedStudio?.city || null,
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Update studio error:', error);
-    return NextResponse.json({ error: 'Failed to update studio' }, { status: 500 });
+    
+    // Handle Prisma unique constraint violations
+    if (error.code === 'P2002') {
+      const target = error.meta?.target;
+      if (target?.includes('email')) {
+        return NextResponse.json({ 
+          error: 'Email address is already in use by another account' 
+        }, { status: 400 });
+      }
+      if (target?.includes('username')) {
+        return NextResponse.json({ 
+          error: 'Username is already taken' 
+        }, { status: 400 });
+      }
+      return NextResponse.json({ 
+        error: 'A unique constraint was violated. Please check your data.' 
+      }, { status: 400 });
+    }
+    
+    return NextResponse.json({ 
+      error: 'Failed to update studio',
+      details: error.message 
+    }, { status: 500 });
   }
 }
 
