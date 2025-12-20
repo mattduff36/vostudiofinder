@@ -1,13 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   User,
-  Mail,
   Shield,
-  Eye,
-  EyeOff,
   ExternalLink,
   CheckCircle2,
   AlertCircle,
@@ -50,7 +46,6 @@ const SUGGESTION_CATEGORIES = [
 ];
 
 export function Settings({ data }: SettingsProps) {
-  const router = useRouter();
   const [profileData, setProfileData] = useState(data);
   const [isProfileVisible, setIsProfileVisible] = useState(data?.studio?.is_profile_visible !== false);
   const [savingVisibility, setSavingVisibility] = useState(false);
@@ -614,7 +609,6 @@ export function Settings({ data }: SettingsProps) {
       <CloseAccountModal 
         isOpen={showCloseAccountModal}
         onClose={() => setShowCloseAccountModal(false)}
-        username={profileData.user.username}
       />
     </>
   );
