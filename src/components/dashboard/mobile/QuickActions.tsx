@@ -52,7 +52,7 @@ export function QuickActions({
   ];
 
   return (
-    <div className="md:hidden space-y-3">
+    <div className="md:hidden py-6 space-y-3">
       {/* Welcome Header */}
       <div className="mb-4">
         <h2 className="text-2xl font-bold text-gray-900">
