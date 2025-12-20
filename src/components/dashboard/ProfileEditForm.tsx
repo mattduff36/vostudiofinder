@@ -694,58 +694,104 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm md:block">
-      {/* Desktop Header */}
-      <div className="hidden md:flex border-b border-gray-200 px-6 py-4 items-center gap-4">
-        {/* Avatar */}
-        <AvatarUpload
-          currentAvatar={profile.user.avatar_url}
-          onAvatarChange={(url) => updateUser('avatar_url', url)}
-          size="medium"
-          editable={true}
-          userName={profile.user.display_name || profile.user.username}
-          variant="user"
-        />
-        
-        {/* Title and description */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Update your studio information and settings
-          </p>
+    <>
+      {/* Desktop Container */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm hidden md:block">
+        {/* Desktop Header */}
+        <div className="flex border-b border-gray-200 px-6 py-4 items-center gap-4">
+          {/* Avatar */}
+          <AvatarUpload
+            currentAvatar={profile.user.avatar_url}
+            onAvatarChange={(url) => updateUser('avatar_url', url)}
+            size="medium"
+            editable={true}
+            userName={profile.user.display_name || profile.user.username}
+            variant="user"
+          />
+          
+          {/* Title and description */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Update your studio information and settings
+            </p>
+          </div>
+        </div>
+
+        {/* Messages */}
+        {error && (
+          <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="mx-6 mt-4 bg-green-50 border border-green-200 rounded-lg p-4 text-green-700">
+            {success}
+          </div>
+        )}
+
+        {/* Desktop Section Navigation */}
+        <div className="border-b border-gray-200 px-6">
+          <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => setActiveSection(section.id)}
+                className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                  activeSection === section.id
+                    ? 'border-red-500 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {section.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Desktop Content */}
+        <div className="px-6 py-6 min-h-[400px]">
+          <div className="w-full max-w-5xl mx-auto">
+            {renderSectionContent(activeSection)}
+          </div>
+        </div>
+
+        {/* Desktop Footer Actions */}
+        <div className="flex border-t border-gray-200 px-6 py-4 bg-gray-50 items-center justify-between">
+          <Button
+            onClick={handlePreview}
+            variant="secondary"
+            className="flex items-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            View Profile
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
         </div>
       </div>
 
-      {/* Messages */}
+      {/* Mobile Messages */}
       {error && (
-        <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+        <div className="md:hidden mx-4 mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
           {error}
         </div>
       )}
       {success && (
-        <div className="mx-6 mt-4 bg-green-50 border border-green-200 rounded-lg p-4 text-green-700">
+        <div className="md:hidden mx-4 mt-4 bg-green-50 border border-green-200 rounded-lg p-4 text-green-700">
           {success}
         </div>
       )}
-
-      {/* Desktop Section Navigation */}
-      <div className="hidden md:block border-b border-gray-200 px-6">
-        <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => setActiveSection(section.id)}
-              className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
-                activeSection === section.id
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {section.label}
-            </button>
-          ))}
-        </nav>
-      </div>
 
       {/* Mobile Accordion Sections */}
       <div className="md:hidden space-y-3 px-4 py-6">
@@ -785,20 +831,13 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
                 {/* Section Content */}
                 {isExpanded && (
-                  <div className="border-t border-gray-100 p-4 bg-gray-50">
+                  <div className="border-t border-gray-100 p-4 bg-white">
                     <div className="space-y-4">{renderSectionContent(section.id)}</div>
                   </div>
                 )}
               </div>
             );
           })}
-        </div>
-
-      {/* Desktop Content */}
-      <div className="hidden md:block px-6 py-6 min-h-[400px]">
-        <div className="w-full max-w-5xl mx-auto">
-        {renderSectionContent(activeSection)}
-        </div>
       </div>
 
       {/* Mobile Save Button - Sticky at bottom above nav */}
@@ -817,32 +856,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             )}
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
-        </div>
-
-      {/* Desktop Footer Actions */}
-      <div className="hidden md:flex border-t border-gray-200 px-6 py-4 bg-gray-50 items-center justify-between">
-        <Button
-          onClick={handlePreview}
-          variant="secondary"
-          className="flex items-center gap-2"
-        >
-          <Eye className="w-4 h-4" />
-          View Profile
-        </Button>
-        <Button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2"
-        >
-          {saving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
-          {saving ? 'Saving...' : 'Save Changes'}
-        </Button>
       </div>
-    </div>
+    </>
   );
 }
 
