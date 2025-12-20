@@ -455,8 +455,8 @@ export function MembershipSuccess() {
                 placeholder="e.g., Smith Studios"
               />
 
-              <div>
-                <Input
+            <div>
+              <Input
                   label="Short About *"
                   {...register('short_about', { required: 'Short description is required' })}
                   error={errors.short_about?.message || ''}
@@ -464,9 +464,9 @@ export function MembershipSuccess() {
                   helperText="Brief description shown in listings"
                   placeholder="e.g., Professional recording studio in London"
                 />
-              </div>
+            </div>
 
-              <div>
+            <div>
                 <Textarea
                   label="Full About *"
                   {...register('about', { required: 'Full description is required' })}
@@ -476,12 +476,12 @@ export function MembershipSuccess() {
                   helperText="Detailed description for your profile page"
                   placeholder="Tell voice artists about your studio, equipment, experience..."
                 />
-              </div>
+            </div>
 
-              <div>
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Studio Types *
-                </label>
+              </label>
                 <div className="grid grid-cols-3 gap-3">
                   {STUDIO_TYPES.map((type) => (
                     <div key={type.value} className="relative group">
@@ -495,11 +495,11 @@ export function MembershipSuccess() {
                       </div>
                     </div>
                   ))}
-                </div>
+              </div>
                 {studioTypes.length === 0 && (
                   <p className="mt-1 text-sm text-gray-500">Select at least one type</p>
-                )}
-              </div>
+              )}
+            </div>
             </div>
 
             {/* Location */}
@@ -553,7 +553,7 @@ export function MembershipSuccess() {
                 placeholder="https://yourstudio.com"
               />
 
-              <div>
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Connection Methods * (Select all that apply)
                 </label>
@@ -606,7 +606,7 @@ export function MembershipSuccess() {
                           disabled={uploading}
                           className="hidden"
                         />
-                      </label>
+              </label>
                     </div>
                     <p className="mt-2 text-sm text-gray-500">
                       PNG, JPG, WEBP up to 5MB
@@ -623,15 +623,15 @@ export function MembershipSuccess() {
                         src={image.url}
                         alt={`Studio image ${index + 1}`}
                         className="w-full h-48 object-cover"
-                      />
-                      <button
-                        type="button"
+                />
+                <button
+                  type="button"
                         onClick={() => removeImage(index)}
                         className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
                       >
                         <X className="w-4 h-4" />
-                      </button>
-                    </div>
+                </button>
+              </div>
                   ))}
                 </div>
               )}
@@ -643,14 +643,14 @@ export function MembershipSuccess() {
 
             {/* Submit Button */}
             <div className="pt-6 border-t">
-              <Button
-                type="submit"
+            <Button
+              type="submit"
                 className="w-full bg-red-600 hover:bg-red-700 text-white py-3 text-lg font-semibold"
-                loading={isLoading}
+              loading={isLoading}
                 disabled={isLoading || uploading}
-              >
+            >
                 Create My Profile!
-              </Button>
+            </Button>
             </div>
           </form>
         </div>

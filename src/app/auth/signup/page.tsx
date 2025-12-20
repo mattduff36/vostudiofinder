@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default async function SignupPage() {
   // Only redirect to join-waitlist in production
   if (process.env.NODE_ENV === 'production') {
-    redirect('/join-waitlist');
+  redirect('/join-waitlist');
   }
 
   // In development, show the signup form
