@@ -7,7 +7,7 @@ import { Footer } from '@/components/home/Footer';
 export default function AboutPage() {
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden flex flex-col">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -27,7 +27,7 @@ export default function AboutPage() {
       />
 
       {/* Content Section */}
-      <div className="relative z-10 max-w-4xl mx-auto px-6 py-16">
+      <div className="relative z-10 max-w-4xl mx-auto px-6 py-16 flex-1">
         <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-8 md:p-12">
           <div className="prose prose-gray max-w-none">
             
@@ -122,6 +122,7 @@ export default function AboutPage() {
     </div>
   );
 }
+
 
 
 
