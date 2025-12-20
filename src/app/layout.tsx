@@ -95,7 +95,7 @@ export default async function RootLayout({
       >
         <SessionProvider session={session}>
           <Navbar session={session} />
-          <main className="pt-20 pb-16 md:pb-0">
+          <main className="pt-16 pb-16 md:pt-20 md:pb-0">
             {children}
           </main>
           <MobileShell session={session} />
