@@ -141,7 +141,7 @@ export function SimpleStudioMap({
       zoomControl: true,
       mapTypeControl: false,
       streetViewControl: false,
-      fullscreenControl: true,
+      fullscreenControl: false, // Disabled - using custom fullscreen button on mobile
       gestureHandling: 'cooperative', // Require two-finger scroll on mobile, Ctrl+scroll on desktop
       styles: [
         {
