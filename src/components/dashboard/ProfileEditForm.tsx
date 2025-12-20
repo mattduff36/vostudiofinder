@@ -126,8 +126,9 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         const card = sectionRefs.current[expandedMobileSection];
         if (card) {
           const navbarHeight = 64; // pt-16 = 64px
+          const extraSpacing = 16; // Additional spacing below navbar
           const cardTop = card.getBoundingClientRect().top + window.scrollY;
-          const scrollTo = cardTop - navbarHeight;
+          const scrollTo = cardTop - navbarHeight - extraSpacing;
           
           window.scrollTo({
             top: scrollTo,
