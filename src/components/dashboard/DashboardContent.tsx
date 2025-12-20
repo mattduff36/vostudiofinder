@@ -146,48 +146,48 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
         <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
-      {/* Mobile Dashboard Components */}
-      {activeTab === 'overview' ? (
-            // Overview: Show only quick actions (stats removed per user request)
-            <>
-              <QuickActions 
-                onActionClick={handleQuickAction}
-                displayName={dashboardData?.user?.display_name || dashboardData?.user?.username || ''}
-                isProfileVisible={isProfileVisible}
-                onVisibilityToggle={handleVisibilityToggle}
-                saving={saving}
+      {/* Mobile Back Button - Only for sub-pages */}
+      {activeTab !== 'overview' && (
+        <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className="flex items-center space-x-2 text-[#d42027] hover:text-[#a1181d] transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
               />
-            </>
-          ) : (
-            // Sub-pages: Show back button
-            <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3">
-              <button
-                onClick={() => setActiveTab('overview')}
-                className="flex items-center space-x-2 text-[#d42027] hover:text-[#a1181d] transition-colors"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                <span className="font-medium">Back to Dashboard</span>
-              </button>
-            </div>
-          )}
+            </svg>
+            <span className="font-medium">Back to Dashboard</span>
+          </button>
+        </div>
+      )}
 
       {/* Content */}
       <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
         activeTab === 'overview' ? 'py-0 md:py-8' : 'py-8'
       }`}>
+        {activeTab === 'overview' ? (
+          // Overview: Show quick actions on mobile, regular content on desktop
+          <div className="md:hidden">
+            <QuickActions 
+              onActionClick={handleQuickAction}
+              displayName={dashboardData?.user?.display_name || dashboardData?.user?.username || ''}
+              isProfileVisible={isProfileVisible}
+              onVisibilityToggle={handleVisibilityToggle}
+              saving={saving}
+            />
+          </div>
+        ) : null}
         {renderTabContent()}
       </div>
 

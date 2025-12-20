@@ -802,7 +802,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             return (
               <div
                 key={section.id}
-                className="bg-white/100 border border-gray-200 rounded-lg overflow-hidden shadow-sm"
+                className="!bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm"
               >
                 {/* Section Header */}
                 <button
