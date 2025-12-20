@@ -298,7 +298,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
         ownerDisplayName={studio.owner.display_name}
         ownerUsername={studio.owner.username}
         ownerAvatarUrl={studio.owner.avatar_url}
-        heroImage={displayImages[0]?.image_url}
+        studioImages={displayImages}
         isVerified={studio.is_verified}
         abbreviatedAddress={studio.abbreviated_address}
         showAddress={profile?.show_address}
