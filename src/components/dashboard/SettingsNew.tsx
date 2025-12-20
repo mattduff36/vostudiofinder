@@ -49,7 +49,7 @@ const SUGGESTION_CATEGORIES = [
   'Other',
 ];
 
-export function Settings({ data }: SettingsProps) {
+export function SettingsNew({ data }: SettingsProps) {
   const router = useRouter();
   const [profileData, setProfileData] = useState(data);
   const [isProfileVisible, setIsProfileVisible] = useState(data?.studio?.is_profile_visible !== false);
