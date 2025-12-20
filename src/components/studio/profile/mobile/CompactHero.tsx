@@ -118,7 +118,7 @@ export function CompactHero({
 
   return (
     <>
-      <div className="md:hidden bg-white -mt-20">
+      <div className="md:hidden bg-white">
         {/* Hero Image Carousel - Full Width */}
         <div 
           className="relative w-full aspect-[16/9] bg-gray-200 overflow-hidden cursor-pointer"
