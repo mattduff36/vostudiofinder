@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -111,11 +111,32 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [error, setError] = useState<string | null>(null);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const [success, setSuccess] = useState<string | null>(null);
+  const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Fetch profile data
   useEffect(() => {
     fetchProfile();
   }, [userId]);
+
+  // Scroll to expanded card on mobile
+  useEffect(() => {
+    if (expandedMobileSection && sectionRefs.current[expandedMobileSection]) {
+      // Wait for DOM to update (card expansion animation)
+      setTimeout(() => {
+        const card = sectionRefs.current[expandedMobileSection];
+        if (card) {
+          const navbarHeight = 64; // pt-16 = 64px
+          const cardTop = card.getBoundingClientRect().top + window.scrollY;
+          const scrollTo = cardTop - navbarHeight;
+          
+          window.scrollTo({
+            top: scrollTo,
+            behavior: 'smooth'
+          });
+        }
+      }, 100); // Small delay to ensure expansion has started
+    }
+  }, [expandedMobileSection]);
 
   const fetchProfile = async () => {
     try {
@@ -802,6 +823,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             return (
               <div
                 key={section.id}
+                ref={(el) => { sectionRefs.current[section.id] = el; }}
                 className="!bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm"
               >
                 {/* Section Header */}
