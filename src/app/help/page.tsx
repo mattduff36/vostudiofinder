@@ -95,7 +95,7 @@ export default function HelpPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden flex flex-col">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -115,7 +115,7 @@ export default function HelpPage() {
       />
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 flex-1">
         
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">

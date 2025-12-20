@@ -759,6 +759,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
+                data-section={section.id}
                 className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
                   activeSection === section.id
                     ? 'border-red-500 text-red-600'
@@ -830,6 +831,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 {/* Section Header */}
                 <button
                   onClick={() => handleMobileSectionClick(section.id)}
+                  data-section={section.id}
                   className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors active:bg-gray-100"
                 >
                   <div className="flex items-center space-x-3 flex-1">

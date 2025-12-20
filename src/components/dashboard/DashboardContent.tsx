@@ -6,6 +6,7 @@ import { DashboardTabs, DashboardTab } from './DashboardTabs';
 import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
 import { ImageGalleryManager } from './ImageGalleryManager';
+import { Settings } from './Settings';
 import { Footer } from '@/components/home/Footer';
 import { logger } from '@/lib/logger';
 
@@ -113,15 +114,7 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
         return <ImageGalleryManager />;
       
       case 'settings':
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
-              <p className="text-gray-600">Settings panel will go here.</p>
-              {/* Settings panel will be added here */}
-            </div>
-          </div>
-        );
+        return <Settings data={dashboardData} />;
       
       default:
         return <UserDashboard data={dashboardData} />;
