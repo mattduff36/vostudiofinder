@@ -34,16 +34,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { error: 'Stripe configuration not available' },
           { status: 500 }
-        );
-      }
+      );
+    }
 
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
-      
-      if (session.payment_status !== 'paid') {
-        return NextResponse.json(
-          { error: 'Payment not verified' },
-          { status: 400 }
-        );
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    
+    if (session.payment_status !== 'paid') {
+      return NextResponse.json(
+        { error: 'Payment not verified' },
+        { status: 400 }
+      );
       }
     } else {
       console.log('🔧 DEV MODE: Skipping Stripe payment verification for account creation');
@@ -101,13 +101,13 @@ export async function POST(request: NextRequest) {
     // Mark the session as used to prevent reuse (only in production)
     if (!isDevMode && process.env.STRIPE_SECRET_KEY) {
       const session = await stripe.checkout.sessions.retrieve(sessionId);
-      await stripe.checkout.sessions.update(sessionId, {
-        metadata: {
-          ...session.metadata,
-          account_created: 'true',
-          user_id: user.id,
-        },
-      });
+    await stripe.checkout.sessions.update(sessionId, {
+      metadata: {
+        ...session.metadata,
+        account_created: 'true',
+        user_id: user.id,
+      },
+    });
     }
     
     // FUTURE: Send verification email

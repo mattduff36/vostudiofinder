@@ -12,7 +12,6 @@ import clsx from 'clsx';
 
 // Phase 3: Mobile profile components
 import { CompactHero } from './mobile/CompactHero';
-import { ContactBar } from './mobile/ContactBar';
 import { AboutCollapsible } from './mobile/AboutCollapsible';
 import { ServicesListCompact } from './mobile/ServicesListCompact';
 
@@ -977,16 +976,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           </div>
         </div>
       )}
-
-      {/* Mobile Contact Bar (< 768px only) */}
-      <ContactBar
-          phone={studio.phone}
-          email={studio.owner.email}
-          websiteUrl={studio.website_url}
-          showPhone={profile?.show_phone !== false}
-          showEmail={profile?.show_email !== false}
-          onMessageClick={handleContactClick}
-        />
 
       {/* Footer - Desktop only */}
       <div className="hidden md:block">
