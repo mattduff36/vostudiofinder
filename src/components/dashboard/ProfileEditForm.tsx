@@ -12,6 +12,7 @@ import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -108,6 +109,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [activeSection, setActiveSection] = useState('basic');
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const [success, setSuccess] = useState<string | null>(null);
 
   // Fetch profile data
@@ -800,7 +802,9 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       </div>
 
       {/* Mobile Save Button - Sticky at bottom above nav */}
-      <div className="md:hidden fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-40">
+      <div className={`md:hidden fixed left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-40 transition-all duration-300 ${
+        scrollDirection === 'down' && !isAtTop ? 'bottom-0' : 'bottom-16'
+      }`}>
           <Button
             onClick={handleSave}
             disabled={saving}
