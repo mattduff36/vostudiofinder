@@ -6,10 +6,11 @@
  * 2. Avatar and basic info section below
  * 
  * Features:
- * - Auto-scrolls every 5 seconds with smooth transitions
+ * - Auto-scrolls every 8 seconds with smooth transitions
  * - Swipeable left/right navigation
  * - Auto-scroll stops permanently after user interaction
  * - Click to open full-screen modal
+ * - Uses same aspect ratio (25:12) as desktop
  * - Only visible on mobile (< 768px)
  */
 'use client';
@@ -121,7 +122,7 @@ export function CompactHero({
       <div className="md:hidden bg-white">
         {/* Hero Image Carousel - Full Width */}
         <div 
-          className="relative w-full aspect-[16/9] bg-gray-200 overflow-hidden cursor-pointer"
+          className="relative w-full aspect-[25/12] bg-gray-200 overflow-hidden cursor-pointer"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -195,7 +196,7 @@ export function CompactHero({
             {/* Studio Name & Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-gray-900 font-bold text-lg leading-tight">
+                <h1 className="text-gray-900 font-bold !text-base leading-tight">
                   {studioName}
                 </h1>
                 {isVerified && (
