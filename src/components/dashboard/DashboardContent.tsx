@@ -122,7 +122,7 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
   };
 
   return (
-    <div className="min-h-screen relative bg-gray-50">
+    <div className="min-h-screen relative bg-gray-50 flex flex-col">
       {/* Background Image - Fixed */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
@@ -166,7 +166,7 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
       )}
 
       {/* Content */}
-      <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
+      <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 ${
         activeTab === 'overview' ? 'py-0 md:py-8' : 'py-8'
       }`}>
         {activeTab === 'overview' ? (

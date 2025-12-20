@@ -90,7 +90,7 @@ export default function JoinWaitlistPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden flex flex-col">
       {/* Background Image */}
       <div className="absolute inset-0 h-full">
         <Image
@@ -102,7 +102,7 @@ export default function JoinWaitlistPage() {
         />
       </div>
 
-      <div className="relative z-10 py-12 sm:px-6 lg:px-8">
+      <div className="relative z-10 py-12 sm:px-6 lg:px-8 flex-1">
         <div className="max-w-7xl mx-auto px-4">
         {/* Logo */}
         <div className="flex justify-center mb-8">

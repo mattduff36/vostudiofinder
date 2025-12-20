@@ -29,18 +29,20 @@ interface HomePageProps {
 
 export function HomePage({ session, featuredStudios, stats }: HomePageProps) {
   return (
-    <div className="min-h-screen -mt-20 w-full max-w-full overflow-x-hidden" style={{ backgroundColor: colors.background }}>
-      {/* Hero Section */}
-      <HeroSection />
-      
-      {/* Featured Studios */}
-      <FeaturedStudios studios={featuredStudios} />
-      
-      {/* Combined Stats and CTA Section */}
-      <CombinedCTASection session={session} stats={stats} />
-      
-      {/* New CTA Section */}
-      <NewCTASection />
+    <div className="min-h-screen -mt-20 w-full max-w-full overflow-x-hidden flex flex-col" style={{ backgroundColor: colors.background }}>
+      <div className="flex-1">
+        {/* Hero Section */}
+        <HeroSection />
+        
+        {/* Featured Studios */}
+        <FeaturedStudios studios={featuredStudios} />
+        
+        {/* Combined Stats and CTA Section */}
+        <CombinedCTASection session={session} stats={stats} />
+        
+        {/* New CTA Section */}
+        <NewCTASection />
+      </div>
       
       {/* Footer - Desktop only */}
       <div className="hidden md:block">
