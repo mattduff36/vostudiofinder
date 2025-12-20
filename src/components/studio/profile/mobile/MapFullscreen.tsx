@@ -123,7 +123,7 @@ export function MapFullscreen({
         latitude={latitude}
         longitude={longitude}
         address={address}
-        fullAddress={fullAddress}
+        fullAddress={fullAddress || ''}
         useCoordinates={useCoordinates}
         height={
           !supportsNativeFullscreen && isFullscreen && viewportHeight
