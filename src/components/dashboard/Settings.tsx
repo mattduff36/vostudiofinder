@@ -150,7 +150,7 @@ export function Settings({ data }: SettingsProps) {
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full max-w-5xl mx-auto">
       {/* Desktop Header */}
       <div className="hidden md:block bg-white rounded-lg border border-gray-200 shadow-sm p-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Settings</h2>
