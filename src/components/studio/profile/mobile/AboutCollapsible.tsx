@@ -2,10 +2,9 @@
  * AboutCollapsible - Collapsible About Section for Mobile
  * 
  * Shows essential studio information:
- * - Location
- * - Description (first 3 lines, expandable)
- * - Equipment list (collapsible)
+ * - Description (full text)
  * - Studio types
+ * - Equipment list (collapsible)
  * 
  * Only visible on mobile (< 768px), feature-gated by Phase 3.
  */
@@ -34,6 +33,15 @@ export function AboutCollapsible({
 
   return (
     <div className="md:hidden bg-white border-b border-gray-200">
+      {/* About Description */}
+      {description && (
+        <div className="px-4 py-4 border-b border-gray-100">
+          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+            {description}
+          </div>
+        </div>
+      )}
+
       {/* Studio Types */}
       {studioTypes.length > 0 && (
         <div className="px-4 py-3 border-b border-gray-100">
@@ -47,15 +55,6 @@ export function AboutCollapsible({
                 {type}
               </span>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* About Description */}
-      {description && (
-        <div className="px-4 py-4 border-b border-gray-100">
-          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-            {description}
           </div>
         </div>
       )}
