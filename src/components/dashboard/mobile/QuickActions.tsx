@@ -64,7 +64,7 @@ export function QuickActions({
       </div>
 
       {/* Profile Visibility Toggle Card */}
-      <div className="bg-white/100 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+      <div className="!bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-3 flex-1 min-w-0">
             <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
@@ -101,7 +101,7 @@ export function QuickActions({
         return (
           <div
             key={action.id}
-            className="bg-white/100 border border-gray-200 rounded-lg overflow-hidden shadow-sm"
+            className="!bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm"
           >
             {/* Action Button */}
             <button
