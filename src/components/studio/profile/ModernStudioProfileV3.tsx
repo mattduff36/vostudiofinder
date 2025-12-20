@@ -14,6 +14,7 @@ import clsx from 'clsx';
 import { CompactHero } from './mobile/CompactHero';
 import { AboutCollapsible } from './mobile/AboutCollapsible';
 import { ServicesListCompact } from './mobile/ServicesListCompact';
+import { MapFullscreen } from './mobile/MapFullscreen';
 
 // Force rebuild: Updated types for connection9-12 and custom_connection_methods
 import { 
@@ -468,14 +469,12 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             <div className="bg-white border-b border-gray-200 md:hidden">
               <div className="px-4 py-4">
                 <p className="text-xs text-gray-500 mb-3">Location</p>
-                <div className="h-48 bg-gray-100 rounded-lg overflow-hidden">
-                  <SimpleStudioMap
-                    latitude={studio.latitude}
-                    longitude={studio.longitude}
-                    address={studio.abbreviated_address || studio.address || studio.full_address || ''}
-                    fullAddress={studio.full_address || studio.address || ''}
-                  />
-                </div>
+                <MapFullscreen
+                  latitude={studio.latitude}
+                  longitude={studio.longitude}
+                  address={studio.abbreviated_address || studio.address || studio.full_address || ''}
+                  fullAddress={studio.full_address || studio.address || ''}
+                />
                 {/* Button under map - Same logic as desktop */}
                 {profile?.show_directions !== false ? (
                   <button
