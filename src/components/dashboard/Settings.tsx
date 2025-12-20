@@ -1,70 +1,99 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { 
-  User, 
-  Mail, 
-  Shield, 
-  Eye, 
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  User,
+  Mail,
+  Shield,
+  Eye,
   EyeOff,
-  Settings as SettingsIcon,
   ExternalLink,
   CheckCircle2,
   AlertCircle,
-  Loader2
+  Loader2,
+  Lock,
+  Trash2,
+  Download,
+  MessageCircle,
+  Lightbulb,
+  Calendar,
+  CreditCard,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle
 } from 'lucide-react';
 import { Toggle } from '@/components/ui/Toggle';
-import { Button } from '@/components/ui/Button';
+import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
+import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
+import { logger } from '@/lib/logger';
 
 interface SettingsProps {
-  data: {
-    user: {
-      id: string;
-      display_name: string;
-      email: string;
-      username: string;
-      role: string;
-      avatar_url?: string;
-    };
-    studio?: {
-      is_profile_visible?: boolean;
-      completion_percentage?: number;
-    };
-  };
+  data: any; // dashboardData
 }
 
-export function Settings({ data }: SettingsProps) {
-  const [isProfileVisible, setIsProfileVisible] = useState(
-    data.studio?.is_profile_visible !== false
-  );
-  const [saving, setSaving] = useState(false);
-  const [profileData, setProfileData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+const ISSUE_CATEGORIES = [
+  'Account Access',
+  'Profile Issues',
+  'Payment/Billing',
+  'Technical Bug',
+  'Content Report',
+  'Other',
+];
 
-  // Fetch full profile data for completion status
+const SUGGESTION_CATEGORIES = [
+  'New Feature',
+  'UI/UX Improvement',
+  'Performance',
+  'Content',
+  'Other',
+];
+
+export function SettingsNew({ data }: SettingsProps) {
+  const router = useRouter();
+  const [profileData, setProfileData] = useState(data);
+  const [isProfileVisible, setIsProfileVisible] = useState(data?.studio?.is_profile_visible !== false);
+  const [savingVisibility, setSavingVisibility] = useState(false);
+  
+  // Modals
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showCloseAccountModal, setShowCloseAccountModal] = useState(false);
+  
+  // Support forms
+  const [issueFormOpen, setIssueFormOpen] = useState(false);
+  const [suggestionFormOpen, setSuggestionFormOpen] = useState(false);
+  const [issueCategory, setIssueCategory] = useState('');
+  const [issueMessage, setIssueMessage] = useState('');
+  const [suggestionCategory, setSuggestionCategory] = useState('');
+  const [suggestionMessage, setSuggestionMessage] = useState('');
+  const [submittingIssue, setSubmittingIssue] = useState(false);
+  const [submittingSuggestion, setSubmittingSuggestion] = useState(false);
+  const [issueSuccess, setIssueSuccess] = useState(false);
+  const [suggestionSuccess, setSuggestionSuccess] = useState(false);
+  const [issueError, setIssueError] = useState('');
+  const [suggestionError, setSuggestionError] = useState('');
+  
+  // Download data
+  const [downloadingData, setDownloadingData] = useState(false);
+
+  // Update profileData if data prop changes
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await fetch('/api/user/profile');
-        if (response.ok) {
-          const result = await response.json();
-          setProfileData(result.data);
-          if (result.data.studio) {
-            setIsProfileVisible(result.data.studio.is_profile_visible !== false);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch profile:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
+    setProfileData(data);
+    setIsProfileVisible(data?.studio?.is_profile_visible !== false);
+  }, [data]);
 
-  const handleVisibilityToggle = async (visible: boolean) => {
-    setSaving(true);
+  const lastUpdated = useMemo(() => {
+    if (!profileData?.studio?.updated_at) return 'Never';
+    const date = new Date(profileData.studio.updated_at);
+    return date.toLocaleDateString('en-GB', { 
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  }, [profileData]);
+
+  const handleVisibilityToggle = useCallback(async (visible: boolean) => {
+    setSavingVisibility(true);
     try {
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
@@ -78,297 +107,515 @@ export function Settings({ data }: SettingsProps) {
 
       if (response.ok) {
         setIsProfileVisible(visible);
+        logger.log('✅ Profile visibility updated to:', visible);
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        logger.error('Failed to update profile visibility:', errorData);
         alert('Failed to update profile visibility. Please try again.');
         setIsProfileVisible(!visible);
       }
     } catch (err) {
-      console.error('Error updating profile visibility:', err);
+      logger.error('Error updating profile visibility:', err);
       alert('Error updating profile visibility. Please try again.');
       setIsProfileVisible(!visible);
     } finally {
-      setSaving(false);
+      setSavingVisibility(false);
     }
-  };
+  }, []);
 
-  const handleNavigateToPrivacy = () => {
-    window.location.hash = 'edit-profile';
-    // Small delay to ensure tab switches, then click privacy section
-    setTimeout(() => {
-      const privacyButtons = document.querySelectorAll('[data-section="privacy"]');
-      // Try mobile first (there's only one visible at a time due to responsive classes)
-      privacyButtons.forEach((button) => {
-        const element = button as HTMLElement;
-        // Check if element is visible
-        if (element.offsetParent !== null) {
-          element.click();
-        }
+  const handleDownloadData = useCallback(async () => {
+    setDownloadingData(true);
+    try {
+      const response = await fetch('/api/user/download-data');
+      
+      if (!response.ok) {
+        throw new Error('Failed to download data');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `voiceoverstudiofinder-data-export-${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      logger.log('✅ Data downloaded successfully');
+    } catch (err) {
+      logger.error('Error downloading data:', err);
+      alert('Failed to download data. Please try again.');
+    } finally {
+      setDownloadingData(false);
+    }
+  }, []);
+
+  const handleSubmitIssue = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIssueError('');
+    setIssueSuccess(false);
+
+    if (!issueCategory || !issueMessage) {
+      setIssueError('Please fill in all fields');
+      return;
+    }
+
+    setSubmittingIssue(true);
+
+    try {
+      const response = await fetch('/api/support/submit-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'ISSUE',
+          category: issueCategory,
+          message: issueMessage,
+        }),
       });
-    }, 150);
-  };
 
-  // Calculate profile completion
-  const calculateCompletion = () => {
-    if (!profileData) return 0;
-    
-    const requiredFields = [
-      profileData.user?.username,
-      profileData.user?.display_name,
-      profileData.user?.email,
-      profileData.studio?.name,
-      profileData.profile?.short_about,
-      profileData.profile?.about,
-      profileData.studio?.studio_types?.length > 0,
-      profileData.studio?.address,
-      profileData.studio?.website_url,
-    ];
+      const result = await response.json();
 
-    const optionalFields = [
-      profileData.user?.avatar_url,
-      profileData.profile?.phone,
-      profileData.profile?.rate_tier_1,
-      profileData.profile?.equipment_list,
-      profileData.profile?.services_offered,
-    ];
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit issue');
+      }
 
-    const requiredComplete = requiredFields.filter(Boolean).length;
-    const optionalComplete = optionalFields.filter(Boolean).length;
-    const totalFields = requiredFields.length + optionalFields.length;
-    const totalComplete = requiredComplete + optionalComplete;
+      setIssueSuccess(true);
+      setIssueMessage('');
+      setIssueCategory('');
+      logger.log('✅ Issue submitted:', result.ticketId);
 
-    return Math.round((totalComplete / totalFields) * 100);
-  };
+      setTimeout(() => {
+        setIssueSuccess(false);
+        setIssueFormOpen(false);
+      }, 3000);
 
-  const completionPercentage = calculateCompletion();
+    } catch (err: any) {
+      logger.error('Error submitting issue:', err);
+      setIssueError(err.message || 'Failed to submit issue');
+    } finally {
+      setSubmittingIssue(false);
+    }
+  }, [issueCategory, issueMessage]);
 
-  if (loading) {
+  const handleSubmitSuggestion = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSuggestionError('');
+    setSuggestionSuccess(false);
+
+    if (!suggestionCategory || !suggestionMessage) {
+      setSuggestionError('Please fill in all fields');
+      return;
+    }
+
+    setSubmittingSuggestion(true);
+
+    try {
+      const response = await fetch('/api/support/submit-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'SUGGESTION',
+          category: suggestionCategory,
+          message: suggestionMessage,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit suggestion');
+      }
+
+      setSuggestionSuccess(true);
+      setSuggestionMessage('');
+      setSuggestionCategory('');
+      logger.log('✅ Suggestion submitted:', result.ticketId);
+
+      setTimeout(() => {
+        setSuggestionSuccess(false);
+        setSuggestionFormOpen(false);
+      }, 3000);
+
+    } catch (err: any) {
+      logger.error('Error submitting suggestion:', err);
+      setSuggestionError(err.message || 'Failed to submit suggestion');
+    } finally {
+      setSubmittingSuggestion(false);
+    }
+  }, [suggestionCategory, suggestionMessage]);
+
+  if (!profileData) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-[#d42027]" />
+        <Loader2 className="w-8 h-8 animate-spin text-red-600" />
       </div>
     );
   }
 
   return (
     <>
-      {/* Desktop Header */}
-      <div className="hidden md:block bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Settings</h2>
-        <p className="text-gray-600">Manage your account settings and preferences</p>
+      {/* Header */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Settings</h2>
+            <p className="text-sm text-gray-600 mt-1">Manage your account settings and preferences</p>
+          </div>
+          <div className="hidden md:flex items-center space-x-2 text-sm text-gray-500">
+            <Calendar className="w-4 h-4" />
+            <span>Last updated: {lastUpdated}</span>
+          </div>
+        </div>
+        <div className="md:hidden mt-2 flex items-center space-x-2 text-xs text-gray-500">
+          <Calendar className="w-3 h-3" />
+          <span>Last updated: {lastUpdated}</span>
+        </div>
       </div>
 
-      {/* Mobile: Back Button (if needed, but hash navigation handles this) */}
-      
       {/* Account Information */}
-      <div className="bg-white md:bg-white rounded-lg border border-gray-200 shadow-sm md:shadow-sm">
-        <div className="p-4 md:p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-2 mb-2">
-            <User className="w-5 h-5 text-gray-400" />
-            <h3 className="text-lg font-semibold text-gray-900">Account Information</h3>
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <User className="w-4 h-4 text-gray-400" />
+            <h3 className="text-base font-semibold text-gray-900">Account Information</h3>
           </div>
-          <p className="text-sm text-gray-600">Your account details and status</p>
         </div>
 
-        <div className="p-4 md:p-6 space-y-4">
-          {/* Username */}
-          <div className="flex items-center justify-between py-3 border-b border-gray-100">
-            <div>
+        <div className="p-4 space-y-3">
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-700">Username</p>
-              <p className="text-sm text-gray-500 mt-0.5">@{data.user.username}</p>
+              <p className="text-sm text-gray-500 truncate">@{profileData.user.username}</p>
             </div>
-            <Link 
-              href={`/${data.user.username}`} 
-              target="_blank"
-              className="text-[#d42027] hover:text-[#a1181d] transition-colors flex items-center space-x-1 text-sm"
-            >
-              <span>View Profile</span>
-              <ExternalLink className="w-4 h-4" />
-            </Link>
+            <a href={`/${profileData.user.username}`} target="_blank" rel="noopener noreferrer" 
+               className="ml-2 text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1 flex-shrink-0">
+              <span className="hidden sm:inline">View</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
 
-          {/* Display Name */}
-          <div className="flex items-center justify-between py-3 border-b border-gray-100">
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-700">Email</p>
+              <p className="text-sm text-gray-500 truncate">{profileData.user.email}</p>
+            </div>
+            <div className="ml-2 flex items-center space-x-1 text-green-600 text-xs flex-shrink-0">
+              <CheckCircle2 className="w-3 h-3" />
+              <span>Verified</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between py-2">
             <div>
-              <p className="text-sm font-medium text-gray-700">Display Name</p>
-              <p className="text-sm text-gray-500 mt-0.5">{data.user.display_name || 'Not set'}</p>
-            </div>
-            <Link 
-              href="/dashboard#edit-profile" 
-              className="text-[#d42027] hover:text-[#a1181d] transition-colors text-sm"
-            >
-              Edit
-            </Link>
-          </div>
-
-          {/* Email */}
-          <div className="flex items-center justify-between py-3 border-b border-gray-100">
-            <div className="flex items-center space-x-2">
-              <Mail className="w-4 h-4 text-gray-400" />
-              <div>
-                <p className="text-sm font-medium text-gray-700">Email</p>
-                <p className="text-sm text-gray-500 mt-0.5">{data.user.email}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-1 text-green-600">
-              <CheckCircle2 className="w-4 h-4" />
-              <span className="text-xs font-medium">Verified</span>
-            </div>
-          </div>
-
-          {/* Account Type */}
-          <div className="flex items-center justify-between py-3">
-            <div>
-              <p className="text-sm font-medium text-gray-700">Account Type</p>
-              <p className="text-sm text-gray-500 mt-0.5 capitalize">{data.user.role || 'User'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Profile Status */}
-      <div className="bg-white md:bg-white rounded-lg border border-gray-200 shadow-sm md:shadow-sm">
-        <div className="p-4 md:p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-2 mb-2">
-            <SettingsIcon className="w-5 h-5 text-gray-400" />
-            <h3 className="text-lg font-semibold text-gray-900">Profile Status</h3>
-          </div>
-          <p className="text-sm text-gray-600">Manage how your profile appears to others</p>
-        </div>
-
-        <div className="p-4 md:p-6 space-y-6">
-          {/* Profile Visibility Toggle */}
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-1">
-                {isProfileVisible ? (
-                  <Eye className="w-4 h-4 text-green-600" />
-                ) : (
-                  <EyeOff className="w-4 h-4 text-gray-400" />
-                )}
-                <p className="font-medium text-gray-900">Profile Visibility</p>
-              </div>
-              <p className="text-sm text-gray-600">
-                {isProfileVisible 
-                  ? 'Your profile is visible in search results and can be viewed by the public'
-                  : 'Your profile is hidden from search results and public view'
-                }
+              <p className="text-sm font-medium text-gray-700">Profile Visibility</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {isProfileVisible ? 'Visible to public' : 'Hidden from public'}
               </p>
             </div>
-            <div className="ml-4">
-              <Toggle
-                checked={isProfileVisible}
-                onChange={handleVisibilityToggle}
-                disabled={saving}
-                aria-label="Toggle profile visibility"
-              />
+            <Toggle
+              checked={isProfileVisible}
+              onChange={handleVisibilityToggle}
+              disabled={savingVisibility}
+              aria-label="Toggle profile visibility"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Security */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <Lock className="w-4 h-4 text-gray-400" />
+            <h3 className="text-base font-semibold text-gray-900">Security</h3>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-3">
+          <button
+            onClick={() => setShowPasswordModal(true)}
+            className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors text-left"
+          >
+            <div className="flex items-center space-x-2">
+              <Lock className="w-4 h-4 text-gray-600" />
+              <div>
+                <p className="text-sm font-medium text-gray-900">Change Password</p>
+                <p className="text-xs text-gray-500">Update your account password</p>
+              </div>
+            </div>
+            <ExternalLink className="w-4 h-4 text-gray-400" />
+          </button>
+
+          <button
+            onClick={() => setShowCloseAccountModal(true)}
+            className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-md transition-colors text-left border border-red-200"
+          >
+            <div className="flex items-center space-x-2">
+              <Trash2 className="w-4 h-4 text-red-600" />
+              <div>
+                <p className="text-sm font-medium text-red-900">Close Account</p>
+                <p className="text-xs text-red-700">Permanently delete your account and data</p>
+              </div>
+            </div>
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+          </button>
+        </div>
+      </div>
+
+      {/* Privacy & Data */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <Shield className="w-4 h-4 text-gray-400" />
+            <h3 className="text-base font-semibold text-gray-900">Privacy & Data</h3>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-3">
+          <div className="p-3 bg-gray-50 rounded-md">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-gray-900">Privacy Settings</p>
+              <a href="/dashboard#edit-profile" 
+                 className="text-xs text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1">
+                <span>Manage</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
+                {profileData.profile?.show_email ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
+                <span>Email {profileData.profile?.show_email ? 'Visible' : 'Hidden'}</span>
+              </span>
+              <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
+                {profileData.profile?.show_phone ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
+                <span>Phone {profileData.profile?.show_phone ? 'Visible' : 'Hidden'}</span>
+              </span>
+              <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
+                {profileData.profile?.show_address ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
+                <span>Address {profileData.profile?.show_address ? 'Visible' : 'Hidden'}</span>
+              </span>
             </div>
           </div>
 
-          {/* Profile Completion */}
-          <div className="pt-6 border-t border-gray-100">
-            <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={handleDownloadData}
+            disabled={downloadingData}
+            className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors text-left border border-blue-200 disabled:opacity-50"
+          >
+            <div className="flex items-center space-x-2">
+              {downloadingData ? <Loader2 className="w-4 h-4 text-blue-600 animate-spin" /> : <Download className="w-4 h-4 text-blue-600" />}
               <div>
-                <p className="font-medium text-gray-900">Profile Completion</p>
-                <p className="text-sm text-gray-600 mt-0.5">
-                  {completionPercentage < 85 
-                    ? 'Complete your profile to appear in search results'
-                    : completionPercentage < 100
-                    ? 'Almost there! Complete your profile for better visibility'
-                    : 'Your profile is complete!'
-                  }
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-gray-900">{completionPercentage}%</p>
+                <p className="text-sm font-medium text-blue-900">Download All My Data</p>
+                <p className="text-xs text-blue-700">Export your data in ZIP format (GDPR compliant)</p>
               </div>
             </div>
-            
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-              <div
-                className={`h-2 rounded-full transition-all duration-500 ${
-                  completionPercentage >= 100
-                    ? 'bg-green-500'
-                    : completionPercentage >= 85
-                    ? 'bg-yellow-500'
-                    : 'bg-[#d42027]'
-                }`}
-                style={{ width: `${completionPercentage}%` }}
-              />
-            </div>
+          </button>
+        </div>
+      </div>
 
-            {completionPercentage < 100 && (
-              <Link 
-                href="/dashboard#edit-profile"
-                className="inline-flex items-center text-sm text-[#d42027] hover:text-[#a1181d] transition-colors"
-              >
-                <span>Complete your profile</span>
-                <ExternalLink className="w-3.5 h-3.5 ml-1" />
-              </Link>
+      {/* Support */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <MessageCircle className="w-4 h-4 text-gray-400" />
+            <h3 className="text-base font-semibold text-gray-900">Support</h3>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-3">
+          {/* Report an Issue */}
+          <div className="border border-gray-200 rounded-md">
+            <button
+              onClick={() => setIssueFormOpen(!issueFormOpen)}
+              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-orange-600" />
+                <span className="text-sm font-medium text-gray-900">Report an Issue</span>
+              </div>
+              {issueFormOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+            </button>
+
+            {issueFormOpen && (
+              <form onSubmit={handleSubmitIssue} className="p-3 border-t border-gray-200 space-y-3">
+                {issueSuccess && (
+                  <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                    ✓ Issue submitted successfully! We'll get back to you soon.
+                  </div>
+                )}
+                {issueError && (
+                  <div className="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+                    {issueError}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+                  <select
+                    value={issueCategory}
+                    onChange={(e) => setIssueCategory(e.target.value)}
+                    disabled={submittingIssue}
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {ISSUE_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={issueMessage}
+                    onChange={(e) => setIssueMessage(e.target.value)}
+                    disabled={submittingIssue}
+                    rows={4}
+                    placeholder="Please describe the issue in detail..."
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingIssue}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {submittingIssue && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{submittingIssue ? 'Submitting...' : 'Submit Issue'}</span>
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* Make a Suggestion */}
+          <div className="border border-gray-200 rounded-md">
+            <button
+              onClick={() => setSuggestionFormOpen(!suggestionFormOpen)}
+              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center space-x-2">
+                <Lightbulb className="w-4 h-4 text-yellow-600" />
+                <span className="text-sm font-medium text-gray-900">Make a Suggestion</span>
+              </div>
+              {suggestionFormOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+            </button>
+
+            {suggestionFormOpen && (
+              <form onSubmit={handleSubmitSuggestion} className="p-3 border-t border-gray-200 space-y-3">
+                {suggestionSuccess && (
+                  <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                    ✓ Suggestion submitted! Thank you for helping us improve.
+                  </div>
+                )}
+                {suggestionError && (
+                  <div className="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+                    {suggestionError}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+                  <select
+                    value={suggestionCategory}
+                    onChange={(e) => setSuggestionCategory(e.target.value)}
+                    disabled={submittingSuggestion}
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {SUGGESTION_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Your Suggestion</label>
+                  <textarea
+                    value={suggestionMessage}
+                    onChange={(e) => setSuggestionMessage(e.target.value)}
+                    disabled={submittingSuggestion}
+                    rows={4}
+                    placeholder="Tell us your idea..."
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingSuggestion}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {submittingSuggestion && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{submittingSuggestion ? 'Submitting...' : 'Submit Suggestion'}</span>
+                </button>
+              </form>
             )}
           </div>
         </div>
       </div>
 
-      {/* Privacy & Security */}
-      <div className="bg-white md:bg-white rounded-lg border border-gray-200 shadow-sm md:shadow-sm">
-        <div className="p-4 md:p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-2 mb-2">
-            <Shield className="w-5 h-5 text-gray-400" />
-            <h3 className="text-lg font-semibold text-gray-900">Privacy & Security</h3>
+      {/* Membership (Coming Soon) */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm opacity-60">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <CreditCard className="w-4 h-4 text-gray-400" />
+              <h3 className="text-base font-semibold text-gray-900">Membership</h3>
+            </div>
+            <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-300">
+              Coming Soon
+            </span>
           </div>
-          <p className="text-sm text-gray-600">Control what information is visible on your profile</p>
         </div>
 
-        <div className="p-4 md:p-6">
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 mb-1">Privacy Settings</p>
-                <p className="text-sm text-gray-600 mb-3">
-                  Manage email, phone, address visibility, and more
-                </p>
-                <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-                  <div className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                    {profileData?.profile?.show_email ? (
-                      <CheckCircle2 className="w-3 h-3 text-green-600" />
-                    ) : (
-                      <AlertCircle className="w-3 h-3 text-gray-400" />
-                    )}
-                    <span>Email {profileData?.profile?.show_email ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                  <div className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                    {profileData?.profile?.show_phone ? (
-                      <CheckCircle2 className="w-3 h-3 text-green-600" />
-                    ) : (
-                      <AlertCircle className="w-3 h-3 text-gray-400" />
-                    )}
-                    <span>Phone {profileData?.profile?.show_phone ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                  <div className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                    {profileData?.profile?.show_address ? (
-                      <CheckCircle2 className="w-3 h-3 text-green-600" />
-                    ) : (
-                      <AlertCircle className="w-3 h-3 text-gray-400" />
-                    )}
-                    <span>Address {profileData?.profile?.show_address ? 'Visible' : 'Hidden'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <Button
-                onClick={handleNavigateToPrivacy}
-                variant="secondary"
-                className="w-full sm:w-auto"
-              >
-                Manage Privacy Settings
-              </Button>
-            </div>
+        <div className="p-4 space-y-3">
+          <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
+            <p className="text-sm font-medium text-gray-700 mb-1">Membership Status</p>
+            <p className="text-xs text-gray-500">Free Forever</p>
           </div>
+
+          <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-medium text-gray-700">Days until renewal</p>
+              <span className="text-sm font-bold text-gray-900">∞</span>
+            </div>
+            <p className="text-xs text-gray-500">No expiration</p>
+          </div>
+
+          <button
+            disabled
+            className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
+          >
+            <p className="text-sm font-medium text-gray-500">Renew Early (2 weeks extra free!)</p>
+          </button>
+
+          <button
+            disabled
+            className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
+          >
+            <p className="text-sm font-medium text-gray-500">5-Year Membership - £75</p>
+            <p className="text-xs text-gray-400 mt-1">Pay now to add 4 more years!</p>
+          </button>
         </div>
       </div>
+
+      {/* Modals */}
+      <ChangePasswordModal 
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
+      
+      <CloseAccountModal 
+        isOpen={showCloseAccountModal}
+        onClose={() => setShowCloseAccountModal(false)}
+        username={profileData.user.username}
+      />
     </>
   );
 }
