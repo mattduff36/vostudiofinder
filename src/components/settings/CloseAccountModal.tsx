@@ -8,10 +8,9 @@ import { useRouter } from 'next/navigation';
 interface CloseAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  username: string;
 }
 
-export function CloseAccountModal({ isOpen, onClose, username }: CloseAccountModalProps) {
+export function CloseAccountModal({ isOpen, onClose }: CloseAccountModalProps) {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmationText, setConfirmationText] = useState('');
