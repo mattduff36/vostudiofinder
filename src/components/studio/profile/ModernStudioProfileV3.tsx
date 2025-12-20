@@ -292,7 +292,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Mobile Compact Hero (< 768px only) */}
       <CompactHero
         studioName={studio.name}
@@ -305,8 +305,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
         showAddress={profile?.show_address}
       />
 
-      {/* Mobile Components (< 768px only) */}
-      <>
+      {/* Main Content Wrapper with flex-1 */}
+      <div className="flex-1 flex flex-col">
+        {/* Mobile Components (< 768px only) */}
+        <>
           {/* Top Action Button - Same logic as desktop Studio Details section */}
           <div className="bg-white border-b border-gray-200 md:hidden px-4 py-3">
             {canContactViaEmail ? (
@@ -976,9 +978,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
         </div>
       )}
 
-      {/* Footer - Desktop only */}
-      <div className="hidden md:block">
-        <Footer />
+        {/* Footer - Desktop only */}
+        <div className="hidden md:block">
+          <Footer />
+        </div>
       </div>
     </div>
   );
