@@ -356,6 +356,9 @@ model users {
   reset_token_expiry                                         DateTime?
   verification_token                                         String?
   verification_token_expiry                                  DateTime?
+  deletion_requested_at                                      DateTime?
+  deletion_scheduled_for                                     DateTime?
+  deletion_status                                            String                  @default("ACTIVE")
   created_at                                                 DateTime                @default(now())
   updated_at                                                 DateTime
   accounts                                                   accounts[]
@@ -377,6 +380,7 @@ model users {
   user_connections_user_connections_connected_user_idTousers user_connections[]      @relation("user_connections_connected_user_idTousers")
   user_connections_user_connections_user_idTousers           user_connections[]      @relation("user_connections_user_idTousers")
   user_metadata                                              user_metadata[]
+  support_tickets                                            support_tickets[]
 }
 
 model waitlist {
@@ -385,6 +389,28 @@ model waitlist {
   email      String
   created_at DateTime @default(now())
 
+  @@index([created_at])
+}
+
+model support_tickets {
+  id          String              @id
+  user_id     String
+  type        SupportTicketType
+  category    String
+  subject     String?
+  message     String
+  status      SupportTicketStatus @default(OPEN)
+  priority    SupportPriority     @default(MEDIUM)
+  assigned_to String?
+  resolved_at DateTime?
+  created_at  DateTime            @default(now())
+  updated_at  DateTime
+
+  users users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@index([type])
   @@index([created_at])
 }
 
@@ -482,4 +508,23 @@ enum SubscriptionStatus {
   UNPAID
   INCOMPLETE
   SUSPENDED
+}
+
+enum SupportTicketType {
+  ISSUE
+  SUGGESTION
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum SupportPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
