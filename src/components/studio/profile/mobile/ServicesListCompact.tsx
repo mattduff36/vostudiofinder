@@ -29,7 +29,7 @@ export function ServicesListCompact({ services }: ServicesListCompactProps) {
 
   return (
     <div className="md:hidden bg-white p-4 border-b border-gray-200">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Services Offered</h3>
+      <p className="text-xs text-gray-500 mb-3">Services Offered</p>
 
       {/* Services Grid */}
       <div className="grid grid-cols-2 gap-2">

@@ -26,19 +26,11 @@ export function AboutCollapsible({
   equipmentList,
   studioTypes,
 }: AboutCollapsibleProps) {
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false);
 
   // Phase 3 feature gate
 
   const description = about ? cleanDescription(about) : '';
-
-  // Check if description is long enough to need expansion
-  const descriptionLines = description.split('\n');
-  const needsExpansion = descriptionLines.length > 3 || description.length > 200;
-  const shortDescription = needsExpansion
-    ? descriptionLines.slice(0, 3).join('\n').substring(0, 200) + '...'
-    : description;
 
   return (
     <div className="md:hidden bg-white border-b border-gray-200">
@@ -62,29 +54,9 @@ export function AboutCollapsible({
       {/* About Description */}
       {description && (
         <div className="px-4 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-900 mb-2">About</h3>
           <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-            {isDescriptionExpanded ? description : shortDescription}
+            {description}
           </div>
-          {needsExpansion && (
-            <button
-              onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-              className="mt-2 flex items-center text-sm font-medium text-[#d42027] hover:text-[#a1181d]"
-              aria-expanded={isDescriptionExpanded}
-            >
-              {isDescriptionExpanded ? (
-                <>
-                  <span>Show less</span>
-                  <ChevronUp className="w-4 h-4 ml-1" aria-hidden="true" />
-                </>
-              ) : (
-                <>
-                  <span>Read more</span>
-                  <ChevronDown className="w-4 h-4 ml-1" aria-hidden="true" />
-                </>
-              )}
-            </button>
-          )}
         </div>
       )}
 
@@ -97,8 +69,8 @@ export function AboutCollapsible({
             aria-expanded={isEquipmentExpanded}
           >
             <div className="flex items-center space-x-2">
-              <Wrench className="w-4 h-4 text-gray-600" aria-hidden="true" />
-              <h3 className="text-sm font-semibold text-gray-900">Equipment</h3>
+              <Wrench className="w-4 h-4 text-gray-500" aria-hidden="true" />
+              <p className="text-xs text-gray-500">Equipment</p>
             </div>
             {isEquipmentExpanded ? (
               <ChevronUp className="w-4 h-4 text-gray-400" aria-hidden="true" />

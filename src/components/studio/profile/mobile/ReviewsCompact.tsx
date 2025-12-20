@@ -40,7 +40,7 @@ export function ReviewsCompact({
   if (reviews.length === 0) {
     return (
       <div className="md:hidden bg-white p-4 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Reviews</h3>
+        <p className="text-xs text-gray-500 mb-3">Reviews</p>
         <p className="text-sm text-gray-500">No reviews yet. Be the first to review!</p>
       </div>
     );
@@ -80,7 +80,7 @@ export function ReviewsCompact({
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-gray-900">Reviews</h3>
+          <p className="text-xs text-gray-500">Reviews</p>
           <div className="flex items-center space-x-2">
             <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" aria-hidden="true" />
             <span className="text-lg font-bold text-gray-900">

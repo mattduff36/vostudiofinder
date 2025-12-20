@@ -384,7 +384,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           {/* Rates Section */}
           {profile?.show_rates !== false && rates.length > 0 && (
             <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Rates</h3>
+              <p className="text-xs text-gray-500 mb-3">Rates</p>
               <div className="space-y-2">
                 {rates.map((rate, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -418,7 +418,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
             return allConnections.length > 0 ? (
               <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Connections</h3>
+                <p className="text-xs text-gray-500 mb-3">Connections</p>
                 <div className="flex flex-wrap gap-2">
                   {allConnections.map((connection) => (
                     <span
@@ -436,7 +436,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           {/* Social Media Links */}
           {socialLinks.length > 0 && (
             <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Social Media</h3>
+              <p className="text-xs text-gray-500 mb-3">Social Media</p>
               <div className="flex flex-wrap gap-2">
                 {socialLinks.map((link, index) => {
                   const Icon = link.icon;
@@ -467,7 +467,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           {studio.latitude && studio.longitude && (
             <div className="bg-white border-b border-gray-200 md:hidden">
               <div className="px-4 py-4">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Location</h3>
+                <p className="text-xs text-gray-500 mb-3">Location</p>
                 <div className="h-48 bg-gray-100 rounded-lg overflow-hidden">
                   <SimpleStudioMap
                     latitude={studio.latitude}
