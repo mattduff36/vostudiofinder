@@ -195,7 +195,7 @@ export function CompactHero({
             {/* Studio Name & Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-gray-900 font-bold text-xl leading-tight">
+                <h1 className="text-gray-900 font-bold text-lg leading-tight">
                   {studioName}
                 </h1>
                 {isVerified && (
