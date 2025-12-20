@@ -116,7 +116,7 @@ The entire platform has been redesigned with a mobile-first approach, providing 
 - **Build Testing** - Full production build validation before deployment
 - **Unused Import Cleanup** - Removed Shield import from UserDashboard component
 - **Type Safety** - Maintained TypeScript compliance throughout changes
-- **Git Management** - Proper commit messages and organized push to GitHub
+- **Git Management** - Proper commit messages and organised push to GitHub
 
 ---
 
@@ -495,7 +495,7 @@ vostudiofinder/
 
 ### **Phase 3: Professional Tools (Priority: Medium)**
 1. **Audio Sample Management**
-   - Upload and organize voice samples
+   - Upload and organise voice samples
    - Audio player integration
    - Sample categorization
    - Quality optimization

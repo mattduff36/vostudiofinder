@@ -623,7 +623,7 @@ Mobile Type Scale:
 **Secondary Actions:**
 - Write review
 - Share profile
-- Save to favorites
+- Save to favourites
 - Report
 
 **Navigation:**

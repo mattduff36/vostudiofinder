@@ -216,7 +216,7 @@ export function getCurrencySymbol(country: string | null | undefined): string {
     return '₪';
   }
 
-  // Default to GBP if country not recognized
+  // Default to GBP if country not recognised
   return '£';
 }
 

@@ -284,7 +284,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
         <div className="border-b border-gray-200 px-4 md:px-6 py-4">
           <h2 className="text-2xl font-bold text-gray-900">Manage Images</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Upload and organize your studio images ({images.length}/5)
+            Upload and organise your studio images ({images.length}/5)
           </p>
         </div>
       )}

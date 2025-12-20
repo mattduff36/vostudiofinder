@@ -97,7 +97,7 @@ Updated verification page with special handling for new profiles:
 
 #### Features:
 - **New Profile Mode** (when `?new=true` in URL):
-  - Personalized welcome message
+  - Personalised welcome message
   - Congratulations on profile creation
   - Clear next steps (4-step process)
   - Professional, encouraging tone

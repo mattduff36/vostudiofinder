@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Upload to Cloudinary with a temporary folder
-    // Images will be organized by timestamp to prevent abuse
+    // Images will be organised by timestamp to prevent abuse
     const timestamp = Date.now();
     const result = await uploadImage(buffer, {
       folder: `${folder}/signup/${timestamp}`,

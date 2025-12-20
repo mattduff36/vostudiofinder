@@ -108,7 +108,7 @@ export function MembershipPayment() {
                 'Professional studio listing with photos & details',
                 'Reach thousands of voice artists worldwide',
                 'Direct contact from qualified clients',
-                'SEO-optimized profile for search engines',
+                'SEO-optimised profile for search engines',
                 'Manage your availability and booking preferences',
                 'Respond to reviews and build your reputation',
                 'Analytics on profile views and inquiries',
