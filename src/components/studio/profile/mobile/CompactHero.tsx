@@ -56,7 +56,7 @@ export function CompactHero({
 
   const shouldShowAddress = showAddress !== false;
 
-  // Auto-scroll logic: 5 seconds per image
+  // Auto-scroll logic: 8 seconds per image
   useEffect(() => {
     if (isAutoScrollEnabled && images.length > 1) {
       autoScrollTimerRef.current = setInterval(() => {
@@ -66,7 +66,7 @@ export function CompactHero({
           }
           return prevIndex + 1;
         });
-      }, 5000); // 5 seconds per image
+      }, 8000); // 8 seconds per image
 
       return () => {
         if (autoScrollTimerRef.current) {

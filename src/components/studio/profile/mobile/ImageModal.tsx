@@ -31,6 +31,7 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
   // Touch handling for swipe
   const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
   const [touchEnd, setTouchEnd] = useState({ x: 0, y: 0 });
+  const [touchStartTime, setTouchStartTime] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   
   // Pinch-to-zoom handling
@@ -45,15 +46,18 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
     setTranslateY(0);
   }, [currentIndex]);
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll and hide nav bars when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.classList.add('image-modal-open');
     } else {
       document.body.style.overflow = '';
+      document.documentElement.classList.remove('image-modal-open');
     }
     return () => {
       document.body.style.overflow = '';
+      document.documentElement.classList.remove('image-modal-open');
     };
   }, [isOpen]);
 
@@ -65,6 +69,8 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
   }, [isOpen, initialIndex]);
 
   const handleTouchStart = (e: TouchEvent) => {
+    setTouchStartTime(Date.now());
+    
     if (e.touches.length === 2) {
       // Pinch zoom start
       setIsPinching(true);
@@ -77,6 +83,10 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
       // Single touch for swiping (only when not zoomed)
       setIsSwiping(true);
       setTouchStart({
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      });
+      setTouchEnd({
         x: e.touches[0].clientX,
         y: e.touches[0].clientY,
       });
@@ -108,10 +118,22 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
   };
 
   const handleTouchEnd = () => {
+    const touchDuration = Date.now() - touchStartTime;
+    const deltaX = touchEnd.x - touchStart.x;
+    const deltaY = touchEnd.y - touchStart.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // If it was a quick tap (< 300ms) with minimal movement (< 10px), close the modal
+    if (touchDuration < 300 && distance < 10 && !isPinching && scale === 1) {
+      onClose();
+      setIsSwiping(false);
+      setIsPinching(false);
+      setTouchStart({ x: 0, y: 0 });
+      setTouchEnd({ x: 0, y: 0 });
+      return;
+    }
+    
     if (isSwiping && scale === 1) {
-      const deltaX = touchEnd.x - touchStart.x;
-      const deltaY = touchEnd.y - touchStart.y;
-      
       // Horizontal swipe threshold
       if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
         if (deltaX > 0 && currentIndex > 0) {
