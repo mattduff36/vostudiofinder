@@ -40,7 +40,7 @@ export function QuickActions({
     {
       id: 'images' as QuickAction,
       label: 'Manage Images',
-      description: 'Upload and organize studio photos',
+      description: 'Upload and organise studio photos',
       icon: ImageIcon,
     },
     {

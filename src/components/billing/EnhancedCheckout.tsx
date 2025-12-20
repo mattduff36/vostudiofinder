@@ -115,7 +115,7 @@ export function EnhancedCheckout({
             </li>
             <li className="flex items-center">
               <span className="text-green-500 mr-2">✓</span>
-              Enhanced profile customization
+              Enhanced profile customisation
             </li>
             <li className="flex items-center">
               <span className="text-green-500 mr-2">✓</span>

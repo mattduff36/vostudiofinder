@@ -38,7 +38,7 @@ export default function Error({
             Something went wrong
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            We apologize for the inconvenience. An error has occurred and our team has been notified.
+            We apologise for the inconvenience. An error has occurred and our team has been notified.
           </p>
           {process.env.NODE_ENV === 'development' && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8 text-left">

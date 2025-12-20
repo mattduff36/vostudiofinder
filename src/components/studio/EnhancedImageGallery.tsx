@@ -324,7 +324,7 @@ export function EnhancedImageGallery({
           <li>• Add descriptive alt text for better accessibility</li>
           <li>• Drag and drop to reorder images</li>
           <li>• The first image will be used as your main studio photo</li>
-          <li>• Images are automatically optimized and compressed</li>
+          <li>• Images are automatically optimised and compressed</li>
         </ul>
       </div>
     </div>

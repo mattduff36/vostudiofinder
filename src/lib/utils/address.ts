@@ -109,7 +109,7 @@ export function extractCity(fullAddress: string): string {
     }
   }
 
-  // Strategy 2: For non-UK or unrecognized cities, use heuristics
+  // Strategy 2: For non-UK or unrecognised cities, use heuristics
   // Skip the first part (street address) and look for a city-like component
   for (let i = 1; i < parts.length; i++) {
     const part = parts[i] || '';

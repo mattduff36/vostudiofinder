@@ -71,7 +71,7 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
   const handleTouchStart = (e: TouchEvent) => {
     setTouchStartTime(Date.now());
     
-    if (e.touches.length === 2) {
+    if (e.touches.length === 2 && e.touches[0] && e.touches[1]) {
       // Pinch zoom start
       setIsPinching(true);
       const distance = Math.hypot(
@@ -79,7 +79,7 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
         e.touches[0].pageY - e.touches[1].pageY
       );
       setInitialDistance(distance);
-    } else if (e.touches.length === 1 && scale === 1) {
+    } else if (e.touches.length === 1 && e.touches[0] && scale === 1) {
       // Single touch for swiping (only when not zoomed)
       setIsSwiping(true);
       setTouchStart({
@@ -94,7 +94,7 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
   };
 
   const handleTouchMove = (e: TouchEvent) => {
-    if (e.touches.length === 2 && isPinching) {
+    if (e.touches.length === 2 && e.touches[0] && e.touches[1] && isPinching) {
       // Pinch zoom
       const distance = Math.hypot(
         e.touches[0].pageX - e.touches[1].pageX,
@@ -102,13 +102,13 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
       );
       const newScale = (distance / initialDistance) * scale;
       setScale(Math.min(Math.max(newScale, 1), 4)); // Min 1x, Max 4x
-    } else if (e.touches.length === 1 && isSwiping && scale === 1) {
+    } else if (e.touches.length === 1 && e.touches[0] && isSwiping && scale === 1) {
       // Swipe to navigate (only when not zoomed)
       setTouchEnd({
         x: e.touches[0].clientX,
         y: e.touches[0].clientY,
       });
-    } else if (e.touches.length === 1 && scale > 1) {
+    } else if (e.touches.length === 1 && e.touches[0] && scale > 1) {
       // Pan when zoomed
       const deltaX = e.touches[0].clientX - touchStart.x;
       const deltaY = e.touches[0].clientY - touchStart.y;
