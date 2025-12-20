@@ -166,9 +166,9 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
       )}
 
       {/* Content */}
-      <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 ${
+      <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 ${
         activeTab === 'overview' ? 'py-0 md:py-8' : 'py-8'
-      }`}>
+      } ${activeTab === 'settings' ? 'space-y-6' : ''}`}>
         {activeTab === 'overview' ? (
           // Overview: Show quick actions on mobile, regular content on desktop
           <div className="md:hidden">
