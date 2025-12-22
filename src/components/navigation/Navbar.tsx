@@ -142,8 +142,9 @@ export function Navbar({ session }: NavbarProps) {
             onClick={handleLogoClick}
             className="relative cursor-pointer"
           >
-            <div className="relative">
-              {/* Normal Logo */}
+            <div className={`relative transition-all duration-200 ${
+              isLogoLoading ? 'md:scale-100 scale-95' : 'scale-100'
+            }`}>
               <Image
                 src={isScrolled || !isHomePage 
                   ? "/images/voiceover-studio-finder-header-logo2-black.png" 
@@ -153,22 +154,9 @@ export function Navbar({ session }: NavbarProps) {
                 width={384}
                 height={60}
                 priority
-                className={`transition-opacity duration-300 ${isLogoLoading ? 'opacity-0 md:opacity-100' : 'opacity-100'} hover:opacity-80 w-[180px] sm:w-[220px] md:w-[280px] h-auto`}
-              />
-              
-              {/* Loading Logo - Fades in and pulses (mobile only) */}
-              <Image
-                src="/images/voiceover-studio-finder-logo-loading2.png"
-                alt="Loading..."
-                width={384}
-                height={60}
-                priority
-                className={`absolute top-0 left-0 transition-opacity duration-300 md:opacity-0 ${
-                  isLogoLoading ? 'opacity-100 animate-pulse' : 'opacity-0'
-                } w-[180px] sm:w-[220px] md:w-[280px] h-auto`}
-                style={{
-                  pointerEvents: 'none'
-                }}
+                className={`transition-all duration-300 hover:opacity-80 w-[180px] sm:w-[220px] md:w-[280px] h-auto ${
+                  isLogoLoading ? 'md:opacity-100 opacity-60' : 'opacity-100'
+                }`}
               />
             </div>
           </Link>
