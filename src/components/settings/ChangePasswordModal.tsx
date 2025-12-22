@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { showSuccess, showError } from '@/lib/toast';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -17,8 +18,6 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
 
   const passwordRequirements = [
     { label: 'At least 8 characters', test: (pwd: string) => pwd.length >= 8 },
@@ -30,28 +29,27 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
     // Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setError('All fields are required');
+      showError('All fields are required');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match');
+      showError('New passwords do not match');
       return;
     }
 
     if (newPassword === currentPassword) {
-      setError('New password must be different from current password');
+      showError('New password must be different from current password');
       return;
     }
 
     // Check password requirements
     const failedRequirements = passwordRequirements.filter(req => !req.test(newPassword));
     if (failedRequirements.length > 0) {
-      setError('Password does not meet requirements');
+      showError('Password does not meet requirements');
       return;
     }
 
@@ -73,21 +71,18 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
         throw new Error(data.error || 'Failed to change password');
       }
 
-      setSuccess(true);
+      showSuccess('Password changed successfully!');
       logger.log('✅ Password changed successfully');
       
-      // Reset form after 2 seconds
-      setTimeout(() => {
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-        setSuccess(false);
-        onClose();
-      }, 2000);
+      // Reset form and close
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      onClose();
 
     } catch (err: any) {
       logger.error('Error changing password:', err);
-      setError(err.message || 'Failed to change password');
+      showError(err.message || 'Failed to change password');
     } finally {
       setLoading(false);
     }
@@ -98,8 +93,6 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setError('');
-      setSuccess(false);
       onClose();
     }
   };
@@ -124,18 +117,6 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
-          )}
-
-          {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-sm text-green-600">Password changed successfully!</p>
-            </div>
-          )}
-
           {/* Current Password */}
           <div>
             <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
