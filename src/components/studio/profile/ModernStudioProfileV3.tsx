@@ -9,6 +9,7 @@ import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { formatRateWithCurrency } from '@/lib/utils/currency';
 import { Footer } from '@/components/home/Footer';
 import clsx from 'clsx';
+import { generateStudioImageAlt } from '@/lib/utils/image-alt';
 
 // Phase 3: Mobile profile components
 import { CompactHero } from './mobile/CompactHero';
@@ -520,7 +521,11 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 >
                   <Image
                     src={displayImages[0]?.image_url || ''}
-                    alt={displayImages[0]?.alt_text || studio.name}
+                    alt={generateStudioImageAlt(
+                      studio.name,
+                      studio.full_address || studio.location,
+                      displayImages[0]?.alt_text
+                    )}
                     fill
                     className="object-cover group-hover:opacity-95 transition-opacity"
                     priority

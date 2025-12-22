@@ -5,6 +5,8 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Plus, Trash2, Edit2, Move, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
+import { generateStudioImageAlt } from '@/lib/utils/image-alt';
 
 interface ImageItem {
   id: string;
@@ -18,13 +20,17 @@ interface ImageGalleryProps {
   onImagesChange: (studio_images: ImageItem[]) => void;
   maxImages?: number;
   isEditing?: boolean;
+  studioName?: string;
+  studioLocation?: string | null;
 }
 
 export function ImageGallery({ 
   studio_images, 
   onImagesChange, 
   maxImages = 10, 
-  isEditing = false 
+  isEditing = false,
+  studioName = 'Studio',
+  studioLocation = null
 }: ImageGalleryProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newImage, setNewImage] = useState({ url: '', alt_text: '' });
@@ -176,21 +182,18 @@ export function ImageGallery({
 
                         {/* Image */}
                         <div className="aspect-[25/12] bg-gray-100 relative">
-                          <img
+                          <Image
                             src={image.url}
-                            alt={image.alt_text || 'Studio image'}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const parent = target.parentElement;
-                              if (parent) {
-                                const placeholder = document.createElement('div');
-                                placeholder.className = 'w-full h-full flex items-center justify-center text-gray-400';
-                                placeholder.innerHTML = '<svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>';
-                                parent.appendChild(placeholder);
-                              }
-                            }}
+                            alt={generateStudioImageAlt(
+                              studioName,
+                              studioLocation,
+                              image.alt_text,
+                              index
+                            )}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            loading="lazy"
                           />
                         </div>
 
