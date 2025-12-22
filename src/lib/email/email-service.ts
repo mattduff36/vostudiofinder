@@ -11,6 +11,7 @@ export interface EmailOptions {
   html: string;
   text?: string; // Plain text version for better deliverability
   from?: string;
+  replyTo?: string; // Optional reply-to address for better UX
 }
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
@@ -43,6 +44,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       subject: string;
       html: string;
       text?: string;
+      replyTo?: string;
     } = {
       from: fromEmail,
       to: options.to,
@@ -53,6 +55,13 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     // Only include text if provided
     if (options.text) {
       emailPayload.text = options.text;
+    }
+
+    // Set reply-to if provided, or default to support email
+    if (options.replyTo) {
+      emailPayload.replyTo = options.replyTo;
+    } else if (process.env.RESEND_REPLY_TO_EMAIL) {
+      emailPayload.replyTo = process.env.RESEND_REPLY_TO_EMAIL;
     }
 
     const result = await resend.emails.send(emailPayload);
