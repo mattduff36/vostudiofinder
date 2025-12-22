@@ -13,6 +13,7 @@ import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager'
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
+import { showError, showSuccess } from '@/lib/toast';
 
 interface Studio {
   id: string;
@@ -201,7 +202,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     } catch (error) {
       logger.error('Error saving profile:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to save profile. Please try again.';
-      alert(errorMessage);
+      showError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -238,7 +239,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     } catch (error) {
       logger.error('Error saving profile:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to save profile. Please try again.';
-      alert(errorMessage);
+      showError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -246,7 +247,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   const handleViewProfile = () => {
     if (!profile?.username) {
-      alert('No username available for this studio');
+      showError('No username available for this studio');
       return;
     }
     

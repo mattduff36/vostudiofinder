@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import EditStudioModal from '@/components/admin/EditStudioModal';
+import { showError } from '@/lib/toast';
 
 interface Studio {
   id: string;
@@ -52,7 +53,7 @@ export function ProfileEditButton({ username }: ProfileEditButtonProps) {
       setIsModalOpen(true);
     } catch (error) {
       console.error('Error fetching studio:', error);
-      alert('Failed to load studio data. Please try again.');
+      showError('Failed to load studio data. Please try again.');
     } finally {
       setIsLoading(false);
     }
