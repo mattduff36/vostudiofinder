@@ -9,12 +9,13 @@ export const metadata: Metadata = {
 };
 
 export default async function SignupPage() {
-  // Only redirect to join-waitlist in production
-  if (process.env.NODE_ENV === 'production') {
-  redirect('/join-waitlist');
-  }
+  // DEMO BRANCH: Redirect disabled for client preview
+  // Normally redirects to /join-waitlist in production
+  // if (process.env.NODE_ENV === 'production') {
+  //   redirect('/join-waitlist');
+  // }
 
-  // In development, show the signup form
+  // Show the signup form for demo purposes
   return (
     <div className="h-[calc(100vh-5rem)] relative overflow-hidden flex flex-col justify-start sm:justify-center py-8 sm:py-12 sm:px-6 lg:px-8">
       {/* Background Image */}
