@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -106,6 +106,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
   const [activeSection, setActiveSection] = useState('basic');
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -146,18 +147,26 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       if (!response.ok) throw new Error('Failed to fetch profile');
       
       const data = await response.json();
-      setProfile({
+      const profileData = {
         user: data.data.user,
         profile: data.data.profile || {},
         studio: data.data.studio,
         studio_types: data.data.studio?.studio_types || [],
-      });
+      };
+      setProfile(profileData);
+      setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
       setLoading(false);
     }
   };
+
+  // Check if there are unsaved changes
+  const hasChanges = useMemo(() => {
+    if (!profile || !originalProfile) return false;
+    return JSON.stringify(profile) !== JSON.stringify(originalProfile);
+  }, [profile, originalProfile]);
 
   const handleSave = async () => {
     try {
@@ -779,28 +788,30 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         </div>
 
         {/* Desktop Footer Actions */}
-        <div className="flex border-t border-gray-200 px-6 py-4 bg-gray-50 items-center justify-between">
-          <Button
-            onClick={handlePreview}
-            variant="secondary"
-            className="flex items-center gap-2"
-          >
-            <Eye className="w-4 h-4" />
-            View Profile
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2"
-          >
-            {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
+        {hasChanges && (
+          <div className="flex border-t border-gray-200 px-6 py-4 bg-gray-50 items-center justify-between">
+            <Button
+              onClick={handlePreview}
+              variant="secondary"
+              className="flex items-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              View Profile
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2"
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Mobile Messages */}
@@ -865,22 +876,24 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       </div>
 
       {/* Mobile Save Button - Sticky at bottom above nav */}
-      <div className={`md:hidden fixed left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-40 transition-all duration-300 ${
-        scrollDirection === 'down' && !isAtTop ? 'bottom-0' : 'bottom-16'
-      }`}>
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full flex items-center justify-center gap-2"
-          >
-            {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
-      </div>
+      {hasChanges && (
+        <div className={`md:hidden fixed left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-40 transition-all duration-300 ${
+          scrollDirection === 'down' && !isAtTop ? 'bottom-0' : 'bottom-16'
+        }`}>
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+        </div>
+      )}
     </>
   );
 }
