@@ -674,12 +674,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           <div className="space-y-6">
             <div>
               <p className="text-sm text-gray-600 mb-4">
-                Control what information is visible on your public profile
+                Control what information is shown on your public profile
               </p>
             </div>
 
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h3 className="font-medium text-gray-900 mb-3">Visibility Settings</h3>
               <div className="space-y-3">
                 <Toggle
                   label="Show Email"
