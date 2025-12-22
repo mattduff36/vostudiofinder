@@ -13,8 +13,8 @@ export interface PasswordResetEmailProps {
 export function generatePasswordResetEmail({
   resetUrl,
   userEmail,
-}: PasswordResetEmailProps): string {
-  return `
+}: PasswordResetEmailProps): { html: string; text: string } {
+  const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -196,4 +196,33 @@ export function generatePasswordResetEmail({
 </body>
 </html>
   `.trim();
+
+  const text = `
+Reset Your Password - VoiceoverStudioFinder
+
+Hello,
+
+We received a request to reset the password for your VoiceoverStudioFinder account (${userEmail}).
+
+Finding a great recording studio shouldn't be hard — and neither should accessing your account. Click the link below to set a new password and get back to connecting with professional studios.
+
+Reset your password:
+${resetUrl}
+
+⏱️ This link expires in 1 hour
+
+For security, password reset links are only valid for one hour. If yours expires, just request a new one.
+
+If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged and your account stays secure.
+
+---
+© ${new Date().getFullYear()} VoiceoverStudioFinder
+Connecting voice artists, podcasters, and producers with professional recording studios worldwide
+
+Simple, transparent, and built by people who actually record for a living.
+
+This is an automated email. Please do not reply.
+  `.trim();
+
+  return { html, text };
 }

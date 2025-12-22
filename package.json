@@ -45,6 +45,7 @@
     "audit:quick": "npm run lint:fast && npm run deps:check",
     "audit:full": "npm run type-check && npm run lint && npm run lint:fast && npm run deps:check",
     "cleanup:neon-branches": "tsx scripts/cleanup-neon-branches.ts",
+    "email:diagnose": "tsx scripts/diagnose-email-config.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
