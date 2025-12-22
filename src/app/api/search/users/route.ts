@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
             location: true,
             name: true,
             last_name: true,
-            full_address: true,
+            abbreviated_address: true,
             latitude: true,
             longitude: true,
             status: true
@@ -47,9 +47,9 @@ export async function GET(request: NextRequest) {
 
     // Format users for suggestions
     const formattedUsers = users.map(user => {
-      // Prioritize studio address over profile location
-      const fullLocation = user.studio_profiles?.full_address || user.studio_profiles?.location || null;
-      const abbreviatedLocation = fullLocation ? abbreviateAddress(fullLocation) : null;
+      // Use abbreviated_address from database (already privacy-safe)
+      const abbreviatedLocation = user.studio_profiles?.abbreviated_address || 
+        (user.studio_profiles?.location ? abbreviateAddress(user.studio_profiles.location) : null);
       const coordinates = user.studio_profiles?.latitude && user.studio_profiles?.longitude
         ? { 
             lat: user.studio_profiles.latitude.toNumber(), 
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
         username: user.username,
         display_name: user.display_name,
         location: abbreviatedLocation,
-        full_location: fullLocation, // Keep full location for geocoding if needed
+        // REMOVED: full_location - privacy risk (exposes full home address)
         coordinates
       };
     });
