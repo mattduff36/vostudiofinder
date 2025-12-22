@@ -71,7 +71,7 @@ export function HeroSection() {
             <span style={{ color: colors.primary }}>Voiceover Recording Studio</span>
           </h1>
           
-          <h2 className={`text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-center mb-2 sm:mb-3 transition-all duration-1000 ease-out px-4 ${
+          <h2 className={`hp2 text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-center mb-2 sm:mb-3 transition-all duration-1000 ease-out px-4 ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.4s', color: '#ffffff', maxWidth: '768px', margin: '0 auto 0.5rem auto' }}>
             Professional Voiceover, Podcast & Broadcast Studios Worldwide
