@@ -13,7 +13,7 @@ import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager'
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
-import { showError, showSuccess } from '@/lib/toast';
+import { showError } from '@/lib/toast';
 
 interface Studio {
   id: string;

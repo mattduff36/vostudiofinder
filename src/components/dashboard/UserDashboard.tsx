@@ -10,6 +10,7 @@ import {
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
 import { Toggle } from '@/components/ui/Toggle';
 import { logger } from '@/lib/logger';
+import { showError } from '@/lib/toast';
 import type { ProfileData } from '@/types/profile';
 
 interface UserDashboardProps {

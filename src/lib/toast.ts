@@ -5,7 +5,7 @@
  * with custom styling matching the site's design system.
  */
 
-import toast, { Toast as HotToast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 // Custom styling matching site's red theme
 const baseStyle = {
@@ -18,10 +18,6 @@ const baseStyle = {
   fontSize: '14px',
   fontWeight: '500',
   maxWidth: '500px',
-};
-
-const iconStyle = {
-  marginRight: '8px',
 };
 
 /**
@@ -185,7 +181,7 @@ export const showCustom = (
 ) => {
   return toast(message, {
     duration: options?.duration || 3000,
-    icon: options?.icon,
+    ...(options?.icon && { icon: options.icon }),
     style: {
       ...baseStyle,
       ...options?.style,
