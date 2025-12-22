@@ -796,18 +796,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         )}
       </div>
 
-      {/* Mobile Messages */}
-      {error && (
-        <div className="md:hidden mx-4 mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="md:hidden mx-4 mt-4 bg-green-50 border border-green-200 rounded-lg p-4 text-green-700">
-          {success}
-        </div>
-      )}
-
       {/* Mobile Accordion Sections */}
       <div className="md:hidden space-y-3">
           {sections.map((section) => {
