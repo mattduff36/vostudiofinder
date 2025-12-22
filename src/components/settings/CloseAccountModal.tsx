@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X, AlertTriangle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { useRouter } from 'next/navigation';
+import { showError } from '@/lib/toast';
 
 interface CloseAccountModalProps {
   isOpen: boolean;
@@ -16,7 +17,6 @@ export function CloseAccountModal({ isOpen, onClose }: CloseAccountModalProps) {
   const [confirmationText, setConfirmationText] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [step, setStep] = useState(1); // 1: Warning, 2: Confirmation
 
   const requiredText = 'delete my account';
@@ -24,15 +24,14 @@ export function CloseAccountModal({ isOpen, onClose }: CloseAccountModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
     if (!password) {
-      setError('Password is required');
+      showError('Password is required');
       return;
     }
 
     if (!isConfirmationValid) {
-      setError(`Please type "${requiredText}" to confirm`);
+      showError(`Please type "${requiredText}" to confirm`);
       return;
     }
 
@@ -61,7 +60,7 @@ export function CloseAccountModal({ isOpen, onClose }: CloseAccountModalProps) {
 
     } catch (err: any) {
       logger.error('Error closing account:', err);
-      setError(err.message || 'Failed to close account');
+      showError(err.message || 'Failed to close account', true);
     } finally {
       setLoading(false);
     }
@@ -71,7 +70,6 @@ export function CloseAccountModal({ isOpen, onClose }: CloseAccountModalProps) {
     if (!loading) {
       setPassword('');
       setConfirmationText('');
-      setError('');
       setStep(1);
       onClose();
     }
@@ -144,12 +142,6 @@ export function CloseAccountModal({ isOpen, onClose }: CloseAccountModalProps) {
 
           {step === 2 && (
             <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-600">{error}</p>
-                </div>
-              )}
-
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
                 <p className="text-sm text-gray-700">
                   To confirm, type <strong className="font-semibold text-gray-900">"{requiredText}"</strong> below:
