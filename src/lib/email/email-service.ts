@@ -9,6 +9,7 @@ export interface EmailOptions {
   to: string;
   subject: string;
   html: string;
+  text?: string; // Plain text version for better deliverability
   from?: string;
 }
 
@@ -36,12 +37,25 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       htmlLength: options.html.length,
     });
 
-    const result = await resend.emails.send({
+    const emailPayload: {
+      from: string;
+      to: string;
+      subject: string;
+      html: string;
+      text?: string;
+    } = {
       from: fromEmail,
       to: options.to,
       subject: options.subject,
       html: options.html,
-    });
+    };
+
+    // Only include text if provided
+    if (options.text) {
+      emailPayload.text = options.text;
+    }
+
+    const result = await resend.emails.send(emailPayload);
 
     if (result.error) {
       console.error('❌ Failed to send email via Resend:', result.error);
@@ -63,7 +77,7 @@ export async function sendPasswordResetEmail(
   to: string,
   resetUrl: string
 ): Promise<boolean> {
-  const html = generatePasswordResetEmail({
+  const { html, text } = generatePasswordResetEmail({
     resetUrl,
     userEmail: to,
   });
@@ -72,6 +86,7 @@ export async function sendPasswordResetEmail(
     to,
     subject: 'Reset Your Password - VoiceoverStudioFinder',
     html,
+    text,
   });
 }
 
@@ -83,7 +98,7 @@ export async function sendVerificationEmail(
   displayName: string,
   verificationUrl: string
 ): Promise<boolean> {
-  const html = generateEmailVerificationEmail({
+  const { html, text } = generateEmailVerificationEmail({
     verificationUrl,
     userEmail: to,
     displayName,
@@ -93,6 +108,7 @@ export async function sendVerificationEmail(
     to,
     subject: 'Verify Your Email - VoiceoverStudioFinder',
     html,
+    text,
   });
 }
 

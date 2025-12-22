@@ -15,8 +15,8 @@ export function generateEmailVerificationEmail({
   verificationUrl,
   userEmail,
   displayName,
-}: EmailVerificationProps): string {
-  return `
+}: EmailVerificationProps): { html: string; text: string } {
+  const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -222,4 +222,36 @@ export function generateEmailVerificationEmail({
 </body>
 </html>
   `.trim();
+
+  const text = `
+Welcome to VoiceoverStudioFinder!
+
+Hello ${displayName},
+
+Thank you for creating your studio profile on VoiceoverStudioFinder. We're excited to have you join our community of professional recording studios!
+
+To complete your registration and activate your account, please verify your email address (${userEmail}) by clicking the link below:
+
+${verificationUrl}
+
+🎉 What happens after verification:
+
+Once verified, you'll be able to sign in and your studio profile will be live! Voice artists, podcasters, and producers worldwide will be able to discover your studio and connect with you.
+
+⏱️ This link expires in 24 hours
+
+For security, email verification links are valid for 24 hours. If yours expires, just request a new one from the sign-in page.
+
+If you didn't create an account with VoiceoverStudioFinder, you can safely ignore this email.
+
+---
+© ${new Date().getFullYear()} VoiceoverStudioFinder
+Connecting voice artists, podcasters, and producers with professional recording studios worldwide
+
+Simple, transparent, and built by people who actually record for a living.
+
+This is an automated email. Please do not reply.
+  `.trim();
+
+  return { html, text };
 }

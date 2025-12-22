@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const resetUrl = `${baseUrl}/auth/reset-password?token=${resetToken}`;
     
     // Generate and send password reset email
-    const emailHtml = generatePasswordResetEmail({
+    const { html, text } = generatePasswordResetEmail({
       resetUrl,
       userEmail: user.email,
     });
@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
     const emailSent = await sendEmail({
       to: user.email,
       subject: 'Reset Your Password - VoiceoverStudioFinder',
-      html: emailHtml,
+      html,
+      text,
     });
     
     if (!emailSent) {
