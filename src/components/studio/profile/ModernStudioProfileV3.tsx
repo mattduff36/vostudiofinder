@@ -523,7 +523,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     src={displayImages[0]?.image_url || ''}
                     alt={generateStudioImageAlt(
                       studio.name,
-                      studio.full_address || studio.location,
+                      studio.full_address || studio.abbreviated_address || studio.address,
                       displayImages[0]?.alt_text
                     )}
                     fill
