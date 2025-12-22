@@ -331,46 +331,6 @@ export function Settings({ data }: SettingsProps) {
         </div>
       </div>
 
-      {/* Security */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <Lock className="w-4 h-4 text-gray-400" />
-            <h3 className="text-base font-semibold text-gray-900">Security</h3>
-          </div>
-        </div>
-
-        <div className="p-4 space-y-3">
-          <button
-            onClick={() => setShowPasswordModal(true)}
-            className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors text-left"
-          >
-            <div className="flex items-center space-x-2">
-              <Lock className="w-4 h-4 text-gray-600" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">Change Password</p>
-                <p className="text-xs text-gray-500">Update your account password</p>
-              </div>
-            </div>
-            <ExternalLink className="w-4 h-4 text-gray-400" />
-          </button>
-
-          <button
-            onClick={() => setShowCloseAccountModal(true)}
-            className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-md transition-colors text-left border border-red-200"
-          >
-            <div className="flex items-center space-x-2">
-              <Trash2 className="w-4 h-4 text-red-600" />
-              <div>
-                <p className="text-sm font-medium text-red-900">Close Account</p>
-                <p className="text-xs text-red-700">Permanently delete your account and data</p>
-              </div>
-            </div>
-            <AlertTriangle className="w-4 h-4 text-red-600" />
-          </button>
-        </div>
-      </div>
-
       {/* Privacy & Data */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="p-4 border-b border-gray-200">
@@ -609,6 +569,46 @@ export function Settings({ data }: SettingsProps) {
           >
             <p className="text-sm font-medium text-gray-500">5-Year Membership - £75</p>
             <p className="text-xs text-gray-400 mt-1">Pay now to add 4 more years!</p>
+          </button>
+        </div>
+      </div>
+
+      {/* Security */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <Lock className="w-4 h-4 text-gray-400" />
+            <h3 className="text-base font-semibold text-gray-900">Security</h3>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-3">
+          <button
+            onClick={() => setShowPasswordModal(true)}
+            className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors text-left"
+          >
+            <div className="flex items-center space-x-2">
+              <Lock className="w-4 h-4 text-gray-600" />
+              <div>
+                <p className="text-sm font-medium text-gray-900">Change Password</p>
+                <p className="text-xs text-gray-500">Update your account password</p>
+              </div>
+            </div>
+            <ExternalLink className="w-4 h-4 text-gray-400" />
+          </button>
+
+          <button
+            onClick={() => setShowCloseAccountModal(true)}
+            className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-md transition-colors text-left border border-red-200"
+          >
+            <div className="flex items-center space-x-2">
+              <Trash2 className="w-4 h-4 text-red-600" />
+              <div>
+                <p className="text-sm font-medium text-red-900">Close Account</p>
+                <p className="text-xs text-red-700">Permanently delete your account and data</p>
+              </div>
+            </div>
+            <AlertTriangle className="w-4 h-4 text-red-600" />
           </button>
         </div>
       </div>
