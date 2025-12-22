@@ -8,25 +8,18 @@
  */
 'use client';
 
-import { User, Image as ImageIcon, Settings, Eye, EyeOff } from 'lucide-react';
-import { Toggle } from '@/components/ui/Toggle';
+import { User, Image as ImageIcon, Settings } from 'lucide-react';
 
 export type QuickAction = 'edit-profile' | 'images' | 'settings';
 
 interface QuickActionsProps {
   onActionClick: (action: QuickAction) => void;
   displayName?: string;
-  isProfileVisible?: boolean;
-  onVisibilityToggle?: (visible: boolean) => void;
-  saving?: boolean;
 }
 
 export function QuickActions({ 
   onActionClick, 
   displayName,
-  isProfileVisible = true,
-  onVisibilityToggle,
-  saving = false
 }: QuickActionsProps) {
   // Phase 4 feature gate
 
@@ -61,37 +54,6 @@ export function QuickActions({
         <p className="text-sm text-gray-600 mt-1">
           Choose an option to manage your profile
         </p>
-      </div>
-
-      {/* Profile Visibility Toggle Card */}
-      <div className="!bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-              {isProfileVisible ? (
-                <Eye className="w-5 h-5 text-[#d42027]" />
-              ) : (
-                <EyeOff className="w-5 h-5 text-[#d42027]" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-gray-900 text-base">
-                Profile Visibility
-              </p>
-              <p className="text-xs text-gray-500 mt-0.5 truncate">
-                {isProfileVisible ? 'Visible in search results' : 'Hidden from search'}
-              </p>
-            </div>
-          </div>
-          <div className="flex-shrink-0 ml-3">
-            <Toggle
-              checked={isProfileVisible}
-              onChange={onVisibilityToggle || (() => {})}
-              disabled={saving}
-              aria-label="Toggle profile visibility"
-            />
-          </div>
-        </div>
       </div>
 
       {/* Accordion Cards */}

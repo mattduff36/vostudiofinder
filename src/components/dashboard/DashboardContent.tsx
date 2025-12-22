@@ -8,7 +8,6 @@ import { ProfileEditForm } from './ProfileEditForm';
 import { ImageGalleryManager } from './ImageGalleryManager';
 import { Settings } from './Settings';
 import { Footer } from '@/components/home/Footer';
-import { logger } from '@/lib/logger';
 
 // Phase 4: Mobile dashboard components
 import { QuickActions, QuickAction } from './mobile/QuickActions';
@@ -19,27 +18,6 @@ interface DashboardContentProps {
 
 export function DashboardContent({ dashboardData }: DashboardContentProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
-  const [isProfileVisible, setIsProfileVisible] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  // Fetch profile visibility state
-  useEffect(() => {
-    const fetchVisibility = async () => {
-      try {
-        const response = await fetch('/api/user/profile');
-        if (response.ok) {
-          const result = await response.json();
-          if (result.data.studio) {
-            const visible = result.data.studio.is_profile_visible !== false;
-            setIsProfileVisible(visible);
-          }
-        }
-      } catch (err) {
-        logger.error('Failed to fetch profile visibility:', err);
-      }
-    };
-    fetchVisibility();
-  }, []);
 
   // Listen to URL hash changes
   useEffect(() => {
@@ -59,38 +37,6 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
-
-  // Handle profile visibility toggle
-  const handleVisibilityToggle = async (visible: boolean) => {
-    setSaving(true);
-    try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studio: {
-            is_profile_visible: visible
-          }
-        }),
-      });
-
-      if (response.ok) {
-        setIsProfileVisible(visible);
-        logger.log('✅ Profile visibility updated successfully to:', visible);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        logger.error('Failed to update profile visibility:', errorData);
-        alert('Failed to update profile visibility. Please try again.');
-        setIsProfileVisible(!visible);
-      }
-    } catch (err) {
-      logger.error('Error updating profile visibility:', err);
-      alert('Error updating profile visibility. Please try again.');
-      setIsProfileVisible(!visible);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleQuickAction = (action: QuickAction) => {
     setActiveTab(action);
@@ -175,9 +121,6 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
             <QuickActions 
               onActionClick={handleQuickAction}
               displayName={dashboardData?.user?.display_name || dashboardData?.user?.username || ''}
-              isProfileVisible={isProfileVisible}
-              onVisibilityToggle={handleVisibilityToggle}
-              saving={saving}
             />
           </div>
         ) : null}

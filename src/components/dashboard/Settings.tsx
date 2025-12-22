@@ -46,7 +46,6 @@ const SUGGESTION_CATEGORIES = [
 ];
 
 export function Settings({ data }: SettingsProps) {
-  const [profileData, setProfileData] = useState(data);
   const [isProfileVisible, setIsProfileVisible] = useState(data?.studio?.is_profile_visible !== false);
   const [savingVisibility, setSavingVisibility] = useState(false);
   
@@ -71,21 +70,35 @@ export function Settings({ data }: SettingsProps) {
   // Download data
   const [downloadingData, setDownloadingData] = useState(false);
 
-  // Update profileData if data prop changes
+  // Fetch fresh visibility state when component mounts
   useEffect(() => {
-    setProfileData(data);
-    setIsProfileVisible(data?.studio?.is_profile_visible !== false);
-  }, [data]);
+    const fetchVisibility = async () => {
+      try {
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.data?.studio) {
+            const visible = result.data.studio.is_profile_visible !== false;
+            setIsProfileVisible(visible);
+            logger.log('[Settings] Profile visibility loaded:', visible);
+          }
+        }
+      } catch (err) {
+        logger.error('[Settings] Failed to fetch profile visibility:', err);
+      }
+    };
+    fetchVisibility();
+  }, []);
 
   const lastUpdated = useMemo(() => {
-    if (!profileData?.studio?.updated_at) return 'Never';
-    const date = new Date(profileData.studio.updated_at);
+    if (!data?.studio?.updated_at) return 'Never';
+    const date = new Date(data.studio.updated_at);
     return date.toLocaleDateString('en-GB', { 
       day: 'numeric',
       month: 'short',
       year: 'numeric'
     });
-  }, [profileData]);
+  }, [data]);
 
   const handleVisibilityToggle = useCallback(async (visible: boolean) => {
     setSavingVisibility(true);
@@ -240,7 +253,7 @@ export function Settings({ data }: SettingsProps) {
     }
   }, [suggestionCategory, suggestionMessage]);
 
-  if (!profileData) {
+  if (!data) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-8 h-8 animate-spin text-red-600" />
@@ -281,9 +294,9 @@ export function Settings({ data }: SettingsProps) {
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-700">Username</p>
-              <p className="text-sm text-gray-500 truncate">@{profileData.user.username}</p>
+              <p className="text-sm text-gray-500 truncate">@{data.user.username}</p>
             </div>
-            <a href={`/${profileData.user.username}`} target="_blank" rel="noopener noreferrer" 
+            <a href={`/${data.user.username}`} target="_blank" rel="noopener noreferrer" 
                className="ml-2 text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1 flex-shrink-0">
               <span className="hidden sm:inline">View</span>
               <ExternalLink className="w-3 h-3" />
@@ -293,7 +306,7 @@ export function Settings({ data }: SettingsProps) {
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-700">Email</p>
-              <p className="text-sm text-gray-500 truncate">{profileData.user.email}</p>
+              <p className="text-sm text-gray-500 truncate">{data.user.email}</p>
             </div>
             <div className="ml-2 flex items-center space-x-1 text-green-600 text-xs flex-shrink-0">
               <CheckCircle2 className="w-3 h-3" />
@@ -379,16 +392,16 @@ export function Settings({ data }: SettingsProps) {
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
               <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                {profileData.profile?.show_email ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                <span>Email {profileData.profile?.show_email ? 'Visible' : 'Hidden'}</span>
+                {data.profile?.show_email ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
+                <span>Email {data.profile?.show_email ? 'Visible' : 'Hidden'}</span>
               </span>
               <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                {profileData.profile?.show_phone ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                <span>Phone {profileData.profile?.show_phone ? 'Visible' : 'Hidden'}</span>
+                {data.profile?.show_phone ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
+                <span>Phone {data.profile?.show_phone ? 'Visible' : 'Hidden'}</span>
               </span>
               <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                {profileData.profile?.show_address ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                <span>Address {profileData.profile?.show_address ? 'Visible' : 'Hidden'}</span>
+                {data.profile?.show_address ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
+                <span>Address {data.profile?.show_address ? 'Visible' : 'Hidden'}</span>
               </span>
             </div>
           </div>
