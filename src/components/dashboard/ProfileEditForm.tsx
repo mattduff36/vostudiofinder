@@ -250,7 +250,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     { id: 'rates', label: 'Rates & Pricing', icon: DollarSign, description: 'Pricing and rate tiers' },
     { id: 'social', label: 'Social Media', icon: Share2, description: 'Social media profiles' },
     { id: 'connections', label: 'Connections', icon: Wifi, description: 'Remote session connections' },
-    { id: 'privacy', label: 'Privacy Settings', icon: Eye, description: 'Visibility preferences' },
+    { id: 'privacy', label: 'Privacy Settings', icon: Eye, description: 'Display preferences' },
   ];
 
   const handleMobileSectionClick = (sectionId: string) => {
