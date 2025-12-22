@@ -14,6 +14,8 @@
 Following a comprehensive codebase audit with ChatGPT, this PRD outlines validated performance optimizations for the VoiceoverStudioFinder platform. All improvements are designed to enhance performance on Vercel's serverless infrastructure while maintaining 100% of current functionality.
 
 **Key Goals:**
+- **Fix privacy issues**: Prevent full_address exposure on public pages
+- **Improve accessibility**: Enhance image alt tags with meaningful descriptions
 - Reduce page load times by 20-30%
 - Improve database query efficiency
 - Optimize image delivery and bandwidth usage
@@ -51,7 +53,47 @@ While the application functions well, there are specific optimization opportunit
 
 ## Validated Issues & Opportunities
 
-### HIGH IMPACT
+### CRITICAL PRIORITY: Privacy & Accessibility
+
+#### 0.1 Privacy Issue: Full Address Exposure in Search APIs (CRITICAL)
+**Issue**: Search suggestion API returns `full_address` instead of `abbreviated_address`  
+**Impact**: Privacy violation - exposes users' full home addresses on public search pages  
+**Risk Level**: HIGH - User privacy concern  
+
+**Evidence**:
+- `src/app/api/search/suggestions/route.ts` lines 89, 99, 125, 136, 170, 182, 202, 219
+- Returns `full_address` in location suggestions shown publicly
+- Should use `abbreviated_address` field instead (already exists in database)
+
+**Files Affected**:
+- `src/app/api/search/suggestions/route.ts`
+- `src/app/api/search/users/route.ts` (returns `full_location` containing full_address)
+
+**Fix Required**:
+- Replace all `full_address` selects with `abbreviated_address`
+- Remove `full_location` from user search API response
+- Ensure only `abbreviated_address` shown on homepage and /studios page search
+
+---
+
+#### 0.2 Accessibility Issue: Generic Image Alt Tags
+**Issue**: Images use generic alt tags like "Studio image" instead of descriptive text  
+**Impact**: Poor accessibility for screen readers, weak SEO  
+**Risk Level**: MEDIUM - Accessibility/SEO concern  
+
+**Evidence**:
+- Most image alt tags default to `image.alt_text || 'Studio image'`
+- Missing context about what the image shows (studio name, location/region)
+- Database has `alt_text` field but it's often empty
+
+**Fix Required**:
+- Generate descriptive alt tags using: `{studio.name} in {city/region}`
+- Update image components to use studio context for better alt text
+- Example: "VoiceOver Guy Studio in London" instead of "Studio image"
+
+---
+
+### HIGH IMPACT: Performance Optimizations
 
 #### 1. Database Index Optimization
 **Issue**: Missing indexes on frequently filtered columns  
@@ -171,6 +213,207 @@ The UI only uses limited fields from studio_services, but we're fetching all col
 ---
 
 ## Proposed Solution
+
+### Phase 0: Privacy & Accessibility Fixes (CRITICAL, Must Fix First)
+
+#### Task 0.1: Fix Full Address Exposure in Search APIs
+**Effort**: 1 hour  
+**Risk**: Very Low (no breaking changes, just privacy fix)  
+**Priority**: CRITICAL - Privacy issue
+
+**Changes Required:**
+
+**File 1: `src/app/api/search/suggestions/route.ts`**
+
+Replace all instances of `full_address` with `abbreviated_address`:
+
+```typescript
+// Line 88-93: Change select field
+select: {
+  abbreviated_address: true,  // CHANGED from full_address
+  latitude: true,
+  longitude: true,
+}
+
+// Line 97-107: Change text field
+suggestions.push(...locations.map((location, index) => ({
+  id: `location-${index}`,
+  text: location.abbreviated_address,  // CHANGED from full_address
+  type: 'location' as const,
+  metadata: {
+    coordinates: location.latitude && location.longitude ? {
+      lat: Number(location.latitude),
+      lng: Number(location.longitude)
+    } : undefined
+  }
+})));
+```
+
+Repeat for all other occurrences at lines 125, 136, 170, 182, 202, 219.
+
+**File 2: `src/app/api/search/users/route.ts`**
+
+Remove `full_location` from response:
+
+```typescript
+// Line 48-67: Update user formatting
+const formattedUsers = users.map(user => {
+  // Use abbreviated_address field from database instead
+  const abbreviatedLocation = user.studio_profiles?.abbreviated_address || 
+    (user.studio_profiles?.location ? abbreviateAddress(user.studio_profiles.location) : null);
+  const coordinates = user.studio_profiles?.latitude && user.studio_profiles?.longitude
+    ? { 
+        lat: user.studio_profiles.latitude.toNumber(), 
+        lng: user.studio_profiles.longitude.toNumber() 
+      }
+    : null;
+
+  return {
+    id: user.id,
+    username: user.username,
+    display_name: user.display_name,
+    location: abbreviatedLocation,
+    // REMOVED: full_location - privacy risk
+    coordinates
+  };
+});
+```
+
+Also update the database query to select `abbreviated_address` instead of `full_address`:
+
+```typescript
+// Line 33-42: Update select
+studio_profiles: {
+  select: {
+    location: true,
+    name: true,
+    last_name: true,
+    abbreviated_address: true,  // CHANGED from full_address
+    latitude: true,
+    longitude: true,
+    status: true
+  }
+}
+```
+
+**Success Criteria:**
+- No `full_address` exposed in any public search API response
+- Search suggestions show abbreviated addresses only
+- User search shows abbreviated locations only
+- All functionality maintained (coordinates still available for mapping)
+
+---
+
+#### Task 0.2: Improve Image Alt Tags with Context
+**Effort**: 2 hours  
+**Risk**: Very Low (accessibility improvement only)  
+**Priority**: HIGH - Accessibility/SEO
+
+**Strategy:**
+Create a utility function to generate descriptive alt tags from studio data.
+
+**File 1: Create `src/lib/utils/image-alt.ts`**
+
+```typescript
+import { extractCity, abbreviateAddress } from './address';
+
+/**
+ * Generates a descriptive alt tag for studio images
+ * @param studioName - Name of the studio
+ * @param location - Full address or location string
+ * @param existingAltText - User-provided alt text (if any)
+ * @param imageIndex - Index of image (for multiple images)
+ * @returns Descriptive alt text for accessibility
+ */
+export function generateStudioImageAlt(
+  studioName: string,
+  location?: string | null,
+  existingAltText?: string | null,
+  imageIndex?: number
+): string {
+  // If user provided custom alt text, use it
+  if (existingAltText && existingAltText.trim()) {
+    return existingAltText;
+  }
+
+  // Extract city/region from location
+  const city = location ? extractCity(location) : null;
+  
+  // Build descriptive alt text
+  if (city) {
+    const indexSuffix = imageIndex && imageIndex > 0 ? ` - Image ${imageIndex + 1}` : '';
+    return `${studioName} in ${city}${indexSuffix}`;
+  } else if (location) {
+    // Fallback: use abbreviated address
+    const abbreviated = abbreviateAddress(location);
+    const indexSuffix = imageIndex && imageIndex > 0 ? ` - Image ${imageIndex + 1}` : '';
+    return abbreviated ? `${studioName} in ${abbreviated}${indexSuffix}` : `${studioName} Studio`;
+  }
+  
+  // Final fallback
+  return `${studioName} Studio`;
+}
+```
+
+**File 2: Update `src/components/studio/ImageGallery.tsx`**
+
+```typescript
+import { generateStudioImageAlt } from '@/lib/utils/image-alt';
+
+// Add props for studio context
+interface ImageGalleryProps {
+  studio_images: StudioImageInput[];
+  onImagesChange?: (images: StudioImageInput[]) => void;
+  maxImages?: number;
+  isEditing?: boolean;
+  studioName?: string;  // NEW
+  studioLocation?: string | null;  // NEW
+}
+
+// Update usage (line ~179)
+<img
+  src={image.url}
+  alt={generateStudioImageAlt(
+    studioName || 'Studio',
+    studioLocation,
+    image.alt_text,
+    index
+  )}
+  className="w-full h-full object-cover"
+  onError={...}
+/>
+```
+
+**File 3: Update `src/components/studio/EnhancedImageGallery.tsx`**
+
+Same changes as ImageGallery.tsx.
+
+**File 4: Update `src/components/studio/profile/ModernStudioProfileV3.tsx`**
+
+Already uses Next/Image, but update alt text generation:
+
+```typescript
+<Image
+  src={displayImages[0]?.image_url || ''}
+  alt={generateStudioImageAlt(
+    studio.name,
+    studio.full_address || studio.location,
+    displayImages[0]?.alt_text
+  )}
+  fill
+  className="object-cover group-hover:opacity-95 transition-opacity"
+  priority
+/>
+```
+
+**Success Criteria:**
+- All studio images have descriptive alt tags
+- Alt tags include studio name and city/region
+- Custom alt tags still respected when provided
+- Improved accessibility for screen readers
+- Better SEO for image search
+
+---
 
 ### Phase 1: Database Optimization (High Impact, Low Risk)
 
@@ -483,6 +726,11 @@ Replace custom z-index values:
 
 ## Implementation Timeline
 
+### Phase 0: CRITICAL FIXES (Day 1)
+- **Hours 1-2**: Fix full_address exposure in search APIs (PRIVACY)
+- **Hours 3-4**: Improve image alt tags with context (ACCESSIBILITY)
+- **Testing**: Verify no privacy leaks, test accessibility
+
 ### Week 1: Database Optimization
 - **Days 1-2**: Add database indexes and test
 - **Days 3-5**: Optimize Prisma queries and test
@@ -495,7 +743,7 @@ Replace custom z-index values:
 - **Days 1-2**: Standardize z-index and add rate limiting
 - **Days 3-5**: Monitor, measure, and fine-tune
 
-**Total Timeline**: 3 weeks (can be parallelized)
+**Total Timeline**: 1 day (critical) + 3 weeks (optimizations)
 
 ---
 
