@@ -178,13 +178,13 @@ export function UserDashboard({ data }: UserDashboardProps) {
       } else {
         const errorData = await response.json().catch(() => ({}));
         logger.error('Failed to update profile visibility:', errorData);
-        alert('Failed to update profile visibility. Please try again.');
+        showError('Failed to update profile visibility. Please try again.');
         // Revert on error
         setIsProfileVisible(!visible);
       }
     } catch (err) {
       logger.error('Error updating profile visibility:', err);
-      alert('Error updating profile visibility. Please try again.');
+      showError('Error updating profile visibility. Please try again.');
       // Revert on error
       setIsProfileVisible(!visible);
     } finally {

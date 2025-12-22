@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { showSuccess, showError } from '@/lib/toast';
 
 interface StudioImage {
   id: string;
