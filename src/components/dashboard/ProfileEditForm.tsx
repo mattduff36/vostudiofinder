@@ -13,6 +13,7 @@ import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
+import { showSuccess, showError } from '@/lib/toast';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -109,9 +110,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
   const [activeSection, setActiveSection] = useState('basic');
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
-  const [success, setSuccess] = useState<string | null>(null);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Fetch profile data
@@ -156,7 +155,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       setProfile(profileData);
       setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load profile');
+      showError(err instanceof Error ? err.message : 'Failed to load profile', true);
     } finally {
       setLoading(false);
     }
@@ -171,8 +170,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const handleSave = async () => {
     try {
       setSaving(true);
-      setError(null);
-      setSuccess(null);
 
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
@@ -185,15 +182,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         throw new Error(errorData.error || 'Failed to save profile');
       }
 
-      setSuccess('Profile updated successfully!');
+      showSuccess('Profile updated successfully!');
       
       // Refresh profile data
       await fetchProfile();
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save profile');
+      showError(err instanceof Error ? err.message : 'Failed to save profile');
     } finally {
       setSaving(false);
     }
@@ -747,18 +741,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             </p>
           </div>
         </div>
-
-        {/* Messages */}
-        {error && (
-          <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="mx-6 mt-4 bg-green-50 border border-green-200 rounded-lg p-4 text-green-700">
-            {success}
-          </div>
-        )}
 
         {/* Desktop Section Navigation */}
         <div className="border-b border-gray-200 px-6">

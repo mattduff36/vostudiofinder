@@ -23,6 +23,7 @@ import { Toggle } from '@/components/ui/Toggle';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { logger } from '@/lib/logger';
+import { showSuccess, showError } from '@/lib/toast';
 
 interface SettingsProps {
   data: any; // dashboardData
@@ -62,10 +63,6 @@ export function Settings({ data }: SettingsProps) {
   const [suggestionMessage, setSuggestionMessage] = useState('');
   const [submittingIssue, setSubmittingIssue] = useState(false);
   const [submittingSuggestion, setSubmittingSuggestion] = useState(false);
-  const [issueSuccess, setIssueSuccess] = useState(false);
-  const [suggestionSuccess, setSuggestionSuccess] = useState(false);
-  const [issueError, setIssueError] = useState('');
-  const [suggestionError, setSuggestionError] = useState('');
   
   // Download data
   const [downloadingData, setDownloadingData] = useState(false);
@@ -249,17 +246,6 @@ export function Settings({ data }: SettingsProps) {
 
               {issueFormOpen && (
                 <form onSubmit={handleSubmitIssue} className="p-3 border-t border-gray-200 space-y-3">
-                  {issueSuccess && (
-                    <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-                      ✓ Issue submitted successfully! We'll get back to you soon.
-                    </div>
-                  )}
-                  {issueError && (
-                    <div className="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
-                      {issueError}
-                    </div>
-                  )}
-
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
                     <select
@@ -316,17 +302,6 @@ export function Settings({ data }: SettingsProps) {
 
               {suggestionFormOpen && (
                 <form onSubmit={handleSubmitSuggestion} className="p-3 border-t border-gray-200 space-y-3">
-                  {suggestionSuccess && (
-                    <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-                      ✓ Suggestion submitted! Thank you for helping us improve.
-                    </div>
-                  )}
-                  {suggestionError && (
-                    <div className="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
-                      {suggestionError}
-                    </div>
-                  )}
-
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
                     <select
@@ -462,16 +437,17 @@ export function Settings({ data }: SettingsProps) {
 
       if (response.ok) {
         setIsProfileVisible(visible);
+        showSuccess(visible ? 'Profile is now visible' : 'Profile is now hidden');
         logger.log('✅ Profile visibility updated to:', visible);
       } else {
         const errorData = await response.json().catch(() => ({}));
         logger.error('Failed to update profile visibility:', errorData);
-        alert('Failed to update profile visibility. Please try again.');
+        showError('Failed to update profile visibility. Please try again.');
         setIsProfileVisible(!visible);
       }
     } catch (err) {
       logger.error('Error updating profile visibility:', err);
-      alert('Error updating profile visibility. Please try again.');
+      showError('Error updating profile visibility. Please try again.');
       setIsProfileVisible(!visible);
     } finally {
       setSavingVisibility(false);
@@ -497,10 +473,11 @@ export function Settings({ data }: SettingsProps) {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
+      showSuccess('Data downloaded successfully!');
       logger.log('✅ Data downloaded successfully');
     } catch (err) {
       logger.error('Error downloading data:', err);
-      alert('Failed to download data. Please try again.');
+      showError('Failed to download data. Please try again.');
     } finally {
       setDownloadingData(false);
     }
@@ -508,11 +485,9 @@ export function Settings({ data }: SettingsProps) {
 
   const handleSubmitIssue = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    setIssueError('');
-    setIssueSuccess(false);
 
     if (!issueCategory || !issueMessage) {
-      setIssueError('Please fill in all fields');
+      showError('Please fill in all fields');
       return;
     }
 
@@ -535,19 +510,15 @@ export function Settings({ data }: SettingsProps) {
         throw new Error(result.error || 'Failed to submit issue');
       }
 
-      setIssueSuccess(true);
+      showSuccess('Issue submitted successfully! We\'ll get back to you soon.');
       setIssueMessage('');
       setIssueCategory('');
+      setIssueFormOpen(false);
       logger.log('✅ Issue submitted:', result.ticketId);
-
-      setTimeout(() => {
-        setIssueSuccess(false);
-        setIssueFormOpen(false);
-      }, 3000);
 
     } catch (err: any) {
       logger.error('Error submitting issue:', err);
-      setIssueError(err.message || 'Failed to submit issue');
+      showError(err.message || 'Failed to submit issue');
     } finally {
       setSubmittingIssue(false);
     }
@@ -555,11 +526,9 @@ export function Settings({ data }: SettingsProps) {
 
   const handleSubmitSuggestion = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    setSuggestionError('');
-    setSuggestionSuccess(false);
 
     if (!suggestionCategory || !suggestionMessage) {
-      setSuggestionError('Please fill in all fields');
+      showError('Please fill in all fields');
       return;
     }
 
@@ -582,19 +551,15 @@ export function Settings({ data }: SettingsProps) {
         throw new Error(result.error || 'Failed to submit suggestion');
       }
 
-      setSuggestionSuccess(true);
+      showSuccess('Suggestion submitted! Thank you for helping us improve.');
       setSuggestionMessage('');
       setSuggestionCategory('');
+      setSuggestionFormOpen(false);
       logger.log('✅ Suggestion submitted:', result.ticketId);
-
-      setTimeout(() => {
-        setSuggestionSuccess(false);
-        setSuggestionFormOpen(false);
-      }, 3000);
 
     } catch (err: any) {
       logger.error('Error submitting suggestion:', err);
-      setSuggestionError(err.message || 'Failed to submit suggestion');
+      showError(err.message || 'Failed to submit suggestion');
     } finally {
       setSubmittingSuggestion(false);
     }
@@ -752,17 +717,6 @@ export function Settings({ data }: SettingsProps) {
 
             {issueFormOpen && (
               <form onSubmit={handleSubmitIssue} className="p-3 border-t border-gray-200 space-y-3">
-                {issueSuccess && (
-                  <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-                    ✓ Issue submitted successfully! We'll get back to you soon.
-                  </div>
-                )}
-                {issueError && (
-                  <div className="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
-                    {issueError}
-                  </div>
-                )}
-
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
                   <select
@@ -819,17 +773,6 @@ export function Settings({ data }: SettingsProps) {
 
             {suggestionFormOpen && (
               <form onSubmit={handleSubmitSuggestion} className="p-3 border-t border-gray-200 space-y-3">
-                {suggestionSuccess && (
-                  <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-                    ✓ Suggestion submitted! Thank you for helping us improve.
-                  </div>
-                )}
-                {suggestionError && (
-                  <div className="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
-                    {suggestionError}
-                  </div>
-                )}
-
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
                   <select
