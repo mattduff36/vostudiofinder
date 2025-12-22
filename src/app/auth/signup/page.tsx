@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { SignupForm } from '@/components/auth/SignupForm';
 import Image from 'next/image';
 
