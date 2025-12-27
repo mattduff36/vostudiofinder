@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Raleway } from 'next/font/google';
 import { getServerSession } from 'next-auth';
+import { cookies } from 'next/headers';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
 import { Navbar } from '@/components/navigation/Navbar';
 import { MobileShell } from '@/components/navigation/MobileShell';
+import { CookieConsentBanner } from '@/components/consent/CookieConsentBanner';
 import { authOptions } from '@/lib/auth';
 import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script';
@@ -63,27 +65,38 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getServerSession(authOptions);
+  
+  // Read cookie consent preference
+  const cookieStore = await cookies();
+  const consentCookie = cookieStore.get('vsf_cookie_consent');
+  const consentLevel = consentCookie?.value as 'all' | 'necessary' | 'decline' | undefined;
+  const hasConsent = consentLevel === 'all';
 
   return (
     <html lang='en'>
       <head>
-        {/* Google Analytics - Placed immediately after opening <head> tag */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-JKPCYM50W7"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-JKPCYM50W7');
-          `}
-        </Script>
+        {/* Google Analytics - Only load with user consent */}
+        {hasConsent && (
+          <>
+            <Script
+              src="https://www.googletagmanager.com/gtag/js?id=G-JKPCYM50W7"
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-JKPCYM50W7');
+              `}
+            </Script>
+          </>
+        )}
         <meta 
           name="viewport" 
           content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" 
         />
+        {/* Google Maps - Always load (necessary for core functionality) */}
         {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
           <Script
             src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
@@ -102,7 +115,10 @@ export default async function RootLayout({
           </main>
           <MobileShell session={session} />
         </SessionProvider>
-        <Analytics />
+        {/* Vercel Analytics - Only load with user consent */}
+        {hasConsent && <Analytics />}
+        {/* Cookie Consent Banner */}
+        <CookieConsentBanner initialLevel={consentLevel || null} />
       </body>
     </html>
   );
