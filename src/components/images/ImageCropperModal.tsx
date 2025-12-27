@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import Cropper from 'react-easy-crop';
+import 'react-easy-crop/react-easy-crop.css';
 import { X, ZoomIn, ZoomOut, Grid3x3, Info } from 'lucide-react';
 import { getCroppedImage, getImageDataUrl } from '@/lib/image/crop';
 import { Button } from '@/components/ui/Button';
