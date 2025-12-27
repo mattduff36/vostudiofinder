@@ -181,32 +181,34 @@ export function ImageCropperModal({
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-black/70 border-b border-white/10">
         <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-4">
-            {/* Info Text */}
-            <div className="text-white/60 text-sm space-y-0.5">
-              <p>
-                <span className="text-white/80 font-medium">Recommended ratio: 25:12</span>
-                {' • '}
-                Example sizes: 2500×1200 or 2000×960
+          {/* Left: Grid Button */}
+          <button
+            onClick={() => setShowGrid(!showGrid)}
+            className={`p-2 rounded-lg transition-colors ${
+              showGrid
+                ? 'bg-white/20 text-white'
+                : 'bg-white/10 text-white/70 hover:bg-white/15'
+            }`}
+            title={showGrid ? 'Hide grid' : 'Show grid'}
+          >
+            <Grid3x3 className="w-5 h-5" />
+          </button>
+          
+          {/* Center: Info Text */}
+          <div className="text-center text-white/60 text-sm space-y-0.5">
+            <p>
+              <span className="text-white/80 font-medium">Recommended ratio: 25:12</span>
+              {' • '}
+              Example sizes: 2500×1200 or 2000×960
+            </p>
+            {imageSize && (
+              <p className="text-white/50 text-xs">
+                Original size: {imageSize.width}×{imageSize.height}px
               </p>
-              {imageSize && (
-                <p className="text-white/50 text-xs">
-                  Original size: {imageSize.width}×{imageSize.height}px
-                </p>
-              )}
-            </div>
-            <button
-              onClick={() => setShowGrid(!showGrid)}
-              className={`p-2 rounded-lg transition-colors ${
-                showGrid
-                  ? 'bg-white/20 text-white'
-                  : 'bg-white/10 text-white/70 hover:bg-white/15'
-              }`}
-              title={showGrid ? 'Hide grid' : 'Show grid'}
-            >
-              <Grid3x3 className="w-5 h-5" />
-            </button>
+            )}
           </div>
+          
+          {/* Right: Close Button */}
           <button
             onClick={handleCancel}
             disabled={processing}
