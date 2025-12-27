@@ -213,12 +213,15 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
         ? `/api/admin/studios/${studioId}/images/reorder`
         : '/api/user/profile/images/reorder';
 
+      // Admin endpoint expects imageIds array, user endpoint expects images array with sort_order
+      const requestBody = isAdminMode
+        ? { imageIds: updatedImages.map(img => img.id) }
+        : { images: updatedImages.map(img => ({ id: img.id, sort_order: img.sort_order })) };
+
       const response = await fetch(endpoint, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageIds: updatedImages.map(img => img.id),
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) throw new Error('Failed to reorder images');
