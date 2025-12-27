@@ -43,7 +43,7 @@ export function NewCTASection() {
         'Join a global community of voice artists, studio owners, producers and podcasters', 
         'Connect, collaborate and make extra money easily and directly.', 
         'Share industry tips, equipment knowledge and experience', 
-        'Stay busy and benefit from Studio Finder's great user interface.', 
+        'Stay busy and benefit from Studio Finder\'s great user interface.', 
         'Be part of a platform built by people in the business'
       ] 
     }
