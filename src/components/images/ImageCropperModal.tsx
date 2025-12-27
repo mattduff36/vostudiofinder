@@ -208,14 +208,14 @@ export function ImageCropperModal({
 
       {/* Info Banner */}
       <div className="absolute top-14 left-1/2 -translate-x-1/2 z-10 max-w-2xl w-full px-4">
-        <div className="bg-blue-600/90 backdrop-blur-sm text-white px-4 py-3 rounded-lg shadow-lg flex items-start space-x-3">
+        <div className="bg-red-600/90 backdrop-blur-sm text-white px-4 py-3 rounded-lg shadow-lg flex items-start space-x-3">
           <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <div className="text-sm">
             <p className="font-medium">Recommended ratio: 25:12</p>
-            <p className="text-blue-100 mt-1">
+            <p className="text-red-100 mt-1">
               Example sizes: 2500×1200 or 2000×960. Drag to reposition, use the slider to zoom.
               {imageSize && (
-                <span className="block mt-1 text-blue-200">
+                <span className="block mt-1 text-red-200">
                   Original: {imageSize.width}×{imageSize.height}px
                 </span>
               )}
