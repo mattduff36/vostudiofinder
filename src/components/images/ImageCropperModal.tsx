@@ -1,0 +1,308 @@
+'use client';
+
+import { useState, useCallback, useEffect } from 'react';
+import Cropper from 'react-easy-crop';
+import { X, ZoomIn, ZoomOut, Grid3x3, Info } from 'lucide-react';
+import { getCroppedImage, getImageDataUrl } from '@/lib/image/crop';
+import { Button } from '@/components/ui/Button';
+
+interface ImageCropperModalProps {
+  /**
+   * The file to crop
+   */
+  file: File | null;
+  
+  /**
+   * Whether the modal is open
+   */
+  isOpen: boolean;
+  
+  /**
+   * Called when the user confirms the crop
+   */
+  onConfirm: (croppedFile: File) => void;
+  
+  /**
+   * Called when the user cancels
+   */
+  onCancel: () => void;
+  
+  /**
+   * Aspect ratio (width / height)
+   * Default: 25/12 (2.0833...)
+   */
+  aspect?: number;
+  
+  /**
+   * Maximum output width
+   * Default: 2000
+   */
+  maxWidth?: number;
+  
+  /**
+   * Maximum output height
+   * Default: 960
+   */
+  maxHeight?: number;
+}
+
+export function ImageCropperModal({
+  file,
+  isOpen,
+  onConfirm,
+  onCancel,
+  aspect = 25 / 12,
+  maxWidth = 2000,
+  maxHeight = 960,
+}: ImageCropperModalProps) {
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [showGrid, setShowGrid] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
+
+  // Load image when file changes
+  useEffect(() => {
+    if (!file) {
+      setImageSrc(null);
+      return;
+    }
+
+    let objectUrl: string | null = null;
+
+    const loadImage = async () => {
+      try {
+        const dataUrl = await getImageDataUrl(file);
+        setImageSrc(dataUrl);
+        setError(null);
+        
+        // Get image dimensions
+        const img = new Image();
+        img.onload = () => {
+          setImageSize({ width: img.width, height: img.height });
+        };
+        img.src = dataUrl;
+      } catch (err) {
+        setError('Failed to load image');
+        console.error('Error loading image:', err);
+      }
+    };
+
+    loadImage();
+
+    // Cleanup
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [file]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  const onCropComplete = useCallback(
+    (croppedArea: any, croppedAreaPixels: any) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    []
+  );
+
+  const handleConfirm = async () => {
+    if (!imageSrc || !croppedAreaPixels || !file) return;
+
+    setProcessing(true);
+    setError(null);
+
+    try {
+      const croppedFile = await getCroppedImage(imageSrc, croppedAreaPixels, {
+        maxWidth,
+        maxHeight,
+        quality: 0.92,
+        format: file.type.includes('png') ? 'image/png' : 'image/jpeg',
+        fileName: `cropped-${file.name}`,
+      });
+
+      onConfirm(croppedFile);
+    } catch (err) {
+      setError('Failed to crop image. Please try again.');
+      console.error('Error cropping image:', err);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setImageSrc(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+    setError(null);
+    onCancel();
+  };
+
+  const handleZoomChange = (value: number) => {
+    setZoom(value);
+  };
+
+  if (!isOpen || !file) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-10 bg-black/50 border-b border-white/10">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center space-x-3">
+            <h2 className="text-xl font-semibold text-white">Adjust Image</h2>
+            <button
+              onClick={() => setShowGrid(!showGrid)}
+              className={`p-2 rounded-lg transition-colors ${
+                showGrid
+                  ? 'bg-white/20 text-white'
+                  : 'bg-white/10 text-white/70 hover:bg-white/15'
+              }`}
+              title={showGrid ? 'Hide grid' : 'Show grid'}
+            >
+              <Grid3x3 className="w-5 h-5" />
+            </button>
+          </div>
+          <button
+            onClick={handleCancel}
+            disabled={processing}
+            className="p-2 text-white/70 hover:text-white transition-colors disabled:opacity-50"
+            aria-label="Close"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Info Banner */}
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 max-w-2xl w-full px-4">
+        <div className="bg-blue-600/90 backdrop-blur-sm text-white px-4 py-3 rounded-lg shadow-lg flex items-start space-x-3">
+          <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium">Recommended ratio: 25:12</p>
+            <p className="text-blue-100 mt-1">
+              Example sizes: 2500×1200 or 2000×960. Drag to reposition, use the slider to zoom.
+              {imageSize && (
+                <span className="block mt-1 text-blue-200">
+                  Original: {imageSize.width}×{imageSize.height}px
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Crop Area */}
+      <div className="relative w-full h-full">
+        {imageSrc && (
+          <Cropper
+            image={imageSrc}
+            crop={crop}
+            zoom={zoom}
+            aspect={aspect}
+            onCropChange={setCrop}
+            onZoomChange={setZoom}
+            onCropComplete={onCropComplete}
+            showGrid={showGrid}
+            style={{
+              containerStyle: {
+                width: '100%',
+                height: '100%',
+              },
+              cropAreaStyle: {
+                border: '2px solid rgba(255, 255, 255, 0.5)',
+              },
+            }}
+          />
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 bg-black/50 border-t border-white/10">
+        <div className="p-6 space-y-4">
+          {/* Zoom Slider */}
+          <div className="max-w-md mx-auto">
+            <label className="flex items-center justify-between text-white text-sm mb-2">
+              <span className="flex items-center space-x-2">
+                <ZoomOut className="w-4 h-4" />
+                <span>Zoom</span>
+              </span>
+              <span className="flex items-center space-x-2">
+                <span>{Math.round(zoom * 100)}%</span>
+                <ZoomIn className="w-4 h-4" />
+              </span>
+            </label>
+            <input
+              type="range"
+              min="1"
+              max="3"
+              step="0.1"
+              value={zoom}
+              onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
+              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+              style={{
+                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${
+                  ((zoom - 1) / 2) * 100
+                }%, rgba(255,255,255,0.2) ${((zoom - 1) / 2) * 100}%, rgba(255,255,255,0.2) 100%)`,
+              }}
+            />
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="max-w-md mx-auto bg-red-500/20 border border-red-500/50 text-red-100 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-center space-x-4">
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              disabled={processing}
+              className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white border-white/20"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              disabled={processing || !croppedAreaPixels}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {processing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                'Confirm & Upload'
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
