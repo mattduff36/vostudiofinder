@@ -18,8 +18,8 @@ export function Footer() {
           <div className="col-span-1 md:col-span-2">
             <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4" style={{ color: '#ffffff' }}>VoiceoverStudioFinder</h3>
             <p className="mb-4 sm:mb-6 max-w-md text-sm sm:text-base" style={{ color: '#ffffff' }}>
-              The world's leading platform for connecting voice artists with professional 
-              recording studios.
+              The world's leading platform for connecting voice artists and agencies with professional 
+              recording studios locally.
             </p>
             
             <div className="space-y-2 text-sm" style={{ color: '#ffffff' }}>
@@ -63,8 +63,8 @@ export function Footer() {
             <div className="flex flex-col md:flex-row items-center space-y-3 md:space-y-0 md:space-x-6 text-xs sm:text-sm text-center md:text-left" style={{ color: '#cccccc' }}>
               <span className="px-2">© 2025 VoiceoverGuy & MPDEE Development. All rights reserved.</span>
               <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-                <a href="/privacy" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Privacy Policy</a>
-                <a href="/terms" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Terms of Service</a>
+                <Link href="/privacy" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Privacy Policy</Link>
+                <Link href="/terms" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Terms of Service</Link>
               </div>
             </div>
           </div>

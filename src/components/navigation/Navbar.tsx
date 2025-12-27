@@ -326,7 +326,7 @@ export function Navbar({ session }: NavbarProps) {
     </nav>
     
     {/* Admin Buttons - Positioned below nav bar on right side */}
-    {session?.user?.email === 'admin@mpdee.co.uk' && (
+    {(session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN') && (
       <div className={`hidden md:flex fixed top-[72px] right-6 z-[99] items-center gap-0 bg-black rounded-md text-white text-xs font-medium shadow-lg [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${isMapFullscreen ? 'hidden' : ''}`}>
         {showEditButton && (
           <>

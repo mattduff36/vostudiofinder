@@ -50,7 +50,7 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
   const avatarUrl = session?.user ? getUserAvatarUrl(session.user) : undefined;
 
   // Check if admin
-  const isAdmin = session?.user?.email === 'admin@mpdee.co.uk';
+  const isAdmin = session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN';
   
   // Check if on profile page (for Edit button)
   const isOnProfilePage = pathname !== '/' && 
