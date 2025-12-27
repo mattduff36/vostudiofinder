@@ -95,9 +95,34 @@ export function StudiosPage() {
     position: { x: number; y: number };
   } | null>(null);
 
-  // Generate dynamic H1 text based on location
+  // Generate dynamic H1 text based on location and studio type
   const dynamicH1Text = useMemo(() => {
     const location = searchParams.get('location');
+    const studioTypesParam = searchParams.get('studioTypes');
+    const studioTypes = studioTypesParam ? studioTypesParam.split(',').filter(Boolean) : [];
+    
+    // Map studio type enum values to display names
+    const studioTypeLabels: Record<string, string> = {
+      'HOME': 'Home Studio',
+      'RECORDING': 'Recording Studio',
+      'PODCAST': 'Podcast Studio',
+      'VOICEOVER': 'Voiceover Studio',
+      'VO_COACH': 'VO-Coach Studio',
+      'EDITING': 'Editing Studio'
+    };
+    
+    // If exactly one studio type is selected, use it in the heading
+    if (studioTypes.length === 1) {
+      const studioTypeLabel = studioTypeLabels[studioTypes[0]] || 'Studio';
+      const pluralLabel = studioTypeLabel + 's'; // Simple pluralization
+      
+      if (location && location.trim()) {
+        return `${pluralLabel} Available in ${location}`;
+      }
+      return `${pluralLabel} Available Worldwide`;
+    }
+    
+    // Default behavior for no types or multiple types selected
     if (location && location.trim()) {
       return `Studios Available in ${location}`;
     }
