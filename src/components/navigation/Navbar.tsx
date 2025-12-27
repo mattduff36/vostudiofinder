@@ -209,6 +209,24 @@ export function Navbar({ session }: NavbarProps) {
                 <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 bg-gray-900 rotate-45"></div>
               </div>
             </div>
+            {/* Profile - Only for logged in users */}
+            {session?.user?.username && (
+              <Link 
+                href={`/${session.user.username}`}
+                className={`transition-colors ${pathname === `/${session.user.username}` ? 'font-semibold' : ''}`}
+                style={{ 
+                  color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+                }}
+              >
+                Profile
+              </Link>
+            )}
           </div>
           
           {/* Desktop Auth Buttons */}
