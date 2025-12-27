@@ -29,8 +29,8 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
         
         // Delete GA cookies
         cookies.forEach(cookie => {
-          const cookieName = cookie.split('=')[0].trim();
-          if (cookieName.startsWith('_ga') || cookieName.startsWith('_gid') || cookieName.startsWith('_gat')) {
+          const cookieName = cookie.split('=')[0]?.trim();
+          if (cookieName && (cookieName.startsWith('_ga') || cookieName.startsWith('_gid') || cookieName.startsWith('_gat'))) {
             // Delete cookie by setting it to expire
             document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
           }
