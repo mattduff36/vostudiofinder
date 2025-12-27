@@ -112,7 +112,7 @@ export function StudiosPage() {
     };
     
     // If exactly one studio type is selected, use it in the heading
-    if (studioTypes.length === 1) {
+    if (studioTypes.length === 1 && studioTypes[0]) {
       const studioTypeLabel = studioTypeLabels[studioTypes[0]] || 'Studio';
       const pluralLabel = studioTypeLabel + 's'; // Simple pluralization
       
