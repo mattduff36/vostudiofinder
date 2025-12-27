@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Cropper from 'react-easy-crop';
 import 'react-easy-crop/react-easy-crop.css';
 import { X, ZoomIn, ZoomOut, Grid3x3, Info } from 'lucide-react';
@@ -69,6 +70,13 @@ export function ImageCropperModal({
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Track if component is mounted (for portal)
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Load image when file changes
   useEffect(() => {
@@ -166,9 +174,9 @@ export function ImageCropperModal({
     setZoom(value);
   };
 
-  if (!isOpen || !file) return null;
+  if (!isOpen || !file || !mounted) return null;
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm">
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-black/50 border-b border-white/10">
@@ -308,5 +316,8 @@ export function ImageCropperModal({
       </div>
     </div>
   );
+
+  // Render modal in a portal at document.body level
+  return createPortal(modalContent, document.body);
 }
 
