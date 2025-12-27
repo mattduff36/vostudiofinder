@@ -181,8 +181,20 @@ export function ImageCropperModal({
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-black/70 border-b border-white/10">
         <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-6">
-            <h2 className="text-xl font-semibold text-white/90">Adjust Image</h2>
+          <div className="flex items-center space-x-4">
+            {/* Info Text */}
+            <div className="text-white/60 text-sm space-y-0.5">
+              <p>
+                <span className="text-white/80 font-medium">Recommended ratio: 25:12</span>
+                {' • '}
+                Example sizes: 2500×1200 or 2000×960
+              </p>
+              {imageSize && (
+                <p className="text-white/50 text-xs">
+                  Original size: {imageSize.width}×{imageSize.height}px
+                </p>
+              )}
+            </div>
             <button
               onClick={() => setShowGrid(!showGrid)}
               className={`p-2 rounded-lg transition-colors ${
@@ -234,20 +246,6 @@ export function ImageCropperModal({
       {/* Controls */}
       <div className="absolute bottom-0 left-0 right-0 z-10 bg-black/70 border-t border-white/10">
         <div className="p-6 space-y-4">
-          {/* Info Text */}
-          <div className="max-w-2xl mx-auto text-center text-white/60 text-sm space-y-1">
-            <p>
-              <span className="text-white/80 font-medium">Recommended ratio: 25:12</span>
-              {' • '}
-              Example sizes: 2500×1200 or 2000×960
-            </p>
-            {imageSize && (
-              <p className="text-white/50 text-xs">
-                Original size: {imageSize.width}×{imageSize.height}px
-              </p>
-            )}
-          </div>
-          
           {/* Zoom Slider */}
           <div className="max-w-md mx-auto">
             <label className="flex items-center justify-between text-white text-sm mb-2">
