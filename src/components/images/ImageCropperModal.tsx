@@ -269,7 +269,7 @@ export function ImageCropperModal({
               onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
               className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
               style={{
-                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${
+                background: `linear-gradient(to right, #dc2626 0%, #dc2626 ${
                   ((zoom - 1) / 2) * 100
                 }%, rgba(255,255,255,0.2) ${((zoom - 1) / 2) * 100}%, rgba(255,255,255,0.2) 100%)`,
               }}
@@ -296,7 +296,7 @@ export function ImageCropperModal({
             <Button
               onClick={handleConfirm}
               disabled={processing || !croppedAreaPixels}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white"
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white"
             >
               {processing ? (
                 <>
