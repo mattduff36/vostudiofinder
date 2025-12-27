@@ -127,6 +127,7 @@ export function Navbar({ session }: NavbarProps) {
   const isHomePage = pathname === '/' || pathname === '/studios';
 
   return (
+    <>
     <nav
       className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 w-full max-w-full [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${
         isScrolled || !isHomePage
@@ -249,24 +250,6 @@ export function Navbar({ session }: NavbarProps) {
                 >
                   Dashboard
                 </Button>
-                {session.user.email === 'admin@mpdee.co.uk' && (
-                  <>
-                    {showEditButton && (
-                      <button
-                        onClick={handleEditClick}
-                        className="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
-                      >
-                        EDIT
-                      </button>
-                    )}
-                    <button
-                      onClick={() => router.push('/admin')}
-                      className="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
-                    >
-                      ADMIN
-                    </button>
-                  </>
-                )}
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className={`p-2 rounded-lg transition-all duration-300 ${
@@ -341,5 +324,29 @@ export function Navbar({ session }: NavbarProps) {
         </div>
       </div>
     </nav>
+    
+    {/* Admin Buttons - Positioned below nav bar on right side */}
+    {session?.user?.email === 'admin@mpdee.co.uk' && (
+      <div className={`hidden md:flex fixed top-[72px] right-6 z-[99] items-center gap-0 bg-black rounded-md text-white text-xs font-medium shadow-lg [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${isMapFullscreen ? 'hidden' : ''}`}>
+        {showEditButton && (
+          <>
+            <button
+              onClick={handleEditClick}
+              className="px-3 py-1.5 hover:bg-gray-800 transition-colors rounded-l-md"
+            >
+              EDIT
+            </button>
+            <div className="w-px h-4 bg-white/30"></div>
+          </>
+        )}
+        <button
+          onClick={() => router.push('/admin')}
+          className={`px-3 py-1.5 hover:bg-gray-800 transition-colors ${showEditButton ? 'rounded-r-md' : 'rounded-md'}`}
+        >
+          ADMIN
+        </button>
+      </div>
+    )}
+  </>
   );
 }
