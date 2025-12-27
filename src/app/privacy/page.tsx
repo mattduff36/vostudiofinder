@@ -81,7 +81,7 @@ export default function PrivacyPage() {
             </ul>
             
             <p className="mb-6 font-semibold">
-              Analytics cookies will only load if you explicitly accept them.
+              Analytics cookies will only load if you click "Accept All" in the cookie consent banner.
             </p>
 
             <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">2. How We Use Your Information</h2>
@@ -198,14 +198,16 @@ export default function PrivacyPage() {
             
             <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-4">Analytics cookies (optional)</h3>
             
+            <p className="mb-4">When you first visit the site, you'll see a cookie consent banner with three options:</p>
+            
             <ul className="list-disc pl-6 mb-6 space-y-2">
-              <li>Used for Google Analytics</li>
-              <li>Only loaded when you click "Accept Analytics Cookies"</li>
-              <li>Declining will disable all analytics tracking</li>
+              <li><strong>Accept All</strong> — enables Google Analytics and Vercel Analytics</li>
+              <li><strong>Necessary Only</strong> — disables all analytics tracking</li>
+              <li><strong>Decline</strong> — disables all analytics tracking</li>
             </ul>
             
             <p className="mb-6">
-              You can change your preferences at any time by clearing your browser's storage/cookies.
+              Analytics cookies only load after you click "Accept All". You can change your preferences at any time using the Cookie Settings link in the footer, or by clearing your browser cookies.
             </p>
 
             <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">9. Contact</h2>

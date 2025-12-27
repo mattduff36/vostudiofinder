@@ -106,6 +106,28 @@ export function MobileFooter() {
             </a>
           </div>
 
+          {/* Legal Links */}
+          <div className="pt-4 border-t border-gray-800">
+            <div className="flex flex-wrap gap-4 text-xs">
+              <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="text-gray-400 hover:text-white transition-colors">
+                Terms of Service
+              </Link>
+              <button
+                onClick={() => {
+                  // Delete the consent cookie to show the banner again
+                  document.cookie = 'vsf_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                  window.location.reload();
+                }}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                Cookie Settings
+              </button>
+            </div>
+          </div>
+
           {/* Copyright */}
           <div className="pt-4 border-t border-gray-800">
             <p className="text-xs text-gray-500">
