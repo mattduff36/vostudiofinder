@@ -42,7 +42,7 @@ export default function JoinWaitlistPage() {
     return (
       <div className="h-[calc(100vh-5rem)] relative overflow-hidden flex flex-col justify-start sm:justify-center py-8 sm:py-12 sm:px-6 lg:px-8">
         {/* Background Image */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 pointer-events-none">
           <Image
             src="/background-images/21920-5.jpg"
             alt="Success background"
@@ -92,7 +92,7 @@ export default function JoinWaitlistPage() {
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
       {/* Background Image */}
-      <div className="absolute inset-0 h-full">
+      <div className="absolute inset-0 h-full pointer-events-none">
         <Image
           src="/background-images/21920-5.jpg"
           alt="Waitlist background"
