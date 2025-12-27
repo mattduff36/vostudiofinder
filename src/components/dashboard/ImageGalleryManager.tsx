@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ImageCropperModal } from '@/components/images/ImageCropperModal';
 
 interface StudioImage {
   id: string;
@@ -27,6 +28,10 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
   const [error, setError] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Cropper state
+  const [fileToCrop, setFileToCrop] = useState<File | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
 
   useEffect(() => {
     fetchImages();
@@ -93,21 +98,29 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
       return;
     }
 
+    // Open the cropper modal instead of uploading directly
+    setError(null);
+    setFileToCrop(file);
+    setIsCropperOpen(true);
+  };
+
+  const handleCropConfirm = async (croppedFile: File) => {
     try {
       setUploading(true);
+      setIsCropperOpen(false);
       setError(null);
 
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', croppedFile);
 
       const endpoint = isAdminMode && studioId
         ? `/api/admin/studios/${studioId}/images`
         : '/api/user/profile/images';
 
-      logger.log('📤 Uploading to endpoint:', endpoint);
+      logger.log('📤 Uploading cropped image to endpoint:', endpoint);
       logger.log('📦 FormData contents:', {
         hasFile: formData.has('file'),
-        fileSize: file.size
+        fileSize: croppedFile.size
       });
 
       const response = await fetch(endpoint, {
@@ -141,6 +154,9 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      
+      // Reset cropper state
+      setFileToCrop(null);
     } catch (err) {
       logger.error('❌ Upload error caught:', err);
       if (err instanceof Error) {
@@ -153,6 +169,15 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
       setError(err instanceof Error ? err.message : 'Failed to upload image');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleCropCancel = () => {
+    setIsCropperOpen(false);
+    setFileToCrop(null);
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -506,7 +531,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
           <div className="mt-6 pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-500">
               💡 <strong>Tip:</strong> <span className="hidden md:inline">Drag and drop images to reorder them.</span><span className="md:hidden">Use the up/down buttons to reorder images.</span> The first image is your featured image.<br />
-              <span className="text-gray-400">Optimum size: 1200×800px (landscape) for best quality across all devices.</span>
+              <span className="text-gray-400">Recommended ratio: 25:12. Example sizes: 2500×1200 or 2000×960. You'll be able to adjust the framing after selecting an image.</span>
             </p>
           </div>
         </div>
@@ -547,6 +572,17 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
           </div>
         </div>
       )}
+
+      {/* Image Cropper Modal */}
+      <ImageCropperModal
+        file={fileToCrop}
+        isOpen={isCropperOpen}
+        onConfirm={handleCropConfirm}
+        onCancel={handleCropCancel}
+        aspect={25 / 12}
+        maxWidth={2000}
+        maxHeight={960}
+      />
     </div>
   );
 }

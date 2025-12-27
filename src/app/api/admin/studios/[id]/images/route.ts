@@ -114,7 +114,7 @@ export async function POST(
     cloudinaryFormData.append('file', new Blob([buffer]), file.name);
     cloudinaryFormData.append('timestamp', timestamp.toString());
     cloudinaryFormData.append('folder', folder);
-    cloudinaryFormData.append('transformation', 'c_limit,h_800,w_1200/f_auto/q_auto');
+    cloudinaryFormData.append('transformation', 'c_limit,h_960,w_2000/f_auto/q_auto');
     cloudinaryFormData.append('api_key', process.env.CLOUDINARY_API_KEY!);
     cloudinaryFormData.append('signature', signature);
     

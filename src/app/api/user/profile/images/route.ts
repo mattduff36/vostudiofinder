@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     const cloudinaryResult = await uploadImage(buffer, {
       folder: `studios/${studio.id}`,
       transformation: [
-        { width: 1200, height: 800, crop: 'limit' },
+        { width: 2000, height: 960, crop: 'limit' },
         { quality: 'auto' },
         { fetch_format: 'auto' },
       ],

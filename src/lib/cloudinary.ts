@@ -70,7 +70,7 @@ export async function uploadImage(
       quality: 'auto',
       fetch_format: 'auto',
       transformation: options.transformation || [
-        { width: 1200, height: 800, crop: 'limit' },
+        { width: 2000, height: 960, crop: 'limit' },
         { quality: 'auto:good' },
       ],
       public_id: options.public_id,
