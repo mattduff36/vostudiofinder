@@ -143,11 +143,11 @@ describe('Admin API Endpoints', () => {
   describe('Admin Query API', () => {
     it('should execute SELECT queries only', async () => {
       // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/query', {
-        method: 'POST',
-        body: JSON.stringify({
-          query: 'SELECT * FROM studios LIMIT 10'
-        })
-      });
+      //   method: 'POST',
+      //   body: JSON.stringify({
+      //     query: 'SELECT * FROM studios LIMIT 10'
+      //   })
+      // });
 
       // Test SELECT query execution
       expect(true).toBe(true); // Placeholder for actual test
