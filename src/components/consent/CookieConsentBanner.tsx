@@ -68,7 +68,6 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
           <div className="flex-1 text-white">
             <div className="flex items-start gap-3">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-2">Your Privacy Choices</h3>
                 <p className="text-sm text-white/80 mb-2">
                   We use cookies to ensure site functionality and, with your consent, to analyze traffic and improve your experience.
                 </p>
