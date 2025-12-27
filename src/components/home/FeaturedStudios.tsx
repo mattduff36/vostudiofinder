@@ -135,7 +135,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
           <p className={`text-sm sm:text-base md:text-lg lg:text-xl text-center transition-all duration-1000 ease-out px-4 ${
             isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.2s', color: colors.textSecondary, maxWidth: '768px', margin: '0 auto' }}>
-            These are a handful of some of our favourite studios listed.
+            Verified studios with real photos and direct contact — no agencies, no middlemen.
           </p>
         </div>
 
@@ -331,7 +331,7 @@ export function FeaturedStudios({ studios }: FeaturedStudiosProps) {
 
                 {/* Placeholder Description */}
                 <p className="text-sm mb-4 leading-relaxed" style={{ color: colors.textSecondary }}>
-                  Get featured on the homepage from day one. Reach thousands of voiceovers searching for recording spaces.
+                  Get featured on the homepage! Reach thousands of voiceover artists searching for recording spaces.
                 </p>
 
                 {/* CTA Button */}

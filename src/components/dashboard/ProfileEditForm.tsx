@@ -360,7 +360,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 maxLength={150}
               />
               <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                <span>Brief description shown in listings</span>
+                <span>Add a brief description to shown on the Studios page</span>
                 <span>{(profile.profile.short_about || '').length}/150 characters</span>
               </div>
             </div>
@@ -371,20 +371,20 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.about || ''}
                 onChange={(e) => updateProfile('about', e.target.value)}
                 rows={6}
-                maxLength={1200}
+                maxLength={1500}
               />
               <div className="flex justify-between items-center text-xs mt-1">
-                <span className="text-gray-500">Detailed description for your profile page</span>
+                <span className="text-gray-500">Add a detailed description for your profile page</span>
                 <span 
                   className={`${
-                    (profile.profile.about || '').length >= 1100 
+                    (profile.profile.about || '').length >= 1400 
                       ? 'text-red-600 font-semibold' 
-                      : (profile.profile.about || '').length >= 1000 
+                      : (profile.profile.about || '').length >= 1300 
                       ? 'text-orange-600 font-medium' 
                       : 'text-gray-500'
                   }`}
                 >
-                  {(profile.profile.about || '').length}/1200 characters
+                  {(profile.profile.about || '').length}/1500 characters
                 </span>
               </div>
             </div>
@@ -422,7 +422,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 updateStudio('city', extractCity(value));
               }}
               placeholder="Start typing your full address..."
-              helperText="Complete address used for geocoding and map coordinates"
+              helperText="Address used for geocoding and map coordinates. Home studio privacy? Choose a nearby location or landmark"
             />
 
             <Input
@@ -431,7 +431,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               value={profile.studio?.abbreviated_address || ''}
               onChange={(e) => updateStudio('abbreviated_address', e.target.value)}
               placeholder="Enter abbreviated address for display..."
-              helperText="This address will be shown on your public profile (if visibility is enabled). You can abbreviate or customize it."
+              helperText="Address shown on public profile (if visibility is enabled). Don't want to show a full address on your public profile? Abbreviate or customise it here."
             />
 
             <Input
@@ -440,7 +440,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               value={profile.studio?.city || ''}
               onChange={(e) => updateStudio('city', e.target.value)}
               placeholder="Enter town or city name..."
-              helperText="Region will be auto-populated from the full address above. You can edit it if needed."
+              helperText="Region will be auto-populated from the Full Address above and shown on the Studios page. You can edit it if needed."
             />
 
             <CountryAutocomplete
@@ -541,12 +541,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               helperText="Your X (Twitter) profile"
             />
             <Input
-              label="LinkedIn"
+              label="YouTube"
               type="url"
-              value={profile.profile.linkedin_url || ''}
-              onChange={(e) => updateProfile('linkedin_url', e.target.value)}
-              placeholder="https://linkedin.com/in/yourprofile"
-              helperText="Your LinkedIn profile"
+              value={profile.profile.youtube_url || ''}
+              onChange={(e) => updateProfile('youtube_url', e.target.value)}
+              placeholder="https://youtube.com/@yourchannel"
+              helperText="Your YouTube channel"
             />
             <Input
               label="Instagram"
@@ -557,6 +557,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               helperText="Your Instagram profile"
             />
             <Input
+              label="SoundCloud"
+              type="url"
+              value={profile.profile.soundcloud_url || ''}
+              onChange={(e) => updateProfile('soundcloud_url', e.target.value)}
+              placeholder="https://soundcloud.com/yourprofile"
+              helperText="Your SoundCloud profile"
+            />
+            <Input
               label="TikTok"
               type="url"
               value={profile.profile.tiktok_url || ''}
@@ -565,28 +573,20 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               helperText="Your TikTok profile"
             />
             <Input
+              label="LinkedIn"
+              type="url"
+              value={profile.profile.linkedin_url || ''}
+              onChange={(e) => updateProfile('linkedin_url', e.target.value)}
+              placeholder="https://linkedin.com/in/yourprofile"
+              helperText="Your LinkedIn profile"
+            />
+            <Input
               label="Threads"
               type="url"
               value={profile.profile.threads_url || ''}
               onChange={(e) => updateProfile('threads_url', e.target.value)}
               placeholder="https://www.threads.net/@yourhandle"
               helperText="Your Threads profile"
-            />
-            <Input
-              label="YouTube"
-              type="url"
-              value={profile.profile.youtube_url || ''}
-              onChange={(e) => updateProfile('youtube_url', e.target.value)}
-              placeholder="https://youtube.com/@yourchannel"
-              helperText="Your YouTube channel"
-            />
-            <Input
-              label="SoundCloud"
-              type="url"
-              value={profile.profile.soundcloud_url || ''}
-              onChange={(e) => updateProfile('soundcloud_url', e.target.value)}
-              placeholder="https://soundcloud.com/yourprofile"
-              helperText="Your SoundCloud profile"
             />
           </div>
         );

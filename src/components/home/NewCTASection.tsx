@@ -18,9 +18,9 @@ export function NewCTASection() {
       icon: Mic, 
       title: 'For Voice Artists', 
       points: [
-        'Find trusted recording studios near you - anywhere in the world', 
+        'Find trusted voiceover recording studios near you - anywhere in the world', 
         'Compare booths, equipment, rates and availability', 
-        'Verified studios with real photos and real pros behind them', 
+        'Verified studios with real photos and real professionals behind them', 
         'Contact studios directly - no fees, no middlemen', 
         'Perfect for last-minute sessions, travel jobs and remote patches'
       ] 
@@ -29,22 +29,22 @@ export function NewCTASection() {
       icon: Building, 
       title: 'For Studio Owners', 
       points: [
-        'Earn extra income from a booth that is sitting empty', 
+        'Earn extra income from a voiceover booth that is sitting empty', 
         'Get discovered by thousands of voice artists worldwide', 
-        'Showcase your studio with photos, equipment lists and services', 
+        'Showcase your studio with photos, equipment lists, prices  and services', 
         'Receive direct enquiries from qualified clients', 
-        'Just £25/year - one booking often pays for the whole year'
+        'Just £25/year - one booking pays for the whole year.'
       ] 
     },
     { 
       icon: Users, 
       title: 'For Everyone', 
       points: [
-        'Join a global community of voice artists, producers and podcasters', 
-        'Connect, collaborate and grow your professional network', 
+        'Join a global community of voice artists, studio owners, producers and podcasters', 
+        'Connect, collaborate and make extra money easily and directly.', 
         'Share industry tips, equipment knowledge and experience', 
-        'Stay updated with trends, technology and opportunities', 
-        'Be part of a platform built by people in the industry'
+        'Stay busy and benefit from Studio Finder's great user interface.', 
+        'Be part of a platform built by people in the business'
       ] 
     }
   ];
@@ -78,7 +78,7 @@ export function NewCTASection() {
               maxWidth: '768px', 
               margin: '0 auto' 
             }}>
-              A simple, no-commission platform built by people who actually work in the industry.
+              A simple, no-commission platform built by people who work in the business.
             </p>
           </div>
 

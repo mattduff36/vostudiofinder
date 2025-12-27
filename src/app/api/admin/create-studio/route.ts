@@ -13,7 +13,8 @@ export async function POST(request: NextRequest) {
   try {
     // Check if user is admin
     const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.email !== 'admin@mpdee.co.uk') {
+    const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy';
+    if (!session?.user || !isAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 403 }
