@@ -207,7 +207,7 @@ export function ImageCropperModal({
       </div>
 
       {/* Info Banner */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 max-w-2xl w-full px-4">
+      <div className="absolute top-14 left-1/2 -translate-x-1/2 z-10 max-w-2xl w-full px-4">
         <div className="bg-blue-600/90 backdrop-blur-sm text-white px-4 py-3 rounded-lg shadow-lg flex items-start space-x-3">
           <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <div className="text-sm">
