@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Cropper from 'react-easy-crop';
 import 'react-easy-crop/react-easy-crop.css';
-import { X, ZoomIn, ZoomOut, Grid3x3, Info } from 'lucide-react';
+import { X, ZoomIn, ZoomOut, Grid3x3 } from 'lucide-react';
 import { getCroppedImage, getImageDataUrl } from '@/lib/image/crop';
 import { Button } from '@/components/ui/Button';
 
@@ -179,10 +179,10 @@ export function ImageCropperModal({
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-black/50 border-b border-white/10">
+      <div className="absolute top-0 left-0 right-0 z-10 bg-black/70 border-b border-white/10">
         <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-3">
-            <h2 className="text-xl font-semibold text-white">Adjust Image</h2>
+          <div className="flex items-center space-x-6">
+            <h2 className="text-xl font-semibold text-white/90">Adjust Image</h2>
             <button
               onClick={() => setShowGrid(!showGrid)}
               className={`p-2 rounded-lg transition-colors ${
@@ -203,24 +203,6 @@ export function ImageCropperModal({
           >
             <X className="w-6 h-6" />
           </button>
-        </div>
-      </div>
-
-      {/* Info Banner */}
-      <div className="absolute top-14 left-1/2 -translate-x-1/2 z-10 max-w-2xl w-full px-4">
-        <div className="bg-red-600/90 backdrop-blur-sm text-white px-4 py-3 rounded-lg shadow-lg flex items-start space-x-3">
-          <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div className="text-sm">
-            <p className="font-medium">Recommended ratio: 25:12</p>
-            <p className="text-red-100 mt-1">
-              Example sizes: 2500×1200 or 2000×960. Drag to reposition, use the slider to zoom.
-              {imageSize && (
-                <span className="block mt-1 text-red-200">
-                  Original: {imageSize.width}×{imageSize.height}px
-                </span>
-              )}
-            </p>
-          </div>
         </div>
       </div>
 
@@ -250,8 +232,22 @@ export function ImageCropperModal({
       </div>
 
       {/* Controls */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 bg-black/50 border-t border-white/10">
+      <div className="absolute bottom-0 left-0 right-0 z-10 bg-black/70 border-t border-white/10">
         <div className="p-6 space-y-4">
+          {/* Info Text */}
+          <div className="max-w-2xl mx-auto text-center text-white/60 text-sm space-y-1">
+            <p>
+              <span className="text-white/80 font-medium">Recommended ratio: 25:12</span>
+              {' • '}
+              Example sizes: 2500×1200 or 2000×960
+            </p>
+            {imageSize && (
+              <p className="text-white/50 text-xs">
+                Original size: {imageSize.width}×{imageSize.height}px
+              </p>
+            )}
+          </div>
+          
           {/* Zoom Slider */}
           <div className="max-w-md mx-auto">
             <label className="flex items-center justify-between text-white text-sm mb-2">
