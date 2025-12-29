@@ -9,22 +9,29 @@ interface UsernamePageProps {
 }
 
 // Generate static params for all active studio profiles with visible profiles
+// Falls back to on-demand rendering if database is unavailable during build
 export async function generateStaticParams() {
-  const users = await db.users.findMany({
-    where: {
-      studio_profiles: {
-        status: 'ACTIVE',
-        is_profile_visible: true,
+  try {
+    const users = await db.users.findMany({
+      where: {
+        studio_profiles: {
+          status: 'ACTIVE',
+          is_profile_visible: true,
+        },
       },
-    },
-    select: {
-      username: true,
-    },
-  });
+      select: {
+        username: true,
+      },
+    });
 
-  return users.map((user) => ({
-    username: user.username,
-  }));
+    return users.map((user) => ({
+      username: user.username,
+    }));
+  } catch (error) {
+    console.warn('Could not generate static params for user profiles, falling back to on-demand rendering:', error);
+    // Return empty array - pages will be generated on-demand with ISR
+    return [];
+  }
 }
 
 // Revalidate every hour to keep content fresh while maintaining static generation benefits
