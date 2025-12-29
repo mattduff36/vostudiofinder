@@ -66,10 +66,16 @@ export default async function RootLayout({
 }>) {
   const session = await getServerSession(authOptions);
   
-  // Read cookie consent preference
-  const cookieStore = await cookies();
-  const consentCookie = cookieStore.get('vsf_cookie_consent');
-  const consentLevel = consentCookie?.value as 'all' | 'necessary' | 'decline' | undefined;
+  // Read cookie consent preference with error handling
+  let consentLevel: 'all' | 'necessary' | 'decline' | undefined;
+  try {
+    const cookieStore = await cookies();
+    const consentCookie = cookieStore.get('vsf_cookie_consent');
+    consentLevel = consentCookie?.value as 'all' | 'necessary' | 'decline' | undefined;
+  } catch (error) {
+    console.error('Error reading cookie consent:', error);
+    consentLevel = undefined;
+  }
   const hasConsent = consentLevel === 'all';
 
   return (
