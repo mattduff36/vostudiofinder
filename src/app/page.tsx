@@ -36,38 +36,45 @@ export const metadata: Metadata = {
 export default async function Home() {
   const session = await getServerSession(authOptions);
   
-  // Fetch featured studios for the homepage (available to all users)
-  // Only show studios where user_profiles.is_featured === true AND is_profile_visible === true, limited to 6
-  const featuredStudiosRaw = await db.studio_profiles.findMany({
-    where: {
-      status: 'ACTIVE',
-      is_featured: true,
-      is_profile_visible: true,
-    },
-    include: {
-      users: {
-        select: {
-          display_name: true,
-          username: true,
-          avatar_url: true,
+  let featuredStudiosRaw: any[] = [];
+  
+  try {
+    // Fetch featured studios for the homepage (available to all users)
+    // Only show studios where user_profiles.is_featured === true AND is_profile_visible === true, limited to 6
+    featuredStudiosRaw = await db.studio_profiles.findMany({
+      where: {
+        status: 'ACTIVE',
+        is_featured: true,
+        is_profile_visible: true,
+      },
+      include: {
+        users: {
+          select: {
+            display_name: true,
+            username: true,
+            avatar_url: true,
+          },
+        },
+        studio_services: true,
+        studio_studio_types: {
+          select: {
+            studio_type: true,
+          },
+        },
+        studio_images: {
+          take: 1,
+          orderBy: { sort_order: 'asc' },
+        },
+        _count: {
+          select: { reviews: true },
         },
       },
-      studio_services: true,
-      studio_studio_types: {
-        select: {
-          studio_type: true,
-        },
-      },
-      studio_images: {
-        take: 1,
-        orderBy: { sort_order: 'asc' },
-      },
-      _count: {
-        select: { reviews: true },
-      },
-    },
-    take: 6, // Maximum of 6 featured studios
-  });
+      take: 6, // Maximum of 6 featured studios
+    });
+  } catch (error) {
+    console.error('Error fetching featured studios:', error);
+    // Continue with empty array - homepage will show placeholder cards
+  }
 
   // Always pin VoiceoverGuy studio first, then randomize the rest
   const voiceoverGuy = featuredStudiosRaw.find(
@@ -87,23 +94,32 @@ export default async function Home() {
     ? [voiceoverGuy, ...randomizedOthers]
     : randomizedOthers.slice(0, 6);
 
-  // Get total counts for stats
-  const [totalStudios, totalUsers, uniqueCountries] = await Promise.all([
-    db.studio_profiles.count({ where: { status: 'ACTIVE' } }),
-    db.users.count(),
-    // Count unique countries from user_profiles.location
-    db.studio_profiles.findMany({
-      select: { location: true },
-      where: { location: { not: null } }
-    }).then(profiles => {
-      const uniqueLocations = new Set(
-        profiles
-          .map(p => p.location?.trim())
-          .filter((loc): loc is string => !!loc && loc.length > 0)
-      );
-      return uniqueLocations.size;
-    })
-  ]);
+  // Get total counts for stats with error handling
+  let totalStudios = 0;
+  let totalUsers = 0;
+  let uniqueCountries = 0;
+  
+  try {
+    [totalStudios, totalUsers, uniqueCountries] = await Promise.all([
+      db.studio_profiles.count({ where: { status: 'ACTIVE' } }),
+      db.users.count(),
+      // Count unique countries from user_profiles.location
+      db.studio_profiles.findMany({
+        select: { location: true },
+        where: { location: { not: null } }
+      }).then(profiles => {
+        const uniqueLocations = new Set(
+          profiles
+            .map(p => p.location?.trim())
+            .filter((loc): loc is string => !!loc && loc.length > 0)
+        );
+        return uniqueLocations.size;
+      })
+    ]);
+  } catch (error) {
+    console.error('Error fetching homepage stats:', error);
+    // Continue with default values
+  }
 
   // Convert Decimal fields to numbers and map short_about to description for client components
   const serializedStudios = featuredStudios.map(studio => ({
@@ -120,7 +136,7 @@ export default async function Home() {
     city: studio.city || '', // Add city field for display
     address: studio.full_address || '', // Ensure address is available
     // Pass studio_images directly with snake_case
-    studio_images: studio.studio_images?.map(img => ({
+    studio_images: studio.studio_images?.map((img: any) => ({
       image_url: img.image_url,
       alt_text: img.alt_text,
     })) || [],
