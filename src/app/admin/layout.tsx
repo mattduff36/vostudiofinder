@@ -13,7 +13,7 @@ export default function AdminLayout({
 }) {
   return (
     <AdminGuard>
-      <div className="min-h-screen" style={{ backgroundColor: '#53282a17' }}>
+      <div className="min-h-screen bg-gray-50">
         {children}
       </div>
     </AdminGuard>

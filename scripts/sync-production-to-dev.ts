@@ -16,8 +16,8 @@ import * as readline from 'readline';
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 const DEV_DATABASE_URL = process.env.DATABASE_URL;
 
-// Load production environment (.env.production)
-dotenv.config({ path: path.resolve(process.cwd(), '.env.production') });
+// Load production environment (.env.production) - MUST override dev DATABASE_URL
+dotenv.config({ path: path.resolve(process.cwd(), '.env.production'), override: true });
 const PROD_DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DEV_DATABASE_URL || !PROD_DATABASE_URL) {
@@ -266,6 +266,7 @@ async function main() {
                 id: review.id,
                 studio_id: review.studio_id,
                 reviewer_id: review.reviewer_id,
+                owner_id: review.owner_id, // Required: studio owner who received the review
                 rating: review.rating,
                 content: review.content,
                 status: review.status,
