@@ -139,12 +139,12 @@ export default function AdminAnalyticsPage() {
   return (
     <>
       <AdminTabs activeTab="analytics" />
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="p-8 bg-gray-50 min-h-screen">
+        <div className="max-w-7xl mx-auto">
           
           {/* Header */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h1 className="text-3xl font-bold text-gray-900">📊 VO Studio Finder Analytics</h1>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Platform Analytics</h1>
             <p className="text-gray-600 mt-2">
               Comprehensive insights and statistics for the Voice Over Studio Finder platform
             </p>
@@ -155,8 +155,10 @@ export default function AdminAnalyticsPage() {
             </div>
           </div>
 
-          {/* Key Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="space-y-8">
+
+            {/* Key Metrics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Users */}
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200 shadow-sm">
               <div className="flex items-center justify-between mb-3">
@@ -220,11 +222,11 @@ export default function AdminAnalyticsPage() {
             </div>
           </div>
 
-          {/* Connection Methods Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Connection Methods Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            {/* Standard Connection Methods */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+              {/* Standard Connection Methods */}
+              <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-blue-50">
                 <h2 className="text-xl font-bold text-gray-900">🔗 Connection Methods Usage</h2>
                 <p className="text-gray-600 text-sm mt-1">How many studios use each connection method</p>
@@ -258,8 +260,8 @@ export default function AdminAnalyticsPage() {
               </div>
             </div>
 
-            {/* Custom Connection Methods */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+              {/* Custom Connection Methods */}
+              <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
                 <h2 className="text-xl font-bold text-gray-900">✨ Custom Connection Methods</h2>
                 <p className="text-gray-600 text-sm mt-1">User-added custom methods tracking trends</p>
@@ -310,9 +312,9 @@ export default function AdminAnalyticsPage() {
             </div>
           </div>
 
-          {/* Top Rated Studios */}
-          {studios.top_rated.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            {/* Top Rated Studios */}
+            {studios.top_rated.length > 0 && (
+              <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50">
                 <h2 className="text-xl font-bold text-gray-900">🏆 Top Rated Studios</h2>
                 <p className="text-gray-600 text-sm mt-1">Studios with the highest average ratings</p>
@@ -365,9 +367,9 @@ export default function AdminAnalyticsPage() {
             </div>
           )}
 
-          {/* Geographic Distribution */}
-          {geographic.top_locations.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            {/* Geographic Distribution */}
+            {geographic.top_locations.length > 0 && (
+              <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-teal-50">
                 <h2 className="text-xl font-bold text-gray-900">🌍 Geographic Distribution</h2>
                 <p className="text-gray-600 text-sm mt-1">Where studios are located</p>
@@ -393,9 +395,9 @@ export default function AdminAnalyticsPage() {
             </div>
           )}
 
-          {/* Rate Tier Analysis */}
-          {rates.profiles_with_rates > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            {/* Rate Tier Analysis */}
+            {rates.profiles_with_rates > 0 && (
+              <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-green-50">
                 <h2 className="text-xl font-bold text-gray-900">💰 Rate Tier Analysis</h2>
                 <p className="text-gray-600 text-sm mt-1">Average rates across all studios</p>
@@ -425,11 +427,11 @@ export default function AdminAnalyticsPage() {
             </div>
           )}
 
-          {/* Statistics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            {/* Studio Status Distribution */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            {/* Statistics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              
+              {/* Studio Status Distribution */}
+              <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900">📊 Studio Status</h2>
               </div>
@@ -460,8 +462,8 @@ export default function AdminAnalyticsPage() {
               </div>
             </div>
 
-            {/* User Role Distribution */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+              {/* User Role Distribution */}
+              <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900">👥 User Roles</h2>
               </div>
@@ -494,12 +496,12 @@ export default function AdminAnalyticsPage() {
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            {/* Recent Studios */}
-            {studios.recent.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            {/* Recent Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
+              {/* Recent Studios */}
+              {studios.recent.length > 0 && (
+                <div className="bg-white rounded-lg shadow">
                 <div className="p-6 border-b border-gray-200">
                   <h2 className="text-xl font-bold text-gray-900">🆕 Recent Studios</h2>
                   <p className="text-gray-600 text-sm mt-1">Latest studio registrations</p>
@@ -533,9 +535,9 @@ export default function AdminAnalyticsPage() {
               </div>
             )}
 
-            {/* Recent Users */}
-            {users.recent.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+              {/* Recent Users */}
+              {users.recent.length > 0 && (
+                <div className="bg-white rounded-lg shadow">
                 <div className="p-6 border-b border-gray-200">
                   <h2 className="text-xl font-bold text-gray-900">👤 Recent Users</h2>
                   <p className="text-gray-600 text-sm mt-1">Latest user registrations</p>

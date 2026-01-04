@@ -38,7 +38,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
   return (
     <>
       {/* Desktop Tabs */}
-      <div className="hidden md:block bg-white border-b border-gray-200">
+      <div className="hidden md:block bg-red-600 border-b border-red-700">
         <nav className="flex justify-center space-x-8 px-6" aria-label="Admin tabs">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -51,8 +51,8 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
                 className={`
                   flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors
                   ${isActive
-                    ? 'border-red-500 text-red-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-white text-white'
+                    : 'border-transparent text-red-100 hover:text-white hover:border-red-400'
                   }
                 `}
                 aria-current={isActive ? 'page' : undefined}
@@ -66,11 +66,11 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
       </div>
 
       {/* Mobile Tabs */}
-      <div className="md:hidden bg-white border-b border-gray-200">
+      <div className="md:hidden bg-red-600 border-b border-red-700">
         <div className="px-4 py-3">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="w-full flex items-center justify-between text-left font-medium text-gray-900"
+            className="w-full flex items-center justify-between text-left font-medium text-white"
           >
             <span className="flex items-center gap-2">
               {tabs.find(t => t.id === activeTab)?.icon && 
@@ -94,7 +94,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
 
         {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
-          <div className="border-t border-gray-200">
+          <div className="border-t border-red-700">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -109,8 +109,8 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 text-left transition-colors
                     ${isActive
-                      ? 'bg-red-50 text-red-600 font-medium'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-red-700 text-white font-medium'
+                      : 'text-red-100 hover:bg-red-700 hover:text-white'
                     }
                   `}
                 >

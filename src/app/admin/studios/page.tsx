@@ -351,52 +351,13 @@ export default function AdminStudiosPage() {
   return (
     <>
       <AdminTabs activeTab="studios" />
-      <div className="min-h-screen bg-gray-50 relative">
-        {/* Subtle red gradient overlays in corners */}
-        <div className="fixed inset-0 pointer-events-none z-0">
-          {/* Top-left gradient */}
-          <div 
-            className="absolute top-0 left-0 w-96 h-96 opacity-50"
-            style={{
-              background: 'radial-gradient(circle at top left, #d42027 0%, transparent 70%)'
-            }}
-          />
-          {/* Top-right gradient */}
-          <div 
-            className="absolute top-0 right-0 w-96 h-96 opacity-50"
-            style={{
-              background: 'radial-gradient(circle at top right, #d42027 0%, transparent 70%)'
-            }}
-          />
-          {/* Bottom-left gradient */}
-          <div 
-            className="absolute bottom-0 left-0 w-96 h-96 opacity-50"
-            style={{
-              background: 'radial-gradient(circle at bottom left, #d42027 0%, transparent 70%)'
-            }}
-          />
-          {/* Bottom-right gradient */}
-          <div 
-            className="absolute bottom-0 right-0 w-96 h-96 opacity-50"
-            style={{
-              background: 'radial-gradient(circle at bottom right, #d42027 0%, transparent 70%)'
-            }}
-          />
-          {/* Center gradient */}
-          <div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-10"
-            style={{
-              background: 'radial-gradient(circle at center, #d42027 0%, transparent 70%)'
-            }}
-          />
-        </div>
-        
-        <div className="mx-auto space-y-6 px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">🎭 VOSF Studio Directory</h1>
-          <p className="text-gray-600 mt-1 pl-4">
+      <div className="p-8 bg-gray-50 min-h-screen">
+        <div className="max-w-full mx-auto px-4">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Studio Management</h1>
+              <p className="text-gray-600 mt-2">
             {pagination.total} studios in the Voice Over Studio Finder network
           </p>
         </div>
@@ -476,7 +437,7 @@ export default function AdminStudiosPage() {
         </div>
       ) : (
         <>
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 {/* Left side - Select All checkbox */}

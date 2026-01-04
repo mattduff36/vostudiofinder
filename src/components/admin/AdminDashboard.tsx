@@ -104,62 +104,30 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
       <AdminTabs activeTab="overview" />
 
       {/* Content */}
-      <main className="min-h-screen bg-gray-50 relative">
-        {/* Subtle red gradient overlays in corners */}
-        <div className="fixed inset-0 pointer-events-none z-0">
-          {/* Top-left gradient */}
-          <div 
-            className="absolute top-0 left-0 w-96 h-96 opacity-50"
-            style={{
-              background: 'radial-gradient(circle at top left, #d42027 0%, transparent 70%)'
-            }}
-          />
-          {/* Top-right gradient */}
-          <div 
-            className="absolute top-0 right-0 w-96 h-96 opacity-50"
-            style={{
-              background: 'radial-gradient(circle at top right, #d42027 0%, transparent 70%)'
-            }}
-          />
-          {/* Bottom-left gradient */}
-          <div 
-            className="absolute bottom-0 left-0 w-96 h-96 opacity-50"
-            style={{
-              background: 'radial-gradient(circle at bottom left, #d42027 0%, transparent 70%)'
-            }}
-          />
-          {/* Bottom-right gradient */}
-          <div 
-            className="absolute bottom-0 right-0 w-96 h-96 opacity-50"
-            style={{
-              background: 'radial-gradient(circle at bottom right, #d42027 0%, transparent 70%)'
-            }}
-          />
-          {/* Center gradient */}
-          <div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-10"
-            style={{
-              background: 'radial-gradient(circle at center, #d42027 0%, transparent 70%)'
-            }}
-          />
-        </div>
+      <div className="p-8 bg-gray-50 min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p className="text-gray-600 mt-2">
+              Overview of platform statistics and recent activity
+            </p>
+          </div>
 
-        {/* Content with higher z-index */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
           <div className="space-y-8">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {statCards.map((stat, index) => (
                 <div
                   key={index}
-                  className={`bg-white rounded-lg border border-gray-200 p-6 ${
+                  className={`bg-white rounded-lg shadow p-6 ${
                     stat.urgent ? 'ring-2 ring-red-500' : ''
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-text-secondary">{stat.title}</p>
-                      <p className="text-3xl font-bold text-text-primary">{stat.value}</p>
+                      <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                      <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
                       {stat.change && (
                         <p className="text-sm text-green-600 mt-1">
                           <TrendingUp className="w-4 h-4 inline mr-1" />
@@ -178,18 +146,18 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
             {/* Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Recent Users */}
-              <div className="bg-white rounded-lg border border-gray-200">
+              <div className="bg-white rounded-lg shadow">
                 <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-text-primary">Recent Users</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Recent Users</h3>
                 </div>
                 <div className="divide-y divide-gray-200">
                   {recentActivity.users.map((user) => (
                     <div key={user.id} className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-text-primary">{user.display_name}</p>
-                          <p className="text-sm text-text-secondary">{user.email}</p>
-                          <p className="text-xs text-text-secondary mt-1">
+                          <p className="font-medium text-gray-900">{user.display_name}</p>
+                          <p className="text-sm text-gray-600">{user.email}</p>
+                          <p className="text-xs text-gray-500 mt-1">
                             {user.role} • {new Date(user.created_at).toLocaleDateString()}
                           </p>
                         </div>
@@ -200,18 +168,18 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
               </div>
 
               {/* Recent Studios */}
-              <div className="bg-white rounded-lg border border-gray-200">
+              <div className="bg-white rounded-lg shadow">
                 <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-text-primary">Recent Studios</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Recent Studios</h3>
                 </div>
                 <div className="divide-y divide-gray-200">
                   {recentActivity.studios.map((studio) => (
                     <div key={studio.id} className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-text-primary">{studio.name}</p>
-                          <p className="text-sm text-text-secondary">by {studio.owner.display_name}</p>
-                          <p className="text-xs text-text-secondary mt-1">
+                          <p className="font-medium text-gray-900">{studio.name}</p>
+                          <p className="text-sm text-gray-600">by {studio.owner.display_name}</p>
+                          <p className="text-xs text-gray-500 mt-1">
                             {studio.studio_type} • {new Date(studio.created_at).toLocaleDateString()}
                           </p>
                         </div>
@@ -222,9 +190,9 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
               </div>
 
               {/* Recent Reviews */}
-              <div className="bg-white rounded-lg border border-gray-200">
+              <div className="bg-white rounded-lg shadow">
                 <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-text-primary">Recent Reviews</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Recent Reviews</h3>
                 </div>
                 <div className="divide-y divide-gray-200">
                   {recentActivity.reviews.map((review) => (
@@ -254,8 +222,8 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
                               {review.status}
                             </span>
                           </div>
-                          <p className="text-sm text-text-primary">{review.studio.name}</p>
-                          <p className="text-xs text-text-secondary">
+                          <p className="text-sm text-gray-900">{review.studio.name}</p>
+                          <p className="text-xs text-gray-600">
                             by {review.reviewer.display_name} • {new Date(review.created_at).toLocaleDateString()}
                           </p>
                         </div>
@@ -267,7 +235,7 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }
