@@ -362,6 +362,7 @@ model users {
   deletion_requested_at                                      DateTime?
   deletion_scheduled_for                                     DateTime?
   deletion_status                                            String                  @default("ACTIVE")
+  last_login                                                 DateTime?
   created_at                                                 DateTime                @default(now())
   updated_at                                                 DateTime
   accounts                                                   accounts[]

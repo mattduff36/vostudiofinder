@@ -107,6 +107,7 @@ export async function GET(request: NextRequest) {
               avatar_url: true,
               created_at: true,
               updated_at: true,
+              last_login: true,
             }
           },
           studio_studio_types: {
@@ -174,8 +175,7 @@ export async function GET(request: NextRequest) {
         latitude: studio.latitude ? Number(studio.latitude) : null,
         longitude: studio.longitude ? Number(studio.longitude) : null,
         profile_completion: profileCompletion,
-        // Note: last_login not available yet - needs to be added to users table
-        last_login: null,
+        last_login: studio.users.last_login,
       };
     });
 
