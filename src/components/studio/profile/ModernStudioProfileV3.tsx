@@ -510,7 +510,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden md:block">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Images & Main Content */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 w-full min-w-0">
             {/* Image Gallery - Large Featured + Thumbnails */}
             {displayImages.length > 0 && (
               <div className="mb-8 w-full">
@@ -679,7 +679,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             {/* Social Media Links */}
             {socialLinks.length > 0 && (
               <div className="mb-6 w-full">
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-3 w-full">
                   {socialLinks.map((link, index) => {
                     const Icon = link.icon;
                     return (
@@ -760,7 +760,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           </div>
 
           {/* Right Sidebar - Sticky on Desktop */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 w-full min-w-0">
             <div className="sticky top-8 space-y-6">
               {/* Map Card - Integrated Design - Total height matches main image + gap + thumbnails (492px) */}
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden" style={{ height: '492px' }}>
