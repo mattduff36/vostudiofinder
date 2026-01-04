@@ -9,6 +9,20 @@ export const metadata: Metadata = {
   description: 'Manage users, studios, reviews, and platform settings',
 };
 
+interface ActivityItem {
+  id: string;
+  type: 'user' | 'studio';
+  action: string;
+  description: string;
+  timestamp: Date;
+  metadata?: {
+    username?: string;
+    studioName?: string;
+    status?: string;
+    isVerified?: boolean;
+  };
+}
+
 export default async function AdminPage() {
   // Ensure user has admin permissions
   await requireRole(Role.ADMIN);
@@ -21,12 +35,9 @@ export default async function AdminPage() {
     verifiedStudios,
     featuredStudios,
     premiumStudios,
-    totalReviews,
-    pendingReviews,
     activeUsers30d,
     recentUsers,
     recentStudios,
-    recentReviews,
   ] = await Promise.all([
     // Total registered users
     db.users.count(),
@@ -46,12 +57,6 @@ export default async function AdminPage() {
     // Premium studios
     db.studio_profiles.count({ where: { is_premium: true } }),
     
-    // Total reviews
-    db.reviews.count(),
-    
-    // Pending reviews
-    db.reviews.count({ where: { status: 'PENDING' } }),
-    
     // Active users in last 30 days (based on updated_at)
     db.users.count({
       where: {
@@ -61,9 +66,9 @@ export default async function AdminPage() {
       },
     }),
     
-    // Recent users
+    // Recent users (last 20)
     db.users.findMany({
-      take: 5,
+      take: 20,
       orderBy: { created_at: 'desc' },
       select: {
         id: true,
@@ -74,9 +79,9 @@ export default async function AdminPage() {
       },
     }),
     
-    // Recent studios
+    // Recent studios (last 20)
     db.studio_profiles.findMany({
-      take: 5,
+      take: 20,
       orderBy: { created_at: 'desc' },
       select: {
         id: true,
@@ -91,24 +96,6 @@ export default async function AdminPage() {
         },
       },
     }),
-    
-    // Recent reviews
-    db.reviews.findMany({
-      take: 5,
-      orderBy: { created_at: 'desc' },
-      include: {
-        users_reviews_reviewer_idTousers: {
-          select: {
-            display_name: true,
-          },
-        },
-        studio_profiles: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    }),
   ]);
 
   const stats = {
@@ -119,36 +106,46 @@ export default async function AdminPage() {
     verifiedStudios,
     featuredStudios,
     premiumStudios,
-    totalReviews,
-    pendingReviews,
     activeUsers30d,
   };
 
-  const recentActivity = {
-    users: recentUsers,
-    studios: recentStudios.map(studio => ({
-      id: studio.id,
-      name: studio.name,
-      status: studio.status,
-      is_verified: studio.is_verified,
-      created_at: studio.created_at,
-      owner: {
-        display_name: studio.users.display_name,
+  // Create unified activity feed
+  const activities: ActivityItem[] = [];
+
+  // Add user activities
+  recentUsers.forEach(user => {
+    activities.push({
+      id: `user-${user.id}`,
+      type: 'user',
+      action: 'New User Registration',
+      description: `${user.display_name} (@${user.username}) joined the platform`,
+      timestamp: user.created_at,
+      metadata: {
+        username: user.username,
       },
-    })),
-    reviews: recentReviews.map(review => ({
-      id: review.id,
-      rating: review.rating,
-      status: review.status as string,
-      created_at: review.created_at,
-      reviewer: {
-        display_name: review.users_reviews_reviewer_idTousers.display_name,
+    });
+  });
+
+  // Add studio activities
+  recentStudios.forEach(studio => {
+    activities.push({
+      id: `studio-${studio.id}`,
+      type: 'studio',
+      action: 'Studio Created',
+      description: `${studio.name} by ${studio.users.display_name}`,
+      timestamp: studio.created_at,
+      metadata: {
+        studioName: studio.name,
+        status: studio.status,
+        isVerified: studio.is_verified,
       },
-      studio: {
-        name: review.studio_profiles.name,
-      },
-    })),
-  };
+    });
+  });
+
+  // Sort by timestamp (most recent first) and limit to 30
+  const recentActivity = activities
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    .slice(0, 30);
 
   return (
     <AdminDashboard 
