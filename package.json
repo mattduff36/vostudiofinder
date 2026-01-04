@@ -26,6 +26,7 @@
     "db:sync": "bash scripts/sync-prod-to-dev.sh",
     "db:sync-prod-to-dev": "tsx scripts/sync-production-to-dev.ts",
     "db:sync-tool": "tsx scripts/db-sync-tool.ts",
+    "db:sync-faq-waitlist": "tsx scripts/sync-faq-waitlist-bidirectional.ts --confirm",
     "db:migrate:dev": "bash scripts/migrate-with-protection.sh dev",
     "db:migrate:prod": "bash scripts/migrate-with-protection.sh production",
     "migrate:studio-types": "tsx scripts/migrate-studio-types.ts",
