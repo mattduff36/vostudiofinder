@@ -351,7 +351,7 @@ export default function AdminStudiosPage() {
   return (
     <>
       <AdminTabs activeTab="studios" />
-      <div className="p-8 bg-gray-50 min-h-screen">
+      <div className="p-8 min-h-screen">
         <div className="max-w-full mx-auto px-4">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
