@@ -136,7 +136,11 @@ export default function AdminFAQPage() {
 
     const newFaqs = [...faqs];
     newFaqs.splice(draggedIndex, 1);
-    newFaqs.splice(targetIndex, 0, draggedItem);
+    
+    // Adjust target index if dragged item was before target
+    // (removing an earlier item shifts all later indices down by 1)
+    const adjustedTargetIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    newFaqs.splice(adjustedTargetIndex, 0, draggedItem);
 
     setFaqs(newFaqs);
   };
