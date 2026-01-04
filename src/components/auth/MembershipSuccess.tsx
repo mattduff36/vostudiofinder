@@ -472,7 +472,7 @@ export function MembershipSuccess() {
                   {...register('about', { required: 'Full description is required' })}
                   error={errors.about?.message || ''}
                   rows={6}
-                  maxLength={1200}
+                  maxLength={1500}
                   helperText="Detailed description for your profile page"
                   placeholder="Tell voice artists about your studio, equipment, experience..."
                 />
