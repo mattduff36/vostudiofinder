@@ -19,7 +19,7 @@ A comprehensive profile setup form that collects all required information:
 - **Studio Information:**
   - Studio Name (max 35 characters)
   - Short About (max 150 characters) 
-  - Full About (max 1200 characters)
+  - Full About (max 1500 characters)
   - Studio Types (Home, Recording, Podcast) - at least 1 required
 
 - **Location:**

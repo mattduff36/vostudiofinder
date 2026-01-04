@@ -305,9 +305,9 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         <Input
           label="Studio Name"
           value={profile?._meta?.studio_name || ''}
-          onChange={(e) => {
-            const value = e.target.value;
-            const truncatedValue = value.length > 30 ? value.substring(0, 30) : value;
+        onChange={(e) => {
+          const value = e.target.value;
+            const truncatedValue = value.length > 35 ? value.substring(0, 35) : value;
           handleMetaChange('studio_name', truncatedValue);
         }}
         maxLength={35}
@@ -399,20 +399,20 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           value={decodeHtmlEntities(profile?._meta?.about) || ''}
           onChange={(e) => handleMetaChange('about', e.target.value)}
           rows={6}
-          maxLength={1200}
+          maxLength={1500}
         />
         <div className="flex justify-between items-center text-xs mt-1">
           <span className="text-gray-500">Detailed description for profile page</span>
           <span 
             className={`${
-              (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1100 
+              (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1400 
                 ? 'text-red-600 font-semibold' 
-                : (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1000 
+                : (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1300 
                 ? 'text-orange-600 font-medium' 
                 : 'text-gray-500'
             }`}
           >
-            {(decodeHtmlEntities(profile?._meta?.about) || '').length}/1200 characters
+            {(decodeHtmlEntities(profile?._meta?.about) || '').length}/1500 characters
           </span>
         </div>
       </div>
