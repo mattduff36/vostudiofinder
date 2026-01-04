@@ -510,10 +510,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden md:block">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Images & Main Content */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-w-0 w-full">
             {/* Image Gallery - Large Featured + Thumbnails */}
             {displayImages.length > 0 && (
-              <div className="mb-8">
+              <div className="mb-8 w-full">
                 {/* Featured Image */}
                 <div 
                   className="relative aspect-[25/12] bg-gray-200 rounded-lg overflow-hidden mb-4 cursor-pointer group"
@@ -611,17 +611,17 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             </div>
 
             {/* Description */}
-            <div className="mb-6">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3">
+            <div className="mb-6 w-full">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3 w-full">
                 <div className="prose prose-gray max-w-none">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
                     {cleanDescription(profile?.about || profile?.short_about || studio.description)}
                   </p>
                   {profile?.equipment_list && (
                     <div className="mt-4">
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Equipment</h3>
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                        {profile.equipment_list}
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
+                        {cleanDescription(profile.equipment_list)}
                       </p>
                     </div>
                   )}
@@ -661,8 +661,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               const allConnections = [...standardConnections, ...customConnections];
 
               return allConnections.length > 0 ? (
-                <div className="mb-6">
-                  <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-6">
+                <div className="mb-6 w-full">
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-6 w-full">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Connections</h3>
                     <ul className="list-disc list-inside space-y-1">
                       {allConnections.map((connection) => (
@@ -678,7 +678,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
             {/* Social Media Links */}
             {socialLinks.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-6 w-full">
                 <div className="flex flex-wrap gap-3">
                   {socialLinks.map((link, index) => {
                     const Icon = link.icon;
@@ -705,7 +705,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
             {/* Reviews Section */}
             {studio.reviews.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-6 w-full">
                 <h2 className="text-xl font-semibold text-gray-900 mb-3">Reviews</h2>
                 <div className="space-y-4">
                   {studio.reviews.slice(0, 3).map((review) => (
@@ -745,7 +745,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
             {/* Verified Studio Badge at Bottom */}
             {studio.is_verified && (
-              <div className="mb-6">
+              <div className="mb-6 w-full">
                 <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
                   <span 
                     className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 flex-shrink-0" 

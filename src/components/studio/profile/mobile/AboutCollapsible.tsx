@@ -36,7 +36,7 @@ export function AboutCollapsible({
       {/* About Description */}
       {description && (
         <div className="px-4 py-4 border-b border-gray-100">
-          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
             {description}
           </div>
         </div>
@@ -78,8 +78,8 @@ export function AboutCollapsible({
             )}
           </button>
           {isEquipmentExpanded && (
-            <div className="mt-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-              {equipmentList}
+            <div className="mt-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
+              {cleanDescription(equipmentList)}
             </div>
           )}
         </div>

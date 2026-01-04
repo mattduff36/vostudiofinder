@@ -16,7 +16,10 @@ export function cleanDescription(description: string | null | undefined): string
     .replace(/\\r/g, '\n')
     // Clean up multiple spaces but preserve line breaks
     .replace(/[ \t]+/g, ' ')
-    .replace(/\n\s*\n/g, '\n\n')
+    // Normalize multiple newlines to max 2 consecutive (one blank line)
+    .replace(/\n\s*\n\s*\n+/g, '\n\n')
+    // Remove trailing line breaks at the end
+    .replace(/\n+$/g, '')
     .trim();
   
   // Handle numeric descriptions (common issue from admin project updates)
