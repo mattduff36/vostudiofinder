@@ -514,13 +514,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             {/* Image Gallery - Large Featured + Thumbnails */}
             {displayImages.length > 0 && (
               <div className="mb-8">
-                {/* Featured Image - Adjust aspect ratio based on number of images */}
+                {/* Featured Image */}
                 <div 
-                  className={`relative bg-gray-200 rounded-lg overflow-hidden mb-4 cursor-pointer group ${
-                    displayImages.length >= 5 ? 'aspect-[25/12]' : 
-                    displayImages.length >= 3 ? 'aspect-[16/9]' : 
-                    'aspect-[4/3]'
-                  }`}
+                  className="relative aspect-[25/12] bg-gray-200 rounded-lg overflow-hidden mb-4 cursor-pointer group"
                   onClick={() => setShowLightbox(true)}
                 >
                   <Image
