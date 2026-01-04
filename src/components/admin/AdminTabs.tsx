@@ -38,7 +38,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
   return (
     <>
       {/* Desktop Tabs */}
-      <div className="hidden md:block sticky top-[68px] z-50 bg-red-600 border-b border-red-700">
+      <div className="hidden md:block sticky top-0 -mt-20 z-50 bg-red-600 border-b border-red-700">
         <nav className="flex justify-center space-x-8 px-6" aria-label="Admin tabs">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -66,7 +66,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
       </div>
 
       {/* Mobile Tabs */}
-      <div className="md:hidden sticky top-[68px] z-50 bg-red-600 border-b border-red-700">
+      <div className="md:hidden sticky top-0 -mt-16 z-50 bg-red-600 border-b border-red-700">
         <div className="px-4 py-3">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
