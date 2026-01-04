@@ -20,21 +20,20 @@ export default async function AdminWaitlistPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Admin Navigation Tabs */}
+    <>
       <AdminTabs activeTab="waitlist" />
+      <div className="p-8 bg-gray-50 min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Waitlist Management</h1>
+            <p className="text-gray-600 mt-2">
+              View and manage users who have joined the waitlist
+            </p>
+          </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Waitlist</h1>
-          <p className="mt-2 text-gray-600">
-            View and manage users who have joined the waitlist
-          </p>
-        </div>
-
-        {/* Stats Card */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          {/* Stats Card */}
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,10 +47,11 @@ export default async function AdminWaitlistPage() {
           </div>
         </div>
 
-        {/* Waitlist Table */}
-        <WaitlistTable entries={waitlistEntries} />
+          {/* Waitlist Table */}
+          <WaitlistTable entries={waitlistEntries} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
