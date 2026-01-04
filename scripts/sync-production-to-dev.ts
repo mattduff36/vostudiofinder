@@ -11,19 +11,55 @@ import { PrismaClient } from '@prisma/client';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as readline from 'readline';
+import * as fs from 'fs';
+
+// Check that environment files exist
+const devEnvPath = path.resolve(process.cwd(), '.env.local');
+const prodEnvPath = path.resolve(process.cwd(), '.env.production');
+
+if (!fs.existsSync(devEnvPath)) {
+  console.error('❌ ERROR: .env.local file not found');
+  console.error(`Expected location: ${devEnvPath}`);
+  process.exit(1);
+}
+
+if (!fs.existsSync(prodEnvPath)) {
+  console.error('❌ ERROR: .env.production file not found');
+  console.error(`Expected location: ${prodEnvPath}`);
+  console.error('\nThis file is required to connect to production database.');
+  console.error('Create it with: DATABASE_URL=<production-database-url>');
+  process.exit(1);
+}
 
 // Load dev environment (.env.local)
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+dotenv.config({ path: devEnvPath });
 const DEV_DATABASE_URL = process.env.DATABASE_URL;
 
 // Load production environment (.env.production) - MUST override dev DATABASE_URL
-dotenv.config({ path: path.resolve(process.cwd(), '.env.production'), override: true });
+dotenv.config({ path: prodEnvPath, override: true });
 const PROD_DATABASE_URL = process.env.DATABASE_URL;
 
+// Validate database URLs
 if (!DEV_DATABASE_URL || !PROD_DATABASE_URL) {
   console.error('❌ ERROR: Missing database URLs');
   console.error('DEV_DATABASE_URL:', DEV_DATABASE_URL ? 'Found' : 'Missing');
   console.error('PROD_DATABASE_URL:', PROD_DATABASE_URL ? 'Found' : 'Missing');
+  console.error('\nCheck that these files exist:');
+  console.error(`  - ${devEnvPath}`);
+  console.error(`  - ${prodEnvPath}`);
+  process.exit(1);
+}
+
+// Critical: Ensure we're not pointing to the same database
+if (DEV_DATABASE_URL === PROD_DATABASE_URL) {
+  console.error('❌ CRITICAL ERROR: Dev and Production databases are the same!');
+  console.error('\nBoth database URLs are identical:');
+  console.error(`  ${DEV_DATABASE_URL}`);
+  console.error('\nThis usually means:');
+  console.error('  1. .env.production file is missing');
+  console.error('  2. .env.production has same DATABASE_URL as .env.local');
+  console.error('  3. .env.production DATABASE_URL is not set');
+  console.error('\n⚠️  Syncing a database with itself would corrupt data!');
   process.exit(1);
 }
 
