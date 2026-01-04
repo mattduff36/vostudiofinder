@@ -77,8 +77,8 @@ export function AdminOrStudioOwnerGuard({
       return;
     }
 
-    if (session.user.role !== Role.ADMIN && session.user.role !== Role.STUDIO_OWNER) {
-      // Not an admin or studio owner, redirect to unauthorized
+    if (session.user.role !== Role.ADMIN) {
+      // Not an admin, redirect to unauthorized
       router.push(redirectTo);
       return;
     }
@@ -93,8 +93,8 @@ export function AdminOrStudioOwnerGuard({
     );
   }
 
-  // Show fallback if not authenticated or not admin/studio owner
-  if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.STUDIO_OWNER)) {
+  // Show fallback if not authenticated or not admin
+  if (!session || session.user.role !== Role.ADMIN) {
     return <>{fallback}</>;
   }
 

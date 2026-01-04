@@ -149,11 +149,11 @@ export async function POST(request: NextRequest) {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    // Update user role to STUDIO_OWNER and add verification token
+    // Update user with verification token (all users are USER role by default)
     await db.users.update({
       where: { id: user.id },
       data: {
-        role: 'STUDIO_OWNER',
+        role: 'USER',
         verification_token: verificationToken,
         verification_token_expiry: verificationTokenExpiry,
       },

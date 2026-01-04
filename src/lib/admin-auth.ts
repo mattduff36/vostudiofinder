@@ -11,12 +11,13 @@ export async function isAdmin(): Promise<boolean> {
 }
 
 /**
- * Check if the current user has admin or studio owner privileges
+ * Check if the current user has admin privileges
+ * (Deprecated: STUDIO_OWNER role removed, kept for backwards compatibility)
  */
 export async function isAdminOrStudioOwner(): Promise<boolean> {
   const session = await getServerSession(authOptions);
   const role = session?.user?.role;
-  return role === Role.ADMIN || role === Role.STUDIO_OWNER;
+  return role === Role.ADMIN;
 }
 
 /**

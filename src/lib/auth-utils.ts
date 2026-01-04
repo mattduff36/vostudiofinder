@@ -97,8 +97,7 @@ async function generateUniqueUsername(email: string): Promise<string> {
 export function hasRole(userRole: Role, requiredRole: Role): boolean {
   const roleHierarchy: Record<Role, number> = {
     [Role.USER]: 1,
-    [Role.STUDIO_OWNER]: 2,
-    [Role.ADMIN]: 3,
+    [Role.ADMIN]: 2,
   };
 
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole];

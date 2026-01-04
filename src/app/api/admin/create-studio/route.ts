@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
         email,
         username,
         display_name,
-        role: 'STUDIO_OWNER',
+        role: 'USER',
         email_verified: true, // Admin-created accounts are pre-verified
         password: null, // No password - user will set via forgot password
         created_at: new Date(),
