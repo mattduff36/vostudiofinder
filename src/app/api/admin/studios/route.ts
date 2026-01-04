@@ -59,7 +59,10 @@ export async function GET(request: NextRequest) {
       orderBy = validSortFields[sortBy];
     }
 
-    // Get studio profiles with pagination
+    // For profile_completion sorting, we need to fetch all studios first, then sort and paginate
+    const shouldFetchAll = sortBy === 'profile_completion';
+    
+    // Get studio profiles with pagination (or all if sorting by profile_completion)
     const [studios, total] = await Promise.all([
       db.studio_profiles.findMany({
         where,
@@ -122,17 +125,15 @@ export async function GET(request: NextRequest) {
             }
           },
         },
-        orderBy,
-        take: limit,
-        skip: offset
+        orderBy: shouldFetchAll ? { updated_at: 'desc' } : orderBy,
+        // Don't apply pagination if we need to sort by profile_completion
+        ...(shouldFetchAll ? {} : { take: limit, skip: offset })
       }),
       db.studio_profiles.count({ where })
     ]);
 
-    const hasMore = offset + limit < total;
-
     // Serialize Decimal fields and calculate profile completion
-    const serializedStudios = studios.map(studio => {
+    let serializedStudios = studios.map(studio => {
       // Calculate profile completion - only include defined values
       const profileData: any = {
         username: studio.users.username,
@@ -189,7 +190,12 @@ export async function GET(request: NextRequest) {
           ? aCompletion - bCompletion 
           : bCompletion - aCompletion;
       });
+      
+      // Now apply pagination to the sorted results
+      serializedStudios = serializedStudios.slice(offset, offset + limit);
     }
+
+    const hasMore = offset + limit < total;
 
     return NextResponse.json({
       studios: serializedStudios,

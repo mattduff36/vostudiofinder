@@ -3,92 +3,43 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Search, Book, Mail, Building, Users, Star } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHero } from '@/components/common/PageHero';
 import { colors } from '../../components/home/HomePage';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Footer } from '@/components/home/Footer';
 
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  sort_order: number | null;
+}
+
 export default function HelpPage() {
   const [openFAQ, setOpenFAQ] = useState<string | null>(null);
+  const [faqData, setFaqData] = useState<FAQ[]>([]);
+  const [isLoadingFAQs, setIsLoadingFAQs] = useState(true);
 
-  const faqData = [
-    {
-      id: 'what-is-vsf',
-      question: 'What is Voiceover Studio Finder?',
-      answer: 'Voiceover Studio Finder is a platform that connects voice artists with professional recording studios worldwide. If you have a studio or are voiceover talent and want to earn extra money, you can list your services here for improved SEO and more visibility!'
-    },
-    {
-      id: 'who-can-sign-up',
-      question: 'Can anyone sign up?',
-      answer: 'Yes. Anyone with a studio who hires it out for voiceover services can sign up. We also accept voiceover artists looking to create professional profiles.'
-    },
-    {
-      id: 'who-uses-it',
-      question: 'Who is using it?',
-      answer: 'Agencies looking to place an artist into a studio nearby, voice artists searching for professional recording spaces, and studio owners wanting to increase their bookings.'
-    },
-    {
-      id: 'membership-cost',
-      question: 'Why is there a membership fee?',
-      answer: 'To expand and maintain our platform, we charge a small annual fee to keep VoiceoverStudioFinder live and continuously improving our services.'
-    },
-    {
-      id: 'social-media',
-      question: 'Can I add my social media links?',
-      answer: 'Yes, of course. Add all of them to your profile to increase your online presence and make it easier for clients to connect with you.'
-    },
-    {
-      id: 'profile-content',
-      question: 'What should I put on my profile page?',
-      answer: 'A brief description for your heading and then some specifics in your long description. Include details of what you offer, useful services like directing, editing, equipment available, and your unique selling points.'
-    },
-    {
-      id: 'character-limit',
-      question: 'Why is there a character limit to the short description?',
-      answer: 'This is also your meta description, so it has great SEO benefits on search engines. Keeping it concise ensures better search engine optimization.'
-    },
-    {
-      id: 'featured-studio',
-      question: 'What is a Featured Studio?',
-      answer: "It's an option to place your studio on the homepage below the map, giving you premium visibility to potential clients browsing the site."
-    },
-    {
-      id: 'voiceover-profile',
-      question: "I'm a voiceover, can I create a profile?",
-      answer: 'Yes! We now accept voiceovers. A great way to create a unique professional profile and connect with studios and clients.'
-    },
-    {
-      id: 'verified-status',
-      question: "What is 'Verified' status?",
-      answer: 'Verified is for awesome studio profiles! Want to get verified? Contact us and we\'ll review your profile for verification.'
-    },
-    {
-      id: 'contact-studio',
-      question: 'How do I contact a studio or talent?',
-      answer: 'Any messages go direct to the email address they provided, not via the site. You can use our contact forms or reach out directly through their listed contact methods.'
-    },
-    {
-      id: 'bookings',
-      question: 'Do you deal with bookings?',
-      answer: 'No. It is completely up to you to book with the talent or studio. We provide the platform for connection, but all arrangements are made directly between parties.'
-    },
-    {
-      id: 'rates',
-      question: 'Do I need to show my rates?',
-      answer: 'Not at all. You decide what you would like to show on your profile. Many studios prefer to discuss rates directly with clients.'
-    },
-    {
-      id: 'address',
-      question: 'Do I have to show my address?',
-      answer: 'No. You have total control. Show & hide what you want. We respect privacy, especially for home studios.'
-    },
-    {
-      id: 'map-zoom',
-      question: "Why can't I zoom right in on the map?",
-      answer: 'We restrict the zoom so not to reveal exact streets for home studios. If you want to display your full address it\'s up to you, but we protect privacy by default.'
-    }
-  ];
+  // Fetch FAQs from database
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        const response = await fetch('/api/admin/faq');
+        if (response.ok) {
+          const data = await response.json();
+          setFaqData(data.faqs || []);
+        }
+      } catch (error) {
+        console.error('Failed to load FAQs:', error);
+        // Keep empty array if fetch fails
+      } finally {
+        setIsLoadingFAQs(false);
+      }
+    };
+
+    fetchFAQs();
+  }, []);
 
   const toggleFAQ = (id: string) => {
     setOpenFAQ(openFAQ === id ? null : id);
@@ -206,8 +157,17 @@ export default function HelpPage() {
             Click the question for the answer
           </p>
           
-          <div className="space-y-4">
-            {faqData.map((faq) => (
+          {isLoadingFAQs ? (
+            <div className="text-center py-8">
+              <p style={{ color: colors.textSecondary }}>Loading FAQs...</p>
+            </div>
+          ) : faqData.length === 0 ? (
+            <div className="text-center py-8">
+              <p style={{ color: colors.textSecondary }}>No FAQs available at the moment.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {faqData.map((faq) => (
               <div 
                 key={faq.id} 
                 className="border border-gray-200 rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md"
@@ -254,8 +214,9 @@ export default function HelpPage() {
                   </div>
                 )}
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Contact Information */}
