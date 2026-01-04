@@ -196,9 +196,224 @@ async function showMenu(prodStats: DatabaseStats, devStats: DatabaseStats) {
 async function addMissingDataProductionToDev() {
   console.log('\n🔄 Adding missing data from PRODUCTION → DEV...\n');
   
-  // This would call the sync-production-to-dev script logic
-  console.log('This would execute the production→dev sync');
-  console.log('Use the sync-production-to-dev.ts script for now\n');
+  try {
+    // Get all production users with studios
+    const prodUsers = await prodDb.users.findMany({
+      include: {
+        studio_profiles: {
+          include: {
+            studio_studio_types: true,
+            studio_images: true,
+            studio_services: true,
+            reviews: true
+          }
+        }
+      }
+    });
+
+    // Get existing dev user IDs and emails
+    const devUsers = await devDb.users.findMany({
+      select: { id: true, email: true }
+    });
+    const devUserIds = new Set(devUsers.map(u => u.id));
+    const devEmails = new Set(devUsers.map(u => u.email));
+
+    // Build set of all user IDs that will exist in dev after sync
+    const allDevUserIds = new Set(devUserIds);
+    for (const prodUser of prodUsers) {
+      if (!devUserIds.has(prodUser.id) && !devEmails.has(prodUser.email)) {
+        allDevUserIds.add(prodUser.id);
+      }
+    }
+
+    let usersAdded = 0;
+    let studiosAdded = 0;
+    let skipped = 0;
+    let reviewsSkipped = 0;
+
+    console.log('📥 Syncing users and studios...\n');
+
+    for (const prodUser of prodUsers) {
+      // Skip if user already exists in dev
+      if (devUserIds.has(prodUser.id) || devEmails.has(prodUser.email)) {
+        skipped++;
+        continue;
+      }
+
+      console.log(`Adding: ${prodUser.display_name} (${prodUser.email})`);
+
+      // Copy user and studio in a transaction
+      await devDb.$transaction(async (tx) => {
+        // Create user
+        await tx.users.create({
+          data: {
+            id: prodUser.id,
+            email: prodUser.email,
+            username: prodUser.username,
+            display_name: prodUser.display_name,
+            password: prodUser.password,
+            avatar_url: prodUser.avatar_url,
+            role: prodUser.role,
+            email_verified: prodUser.email_verified,
+            reset_token: prodUser.reset_token,
+            reset_token_expiry: prodUser.reset_token_expiry,
+            verification_token: prodUser.verification_token,
+            verification_token_expiry: prodUser.verification_token_expiry,
+            deletion_requested_at: prodUser.deletion_requested_at,
+            deletion_scheduled_for: prodUser.deletion_scheduled_for,
+            deletion_status: prodUser.deletion_status,
+            created_at: prodUser.created_at,
+            updated_at: prodUser.updated_at
+          }
+        });
+        usersAdded++;
+
+        // Create studio if exists
+        if (prodUser.studio_profiles) {
+          const studio = prodUser.studio_profiles;
+          
+          await tx.studio_profiles.create({
+            data: {
+              id: studio.id,
+              user_id: studio.user_id,
+              name: studio.name,
+              description: studio.description,
+              short_about: studio.short_about,
+              about: studio.about,
+              full_address: studio.full_address,
+              abbreviated_address: studio.abbreviated_address,
+              city: studio.city,
+              location: studio.location,
+              latitude: studio.latitude,
+              longitude: studio.longitude,
+              phone: studio.phone,
+              website_url: studio.website_url,
+              show_email: studio.show_email,
+              show_phone: studio.show_phone,
+              show_address: studio.show_address,
+              show_directions: studio.show_directions,
+              equipment_list: studio.equipment_list,
+              services_offered: studio.services_offered,
+              home_studio_description: studio.home_studio_description,
+              last_name: studio.last_name,
+              rate_tier_1: studio.rate_tier_1,
+              rate_tier_2: studio.rate_tier_2,
+              rate_tier_3: studio.rate_tier_3,
+              show_rates: studio.show_rates,
+              facebook_url: studio.facebook_url,
+              twitter_url: studio.twitter_url,
+              x_url: studio.x_url,
+              linkedin_url: studio.linkedin_url,
+              instagram_url: studio.instagram_url,
+              tiktok_url: studio.tiktok_url,
+              threads_url: studio.threads_url,
+              youtube_url: studio.youtube_url,
+              vimeo_url: studio.vimeo_url,
+              soundcloud_url: studio.soundcloud_url,
+              connection1: studio.connection1,
+              connection2: studio.connection2,
+              connection3: studio.connection3,
+              connection4: studio.connection4,
+              connection5: studio.connection5,
+              connection6: studio.connection6,
+              connection7: studio.connection7,
+              connection8: studio.connection8,
+              connection9: studio.connection9,
+              connection10: studio.connection10,
+              connection11: studio.connection11,
+              connection12: studio.connection12,
+              custom_connection_methods: studio.custom_connection_methods,
+              status: studio.status,
+              is_premium: studio.is_premium,
+              is_verified: studio.is_verified,
+              is_profile_visible: studio.is_profile_visible,
+              is_featured: studio.is_featured,
+              is_spotlight: studio.is_spotlight,
+              is_crb_checked: studio.is_crb_checked,
+              verification_level: studio.verification_level,
+              use_coordinates_for_map: studio.use_coordinates_for_map,
+              created_at: studio.created_at,
+              updated_at: studio.updated_at
+            }
+          });
+
+          // Copy studio types
+          for (const type of studio.studio_studio_types) {
+            await tx.studio_studio_types.create({
+              data: {
+                id: type.id,
+                studio_id: type.studio_id,
+                studio_type: type.studio_type
+              }
+            });
+          }
+
+          // Copy studio images
+          for (const image of studio.studio_images) {
+            await tx.studio_images.create({
+              data: {
+                id: image.id,
+                studio_id: image.studio_id,
+                image_url: image.image_url,
+                alt_text: image.alt_text,
+                sort_order: image.sort_order
+              }
+            });
+          }
+
+          // Copy studio services
+          for (const service of studio.studio_services) {
+            await tx.studio_services.create({
+              data: {
+                id: service.id,
+                studio_id: service.studio_id,
+                service: service.service
+              }
+            });
+          }
+
+          // Copy reviews (only if reviewer and owner exist in dev)
+          for (const review of studio.reviews) {
+            const reviewerExists = allDevUserIds.has(review.reviewer_id);
+            const ownerExists = allDevUserIds.has(review.owner_id);
+            
+            if (!reviewerExists || !ownerExists) {
+              reviewsSkipped++;
+              continue;
+            }
+            
+            await tx.reviews.create({
+              data: {
+                id: review.id,
+                studio_id: review.studio_id,
+                reviewer_id: review.reviewer_id,
+                owner_id: review.owner_id,
+                rating: review.rating,
+                content: review.content,
+                status: review.status,
+                is_anonymous: review.is_anonymous,
+                created_at: review.created_at,
+                updated_at: review.updated_at
+              }
+            });
+          }
+
+          studiosAdded++;
+        }
+      });
+    }
+
+    console.log('\n✅ Sync complete!');
+    console.log(`   Users added: ${usersAdded}`);
+    console.log(`   Studios added: ${studiosAdded}`);
+    console.log(`   Skipped (already exist): ${skipped}`);
+    if (reviewsSkipped > 0) {
+      console.log(`   ⚠️  Reviews skipped (missing users): ${reviewsSkipped}`);
+    }
+    console.log('');
+  } catch (error) {
+    console.error('\n❌ Error during sync:', error);
+  }
 }
 
 async function addMissingDataDevToProduction() {
@@ -261,14 +476,79 @@ async function mirrorDevToProduction() {
 
 async function compareSchemas() {
   console.log('\n🔍 Comparing database schemas...\n');
-  console.log('This would compare table structures, columns, indexes, etc.');
-  console.log('Use a dedicated schema comparison tool like pg_dump with --schema-only\n');
+  
+  try {
+    // Get table names from both databases
+    const prodTables = await prodDb.$queryRaw<Array<{ tablename: string }>>`
+      SELECT tablename 
+      FROM pg_catalog.pg_tables 
+      WHERE schemaname = 'public' 
+      ORDER BY tablename;
+    `;
+    
+    const devTables = await devDb.$queryRaw<Array<{ tablename: string }>>`
+      SELECT tablename 
+      FROM pg_catalog.pg_tables 
+      WHERE schemaname = 'public' 
+      ORDER BY tablename;
+    `;
+
+    const prodTableNames = new Set(prodTables.map(t => t.tablename));
+    const devTableNames = new Set(devTables.map(t => t.tablename));
+
+    // Find differences
+    const onlyInProd = prodTables.filter(t => !devTableNames.has(t.tablename));
+    const onlyInDev = devTables.filter(t => !prodTableNames.has(t.tablename));
+    const inBoth = prodTables.filter(t => devTableNames.has(t.tablename));
+
+    console.log(`📊 Schema Comparison:`);
+    console.log(`   Total tables in production: ${prodTables.length}`);
+    console.log(`   Total tables in dev: ${devTables.length}`);
+    console.log(`   Tables in both: ${inBoth.length}`);
+    
+    if (onlyInProd.length > 0) {
+      console.log(`\n❌ Tables only in PRODUCTION (${onlyInProd.length}):`);
+      onlyInProd.forEach(t => console.log(`   - ${t.tablename}`));
+    }
+    
+    if (onlyInDev.length > 0) {
+      console.log(`\n❌ Tables only in DEV (${onlyInDev.length}):`);
+      onlyInDev.forEach(t => console.log(`   - ${t.tablename}`));
+    }
+    
+    if (onlyInProd.length === 0 && onlyInDev.length === 0) {
+      console.log('\n✅ All tables match between production and dev!');
+    }
+    
+    console.log('\n💡 For detailed column comparison, use:');
+    console.log('   pg_dump --schema-only $PROD_URL > prod-schema.sql');
+    console.log('   pg_dump --schema-only $DEV_URL > dev-schema.sql');
+    console.log('   diff prod-schema.sql dev-schema.sql\n');
+  } catch (error) {
+    console.error('\n❌ Error comparing schemas:', error);
+  }
 }
 
 async function exportProductionBackup() {
   console.log('\n💾 Exporting production backup...\n');
-  console.log('This would create a pg_dump backup of production');
-  console.log('Use: pg_dump $PROD_DATABASE_URL > backup-$(date +%Y%m%d-%H%M%S).sql\n');
+  
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0] + '_' + new Date().toISOString().split('T')[1].split('.')[0].replace(/:/g, '');
+  const filename = `backup-production-${timestamp}.sql`;
+  
+  console.log(`Creating backup: ${filename}`);
+  console.log('This may take a few minutes...\n');
+  
+  try {
+    const command = `pg_dump "${PROD_DATABASE_URL}" > ${filename}`;
+    await execAsync(command);
+    console.log(`✅ Backup created successfully: ${filename}`);
+    console.log(`\nTo restore this backup to dev:`);
+    console.log(`   psql "${DEV_DATABASE_URL}" < ${filename}\n`);
+  } catch (error) {
+    console.error('\n❌ Error creating backup:', error);
+    console.log('\n💡 Manual backup command:');
+    console.log(`   pg_dump "${PROD_DATABASE_URL}" > ${filename}\n`);
+  }
 }
 
 async function main() {

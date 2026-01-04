@@ -38,31 +38,40 @@ npm run db:sync-tool
 **Safety:** ⚠️ Varies by option chosen
 
 **Available Options:**
-1. ✅ Add missing data PRODUCTION → DEV (safe)
-2. ⚠️ Add missing data DEV → PRODUCTION (caution)
-3. ⚠️ Mirror PRODUCTION → DEV (may lose dev data)
-4. 🚨 Mirror DEV → PRODUCTION (dangerous, not implemented)
-5. ✅ Compare schemas (safe)
-6. ✅ Export production backup (safe)
+1. ✅ Add missing data PRODUCTION → DEV (safe) - **FULLY FUNCTIONAL**
+2. ⚠️ Add missing data DEV → PRODUCTION (caution) - **NOT IMPLEMENTED**
+3. ⚠️ Mirror PRODUCTION → DEV (may lose dev data) - **GUIDANCE ONLY**
+4. 🚨 Mirror DEV → PRODUCTION (dangerous) - **INTENTIONALLY BLOCKED**
+5. ✅ Compare database schemas (safe) - **FULLY FUNCTIONAL**
+6. ✅ Export production backup (safe) - **FULLY FUNCTIONAL**
 
 ## 🚀 Quick Start
 
 ### Scenario 1: Dev is behind production (most common)
 
+**Option A: Quick Sync (standalone script)**
 ```bash
-# Step 1: Check the difference
-npm run db:sync-tool
-# Select option 5 to compare
-
-# Step 2: Sync missing data
 npm run db:sync-prod-to-dev
 ```
 
-### Scenario 2: Need to compare databases
+**Option B: Interactive Tool**
+```bash
+npm run db:sync-tool
+# Select option 1 (Add missing data PRODUCTION → DEV)
+```
+
+### Scenario 2: Compare database schemas
 
 ```bash
 npm run db:sync-tool
-# Select appropriate option from menu
+# Select option 5 (Compare database schemas)
+```
+
+### Scenario 3: Create production backup
+
+```bash
+npm run db:sync-tool
+# Select option 6 (Export production backup)
 ```
 
 ## 📋 Current Status (as of last check)
@@ -110,24 +119,48 @@ When syncing, these records are copied:
 ## 🛡️ Safety Features
 
 ### Production Protection
-- Production is **read-only** by default
-- Multiple confirmation prompts for any production writes
+- Production is **read-only** by default in all safe operations
+- Option 2 (DEV → PRODUCTION) is not implemented for safety
+- Option 4 (Mirror DEV → PRODUCTION) is permanently blocked
+- Multiple confirmation prompts for any destructive operations
 - Dangerous operations require typing specific phrases
-- Most dangerous operations are not implemented (on purpose)
 
 ### Dev Protection
-- Mirror operations require confirmation
-- Data loss warnings displayed clearly
-- Backup recommendations shown
+- Sync operations skip existing records (no overwrites)
+- Reviews with missing users are automatically skipped
+- All operations use database transactions (all-or-nothing)
+- Clear warnings before any data loss
+
+## ⚡ Features
+
+### Option 1: Production → Dev Sync
+- ✅ Copies missing users and studios from prod to dev
+- ✅ Preserves all existing dev data
+- ✅ Automatically skips reviews with missing users
+- ✅ Uses transactions for data integrity
+- ✅ Shows detailed progress and summary
+
+### Option 5: Schema Comparison
+- ✅ Lists all tables in both databases
+- ✅ Identifies tables only in production
+- ✅ Identifies tables only in dev
+- ✅ Shows count of matching tables
+- ✅ Provides commands for detailed comparison
+
+### Option 6: Production Backup
+- ✅ Creates timestamped SQL backup file
+- ✅ Safe read-only operation
+- ✅ Shows restore command
+- ✅ Filename format: `backup-production-YYYY-MM-DD_HHMMSS.sql`
 
 ## ⚡ Manual Commands (Advanced)
 
-### Export Production Backup
+### Export Production Backup (manual)
 ```bash
 pg_dump $PROD_DATABASE_URL > backup-$(date +%Y%m%d-%H%M%S).sql
 ```
 
-### Compare Schemas Only
+### Compare Schemas (detailed)
 ```bash
 pg_dump --schema-only $PROD_DATABASE_URL > prod-schema.sql
 pg_dump --schema-only $DEV_DATABASE_URL > dev-schema.sql
@@ -136,7 +169,7 @@ diff prod-schema.sql dev-schema.sql
 
 ### Restore Backup to Dev
 ```bash
-psql $DEV_DATABASE_URL < backup-20260104-120000.sql
+psql $DEV_DATABASE_URL < backup-production-2026-01-04_120000.sql
 ```
 
 ## 🐛 Troubleshooting
