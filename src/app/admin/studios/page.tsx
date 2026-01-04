@@ -56,10 +56,12 @@ export default function AdminStudiosPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<string>('updated_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     fetchStudios();
-  }, [search, statusFilter, pagination.offset]);
+  }, [search, statusFilter, pagination.offset, sortBy, sortOrder]);
 
   const fetchStudios = async () => {
     try {
@@ -67,6 +69,8 @@ export default function AdminStudiosPage() {
       const params = new URLSearchParams({
         limit: pagination.limit.toString(),
         offset: pagination.offset.toString(),
+        sortBy: sortBy,
+        sortOrder: sortOrder,
       });
 
       if (search) params.append('search', search);
@@ -170,6 +174,25 @@ export default function AdminStudiosPage() {
       console.error('Error toggling visibility:', error);
       alert('Failed to update visibility. Please try again.');
     }
+  };
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      // Toggle sort order if clicking the same field
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new field with ascending order
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    // Clear studios and reset pagination
+    setStudios([]);
+    setPagination(prev => ({ ...prev, offset: 0 }));
+  };
+
+  const getSortIcon = (field: string) => {
+    if (sortBy !== field) return null;
+    return sortOrder === 'asc' ? ' ↑' : ' ↓';
   };
 
   const handleSelectStudio = (studio_id: string, isSelected: boolean) => {
@@ -409,32 +432,53 @@ export default function AdminStudiosPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Select
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Studio
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('name')}
+                    >
+                      Studio{getSortIcon('name')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Owner
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('owner')}
+                    >
+                      Owner{getSortIcon('owner')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('status')}
+                    >
+                      Status{getSortIcon('status')}
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Visible
+                    <th 
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('is_profile_visible')}
+                    >
+                      Visible{getSortIcon('is_profile_visible')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Complete
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('profile_completion')}
+                    >
+                      Complete{getSortIcon('profile_completion')}
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Featured
+                    <th 
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('is_featured')}
+                    >
+                      Featured{getSortIcon('is_featured')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Last Login
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Updated
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('updated_at')}
+                    >
+                      Updated{getSortIcon('updated_at')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions

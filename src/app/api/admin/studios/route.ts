@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status') || '';
+    const sortBy = searchParams.get('sortBy') || 'updated_at';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
 
     // Build where clause
     const where: any = {};
@@ -36,6 +38,23 @@ export async function GET(request: NextRequest) {
 
     if (status && status !== 'all') {
       where.status = status;
+    }
+
+    // Build orderBy clause based on sortBy parameter
+    let orderBy: any = { updated_at: 'desc' }; // default
+    
+    const validSortFields: Record<string, any> = {
+      'name': { name: sortOrder },
+      'owner': { users: { display_name: sortOrder } },
+      'status': { status: sortOrder },
+      'updated_at': { updated_at: sortOrder },
+      'is_profile_visible': { is_profile_visible: sortOrder },
+      'is_featured': { is_featured: sortOrder },
+      'profile_completion': { updated_at: sortOrder }, // Will sort on client after calculation
+    };
+
+    if (sortBy && validSortFields[sortBy]) {
+      orderBy = validSortFields[sortBy];
     }
 
     // Get studio profiles with pagination
@@ -100,7 +119,7 @@ export async function GET(request: NextRequest) {
             }
           },
         },
-        orderBy: { updated_at: 'desc' },
+        orderBy,
         take: limit,
         skip: offset
       }),
@@ -158,6 +177,17 @@ export async function GET(request: NextRequest) {
         last_login: null,
       };
     });
+
+    // Sort by profile completion if requested (since it's calculated, not in DB)
+    if (sortBy === 'profile_completion') {
+      serializedStudios.sort((a, b) => {
+        const aCompletion = a.profile_completion || 0;
+        const bCompletion = b.profile_completion || 0;
+        return sortOrder === 'asc' 
+          ? aCompletion - bCompletion 
+          : bCompletion - aCompletion;
+      });
+    }
 
     return NextResponse.json({
       studios: serializedStudios,
