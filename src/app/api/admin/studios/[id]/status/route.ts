@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { StudioStatus } from '@prisma/client';
 
 export async function PATCH(
   request: NextRequest,
@@ -19,15 +20,23 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { isVisible } = await request.json();
+    const { status } = await request.json();
 
-    // Update the studio profile visibility
+    // Validate status
+    if (status !== 'ACTIVE' && status !== 'INACTIVE') {
+      return NextResponse.json(
+        { error: 'Invalid status. Must be ACTIVE or INACTIVE' },
+        { status: 400 }
+      );
+    }
+
+    // Update the studio status
     const updatedStudio = await db.studio_profiles.update({
       where: { id },
-      data: { is_profile_visible: isVisible },
+      data: { status: status as StudioStatus },
       select: {
         id: true,
-        is_profile_visible: true,
+        status: true,
         name: true,
       }
     });
@@ -35,13 +44,13 @@ export async function PATCH(
     return NextResponse.json({
       success: true,
       studio: updatedStudio,
-      message: `Profile visibility ${isVisible ? 'enabled' : 'disabled'} for ${updatedStudio.name}`
+      message: `Studio status updated to ${status}: ${updatedStudio.name}`
     });
 
   } catch (error) {
-    console.error('Update visibility error:', error);
+    console.error('Update status error:', error);
     return NextResponse.json(
-      { error: 'Failed to update profile visibility' },
+      { error: 'Failed to update status' },
       { status: 500 }
     );
   }

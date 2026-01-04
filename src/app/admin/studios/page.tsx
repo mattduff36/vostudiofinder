@@ -47,7 +47,7 @@ export default function AdminStudiosPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [pagination, setPagination] = useState({ 
     offset: 0, 
-    limit: 12, 
+    limit: 80, 
     total: 0, 
     hasMore: false 
   });
@@ -201,6 +201,56 @@ export default function AdminStudiosPage() {
     }
   };
 
+  const handleToggleFeatured = async (studio: Studio, isFeatured: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/studios/${studio.id}/featured`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isFeatured }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update featured status');
+      }
+
+      // Update the local state
+      setStudios(prev => prev.map(s => 
+        s.id === studio.id ? { ...s, is_featured: isFeatured } : s
+      ));
+
+      setSuccessMessage(`Studio ${isFeatured ? 'featured' : 'unfeatured'}: ${studio.name}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      console.error('Error toggling featured status:', error);
+      alert('Failed to update featured status. Please try again.');
+    }
+  };
+
+  const handleToggleStatus = async (studio: Studio, newStatus: 'ACTIVE' | 'INACTIVE') => {
+    try {
+      const response = await fetch(`/api/admin/studios/${studio.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update status');
+      }
+
+      // Update the local state
+      setStudios(prev => prev.map(s => 
+        s.id === studio.id ? { ...s, status: newStatus } : s
+      ));
+
+      setSuccessMessage(`Studio status updated to ${newStatus}: ${studio.name}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      alert('Failed to update status. Please try again.');
+    }
+  };
+
   const handleSort = (field: string) => {
     if (sortBy === field) {
       // Toggle sort order if clicking the same field
@@ -280,7 +330,7 @@ export default function AdminStudiosPage() {
   };
 
   const loadMore = () => {
-    setPagination(prev => ({ ...prev, offset: prev.offset + prev.limit }));
+    setPagination(prev => ({ ...prev, offset: prev.offset + 50 }));
   };
 
   if (error) {
@@ -460,6 +510,7 @@ export default function AdminStudiosPage() {
                     <th 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('name')}
+                      title="Click to sort by studio name"
                     >
                       Studio{getSortIcon('name')}
                     </th>
@@ -469,41 +520,51 @@ export default function AdminStudiosPage() {
                     <th 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('owner')}
+                      title="Click to sort by owner name"
                     >
                       Owner{getSortIcon('owner')}
                     </th>
                     <th 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('status')}
+                      title="Click to sort by status (Active/Inactive)"
                     >
                       Status{getSortIcon('status')}
                     </th>
                     <th 
                       className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('is_profile_visible')}
+                      title="Click to sort by visibility status"
                     >
                       Visible{getSortIcon('is_profile_visible')}
                     </th>
                     <th 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('profile_completion')}
+                      title="Click to sort by profile completion percentage"
                     >
                       Complete{getSortIcon('profile_completion')}
                     </th>
                     <th 
                       className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('is_verified')}
+                      title="Click to sort by verified status"
                     >
                       Verified{getSortIcon('is_verified')}
                     </th>
                     <th 
                       className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('is_featured')}
+                      title="Click to sort by featured status"
                     >
                       Featured{getSortIcon('is_featured')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Login
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('last_login')}
+                      title="Click to sort by last login date"
+                    >
+                      Last Login{getSortIcon('last_login')}
                     </th>
                     <th 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
@@ -563,45 +624,34 @@ export default function AdminStudiosPage() {
                         <div className="text-sm text-gray-500">{studio.users.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col space-y-1">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            studio.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                            studio.status === 'INACTIVE' ? 'bg-red-100 text-red-800' :
-                            studio.status === 'DRAFT' ? 'bg-gray-100 text-gray-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {studio.status}
+                        <button
+                          onClick={() => handleToggleStatus(studio, studio.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
+                          className={`relative inline-flex h-8 w-24 items-center justify-center rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                            studio.status === 'ACTIVE' 
+                              ? 'bg-green-600 text-white focus:ring-green-500' 
+                              : 'bg-red-600 text-white focus:ring-red-500'
+                          }`}
+                          title={`Click to toggle status (currently ${studio.status})`}
+                        >
+                          {studio.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE'}
+                        </button>
+                        {studio.is_spotlight && (
+                          <span 
+                            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800 cursor-help mt-1" 
+                            title="Spotlight Studio – highlighted in network"
+                          >
+                            💡 Spotlight
                           </span>
-                          <div className="flex space-x-1">
-                            {studio.is_verified && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                ✓
-                              </span>
-                            )}
-                            {studio.is_premium && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                                👑
-                              </span>
-                            )}
-                            {studio.is_spotlight && (
-                              <span 
-                                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800 cursor-help" 
-                                title="Spotlight Studio – highlighted in network"
-                              >
-                                💡
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                        )}
                       </td>
                       {/* Profile Visible Toggle */}
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <button
                           onClick={() => handleToggleVisibility(studio, !studio.is_profile_visible)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
-                            studio.is_profile_visible ? 'bg-green-600' : 'bg-gray-300'
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                            studio.is_profile_visible ? 'bg-blue-600' : 'bg-gray-300'
                           }`}
-                          title={studio.is_profile_visible ? 'Profile is visible' : 'Profile is hidden'}
+                          title={studio.is_profile_visible ? 'Profile is visible - click to hide' : 'Profile is hidden - click to show'}
                         >
                           <span
                             className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -628,10 +678,10 @@ export default function AdminStudiosPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <button
                           onClick={() => handleToggleVerified(studio, !studio.is_verified)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                            studio.is_verified ? 'bg-blue-600' : 'bg-gray-300'
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
+                            studio.is_verified ? 'bg-green-600' : 'bg-gray-300'
                           }`}
-                          title={studio.is_verified ? 'Studio is verified' : 'Studio is not verified'}
+                          title={studio.is_verified ? 'Studio is verified - click to unverify' : 'Studio is not verified - click to verify'}
                         >
                           <span
                             className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -640,13 +690,21 @@ export default function AdminStudiosPage() {
                           />
                         </button>
                       </td>
-                      {/* Featured Star */}
+                      {/* Featured Toggle */}
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {studio.is_featured ? (
-                          <span className="text-2xl" title="Featured Studio">⭐</span>
-                        ) : (
-                          <span className="text-gray-300 text-2xl" title="Not Featured">☆</span>
-                        )}
+                        <button
+                          onClick={() => handleToggleFeatured(studio, !studio.is_featured)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 ${
+                            studio.is_featured ? 'bg-yellow-500' : 'bg-gray-300'
+                          }`}
+                          title={studio.is_featured ? 'Studio is featured - click to unfeature' : 'Studio is not featured - click to feature'}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              studio.is_featured ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
                       </td>
                       {/* Last Login */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -18,11 +18,12 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
     const { isVerified } = await request.json();
 
     // Update the studio profile verified status
     const updatedStudio = await db.studio_profiles.update({
-      where: { id: params.id },
+      where: { id },
       data: { is_verified: isVerified },
       select: {
         id: true,
