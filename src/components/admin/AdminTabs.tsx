@@ -30,8 +30,6 @@ const tabs: TabConfig[] = [
   { id: 'studios', label: 'Studios', icon: Building, href: '/admin/studios' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'waitlist', label: 'Waiting List', icon: Users, href: '/admin/waitlist' },
-  { id: 'query', label: 'Query', icon: Search, href: '/admin/query' },
-  { id: 'schema', label: 'Schema', icon: FileText, href: '/admin/schema' },
   { id: 'faq', label: 'FAQ', icon: MessageSquare, href: '/admin/faq' },
 ];
 
