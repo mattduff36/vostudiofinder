@@ -170,17 +170,9 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
                               : 'bg-green-100'
                           }`}>
                             {activity.type === 'user' ? (
-                              <Users className={`w-4 h-4 ${
-                                activity.type === 'user' 
-                                  ? 'text-blue-600' 
-                                  : 'text-green-600'
-                              }`} />
+                              <Users className="w-4 h-4 text-blue-600" />
                             ) : (
-                              <Building2 className={`w-4 h-4 ${
-                                activity.type === 'user' 
-                                  ? 'text-blue-600' 
-                                  : 'text-green-600'
-                              }`} />
+                              <Building2 className="w-4 h-4 text-green-600" />
                             )}
                           </div>
                           

@@ -4,7 +4,6 @@ import { createStudioSchema } from '@/lib/validations/studio';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
-import { Role } from '@/types/prisma';
 import { randomBytes } from 'crypto';
 
 export async function POST(request: NextRequest) {
