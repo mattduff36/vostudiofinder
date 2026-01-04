@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, GripVertical, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { AdminTabs } from '@/components/admin/AdminTabs';
 
 interface FAQ {
   id: string;
@@ -180,8 +181,10 @@ export default function AdminFAQPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-5xl mx-auto">
+    <>
+      <AdminTabs activeTab="faq" />
+      <div className="p-8">
+        <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -357,6 +360,6 @@ export default function AdminFAQPage() {
           </ul>
         </div>
       </div>
-    </div>
+    </>
   );
 }
