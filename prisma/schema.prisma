@@ -474,7 +474,6 @@ enum ReviewStatus {
 
 enum Role {
   USER
-  STUDIO_OWNER
   ADMIN
 }
 

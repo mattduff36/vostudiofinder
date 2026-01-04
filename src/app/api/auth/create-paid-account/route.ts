@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     await db.users.update({
       where: { id: user.id },
       data: {
-        role: 'STUDIO_OWNER', // Paid members are studio owners
+        role: 'USER', // All new accounts are regular users
         // Store subscription info in user metadata or separate table
         // This would depend on your schema design
       },

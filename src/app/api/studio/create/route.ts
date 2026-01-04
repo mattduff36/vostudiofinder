@@ -18,13 +18,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Check if user has permission to create studios
-    if (session.user.role !== Role.STUDIO_OWNER && session.user.role !== Role.ADMIN) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions. You need to be a studio owner to create studios.' },
-        { status: 403 }
-      );
-    }
+    // All authenticated users can create studio profiles
+    // (Removed STUDIO_OWNER role - all users are now USER or ADMIN)
     
     const body = await request.json();
     
