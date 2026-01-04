@@ -340,7 +340,7 @@ export function Navbar({ session }: NavbarProps) {
           </>
         )}
         <button
-          onClick={() => router.push('/admin')}
+          onClick={() => router.push('/admin/studios')}
           className={`px-3 py-1.5 hover:bg-gray-800 transition-colors ${showEditButton ? 'rounded-r-md' : 'rounded-md'}`}
         >
           ADMIN
