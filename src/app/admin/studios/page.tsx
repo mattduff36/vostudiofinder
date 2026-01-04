@@ -5,6 +5,8 @@ import EditStudioModal from '@/components/admin/EditStudioModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
 import { AdminTabs } from '@/components/admin/AdminTabs';
+import { getCompletionBgColor } from '@/lib/profile-completion';
+import { formatRelativeDate, formatDate } from '@/lib/date-format';
 
 interface Studio {
   id: string;
@@ -17,6 +19,9 @@ interface Studio {
   is_premium: boolean;
   is_featured?: boolean;
   is_spotlight?: boolean;
+  is_profile_visible?: boolean;
+  profile_completion?: number;
+  last_login?: string | null;
   users: {
     display_name: string;
     email: string;
@@ -142,6 +147,31 @@ export default function AdminStudiosPage() {
     }
   };
 
+  const handleToggleVisibility = async (studio: Studio, isVisible: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/studios/${studio.id}/visibility`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isVisible }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update visibility');
+      }
+
+      // Update the local state
+      setStudios(prev => prev.map(s => 
+        s.id === studio.id ? { ...s, is_profile_visible: isVisible } : s
+      ));
+
+      setSuccessMessage(`Profile visibility ${isVisible ? 'enabled' : 'disabled'} for ${studio.name}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      alert('Failed to update visibility. Please try again.');
+    }
+  };
+
   const handleSelectStudio = (studio_id: string, isSelected: boolean) => {
     setSelectedStudios(prev => 
       isSelected 
@@ -263,7 +293,7 @@ export default function AdminStudiosPage() {
           />
         </div>
         
-        <div className="max-w-7xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        <div className="mx-auto space-y-6 px-4 sm:px-6 lg:px-8 py-8 relative z-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -391,6 +421,18 @@ export default function AdminStudiosPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Visible
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Complete
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Featured
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Last Login
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Updated
                     </th>
@@ -466,14 +508,6 @@ export default function AdminStudiosPage() {
                                 👑
                               </span>
                             )}
-                            {studio.is_featured && (
-                              <span 
-                                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 cursor-help" 
-                                title="Featured Studio – displayed on homepage"
-                              >
-                                ⭐
-                              </span>
-                            )}
                             {studio.is_spotlight && (
                               <span 
                                 className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800 cursor-help" 
@@ -485,8 +519,53 @@ export default function AdminStudiosPage() {
                           </div>
                         </div>
                       </td>
+                      {/* Profile Visible Toggle */}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <button
+                          onClick={() => handleToggleVisibility(studio, !studio.is_profile_visible)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
+                            studio.is_profile_visible ? 'bg-green-600' : 'bg-gray-300'
+                          }`}
+                          title={studio.is_profile_visible ? 'Profile is visible' : 'Profile is hidden'}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              studio.is_profile_visible ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </td>
+                      {/* Profile Completion */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 bg-gray-200 rounded-full h-2 w-24">
+                            <div
+                              className={`h-2 rounded-full transition-all ${getCompletionBgColor(studio.profile_completion || 0)}`}
+                              style={{ width: `${studio.profile_completion || 0}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-medium text-gray-700 w-8">
+                            {studio.profile_completion || 0}%
+                          </span>
+                        </div>
+                      </td>
+                      {/* Featured Star */}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {studio.is_featured ? (
+                          <span className="text-2xl" title="Featured Studio">⭐</span>
+                        ) : (
+                          <span className="text-gray-300 text-2xl" title="Not Featured">☆</span>
+                        )}
+                      </td>
+                      {/* Last Login */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(studio.updated_at).toLocaleDateString()}
+                        {studio.last_login ? formatRelativeDate(studio.last_login) : (
+                          <span className="text-gray-400 italic">No data</span>
+                        )}
+                      </td>
+                      {/* Updated Date */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(studio.updated_at)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
