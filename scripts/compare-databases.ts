@@ -3,15 +3,22 @@
  * Compares dev and production database schemas to identify differences
  */
 
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import { PrismaClient } from '@prisma/client';
 
-const devUrl = process.env.DEV_DATABASE_URL;
-const prodUrl = process.env.PROD_DATABASE_URL;
+// Load dev database URL from .env.local
+const devEnv = config({ path: resolve(process.cwd(), '.env.local') });
+const devUrl = devEnv.parsed?.DATABASE_URL;
+
+// Load production database URL from .env.production
+const prodEnv = config({ path: resolve(process.cwd(), '.env.production') });
+const prodUrl = prodEnv.parsed?.DATABASE_URL;
 
 if (!devUrl || !prodUrl) {
   console.error('❌ Missing database URLs');
-  console.error('DEV_DATABASE_URL:', devUrl ? '✓' : '✗');
-  console.error('PROD_DATABASE_URL:', prodUrl ? '✓' : '✗');
+  console.error('DATABASE_URL:', devUrl ? '✓' : '✗');
+  console.error('PRODUCTION_DATABASE_URL:', prodUrl ? '✓' : '✗');
   process.exit(1);
 }
 
