@@ -16,54 +16,87 @@ export default async function AdminPage() {
   // Fetch dashboard statistics
   const [
     totalUsers,
+    usersWithStudios,
     totalStudios,
+    activeStudios,
+    verifiedStudios,
+    featuredStudios,
+    premiumStudios,
     totalReviews,
     pendingReviews,
-    activeUsers,
-    premiumStudios,
+    activeUsers30d,
     recentUsers,
     recentStudios,
     recentReviews,
   ] = await Promise.all([
+    // Total registered users
     db.users.count(),
+    
+    // Users who have created studio profiles
+    db.studio_profiles.count(),
+    
+    // Total studio profiles
+    db.studio_profiles.count(),
+    
+    // Active studios
     db.studio_profiles.count({ where: { status: 'ACTIVE' } }),
+    
+    // Verified studios
+    db.studio_profiles.count({ where: { is_verified: true } }),
+    
+    // Featured studios
+    db.studio_profiles.count({ where: { is_featured: true } }),
+    
+    // Premium studios
+    db.studio_profiles.count({ where: { is_premium: true } }),
+    
+    // Total reviews
     db.reviews.count(),
+    
+    // Pending reviews
     db.reviews.count({ where: { status: 'PENDING' } }),
+    
+    // Active users in last 30 days (based on updated_at)
     db.users.count({
       where: {
         updated_at: {
-          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
         },
       },
     }),
-    db.studio_profiles.count({ where: { is_premium: true, status: 'ACTIVE' } }),
+    
+    // Recent users
     db.users.findMany({
       take: 5,
       orderBy: { created_at: 'desc' },
       select: {
         id: true,
         display_name: true,
-        email: true,
+        username: true,
         role: true,
         created_at: true,
       },
     }),
+    
+    // Recent studios
     db.studio_profiles.findMany({
       take: 5,
       orderBy: { created_at: 'desc' },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        is_verified: true,
+        created_at: true,
         users: {
           select: {
             display_name: true,
           },
         },
-        studio_studio_types: {
-          select: {
-            studio_type: true,
-          },
-        },
       },
     }),
+    
+    // Recent reviews
     db.reviews.findMany({
       take: 5,
       orderBy: { created_at: 'desc' },
@@ -84,20 +117,24 @@ export default async function AdminPage() {
 
   const stats = {
     totalUsers,
+    usersWithStudios,
     totalStudios,
+    activeStudios,
+    verifiedStudios,
+    featuredStudios,
+    premiumStudios,
     totalReviews,
     pendingReviews,
-    activeUsers,
-    premiumStudios,
+    activeUsers30d,
   };
 
-  // Serialize Decimal fields for client components
   const recentActivity = {
     users: recentUsers,
     studios: recentStudios.map(studio => ({
       id: studio.id,
       name: studio.name,
-      studio_type: studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] ? studio.studio_studio_types[0].studio_type : 'VOICEOVER',
+      status: studio.status,
+      is_verified: studio.is_verified,
       created_at: studio.created_at,
       owner: {
         display_name: studio.users.display_name,
@@ -124,5 +161,3 @@ export default async function AdminPage() {
     />
   );
 }
-
-
