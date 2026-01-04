@@ -42,7 +42,43 @@ export async function GET(request: NextRequest) {
     const [studios, total] = await Promise.all([
       db.studio_profiles.findMany({
         where,
-        include: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          short_about: true,
+          about: true,
+          phone: true,
+          location: true,
+          equipment_list: true,
+          services_offered: true,
+          website_url: true,
+          facebook_url: true,
+          twitter_url: true,
+          linkedin_url: true,
+          instagram_url: true,
+          youtube_url: true,
+          vimeo_url: true,
+          soundcloud_url: true,
+          connection1: true,
+          connection2: true,
+          connection3: true,
+          connection4: true,
+          connection5: true,
+          connection6: true,
+          connection7: true,
+          connection8: true,
+          rate_tier_1: true,
+          status: true,
+          is_verified: true,
+          is_premium: true,
+          is_featured: true,
+          is_spotlight: true,
+          is_profile_visible: true,
+          created_at: true,
+          updated_at: true,
+          latitude: true,
+          longitude: true,
           users: {
             select: {
               display_name: true,
@@ -63,39 +99,6 @@ export async function GET(request: NextRequest) {
               id: true,
             }
           },
-          user_profiles: {
-            select: {
-              short_about: true,
-              about: true,
-              phone: true,
-              location: true,
-              equipment_list: true,
-              services_offered: true,
-              facebook_url: true,
-              twitter_url: true,
-              linkedin_url: true,
-              instagram_url: true,
-              youtube_url: true,
-              vimeo_url: true,
-              soundcloud_url: true,
-              threads_url: true,
-              tiktok_url: true,
-              connection1: true,
-              connection2: true,
-              connection3: true,
-              connection4: true,
-              connection5: true,
-              connection6: true,
-              connection7: true,
-              connection8: true,
-            }
-          },
-          rate_tiers: {
-            select: {
-              tier_1: true,
-            },
-            take: 1,
-          }
         },
         orderBy: { updated_at: 'desc' },
         take: limit,
@@ -108,42 +111,43 @@ export async function GET(request: NextRequest) {
 
     // Serialize Decimal fields and calculate profile completion
     const serializedStudios = studios.map(studio => {
-      const userProfile = studio.user_profiles || {};
-      const rateTier = studio.rate_tiers?.[0];
-      
-      // Calculate profile completion
-      const profileCompletion = calculateProfileCompletion({
+      // Calculate profile completion - only include defined values
+      const profileData: any = {
         username: studio.users.username,
         display_name: studio.users.display_name,
         email: studio.users.email,
         studio_name: studio.name,
-        short_about: userProfile.short_about || undefined,
-        about: userProfile.about || undefined,
-        phone: userProfile.phone || undefined,
-        location: userProfile.location || undefined,
-        website_url: studio.website_url || undefined,
-        equipment_list: userProfile.equipment_list || undefined,
-        services_offered: userProfile.services_offered || undefined,
-        avatar_url: studio.users.avatar_url || undefined,
         studio_types_count: studio.studio_studio_types?.length || 0,
         images_count: studio.studio_images?.length || 0,
-        rate_tier_1: rateTier?.tier_1 ? Number(rateTier.tier_1) : null,
-        facebook_url: userProfile.facebook_url || undefined,
-        twitter_url: userProfile.twitter_url || undefined,
-        linkedin_url: userProfile.linkedin_url || undefined,
-        instagram_url: userProfile.instagram_url || undefined,
-        youtube_url: userProfile.youtube_url || undefined,
-        vimeo_url: userProfile.vimeo_url || undefined,
-        soundcloud_url: userProfile.soundcloud_url || undefined,
-        connection1: userProfile.connection1 || undefined,
-        connection2: userProfile.connection2 || undefined,
-        connection3: userProfile.connection3 || undefined,
-        connection4: userProfile.connection4 || undefined,
-        connection5: userProfile.connection5 || undefined,
-        connection6: userProfile.connection6 || undefined,
-        connection7: userProfile.connection7 || undefined,
-        connection8: userProfile.connection8 || undefined,
-      });
+      };
+      
+      // Add optional fields only if they exist
+      if (studio.short_about) profileData.short_about = studio.short_about;
+      if (studio.about) profileData.about = studio.about;
+      if (studio.phone) profileData.phone = studio.phone;
+      if (studio.location) profileData.location = studio.location;
+      if (studio.website_url) profileData.website_url = studio.website_url;
+      if (studio.equipment_list) profileData.equipment_list = studio.equipment_list;
+      if (studio.services_offered) profileData.services_offered = studio.services_offered;
+      if (studio.users.avatar_url) profileData.avatar_url = studio.users.avatar_url;
+      if (studio.rate_tier_1) profileData.rate_tier_1 = studio.rate_tier_1;
+      if (studio.facebook_url) profileData.facebook_url = studio.facebook_url;
+      if (studio.twitter_url) profileData.twitter_url = studio.twitter_url;
+      if (studio.linkedin_url) profileData.linkedin_url = studio.linkedin_url;
+      if (studio.instagram_url) profileData.instagram_url = studio.instagram_url;
+      if (studio.youtube_url) profileData.youtube_url = studio.youtube_url;
+      if (studio.vimeo_url) profileData.vimeo_url = studio.vimeo_url;
+      if (studio.soundcloud_url) profileData.soundcloud_url = studio.soundcloud_url;
+      if (studio.connection1) profileData.connection1 = studio.connection1;
+      if (studio.connection2) profileData.connection2 = studio.connection2;
+      if (studio.connection3) profileData.connection3 = studio.connection3;
+      if (studio.connection4) profileData.connection4 = studio.connection4;
+      if (studio.connection5) profileData.connection5 = studio.connection5;
+      if (studio.connection6) profileData.connection6 = studio.connection6;
+      if (studio.connection7) profileData.connection7 = studio.connection7;
+      if (studio.connection8) profileData.connection8 = studio.connection8;
+      
+      const profileCompletion = calculateProfileCompletion(profileData);
       
       return {
         ...studio,
