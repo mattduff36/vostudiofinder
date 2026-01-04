@@ -17,7 +17,8 @@ export function cleanDescription(description: string | null | undefined): string
     // Clean up multiple spaces but preserve line breaks
     .replace(/[ \t]+/g, ' ')
     // Normalize multiple newlines to max 2 consecutive (one blank line)
-    .replace(/\n\s*\n\s*\n+/g, '\n\n')
+    // Matches 2+ newlines with optional whitespace between them
+    .replace(/(\s*\n){2,}/g, '\n\n')
     // Remove trailing line breaks at the end
     .replace(/\n+$/g, '')
     .trim();
