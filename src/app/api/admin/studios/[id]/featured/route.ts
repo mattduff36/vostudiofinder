@@ -19,15 +19,15 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { isVisible } = await request.json();
+    const { isFeatured } = await request.json();
 
-    // Update the studio profile visibility
+    // Update the studio featured status
     const updatedStudio = await db.studio_profiles.update({
       where: { id },
-      data: { is_profile_visible: isVisible },
+      data: { is_featured: isFeatured },
       select: {
         id: true,
-        is_profile_visible: true,
+        is_featured: true,
         name: true,
       }
     });
@@ -35,13 +35,13 @@ export async function PATCH(
     return NextResponse.json({
       success: true,
       studio: updatedStudio,
-      message: `Profile visibility ${isVisible ? 'enabled' : 'disabled'} for ${updatedStudio.name}`
+      message: `Studio ${isFeatured ? 'featured' : 'unfeatured'}: ${updatedStudio.name}`
     });
 
   } catch (error) {
-    console.error('Update visibility error:', error);
+    console.error('Update featured status error:', error);
     return NextResponse.json(
-      { error: 'Failed to update profile visibility' },
+      { error: 'Failed to update featured status' },
       { status: 500 }
     );
   }
