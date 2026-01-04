@@ -330,7 +330,7 @@ export default function AdminStudiosPage() {
   };
 
   const loadMore = () => {
-    setPagination(prev => ({ ...prev, offset: prev.offset + 50 }));
+    setPagination(prev => ({ ...prev, offset: prev.offset + prev.limit }));
   };
 
   if (error) {
