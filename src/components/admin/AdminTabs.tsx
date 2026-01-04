@@ -6,8 +6,6 @@ import {
   TrendingUp, 
   Building, 
   Activity, 
-  Search, 
-  FileText, 
   MessageSquare,
   Users 
 } from 'lucide-react';
