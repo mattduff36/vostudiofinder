@@ -510,7 +510,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden md:block">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Images & Main Content */}
-          <div className="lg:col-span-2 min-w-0 w-full">
+          <div className="lg:col-span-2">
             {/* Image Gallery - Large Featured + Thumbnails */}
             {displayImages.length > 0 && (
               <div className="mb-8 w-full">
@@ -563,8 +563,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             )}
 
             {/* Studio Header */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-3 flex items-center gap-3">
+            <div className="mb-6 w-full">
+              <h1 className="text-3xl font-bold text-gray-900 mb-3 flex items-center gap-3 w-full">
                 {/* Profile Avatar */}
                 {studio.owner.avatar_url && (
                   <AvatarUpload
@@ -589,7 +589,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
               {/* Rating and Reviews */}
               {studio.reviews.length > 0 && (
-                <div className="flex items-center space-x-2 mb-4">
+                <div className="flex items-center space-x-2 mb-4 w-full">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -613,8 +613,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             {/* Description */}
             <div className="mb-6 w-full">
               <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3 w-full">
-                <div className="prose prose-gray max-w-none">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
+                <div className="prose prose-gray max-w-none w-full">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words w-full">
                     {cleanDescription(profile?.about || profile?.short_about || studio.description)}
                   </p>
                   {profile?.equipment_list && (
@@ -706,10 +706,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             {/* Reviews Section */}
             {studio.reviews.length > 0 && (
               <div className="mb-6 w-full">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">Reviews</h2>
-                <div className="space-y-4">
+                <h2 className="text-xl font-semibold text-gray-900 mb-3 w-full">Reviews</h2>
+                <div className="space-y-4 w-full">
                   {studio.reviews.slice(0, 3).map((review) => (
-                    <div key={review.id} className="border border-gray-200 rounded-lg p-4">
+                    <div key={review.id} className="border border-gray-200 rounded-lg p-4 w-full">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">
                           <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
@@ -746,7 +746,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             {/* Verified Studio Badge at Bottom */}
             {studio.is_verified && (
               <div className="mb-6 w-full">
-                <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-lg w-full">
                   <span 
                     className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 flex-shrink-0" 
                     title="Verified studio — approved by our team"
