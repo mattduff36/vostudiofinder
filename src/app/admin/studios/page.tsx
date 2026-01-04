@@ -128,7 +128,7 @@ export default function AdminStudiosPage() {
   };
 
   const handleDeleteStudio = async (studio: Studio) => {
-    if (!confirm(`Are you sure you want to delete "${studio.name}"? This action cannot be undone.`)) {
+    if (!confirm(`⚠️ WARNING: This will permanently delete "${studio.name}" AND the associated user account!\n\nThis includes:\n• User account\n• Studio profile\n• All images\n• All reviews\n• All related data\n\nThis action CANNOT be undone. Are you sure?`)) {
       return;
     }
 
@@ -138,16 +138,16 @@ export default function AdminStudiosPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete studio');
+        throw new Error('Failed to delete studio and user account');
       }
 
-      alert('Studio deleted successfully');
+      alert('Studio and user account deleted successfully');
       setStudios([]); // Clear studios to prevent duplicates
       setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page
       // fetchStudios will be called automatically by the useEffect
     } catch (error) {
       console.error('Error deleting studio:', error);
-      alert('Failed to delete studio. Please try again.');
+      alert('Failed to delete studio and user account. Please try again.');
     }
   };
 
@@ -290,7 +290,7 @@ export default function AdminStudiosPage() {
     // Add confirmation for delete action
     if (action === 'delete') {
       const count = studioIds.length;
-      const confirmMessage = `Are you sure you want to delete ${count} studio${count !== 1 ? 's' : ''}? This action cannot be undone.`;
+      const confirmMessage = `⚠️ WARNING: This will permanently delete ${count} studio${count !== 1 ? 's' : ''} AND their associated user accounts!\n\nThis includes:\n• ${count} user account${count !== 1 ? 's' : ''}\n• ${count} studio profile${count !== 1 ? 's' : ''}\n• All images, reviews, and related data\n\nThis action CANNOT be undone. Are you sure?`;
       if (!confirm(confirmMessage)) {
         return;
       }
