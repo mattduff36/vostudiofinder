@@ -360,6 +360,7 @@ export default function AdminFAQPage() {
           </ul>
         </div>
       </div>
+      </div>
     </>
   );
 }
