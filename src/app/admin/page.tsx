@@ -16,7 +16,6 @@ export default async function AdminPage() {
   // Fetch dashboard statistics
   const [
     totalUsers,
-    usersWithStudios,
     totalStudios,
     activeStudios,
     verifiedStudios,
@@ -32,10 +31,7 @@ export default async function AdminPage() {
     // Total registered users
     db.users.count(),
     
-    // Users who have created studio profiles
-    db.studio_profiles.count(),
-    
-    // Total studio profiles
+    // Total studio profiles (1:1 with users who have studios)
     db.studio_profiles.count(),
     
     // Active studios
@@ -117,7 +113,7 @@ export default async function AdminPage() {
 
   const stats = {
     totalUsers,
-    usersWithStudios,
+    usersWithStudios: totalStudios, // Same as totalStudios (1:1 relationship)
     totalStudios,
     activeStudios,
     verifiedStudios,

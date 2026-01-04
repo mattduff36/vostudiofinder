@@ -5,7 +5,6 @@
 
 export enum Role {
   USER = 'USER',
-  STUDIO_OWNER = 'STUDIO_OWNER',
   ADMIN = 'ADMIN'
 }
 
