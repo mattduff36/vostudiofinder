@@ -12,7 +12,7 @@ import {
   Users 
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'query' | 'schema' | 'faq' | 'waitlist';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
