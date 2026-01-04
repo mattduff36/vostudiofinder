@@ -1,6 +1,6 @@
 /**
- * Seed FAQs into the database
- * Run with: npx tsx scripts/seed-faqs.ts
+ * Clear existing FAQs and seed all 15 FAQs
+ * Run with: npx tsx scripts/clear-and-seed-faqs.ts
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -71,21 +71,17 @@ const faqs = [
   }
 ];
 
-async function seedFAQs() {
-  console.log('\n🌱 Seeding FAQs...\n');
+async function clearAndSeedFAQs() {
+  console.log('\n🗑️  Clearing existing FAQs...\n');
 
   try {
-    // Check if FAQs already exist
-    const existingCount = await db.faq.count();
-    
-    if (existingCount > 0) {
-      console.log(`⚠️  Found ${existingCount} existing FAQs in database.`);
-      console.log('   Skipping seed to avoid duplicates.\n');
-      console.log('   To re-seed with fresh data, use: npx tsx scripts/clear-and-seed-faqs.ts\n');
-      return;
-    }
+    // Delete all existing FAQs
+    const deleteResult = await db.faq.deleteMany({});
+    console.log(`✅ Deleted ${deleteResult.count} existing FAQs\n`);
 
-    // Insert FAQs
+    console.log('🌱 Seeding 15 FAQs...\n');
+
+    // Insert all FAQs
     for (let i = 0; i < faqs.length; i++) {
       const faq = faqs[i];
       await db.faq.create({
@@ -100,7 +96,7 @@ async function seedFAQs() {
       console.log(`✅ ${i + 1}/15: ${faq.question.substring(0, 50)}...`);
     }
 
-    console.log(`\n✅ Successfully seeded ${faqs.length} FAQs!\n`);
+    console.log(`\n✅ Successfully seeded all ${faqs.length} FAQs!\n`);
   } catch (error) {
     console.error('\n❌ Error seeding FAQs:', error);
     process.exit(1);
@@ -109,5 +105,5 @@ async function seedFAQs() {
   }
 }
 
-seedFAQs();
+clearAndSeedFAQs();
 
