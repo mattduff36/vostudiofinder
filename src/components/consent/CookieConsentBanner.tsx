@@ -69,7 +69,7 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
             <div className="flex items-start gap-3">
               <div className="flex-1">
                 <p className="text-sm text-white/80 mb-2">
-                  We use cookies to ensure site functionality and, with your consent, to analyze traffic and improve your experience.
+                  We use cookies to ensure site functionality and, with your consent, to analyse traffic and improve your experience.
                 </p>
                 <p className="text-xs text-white/60">
                   Essential cookies (login, security) are always active. Analytics cookies require your consent.{' '}

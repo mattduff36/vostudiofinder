@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // Set the consent cookie with appropriate security settings
     const isProduction = process.env.NODE_ENV === 'production';
     response.cookies.set('vsf_cookie_consent', level, {
-      maxAge: 60 * 60 * 24 * 365, // 1 year
+      maxAge: 60 * 60 * 24 * 730, // 2 years
       path: '/',
       sameSite: 'lax',
       secure: isProduction,

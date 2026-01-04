@@ -170,7 +170,7 @@ export function getCurrentLocation(): Promise<MapLocation> {
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 300000, // 5 minutes
+        maximumAge: 2592000000, // 30 days
       }
     );
   });
