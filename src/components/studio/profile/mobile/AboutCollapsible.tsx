@@ -26,6 +26,9 @@ export function AboutCollapsible({
   studioTypes,
 }: AboutCollapsibleProps) {
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false);
+  
+  // Clean equipment list and check if it has valid content after cleaning
+  const cleanedEquipment = equipmentList ? cleanDescription(equipmentList) : '';
 
   // Phase 3 feature gate
 
@@ -60,7 +63,7 @@ export function AboutCollapsible({
       )}
 
       {/* Equipment List */}
-      {equipmentList && (
+      {cleanedEquipment && (
         <div className="px-4 py-4 border-b border-gray-100">
           <button
             onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
@@ -79,7 +82,7 @@ export function AboutCollapsible({
           </button>
           {isEquipmentExpanded && (
             <div className="mt-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
-              {cleanDescription(equipmentList)}
+              {cleanedEquipment}
             </div>
           )}
         </div>
