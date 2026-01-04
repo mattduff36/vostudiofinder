@@ -527,14 +527,28 @@ export async function DELETE(
 
     const studioId = (await params).id;
 
-    // Delete the studio
-    await prisma.studio_profiles.delete({
+    // Get the studio to find the user_id
+    const studio = await prisma.studio_profiles.findUnique({
       where: { id: studioId },
+      select: { user_id: true }
+    });
+
+    if (!studio) {
+      return NextResponse.json(
+        { error: 'Studio not found' },
+        { status: 404 }
+      );
+    }
+
+    // Delete the entire user account (studio and all related data will cascade delete)
+    // CASCADE is set up in the schema: studio_profiles has onDelete: Cascade on user_id
+    await prisma.users.delete({
+      where: { id: studio.user_id },
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Studio deleted successfully',
+      message: 'Studio and user account deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting studio:', error);
