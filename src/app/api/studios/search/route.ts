@@ -21,34 +21,24 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 // Prioritize studios: verified+images -> images -> no images, randomized within each tier
-// Always pins VoiceoverGuy to the top if present
 function prioritizeStudios<T extends { 
   is_verified: boolean; 
   studio_images: any[];
-  users?: { username?: string | null } | null;
 }>(studios: T[], offset: number, limit: number): { studios: T[]; hasMore: boolean } {
   if (studios.length === 0) return { studios: [], hasMore: false };
   
-  // Find VoiceoverGuy studio to pin at the top
-  const voiceoverGuy = studios.find(
-    s => s.users?.username === 'VoiceoverGuy'
-  );
-  const remainingStudios = studios.filter(
-    s => s.users?.username !== 'VoiceoverGuy'
-  );
-  
   // Tier 1: Verified with at least 1 image
-  const verifiedWithImages = remainingStudios.filter(
+  const verifiedWithImages = studios.filter(
     s => s.is_verified && s.studio_images && s.studio_images.length > 0
   );
   
   // Tier 2: Non-verified with at least 1 image
-  const nonVerifiedWithImages = remainingStudios.filter(
+  const nonVerifiedWithImages = studios.filter(
     s => !s.is_verified && s.studio_images && s.studio_images.length > 0
   );
   
   // Tier 3: Studios without images
-  const withoutImages = remainingStudios.filter(
+  const withoutImages = studios.filter(
     s => !s.studio_images || s.studio_images.length === 0
   );
   
@@ -57,9 +47,8 @@ function prioritizeStudios<T extends {
   const shuffledWithImages = shuffleArray(nonVerifiedWithImages);
   const shuffledWithoutImages = shuffleArray(withoutImages);
   
-  // Combine tiers in priority order, with VoiceoverGuy always first if present
+  // Combine tiers in priority order
   const allPrioritized = [
-    ...(voiceoverGuy ? [voiceoverGuy] : []),
     ...shuffledVerified,
     ...shuffledWithImages,
     ...shuffledWithoutImages
