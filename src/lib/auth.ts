@@ -186,6 +186,18 @@ export const authOptions: NextAuthOptions = {
   events: {
     async signIn({ user, account, profile: _profile, isNewUser: _isNewUser }) {
       console.log('User signed in:', { user: user.email, provider: account?.provider });
+      
+      // Update last_login timestamp
+      if (user.email) {
+        try {
+          await db.users.update({
+            where: { email: user.email },
+            data: { last_login: new Date() },
+          });
+        } catch (error) {
+          console.error('Failed to update last_login:', error);
+        }
+      }
     },
     async signOut({ token }) {
       console.log('User signed out:', token?.email);
