@@ -339,9 +339,57 @@ async function main() {
       });
     }
 
+    // Sync FAQ entries
+    console.log('\n📝 Syncing FAQ entries...');
+    const prodFaq = await prodDb.faq.findMany();
+    const devFaq = await devDb.faq.findMany({ select: { id: true } });
+    const devFaqIds = new Set(devFaq.map(f => f.id));
+    
+    let faqAdded = 0;
+    for (const faqEntry of prodFaq) {
+      if (!devFaqIds.has(faqEntry.id)) {
+        await devDb.faq.create({
+          data: {
+            id: faqEntry.id,
+            question: faqEntry.question,
+            answer: faqEntry.answer,
+            sort_order: faqEntry.sort_order,
+            created_at: faqEntry.created_at,
+            updated_at: faqEntry.updated_at
+          }
+        });
+        faqAdded++;
+      }
+    }
+    console.log(`✓ FAQ entries added: ${faqAdded} (${devFaq.length} already existed)`);
+
+    // Sync Waitlist entries
+    console.log('\n📋 Syncing Waitlist entries...');
+    const prodWaitlist = await prodDb.waitlist.findMany();
+    const devWaitlist = await devDb.waitlist.findMany({ select: { id: true } });
+    const devWaitlistIds = new Set(devWaitlist.map(w => w.id));
+    
+    let waitlistAdded = 0;
+    for (const waitlistEntry of prodWaitlist) {
+      if (!devWaitlistIds.has(waitlistEntry.id)) {
+        await devDb.waitlist.create({
+          data: {
+            id: waitlistEntry.id,
+            name: waitlistEntry.name,
+            email: waitlistEntry.email,
+            created_at: waitlistEntry.created_at
+          }
+        });
+        waitlistAdded++;
+      }
+    }
+    console.log(`✓ Waitlist entries added: ${waitlistAdded} (${devWaitlist.length} already existed)`);
+
     console.log('\n✅ Sync complete!');
     console.log(`   Users added: ${usersAdded}`);
     console.log(`   Studios added: ${studiosAdded}`);
+    console.log(`   FAQ entries added: ${faqAdded}`);
+    console.log(`   Waitlist entries added: ${waitlistAdded}`);
     console.log(`   Skipped (already exist): ${skipped}`);
     if (reviewsSkipped > 0) {
       console.log(`   ⚠️  Reviews skipped (missing users): ${reviewsSkipped}`);
