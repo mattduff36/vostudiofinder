@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Twitter, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { MobileFooter } from '@/components/footer/MobileFooter';
+import { XLogo } from '@/components/icons/XLogo';
 
 export function Footer() {
   return (
@@ -56,7 +57,7 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center space-x-6 mb-2 md:mb-0">
               <a href="https://twitter.com/VOStudioFinder" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }} aria-label="X (formerly Twitter)">
-                <Twitter className="w-5 h-5" />
+                <XLogo className="w-5 h-5" />
               </a>
             </div>
 
