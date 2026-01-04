@@ -5,7 +5,6 @@ import { db } from '@/lib/db';
 
 export async function GET() {
   try {
-    // Check authentication
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== 'ADMIN') {
@@ -15,343 +14,177 @@ export async function GET() {
       );
     }
 
-    // Get all analytics data in parallel
+    // Overview statistics
     const [
-      // Basic counts
-      totalUsers,
-      totalStudios,
-      totalReviews,
-      totalContacts,
-      
-      // Studio metrics
-      activeStudios,
-      verifiedStudios,
-      totalStudioProfiles,
-      studiosByStatus,
-      
-      // User metrics
-      usersByRole,
-      
-      // Review metrics
-      reviewStats,
-      topRatedStudios,
-      
-      // Contact metrics
-      acceptedContacts,
-      contactsByStatus,
-      
-      // Profile data
-      allProfiles,
-      
-      // Time-based data
-      firstUser,
-      latestUser,
-      recentStudios,
-      recentUsers,
-      
+      total_users,
+      total_studios,
+      active_studios,
+      verified_studios,
+      featured_studios,
+      premium_studios,
+      users_with_studios,
     ] = await Promise.all([
-      // Basic counts
       db.users.count(),
       db.studio_profiles.count(),
-      db.reviews.count(),
-      db.contacts.count(),
-      
-      // Studio metrics
       db.studio_profiles.count({ where: { status: 'ACTIVE' } }),
       db.studio_profiles.count({ where: { is_verified: true } }),
-      db.studio_profiles.count(), // All studio profiles have users
-      db.studio_profiles.groupBy({
-        by: ['status'],
-        _count: { status: true }
-      }),
-      
-      // User metrics
-      db.users.groupBy({
-        by: ['role'],
-        _count: { role: true }
-      }),
-      
-      // Review metrics
-      db.reviews.aggregate({
-        _avg: { rating: true },
-        _count: { id: true }
-      }),
-      db.studio_profiles.findMany({
-        take: 10,
-        where: {
-          reviews: {
-            some: {}
-          }
-        },
-        select: {
-          id: true,
-          name: true,
-          status: true,
-          is_verified: true,
-          _count: {
-            select: { reviews: true }
-          },
-          reviews: {
-            select: { rating: true }
-          }
-        }
-      }),
-      
-      // Contact metrics
-      db.contacts.count({ where: { accepted: 1 } }),
-      db.contacts.groupBy({
-        by: ['accepted'],
-        _count: { accepted: true }
-      }),
-      
-      // Profile data for connection analysis
-      db.studio_profiles.findMany({
-        select: {
-          connection1: true,
-          connection2: true,
-          connection3: true,
-          connection4: true,
-          connection5: true,
-          connection6: true,
-          connection7: true,
-          connection8: true,
-          connection9: true,
-          connection10: true,
-          connection11: true,
-          connection12: true,
-          custom_connection_methods: true,
-          location: true,
-          rate_tier_1: true,
-          rate_tier_2: true,
-          rate_tier_3: true,
-        }
-      }),
-      
-      // Time-based data
-      db.users.findFirst({ 
-        orderBy: { created_at: 'asc' },
-        select: { created_at: true }
-      }),
-      db.users.findFirst({ 
-        orderBy: { created_at: 'desc' },
-        select: { created_at: true }
-      }),
-      db.studio_profiles.findMany({
-        take: 10,
-        orderBy: { created_at: 'desc' },
-        select: {
-          id: true,
-          name: true,
-          status: true,
-          created_at: true,
-          is_verified: true
-        }
-      }),
-      db.users.findMany({
-        take: 10,
-        orderBy: { created_at: 'desc' },
-        select: {
-          id: true,
-          display_name: true,
-          username: true,
-          created_at: true,
-          role: true
-        }
-      }),
+      db.studio_profiles.count({ where: { is_featured: true } }),
+      db.studio_profiles.count({ where: { is_premium: true } }),
+      db.studio_profiles.count(),
     ]);
 
-    // Process connection methods data
-    const connectionMethodCounts: { [key: string]: number } = {
-      connection1: 0,
-      connection2: 0,
-      connection3: 0,
-      connection4: 0,
-      connection5: 0,
-      connection6: 0,
-      connection7: 0,
-      connection8: 0,
-      connection9: 0,
-      connection10: 0,
-      connection11: 0,
-      connection12: 0,
-    };
-    
-    const customMethodCounts: { [key: string]: number } = {};
-    const locationCounts: { [key: string]: number } = {};
-    let profilesWithRates = 0;
-    let totalRateTier1 = 0;
-    let totalRateTier2 = 0;
-    let totalRateTier3 = 0;
+    // User roles breakdown
+    const user_roles_raw = await db.users.groupBy({
+      by: ['role'],
+      _count: {
+        role: true,
+      },
+    });
 
-    allProfiles.forEach(profile => {
-      // Count standard connection methods
-      for (let i = 1; i <= 12; i++) {
-        const connKey = `connection${i}` as keyof typeof profile;
-        const countKey = `connection${i}` as keyof typeof connectionMethodCounts;
-        if (profile[connKey] === '1' && connectionMethodCounts[countKey] !== undefined) {
-          connectionMethodCounts[countKey]++;
-        }
-      }
-      
-      // Count custom connection methods
-      profile.custom_connection_methods?.forEach(method => {
-        if (method && method.trim()) {
-          const normalized = method.trim();
-          customMethodCounts[normalized] = (customMethodCounts[normalized] || 0) + 1;
+    const user_roles = user_roles_raw.map(r => ({
+      role: r.role,
+      count: r._count.role,
+    }));
+
+    // Studio status breakdown
+    const studio_status_raw = await db.studio_profiles.groupBy({
+      by: ['status'],
+      _count: {
+        status: true,
+      },
+    });
+
+    const studio_status = studio_status_raw.map(s => ({
+      status: s.status,
+      count: s._count.status,
+    }));
+
+    // Connection methods usage
+    const studios = await db.studio_profiles.findMany({
+      select: {
+        connection1: true,
+        connection2: true,
+        connection3: true,
+        connection4: true,
+        connection5: true,
+        connection6: true,
+        connection7: true,
+        connection8: true,
+        connection9: true,
+        connection10: true,
+        connection11: true,
+        connection12: true,
+        custom_connection_methods: true,
+      },
+    });
+
+    // Count connection methods
+    const connectionCounts: Record<string, number> = {};
+    const customConnectionCounts: Record<string, number> = {};
+
+    studios.forEach(studio => {
+      // Standard connections
+      [
+        studio.connection1, studio.connection2, studio.connection3, studio.connection4,
+        studio.connection5, studio.connection6, studio.connection7, studio.connection8,
+        studio.connection9, studio.connection10, studio.connection11, studio.connection12,
+      ].forEach(conn => {
+        if (conn) {
+          connectionCounts[conn] = (connectionCounts[conn] || 0) + 1;
         }
       });
-      
-      // Count locations
-      if (profile.location) {
-        const loc = profile.location.trim();
-        if (loc) {
-          locationCounts[loc] = (locationCounts[loc] || 0) + 1;
-        }
-      }
-      
-      // Calculate rate averages
-      if (profile.rate_tier_1 || profile.rate_tier_2 || profile.rate_tier_3) {
-        profilesWithRates++;
-        if (profile.rate_tier_1) totalRateTier1 += parseFloat(profile.rate_tier_1);
-        if (profile.rate_tier_2) totalRateTier2 += parseFloat(profile.rate_tier_2);
-        if (profile.rate_tier_3) totalRateTier3 += parseFloat(profile.rate_tier_3);
+
+      // Custom connections
+      if (studio.custom_connection_methods) {
+        studio.custom_connection_methods.forEach(method => {
+          if (method) {
+            customConnectionCounts[method] = (customConnectionCounts[method] || 0) + 1;
+          }
+        });
       }
     });
 
-    // Get top custom methods
-    const topCustomMethods = Object.entries(customMethodCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([method, count]) => ({ method, count }));
+    const connection_methods = Object.entries(connectionCounts)
+      .map(([method, count]) => ({ method, count }))
+      .sort((a, b) => b.count - a.count);
 
-    // Get top locations
-    const topLocations = Object.entries(locationCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([location, count]) => ({ location, count }));
+    const custom_connections = Object.entries(customConnectionCounts)
+      .map(([method, count]) => ({ method, count }))
+      .sort((a, b) => b.count - a.count);
 
-    // Calculate top rated studios
-    const studiosWithAvgRating = topRatedStudios
-      .map(studio => ({
-        id: studio.id,
-        name: studio.name,
-        status: studio.status,
-        is_verified: studio.is_verified,
-        review_count: studio._count.reviews,
-        avg_rating: studio.reviews.length > 0
-          ? studio.reviews.reduce((sum, r) => sum + r.rating, 0) / studio.reviews.length
-          : 0
-      }))
-      .sort((a, b) => b.avg_rating - a.avg_rating)
-      .slice(0, 10);
+    // Geographic distribution (by city)
+    const geographic_data = await db.studio_profiles.groupBy({
+      by: ['city'],
+      _count: {
+        city: true,
+      },
+      where: {
+        city: {
+          not: '',
+        },
+      },
+    });
 
-    // Connection method labels
-    const connectionLabels: { [key: string]: string } = {
-      connection1: 'Source Connect',
-      connection2: 'Source Connect Now',
-      connection3: 'Phone Patch',
-      connection4: 'Session Link Pro',
-      connection5: 'Zoom or Teams',
-      connection6: 'Cleanfeed',
-      connection7: 'Riverside',
-      connection8: 'Google Hangouts',
-      connection9: 'ipDTL',
-      connection10: 'SquadCast',
-      connection11: 'Zencastr',
-      connection12: 'Other (See profile)',
-    };
-
-    const standardConnectionMethods = Object.entries(connectionMethodCounts)
-      .map(([id, count]) => ({
-        id,
-        label: connectionLabels[id],
-        count
+    const geographic = geographic_data
+      .map(g => ({
+        location: g.city,
+        count: g._count.city,
       }))
       .sort((a, b) => b.count - a.count);
 
-    // Build response
-    const analyticsData = {
+    // Recent studios
+    const recent_studios = await db.studio_profiles.findMany({
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        is_verified: true,
+        created_at: true,
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+      take: 10,
+    });
+
+    // Recent users
+    const recent_users = await db.users.findMany({
+      select: {
+        id: true,
+        username: true,
+        display_name: true,
+        role: true,
+        created_at: true,
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+      take: 10,
+    });
+
+    return NextResponse.json({
       overview: {
-        total_users: totalUsers,
-        total_studios: totalStudios,
-        total_reviews: totalReviews,
-        total_contacts: totalContacts,
-        active_studios: activeStudios,
-        verified_studios: verifiedStudios,
-        studios_with_profiles: totalStudioProfiles,
-        accepted_contacts: acceptedContacts,
-        avg_rating: reviewStats._avg.rating || 0,
-        first_user_date: firstUser?.created_at?.toISOString() || null,
-        latest_user_date: latestUser?.created_at?.toISOString() || null,
+        total_users,
+        total_studios,
+        active_studios,
+        verified_studios,
+        featured_studios,
+        premium_studios,
+        users_with_studios,
       },
-      studios: {
-        by_status: studiosByStatus.map(item => ({
-          status: item.status,
-          count: item._count.status
-        })),
-        top_rated: studiosWithAvgRating,
-        recent: recentStudios.map(studio => ({
-          id: studio.id,
-          name: studio.name,
-          status: studio.status,
-          is_verified: studio.is_verified,
-          created_at: studio.created_at.toISOString()
-        }))
-      },
-      users: {
-        by_role: usersByRole.map(item => ({
-          role: item.role,
-          count: item._count.role
-        })),
-        recent: recentUsers.map(user => ({
-          id: user.id,
-          name: user.display_name || user.username || 'Unknown',
-          role: user.role,
-          created_at: user.created_at.toISOString()
-        }))
-      },
-      contacts: {
-        by_status: contactsByStatus.map(item => ({
-          status: item.accepted === 1 ? 'Accepted' : 'Pending',
-          accepted: item.accepted,
-          count: item._count.accepted
-        })),
-        total: totalContacts,
-        accepted: acceptedContacts,
-        pending: totalContacts - acceptedContacts,
-        acceptance_rate: totalContacts > 0 
-          ? Math.round((acceptedContacts / totalContacts) * 100) 
-          : 0
-      },
-      connection_methods: {
-        standard: standardConnectionMethods,
-        custom: topCustomMethods,
-        total_users_with_custom: Object.keys(customMethodCounts).length > 0 
-          ? Object.values(customMethodCounts).reduce((sum, count) => sum + count, 0)
-          : 0,
-        unique_custom_methods: Object.keys(customMethodCounts).length
-      },
-      geographic: {
-        top_locations: topLocations,
-        total_locations: Object.keys(locationCounts).length,
-        studios_with_location: Object.values(locationCounts).reduce((sum, count) => sum + count, 0)
-      },
-      rates: {
-        profiles_with_rates: profilesWithRates,
-        avg_tier_1: profilesWithRates > 0 ? Math.round(totalRateTier1 / profilesWithRates) : 0,
-        avg_tier_2: profilesWithRates > 0 ? Math.round(totalRateTier2 / profilesWithRates) : 0,
-        avg_tier_3: profilesWithRates > 0 ? Math.round(totalRateTier3 / profilesWithRates) : 0,
-      }
-    };
-
-    return NextResponse.json(analyticsData);
-
+      user_roles,
+      studio_status,
+      connection_methods,
+      custom_connections,
+      geographic,
+      recent_studios,
+      recent_users,
+    });
   } catch (error) {
-    console.error('Admin analytics API error:', error);
+    console.error('Error fetching analytics:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch analytics' },
       { status: 500 }
     );
   }
 }
-
