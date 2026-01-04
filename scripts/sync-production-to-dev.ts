@@ -116,6 +116,15 @@ async function main() {
     let usersAdded = 0;
     let studiosAdded = 0;
     let skipped = 0;
+    let reviewsSkipped = 0;
+
+    // Build set of all user IDs that will exist in dev after sync
+    const allDevUserIds = new Set(devUserIds);
+    for (const prodUser of prodUsers) {
+      if (!devUserIds.has(prodUser.id) && !devEmails.has(prodUser.email)) {
+        allDevUserIds.add(prodUser.id);
+      }
+    }
 
     console.log('🔄 Syncing data...\n');
 
@@ -259,8 +268,19 @@ async function main() {
             });
           }
 
-          // Copy reviews
+          // Copy reviews (only if reviewer and owner exist in dev)
           for (const review of studio.reviews) {
+            // Check if reviewer and owner exist in dev (or will exist after this sync)
+            const reviewerExists = allDevUserIds.has(review.reviewer_id);
+            const ownerExists = allDevUserIds.has(review.owner_id);
+            
+            if (!reviewerExists || !ownerExists) {
+              // Skip this review - foreign key constraint would fail
+              reviewsSkipped++;
+              console.log(`    ⚠️  Skipped review (missing reviewer: ${!reviewerExists}, missing owner: ${!ownerExists})`);
+              continue;
+            }
+            
             await tx.reviews.create({
               data: {
                 id: review.id,
@@ -286,7 +306,12 @@ async function main() {
     console.log('\n✅ Sync complete!');
     console.log(`   Users added: ${usersAdded}`);
     console.log(`   Studios added: ${studiosAdded}`);
-    console.log(`   Skipped (already exist): ${skipped}\n`);
+    console.log(`   Skipped (already exist): ${skipped}`);
+    if (reviewsSkipped > 0) {
+      console.log(`   ⚠️  Reviews skipped (missing users): ${reviewsSkipped}`);
+      console.log(`   Note: Reviews skipped because reviewer/owner doesn't exist in dev`);
+    }
+    console.log('');
 
   } catch (error) {
     console.error('\n❌ Error during sync:', error);
