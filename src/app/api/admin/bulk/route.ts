@@ -53,12 +53,22 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'delete':
-        const deleteResult = await prisma.studio_profiles.deleteMany({
-          where: { id: { in: studioIds } }
+        // Get user IDs for the studios to be deleted
+        const studiosToDelete = await prisma.studio_profiles.findMany({
+          where: { id: { in: studioIds } },
+          select: { user_id: true }
         });
+        
+        const userIdsToDelete = studiosToDelete.map(s => s.user_id);
+        
+        // Delete users (studios and all related data will cascade delete)
+        const deleteResult = await prisma.users.deleteMany({
+          where: { id: { in: userIdsToDelete } }
+        });
+        
         result = {
           success: true,
-          message: `Successfully deleted ${deleteResult.count} studio(s)`,
+          message: `Successfully deleted ${deleteResult.count} studio(s) and user account(s)`,
           affectedCount: deleteResult.count
         };
         break;
