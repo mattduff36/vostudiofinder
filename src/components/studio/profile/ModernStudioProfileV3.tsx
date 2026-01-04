@@ -157,8 +157,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
   // Studio type mapping
   const studioTypeLabels: { [key: string]: string } = {
-    'HOME': 'Home Voiceover Studio',
-    'RECORDING': 'Full Recording Studio',
+    'HOME': 'Home Studio',
+    'RECORDING': 'Recording Studio',
     'PODCAST': 'Podcast Studio',
     'EDITING': 'Editing Service',
     'VO_COACH': 'Voiceover Coaching Service',
