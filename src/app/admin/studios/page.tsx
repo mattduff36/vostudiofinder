@@ -176,6 +176,31 @@ export default function AdminStudiosPage() {
     }
   };
 
+  const handleToggleVerified = async (studio: Studio, isVerified: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/studios/${studio.id}/verified`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isVerified }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update verified status');
+      }
+
+      // Update the local state
+      setStudios(prev => prev.map(s => 
+        s.id === studio.id ? { ...s, is_verified: isVerified } : s
+      ));
+
+      setSuccessMessage(`Studio ${isVerified ? 'verified' : 'unverified'}: ${studio.name}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      console.error('Error toggling verified status:', error);
+      alert('Failed to update verified status. Please try again.');
+    }
+  };
+
   const handleSort = (field: string) => {
     if (sortBy === field) {
       // Toggle sort order if clicking the same field
@@ -467,6 +492,12 @@ export default function AdminStudiosPage() {
                     </th>
                     <th 
                       className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('is_verified')}
+                    >
+                      Verified{getSortIcon('is_verified')}
+                    </th>
+                    <th 
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('is_featured')}
                     >
                       Featured{getSortIcon('is_featured')}
@@ -592,6 +623,22 @@ export default function AdminStudiosPage() {
                             {studio.profile_completion || 0}%
                           </span>
                         </div>
+                      </td>
+                      {/* Verified Toggle */}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <button
+                          onClick={() => handleToggleVerified(studio, !studio.is_verified)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                            studio.is_verified ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                          title={studio.is_verified ? 'Studio is verified' : 'Studio is not verified'}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              studio.is_verified ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
                       </td>
                       {/* Featured Star */}
                       <td className="px-6 py-4 whitespace-nowrap text-center">

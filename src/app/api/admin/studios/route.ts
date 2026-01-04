@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
       'status': { status: sortOrder },
       'updated_at': { updated_at: sortOrder },
       'is_profile_visible': { is_profile_visible: sortOrder },
+      'is_verified': { is_verified: sortOrder },
       'is_featured': { is_featured: sortOrder },
       'profile_completion': { updated_at: sortOrder }, // Will sort on client after calculation
     };
