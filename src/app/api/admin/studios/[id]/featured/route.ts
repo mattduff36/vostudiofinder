@@ -21,6 +21,28 @@ export async function PATCH(
     const { id } = await params;
     const { isFeatured } = await request.json();
 
+    // If trying to feature this studio, check the 6-studio limit
+    if (isFeatured) {
+      // Get current studio's featured status
+      const currentStudio = await db.studio_profiles.findUnique({
+        where: { id },
+        select: { is_featured: true }
+      });
+
+      // Only check limit if studio is not already featured
+      if (!currentStudio?.is_featured) {
+        const featuredCount = await db.studio_profiles.count({
+          where: { is_featured: true }
+        });
+        
+        if (featuredCount >= 6) {
+          return NextResponse.json({
+            error: 'Maximum of 6 featured studios reached. Please unfeature another studio first.'
+          }, { status: 400 });
+        }
+      }
+    }
+
     // Update the studio featured status
     const updatedStudio = await db.studio_profiles.update({
       where: { id },
