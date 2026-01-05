@@ -67,7 +67,7 @@ export function Settings({ data }: SettingsProps) {
   const [downloadingData, setDownloadingData] = useState(false);
   
   // Desktop section navigation
-  const [activeDesktopSection, setActiveDesktopSection] = useState('privacy');
+  const [activeDesktopSection, setActiveDesktopSection] = useState('membership');
   
   // Mobile accordion
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
@@ -115,9 +115,9 @@ export function Settings({ data }: SettingsProps) {
   }, [expandedMobileSection]);
 
   const sections = [
+    { id: 'membership', label: 'Membership', icon: CreditCard, description: 'Subscription and billing' },
     { id: 'privacy', label: 'Privacy & Security', icon: Shield, description: 'Privacy settings, security, and data' },
     { id: 'support', label: 'Support', icon: MessageCircle, description: 'Report issues, make suggestions' },
-    { id: 'membership', label: 'Membership', icon: CreditCard, description: 'Subscription and billing' },
   ];
 
   const handleMobileSectionClick = (sectionId: string) => {
