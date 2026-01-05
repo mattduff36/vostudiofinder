@@ -114,16 +114,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Lazy enforcement: update expired memberships to INACTIVE status
+    // Lazy enforcement: update expired memberships to INACTIVE status (skip admin accounts)
     // This ensures search results are accurate even if no one has logged in recently
     try {
       const now = new Date();
       
-      // Find studios with expired memberships that are still ACTIVE
+      // Find studios with expired memberships that are still ACTIVE (exclude admin emails)
       const expiredStudios = await db.studio_profiles.findMany({
         where: {
           status: 'ACTIVE',
           users: {
+            email: {
+              notIn: ['admin@mpdee.co.uk', 'guy@voiceoverguy.co.uk']
+            },
             subscriptions: {
               some: {
                 current_period_end: {

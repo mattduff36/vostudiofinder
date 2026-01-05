@@ -202,8 +202,10 @@ export const authOptions: NextAuthOptions = {
             }
           });
 
-          // Handle legacy membership grant + enforce studio status
-          if (dbUser.studio_profiles) {
+          // Handle legacy membership grant + enforce studio status (skip for admin accounts)
+          const isAdminAccount = dbUser.role === 'ADMIN';
+          
+          if (dbUser.studio_profiles && !isAdminAccount) {
             const studio = dbUser.studio_profiles;
             const latestSubscription = dbUser.subscriptions[0];
             const now = new Date();
@@ -255,6 +257,19 @@ export const authOptions: NextAuthOptions = {
                 });
                 console.log(`🔄 Studio status updated to ${desiredStatus} for ${user.email}`);
               }
+            }
+          } else if (dbUser.studio_profiles && isAdminAccount) {
+            // Ensure admin studio is always ACTIVE
+            const studio = dbUser.studio_profiles;
+            if (studio.status !== 'ACTIVE') {
+              await db.studio_profiles.update({
+                where: { id: studio.id },
+                data: { 
+                  status: 'ACTIVE',
+                  updated_at: new Date()
+                }
+              });
+              console.log(`🔄 Admin studio set to ACTIVE for ${user.email}`);
             }
           }
         } catch (error) {
