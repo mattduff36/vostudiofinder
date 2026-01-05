@@ -67,6 +67,9 @@ export function Settings({ data }: SettingsProps) {
   // Download data
   const [downloadingData, setDownloadingData] = useState(false);
   
+  // Desktop section navigation
+  const [activeDesktopSection, setActiveDesktopSection] = useState('account');
+  
   // Mobile accordion
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -422,6 +425,121 @@ export function Settings({ data }: SettingsProps) {
     }
   };
 
+  // Desktop-specific content renderer (Support section has always-visible forms)
+  const renderDesktopSectionContent = (sectionId: string) => {
+    switch (sectionId) {
+      case 'account':
+      case 'privacy':
+      case 'membership':
+      case 'security':
+        // Reuse mobile content for these sections
+        return renderSectionContent(sectionId);
+
+      case 'support':
+        // Desktop: always-visible forms (no collapsibles)
+        return (
+          <div className="space-y-6">
+            {/* Report an Issue - Always visible */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <AlertCircle className="w-5 h-5 text-orange-600" />
+                <h3 className="text-lg font-medium text-gray-900">Report an Issue</h3>
+              </div>
+              <form onSubmit={handleSubmitIssue} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <select
+                    value={issueCategory}
+                    onChange={(e) => setIssueCategory(e.target.value)}
+                    disabled={submittingIssue}
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {ISSUE_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={issueMessage}
+                    onChange={(e) => setIssueMessage(e.target.value)}
+                    disabled={submittingIssue}
+                    rows={4}
+                    placeholder="Please describe the issue in detail..."
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingIssue}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {submittingIssue && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{submittingIssue ? 'Submitting...' : 'Submit Issue'}</span>
+                </button>
+              </form>
+            </div>
+
+            {/* Make a Suggestion - Always visible */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <Lightbulb className="w-5 h-5 text-yellow-600" />
+                <h3 className="text-lg font-medium text-gray-900">Make a Suggestion</h3>
+              </div>
+              <form onSubmit={handleSubmitSuggestion} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <select
+                    value={suggestionCategory}
+                    onChange={(e) => setSuggestionCategory(e.target.value)}
+                    disabled={submittingSuggestion}
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {SUGGESTION_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Your Suggestion</label>
+                  <textarea
+                    value={suggestionMessage}
+                    onChange={(e) => setSuggestionMessage(e.target.value)}
+                    disabled={submittingSuggestion}
+                    rows={4}
+                    placeholder="Tell us your idea..."
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingSuggestion}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {submittingSuggestion && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{submittingSuggestion ? 'Submitting...' : 'Submit Suggestion'}</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   const handleVisibilityToggle = useCallback(async (visible: boolean) => {
     setSavingVisibility(true);
     try {
@@ -575,331 +693,47 @@ export function Settings({ data }: SettingsProps) {
 
   return (
     <>
-      {/* Header - Desktop only */}
-      <div className="hidden md:block bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-        <div className="flex items-center justify-between">
+      {/* Desktop Container - unified card matching Edit Profile */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm hidden md:block">
+        {/* Desktop Header */}
+        <div className="flex border-b border-gray-200 px-6 py-4 items-center justify-between">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Settings</h2>
-            <p className="text-sm text-gray-600 mt-1">Manage your account settings and preferences</p>
+            <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Manage your account settings and preferences
+            </p>
           </div>
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <Calendar className="w-4 h-4" />
             <span>Last updated: {lastUpdated}</span>
           </div>
         </div>
-      </div>
 
-      {/* Desktop Sections */}
-      <div className="hidden md:block space-y-6">
-      {/* Account Information */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <User className="w-4 h-4 text-gray-400" />
-            <h3 className="text-base font-semibold text-gray-900">Account Information</h3>
-          </div>
+        {/* Desktop Section Navigation */}
+        <div className="border-b border-gray-200 px-6">
+          <nav className="flex space-x-4 overflow-x-auto" aria-label="Settings sections">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => setActiveDesktopSection(section.id)}
+                className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                  activeDesktopSection === section.id
+                    ? 'border-red-500 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {section.label}
+              </button>
+            ))}
+          </nav>
         </div>
 
-        <div className="p-4 space-y-3">
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-700">Username</p>
-              <p className="text-sm text-gray-500 truncate">@{data.user.username}</p>
-            </div>
-            <a href={`/${data.user.username}`} target="_blank" rel="noopener noreferrer" 
-               className="ml-2 text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1 flex-shrink-0">
-              <span className="hidden sm:inline">View</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-700">Email</p>
-              <p className="text-sm text-gray-500 truncate">{data.user.email}</p>
-            </div>
-            <div className="ml-2 flex items-center space-x-1 text-green-600 text-xs flex-shrink-0">
-              <CheckCircle2 className="w-3 h-3" />
-              <span>Verified</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <p className="text-sm font-medium text-gray-700">Profile Visibility</p>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {isProfileVisible ? 'Visible to public' : 'Hidden from public'}
-              </p>
-            </div>
-            <Toggle
-              checked={isProfileVisible}
-              onChange={handleVisibilityToggle}
-              disabled={savingVisibility}
-              aria-label="Toggle profile visibility"
-            />
+        {/* Desktop Content */}
+        <div className="px-6 py-6 min-h-[400px]">
+          <div className="w-full max-w-5xl mx-auto">
+            {renderDesktopSectionContent(activeDesktopSection)}
           </div>
         </div>
-      </div>
-
-      {/* Privacy & Data */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <Shield className="w-4 h-4 text-gray-400" />
-            <h3 className="text-base font-semibold text-gray-900">Privacy & Data</h3>
-          </div>
-        </div>
-
-        <div className="p-4 space-y-3">
-          <div className="p-3 bg-gray-50 rounded-md">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-gray-900">Privacy Settings</p>
-              <a href="/dashboard#edit-profile" 
-                 className="text-xs text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1">
-                <span>Manage</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                {data.profile?.show_email ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                <span>Email {data.profile?.show_email ? 'Visible' : 'Hidden'}</span>
-              </span>
-              <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                {data.profile?.show_phone ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                <span>Phone {data.profile?.show_phone ? 'Visible' : 'Hidden'}</span>
-              </span>
-              <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                {data.profile?.show_address ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                <span>Address {data.profile?.show_address ? 'Visible' : 'Hidden'}</span>
-              </span>
-            </div>
-          </div>
-
-          <button
-            onClick={handleDownloadData}
-            disabled={downloadingData}
-            className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors text-left border border-blue-200 disabled:opacity-50"
-          >
-            <div className="flex items-center space-x-2">
-              {downloadingData ? <Loader2 className="w-4 h-4 text-blue-600 animate-spin" /> : <Download className="w-4 h-4 text-blue-600" />}
-              <div>
-                <p className="text-sm font-medium text-blue-900">Download All My Data</p>
-                <p className="text-xs text-blue-700">Export your data in ZIP format (GDPR compliant)</p>
-              </div>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Support */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <MessageCircle className="w-4 h-4 text-gray-400" />
-            <h3 className="text-base font-semibold text-gray-900">Support</h3>
-          </div>
-        </div>
-
-        <div className="p-4 space-y-3">
-          {/* Report an Issue */}
-          <div className="border border-gray-200 rounded-md">
-            <button
-              onClick={() => setIssueFormOpen(!issueFormOpen)}
-              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-orange-600" />
-                <span className="text-sm font-medium text-gray-900">Report an Issue</span>
-              </div>
-              {issueFormOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-            </button>
-
-            {issueFormOpen && (
-              <form onSubmit={handleSubmitIssue} className="p-3 border-t border-gray-200 space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
-                  <select
-                    value={issueCategory}
-                    onChange={(e) => setIssueCategory(e.target.value)}
-                    disabled={submittingIssue}
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {ISSUE_CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
-                  <textarea
-                    value={issueMessage}
-                    onChange={(e) => setIssueMessage(e.target.value)}
-                    disabled={submittingIssue}
-                    rows={4}
-                    placeholder="Please describe the issue in detail..."
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submittingIssue}
-                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {submittingIssue && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>{submittingIssue ? 'Submitting...' : 'Submit Issue'}</span>
-                </button>
-              </form>
-            )}
-          </div>
-
-          {/* Make a Suggestion */}
-          <div className="border border-gray-200 rounded-md">
-            <button
-              onClick={() => setSuggestionFormOpen(!suggestionFormOpen)}
-              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center space-x-2">
-                <Lightbulb className="w-4 h-4 text-yellow-600" />
-                <span className="text-sm font-medium text-gray-900">Make a Suggestion</span>
-              </div>
-              {suggestionFormOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-            </button>
-
-            {suggestionFormOpen && (
-              <form onSubmit={handleSubmitSuggestion} className="p-3 border-t border-gray-200 space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
-                  <select
-                    value={suggestionCategory}
-                    onChange={(e) => setSuggestionCategory(e.target.value)}
-                    disabled={submittingSuggestion}
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {SUGGESTION_CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Your Suggestion</label>
-                  <textarea
-                    value={suggestionMessage}
-                    onChange={(e) => setSuggestionMessage(e.target.value)}
-                    disabled={submittingSuggestion}
-                    rows={4}
-                    placeholder="Tell us your idea..."
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submittingSuggestion}
-                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {submittingSuggestion && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>{submittingSuggestion ? 'Submitting...' : 'Submit Suggestion'}</span>
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Membership (Coming Soon) */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm opacity-60">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <CreditCard className="w-4 h-4 text-gray-400" />
-              <h3 className="text-base font-semibold text-gray-900">Membership</h3>
-            </div>
-            <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-300">
-              Coming Soon
-            </span>
-          </div>
-        </div>
-
-        <div className="p-4 space-y-3">
-          <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-            <p className="text-sm font-medium text-gray-700 mb-1">Membership Status</p>
-            <p className="text-xs text-gray-500">Free Forever</p>
-          </div>
-
-          <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-sm font-medium text-gray-700">Days until renewal</p>
-              <span className="text-sm font-bold text-gray-900">∞</span>
-            </div>
-            <p className="text-xs text-gray-500">No expiration</p>
-          </div>
-
-          <button
-            disabled
-            className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
-          >
-            <p className="text-sm font-medium text-gray-500">Renew Early (2 weeks extra free!)</p>
-          </button>
-
-          <button
-            disabled
-            className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
-          >
-            <p className="text-sm font-medium text-gray-500">5-Year Membership - £75</p>
-            <p className="text-xs text-gray-400 mt-1">Pay now to add 4 more years!</p>
-          </button>
-        </div>
-      </div>
-
-      {/* Security */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <Lock className="w-4 h-4 text-gray-400" />
-            <h3 className="text-base font-semibold text-gray-900">Security</h3>
-          </div>
-        </div>
-
-        <div className="p-4 space-y-3">
-          <button
-            onClick={() => setShowPasswordModal(true)}
-            className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors text-left"
-          >
-            <div className="flex items-center space-x-2">
-              <Lock className="w-4 h-4 text-gray-600" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">Change Password</p>
-                <p className="text-xs text-gray-500">Update your account password</p>
-              </div>
-            </div>
-            <ExternalLink className="w-4 h-4 text-gray-400" />
-          </button>
-
-          <button
-            onClick={() => setShowCloseAccountModal(true)}
-            className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-md transition-colors text-left border border-red-200"
-          >
-            <div className="flex items-center space-x-2">
-              <Trash2 className="w-4 h-4 text-red-600" />
-              <div>
-                <p className="text-sm font-medium text-red-900">Close Account</p>
-                <p className="text-xs text-red-700">Permanently delete your account and data</p>
-              </div>
-            </div>
-            <AlertTriangle className="w-4 h-4 text-red-600" />
-          </button>
-        </div>
-      </div>
       </div>
 
       {/* Mobile Accordion Sections */}
