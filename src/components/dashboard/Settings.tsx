@@ -157,7 +157,7 @@ export function Settings({ data }: SettingsProps) {
                 <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <div>
                     <p className="text-sm font-medium text-gray-900">Phone Number</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Contact phone number</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{data.profile?.phone || 'No phone number set'}</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     {data.profile?.show_phone ? (
@@ -169,8 +169,8 @@ export function Settings({ data }: SettingsProps) {
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Physical Address</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Studio location address</p>
+                    <p className="text-sm font-medium text-gray-900">Abbreviated Address</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{data.studio?.abbreviated_address || 'No address set'}</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     {data.profile?.show_address ? (
