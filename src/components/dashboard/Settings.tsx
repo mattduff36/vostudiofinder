@@ -417,7 +417,7 @@ export function Settings({ data }: SettingsProps) {
               )}
             </div>
 
-            {membership?.daysUntilExpiry !== null && (
+            {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
               <div className="p-4 bg-white rounded-md border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-sm font-medium text-gray-700">Days until renewal</p>
