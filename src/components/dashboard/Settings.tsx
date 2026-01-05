@@ -17,7 +17,6 @@ import {
   ChevronUp,
   AlertTriangle
 } from 'lucide-react';
-import { Toggle } from '@/components/ui/Toggle';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { logger } from '@/lib/logger';
@@ -45,9 +44,6 @@ const SUGGESTION_CATEGORIES = [
 ];
 
 export function Settings({ data }: SettingsProps) {
-  const [isProfileVisible, setIsProfileVisible] = useState(data?.studio?.is_profile_visible !== false);
-  const [savingVisibility, setSavingVisibility] = useState(false);
-  
   // Modals
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showCloseAccountModal, setShowCloseAccountModal] = useState(false);
@@ -72,25 +68,6 @@ export function Settings({ data }: SettingsProps) {
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Fetch fresh visibility state when component mounts
-  useEffect(() => {
-    const fetchVisibility = async () => {
-      try {
-        const response = await fetch('/api/user/profile');
-        if (response.ok) {
-          const result = await response.json();
-          if (result.data?.studio) {
-            const visible = result.data.studio.is_profile_visible !== false;
-            setIsProfileVisible(visible);
-            logger.log('[Settings] Profile visibility loaded:', visible);
-          }
-        }
-      } catch (err) {
-        logger.error('[Settings] Failed to fetch profile visibility:', err);
-      }
-    };
-    fetchVisibility();
-  }, []);
 
   // Scroll to expanded card on mobile
   useEffect(() => {
@@ -150,11 +127,19 @@ export function Settings({ data }: SettingsProps) {
                   <Shield className="w-5 h-5 text-gray-600" />
                   <h3 className="text-lg font-medium text-gray-900">Privacy Settings</h3>
                 </div>
-                <a href="/dashboard#edit-profile" 
-                   className="text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1">
+                <button
+                  onClick={() => {
+                    window.location.href = '/dashboard#edit-profile';
+                    setTimeout(() => {
+                      const privacyButton = document.querySelector('[data-section="privacy"]') as HTMLButtonElement;
+                      if (privacyButton) privacyButton.click();
+                    }, 100);
+                  }}
+                  className="text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1"
+                >
                   <span>Manage</span>
                   <ExternalLink className="w-3 h-3" />
-                </a>
+                </button>
               </div>
               <p className="text-sm text-gray-600 mb-4">Control what information is visible on your public profile</p>
               <div className="space-y-3">
@@ -197,24 +182,6 @@ export function Settings({ data }: SettingsProps) {
                     )}
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Profile Visibility Toggle */}
-            <div className="border border-gray-200 rounded-md p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Profile Visibility</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {isProfileVisible ? 'Your profile is visible to everyone' : 'Your profile is hidden from public view'}
-                  </p>
-                </div>
-                <Toggle
-                  checked={isProfileVisible}
-                  onChange={handleVisibilityToggle}
-                  disabled={savingVisibility}
-                  aria-label="Toggle profile visibility"
-                />
               </div>
             </div>
 
@@ -541,38 +508,6 @@ export function Settings({ data }: SettingsProps) {
         return null;
     }
   };
-
-  const handleVisibilityToggle = useCallback(async (visible: boolean) => {
-    setSavingVisibility(true);
-    try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studio: {
-            is_profile_visible: visible
-          }
-        }),
-      });
-
-      if (response.ok) {
-        setIsProfileVisible(visible);
-        showSuccess(visible ? 'Profile is now visible' : 'Profile is now hidden');
-        logger.log('✅ Profile visibility updated to:', visible);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        logger.error('Failed to update profile visibility:', errorData);
-        showError('Failed to update profile visibility. Please try again.');
-        setIsProfileVisible(!visible);
-      }
-    } catch (err) {
-      logger.error('Error updating profile visibility:', err);
-      showError('Error updating profile visibility. Please try again.');
-      setIsProfileVisible(!visible);
-    } finally {
-      setSavingVisibility(false);
-    }
-  }, []);
 
   const handleDownloadData = useCallback(async () => {
     setDownloadingData(true);
