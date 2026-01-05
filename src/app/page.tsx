@@ -3,33 +3,34 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { HomePage } from '@/components/home/HomePage';
+import { getBaseUrl, SITE_NAME, SITE_NAME_ALT, SITE_TAGLINE, SITE_DESCRIPTION, SITE_KEYWORDS, TWITTER_HANDLE } from '@/lib/seo/site';
 
 export const metadata: Metadata = {
-  title: 'VoiceoverStudioFinder - Find Professional Recording Studios',
-  description: 'Connect with professional voiceover recording studios worldwide. Find the perfect studio for your next project with advanced search and location features.',
-  keywords: 'voiceover, recording studio, audio production, voice talent, studio rental, ISDN, Source Connect',
+  title: `${SITE_NAME} - Find Professional Recording Studios`,
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
   openGraph: {
-    title: 'VoiceoverStudioFinder',
-    description: 'Professional voiceover, podcast & recording studios worldwide',
+    title: SITE_NAME,
+    description: SITE_TAGLINE,
     type: 'website',
     locale: 'en_US',
-    siteName: 'VoiceoverStudioFinder',
-    url: 'https://voiceoverstudiofinder.com',
+    siteName: SITE_NAME,
+    url: getBaseUrl(),
     images: [
       {
-        url: 'https://voiceoverstudiofinder.com/images/homepage.jpg',
+        url: `${getBaseUrl()}/images/homepage.jpg`,
         width: 1200,
         height: 630,
-        alt: 'VoiceoverStudioFinder - Find Professional Recording Studios',
+        alt: `${SITE_NAME} - Find Professional Recording Studios`,
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VoiceoverStudioFinder',
-    description: 'Professional voiceover, podcast & recording studios worldwide',
-    site: '@VOStudioFinder',
-    images: ['https://voiceoverstudiofinder.com/images/homepage.jpg'],
+    title: SITE_NAME,
+    description: SITE_TAGLINE,
+    site: TWITTER_HANDLE,
+    images: [`${getBaseUrl()}/images/homepage.jpg`],
   },
 };
 
@@ -142,16 +143,41 @@ export default async function Home() {
     })) || [],
   }));
 
+  // WebSite structured data for Google site name recognition
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    alternateName: SITE_NAME_ALT,
+    url: getBaseUrl(),
+    description: SITE_DESCRIPTION,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${getBaseUrl()}/studios?search={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
-    <HomePage
-      session={session}
-      featuredStudios={serializedStudios}
-      stats={{
-        totalStudios,
-        totalUsers,
-        totalCountries: uniqueCountries,
-      }}
-    />
+    <>
+      {/* WebSite structured data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <HomePage
+        session={session}
+        featuredStudios={serializedStudios}
+        stats={{
+          totalStudios,
+          totalUsers,
+          totalCountries: uniqueCountries,
+        }}
+      />
+    </>
   );
 }
 

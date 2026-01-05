@@ -9,6 +9,7 @@ import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
+import { SITE_NAME } from '@/lib/seo/site';
 
 interface NavbarProps {
   session: Session | null;
@@ -151,7 +152,7 @@ export function Navbar({ session }: NavbarProps) {
                   ? "/images/voiceover-studio-finder-header-logo2-black.png" 
                   : "/images/voiceover-studio-finder-header-logo2-white.png"
                 }
-                alt="VoiceoverStudioFinder"
+                alt={SITE_NAME}
                 width={384}
                 height={60}
                 priority

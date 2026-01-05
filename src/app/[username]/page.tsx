@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { ModernStudioProfileV3 } from '@/components/studio/profile/ModernStudioProfileV3';
 import { EnhancedUserProfile } from '@/components/profile/EnhancedUserProfile';
+import { getBaseUrl, SITE_NAME } from '@/lib/seo/site';
 
 interface UsernamePageProps {
   params: Promise<{ username: string }>;
@@ -70,7 +71,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
 
   if (!user || !user.studio_profiles) {
     return {
-      title: 'Studio Not Found - VoiceoverStudioFinder',
+      title: `Studio Not Found - ${SITE_NAME}`,
       robots: {
         index: false,
         follow: false,
@@ -82,7 +83,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   
   if (!studio) {
     return {
-      title: 'Studio Not Found - VoiceoverStudioFinder',
+      title: `Studio Not Found - ${SITE_NAME}`,
       robots: {
         index: false,
         follow: false,
@@ -91,7 +92,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   }
 
   // Construct the full page URL
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://voiceoverstudiofinder.com';
+  const baseUrl = getBaseUrl();
   const pageUrl = `${baseUrl}/${username}`;
 
   // Use short_about if available, otherwise fall back to description
@@ -113,12 +114,12 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const keywords = `${locationKeywords}recording studio, ${studio.name}, voiceover, audio production, professional studio, ${studio.abbreviated_address || studio.full_address || ''}`;
 
   const metadata: Metadata = {
-    title: `${studio.name}${locationSuffix} - Recording Studio | VoiceoverStudioFinder`,
+    title: `${studio.name}${locationSuffix} - Recording Studio | ${SITE_NAME}`,
     description: seoDescription.substring(0, 160),
     keywords: keywords,
     authors: [{ name: studio.name }],
     creator: studio.name,
-    publisher: 'VoiceoverStudioFinder',
+    publisher: SITE_NAME,
     robots: {
       index: true,
       follow: true,
@@ -138,7 +139,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
       description: seoDescription.substring(0, 160),
       type: 'website',
       url: pageUrl,
-      siteName: 'VoiceoverStudioFinder',
+      siteName: SITE_NAME,
       locale: 'en_GB',
       images: [
         {
@@ -270,7 +271,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       : 0;
 
     // Get base URL from environment or use default
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://voiceoverstudiofinder.com';
+    const baseUrl = getBaseUrl();
     const pageUrl = `${baseUrl}/${username}`;
 
     // Get description from studio profile with fallback and content safeguard

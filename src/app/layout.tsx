@@ -10,6 +10,7 @@ import { CookieConsentBanner } from '@/components/consent/CookieConsentBanner';
 import { authOptions } from '@/lib/auth';
 import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script';
+import { getBaseUrl, SITE_NAME } from '@/lib/seo/site';
 import './globals.css';
 
 const geistSans = Geist({
@@ -29,10 +30,11 @@ const raleway = Raleway({
 });
 
 export const metadata: Metadata = {
-  title: 'VoiceoverStudioFinder - Find Professional Recording Studios',
+  metadataBase: new URL(getBaseUrl()),
+  title: `${SITE_NAME} - Find Professional Recording Studios`,
   description: 'Browse professional voiceover recording studios worldwide - no signup required! Find studios, read reviews, and contact directly. Studio owners can list for £25/year.',
   keywords: 'voiceover, recording studio, audio production, voice talent, studio rental',
-  authors: [{ name: 'VoiceoverStudioFinder Team' }],
+  authors: [{ name: `${SITE_NAME} Team` }],
   icons: {
     icon: [
       { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
@@ -47,14 +49,15 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'VoiceoverStudioFinder',
+    title: SITE_NAME,
     description: 'Browse professional voiceover recording studios worldwide - no signup required!',
     type: 'website',
     locale: 'en_US',
+    siteName: SITE_NAME,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VoiceoverStudioFinder',
+    title: SITE_NAME,
     description: 'Browse professional voiceover recording studios worldwide - no signup required!',
   },
 };

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Mail } from 'lucide-react';
 import { MobileFooter } from '@/components/footer/MobileFooter';
 import { XLogo } from '@/components/icons/XLogo';
+import { SITE_NAME, SUPPORT_EMAIL } from '@/lib/seo/site';
 
 export function Footer() {
   return (
@@ -17,7 +18,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4" style={{ color: '#ffffff' }}>VoiceoverStudioFinder</h3>
+            <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4" style={{ color: '#ffffff' }}>{SITE_NAME}</h3>
             <p className="mb-4 sm:mb-6 max-w-md text-sm sm:text-base" style={{ color: '#ffffff' }}>
               The world's leading platform for connecting voice artists and agencies with professional 
               recording studios locally.
@@ -26,7 +27,7 @@ export function Footer() {
             <div className="space-y-2 text-sm" style={{ color: '#ffffff' }}>
               <div className="flex items-center">
                 <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span className="break-all">support@voiceoverstudiofinder.com</span>
+                <span className="break-all">{SUPPORT_EMAIL}</span>
               </div>
             </div>
           </div>
