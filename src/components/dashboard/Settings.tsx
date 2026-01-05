@@ -11,7 +11,6 @@ import {
   Download,
   MessageCircle,
   Lightbulb,
-  Calendar,
   CreditCard,
   ChevronDown,
   ChevronUp,
@@ -127,15 +126,6 @@ export function Settings({ data }: SettingsProps) {
     }
   };
 
-  const lastUpdated = useMemo(() => {
-    if (!data?.studio?.updated_at) return 'Never';
-    const date = new Date(data.studio.updated_at);
-    return date.toLocaleDateString('en-GB', { 
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  }, [data]);
 
   // Render content for a specific section (mobile)
   const renderSectionContent = (sectionId: string) => {
@@ -662,16 +652,12 @@ export function Settings({ data }: SettingsProps) {
       {/* Desktop Container - unified card matching Edit Profile */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm hidden md:block">
         {/* Desktop Header */}
-        <div className="flex border-b border-gray-200 px-6 py-4 items-center justify-between">
+        <div className="flex border-b border-gray-200 px-6 py-4 items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
             <p className="text-sm text-gray-600 mt-1">
               Manage your account settings and preferences
             </p>
-          </div>
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <Calendar className="w-4 h-4" />
-            <span>Last updated: {lastUpdated}</span>
           </div>
         </div>
 
