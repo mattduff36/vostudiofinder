@@ -275,6 +275,7 @@ model studio_profiles {
   is_verified             Boolean                 @default(false)
   is_profile_visible      Boolean                 @default(true)
   is_featured             Boolean                 @default(false)
+  featured_until          DateTime?
   is_spotlight            Boolean                 @default(false)
   is_crb_checked          Boolean                 @default(false)
   verification_level      String                  @default("none")
