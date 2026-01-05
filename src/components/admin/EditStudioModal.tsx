@@ -864,7 +864,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Membership Expiry Date
             </label>
-            {(profile?.user?.email === 'admin@mpdee.co.uk' || profile?.user?.email === 'guy@voiceoverguy.co.uk') ? (
+            {(profile?.email === 'admin@mpdee.co.uk' || profile?.email === 'guy@voiceoverguy.co.uk') ? (
               <>
                 <input
                   type="date"
