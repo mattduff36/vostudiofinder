@@ -376,91 +376,110 @@ export function Settings({ data }: SettingsProps) {
         const isActive = membership?.state === 'ACTIVE';
         const isExpired = membership?.state === 'EXPIRED';
         const hasNoExpiry = membership?.state === 'NONE_SET';
+        const isAdminUser = data?.user?.role === 'ADMIN';
 
         return (
           <div className="space-y-3">
-            <div className="p-4 bg-white rounded-md border border-gray-200 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-gray-700">Membership Status</p>
-                {isActive && (
-                  <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full border border-green-300">
-                    Active
-                  </span>
-                )}
-                {isExpired && (
-                  <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full border border-red-300">
-                    Expired
-                  </span>
-                )}
-                {hasNoExpiry && (
-                  <span className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full border border-gray-300">
-                    Not Set
-                  </span>
-                )}
-              </div>
-              
-              {membership?.expiresAt && (
-                <>
-                  <p className="text-xs text-gray-600 mb-1">Expires on</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {new Date(membership.expiresAt).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric'
-                    })}
-                  </p>
-                </>
-              )}
-              
-              {hasNoExpiry && (
-                <p className="text-xs text-gray-500">No membership expiry set. Please contact support.</p>
-              )}
-            </div>
-
-            {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
-              <div className="p-4 bg-white rounded-md border border-gray-200 shadow-sm">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-sm font-medium text-gray-700">Days until renewal</p>
-                  <span className={`text-lg font-bold ${
-                    membership.daysUntilExpiry < 0 
-                      ? 'text-red-600' 
-                      : membership.daysUntilExpiry <= 30 
-                      ? 'text-orange-600' 
-                      : 'text-gray-900'
-                  }`}>
-                    {membership.daysUntilExpiry < 0 
-                      ? `${Math.abs(membership.daysUntilExpiry)} days ago` 
-                      : membership.daysUntilExpiry}
-                  </span>
+            {/* Admin Account Notice */}
+            {isAdminUser && (
+              <div className="p-4 bg-blue-50 rounded-md border border-blue-200">
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-xl">👑</span>
+                  <p className="text-sm font-semibold text-blue-900">Admin Account</p>
                 </div>
-                {isExpired && (
-                  <p className="text-xs text-red-600 mt-2">
-                    Your membership has expired. Renewal required at £25/year. Payments coming soon.
-                  </p>
-                )}
-                {isActive && membership.daysUntilExpiry <= 30 && (
-                  <p className="text-xs text-orange-600 mt-2">
-                    Your membership will expire soon. Renewal will be available at £25/year.
-                  </p>
-                )}
+                <p className="text-xs text-blue-700">
+                  As an administrator, your account has permanent access with no membership expiry date.
+                </p>
               </div>
             )}
 
-            <button
-              disabled
-              className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
-            >
-              <p className="text-sm font-medium text-gray-500">Renew Early (2 weeks extra free!)</p>
-              <p className="text-xs text-gray-400 mt-1">Coming soon</p>
-            </button>
+            {/* Regular Membership Display */}
+            {!isAdminUser && (
+              <>
+                <div className="p-4 bg-white rounded-md border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium text-gray-700">Membership Status</p>
+                    {isActive && (
+                      <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full border border-green-300">
+                        Active
+                      </span>
+                    )}
+                    {isExpired && (
+                      <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full border border-red-300">
+                        Expired
+                      </span>
+                    )}
+                    {hasNoExpiry && (
+                      <span className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full border border-gray-300">
+                        Not Set
+                      </span>
+                    )}
+                  </div>
+                  
+                  {membership?.expiresAt && (
+                    <>
+                      <p className="text-xs text-gray-600 mb-1">Expires on</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {new Date(membership.expiresAt).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </>
+                  )}
+                  
+                  {hasNoExpiry && (
+                    <p className="text-xs text-gray-500">No membership expiry set. Please contact support.</p>
+                  )}
+                </div>
 
-            <button
-              disabled
-              className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
-            >
-              <p className="text-sm font-medium text-gray-500">5-Year Membership - £75</p>
-              <p className="text-xs text-gray-400 mt-1">Pay now to add 4 more years! (Coming soon)</p>
-            </button>
+                {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
+                  <div className="p-4 bg-white rounded-md border border-gray-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-sm font-medium text-gray-700">Days until renewal</p>
+                      <span className={`text-lg font-bold ${
+                        membership.daysUntilExpiry < 0 
+                          ? 'text-red-600' 
+                          : membership.daysUntilExpiry <= 30 
+                          ? 'text-orange-600' 
+                          : 'text-gray-900'
+                      }`}>
+                        {membership.daysUntilExpiry < 0 
+                          ? `${Math.abs(membership.daysUntilExpiry)} days ago` 
+                          : membership.daysUntilExpiry}
+                      </span>
+                    </div>
+                    {isExpired && (
+                      <p className="text-xs text-red-600 mt-2">
+                        Your membership has expired. Renewal required at £25/year. Payments coming soon.
+                      </p>
+                    )}
+                    {isActive && membership.daysUntilExpiry <= 30 && (
+                      <p className="text-xs text-orange-600 mt-2">
+                        Your membership will expire soon. Renewal will be available at £25/year.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  disabled
+                  className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
+                >
+                  <p className="text-sm font-medium text-gray-500">Renew Early (2 weeks extra free!)</p>
+                  <p className="text-xs text-gray-400 mt-1">Coming soon</p>
+                </button>
+
+                <button
+                  disabled
+                  className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
+                >
+                  <p className="text-sm font-medium text-gray-500">5-Year Membership - £75</p>
+                  <p className="text-xs text-gray-400 mt-1">Pay now to add 4 more years! (Coming soon)</p>
+                </button>
+              </>
+            )}
           </div>
         );
 
