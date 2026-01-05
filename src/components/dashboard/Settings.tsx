@@ -129,11 +129,9 @@ export function Settings({ data }: SettingsProps) {
                 </div>
                 <button
                   onClick={() => {
+                    // Store the target section in sessionStorage for ProfileEditForm to read
+                    sessionStorage.setItem('openProfileSection', 'privacy');
                     window.location.href = '/dashboard#edit-profile';
-                    setTimeout(() => {
-                      const privacyButton = document.querySelector('[data-section="privacy"]') as HTMLButtonElement;
-                      if (privacyButton) privacyButton.click();
-                    }, 100);
                   }}
                   className="text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1"
                 >
