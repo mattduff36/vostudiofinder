@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-  User,
   Shield,
   ExternalLink,
   CheckCircle2,
@@ -68,7 +67,7 @@ export function Settings({ data }: SettingsProps) {
   const [downloadingData, setDownloadingData] = useState(false);
   
   // Desktop section navigation
-  const [activeDesktopSection, setActiveDesktopSection] = useState('account');
+  const [activeDesktopSection, setActiveDesktopSection] = useState('privacy');
   
   // Mobile accordion
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
@@ -116,11 +115,9 @@ export function Settings({ data }: SettingsProps) {
   }, [expandedMobileSection]);
 
   const sections = [
-    { id: 'account', label: 'Account Information', icon: User, description: 'Username, email, profile visibility' },
-    { id: 'privacy', label: 'Privacy & Data', icon: Shield, description: 'Privacy settings, download data' },
+    { id: 'privacy', label: 'Privacy & Security', icon: Shield, description: 'Privacy settings, security, and data' },
     { id: 'support', label: 'Support', icon: MessageCircle, description: 'Report issues, make suggestions' },
     { id: 'membership', label: 'Membership', icon: CreditCard, description: 'Subscription and billing' },
-    { id: 'security', label: 'Security', icon: Lock, description: 'Password, account closure' },
   ];
 
   const handleMobileSectionClick = (sectionId: string) => {
@@ -141,12 +138,13 @@ export function Settings({ data }: SettingsProps) {
     });
   }, [data]);
 
-  // Render content for a specific section
+  // Render content for a specific section (mobile)
   const renderSectionContent = (sectionId: string) => {
     switch (sectionId) {
-      case 'account':
+      case 'privacy':
         return (
           <div className="space-y-3">
+            {/* Account Info */}
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-700">Username</p>
@@ -170,7 +168,7 @@ export function Settings({ data }: SettingsProps) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between py-2">
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
               <div>
                 <p className="text-sm font-medium text-gray-700">Profile Visibility</p>
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -184,12 +182,8 @@ export function Settings({ data }: SettingsProps) {
                 aria-label="Toggle profile visibility"
               />
             </div>
-          </div>
-        );
 
-      case 'privacy':
-        return (
-          <div className="space-y-3">
+            {/* Privacy Settings */}
             <div className="p-3 bg-gray-50 rounded-md">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium text-gray-900">Privacy Settings</p>
@@ -227,6 +221,35 @@ export function Settings({ data }: SettingsProps) {
                   <p className="text-xs text-blue-700">Export your data in ZIP format (GDPR compliant)</p>
                 </div>
               </div>
+            </button>
+
+            {/* Security Actions */}
+            <button
+              onClick={() => setShowPasswordModal(true)}
+              className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors text-left"
+            >
+              <div className="flex items-center space-x-2">
+                <Lock className="w-4 h-4 text-gray-600" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Change Password</p>
+                  <p className="text-xs text-gray-500">Update your account password</p>
+                </div>
+              </div>
+              <ExternalLink className="w-4 h-4 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => setShowCloseAccountModal(true)}
+              className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-md transition-colors text-left border border-red-200"
+            >
+              <div className="flex items-center space-x-2">
+                <Trash2 className="w-4 h-4 text-red-600" />
+                <div>
+                  <p className="text-sm font-medium text-red-900">Close Account</p>
+                  <p className="text-xs text-red-700">Permanently delete your account and data</p>
+                </div>
+              </div>
+              <AlertTriangle className="w-4 h-4 text-red-600" />
             </button>
           </div>
         );
@@ -387,39 +410,6 @@ export function Settings({ data }: SettingsProps) {
           </div>
         );
 
-      case 'security':
-        return (
-          <div className="space-y-3">
-            <button
-              onClick={() => setShowPasswordModal(true)}
-              className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors text-left"
-            >
-              <div className="flex items-center space-x-2">
-                <Lock className="w-4 h-4 text-gray-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Change Password</p>
-                  <p className="text-xs text-gray-500">Update your account password</p>
-                </div>
-              </div>
-              <ExternalLink className="w-4 h-4 text-gray-400" />
-            </button>
-
-            <button
-              onClick={() => setShowCloseAccountModal(true)}
-              className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-md transition-colors text-left border border-red-200"
-            >
-              <div className="flex items-center space-x-2">
-                <Trash2 className="w-4 h-4 text-red-600" />
-                <div>
-                  <p className="text-sm font-medium text-red-900">Close Account</p>
-                  <p className="text-xs text-red-700">Permanently delete your account and data</p>
-                </div>
-              </div>
-              <AlertTriangle className="w-4 h-4 text-red-600" />
-            </button>
-          </div>
-        );
-
       default:
         return null;
     }
@@ -428,10 +418,8 @@ export function Settings({ data }: SettingsProps) {
   // Desktop-specific content renderer (Support section has always-visible forms)
   const renderDesktopSectionContent = (sectionId: string) => {
     switch (sectionId) {
-      case 'account':
       case 'privacy':
       case 'membership':
-      case 'security':
         // Reuse mobile content for these sections
         return renderSectionContent(sectionId);
 
