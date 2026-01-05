@@ -175,6 +175,7 @@ export async function GET(
         vimeo: studioData.vimeo,
         verified: studioData.verified ? '1' : '0',
         featured: studioData.featured ? '1' : '0',
+        featured_expires_at: studio.featured_until?.toISOString() || null,
         avatar_image: studioData.avatar_image,
         // Rate data
         rates1: studioData.rates1,
@@ -387,6 +388,11 @@ export async function PUT(
       }
       
       profileUpdateData.is_featured = isFeatured;
+    }
+    
+    // Handle featured expiry date
+    if (body._meta?.featured_expires_at !== undefined) {
+      profileUpdateData.featured_until = body._meta.featured_expires_at ? new Date(body._meta.featured_expires_at) : null;
     }
     // Rate updates
     if (body._meta?.rates1 !== undefined) profileUpdateData.rate_tier_1 = body._meta.rates1;
