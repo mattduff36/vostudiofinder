@@ -856,6 +856,29 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           </div>
         </div>
       </div>
+
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Membership</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Membership Expiry Date
+            </label>
+            <input
+              type="date"
+              value={profile?._meta?.membership_expires_at ? new Date(profile._meta.membership_expires_at).toISOString().split('T')[0] : ''}
+              onChange={(e) => {
+                const dateValue = e.target.value ? new Date(e.target.value).toISOString() : '';
+                handleMetaChange('membership_expires_at', dateValue);
+              }}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Set when the user's membership expires. Studio will become INACTIVE after this date. Leave empty to clear.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 

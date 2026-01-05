@@ -32,7 +32,6 @@ export async function GET() {
       where: { id: userId },
       include: {
         studio_profiles: {
-          where: { status: 'ACTIVE' },
           include: {
             studio_studio_types: {
               select: {
@@ -57,6 +56,17 @@ export async function GET() {
             },
           },
         },
+        subscriptions: {
+          orderBy: { created_at: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            status: true,
+            current_period_start: true,
+            current_period_end: true,
+            created_at: true,
+          },
+        },
         user_metadata: true,
       },
     });
@@ -69,7 +79,71 @@ export async function GET() {
     }
 
     // Get studio profile
-    const studioProfile = user.studio_profiles || null;
+    let studioProfile = user.studio_profiles || null;
+
+    // Lazy enforcement: update studio status based on membership expiry
+    const latestSubscription = user.subscriptions[0];
+    if (studioProfile && latestSubscription?.current_period_end) {
+      const now = new Date();
+      const isExpired = latestSubscription.current_period_end < now;
+      const desiredStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
+      
+      if (studioProfile.status !== desiredStatus) {
+        const updatedStudio = await db.studio_profiles.update({
+          where: { id: studioProfile.id },
+          data: { 
+            status: desiredStatus,
+            updated_at: now
+          },
+          include: {
+            studio_studio_types: {
+              select: {
+                id: true,
+                studio_type: true,
+              },
+            },
+            studio_services: {
+              select: {
+                id: true,
+                service: true,
+              },
+            },
+            studio_images: {
+              orderBy: { sort_order: 'asc' },
+              select: {
+                id: true,
+                image_url: true,
+                alt_text: true,
+                sort_order: true,
+              },
+            },
+          },
+        });
+        studioProfile = updatedStudio;
+        console.log(`🔄 Studio status updated to ${desiredStatus} for user ${user.id}`);
+      }
+    }
+
+    // Calculate membership info
+    const membershipInfo: {
+      expiresAt: string | null;
+      daysUntilExpiry: number | null;
+      state: 'ACTIVE' | 'EXPIRED' | 'NONE_SET';
+    } = {
+      expiresAt: null,
+      daysUntilExpiry: null,
+      state: 'NONE_SET'
+    };
+
+    if (latestSubscription?.current_period_end) {
+      const now = new Date();
+      const expiryDate = latestSubscription.current_period_end;
+      membershipInfo.expiresAt = expiryDate.toISOString();
+      
+      const diffMs = expiryDate.getTime() - now.getTime();
+      membershipInfo.daysUntilExpiry = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      membershipInfo.state = diffMs > 0 ? 'ACTIVE' : 'EXPIRED';
+    }
 
     // Transform metadata array into key-value object
     const metadata: Record<string, string> = {};
@@ -170,6 +244,7 @@ export async function GET() {
           images: studioProfile.studio_images || [],
         } : null,
         metadata,
+        membership: membershipInfo,
       },
     };
 

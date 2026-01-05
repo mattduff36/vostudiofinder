@@ -112,6 +112,15 @@ export async function GET(request: NextRequest) {
               created_at: true,
               updated_at: true,
               last_login: true,
+              subscriptions: {
+                orderBy: { created_at: 'desc' },
+                take: 1,
+                select: {
+                  id: true,
+                  current_period_end: true,
+                  status: true,
+                }
+              }
             }
           },
           studio_studio_types: {
@@ -131,6 +140,36 @@ export async function GET(request: NextRequest) {
       }),
       db.studio_profiles.count({ where })
     ]);
+
+    // Apply lazy enforcement and serialize Decimal fields
+    const now = new Date();
+    const studiosToUpdate: { id: string; status: 'ACTIVE' | 'INACTIVE' }[] = [];
+
+    // First pass: identify studios that need status updates
+    studios.forEach(studio => {
+      const latestSubscription = studio.users.subscriptions[0];
+      if (latestSubscription?.current_period_end) {
+        const isExpired = latestSubscription.current_period_end < now;
+        const desiredStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
+        
+        if (studio.status !== desiredStatus) {
+          studiosToUpdate.push({ id: studio.id, status: desiredStatus });
+        }
+      }
+    });
+
+    // Batch update studios that need status changes
+    if (studiosToUpdate.length > 0) {
+      await Promise.all(
+        studiosToUpdate.map(({ id, status }) =>
+          db.studio_profiles.update({
+            where: { id },
+            data: { status, updated_at: now }
+          })
+        )
+      );
+      console.log(`🔄 Updated ${studiosToUpdate.length} studio statuses based on membership expiry`);
+    }
 
     // Serialize Decimal fields and calculate profile completion
     let serializedStudios = studios.map(studio => {
@@ -172,12 +211,22 @@ export async function GET(request: NextRequest) {
       
       const profileCompletion = calculateProfileCompletion(profileData);
       
+      // Get membership expiry from subscription
+      const latestSubscription = studio.users.subscriptions[0];
+      const membershipExpiresAt = latestSubscription?.current_period_end || null;
+      
+      // Apply status update from enforcement
+      const statusUpdate = studiosToUpdate.find(s => s.id === studio.id);
+      const effectiveStatus = statusUpdate ? statusUpdate.status : studio.status;
+      
       return {
         ...studio,
+        status: effectiveStatus,
         latitude: studio.latitude ? Number(studio.latitude) : null,
         longitude: studio.longitude ? Number(studio.longitude) : null,
         profile_completion: profileCompletion,
         last_login: studio.users.last_login,
+        membership_expires_at: membershipExpiresAt,
       };
     });
 
