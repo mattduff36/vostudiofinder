@@ -97,6 +97,7 @@ export async function GET(request: NextRequest) {
           is_verified: true,
           is_premium: true,
           is_featured: true,
+          featured_until: true,
           is_spotlight: true,
           is_profile_visible: true,
           created_at: true,
@@ -144,6 +145,7 @@ export async function GET(request: NextRequest) {
     // Apply lazy enforcement and serialize Decimal fields (skip for admin accounts)
     const now = new Date();
     const studiosToUpdate: { id: string; status: 'ACTIVE' | 'INACTIVE' }[] = [];
+    const studiosToUnfeature: string[] = [];
 
     // First pass: identify studios that need status updates (exclude admins)
     studios.forEach(studio => {
@@ -166,6 +168,11 @@ export async function GET(request: NextRequest) {
           }
         }
       }
+      
+      // Check for expired featured status
+      if (studio.is_featured && studio.featured_until && studio.featured_until < now) {
+        studiosToUnfeature.push(studio.id);
+      }
     });
 
     // Batch update studios that need status changes
@@ -179,6 +186,15 @@ export async function GET(request: NextRequest) {
         )
       );
       console.log(`🔄 Updated ${studiosToUpdate.length} studio statuses based on membership expiry`);
+    }
+    
+    // Batch unfeature expired featured studios
+    if (studiosToUnfeature.length > 0) {
+      await db.studio_profiles.updateMany({
+        where: { id: { in: studiosToUnfeature } },
+        data: { is_featured: false, updated_at: now }
+      });
+      console.log(`🔄 Unfeatured ${studiosToUnfeature.length} expired featured studios`);
     }
 
     // Serialize Decimal fields and calculate profile completion

@@ -258,6 +258,21 @@ export const authOptions: NextAuthOptions = {
                 console.log(`🔄 Studio status updated to ${desiredStatus} for ${user.email}`);
               }
             }
+            
+            // Enforce featured expiry (lazy enforcement)
+            if (studio.is_featured && studio.featured_until) {
+              const isFeaturedExpired = studio.featured_until < now;
+              if (isFeaturedExpired) {
+                await db.studio_profiles.update({
+                  where: { id: studio.id },
+                  data: { 
+                    is_featured: false,
+                    updated_at: now
+                  }
+                });
+                console.log(`🔄 Studio unfeatured (expired) for ${user.email}`);
+              }
+            }
           } else if (dbUser.studio_profiles && isAdminAccount) {
             // Ensure admin studio is always ACTIVE
             const studio = dbUser.studio_profiles;

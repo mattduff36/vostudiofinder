@@ -173,6 +173,34 @@ export async function GET(request: NextRequest) {
         });
         logger.log(`🔄 Search: Updated ${studiesToDeactivate.length} expired studios to INACTIVE`);
       }
+      
+      // Lazy enforcement: unfeature expired featured studios
+      const expiredFeaturedStudios = await db.studio_profiles.findMany({
+        where: {
+          is_featured: true,
+          featured_until: {
+            lt: now
+          }
+        },
+        select: {
+          id: true
+        }
+      });
+
+      if (expiredFeaturedStudios.length > 0) {
+        await db.studio_profiles.updateMany({
+          where: {
+            id: {
+              in: expiredFeaturedStudios.map(s => s.id)
+            }
+          },
+          data: {
+            is_featured: false,
+            updated_at: now
+          }
+        });
+        logger.log(`🔄 Search: Unfeatured ${expiredFeaturedStudios.length} expired featured studios`);
+      }
     } catch (enforcementError) {
       // Log but don't fail the search if enforcement fails
       logger.error('Search lazy enforcement error:', enforcementError);
