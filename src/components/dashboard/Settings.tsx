@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Shield,
   ExternalLink,
@@ -167,7 +167,7 @@ export function Settings({ data }: SettingsProps) {
                       </div>
                       <div className="flex items-center space-x-2">
                         {profileData?.profile?.show_email ? (
-                          <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
+                          <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">Visible</span>
                         ) : (
                           <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
                         )}
@@ -180,7 +180,7 @@ export function Settings({ data }: SettingsProps) {
                       </div>
                       <div className="flex items-center space-x-2">
                         {profileData?.profile?.show_phone ? (
-                          <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
+                          <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">Visible</span>
                         ) : (
                           <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
                         )}
@@ -193,7 +193,7 @@ export function Settings({ data }: SettingsProps) {
                       </div>
                       <div className="flex items-center space-x-2">
                         {profileData?.profile?.show_address ? (
-                          <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
+                          <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">Visible</span>
                         ) : (
                           <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
                         )}
