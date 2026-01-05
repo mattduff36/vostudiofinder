@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Shield,
   ExternalLink,
-  CheckCircle2,
   AlertCircle,
   Loader2,
   Lock,
@@ -143,114 +142,129 @@ export function Settings({ data }: SettingsProps) {
     switch (sectionId) {
       case 'privacy':
         return (
-          <div className="space-y-3">
-            {/* Account Info */}
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-700">Username</p>
-                <p className="text-sm text-gray-500 truncate">@{data.user.username}</p>
-              </div>
-              <a href={`/${data.user.username}`} target="_blank" rel="noopener noreferrer" 
-                 className="ml-2 text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1 flex-shrink-0">
-                <span className="hidden sm:inline">View</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-700">Email</p>
-                <p className="text-sm text-gray-500 truncate">{data.user.email}</p>
-              </div>
-              <div className="ml-2 flex items-center space-x-1 text-green-600 text-xs flex-shrink-0">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>Verified</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <div>
-                <p className="text-sm font-medium text-gray-700">Profile Visibility</p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {isProfileVisible ? 'Visible to public' : 'Hidden from public'}
-                </p>
-              </div>
-              <Toggle
-                checked={isProfileVisible}
-                onChange={handleVisibilityToggle}
-                disabled={savingVisibility}
-                aria-label="Toggle profile visibility"
-              />
-            </div>
-
-            {/* Privacy Settings */}
-            <div className="p-3 bg-gray-50 rounded-md">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-gray-900">Privacy Settings</p>
+          <div className="space-y-6">
+            {/* Privacy Settings - Improved clarity */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-5 h-5 text-gray-600" />
+                  <h3 className="text-lg font-medium text-gray-900">Privacy Settings</h3>
+                </div>
                 <a href="/dashboard#edit-profile" 
-                   className="text-xs text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1">
+                   className="text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1">
                   <span>Manage</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                  {data.profile?.show_email ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                  <span>Email {data.profile?.show_email ? 'Visible' : 'Hidden'}</span>
-                </span>
-                <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                  {data.profile?.show_phone ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                  <span>Phone {data.profile?.show_phone ? 'Visible' : 'Hidden'}</span>
-                </span>
-                <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                  {data.profile?.show_address ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                  <span>Address {data.profile?.show_address ? 'Visible' : 'Hidden'}</span>
-                </span>
+              <p className="text-sm text-gray-600 mb-4">Control what information is visible on your public profile</p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Email Address</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{data.user.email}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {data.profile?.show_email ? (
+                      <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
+                    ) : (
+                      <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Phone Number</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Contact phone number</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {data.profile?.show_phone ? (
+                      <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
+                    ) : (
+                      <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Physical Address</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Studio location address</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {data.profile?.show_address ? (
+                      <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
+                    ) : (
+                      <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <button
-              onClick={handleDownloadData}
-              disabled={downloadingData}
-              className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors text-left border border-blue-200 disabled:opacity-50"
-            >
-              <div className="flex items-center space-x-2">
-                {downloadingData ? <Loader2 className="w-4 h-4 text-blue-600 animate-spin" /> : <Download className="w-4 h-4 text-blue-600" />}
+            {/* Profile Visibility Toggle */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-blue-900">Download All My Data</p>
-                  <p className="text-xs text-blue-700">Export your data in ZIP format (GDPR compliant)</p>
+                  <h3 className="text-lg font-medium text-gray-900">Profile Visibility</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {isProfileVisible ? 'Your profile is visible to everyone' : 'Your profile is hidden from public view'}
+                  </p>
                 </div>
+                <Toggle
+                  checked={isProfileVisible}
+                  onChange={handleVisibilityToggle}
+                  disabled={savingVisibility}
+                  aria-label="Toggle profile visibility"
+                />
               </div>
-            </button>
+            </div>
 
-            {/* Security Actions */}
-            <button
-              onClick={() => setShowPasswordModal(true)}
-              className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors text-left"
-            >
-              <div className="flex items-center space-x-2">
-                <Lock className="w-4 h-4 text-gray-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Change Password</p>
-                  <p className="text-xs text-gray-500">Update your account password</p>
-                </div>
+            {/* Download Data */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <Download className="w-5 h-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Download All My Data</h3>
               </div>
-              <ExternalLink className="w-4 h-4 text-gray-400" />
-            </button>
+              <p className="text-sm text-gray-600 mb-4">Export your data in ZIP format (GDPR compliant)</p>
+              <button
+                onClick={handleDownloadData}
+                disabled={downloadingData}
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                {downloadingData && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{downloadingData ? 'Preparing Download...' : 'Download My Data'}</span>
+              </button>
+            </div>
 
-            <button
-              onClick={() => setShowCloseAccountModal(true)}
-              className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-md transition-colors text-left border border-red-200"
-            >
-              <div className="flex items-center space-x-2">
-                <Trash2 className="w-4 h-4 text-red-600" />
-                <div>
-                  <p className="text-sm font-medium text-red-900">Close Account</p>
-                  <p className="text-xs text-red-700">Permanently delete your account and data</p>
-                </div>
+            {/* Change Password */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <Lock className="w-5 h-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Change Password</h3>
               </div>
-              <AlertTriangle className="w-4 h-4 text-red-600" />
-            </button>
+              <p className="text-sm text-gray-600 mb-4">Update your account password</p>
+              <button
+                onClick={() => setShowPasswordModal(true)}
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md hover:bg-gray-800 flex items-center justify-center space-x-2"
+              >
+                <span>Change Password</span>
+              </button>
+            </div>
+
+            {/* Close Account - Keep Red */}
+            <div className="border border-red-200 rounded-md p-4 bg-red-50">
+              <div className="flex items-center space-x-2 mb-4">
+                <Trash2 className="w-5 h-5 text-red-600" />
+                <h3 className="text-lg font-medium text-red-900">Close Account</h3>
+              </div>
+              <p className="text-sm text-red-700 mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
+              <button
+                onClick={() => setShowCloseAccountModal(true)}
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center justify-center space-x-2"
+              >
+                <AlertTriangle className="w-4 h-4" />
+                <span>Close Account</span>
+              </button>
+            </div>
           </div>
         );
 
