@@ -44,6 +44,9 @@ const SUGGESTION_CATEGORIES = [
 ];
 
 export function Settings({ data }: SettingsProps) {
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  
   // Modals
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showCloseAccountModal, setShowCloseAccountModal] = useState(false);
@@ -68,6 +71,26 @@ export function Settings({ data }: SettingsProps) {
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
+
+  // Fetch full profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoadingProfile(true);
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+          const result = await response.json();
+          setProfileData(result.data);
+          logger.log('[Settings] Profile data loaded');
+        }
+      } catch (err) {
+        logger.error('[Settings] Failed to fetch profile:', err);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   // Scroll to expanded card on mobile
   useEffect(() => {
@@ -141,45 +164,53 @@ export function Settings({ data }: SettingsProps) {
               </div>
               <p className="text-sm text-gray-600 mb-4">Control what information is visible on your public profile</p>
               <div className="space-y-3">
-                <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Email Address</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{data.user.email}</p>
+                {loadingProfile ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {data.profile?.show_email ? (
-                      <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
-                    ) : (
-                      <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Phone Number</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{data.profile?.phone || 'No phone number set'}</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {data.profile?.show_phone ? (
-                      <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
-                    ) : (
-                      <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Abbreviated Address</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{data.studio?.abbreviated_address || 'No address set'}</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {data.profile?.show_address ? (
-                      <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
-                    ) : (
-                      <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
-                    )}
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Email Address</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.user?.email || data.user.email}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {profileData?.profile?.show_email ? (
+                          <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
+                        ) : (
+                          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Phone Number</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.studio?.phone || 'No phone number set'}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {profileData?.profile?.show_phone ? (
+                          <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
+                        ) : (
+                          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Abbreviated Address</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.studio?.abbreviated_address || 'No address set'}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {profileData?.profile?.show_address ? (
+                          <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">Visible</span>
+                        ) : (
+                          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
