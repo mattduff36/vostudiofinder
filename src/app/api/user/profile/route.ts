@@ -81,9 +81,11 @@ export async function GET() {
     // Get studio profile
     let studioProfile = user.studio_profiles || null;
 
-    // Lazy enforcement: update studio status based on membership expiry
+    // Lazy enforcement: update studio status based on membership expiry (skip for admin accounts)
+    const isAdminAccount = user.role === 'ADMIN';
     const latestSubscription = user.subscriptions[0];
-    if (studioProfile && latestSubscription?.current_period_end) {
+    
+    if (studioProfile && !isAdminAccount && latestSubscription?.current_period_end) {
       const now = new Date();
       const isExpired = latestSubscription.current_period_end < now;
       const desiredStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
@@ -121,6 +123,42 @@ export async function GET() {
         });
         studioProfile = updatedStudio;
         console.log(`🔄 Studio status updated to ${desiredStatus} for user ${user.id}`);
+      }
+    } else if (studioProfile && isAdminAccount) {
+      // Ensure admin studio is always ACTIVE
+      if (studioProfile.status !== 'ACTIVE') {
+        const updatedStudio = await db.studio_profiles.update({
+          where: { id: studioProfile.id },
+          data: { 
+            status: 'ACTIVE',
+            updated_at: new Date()
+          },
+          include: {
+            studio_studio_types: {
+              select: {
+                id: true,
+                studio_type: true,
+              },
+            },
+            studio_services: {
+              select: {
+                id: true,
+                service: true,
+              },
+            },
+            studio_images: {
+              orderBy: { sort_order: 'asc' },
+              select: {
+                id: true,
+                image_url: true,
+                alt_text: true,
+                sort_order: true,
+              },
+            },
+          },
+        });
+        studioProfile = updatedStudio;
+        console.log(`🔄 Admin studio set to ACTIVE for user ${user.id}`);
       }
     }
 

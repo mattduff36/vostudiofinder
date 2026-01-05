@@ -141,19 +141,29 @@ export async function GET(request: NextRequest) {
       db.studio_profiles.count({ where })
     ]);
 
-    // Apply lazy enforcement and serialize Decimal fields
+    // Apply lazy enforcement and serialize Decimal fields (skip for admin accounts)
     const now = new Date();
     const studiosToUpdate: { id: string; status: 'ACTIVE' | 'INACTIVE' }[] = [];
 
-    // First pass: identify studios that need status updates
+    // First pass: identify studios that need status updates (exclude admins)
     studios.forEach(studio => {
-      const latestSubscription = studio.users.subscriptions[0];
-      if (latestSubscription?.current_period_end) {
-        const isExpired = latestSubscription.current_period_end < now;
-        const desiredStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
-        
-        if (studio.status !== desiredStatus) {
-          studiosToUpdate.push({ id: studio.id, status: desiredStatus });
+      const isAdminAccount = studio.users.email === 'admin@mpdee.co.uk' || studio.users.email === 'guy@voiceoverguy.co.uk';
+      
+      if (isAdminAccount) {
+        // Ensure admin studios are always ACTIVE
+        if (studio.status !== 'ACTIVE') {
+          studiosToUpdate.push({ id: studio.id, status: 'ACTIVE' });
+        }
+      } else {
+        // For non-admin accounts, enforce based on membership expiry
+        const latestSubscription = studio.users.subscriptions[0];
+        if (latestSubscription?.current_period_end) {
+          const isExpired = latestSubscription.current_period_end < now;
+          const desiredStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
+          
+          if (studio.status !== desiredStatus) {
+            studiosToUpdate.push({ id: studio.id, status: desiredStatus });
+          }
         }
       }
     });
