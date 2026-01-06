@@ -214,6 +214,16 @@ async function grantMembership(userId: string, _paymentId: string) {
 async function handleRefund(refund: Stripe.Refund) {
   logger.log(`↩️  Processing refund ${refund.id} for payment ${refund.payment_intent}`);
 
+  // IDEMPOTENCY CHECK: Check if this refund was already processed
+  const existingRefund = await db.refunds.findUnique({
+    where: { stripe_refund_id: refund.id },
+  });
+
+  if (existingRefund) {
+    logger.log(`ℹ️  Refund ${refund.id} already processed, skipping`);
+    return;
+  }
+
   // Find payment record
   const payment = await db.payments.findUnique({
     where: { stripe_payment_intent_id: refund.payment_intent as string },
@@ -240,28 +250,22 @@ async function handleRefund(refund: Stripe.Refund) {
   logger.log(`✅ Payment ${payment.id} updated: refunded ${newRefundedAmount}/${payment.amount}`);
 
   // Record refund
-  const existingRefund = await db.refunds.findUnique({
-    where: { stripe_refund_id: refund.id },
-  });
-
-  if (!existingRefund) {
-    await db.refunds.create({
-      data: {
-        id: randomBytes(12).toString('base64url'),
-        stripe_refund_id: refund.id,
-        stripe_payment_intent_id: refund.payment_intent as string,
-        amount: refund.amount,
-        currency: refund.currency,
-        reason: refund.reason || null,
-        status: refund.status === 'succeeded' ? 'SUCCEEDED' : 'PENDING',
-        processed_by: 'SYSTEM', // Will be updated by admin action if initiated from admin panel
-        user_id: payment.user_id === 'PENDING' ? null : payment.user_id,
-        payment_id: payment.id,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-    });
-  }
+  await db.refunds.create({
+    data: {
+      id: randomBytes(12).toString('base64url'),
+      stripe_refund_id: refund.id,
+      stripe_payment_intent_id: refund.payment_intent as string,
+      amount: refund.amount,
+      currency: refund.currency,
+      reason: refund.reason || null,
+      status: refund.status === 'succeeded' ? 'SUCCEEDED' : 'PENDING',
+      processed_by: 'SYSTEM', // Will be updated by admin action if initiated from admin panel
+      user_id: payment.user_id === 'PENDING' ? null : payment.user_id,
+      payment_id: payment.id,
+      created_at: new Date(),
+      updated_at: new Date(),
+    },
+  })
 
   // If full refund, end membership immediately
   if (isFullRefund && payment.user_id !== 'PENDING') {
