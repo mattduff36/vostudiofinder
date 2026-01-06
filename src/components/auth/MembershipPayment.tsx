@@ -1,24 +1,43 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { Check, Building } from 'lucide-react';
+import { Check, Building, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Initialize Stripe
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+console.log('🔧 Stripe Key loaded:', stripeKey ? 'Yes (pk_...)' : 'MISSING!');
+
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export function MembershipPayment() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Get user data from URL params (passed from signup form)
   const email = searchParams?.get('email') || '';
   const name = searchParams?.get('name') || '';
   const username = searchParams?.get('username') || '';
 
+  useEffect(() => {
+    console.log('🎯 MembershipPayment mounted with:', { email, name, username });
+    
+    if (!stripeKey) {
+      setError('Stripe configuration missing. Please contact support.');
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
+    }
+  }, [email, name, username]);
+
   const fetchClientSecret = useCallback(async () => {
+    console.log('🔄 Fetching client secret...');
+    setError(null);
+    
     try {
       const response = await fetch('/api/stripe/create-membership-checkout', {
         method: 'POST',
@@ -32,20 +51,26 @@ export function MembershipPayment() {
         }),
       });
 
+      console.log('📡 API Response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('❌ API Error:', errorData);
         throw new Error(errorData.error || 'Failed to create checkout session');
       }
 
       const data = await response.json();
+      console.log('✅ API Response data:', data);
       
       if (!data.clientSecret) {
-        throw new Error('No client secret returned');
+        throw new Error('No client secret returned from API');
       }
 
+      console.log('🎉 Client secret received');
       return data.clientSecret;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Payment setup failed';
+      console.error('💥 fetchClientSecret error:', errorMessage);
       setError(errorMessage);
       throw err;
     }
@@ -133,14 +158,28 @@ export function MembershipPayment() {
 
           {/* Embedded Stripe Checkout */}
           <div className="px-8 py-6">
-            <div id="checkout">
-              <EmbeddedCheckoutProvider
-                stripe={stripePromise}
-                options={options}
-              >
-                <EmbeddedCheckout />
-              </EmbeddedCheckoutProvider>
-            </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-[#d42027]" />
+                <span className="ml-3 text-gray-600">Loading payment form...</span>
+              </div>
+            ) : !stripePromise ? (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                <p className="text-red-800 font-medium">Payment system configuration error</p>
+                <p className="text-red-600 text-sm mt-2">
+                  Please contact support. Error: Stripe not configured
+                </p>
+              </div>
+            ) : (
+              <div id="checkout">
+                <EmbeddedCheckoutProvider
+                  stripe={stripePromise}
+                  options={options}
+                >
+                  <EmbeddedCheckout />
+                </EmbeddedCheckoutProvider>
+              </div>
+            )}
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-500">
