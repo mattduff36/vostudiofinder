@@ -140,7 +140,7 @@ export default function AdminStudiosPage() {
       console.log('[COLUMN-HIDE] Updating state from', prev, 'to', newHidden);
       return newHidden;
     });
-  }, [HIDE_ORDER, hiddenColumns.length]);
+  }, [HIDE_ORDER]);
 
   useEffect(() => {
     console.log('[EFFECT-1] Studios/loading changed:', { loading, studiosCount: studios.length });
