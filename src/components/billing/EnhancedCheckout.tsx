@@ -40,7 +40,7 @@ export function EnhancedCheckout({
         },
         body: JSON.stringify({
           studio_id,
-          priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
+          plan: 'PREMIUM_YEARLY', // Server determines pricing, not client
         }),
       });
 
