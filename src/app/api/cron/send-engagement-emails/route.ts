@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
           lte: twoDaysAgoPlus1Hour,
         },
         payment_attempted_at: null, // Haven't attempted payment yet
+        day2_reminder_sent_at: null, // Haven't sent Day 2 reminder yet
       },
       select: {
         id: true,
@@ -115,6 +116,12 @@ export async function GET(request: NextRequest) {
           }),
         });
 
+        // Mark Day 2 reminder as sent to prevent duplicates
+        await db.users.update({
+          where: { id: user.id },
+          data: { day2_reminder_sent_at: now },
+        });
+
         console.log(`✅ [CRON] Day 2 email sent to ${user.email}`);
         totalSent++;
       } catch (error) {
@@ -139,6 +146,7 @@ export async function GET(request: NextRequest) {
           gte: fiveDaysAgo,
           lte: fiveDaysAgoPlus1Hour,
         },
+        day5_reminder_sent_at: null, // Haven't sent Day 5 reminder yet
       },
       select: {
         id: true,
@@ -174,6 +182,12 @@ export async function GET(request: NextRequest) {
             daysRemaining,
             signupUrl: `${process.env.NEXTAUTH_URL}/api/auth/retry-payment?userId=${user.id}`,
           }),
+        });
+
+        // Mark Day 5 reminder as sent to prevent duplicates
+        await db.users.update({
+          where: { id: user.id },
+          data: { day5_reminder_sent_at: now },
         });
 
         console.log(`✅ [CRON] Day 5 urgency email sent to ${user.email}`);

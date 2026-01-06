@@ -24,30 +24,40 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: any = {};
 
-    if (status) {
-      where.status = status;
-    } else {
-      // Default: show PENDING and EXPIRED users (not ACTIVE)
-      where.status = {
-        in: [UserStatus.PENDING, UserStatus.EXPIRED],
-      };
-    }
+    // Status filter
+    const statusFilter = status
+      ? { status }
+      : {
+          status: {
+            in: [UserStatus.PENDING, UserStatus.EXPIRED],
+          },
+        };
 
+    // Search filter
+    const searchFilter = search
+      ? {
+          OR: [
+            {
+              email: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              username: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        }
+      : {};
+
+    // Combine filters properly with AND logic
     if (search) {
-      where.OR = [
-        {
-          email: {
-            contains: search,
-            mode: 'insensitive',
-          },
-        },
-        {
-          username: {
-            contains: search,
-            mode: 'insensitive',
-          },
-        },
-      ];
+      where.AND = [statusFilter, searchFilter];
+    } else {
+      Object.assign(where, statusFilter);
     }
 
     // Get users with payment counts
