@@ -5,7 +5,6 @@ import EditStudioModal from '@/components/admin/EditStudioModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
 import { AdminTabs } from '@/components/admin/AdminTabs';
-import FloatingHorizontalScrollbar from '@/components/admin/FloatingHorizontalScrollbar';
 import { getCompletionBgColor } from '@/lib/profile-completion';
 import { formatRelativeDate, formatDate } from '@/lib/date-format';
 
@@ -434,8 +433,7 @@ export default function AdminStudiosPage() {
   return (
     <>
       <AdminTabs activeTab="studios" />
-      {/* Keep bottom padding stable to avoid viewport width changes (vertical scrollbar on/off) */}
-      <div className="p-8 min-h-screen pb-24">
+      <div className="p-8 min-h-screen">
         <div className="max-w-full mx-auto px-4">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -812,10 +810,6 @@ export default function AdminStudiosPage() {
             </div>
           </div>
 
-          <FloatingHorizontalScrollbar
-            scrollContainerRef={tableScrollContainerRef}
-            scrollContentRef={tableRef}
-          />
 
           {/* Load More Button */}
           {pagination.hasMore && (
