@@ -1,10 +1,11 @@
 /**
  * Diagnostic script to check Stripe webhook and payment status
- * Run with: npx ts-node scripts/check-stripe-webhooks.ts
+ * Run with: npx tsx scripts/check-stripe-webhooks.ts
  */
 
-import { db } from '../src/lib/db';
-import { logger } from '../src/lib/logger';
+import { PrismaClient } from '@prisma/client';
+
+const db = new PrismaClient();
 
 async function checkStripeStatus() {
   console.log('\n🔍 Checking Stripe Webhook & Payment Status...\n');

@@ -8,8 +8,8 @@ test.describe('Signup Route Guards', () => {
       // Should stay on signup page
       await expect(page).toHaveURL(/.*\/auth\/signup/);
       
-      // Check for signup form elements
-      await expect(page.locator('input[name="displayName"]')).toBeVisible();
+      // Check for signup form elements (using correct field names from react-hook-form)
+      await expect(page.locator('input[name="display_name"]')).toBeVisible();
       await expect(page.locator('input[name="email"]')).toBeVisible();
       await expect(page.locator('input[name="password"]')).toBeVisible();
     });
