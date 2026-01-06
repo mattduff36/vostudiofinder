@@ -60,86 +60,6 @@ export default function AdminStudiosPage() {
   const [sortBy, setSortBy] = useState<string>('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  interface HideableColumnKeyMap {
-    type: true;
-    lastLogin: true;
-    updated: true;
-    owner: true;
-    select: true;
-  }
-
-  const HIDE_PRIORITY: Array<keyof HideableColumnKeyMap> = useMemo(
-    () => ['type', 'lastLogin', 'updated', 'owner', 'select'],
-    []
-  );
-
-  const [hiddenColumns, setHiddenColumns] = useState<Array<keyof HideableColumnKeyMap>>([]);
-  const hiddenColumnsSet = useMemo(() => new Set(hiddenColumns), [hiddenColumns]);
-
-  const tableScrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const tableRef = useRef<HTMLTableElement | null>(null);
-  const recomputeTokenRef = useRef(0);
-
-  const isColumnHidden = useCallback(
-    (key: keyof HideableColumnKeyMap) => hiddenColumnsSet.has(key),
-    [hiddenColumnsSet]
-  );
-
-  const recomputeHiddenColumns = useCallback(async () => {
-    const container = tableScrollContainerRef.current;
-    const table = tableRef.current;
-    if (!container || !table) return;
-
-    const token = ++recomputeTokenRef.current;
-
-    const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-
-    const isOverflowing = () => {
-      const c = tableScrollContainerRef.current;
-      const t = tableRef.current;
-      if (!c || !t) return false;
-      return t.scrollWidth > c.clientWidth + 1;
-    };
-
-    // Start from a clean slate so columns can re-appear when resizing wider.
-    setHiddenColumns([]);
-    await nextFrame();
-
-    for (const key of HIDE_PRIORITY) {
-      if (token !== recomputeTokenRef.current) return;
-      if (!isOverflowing()) break;
-
-      setHiddenColumns(prev => (prev.includes(key) ? prev : [...prev, key]));
-      await nextFrame();
-    }
-  }, [HIDE_PRIORITY]);
-
-  useEffect(() => {
-    if (loading) return;
-    // Defer so the DOM is painted before we measure.
-    const id = requestAnimationFrame(() => {
-      recomputeHiddenColumns();
-    });
-    return () => cancelAnimationFrame(id);
-  }, [loading, studios.length, recomputeHiddenColumns]);
-
-  useEffect(() => {
-    if (loading) return;
-    const container = tableScrollContainerRef.current;
-    if (!container) return;
-
-    const ro = new ResizeObserver(() => {
-      recomputeHiddenColumns();
-    });
-    ro.observe(container);
-
-    window.addEventListener('resize', recomputeHiddenColumns, { passive: true } as AddEventListenerOptions);
-
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', recomputeHiddenColumns);
-    };
-  }, [loading, recomputeHiddenColumns]);
 
   useEffect(() => {
     fetchStudios();
@@ -524,8 +444,8 @@ export default function AdminStudiosPage() {
               <div className="flex items-center justify-between">
                 {/* Left side - Select All checkbox */}
                 <div className="flex items-center">
-                  {studios.length > 0 && !isColumnHidden('select') && (
-                    <label className="flex items-center space-x-2">
+                  {studios.length > 0 && (
+                    <label className="flex items-center space-x-2 hidden sm:flex">
                       <input
                         type="checkbox"
                         checked={selectedStudios.length === studios.length}
@@ -543,11 +463,11 @@ export default function AdminStudiosPage() {
                 </h2>
               </div>
             </div>
-            <div ref={tableScrollContainerRef} className="overflow-x-auto">
-              <table ref={tableRef} className="min-w-full divide-y divide-gray-200">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${isColumnHidden('select') ? 'hidden' : ''}`}>
+                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Select
                     </th>
                     <th 
@@ -557,11 +477,11 @@ export default function AdminStudiosPage() {
                     >
                       Studio{getSortIcon('name')}
                     </th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${isColumnHidden('type') ? 'hidden' : ''}`}>
+                    <th className="hidden 2xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Type
                     </th>
                     <th 
-                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${isColumnHidden('owner') ? 'hidden' : ''}`}
+                      className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('owner')}
                       title="Click to sort by owner name"
                     >
@@ -603,7 +523,7 @@ export default function AdminStudiosPage() {
                       Featured{getSortIcon('is_featured')}
                     </th>
                     <th 
-                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${isColumnHidden('lastLogin') ? 'hidden' : ''}`}
+                      className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('last_login')}
                       title="Click to sort by last login date"
                     >
@@ -616,7 +536,7 @@ export default function AdminStudiosPage() {
                       Membership Expires
                     </th>
                     <th 
-                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${isColumnHidden('updated') ? 'hidden' : ''}`}
+                      className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('updated_at')}
                     >
                       Updated{getSortIcon('updated_at')}
@@ -629,7 +549,7 @@ export default function AdminStudiosPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {studios.map((studio) => (
                     <tr key={studio.id} className={`hover:bg-gray-50 ${selectedStudios.includes(studio.id) ? 'bg-blue-50' : ''}`}>
-                      <td className={`px-6 py-4 whitespace-nowrap ${isColumnHidden('select') ? 'hidden' : ''}`}>
+                      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={selectedStudios.includes(studio.id)}
@@ -654,7 +574,7 @@ export default function AdminStudiosPage() {
                           </div>
                         </div>
                       </td>
-                      <td className={`px-6 py-4 whitespace-nowrap ${isColumnHidden('type') ? 'hidden' : ''}`}>
+                      <td className="hidden 2xl:table-cell px-6 py-4 whitespace-nowrap">
                         <span className="text-sm font-medium text-gray-900">
                           {studio.studio_studio_types && studio.studio_studio_types.length > 0 
                             ? studio.studio_studio_types
@@ -668,7 +588,7 @@ export default function AdminStudiosPage() {
                           }
                         </span>
                       </td>
-                      <td className={`px-6 py-4 whitespace-nowrap ${isColumnHidden('owner') ? 'hidden' : ''}`}>
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{studio.users.display_name}</div>
                         <div className="text-sm text-gray-500">{studio.users.email}</div>
                       </td>
@@ -756,7 +676,7 @@ export default function AdminStudiosPage() {
                         </button>
                       </td>
                       {/* Last Login */}
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${isColumnHidden('lastLogin') ? 'hidden' : ''}`}>
+                      <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {studio.last_login ? formatRelativeDate(studio.last_login) : (
                           <span className="text-gray-400 italic">No data</span>
                         )}
@@ -778,7 +698,7 @@ export default function AdminStudiosPage() {
                         )}
                       </td>
                       {/* Updated Date */}
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${isColumnHidden('updated') ? 'hidden' : ''}`}>
+                      <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(studio.updated_at)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
