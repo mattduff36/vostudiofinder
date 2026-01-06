@@ -78,21 +78,30 @@ export default function AdminStudiosPage() {
       return;
     }
 
+    // CRITICAL: Temporarily show ALL columns to measure true table width
+    console.log('[COLUMN-HIDE] Temporarily showing all columns for measurement');
+    HIDE_ORDER.forEach(col => {
+      const cells = table.querySelectorAll(`[data-column="${col}"]`);
+      cells.forEach(cell => ((cell as HTMLElement).classList.remove('hidden')));
+    });
+
+    // Force layout recalculation
+    void table.offsetWidth;
+
     const containerWidth = container.clientWidth;
-    const tableWidth = table.scrollWidth;
-    const overflowAmount = tableWidth - containerWidth;
+    const fullTableWidth = table.scrollWidth;
+    const overflowAmount = fullTableWidth - containerWidth;
     
-    console.log('[COLUMN-HIDE] Measurement:', {
+    console.log('[COLUMN-HIDE] Measurement (all columns visible):', {
       containerWidth,
-      tableWidth,
+      fullTableWidth,
       overflowAmount,
-      hasOverflow: overflowAmount > 5,
-      currentHidden: hiddenColumns.length
+      hasOverflow: overflowAmount > 5
     });
     
     if (overflowAmount <= 5) {
       // No significant overflow, show all columns
-      console.log('[COLUMN-HIDE] No overflow, clearing hidden columns');
+      console.log('[COLUMN-HIDE] No overflow, keeping all columns visible');
       setHiddenColumns(prev => {
         if (prev.length === 0) {
           console.log('[COLUMN-HIDE] Already empty, no state update');
@@ -116,8 +125,13 @@ export default function AdminStudiosPage() {
     console.log('[COLUMN-HIDE] Calculated columns to hide:', {
       overflowAmount,
       columnsToHide,
-      newHidden,
-      hideOrder: HIDE_ORDER
+      newHidden
+    });
+    
+    // Apply hiding immediately (before state update to prevent flash)
+    newHidden.forEach(col => {
+      const cells = table.querySelectorAll(`[data-column="${col}"]`);
+      cells.forEach(cell => ((cell as HTMLElement).classList.add('hidden')));
     });
     
     // Only update if actually different
