@@ -63,7 +63,7 @@ export default function AdminStudiosPage() {
   // Dynamic column hiding to prevent horizontal scroll
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const HIDE_ORDER = ['type', 'lastLogin', 'updated', 'owner', 'select'];
+  const HIDE_ORDER = useMemo(() => ['type', 'lastLogin', 'updated', 'owner', 'select'], []);
 
   const computeHiddenColumns = useCallback(() => {
     const container = tableContainerRef.current;
@@ -77,9 +77,7 @@ export default function AdminStudiosPage() {
     
     if (!hasOverflow) {
       // No overflow, show all columns
-      if (hiddenColumns.length > 0) {
-        setHiddenColumns([]);
-      }
+      setHiddenColumns([]);
       return;
     }
 
@@ -123,11 +121,14 @@ export default function AdminStudiosPage() {
 
     const newHidden = HIDE_ORDER.slice(0, result);
     
-    // Only update if different
-    if (JSON.stringify(newHidden) !== JSON.stringify(hiddenColumns)) {
-      setHiddenColumns(newHidden);
-    }
-  }, [hiddenColumns, HIDE_ORDER]);
+    // Only update if actually different
+    setHiddenColumns(prev => {
+      if (JSON.stringify(prev) === JSON.stringify(newHidden)) {
+        return prev; // Don't trigger re-render
+      }
+      return newHidden;
+    });
+  }, [HIDE_ORDER]);
 
   useEffect(() => {
     if (loading || studios.length === 0) return;
