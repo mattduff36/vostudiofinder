@@ -60,6 +60,95 @@ export default function AdminStudiosPage() {
   const [sortBy, setSortBy] = useState<string>('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  // Dynamic column hiding to prevent horizontal scroll
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const HIDE_ORDER = ['type', 'lastLogin', 'updated', 'owner', 'select'];
+
+  const computeHiddenColumns = useCallback(() => {
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    const table = container.querySelector('table');
+    if (!table) return;
+
+    // Check if overflow exists
+    const hasOverflow = table.scrollWidth > container.clientWidth;
+    
+    if (!hasOverflow) {
+      // No overflow, show all columns
+      if (hiddenColumns.length > 0) {
+        setHiddenColumns([]);
+      }
+      return;
+    }
+
+    // Binary search to find minimum columns to hide
+    let left = 0;
+    let right = HIDE_ORDER.length;
+    let result = HIDE_ORDER.length;
+
+    // We need to test each combination by temporarily applying styles
+    const testHiding = (count: number): boolean => {
+      const toHide = HIDE_ORDER.slice(0, count);
+      
+      // Temporarily hide columns
+      toHide.forEach(col => {
+        const cells = table.querySelectorAll(`[data-column="${col}"]`);
+        cells.forEach(cell => ((cell as HTMLElement).style.display = 'none'));
+      });
+
+      // Check overflow
+      const stillOverflows = table.scrollWidth > container.clientWidth;
+
+      // Restore
+      toHide.forEach(col => {
+        const cells = table.querySelectorAll(`[data-column="${col}"]`);
+        cells.forEach(cell => ((cell as HTMLElement).style.display = ''));
+      });
+
+      return !stillOverflows; // Return true if it fits
+    };
+
+    // Find minimum columns to hide
+    while (left < right) {
+      const mid = Math.floor((left + right) / 2);
+      if (testHiding(mid)) {
+        result = mid;
+        right = mid;
+      } else {
+        left = mid + 1;
+      }
+    }
+
+    const newHidden = HIDE_ORDER.slice(0, result);
+    
+    // Only update if different
+    if (JSON.stringify(newHidden) !== JSON.stringify(hiddenColumns)) {
+      setHiddenColumns(newHidden);
+    }
+  }, [hiddenColumns, HIDE_ORDER]);
+
+  useEffect(() => {
+    if (loading || studios.length === 0) return;
+    
+    // Wait for DOM to render, then compute
+    const timer = setTimeout(() => {
+      computeHiddenColumns();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [loading, studios.length, computeHiddenColumns]);
+
+  useEffect(() => {
+    // Only respond to window resize, not container resize
+    const handleResize = () => {
+      computeHiddenColumns();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [computeHiddenColumns]);
 
   useEffect(() => {
     fetchStudios();
@@ -444,8 +533,8 @@ export default function AdminStudiosPage() {
               <div className="flex items-center justify-between">
                 {/* Left side - Select All checkbox */}
                 <div className="flex items-center">
-                  {studios.length > 0 && (
-                    <label className="flex items-center space-x-2 hidden sm:flex">
+                  {studios.length > 0 && !hiddenColumns.includes('select') && (
+                    <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
                         checked={selectedStudios.length === studios.length}
@@ -463,11 +552,11 @@ export default function AdminStudiosPage() {
                 </h2>
               </div>
             </div>
-            <div className="overflow-x-auto">
+            <div ref={tableContainerRef} className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th data-column="select" className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${hiddenColumns.includes('select') ? 'hidden' : ''}`}>
                       Select
                     </th>
                     <th 
@@ -477,11 +566,12 @@ export default function AdminStudiosPage() {
                     >
                       Studio{getSortIcon('name')}
                     </th>
-                    <th className="hidden 2xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th data-column="type" className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${hiddenColumns.includes('type') ? 'hidden' : ''}`}>
                       Type
                     </th>
                     <th 
-                      className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      data-column="owner"
+                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${hiddenColumns.includes('owner') ? 'hidden' : ''}`}
                       onClick={() => handleSort('owner')}
                       title="Click to sort by owner name"
                     >
@@ -523,7 +613,8 @@ export default function AdminStudiosPage() {
                       Featured{getSortIcon('is_featured')}
                     </th>
                     <th 
-                      className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      data-column="lastLogin"
+                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${hiddenColumns.includes('lastLogin') ? 'hidden' : ''}`}
                       onClick={() => handleSort('last_login')}
                       title="Click to sort by last login date"
                     >
@@ -536,7 +627,8 @@ export default function AdminStudiosPage() {
                       Membership Expires
                     </th>
                     <th 
-                      className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      data-column="updated"
+                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${hiddenColumns.includes('updated') ? 'hidden' : ''}`}
                       onClick={() => handleSort('updated_at')}
                     >
                       Updated{getSortIcon('updated_at')}
@@ -549,7 +641,7 @@ export default function AdminStudiosPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {studios.map((studio) => (
                     <tr key={studio.id} className={`hover:bg-gray-50 ${selectedStudios.includes(studio.id) ? 'bg-blue-50' : ''}`}>
-                      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                      <td data-column="select" className={`px-6 py-4 whitespace-nowrap ${hiddenColumns.includes('select') ? 'hidden' : ''}`}>
                         <input
                           type="checkbox"
                           checked={selectedStudios.includes(studio.id)}
@@ -574,7 +666,7 @@ export default function AdminStudiosPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="hidden 2xl:table-cell px-6 py-4 whitespace-nowrap">
+                      <td data-column="type" className={`px-6 py-4 whitespace-nowrap ${hiddenColumns.includes('type') ? 'hidden' : ''}`}>
                         <span className="text-sm font-medium text-gray-900">
                           {studio.studio_studio_types && studio.studio_studio_types.length > 0 
                             ? studio.studio_studio_types
@@ -588,7 +680,7 @@ export default function AdminStudiosPage() {
                           }
                         </span>
                       </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                      <td data-column="owner" className={`px-6 py-4 whitespace-nowrap ${hiddenColumns.includes('owner') ? 'hidden' : ''}`}>
                         <div className="text-sm text-gray-900">{studio.users.display_name}</div>
                         <div className="text-sm text-gray-500">{studio.users.email}</div>
                       </td>
@@ -676,7 +768,7 @@ export default function AdminStudiosPage() {
                         </button>
                       </td>
                       {/* Last Login */}
-                      <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td data-column="lastLogin" className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${hiddenColumns.includes('lastLogin') ? 'hidden' : ''}`}>
                         {studio.last_login ? formatRelativeDate(studio.last_login) : (
                           <span className="text-gray-400 italic">No data</span>
                         )}
@@ -698,7 +790,7 @@ export default function AdminStudiosPage() {
                         )}
                       </td>
                       {/* Updated Date */}
-                      <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td data-column="updated" className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${hiddenColumns.includes('updated') ? 'hidden' : ''}`}>
                         {formatDate(studio.updated_at)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
