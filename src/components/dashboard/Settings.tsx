@@ -372,7 +372,7 @@ export function Settings({ data }: SettingsProps) {
         );
 
       case 'membership':
-        const isAdminUser = data?.user?.role === 'ADMIN';
+        const isAdminUser = profileData?.user?.role === 'ADMIN';
 
         return (
           <div className="space-y-3">

@@ -127,6 +127,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       const data = await response.json();
       setProfile(data.profile);
       logger.log('[Admin Modal] Profile visibility:', data.profile._meta?.is_profile_visible);
+      logger.log('[Admin Modal] Membership expires at:', data.profile._meta?.membership_expires_at);
+      logger.log('[Admin Modal] Featured expires at:', data.profile._meta?.featured_expires_at);
     } catch (error) {
       logger.error('Error fetching profile:', error);
     } finally {

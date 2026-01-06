@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
       // Filter to only include studios whose latest subscription is expired
       const studiesToDeactivate = expiredStudios.filter(studio => {
         const latestSub = studio.users?.subscriptions[0];
-        return latestSub && latestSub.current_period_end < now;
+        return latestSub && latestSub.current_period_end && latestSub.current_period_end < now;
       });
 
       // Batch update expired studios to INACTIVE
