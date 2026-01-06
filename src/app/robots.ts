@@ -26,6 +26,7 @@ export default function robots(): MetadataRoute.Robots {
           '/admin/',
           '/dashboard/',
           '/auth/',
+          '/_next/',
         ],
       },
       {
@@ -36,6 +37,7 @@ export default function robots(): MetadataRoute.Robots {
           '/admin/',
           '/dashboard/',
           '/auth/',
+          '/_next/',
         ],
       },
       // Block non-Google AI scrapers
