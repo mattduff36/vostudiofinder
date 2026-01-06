@@ -81,8 +81,6 @@ export default function AdminStudiosPage() {
   const tableRef = useRef<HTMLTableElement | null>(null);
   const recomputeTokenRef = useRef(0);
 
-  const [isFloatingScrollbarVisible, setIsFloatingScrollbarVisible] = useState(false);
-
   const isColumnHidden = useCallback(
     (key: keyof HideableColumnKeyMap) => hiddenColumnsSet.has(key),
     [hiddenColumnsSet]
@@ -436,7 +434,8 @@ export default function AdminStudiosPage() {
   return (
     <>
       <AdminTabs activeTab="studios" />
-      <div className={`p-8 min-h-screen ${isFloatingScrollbarVisible ? 'pb-24' : ''}`}>
+      {/* Keep bottom padding stable to avoid viewport width changes (vertical scrollbar on/off) */}
+      <div className="p-8 min-h-screen pb-24">
         <div className="max-w-full mx-auto px-4">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -816,7 +815,6 @@ export default function AdminStudiosPage() {
           <FloatingHorizontalScrollbar
             scrollContainerRef={tableScrollContainerRef}
             scrollContentRef={tableRef}
-            onVisibilityChange={setIsFloatingScrollbarVisible}
           />
 
           {/* Load More Button */}
