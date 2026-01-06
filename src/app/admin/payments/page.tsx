@@ -222,18 +222,18 @@ export default function AdminPaymentsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search by Email or Username
               </label>
-              <div className="flex">
+              <div className="flex h-10">
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="user@example.com or username"
-                  className="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                  className="flex-1 h-10 px-3 rounded-l-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
                 />
                 <Button
                   onClick={handleSearch}
-                  className="rounded-l-none bg-red-600 hover:bg-red-700 px-4"
+                  className="h-10 rounded-l-none bg-red-600 hover:bg-red-700 px-4"
                 >
                   <Search className="w-4 h-4" />
                 </Button>
@@ -248,7 +248,7 @@ export default function AdminPaymentsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                className="w-full h-10 px-3 rounded-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
               >
                 <option value="">All Statuses</option>
                 <option value="SUCCEEDED">Succeeded</option>
