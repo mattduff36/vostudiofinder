@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import EditStudioModal from '@/components/admin/EditStudioModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
@@ -59,6 +59,154 @@ export default function AdminStudiosPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Dynamic column hiding to prevent horizontal scroll
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const HIDE_ORDER = useMemo(() => ['type', 'lastLogin', 'updated', 'owner', 'select'], []);
+
+  const computeHiddenColumns = useCallback(() => {
+    const container = tableContainerRef.current;
+    if (!container) {
+      console.log('[COLUMN-HIDE] No container ref');
+      return;
+    }
+
+    const table = container.querySelector('table');
+    if (!table) {
+      console.log('[COLUMN-HIDE] No table found');
+      return;
+    }
+
+    // CRITICAL: Temporarily show ALL columns to measure true table width
+    console.log('[COLUMN-HIDE] Temporarily showing all columns for measurement');
+    HIDE_ORDER.forEach(col => {
+      const cells = table.querySelectorAll(`[data-column="${col}"]`);
+      cells.forEach(cell => ((cell as HTMLElement).classList.remove('hidden')));
+    });
+
+    // Force layout recalculation
+    void table.offsetWidth;
+
+    const containerWidth = container.clientWidth;
+    const fullTableWidth = table.scrollWidth;
+    const overflowAmount = fullTableWidth - containerWidth;
+    
+    console.log('[COLUMN-HIDE] Measurement (all columns visible):', {
+      containerWidth,
+      fullTableWidth,
+      overflowAmount,
+      hasOverflow: overflowAmount > 5
+    });
+    
+    if (overflowAmount <= 5) {
+      // No significant overflow, show all columns
+      console.log('[COLUMN-HIDE] No overflow, keeping all columns visible');
+      setHiddenColumns(prev => {
+        if (prev.length === 0) {
+          console.log('[COLUMN-HIDE] Already empty, no state update');
+          return prev;
+        }
+        console.log('[COLUMN-HIDE] Setting to empty array');
+        return [];
+      });
+      return;
+    }
+
+    // Progressive hiding: hide columns one by one until it fits
+    // Estimate ~120px per column (conservative estimate)
+    const columnsToHide = Math.min(
+      Math.ceil(overflowAmount / 120),
+      HIDE_ORDER.length
+    );
+
+    const newHidden = HIDE_ORDER.slice(0, columnsToHide);
+    
+    console.log('[COLUMN-HIDE] Calculated columns to hide:', {
+      overflowAmount,
+      columnsToHide,
+      newHidden
+    });
+    
+    // Apply hiding immediately (before state update to prevent flash)
+    newHidden.forEach(col => {
+      const cells = table.querySelectorAll(`[data-column="${col}"]`);
+      cells.forEach(cell => ((cell as HTMLElement).classList.add('hidden')));
+    });
+    
+    // Only update if actually different
+    setHiddenColumns(prev => {
+      const isSame = prev.length === newHidden.length && 
+                     prev.every((col, i) => col === newHidden[i]);
+      
+      console.log('[COLUMN-HIDE] State comparison:', {
+        prev,
+        newHidden,
+        isSame,
+        willUpdate: !isSame
+      });
+      
+      if (isSame) {
+        console.log('[COLUMN-HIDE] No change needed, returning prev');
+        return prev; // Don't trigger re-render
+      }
+      
+      console.log('[COLUMN-HIDE] Updating state from', prev, 'to', newHidden);
+      return newHidden;
+    });
+  }, [HIDE_ORDER]);
+
+  useEffect(() => {
+    console.log('[EFFECT-1] Studios/loading changed:', { loading, studiosCount: studios.length });
+    
+    if (loading || studios.length === 0) {
+      console.log('[EFFECT-1] Skipping - still loading or no studios');
+      return;
+    }
+    
+    console.log('[EFFECT-1] Scheduling column computation in 100ms');
+    // Wait for DOM to render, then compute
+    const timer = setTimeout(() => {
+      console.log('[EFFECT-1] Timer fired, calling computeHiddenColumns');
+      computeHiddenColumns();
+    }, 100);
+
+    return () => {
+      console.log('[EFFECT-1] Cleanup - clearing timer');
+      clearTimeout(timer);
+    };
+  }, [loading, studios.length, computeHiddenColumns]);
+
+  useEffect(() => {
+    console.log('[EFFECT-2] Setting up resize listener');
+    // Only respond to window resize, not container resize
+    let timeoutId: NodeJS.Timeout;
+    
+    const handleResize = () => {
+      console.log('[RESIZE-EVENT] Window resize fired, viewport:', {
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+      // Clear any pending computation
+      clearTimeout(timeoutId);
+      // Debounce to handle window snapping and animations
+      timeoutId = setTimeout(() => {
+        console.log('[RESIZE-EVENT] Debounce timer fired (150ms), calling computeHiddenColumns');
+        computeHiddenColumns();
+      }, 150);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      console.log('[EFFECT-2] Cleanup - removing resize listener');
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
+  }, [computeHiddenColumns]);
+
+  useEffect(() => {
+    console.log('[STATE-CHANGE] hiddenColumns changed:', hiddenColumns);
+  }, [hiddenColumns]);
 
   useEffect(() => {
     fetchStudios();
@@ -431,6 +579,13 @@ export default function AdminStudiosPage() {
         </div>
       </div>
 
+      {/* Column visibility warning */}
+      {hiddenColumns.length > 0 && (
+        <div className="text-sm text-red-600 text-center py-2">
+          Some columns are hidden due to window width. Maximize your browser or use a resolution of 1920×1080 or higher for optimal viewing.
+        </div>
+      )}
+
       {/* Studios Table */}
       {loading && pagination.offset === 0 ? (
         <div className="flex items-center justify-center min-h-64">
@@ -443,7 +598,7 @@ export default function AdminStudiosPage() {
               <div className="flex items-center justify-between">
                 {/* Left side - Select All checkbox */}
                 <div className="flex items-center">
-                  {studios.length > 0 && (
+                  {studios.length > 0 && !hiddenColumns.includes('select') && (
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -462,11 +617,11 @@ export default function AdminStudiosPage() {
                 </h2>
               </div>
             </div>
-            <div className="overflow-x-auto">
+            <div ref={tableContainerRef} className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th data-column="select" className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${hiddenColumns.includes('select') ? 'hidden' : ''}`}>
                       Select
                     </th>
                     <th 
@@ -476,11 +631,12 @@ export default function AdminStudiosPage() {
                     >
                       Studio{getSortIcon('name')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th data-column="type" className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${hiddenColumns.includes('type') ? 'hidden' : ''}`}>
                       Type
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      data-column="owner"
+                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${hiddenColumns.includes('owner') ? 'hidden' : ''}`}
                       onClick={() => handleSort('owner')}
                       title="Click to sort by owner name"
                     >
@@ -522,7 +678,8 @@ export default function AdminStudiosPage() {
                       Featured{getSortIcon('is_featured')}
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      data-column="lastLogin"
+                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${hiddenColumns.includes('lastLogin') ? 'hidden' : ''}`}
                       onClick={() => handleSort('last_login')}
                       title="Click to sort by last login date"
                     >
@@ -535,7 +692,8 @@ export default function AdminStudiosPage() {
                       Membership Expires
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      data-column="updated"
+                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${hiddenColumns.includes('updated') ? 'hidden' : ''}`}
                       onClick={() => handleSort('updated_at')}
                     >
                       Updated{getSortIcon('updated_at')}
@@ -548,7 +706,7 @@ export default function AdminStudiosPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {studios.map((studio) => (
                     <tr key={studio.id} className={`hover:bg-gray-50 ${selectedStudios.includes(studio.id) ? 'bg-blue-50' : ''}`}>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td data-column="select" className={`px-6 py-4 whitespace-nowrap ${hiddenColumns.includes('select') ? 'hidden' : ''}`}>
                         <input
                           type="checkbox"
                           checked={selectedStudios.includes(studio.id)}
@@ -573,7 +731,7 @@ export default function AdminStudiosPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td data-column="type" className={`px-6 py-4 whitespace-nowrap ${hiddenColumns.includes('type') ? 'hidden' : ''}`}>
                         <span className="text-sm font-medium text-gray-900">
                           {studio.studio_studio_types && studio.studio_studio_types.length > 0 
                             ? studio.studio_studio_types
@@ -587,7 +745,7 @@ export default function AdminStudiosPage() {
                           }
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td data-column="owner" className={`px-6 py-4 whitespace-nowrap ${hiddenColumns.includes('owner') ? 'hidden' : ''}`}>
                         <div className="text-sm text-gray-900">{studio.users.display_name}</div>
                         <div className="text-sm text-gray-500">{studio.users.email}</div>
                       </td>
@@ -675,7 +833,7 @@ export default function AdminStudiosPage() {
                         </button>
                       </td>
                       {/* Last Login */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td data-column="lastLogin" className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${hiddenColumns.includes('lastLogin') ? 'hidden' : ''}`}>
                         {studio.last_login ? formatRelativeDate(studio.last_login) : (
                           <span className="text-gray-400 italic">No data</span>
                         )}
@@ -697,7 +855,7 @@ export default function AdminStudiosPage() {
                         )}
                       </td>
                       {/* Updated Date */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td data-column="updated" className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${hiddenColumns.includes('updated') ? 'hidden' : ''}`}>
                         {formatDate(studio.updated_at)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -728,6 +886,7 @@ export default function AdminStudiosPage() {
               </table>
             </div>
           </div>
+
 
           {/* Load More Button */}
           {pagination.hasMore && (

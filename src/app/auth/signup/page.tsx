@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
+import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
+import { authOptions } from '@/lib/auth';
 import { SignupForm } from '@/components/auth/SignupForm';
 import Image from 'next/image';
 
@@ -9,9 +11,21 @@ export const metadata: Metadata = {
 };
 
 export default async function SignupPage() {
+  const session = await getServerSession(authOptions);
+
+  // Redirect if already authenticated
+  if (session) {
+    // Special redirect for admin@mpdee.co.uk
+    if (session.user?.email === 'admin@mpdee.co.uk') {
+      redirect('/admin');
+    } else {
+      redirect('/dashboard');
+    }
+  }
+
   // Only redirect to join-waitlist in production
   if (process.env.NODE_ENV === 'production') {
-  redirect('/join-waitlist');
+    redirect('/join-waitlist');
   }
 
   // In development, show the signup form

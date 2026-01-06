@@ -306,12 +306,12 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
 
     // Parse address for structured data
     const fullAddress = studio.full_address || '';
-    const addressParts = fullAddress.split(',').map(part => part.trim());
+    const addressParts = fullAddress.split(',').map(part => part.trim()).filter(part => part.length > 0);
     
     // Extract city and postal code if available
     const cityName = studio.city || (addressParts.length > 1 ? addressParts[addressParts.length - 2] : '');
-    const lastPart = addressParts[addressParts.length - 1];
-    const postalCode = lastPart ? (lastPart.match(/[A-Z]{1,2}\d{1,2}\s?\d[A-Z]{2}/)?.[0] || '') : '';
+    const lastPart = addressParts.length > 0 ? addressParts[addressParts.length - 1] : '';
+    const postalCode = lastPart && typeof lastPart === 'string' ? (lastPart.match(/[A-Z]{1,2}\d{1,2}\s?\d[A-Z]{2}/)?.[0] || '') : '';
     
     // Get phone number from studio profile
     const phoneNumber = studio.phone || undefined;

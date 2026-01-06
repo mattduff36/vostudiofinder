@@ -16,8 +16,8 @@ export default async function AdminSupportPage() {
     redirect('/auth/signin');
   }
 
-  // Check if user is admin
-  if (session.user.email !== 'admin@mpdee.co.uk') {
+  // Check if user is admin (match API authorization)
+  if (session.user.role !== 'ADMIN') {
     redirect('/unauthorized');
   }
 

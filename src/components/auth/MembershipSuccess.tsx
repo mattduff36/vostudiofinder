@@ -73,6 +73,7 @@ export function MembershipSuccess() {
     formState: { errors },
     setValue,
     watch,
+    reset,
   } = useForm<ProfileFormData>({
     defaultValues: {
       username: username,
@@ -94,6 +95,9 @@ export function MembershipSuccess() {
 
   const studioTypes = watch('studio_types') || [];
   const connections = watch('connections') || {};
+  const formUsername = watch('username');
+  const formDisplayName = watch('display_name');
+  const formEmail = watch('email');
 
   // Verify payment on component mount
   useEffect(() => {
@@ -117,8 +121,35 @@ export function MembershipSuccess() {
 
         const result = await response.json();
 
+        console.log('🔍 Verification result:', result);
+
         if (!response.ok) {
           throw new Error(result.error || 'Payment verification failed');
+        }
+
+        // Populate form fields with customer data from Stripe session metadata
+        if (result.customerData) {
+          console.log('✅ Customer data found:', result.customerData);
+          // Use reset() to properly update disabled fields and trigger re-render
+          reset({
+            username: result.customerData.username || '',
+            display_name: result.customerData.name || '',
+            email: result.customerData.email || '',
+            studio_name: '',
+            short_about: '',
+            about: '',
+            studio_types: [],
+            full_address: '',
+            abbreviated_address: '',
+            city: '',
+            location: '',
+            website_url: '',
+            connections: {},
+            images: [],
+          });
+          console.log('✅ Form reset with customer data');
+        } else {
+          console.error('❌ No customer data in verification response');
         }
 
         setPaymentVerified(true);
@@ -128,7 +159,7 @@ export function MembershipSuccess() {
     };
 
     verifyPayment();
-  }, [sessionId, email, name, username]);
+  }, [sessionId, email, name, username, reset]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -423,19 +454,19 @@ export function MembershipSuccess() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input
                   label="Username"
-                  value={username}
+                  value={formUsername || ''}
                   disabled
                   className="bg-gray-50"
                 />
                 <Input
                   label="Display Name"
-                  value={name}
+                  value={formDisplayName || ''}
                   disabled
                   className="bg-gray-50"
                 />
                 <Input
                   label="Email"
-                  value={email}
+                  value={formEmail || ''}
                   disabled
                   className="bg-gray-50"
                 />
