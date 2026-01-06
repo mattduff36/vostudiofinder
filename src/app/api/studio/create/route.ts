@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 import { randomBytes } from 'crypto';
+import { requireActiveMembership } from '@/lib/membership';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,8 +18,14 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // All authenticated users can create studio profiles
-    // (Removed STUDIO_OWNER role - all users are now USER or ADMIN)
+    // Check membership
+    const membershipCheck = await requireActiveMembership(session.user.id);
+    if (membershipCheck.error) {
+      return NextResponse.json(
+        { error: membershipCheck.error, requiresPayment: true },
+        { status: membershipCheck.status }
+      );
+    }
     
     const body = await request.json();
     
