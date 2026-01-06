@@ -149,7 +149,7 @@ export function MembershipPayment() {
             </div>
 
             {/* RIGHT: Payment Form */}
-            <div className="px-8 py-8 bg-gray-50">
+            <div className="bg-gray-50">
               {/* Error Display */}
               {error && (
                 <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
