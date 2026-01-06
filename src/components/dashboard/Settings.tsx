@@ -372,29 +372,37 @@ export function Settings({ data }: SettingsProps) {
         );
 
       case 'membership':
-        const membership = profileData?.membership;
-        const isActive = membership?.state === 'ACTIVE';
-        const isExpired = membership?.state === 'EXPIRED';
-        const hasNoExpiry = membership?.state === 'NONE_SET';
         const isAdminUser = data?.user?.role === 'ADMIN';
 
         return (
           <div className="space-y-3">
-            {/* Admin Account Notice */}
-            {isAdminUser && (
-              <div className="p-4 bg-blue-50 rounded-md border border-blue-200">
-                <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-xl">👑</span>
-                  <p className="text-sm font-semibold text-blue-900">Admin Account</p>
-                </div>
-                <p className="text-xs text-blue-700">
-                  As an administrator, your account has permanent access with no membership expiry date.
-                </p>
+            {loadingProfile ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
               </div>
-            )}
+            ) : (
+              <>
+                {/* Admin Account Notice */}
+                {isAdminUser && (
+                  <div className="p-4 bg-blue-50 rounded-md border border-blue-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="text-xl">👑</span>
+                      <p className="text-sm font-semibold text-blue-900">Admin Account</p>
+                    </div>
+                    <p className="text-xs text-blue-700">
+                      As an administrator, your account has permanent access with no membership expiry date.
+                    </p>
+                  </div>
+                )}
 
-            {/* Regular Membership Display */}
-            {!isAdminUser && (
+                {/* Regular Membership Display */}
+                {!isAdminUser && (() => {
+                  const membership = profileData?.membership;
+                  const isActive = membership?.state === 'ACTIVE';
+                  const isExpired = membership?.state === 'EXPIRED';
+                  const hasNoExpiry = membership?.state === 'NONE_SET';
+                  
+                  return (
               <>
                 <div className="p-4 bg-white rounded-md border border-gray-200 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
@@ -478,6 +486,9 @@ export function Settings({ data }: SettingsProps) {
                   <p className="text-sm font-medium text-gray-500">5-Year Membership - £75</p>
                   <p className="text-xs text-gray-400 mt-1">Pay now to add 4 more years! (Coming soon)</p>
                 </button>
+              </>
+                  );
+                })()}
               </>
             )}
           </div>
