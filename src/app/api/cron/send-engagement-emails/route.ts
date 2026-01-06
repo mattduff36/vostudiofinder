@@ -233,14 +233,18 @@ export async function GET(request: NextRequest) {
         const metadata = failedPayment?.metadata as any;
         const errorMessage = metadata?.error || 'Payment was declined';
 
+        // Use actual payment amount and currency from failed payment
+        const amount = (failedPayment.amount / 100).toFixed(2);
+        const currency = failedPayment.currency.toUpperCase();
+
         await sendEmail({
           to: user.email,
           subject: `Payment Issue - Complete Your Signup to Claim @${user.username}`,
           html: paymentFailedReservationTemplate({
             displayName: user.display_name,
             username: user.username,
-            amount: '25.00',
-            currency: 'GBP',
+            amount,
+            currency,
             errorMessage,
             reservationExpiresAt: user.reservation_expires_at.toLocaleDateString('en-GB', {
               day: 'numeric',
