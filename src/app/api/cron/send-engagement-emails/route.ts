@@ -53,14 +53,14 @@ export async function GET(request: NextRequest) {
     twoDaysAgo.setHours(twoDaysAgo.getHours() - 1); // 47-49 hours ago
 
     const twoDaysAgoPlus1Hour = new Date(twoDaysAgo);
-    twoDaysAgoPlus1Hour.setHours(twoDaysAgoPlus1Hour.getHours() + 2);
+    twoDaysAgoPlus1Hour.setHours(twoDaysAgoPlus1Hour.getHours() + 1); // 1-hour window
 
     const fiveDaysAgo = new Date(now);
     fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
     fiveDaysAgo.setHours(fiveDaysAgo.getHours() - 1); // 119-121 hours ago
 
     const fiveDaysAgoPlus1Hour = new Date(fiveDaysAgo);
-    fiveDaysAgoPlus1Hour.setHours(fiveDaysAgoPlus1Hour.getHours() + 2);
+    fiveDaysAgoPlus1Hour.setHours(fiveDaysAgoPlus1Hour.getHours() + 1); // 1-hour window
 
     // ==========================================
     // 1. DAY 2 REMINDERS
