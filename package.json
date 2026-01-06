@@ -107,6 +107,7 @@
     "depcheck": "^1.4.7",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-sonarjs": "^3.0.5",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
