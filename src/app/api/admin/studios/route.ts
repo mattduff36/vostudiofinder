@@ -97,6 +97,7 @@ export async function GET(request: NextRequest) {
           is_verified: true,
           is_premium: true,
           is_featured: true,
+          featured_until: true,
           is_spotlight: true,
           is_profile_visible: true,
           created_at: true,
@@ -112,6 +113,15 @@ export async function GET(request: NextRequest) {
               created_at: true,
               updated_at: true,
               last_login: true,
+              subscriptions: {
+                orderBy: { created_at: 'desc' },
+                take: 1,
+                select: {
+                  id: true,
+                  current_period_end: true,
+                  status: true,
+                }
+              }
             }
           },
           studio_studio_types: {
@@ -131,6 +141,61 @@ export async function GET(request: NextRequest) {
       }),
       db.studio_profiles.count({ where })
     ]);
+
+    // Apply lazy enforcement and serialize Decimal fields (skip for admin accounts)
+    const now = new Date();
+    const studiosToUpdate: { id: string; status: 'ACTIVE' | 'INACTIVE' }[] = [];
+    const studiosToUnfeature: string[] = [];
+
+    // First pass: identify studios that need status updates (exclude admins)
+    studios.forEach(studio => {
+      const isAdminAccount = studio.users.email === 'admin@mpdee.co.uk' || studio.users.email === 'guy@voiceoverguy.co.uk';
+      
+      if (isAdminAccount) {
+        // Ensure admin studios are always ACTIVE
+        if (studio.status !== 'ACTIVE') {
+          studiosToUpdate.push({ id: studio.id, status: 'ACTIVE' });
+        }
+      } else {
+        // For non-admin accounts, enforce based on membership expiry
+        const latestSubscription = studio.users.subscriptions[0];
+        if (latestSubscription?.current_period_end) {
+          const isExpired = latestSubscription.current_period_end < now;
+          const desiredStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
+          
+          if (studio.status !== desiredStatus) {
+            studiosToUpdate.push({ id: studio.id, status: desiredStatus });
+          }
+        }
+      }
+      
+      // Check for expired featured status
+      if (studio.is_featured && studio.featured_until && studio.featured_until < now) {
+        studiosToUnfeature.push(studio.id);
+      }
+    });
+
+    // Batch update studios that need status changes
+    if (studiosToUpdate.length > 0) {
+      await Promise.all(
+        studiosToUpdate.map(({ id, status }) =>
+          db.studio_profiles.update({
+            where: { id },
+            data: { status, updated_at: now }
+          })
+        )
+      );
+      console.log(`🔄 Updated ${studiosToUpdate.length} studio statuses based on membership expiry`);
+    }
+    
+    // Batch unfeature expired featured studios
+    if (studiosToUnfeature.length > 0) {
+      await db.studio_profiles.updateMany({
+        where: { id: { in: studiosToUnfeature } },
+        data: { is_featured: false, updated_at: now }
+      });
+      console.log(`🔄 Unfeatured ${studiosToUnfeature.length} expired featured studios`);
+    }
 
     // Serialize Decimal fields and calculate profile completion
     let serializedStudios = studios.map(studio => {
@@ -172,12 +237,22 @@ export async function GET(request: NextRequest) {
       
       const profileCompletion = calculateProfileCompletion(profileData);
       
+      // Get membership expiry from subscription
+      const latestSubscription = studio.users.subscriptions[0];
+      const membershipExpiresAt = latestSubscription?.current_period_end || null;
+      
+      // Apply status update from enforcement
+      const statusUpdate = studiosToUpdate.find(s => s.id === studio.id);
+      const effectiveStatus = statusUpdate ? statusUpdate.status : studio.status;
+      
       return {
         ...studio,
+        status: effectiveStatus,
         latitude: studio.latitude ? Number(studio.latitude) : null,
         longitude: studio.longitude ? Number(studio.longitude) : null,
         profile_completion: profileCompletion,
         last_login: studio.users.last_login,
+        membership_expires_at: membershipExpiresAt,
       };
     });
 

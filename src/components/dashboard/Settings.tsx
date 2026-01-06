@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  User,
   Shield,
   ExternalLink,
-  CheckCircle2,
   AlertCircle,
   Loader2,
   Lock,
@@ -13,13 +11,11 @@ import {
   Download,
   MessageCircle,
   Lightbulb,
-  Calendar,
   CreditCard,
   ChevronDown,
   ChevronUp,
   AlertTriangle
 } from 'lucide-react';
-import { Toggle } from '@/components/ui/Toggle';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { logger } from '@/lib/logger';
@@ -47,8 +43,8 @@ const SUGGESTION_CATEGORIES = [
 ];
 
 export function Settings({ data }: SettingsProps) {
-  const [isProfileVisible, setIsProfileVisible] = useState(data?.studio?.is_profile_visible !== false);
-  const [savingVisibility, setSavingVisibility] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   
   // Modals
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -67,28 +63,32 @@ export function Settings({ data }: SettingsProps) {
   // Download data
   const [downloadingData, setDownloadingData] = useState(false);
   
+  // Desktop section navigation
+  const [activeDesktopSection, setActiveDesktopSection] = useState('membership');
+  
   // Mobile accordion
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Fetch fresh visibility state when component mounts
+
+  // Fetch full profile data
   useEffect(() => {
-    const fetchVisibility = async () => {
+    const fetchProfile = async () => {
       try {
+        setLoadingProfile(true);
         const response = await fetch('/api/user/profile');
         if (response.ok) {
           const result = await response.json();
-          if (result.data?.studio) {
-            const visible = result.data.studio.is_profile_visible !== false;
-            setIsProfileVisible(visible);
-            logger.log('[Settings] Profile visibility loaded:', visible);
-          }
+          setProfileData(result.data);
+          logger.log('[Settings] Profile data loaded');
         }
       } catch (err) {
-        logger.error('[Settings] Failed to fetch profile visibility:', err);
+        logger.error('[Settings] Failed to fetch profile:', err);
+      } finally {
+        setLoadingProfile(false);
       }
     };
-    fetchVisibility();
+    fetchProfile();
   }, []);
 
   // Scroll to expanded card on mobile
@@ -113,11 +113,9 @@ export function Settings({ data }: SettingsProps) {
   }, [expandedMobileSection]);
 
   const sections = [
-    { id: 'account', label: 'Account Information', icon: User, description: 'Username, email, profile visibility' },
-    { id: 'privacy', label: 'Privacy & Data', icon: Shield, description: 'Privacy settings, download data' },
-    { id: 'support', label: 'Support', icon: MessageCircle, description: 'Report issues, make suggestions' },
     { id: 'membership', label: 'Membership', icon: CreditCard, description: 'Subscription and billing' },
-    { id: 'security', label: 'Security', icon: Lock, description: 'Password, account closure' },
+    { id: 'privacy', label: 'Privacy & Security', icon: Shield, description: 'Privacy settings, security, and data' },
+    { id: 'support', label: 'Support', icon: MessageCircle, description: 'Report issues, make suggestions' },
   ];
 
   const handleMobileSectionClick = (sectionId: string) => {
@@ -128,103 +126,131 @@ export function Settings({ data }: SettingsProps) {
     }
   };
 
-  const lastUpdated = useMemo(() => {
-    if (!data?.studio?.updated_at) return 'Never';
-    const date = new Date(data.studio.updated_at);
-    return date.toLocaleDateString('en-GB', { 
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  }, [data]);
 
-  // Render content for a specific section
+  // Render content for a specific section (mobile)
   const renderSectionContent = (sectionId: string) => {
     switch (sectionId) {
-      case 'account':
-        return (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-700">Username</p>
-                <p className="text-sm text-gray-500 truncate">@{data.user.username}</p>
-              </div>
-              <a href={`/${data.user.username}`} target="_blank" rel="noopener noreferrer" 
-                 className="ml-2 text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1 flex-shrink-0">
-                <span className="hidden sm:inline">View</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-700">Email</p>
-                <p className="text-sm text-gray-500 truncate">{data.user.email}</p>
-              </div>
-              <div className="ml-2 flex items-center space-x-1 text-green-600 text-xs flex-shrink-0">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>Verified</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <p className="text-sm font-medium text-gray-700">Profile Visibility</p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {isProfileVisible ? 'Visible to public' : 'Hidden from public'}
-                </p>
-              </div>
-              <Toggle
-                checked={isProfileVisible}
-                onChange={handleVisibilityToggle}
-                disabled={savingVisibility}
-                aria-label="Toggle profile visibility"
-              />
-            </div>
-          </div>
-        );
-
       case 'privacy':
         return (
-          <div className="space-y-3">
-            <div className="p-3 bg-gray-50 rounded-md">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-gray-900">Privacy Settings</p>
-                <a href="/dashboard#edit-profile" 
-                   className="text-xs text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1">
+          <div className="space-y-6">
+            {/* Privacy Settings - Improved clarity */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-5 h-5 text-gray-600" />
+                  <h3 className="text-lg font-medium text-gray-900">Privacy Settings</h3>
+                </div>
+                <button
+                  onClick={() => {
+                    // Store the target section in sessionStorage for ProfileEditForm to read
+                    sessionStorage.setItem('openProfileSection', 'privacy');
+                    window.location.href = '/dashboard#edit-profile';
+                  }}
+                  className="text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1"
+                >
                   <span>Manage</span>
                   <ExternalLink className="w-3 h-3" />
-                </a>
+                </button>
               </div>
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                  {data.profile?.show_email ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                  <span>Email {data.profile?.show_email ? 'Visible' : 'Hidden'}</span>
-                </span>
-                <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                  {data.profile?.show_phone ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                  <span>Phone {data.profile?.show_phone ? 'Visible' : 'Hidden'}</span>
-                </span>
-                <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                  {data.profile?.show_address ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                  <span>Address {data.profile?.show_address ? 'Visible' : 'Hidden'}</span>
-                </span>
+              <p className="text-sm text-gray-600 mb-4">Control what information is visible on your public profile</p>
+              <div className="space-y-3">
+                {loadingProfile ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Email Address</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.user?.email || data.user.email}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {profileData?.profile?.show_email ? (
+                          <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">Visible</span>
+                        ) : (
+                          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Phone Number</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.studio?.phone || 'No phone number set'}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {profileData?.profile?.show_phone ? (
+                          <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">Visible</span>
+                        ) : (
+                          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Abbreviated Address</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.studio?.abbreviated_address || 'No address set'}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {profileData?.profile?.show_address ? (
+                          <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">Visible</span>
+                        ) : (
+                          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
-            <button
-              onClick={handleDownloadData}
-              disabled={downloadingData}
-              className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors text-left border border-blue-200 disabled:opacity-50"
-            >
-              <div className="flex items-center space-x-2">
-                {downloadingData ? <Loader2 className="w-4 h-4 text-blue-600 animate-spin" /> : <Download className="w-4 h-4 text-blue-600" />}
-                <div>
-                  <p className="text-sm font-medium text-blue-900">Download All My Data</p>
-                  <p className="text-xs text-blue-700">Export your data in ZIP format (GDPR compliant)</p>
-                </div>
+            {/* Download Data */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <Download className="w-5 h-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Download All My Data</h3>
               </div>
-            </button>
+              <p className="text-sm text-gray-600 mb-4">Export your data in ZIP format (GDPR compliant)</p>
+              <button
+                onClick={handleDownloadData}
+                disabled={downloadingData}
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                {downloadingData && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{downloadingData ? 'Preparing Download...' : 'Download My Data'}</span>
+              </button>
+            </div>
+
+            {/* Change Password */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <Lock className="w-5 h-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Change Password</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">Update your account password</p>
+              <button
+                onClick={() => setShowPasswordModal(true)}
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md hover:bg-gray-800 flex items-center justify-center space-x-2"
+              >
+                <span>Change Password</span>
+              </button>
+            </div>
+
+            {/* Close Account - Keep Red */}
+            <div className="border border-red-200 rounded-md p-4 bg-red-50">
+              <div className="flex items-center space-x-2 mb-4">
+                <Trash2 className="w-5 h-5 text-red-600" />
+                <h3 className="text-lg font-medium text-red-900">Close Account</h3>
+              </div>
+              <p className="text-sm text-red-700 mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
+              <button
+                onClick={() => setShowCloseAccountModal(true)}
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center justify-center space-x-2"
+              >
+                <AlertTriangle className="w-4 h-4" />
+                <span>Close Account</span>
+              </button>
+            </div>
           </div>
         );
 
@@ -346,74 +372,125 @@ export function Settings({ data }: SettingsProps) {
         );
 
       case 'membership':
-        return (
-          <div className="space-y-3 opacity-60">
-            <div className="flex items-center justify-between mb-2">
-              <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-300">
-                Coming Soon
-              </span>
-            </div>
+        const isAdminUser = profileData?.user?.role === 'ADMIN';
 
-            <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-              <p className="text-sm font-medium text-gray-700 mb-1">Membership Status</p>
-              <p className="text-xs text-gray-500">Free Forever</p>
-            </div>
-
-            <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-medium text-gray-700">Days until renewal</p>
-                <span className="text-sm font-bold text-gray-900">∞</span>
-              </div>
-              <p className="text-xs text-gray-500">No expiration</p>
-            </div>
-
-            <button
-              disabled
-              className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
-            >
-              <p className="text-sm font-medium text-gray-500">Renew Early (2 weeks extra free!)</p>
-            </button>
-
-            <button
-              disabled
-              className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
-            >
-              <p className="text-sm font-medium text-gray-500">5-Year Membership - £75</p>
-              <p className="text-xs text-gray-400 mt-1">Pay now to add 4 more years!</p>
-            </button>
-          </div>
-        );
-
-      case 'security':
         return (
           <div className="space-y-3">
-            <button
-              onClick={() => setShowPasswordModal(true)}
-              className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors text-left"
-            >
-              <div className="flex items-center space-x-2">
-                <Lock className="w-4 h-4 text-gray-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Change Password</p>
-                  <p className="text-xs text-gray-500">Update your account password</p>
-                </div>
+            {loadingProfile ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
               </div>
-              <ExternalLink className="w-4 h-4 text-gray-400" />
-            </button>
+            ) : (
+              <>
+                {/* Admin Account Notice */}
+                {isAdminUser && (
+                  <div className="p-4 bg-blue-50 rounded-md border border-blue-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="text-xl">👑</span>
+                      <p className="text-sm font-semibold text-blue-900">Admin Account</p>
+                    </div>
+                    <p className="text-xs text-blue-700">
+                      As an administrator, your account has permanent access with no membership expiry date.
+                    </p>
+                  </div>
+                )}
 
-            <button
-              onClick={() => setShowCloseAccountModal(true)}
-              className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-md transition-colors text-left border border-red-200"
-            >
-              <div className="flex items-center space-x-2">
-                <Trash2 className="w-4 h-4 text-red-600" />
-                <div>
-                  <p className="text-sm font-medium text-red-900">Close Account</p>
-                  <p className="text-xs text-red-700">Permanently delete your account and data</p>
+                {/* Regular Membership Display */}
+                {!isAdminUser && (() => {
+                  const membership = profileData?.membership;
+                  const isActive = membership?.state === 'ACTIVE';
+                  const isExpired = membership?.state === 'EXPIRED';
+                  const hasNoExpiry = membership?.state === 'NONE_SET';
+                  
+                  return (
+              <>
+                <div className="p-4 bg-white rounded-md border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium text-gray-700">Membership Status</p>
+                    {isActive && (
+                      <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full border border-green-300">
+                        Active
+                      </span>
+                    )}
+                    {isExpired && (
+                      <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full border border-red-300">
+                        Expired
+                      </span>
+                    )}
+                    {hasNoExpiry && (
+                      <span className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full border border-gray-300">
+                        Not Set
+                      </span>
+                    )}
+                  </div>
+                  
+                  {membership?.expiresAt && (
+                    <>
+                      <p className="text-xs text-gray-600 mb-1">Expires on</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {new Date(membership.expiresAt).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </>
+                  )}
+                  
+                  {hasNoExpiry && (
+                    <p className="text-xs text-gray-500">No membership expiry set. Please contact support.</p>
+                  )}
                 </div>
-              </div>
-              <AlertTriangle className="w-4 h-4 text-red-600" />
-            </button>
+
+                {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
+                  <div className="p-4 bg-white rounded-md border border-gray-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-sm font-medium text-gray-700">Days until renewal</p>
+                      <span className={`text-lg font-bold ${
+                        membership.daysUntilExpiry < 0 
+                          ? 'text-red-600' 
+                          : membership.daysUntilExpiry <= 30 
+                          ? 'text-orange-600' 
+                          : 'text-gray-900'
+                      }`}>
+                        {membership.daysUntilExpiry < 0 
+                          ? `${Math.abs(membership.daysUntilExpiry)} days ago` 
+                          : membership.daysUntilExpiry}
+                      </span>
+                    </div>
+                    {isExpired && (
+                      <p className="text-xs text-red-600 mt-2">
+                        Your membership has expired. Renewal required at £25/year. Payments coming soon.
+                      </p>
+                    )}
+                    {isActive && membership.daysUntilExpiry <= 30 && (
+                      <p className="text-xs text-orange-600 mt-2">
+                        Your membership will expire soon. Renewal will be available at £25/year.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  disabled
+                  className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
+                >
+                  <p className="text-sm font-medium text-gray-500">Renew Early (2 weeks extra free!)</p>
+                  <p className="text-xs text-gray-400 mt-1">Coming soon</p>
+                </button>
+
+                <button
+                  disabled
+                  className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
+                >
+                  <p className="text-sm font-medium text-gray-500">5-Year Membership - £75</p>
+                  <p className="text-xs text-gray-400 mt-1">Pay now to add 4 more years! (Coming soon)</p>
+                </button>
+              </>
+                  );
+                })()}
+              </>
+            )}
           </div>
         );
 
@@ -422,37 +499,118 @@ export function Settings({ data }: SettingsProps) {
     }
   };
 
-  const handleVisibilityToggle = useCallback(async (visible: boolean) => {
-    setSavingVisibility(true);
-    try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studio: {
-            is_profile_visible: visible
-          }
-        }),
-      });
+  // Desktop-specific content renderer (Support section has always-visible forms)
+  const renderDesktopSectionContent = (sectionId: string) => {
+    switch (sectionId) {
+      case 'privacy':
+      case 'membership':
+        // Reuse mobile content for these sections
+        return renderSectionContent(sectionId);
 
-      if (response.ok) {
-        setIsProfileVisible(visible);
-        showSuccess(visible ? 'Profile is now visible' : 'Profile is now hidden');
-        logger.log('✅ Profile visibility updated to:', visible);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        logger.error('Failed to update profile visibility:', errorData);
-        showError('Failed to update profile visibility. Please try again.');
-        setIsProfileVisible(!visible);
-      }
-    } catch (err) {
-      logger.error('Error updating profile visibility:', err);
-      showError('Error updating profile visibility. Please try again.');
-      setIsProfileVisible(!visible);
-    } finally {
-      setSavingVisibility(false);
+      case 'support':
+        // Desktop: always-visible forms (no collapsibles)
+        return (
+          <div className="space-y-6">
+            {/* Report an Issue - Always visible */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <AlertCircle className="w-5 h-5 text-orange-600" />
+                <h3 className="text-lg font-medium text-gray-900">Report an Issue</h3>
+              </div>
+              <form onSubmit={handleSubmitIssue} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <select
+                    value={issueCategory}
+                    onChange={(e) => setIssueCategory(e.target.value)}
+                    disabled={submittingIssue}
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {ISSUE_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={issueMessage}
+                    onChange={(e) => setIssueMessage(e.target.value)}
+                    disabled={submittingIssue}
+                    rows={4}
+                    placeholder="Please describe the issue in detail..."
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingIssue}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {submittingIssue && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{submittingIssue ? 'Submitting...' : 'Submit Issue'}</span>
+                </button>
+              </form>
+            </div>
+
+            {/* Make a Suggestion - Always visible */}
+            <div className="border border-gray-200 rounded-md p-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <Lightbulb className="w-5 h-5 text-yellow-600" />
+                <h3 className="text-lg font-medium text-gray-900">Make a Suggestion</h3>
+              </div>
+              <form onSubmit={handleSubmitSuggestion} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <select
+                    value={suggestionCategory}
+                    onChange={(e) => setSuggestionCategory(e.target.value)}
+                    disabled={submittingSuggestion}
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {SUGGESTION_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Your Suggestion</label>
+                  <textarea
+                    value={suggestionMessage}
+                    onChange={(e) => setSuggestionMessage(e.target.value)}
+                    disabled={submittingSuggestion}
+                    rows={4}
+                    placeholder="Tell us your idea..."
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingSuggestion}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {submittingSuggestion && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{submittingSuggestion ? 'Submitting...' : 'Submit Suggestion'}</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
     }
-  }, []);
+  };
 
   const handleDownloadData = useCallback(async () => {
     setDownloadingData(true);
@@ -575,331 +733,43 @@ export function Settings({ data }: SettingsProps) {
 
   return (
     <>
-      {/* Header - Desktop only */}
-      <div className="hidden md:block bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-        <div className="flex items-center justify-between">
+      {/* Desktop Container - unified card matching Edit Profile */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm hidden md:block">
+        {/* Desktop Header */}
+        <div className="flex border-b border-gray-200 px-6 py-4 items-center">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Settings</h2>
-            <p className="text-sm text-gray-600 mt-1">Manage your account settings and preferences</p>
-          </div>
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <Calendar className="w-4 h-4" />
-            <span>Last updated: {lastUpdated}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Sections */}
-      <div className="hidden md:block space-y-6">
-      {/* Account Information */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <User className="w-4 h-4 text-gray-400" />
-            <h3 className="text-base font-semibold text-gray-900">Account Information</h3>
+            <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Manage your account settings and preferences
+            </p>
           </div>
         </div>
 
-        <div className="p-4 space-y-3">
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-700">Username</p>
-              <p className="text-sm text-gray-500 truncate">@{data.user.username}</p>
-            </div>
-            <a href={`/${data.user.username}`} target="_blank" rel="noopener noreferrer" 
-               className="ml-2 text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1 flex-shrink-0">
-              <span className="hidden sm:inline">View</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-700">Email</p>
-              <p className="text-sm text-gray-500 truncate">{data.user.email}</p>
-            </div>
-            <div className="ml-2 flex items-center space-x-1 text-green-600 text-xs flex-shrink-0">
-              <CheckCircle2 className="w-3 h-3" />
-              <span>Verified</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <p className="text-sm font-medium text-gray-700">Profile Visibility</p>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {isProfileVisible ? 'Visible to public' : 'Hidden from public'}
-              </p>
-            </div>
-            <Toggle
-              checked={isProfileVisible}
-              onChange={handleVisibilityToggle}
-              disabled={savingVisibility}
-              aria-label="Toggle profile visibility"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Privacy & Data */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <Shield className="w-4 h-4 text-gray-400" />
-            <h3 className="text-base font-semibold text-gray-900">Privacy & Data</h3>
-          </div>
+        {/* Desktop Section Navigation */}
+        <div className="border-b border-gray-200 px-6">
+          <nav className="flex space-x-4 overflow-x-auto" aria-label="Settings sections">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => setActiveDesktopSection(section.id)}
+                className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                  activeDesktopSection === section.id
+                    ? 'border-red-500 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {section.label}
+              </button>
+            ))}
+          </nav>
         </div>
 
-        <div className="p-4 space-y-3">
-          <div className="p-3 bg-gray-50 rounded-md">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-gray-900">Privacy Settings</p>
-              <a href="/dashboard#edit-profile" 
-                 className="text-xs text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1">
-                <span>Manage</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                {data.profile?.show_email ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                <span>Email {data.profile?.show_email ? 'Visible' : 'Hidden'}</span>
-              </span>
-              <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                {data.profile?.show_phone ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                <span>Phone {data.profile?.show_phone ? 'Visible' : 'Hidden'}</span>
-              </span>
-              <span className="flex items-center space-x-1 bg-white px-2 py-1 rounded border border-gray-200">
-                {data.profile?.show_address ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <AlertCircle className="w-3 h-3 text-gray-400" />}
-                <span>Address {data.profile?.show_address ? 'Visible' : 'Hidden'}</span>
-              </span>
-            </div>
-          </div>
-
-          <button
-            onClick={handleDownloadData}
-            disabled={downloadingData}
-            className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors text-left border border-blue-200 disabled:opacity-50"
-          >
-            <div className="flex items-center space-x-2">
-              {downloadingData ? <Loader2 className="w-4 h-4 text-blue-600 animate-spin" /> : <Download className="w-4 h-4 text-blue-600" />}
-              <div>
-                <p className="text-sm font-medium text-blue-900">Download All My Data</p>
-                <p className="text-xs text-blue-700">Export your data in ZIP format (GDPR compliant)</p>
-              </div>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Support */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <MessageCircle className="w-4 h-4 text-gray-400" />
-            <h3 className="text-base font-semibold text-gray-900">Support</h3>
+        {/* Desktop Content */}
+        <div className="px-6 py-6 min-h-[400px]">
+          <div className="w-full max-w-5xl mx-auto">
+            {renderDesktopSectionContent(activeDesktopSection)}
           </div>
         </div>
-
-        <div className="p-4 space-y-3">
-          {/* Report an Issue */}
-          <div className="border border-gray-200 rounded-md">
-            <button
-              onClick={() => setIssueFormOpen(!issueFormOpen)}
-              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-orange-600" />
-                <span className="text-sm font-medium text-gray-900">Report an Issue</span>
-              </div>
-              {issueFormOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-            </button>
-
-            {issueFormOpen && (
-              <form onSubmit={handleSubmitIssue} className="p-3 border-t border-gray-200 space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
-                  <select
-                    value={issueCategory}
-                    onChange={(e) => setIssueCategory(e.target.value)}
-                    disabled={submittingIssue}
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {ISSUE_CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
-                  <textarea
-                    value={issueMessage}
-                    onChange={(e) => setIssueMessage(e.target.value)}
-                    disabled={submittingIssue}
-                    rows={4}
-                    placeholder="Please describe the issue in detail..."
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submittingIssue}
-                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {submittingIssue && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>{submittingIssue ? 'Submitting...' : 'Submit Issue'}</span>
-                </button>
-              </form>
-            )}
-          </div>
-
-          {/* Make a Suggestion */}
-          <div className="border border-gray-200 rounded-md">
-            <button
-              onClick={() => setSuggestionFormOpen(!suggestionFormOpen)}
-              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center space-x-2">
-                <Lightbulb className="w-4 h-4 text-yellow-600" />
-                <span className="text-sm font-medium text-gray-900">Make a Suggestion</span>
-              </div>
-              {suggestionFormOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-            </button>
-
-            {suggestionFormOpen && (
-              <form onSubmit={handleSubmitSuggestion} className="p-3 border-t border-gray-200 space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
-                  <select
-                    value={suggestionCategory}
-                    onChange={(e) => setSuggestionCategory(e.target.value)}
-                    disabled={submittingSuggestion}
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {SUGGESTION_CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Your Suggestion</label>
-                  <textarea
-                    value={suggestionMessage}
-                    onChange={(e) => setSuggestionMessage(e.target.value)}
-                    disabled={submittingSuggestion}
-                    rows={4}
-                    placeholder="Tell us your idea..."
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submittingSuggestion}
-                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {submittingSuggestion && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>{submittingSuggestion ? 'Submitting...' : 'Submit Suggestion'}</span>
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Membership (Coming Soon) */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm opacity-60">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <CreditCard className="w-4 h-4 text-gray-400" />
-              <h3 className="text-base font-semibold text-gray-900">Membership</h3>
-            </div>
-            <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-300">
-              Coming Soon
-            </span>
-          </div>
-        </div>
-
-        <div className="p-4 space-y-3">
-          <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-            <p className="text-sm font-medium text-gray-700 mb-1">Membership Status</p>
-            <p className="text-xs text-gray-500">Free Forever</p>
-          </div>
-
-          <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-sm font-medium text-gray-700">Days until renewal</p>
-              <span className="text-sm font-bold text-gray-900">∞</span>
-            </div>
-            <p className="text-xs text-gray-500">No expiration</p>
-          </div>
-
-          <button
-            disabled
-            className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
-          >
-            <p className="text-sm font-medium text-gray-500">Renew Early (2 weeks extra free!)</p>
-          </button>
-
-          <button
-            disabled
-            className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
-          >
-            <p className="text-sm font-medium text-gray-500">5-Year Membership - £75</p>
-            <p className="text-xs text-gray-400 mt-1">Pay now to add 4 more years!</p>
-          </button>
-        </div>
-      </div>
-
-      {/* Security */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <Lock className="w-4 h-4 text-gray-400" />
-            <h3 className="text-base font-semibold text-gray-900">Security</h3>
-          </div>
-        </div>
-
-        <div className="p-4 space-y-3">
-          <button
-            onClick={() => setShowPasswordModal(true)}
-            className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors text-left"
-          >
-            <div className="flex items-center space-x-2">
-              <Lock className="w-4 h-4 text-gray-600" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">Change Password</p>
-                <p className="text-xs text-gray-500">Update your account password</p>
-              </div>
-            </div>
-            <ExternalLink className="w-4 h-4 text-gray-400" />
-          </button>
-
-          <button
-            onClick={() => setShowCloseAccountModal(true)}
-            className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-md transition-colors text-left border border-red-200"
-          >
-            <div className="flex items-center space-x-2">
-              <Trash2 className="w-4 h-4 text-red-600" />
-              <div>
-                <p className="text-sm font-medium text-red-900">Close Account</p>
-                <p className="text-xs text-red-700">Permanently delete your account and data</p>
-              </div>
-            </div>
-            <AlertTriangle className="w-4 h-4 text-red-600" />
-          </button>
-        </div>
-      </div>
       </div>
 
       {/* Mobile Accordion Sections */}

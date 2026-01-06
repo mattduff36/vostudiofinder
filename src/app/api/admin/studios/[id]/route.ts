@@ -52,7 +52,16 @@ export async function GET(
             display_name: true,
             username: true,
             email: true,
-            avatar_url: true
+            avatar_url: true,
+            subscriptions: {
+              orderBy: { created_at: 'desc' },
+              take: 1,
+              select: {
+                id: true,
+                current_period_end: true,
+                status: true,
+              }
+            }
           }
         },
         studio_studio_types: {
@@ -166,6 +175,7 @@ export async function GET(
         vimeo: studioData.vimeo,
         verified: studioData.verified ? '1' : '0',
         featured: studioData.featured ? '1' : '0',
+        featured_expires_at: studio.featured_until?.toISOString() || null,
         avatar_image: studioData.avatar_image,
         // Rate data
         rates1: studioData.rates1,
@@ -192,7 +202,9 @@ export async function GET(
         connection10: studioData.connection10 || '0',
         connection11: studioData.connection11 || '0',
         connection12: studioData.connection12 || '0',
-        custom_connection_methods: studioData.custom_connection_methods || []
+        custom_connection_methods: studioData.custom_connection_methods || [],
+        // Membership
+        membership_expires_at: studio.users?.subscriptions[0]?.current_period_end?.toISOString() || null
       },
       images: studio.studio_images?.map(img => ({
         id: img.id,
@@ -377,6 +389,11 @@ export async function PUT(
       
       profileUpdateData.is_featured = isFeatured;
     }
+    
+    // Handle featured expiry date
+    if (body._meta?.featured_expires_at !== undefined) {
+      profileUpdateData.featured_until = body._meta.featured_expires_at ? new Date(body._meta.featured_expires_at) : null;
+    }
     // Rate updates
     if (body._meta?.rates1 !== undefined) profileUpdateData.rate_tier_1 = body._meta.rates1;
     if (body._meta?.rates2 !== undefined) profileUpdateData.rate_tier_2 = body._meta.rates2;
@@ -455,6 +472,73 @@ export async function PUT(
               }
             });
           }
+        }
+      }
+
+      // Handle membership expiry updates
+      if (body._meta?.membership_expires_at !== undefined) {
+        const now = new Date();
+        
+        if (body._meta.membership_expires_at) {
+          // Parse the date
+          const expiryDate = new Date(body._meta.membership_expires_at);
+          
+          // Check if user has an existing subscription
+          const existingSubscription = await tx.subscriptions.findFirst({
+            where: { user_id: existingStudio.user_id },
+            orderBy: { created_at: 'desc' }
+          });
+
+          if (existingSubscription) {
+            // Update existing subscription
+            await tx.subscriptions.update({
+              where: { id: existingSubscription.id },
+              data: {
+                current_period_end: expiryDate,
+                status: 'ACTIVE',
+                updated_at: now
+              }
+            });
+          } else {
+            // Create new subscription
+            await tx.subscriptions.create({
+              data: {
+                id: randomBytes(12).toString('base64url'),
+                user_id: existingStudio.user_id,
+                status: 'ACTIVE',
+                payment_method: 'STRIPE',
+                current_period_start: now,
+                current_period_end: expiryDate,
+                created_at: now,
+                updated_at: now
+              }
+            });
+          }
+
+          // Update studio status based on expiry date
+          const isExpired = expiryDate < now;
+          const newStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
+          
+          await tx.studio_profiles.update({
+            where: { id: studioId },
+            data: { 
+              status: newStatus,
+              updated_at: now
+            }
+          });
+        } else {
+          // If empty string, delete subscription and set studio to INACTIVE
+          await tx.subscriptions.deleteMany({
+            where: { user_id: existingStudio.user_id }
+          });
+          
+          await tx.studio_profiles.update({
+            where: { id: studioId },
+            data: { 
+              status: 'INACTIVE',
+              updated_at: now
+            }
+          });
         }
       }
     });

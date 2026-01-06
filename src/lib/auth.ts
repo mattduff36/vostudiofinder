@@ -187,15 +187,111 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile: _profile, isNewUser: _isNewUser }) {
       console.log('User signed in:', { user: user.email, provider: account?.provider });
       
-      // Update last_login timestamp
+      // Update last_login timestamp and handle membership
       if (user.email) {
         try {
-          await db.users.update({
+          const dbUser = await db.users.update({
             where: { email: user.email },
             data: { last_login: new Date() },
+            include: {
+              studio_profiles: true,
+              subscriptions: {
+                orderBy: { created_at: 'desc' },
+                take: 1
+              }
+            }
           });
+
+          // Handle legacy membership grant + enforce studio status (skip for admin accounts)
+          const isAdminAccount = dbUser.role === 'ADMIN';
+          
+          if (dbUser.studio_profiles && !isAdminAccount) {
+            const studio = dbUser.studio_profiles;
+            let latestSubscription = dbUser.subscriptions[0];
+            const now = new Date();
+            const LEGACY_CUTOFF = new Date('2026-01-05T00:00:00.000Z');
+            const LEGACY_CAP = new Date('2026-08-31T23:59:59.999Z');
+
+            // Check if user qualifies for legacy membership
+            const isLegacyUser = studio.created_at < LEGACY_CUTOFF;
+            const hasNoExpiry = !latestSubscription || !latestSubscription.current_period_end;
+
+            // Grant legacy membership if eligible
+            if (isLegacyUser && hasNoExpiry) {
+              const sixMonthsFromNow = new Date(now);
+              sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+              
+              // Cap at Aug 31, 2026
+              const expiryDate = sixMonthsFromNow > LEGACY_CAP ? LEGACY_CAP : sixMonthsFromNow;
+
+              const newSubscription = await db.subscriptions.create({
+                data: {
+                  id: require('crypto').randomBytes(12).toString('base64url'),
+                  user_id: dbUser.id,
+                  status: 'ACTIVE',
+                  payment_method: 'STRIPE',
+                  current_period_start: now,
+                  current_period_end: expiryDate,
+                  created_at: now,
+                  updated_at: now
+                }
+              });
+
+              // Update latestSubscription to the newly created one
+              latestSubscription = newSubscription;
+
+              console.log(`✅ Legacy membership granted to ${user.email}: expires ${expiryDate.toISOString()}`);
+            }
+
+            // Enforce studio status based on membership expiry (lazy enforcement)
+            const currentExpiry = latestSubscription?.current_period_end;
+            if (currentExpiry) {
+              const isExpired = currentExpiry < now;
+              const desiredStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
+              
+              // Only update if status needs to change
+              if (studio.status !== desiredStatus) {
+                await db.studio_profiles.update({
+                  where: { id: studio.id },
+                  data: { 
+                    status: desiredStatus,
+                    updated_at: now
+                  }
+                });
+                console.log(`🔄 Studio status updated to ${desiredStatus} for ${user.email}`);
+              }
+            }
+            
+            // Enforce featured expiry (lazy enforcement)
+            if (studio.is_featured && studio.featured_until) {
+              const isFeaturedExpired = studio.featured_until < now;
+              if (isFeaturedExpired) {
+                await db.studio_profiles.update({
+                  where: { id: studio.id },
+                  data: { 
+                    is_featured: false,
+                    updated_at: now
+                  }
+                });
+                console.log(`🔄 Studio unfeatured (expired) for ${user.email}`);
+              }
+            }
+          } else if (dbUser.studio_profiles && isAdminAccount) {
+            // Ensure admin studio is always ACTIVE
+            const studio = dbUser.studio_profiles;
+            if (studio.status !== 'ACTIVE') {
+              await db.studio_profiles.update({
+                where: { id: studio.id },
+                data: { 
+                  status: 'ACTIVE',
+                  updated_at: new Date()
+                }
+              });
+              console.log(`🔄 Admin studio set to ACTIVE for ${user.email}`);
+            }
+          }
         } catch (error) {
-          console.error('Failed to update last_login:', error);
+          console.error('Failed to update last_login or handle membership:', error);
         }
       }
     },

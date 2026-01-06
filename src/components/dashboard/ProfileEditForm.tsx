@@ -118,6 +118,15 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     fetchProfile();
   }, [userId]);
 
+  // Check for sessionStorage to open specific section (e.g., from Settings page)
+  useEffect(() => {
+    const targetSection = sessionStorage.getItem('openProfileSection');
+    if (targetSection) {
+      setActiveSection(targetSection);
+      sessionStorage.removeItem('openProfileSection'); // Clean up after use
+    }
+  }, []);
+
   // Scroll to expanded card on mobile
   useEffect(() => {
     if (expandedMobileSection && sectionRefs.current[expandedMobileSection]) {
