@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, username, priceId } = await request.json();
+    const { email, name, username } = await request.json();
 
     if (!email || !name) {
       return NextResponse.json(
@@ -34,33 +34,36 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // PRODUCTION MODE: Use real Stripe
-    // Create Stripe checkout session
+    // PRODUCTION MODE: Use real Stripe with one-time payment
+    // Server selects price ID (never accept from client for security)
+    const priceId = process.env.STRIPE_MEMBERSHIP_PRICE_ID;
+    
+    if (!priceId) {
+      console.error('STRIPE_MEMBERSHIP_PRICE_ID not configured');
+      return NextResponse.json(
+        { error: 'Payment system not configured' },
+        { status: 500 }
+      );
+    }
+
+    // Create Stripe checkout session for one-time payment
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
       payment_method_types: ['card'],
       line_items: [
         {
-          price: priceId || process.env.STRIPE_MEMBERSHIP_PRICE_ID,
+          price: priceId,
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: 'payment', // Changed from 'subscription' to 'payment' for one-time annual fee
       success_url: `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXTAUTH_URL}/auth/membership?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username || '')}`,
       metadata: {
         user_email: email,
         user_name: name,
         user_username: username || '',
-        type: 'studio_membership',
-      },
-      subscription_data: {
-        metadata: {
-          user_email: email,
-          user_name: name,
-          user_username: username || '',
-          type: 'studio_membership',
-        },
+        purpose: 'membership', // Standardized key for webhook routing
       },
       allow_promotion_codes: true,
     });

@@ -34,7 +34,7 @@ export function MembershipPayment() {
           email,
           name,
           username,
-          priceId: process.env.NEXT_PUBLIC_STRIPE_MEMBERSHIP_PRICE_ID,
+          // Price ID is now selected by server for security
         }),
       });
 

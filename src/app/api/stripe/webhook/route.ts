@@ -1,14 +1,309 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { constructWebhookEvent, handleSubscriptionSuccess, handleSubscriptionCancellation, stripe } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe';
 import { db } from '@/lib/db';
 import { headers } from 'next/headers';
 import { sendEmail } from '@/lib/email/email-service';
 import { paymentSuccessTemplate, paymentFailedTemplate } from '@/lib/email/templates/payment-success';
 import { randomBytes } from 'crypto';
+import type Stripe from 'stripe';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
+/**
+ * Ensure webhook event idempotency by recording processed events
+ */
+async function ensureEventIdempotency(eventId: string, eventType: string, payload: any): Promise<boolean> {
+  try {
+    // Check if event already processed
+    const existing = await db.stripe_webhook_events.findUnique({
+      where: { stripe_event_id: eventId },
+    });
+
+    if (existing) {
+      logger.log(`⏭️  Event ${eventId} already processed, skipping`);
+      return false; // Already processed
+    }
+
+    // Record event
+    await db.stripe_webhook_events.create({
+      data: {
+        id: randomBytes(12).toString('base64url'),
+        stripe_event_id: eventId,
+        type: eventType,
+        payload,
+        processed: false,
+        created_at: new Date(),
+      },
+    });
+
+    return true; // OK to process
+  } catch (error) {
+    logger.log(`⚠️  Error checking event idempotency: ${error}`);
+    // If unique constraint violation, event was already recorded by concurrent request
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Mark event as processed
+ */
+async function markEventProcessed(eventId: string, success: boolean, error?: string) {
+  try {
+    await db.stripe_webhook_events.update({
+      where: { stripe_event_id: eventId },
+      data: {
+        processed: success,
+        processed_at: new Date(),
+        error: error || null,
+      },
+    });
+  } catch (err) {
+    logger.log(`⚠️  Error marking event as processed: ${err}`);
+  }
+}
+
+/**
+ * Handle one-time membership payment completion
+ */
+async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) {
+  const { user_email, user_name, user_username, purpose } = session.metadata || {};
+
+  if (purpose !== 'membership') {
+    logger.log(`⏭️  Session ${session.id} is not a membership payment, skipping`);
+    return;
+  }
+
+  if (!user_email) {
+    throw new Error('Missing user_email in session metadata');
+  }
+
+  logger.log(`💳 Processing membership payment for ${user_email}`);
+
+  // Expand session to get payment_intent
+  const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
+    expand: ['payment_intent'],
+  });
+
+  const paymentIntent = expandedSession.payment_intent as Stripe.PaymentIntent | null;
+  if (!paymentIntent) {
+    throw new Error('No payment_intent found for session');
+  }
+
+  // Find or create customer
+  let customer: Stripe.Customer | null = null;
+  if (session.customer) {
+    customer = await stripe.customers.retrieve(session.customer as string) as Stripe.Customer;
+  }
+
+  // Find user by email (they might not exist yet if payment was completed before account creation)
+  let user = await db.users.findUnique({
+    where: { email: user_email },
+  });
+
+  // If user doesn't exist yet, we'll record the payment and associate it later
+  // This handles race condition where webhook arrives before account creation completes
+
+  // Record payment (idempotent on checkout_session_id)
+  const existingPayment = await db.payments.findUnique({
+    where: { stripe_checkout_session_id: session.id },
+  });
+
+  if (existingPayment) {
+    logger.log(`💳 Payment record already exists for session ${session.id}`);
+    return; // Already processed
+  }
+
+  const payment = await db.payments.create({
+    data: {
+      id: randomBytes(12).toString('base64url'),
+      user_id: user?.id || 'PENDING', // Will be updated when user is created
+      stripe_checkout_session_id: session.id,
+      stripe_payment_intent_id: paymentIntent.id,
+      stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+      status: 'SUCCEEDED',
+      refunded_amount: 0,
+      metadata: session.metadata || {},
+      created_at: new Date(),
+      updated_at: new Date(),
+    },
+  });
+
+  logger.log(`✅ Payment recorded: ${payment.id}`);
+
+  // Grant membership if user exists
+  if (user) {
+    await grantMembership(user.id, payment.id);
+
+    // Send confirmation email
+    if (customer?.email) {
+      try {
+        await sendEmail({
+          to: customer.email,
+          subject: 'Membership Confirmed - VoiceoverStudioFinder',
+          html: paymentSuccessTemplate({
+            customerName: user_name || customer.name || customer.email || 'Valued Member',
+            amount: (payment.amount / 100).toFixed(2),
+            currency: payment.currency.toUpperCase(),
+            invoiceNumber: session.id,
+            planName: 'Annual Membership',
+            nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+          }),
+        });
+        logger.log(`📧 Confirmation email sent to ${customer.email}`);
+      } catch (emailError) {
+        logger.log(`⚠️  Failed to send confirmation email: ${emailError}`);
+      }
+    }
+  } else {
+    logger.log(`⏳ User ${user_email} not yet created, membership will be granted on account creation`);
+  }
+}
+
+/**
+ * Grant 12-month membership to user
+ */
+async function grantMembership(userId: string, paymentId: string) {
+  const now = new Date();
+  const oneYearFromNow = new Date(now);
+  oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+  // Create membership record in subscriptions table
+  const subscription = await db.subscriptions.create({
+    data: {
+      id: randomBytes(12).toString('base64url'),
+      user_id: userId,
+      status: 'ACTIVE',
+      payment_method: 'STRIPE',
+      current_period_start: now,
+      current_period_end: oneYearFromNow,
+      created_at: now,
+      updated_at: now,
+      // No stripe_subscription_id since this is a one-time payment
+    },
+  });
+
+  // Ensure studio profile is ACTIVE if exists
+  const studio = await db.studio_profiles.findUnique({
+    where: { user_id: userId },
+  });
+
+  if (studio && studio.status !== 'ACTIVE') {
+    await db.studio_profiles.update({
+      where: { user_id: userId },
+      data: {
+        status: 'ACTIVE',
+        updated_at: now,
+      },
+    });
+    logger.log(`🔄 Studio status set to ACTIVE for user ${userId}`);
+  }
+
+  logger.log(`✅ Membership granted to user ${userId} until ${oneYearFromNow.toISOString()}`);
+  return subscription;
+}
+
+/**
+ * Handle refund events
+ */
+async function handleRefund(refund: Stripe.Refund) {
+  logger.log(`↩️  Processing refund ${refund.id} for payment ${refund.payment_intent}`);
+
+  // Find payment record
+  const payment = await db.payments.findUnique({
+    where: { stripe_payment_intent_id: refund.payment_intent as string },
+  });
+
+  if (!payment) {
+    logger.log(`⚠️  Payment not found for refund ${refund.id}`);
+    return;
+  }
+
+  // Update payment refund amount
+  const newRefundedAmount = payment.refunded_amount + refund.amount;
+  const isFullRefund = newRefundedAmount >= payment.amount;
+
+  await db.payments.update({
+    where: { id: payment.id },
+    data: {
+      refunded_amount: newRefundedAmount,
+      status: isFullRefund ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
+      updated_at: new Date(),
+    },
+  });
+
+  logger.log(`✅ Payment ${payment.id} updated: refunded ${newRefundedAmount}/${payment.amount}`);
+
+  // Record refund
+  const existingRefund = await db.refunds.findUnique({
+    where: { stripe_refund_id: refund.id },
+  });
+
+  if (!existingRefund) {
+    await db.refunds.create({
+      data: {
+        id: randomBytes(12).toString('base64url'),
+        stripe_refund_id: refund.id,
+        stripe_payment_intent_id: refund.payment_intent as string,
+        amount: refund.amount,
+        currency: refund.currency,
+        reason: refund.reason || null,
+        status: refund.status === 'succeeded' ? 'SUCCEEDED' : 'PENDING',
+        processed_by: 'SYSTEM', // Will be updated by admin action if initiated from admin panel
+        user_id: payment.user_id === 'PENDING' ? null : payment.user_id,
+        payment_id: payment.id,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+    });
+  }
+
+  // If full refund, end membership immediately
+  if (isFullRefund && payment.user_id !== 'PENDING') {
+    logger.log(`🚫 Full refund detected, ending membership for user ${payment.user_id}`);
+    
+    // Find active subscription
+    const activeSubscription = await db.subscriptions.findFirst({
+      where: {
+        user_id: payment.user_id,
+        status: 'ACTIVE',
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    if (activeSubscription) {
+      await db.subscriptions.update({
+        where: { id: activeSubscription.id },
+        data: {
+          status: 'CANCELLED',
+          cancelled_at: new Date(),
+          current_period_end: new Date(), // End immediately
+          updated_at: new Date(),
+        },
+      });
+
+      // Set studio to INACTIVE
+      await db.studio_profiles.updateMany({
+        where: { user_id: payment.user_id },
+        data: {
+          status: 'INACTIVE',
+          updated_at: new Date(),
+        },
+      });
+
+      logger.log(`✅ Membership ended for user ${payment.user_id}`);
+    }
+  }
+}
+
+/**
+ * Main webhook handler
+ */
 export async function POST(request: NextRequest) {
   try {
     // Check if webhook secret is configured
@@ -31,161 +326,72 @@ export async function POST(request: NextRequest) {
     }
 
     // Construct and verify webhook event
-    const event = constructWebhookEvent(body, signature, webhookSecret);
+    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
 
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object;
-        
-        if (session.mode === 'subscription') {
-          logger.log('Checkout session completed for subscription:', session.id);
-          
-          // The subscription will be handled in the subscription.created event
-          // Here we can update any checkout-specific data if needed
-        }
-        break;
-      }
+    // Ensure idempotency
+    const shouldProcess = await ensureEventIdempotency(
+      event.id,
+      event.type,
+      event.data.object
+    );
 
-      case 'customer.subscription.created': {
-        const subscription = event.data.object;
-        
-        await handleSubscriptionSuccess(subscription);
-        
-        // Update database
-        const { userId, studioId } = subscription.metadata;
-        
-        if (userId && studioId) {
-          await db.$transaction(async (tx) => {
-            // Create subscription record
-            await tx.subscriptions.create({
-              data: {
-                id: randomBytes(12).toString('base64url'), // Generate unique ID
-                user_id: userId,
-                stripe_subscription_id: subscription.id,
-                stripe_customer_id: subscription.customer as string,
-                status: subscription.status.toUpperCase() as any,
-                current_period_start: new Date((subscription as any).current_period_start * 1000),
-                current_period_end: new Date((subscription as any).current_period_end * 1000),
-                updated_at: new Date(), // Add required timestamp
-              },
-            });
-            
-            // Update studio to premium
-            await tx.studio_profiles.update({
-              where: { id: studioId },
-              data: { is_premium: true },
-            });
-          });
-        }
-        break;
-      }
-
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object;
-        
-        // Update subscription in database
-        await db.subscriptions.update({
-          where: { stripe_subscription_id: subscription.id },
-          data: {
-            status: subscription.status.toUpperCase() as any,
-            current_period_start: new Date((subscription as any).current_period_start * 1000),
-            current_period_end: new Date((subscription as any).current_period_end * 1000),
-          },
-        });
-        break;
-      }
-
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object;
-        
-        await handleSubscriptionCancellation(subscription);
-        
-        // Update database
-        await db.$transaction(async (tx) => {
-          // Update subscription status
-          await tx.subscriptions.update({
-            where: { stripe_subscription_id: subscription.id },
-            data: {
-              status: 'CANCELLED',
-              cancelled_at: new Date(),
-            },
-          });
-          
-          // Remove premium status from studio
-          const sub = await tx.subscriptions.findUnique({
-            where: { stripe_subscription_id: subscription.id },
-            include: { users: { include: { studio_profiles: true } } },
-          });
-          
-          if (sub) {
-            await tx.studio_profiles.updateMany({
-              where: { user_id: sub.user_id },
-              data: { is_premium: false },
-            });
-          }
-        });
-        break;
-      }
-
-      case 'invoice.payment_succeeded': {
-        const invoice = event.data.object;
-        logger.log('Payment succeeded for invoice:', invoice.id);
-        
-        // Get customer details
-        const customer = await stripe.customers.retrieve(invoice.customer as string);
-        
-        if (customer && !customer.deleted) {
-          // Send payment success email
-          const emailData = {
-            customerName: customer.name || customer.email || 'Valued Customer',
-            amount: (invoice.amount_paid / 100).toFixed(2),
-            currency: invoice.currency,
-            invoiceNumber: invoice.number || invoice.id || 'N/A',
-            planName: 'Premium Studio Subscription',
-            nextBillingDate: new Date((invoice.lines.data[0]?.period?.end || Math.floor(Date.now() / 1000)) * 1000).toLocaleDateString(),
-          };
-
-          await sendEmail({
-            to: customer.email!,
-            subject: 'Payment Confirmation - VoiceoverStudioFinder',
-            html: paymentSuccessTemplate(emailData),
-          });
-        }
-        break;
-      }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object;
-        logger.log('Payment failed for invoice:', invoice.id);
-        
-        // Get customer details
-        const customer = await stripe.customers.retrieve(invoice.customer as string);
-        
-        if (customer && !customer.deleted) {
-          // Send payment failed email
-          const retryDate = (invoice as any).next_payment_attempt ? new Date((invoice as any).next_payment_attempt * 1000).toLocaleDateString() : undefined;
-          const emailData = {
-            customerName: customer.name || customer.email || 'Valued Customer',
-            amount: (invoice.amount_due / 100).toFixed(2),
-            currency: invoice.currency,
-            reason: 'Your payment method was declined. Please check your card details and try again.',
-            ...(retryDate && { retryDate }),
-          };
-
-          await sendEmail({
-            to: customer.email!,
-            subject: 'Payment Failed - VoiceoverStudioFinder',
-            html: paymentFailedTemplate(emailData),
-          });
-        }
-        break;
-      }
-
-      default:
-        logger.log(`Unhandled event type: ${event.type}`);
+    if (!shouldProcess) {
+      return NextResponse.json({ received: true, skipped: true });
     }
 
-    return NextResponse.json({ received: true });
+    // Process event
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          
+          // Only handle payment mode sessions (not subscription mode)
+          if (session.mode === 'payment') {
+            await handleMembershipPaymentSuccess(session);
+          } else {
+            logger.log(`⏭️  Session ${session.id} is subscription mode, skipping (legacy)`);
+          }
+          break;
+        }
+
+        case 'charge.refunded': {
+          const charge = event.data.object as Stripe.Charge;
+          if (charge.refunds?.data[0]) {
+            await handleRefund(charge.refunds.data[0]);
+          }
+          break;
+        }
+
+        case 'refund.updated': {
+          const refund = event.data.object as Stripe.Refund;
+          await handleRefund(refund);
+          break;
+        }
+
+        // Keep legacy subscription handlers for backward compatibility
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+        case 'customer.subscription.deleted':
+        case 'invoice.payment_succeeded':
+        case 'invoice.payment_failed': {
+          logger.log(`⏭️  Legacy subscription event ${event.type}, keeping existing behavior`);
+          // TODO: Could handle these for premium tier in future
+          break;
+        }
+
+        default:
+          logger.log(`ℹ️  Unhandled event type: ${event.type}`);
+      }
+
+      // Mark event as processed
+      await markEventProcessed(event.id, true);
+
+      return NextResponse.json({ received: true });
+    } catch (processingError) {
+      logger.log(`❌ Error processing event ${event.id}: ${processingError}`);
+      await markEventProcessed(event.id, false, String(processingError));
+      throw processingError;
+    }
   } catch (error) {
     console.error('Webhook error:', error);
     return NextResponse.json(
@@ -194,4 +400,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
