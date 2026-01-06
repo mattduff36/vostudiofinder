@@ -1,5 +1,4 @@
 import { db } from '@/lib/db';
-import { Role } from '@prisma/client';
 
 export interface MembershipStatus {
   isActive: boolean;
@@ -149,7 +148,7 @@ export async function getMembershipInfo(userId: string) {
  */
 export async function canPerformAction(
   userId: string,
-  action: 'create_studio' | 'edit_studio' | 'send_message' | 'write_review'
+  _action: 'create_studio' | 'edit_studio' | 'send_message' | 'write_review'
 ): Promise<boolean> {
   // Admins can do everything
   const user = await db.users.findUnique({

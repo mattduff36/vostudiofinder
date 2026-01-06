@@ -18,7 +18,7 @@ export async function PUT(request: NextRequest) {
     if (membershipCheck.error) {
       return NextResponse.json(
         { error: membershipCheck.error, requiresPayment: true },
-        { status: membershipCheck.status }
+        { status: membershipCheck.status || 403 }
       );
     }
 
