@@ -405,6 +405,10 @@ export default function AdminPaymentsPage() {
                                           <Button
                                             onClick={(e) => {
                                               e.stopPropagation();
+                                              // Clear form state when opening modal for a new payment
+                                              setRefundAmount('');
+                                              setRefundReason('');
+                                              setRefundError('');
                                               setRefundModalPaymentId(payment.id);
                                             }}
                                             className="w-full bg-red-600 hover:bg-red-700"
