@@ -4,7 +4,7 @@ import { stripe } from '@/lib/stripe';
 import { db } from '@/lib/db';
 import { headers } from 'next/headers';
 import { sendEmail } from '@/lib/email/email-service';
-import { paymentSuccessTemplate, paymentFailedTemplate } from '@/lib/email/templates/payment-success';
+import { paymentSuccessTemplate } from '@/lib/email/templates/payment-success';
 import { randomBytes } from 'crypto';
 import type Stripe from 'stripe';
 
@@ -70,7 +70,7 @@ async function markEventProcessed(eventId: string, success: boolean, error?: str
  * Handle one-time membership payment completion
  */
 async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) {
-  const { user_email, user_name, user_username, purpose } = session.metadata || {};
+  const { user_email, user_name, purpose } = session.metadata || {};
 
   if (purpose !== 'membership') {
     logger.log(`⏭️  Session ${session.id} is not a membership payment, skipping`);
@@ -168,7 +168,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
 /**
  * Grant 12-month membership to user
  */
-async function grantMembership(userId: string, paymentId: string) {
+async function grantMembership(userId: string, _paymentId: string) {
   const now = new Date();
   const oneYearFromNow = new Date(now);
   oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
