@@ -93,28 +93,59 @@ psql $DATABASE_URL < prisma/migrations/20260106_add_username_reservation_fields/
 
 ---
 
-## 🔜 Phase 4: Re-engagement System (TODO)
+## ✅ Phase 4: Re-engagement System (COMPLETE)
 
-- [ ] Create email templates (4 templates)
-  - Payment failed email
-  - Day 2 reminder
-  - Day 5 urgency email
-  - Day 7 expiration email
-- [ ] Implement `/api/auth/retry-payment` endpoint
-- [ ] Build cron jobs:
-  - Reservation expiry (daily)
-  - Re-engagement emails (hourly)
-- [ ] Add email tracking/logging
+### What Was Done:
+- Created 4 HTML email templates:
+  - `paymentFailedReservationTemplate` - Immediate retry with error details
+  - `reservationReminderDay2Template` - "Complete your signup" reminder
+  - `reservationUrgencyDay5Template` - "Only 2 days left" urgency
+  - `reservationExpiredTemplate` - "Reservation expired" notification
+- Implemented `/api/auth/retry-payment` endpoint:
+  - Validates user eligibility
+  - Extends reservation by 2 days (max 14 days total)
+  - Returns checkout URL for payment retry
+  - Handles EXPIRED users gracefully
+- Created 2 cron job endpoints:
+  - `/api/cron/expire-reservations` (runs daily at 02:00 UTC)
+  - `/api/cron/send-engagement-emails` (runs hourly)
+- Configured Vercel Cron in `vercel.json`
+- Auto-cleans EXPIRED users after 30 days
+
+### Files Changed:
+- `src/lib/email/templates/username-reservation.ts`
+- `src/app/api/auth/retry-payment/route.ts`
+- `src/app/api/cron/expire-reservations/route.ts`
+- `src/app/api/cron/send-engagement-emails/route.ts`
+- `vercel.json`
 
 ---
 
-## 🔜 Phase 5: Admin Dashboard (TODO)
+## ✅ Phase 5: Admin Dashboard (COMPLETE)
 
-- [ ] Update `/admin/payments` to show PENDING users
-- [ ] Add filter for user status
-- [ ] Show reservation expiry dates
-- [ ] Add "Manual Activation" button
-- [ ] Show payment retry count
+### What Was Done:
+- Created `/admin/reservations` page with comprehensive management
+- Real-time stats dashboard:
+  - Total PENDING users
+  - Expiring soon (≤2 days)
+  - Users with failed payments
+  - Total EXPIRED users
+- Detailed user table showing:
+  - User info (name, email, username)
+  - Account status (PENDING, ACTIVE, EXPIRED)
+  - Reservation expiry date with days remaining
+  - Payment attempt counts and retry counts
+  - Created date
+- Filter by status (PENDING/EXPIRED)
+- Search by email or username
+- Color-coded expiry warnings (red for urgent, orange for soon)
+- Created `/api/admin/reservations` endpoint
+- Added "Reservations" tab to AdminTabs component
+
+### Files Changed:
+- `src/app/admin/reservations/page.tsx`
+- `src/app/api/admin/reservations/route.ts`
+- `src/components/admin/AdminTabs.tsx`
 
 ---
 
@@ -138,6 +169,8 @@ psql $DATABASE_URL < prisma/migrations/20260106_add_username_reservation_fields/
 1. `31a6c35` - feat: Phase 1 - Add username reservation database migration
 2. `e571a5f` - feat: Phase 2 - Implement placeholder user creation at signup
 3. `10fc3f0` - feat: Phase 3 - Update webhook handlers for new user flow
+4. `c08bfc8` - feat: Phase 4 - Implement re-engagement system
+5. `f362578` - feat: Phase 5 - Add admin dashboard for username reservations
 
 ---
 
