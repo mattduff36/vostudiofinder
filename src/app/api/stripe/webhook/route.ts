@@ -224,6 +224,74 @@ async function grantMembership(userId: string, _paymentId: string) {
 }
 
 /**
+ * Handle failed payment attempts
+ */
+async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
+  logger.log(`❌ Processing failed payment ${paymentIntent.id}`);
+  
+  // Extract user email from metadata
+  const metadata = paymentIntent.metadata || {};
+  const user_email = metadata.user_email || metadata.email;
+  
+  if (!user_email) {
+    logger.log(`⚠️  No user email in payment intent metadata`);
+    return;
+  }
+  
+  // Find user
+  const user = await db.users.findUnique({
+    where: { email: user_email },
+  });
+  
+  if (!user) {
+    logger.log(`⏳ User ${user_email} not found, cannot record failed payment`);
+    logger.log(`   Failed payment: ${paymentIntent.id} - ${paymentIntent.last_payment_error?.message || 'Unknown error'}`);
+    return;
+  }
+  
+  // Check if payment already recorded
+  const existingPayment = await db.payments.findUnique({
+    where: { stripe_payment_intent_id: paymentIntent.id },
+  });
+  
+  if (existingPayment) {
+    logger.log(`Payment ${paymentIntent.id} already recorded, updating status to FAILED`);
+    await db.payments.update({
+      where: { id: existingPayment.id },
+      data: {
+        status: 'FAILED',
+        updated_at: new Date(),
+      },
+    });
+    return;
+  }
+  
+  // Record failed payment
+  await db.payments.create({
+    data: {
+      id: randomBytes(12).toString('base64url'),
+      user_id: user.id,
+      stripe_payment_intent_id: paymentIntent.id,
+      stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+      status: 'FAILED',
+      refunded_amount: 0,
+      metadata: {
+        ...metadata,
+        error: paymentIntent.last_payment_error?.message || 'Payment failed',
+        error_code: paymentIntent.last_payment_error?.code,
+        error_type: paymentIntent.last_payment_error?.type,
+      },
+      created_at: new Date(),
+      updated_at: new Date(),
+    },
+  });
+  
+  logger.log(`✅ Failed payment recorded for user ${user_email}`);
+}
+
+/**
  * Handle refund events
  */
 async function handleRefund(refund: Stripe.Refund) {
@@ -335,8 +403,11 @@ async function handleRefund(refund: Stripe.Refund) {
  */
 export async function POST(request: NextRequest) {
   try {
+    logger.log('🎣 Webhook received');
+    
     // Check if webhook secret is configured
     if (!webhookSecret) {
+      logger.log('❌ Webhook secret not configured');
       return NextResponse.json(
         { error: 'Stripe webhook not configured' },
         { status: 500 }
@@ -348,6 +419,7 @@ export async function POST(request: NextRequest) {
     const signature = headersList.get('stripe-signature');
 
     if (!signature) {
+      logger.log('❌ Missing Stripe signature');
       return NextResponse.json(
         { error: 'Missing Stripe signature' },
         { status: 400 }
@@ -355,7 +427,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Construct and verify webhook event
-    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      logger.log(`✅ Webhook verified: ${event.type} (${event.id})`);
+    } catch (err) {
+      logger.log(`❌ Webhook signature verification failed: ${err}`);
+      throw err;
+    }
 
     // Ensure idempotency
     const shouldProcess = await ensureEventIdempotency(
@@ -394,6 +473,31 @@ export async function POST(request: NextRequest) {
         case 'refund.updated': {
           const refund = event.data.object as Stripe.Refund;
           await handleRefund(refund);
+          break;
+        }
+
+        case 'payment_intent.payment_failed': {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          logger.log(`💥 Payment failed event received: ${paymentIntent.id}`);
+          await handlePaymentFailed(paymentIntent);
+          break;
+        }
+
+        case 'payment_intent.succeeded': {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          logger.log(`✅ Payment succeeded event received: ${paymentIntent.id}`);
+          // This is handled by checkout.session.completed, but log it
+          break;
+        }
+
+        case 'charge.failed': {
+          const charge = event.data.object as Stripe.Charge;
+          logger.log(`💥 Charge failed event received: ${charge.id}`);
+          // Extract payment intent and handle
+          if (charge.payment_intent) {
+            const paymentIntent = await stripe.paymentIntents.retrieve(charge.payment_intent as string);
+            await handlePaymentFailed(paymentIntent);
+          }
           break;
         }
 
