@@ -207,7 +207,7 @@ export const authOptions: NextAuthOptions = {
           
           if (dbUser.studio_profiles && !isAdminAccount) {
             const studio = dbUser.studio_profiles;
-            const latestSubscription = dbUser.subscriptions[0];
+            let latestSubscription = dbUser.subscriptions[0];
             const now = new Date();
             const LEGACY_CUTOFF = new Date('2026-01-05T00:00:00.000Z');
             const LEGACY_CAP = new Date('2026-08-31T23:59:59.999Z');
@@ -224,7 +224,7 @@ export const authOptions: NextAuthOptions = {
               // Cap at Aug 31, 2026
               const expiryDate = sixMonthsFromNow > LEGACY_CAP ? LEGACY_CAP : sixMonthsFromNow;
 
-              await db.subscriptions.create({
+              const newSubscription = await db.subscriptions.create({
                 data: {
                   id: require('crypto').randomBytes(12).toString('base64url'),
                   user_id: dbUser.id,
@@ -236,6 +236,9 @@ export const authOptions: NextAuthOptions = {
                   updated_at: now
                 }
               });
+
+              // Update latestSubscription to the newly created one
+              latestSubscription = newSubscription;
 
               console.log(`✅ Legacy membership granted to ${user.email}: expires ${expiryDate.toISOString()}`);
             }
