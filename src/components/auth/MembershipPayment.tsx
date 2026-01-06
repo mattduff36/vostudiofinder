@@ -112,10 +112,10 @@ export function MembershipPayment() {
         </div>
 
         <div className="bg-white shadow-2xl rounded-b-xl overflow-hidden">
-          {/* Two Column Layout - 2:1 ratio */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-            {/* LEFT: Features & Account Info - Takes 2 columns */}
-            <div className="px-8 py-8 lg:col-span-2 border-r border-gray-200">
+          {/* Two Column Layout - 3:2 ratio */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-0">
+            {/* LEFT: Features & Account Info - Takes 3 columns */}
+            <div className="px-8 py-8 lg:col-span-3 border-r border-gray-200">
               <h3 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
                 <Building className="w-6 h-6 mr-3 text-[#d42027]" />
                 What's Included
@@ -148,8 +148,8 @@ export function MembershipPayment() {
               )}
             </div>
 
-            {/* RIGHT: Payment Form - Takes 1 column */}
-            <div className="lg:col-span-1 bg-gray-50">
+            {/* RIGHT: Payment Form - Takes 2 columns */}
+            <div className="lg:col-span-2 bg-gray-50">
               {/* Error Display */}
               {error && (
                 <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
