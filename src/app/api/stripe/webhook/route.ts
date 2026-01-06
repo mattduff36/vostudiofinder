@@ -243,10 +243,22 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
     where: { email: user_email },
   });
   
+  // CRITICAL: If user doesn't exist yet, defer processing (same as successful payments)
   if (!user) {
-    logger.log(`⏳ User ${user_email} not found, cannot record failed payment`);
-    logger.log(`   Failed payment: ${paymentIntent.id} - ${paymentIntent.last_payment_error?.message || 'Unknown error'}`);
-    return;
+    logger.log(`⏳ User ${user_email} not yet created, deferring failed payment processing`);
+    logger.log(`   Payment Intent ${paymentIntent.id} will be processed when user account is created`);
+    logger.log(`   Error: ${paymentIntent.last_payment_error?.message || 'Unknown error'}`);
+    
+    // Mark webhook event as unprocessed so it can be retried
+    await db.stripe_webhook_events.updateMany({
+      where: { stripe_event_id: paymentIntent.id },
+      data: { 
+        processed: false,
+        error: 'User account not yet created - deferred processing (failed payment)',
+      },
+    });
+    
+    return; // Exit early - signup flow will process this payment
   }
   
   // Check if payment already recorded

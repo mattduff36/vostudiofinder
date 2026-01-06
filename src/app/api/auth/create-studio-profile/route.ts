@@ -249,6 +249,37 @@ export async function POST(request: NextRequest) {
               console.log(`✅ Deferred payment processed: ${paymentId}`);
               console.log(`✅ Membership granted to ${email} until ${oneYearFromNow.toISOString()}`);
             }
+          } else if (eventType === 'payment_intent.payment_failed') {
+            const paymentIntentData = eventPayload.data?.object || eventPayload;
+            
+            // Retrieve full payment intent
+            const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentData.id);
+            
+            // Create FAILED payment record
+            const paymentId = crypto.randomBytes(12).toString('base64url');
+            await db.payments.create({
+              data: {
+                id: paymentId,
+                user_id: user.id,
+                stripe_payment_intent_id: paymentIntent.id,
+                stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
+                amount: paymentIntent.amount,
+                currency: paymentIntent.currency,
+                status: 'FAILED',
+                refunded_amount: 0,
+                metadata: {
+                  ...paymentIntent.metadata,
+                  error: paymentIntent.last_payment_error?.message || 'Payment failed',
+                  error_code: paymentIntent.last_payment_error?.code,
+                  error_type: paymentIntent.last_payment_error?.type,
+                },
+                created_at: new Date(paymentIntent.created * 1000), // Use original payment intent timestamp
+                updated_at: new Date(),
+              },
+            });
+            
+            console.log(`✅ Deferred FAILED payment processed: ${paymentId}`);
+            console.log(`   Error: ${paymentIntent.last_payment_error?.message || 'Unknown error'}`);
           }
           
           // Mark webhook as processed
