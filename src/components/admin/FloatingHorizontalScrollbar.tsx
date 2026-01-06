@@ -22,6 +22,8 @@ export default function FloatingHorizontalScrollbar({
   const barRef = useRef<HTMLDivElement | null>(null);
   const isSyncingFromContainerRef = useRef(false);
   const isSyncingFromBarRef = useRef(false);
+  const lastMeasuredWidthRef = useRef<number | null>(null);
+  const lastMeasuredVisibleRef = useRef<boolean | null>(null);
 
   const [isVisible, setIsVisible] = useState(false);
   const [contentWidth, setContentWidth] = useState(0);
@@ -35,18 +37,26 @@ export default function FloatingHorizontalScrollbar({
       const nextVisible = getIsOverflowing(container, content);
       const nextWidth = content.scrollWidth;
 
-      setContentWidth(nextWidth);
-      setIsVisible(prev => {
-        if (prev !== nextVisible) onVisibilityChange?.(nextVisible);
-        return nextVisible;
-      });
+      if (lastMeasuredWidthRef.current !== nextWidth) {
+        lastMeasuredWidthRef.current = nextWidth;
+        setContentWidth(nextWidth);
+      }
+
+      if (lastMeasuredVisibleRef.current !== nextVisible) {
+        lastMeasuredVisibleRef.current = nextVisible;
+        setIsVisible(nextVisible);
+      }
 
       // Keep bar in sync if it exists
       if (barRef.current && nextVisible) {
         barRef.current.scrollLeft = container.scrollLeft;
       }
     };
-  }, [onVisibilityChange, scrollContainerRef, scrollContentRef]);
+  }, [scrollContainerRef, scrollContentRef]);
+
+  useEffect(() => {
+    onVisibilityChange?.(isVisible);
+  }, [isVisible, onVisibilityChange]);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
