@@ -111,8 +111,7 @@ export function MembershipPayment() {
                 'SEO-optimised profile for search engines',
                 'Manage your availability and booking preferences',
                 'Respond to reviews and build your reputation',
-                'Analytics on profile views and inquiries',
-                '24/7 customer support'
+                'Analytics on profile views and inquiries'
               ].map((feature, index) => (
                 <li key={index} className="flex items-start">
                   <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
