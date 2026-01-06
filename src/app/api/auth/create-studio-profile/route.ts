@@ -159,6 +159,94 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // 🔄 PROCESS DEFERRED PAYMENTS
+    // Check for any webhook events that were deferred because user didn't exist yet
+    console.log(`🔍 Checking for deferred payments for ${email}...`);
+    const pendingWebhooks = await db.stripe_webhook_events.findMany({
+      where: {
+        processed: false,
+        type: 'checkout.session.completed',
+        error: {
+          contains: 'User account not yet created',
+        },
+      },
+    });
+
+    for (const webhookEvent of pendingWebhooks) {
+      try {
+        const sessionData = webhookEvent.payload as Stripe.Checkout.Session;
+        const sessionMetadata = sessionData.metadata || {};
+        
+        // Check if this event is for this user
+        if (sessionMetadata.user_email === email) {
+          console.log(`💳 Processing deferred payment for session ${sessionData.id}`);
+          
+          // Retrieve full session with payment_intent
+          const session = await stripe.checkout.sessions.retrieve(sessionData.id, {
+            expand: ['payment_intent'],
+          });
+          
+          const paymentIntent = session.payment_intent as Stripe.PaymentIntent | null;
+          
+          if (paymentIntent && session.payment_status === 'paid') {
+            // Create payment record
+            const paymentId = crypto.randomBytes(12).toString('base64url');
+            await db.payments.create({
+              data: {
+                id: paymentId,
+                user_id: user.id,
+                stripe_checkout_session_id: session.id,
+                stripe_payment_intent_id: paymentIntent.id,
+                stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
+                amount: paymentIntent.amount,
+                currency: paymentIntent.currency,
+                status: 'SUCCEEDED',
+                refunded_amount: 0,
+                metadata: sessionMetadata || {},
+                created_at: new Date(session.created * 1000), // Use original session timestamp
+                updated_at: new Date(),
+              },
+            });
+            
+            // Grant 12-month membership
+            const now = new Date();
+            const oneYearFromNow = new Date(now);
+            oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+            
+            await db.subscriptions.create({
+              data: {
+                id: crypto.randomBytes(12).toString('base64url'),
+                user_id: user.id,
+                status: 'ACTIVE',
+                payment_method: 'STRIPE',
+                current_period_start: now,
+                current_period_end: oneYearFromNow,
+                created_at: now,
+                updated_at: now,
+              },
+            });
+            
+            // Mark webhook as processed
+            await db.stripe_webhook_events.update({
+              where: { id: webhookEvent.id },
+              data: {
+                processed: true,
+                processed_at: new Date(),
+                error: null,
+              },
+            });
+            
+            console.log(`✅ Deferred payment processed: ${paymentId}`);
+            console.log(`✅ Membership granted to ${email} until ${oneYearFromNow.toISOString()}`);
+          }
+        }
+      } catch (deferredError) {
+        console.error(`❌ Error processing deferred payment:`, deferredError);
+        // Don't fail the entire request, just log the error
+        // The webhook can be manually retried later
+      }
+    }
+
     // Create studio profile
     const studioProfileId = nanoid();
     
