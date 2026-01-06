@@ -149,7 +149,7 @@ export function MembershipPayment() {
             </div>
 
             {/* RIGHT: Payment Form - Takes 2 columns */}
-            <div className="lg:col-span-2 bg-gray-50">
+            <div className="lg:col-span-2 bg-gray-50 pb-8">
               {/* Error Display */}
               {error && (
                 <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
