@@ -19,25 +19,33 @@ export function MembershipPayment() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Get user data from URL params (passed from signup form)
+  const userId = searchParams?.get('userId') || '';
   const email = searchParams?.get('email') || '';
   const name = searchParams?.get('name') || '';
   const username = searchParams?.get('username') || '';
 
   useEffect(() => {
-    console.log('🎯 MembershipPayment mounted with:', { email, name, username });
+    console.log('🎯 MembershipPayment mounted with:', { userId, email, name, username });
     
     if (!stripeKey) {
       setError('Stripe configuration missing. Please contact support.');
       setIsLoading(false);
+    } else if (!userId) {
+      setError('Session expired. Please sign up again.');
+      setIsLoading(false);
     } else {
       setIsLoading(false);
     }
-  }, [email, name, username]);
+  }, [userId, email, name, username]);
 
   const fetchClientSecret = useCallback(async () => {
     console.log('🔄 Fetching client secret...');
     setError(null);
     
+    if (!userId) {
+      throw new Error('User ID is missing. Please sign up again.');
+    }
+
     try {
       const response = await fetch('/api/stripe/create-membership-checkout', {
         method: 'POST',
@@ -45,6 +53,7 @@ export function MembershipPayment() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          userId,
           email,
           name,
           username,
@@ -74,7 +83,7 @@ export function MembershipPayment() {
       setError(errorMessage);
       throw err;
     }
-  }, [email, name, username]);
+  }, [userId, email, name, username]);
 
   const options = { fetchClientSecret };
 
