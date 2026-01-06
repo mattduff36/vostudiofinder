@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create Stripe checkout session for one-time payment
+    // Create Stripe checkout session for one-time payment (embedded mode)
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
       payment_method_types: ['card'],
@@ -39,9 +39,9 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      mode: 'payment', // Changed from 'subscription' to 'payment' for one-time annual fee
-      success_url: `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/auth/membership?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username || '')}`,
+      mode: 'payment', // One-time annual fee
+      ui_mode: 'embedded', // Embedded checkout stays on our site
+      return_url: `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
         user_email: email,
         user_name: name,
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       allow_promotion_codes: true,
     });
 
-    return NextResponse.json({ sessionId: session.id, url: session.url });
+    return NextResponse.json({ clientSecret: session.client_secret });
   } catch (error) {
     console.error('Stripe checkout error:', error);
     handleApiError(error, 'Stripe checkout failed');
