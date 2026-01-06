@@ -85,6 +85,8 @@ export async function POST(request: NextRequest) {
     const daysSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
     const maxReservationDays = 14;
 
+    let currentExpiry = user.reservation_expires_at;
+
     if (daysSinceCreation < maxReservationDays) {
       const newExpiry = new Date(user.reservation_expires_at || now);
       newExpiry.setDate(newExpiry.getDate() + 2); // Extend by 2 days
@@ -103,10 +105,13 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // Update the currentExpiry to the new extended date
+      currentExpiry = finalExpiry;
+
       console.log(`✅ Extended reservation for ${user.email} to ${finalExpiry.toISOString()}`);
     }
 
-    // Return user data for retry
+    // Return user data for retry with the UPDATED expiration date
     return NextResponse.json(
       {
         message: 'Ready to retry payment',
@@ -115,7 +120,7 @@ export async function POST(request: NextRequest) {
           email: user.email,
           username: user.username,
           display_name: user.display_name,
-          reservation_expires_at: user.reservation_expires_at,
+          reservation_expires_at: currentExpiry, // Use the updated value
           payment_retry_count: user.payment_retry_count,
         },
         checkoutUrl: `/auth/membership?userId=${user.id}&email=${encodeURIComponent(user.email)}&name=${encodeURIComponent(user.display_name)}&username=${encodeURIComponent(user.username)}`,
