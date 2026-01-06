@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Button } from '@/components/ui/Button';
-import { Search, RefreshCw, Filter, ChevronDown, ChevronUp, DollarSign, AlertCircle, Check } from 'lucide-react';
+import { Search, RefreshCw, Filter, ChevronDown, ChevronUp, Banknote, AlertCircle, Check } from 'lucide-react';
 import { formatDate } from '@/lib/date-format';
 
 interface Payment {
@@ -368,111 +368,54 @@ export default function AdminPaymentsPage() {
 
                           {/* Expanded Details */}
                           {isExpanded && (
-                            <div className="border-t border-gray-200 bg-gray-50 px-6 py-6">
-                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {/* Payment Information */}
-                                <div className="lg:col-span-2 space-y-6">
-                                  <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Payment Information</h3>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <div>
-                                        <p className="text-gray-500">Payment ID</p>
-                                        <p className="text-gray-900 font-mono text-xs">{payment.id}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-gray-500">Created</p>
-                                        <p className="text-gray-900">
-                                          {new Date(payment.created_at).toLocaleString('en-GB')}
-                                        </p>
-                                      </div>
-                                      {payment.stripe_payment_intent_id && (
-                                        <div className="col-span-2">
-                                          <p className="text-gray-500">Stripe Payment Intent</p>
-                                          <p className="text-gray-900 font-mono text-xs">
-                                            {payment.stripe_payment_intent_id}
-                                          </p>
-                                        </div>
-                                      )}
+                            <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                {/* Payment Information with Refund Action */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-3">
+                                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Payment Information</h3>
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-3">
+                                    <div>
+                                      <p className="text-xs text-gray-500">Payment ID</p>
+                                      <p className="text-gray-900 font-mono text-xs">{payment.id}</p>
                                     </div>
-                                  </div>
-
-                                  {/* Customer Information */}
-                                  <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Customer Information</h3>
-                                    <div className="space-y-2 text-sm">
-                                      <div>
-                                        <p className="text-gray-500">Name</p>
-                                        <p className="text-gray-900">{payment.users.display_name}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-gray-500">Email</p>
-                                        <p className="text-gray-900">{payment.users.email}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-gray-500">Username</p>
-                                        <p className="text-gray-900">@{payment.users.username}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-gray-500">Account Created</p>
-                                        <p className="text-gray-900">
-                                          {new Date(payment.users.created_at).toLocaleDateString('en-GB')}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Refund History */}
-                                  {payment.refunds.length > 0 && (
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Refund History</h3>
-                                      <div className="space-y-3">
-                                        {payment.refunds.map((refund) => (
-                                          <div key={refund.id} className="border border-gray-200 rounded-lg p-3 text-sm">
-                                            <div className="flex items-center justify-between mb-2">
-                                              <span className="font-semibold text-red-600">
-                                                {formatAmount(refund.amount, refund.currency)}
-                                              </span>
-                                              <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${refund.status === 'SUCCEEDED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                {refund.status}
-                                              </span>
-                                            </div>
-                                            {refund.reason && (
-                                              <p className="text-gray-600 mb-1">Reason: {refund.reason}</p>
-                                            )}
-                                            <p className="text-gray-500 text-xs">
-                                              Processed by {refund.users_refunds_processed_byTousers.display_name} on{' '}
-                                              {new Date(refund.created_at).toLocaleString('en-GB')}
-                                            </p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Refund Action Sidebar */}
-                                {canRefund && (
-                                  <div className="space-y-4">
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Issue Refund</h3>
-                                      <p className="text-sm text-gray-600 mb-4">
-                                        Available: {formatAmount(maxRefundable, payment.currency)}
+                                    <div>
+                                      <p className="text-xs text-gray-500">Created</p>
+                                      <p className="text-gray-900 text-xs">
+                                        {new Date(payment.created_at).toLocaleString('en-GB')}
                                       </p>
+                                    </div>
+                                    {payment.stripe_payment_intent_id && (
+                                      <div className="col-span-2">
+                                        <p className="text-xs text-gray-500">Stripe Payment Intent</p>
+                                        <p className="text-gray-900 font-mono text-xs break-all">
+                                          {payment.stripe_payment_intent_id}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
 
+                                  {/* Refund Action */}
+                                  {canRefund && (
+                                    <div className="border-t border-gray-200 pt-3 mt-3">
                                       {!isRefundModalOpen ? (
-                                        <Button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setRefundModalPaymentId(payment.id);
-                                          }}
-                                          className="w-full bg-red-600 hover:bg-red-700"
-                                          size="sm"
-                                        >
-                                          <DollarSign className="w-4 h-4 mr-2" />
-                                          Issue Refund
-                                        </Button>
+                                        <div>
+                                          <p className="text-xs text-gray-600 mb-2">
+                                            Available to refund: <span className="font-semibold">{formatAmount(maxRefundable, payment.currency)}</span>
+                                          </p>
+                                          <Button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setRefundModalPaymentId(payment.id);
+                                            }}
+                                            className="w-full bg-red-600 hover:bg-red-700"
+                                            size="sm"
+                                          >
+                                            <Banknote className="w-4 h-4 mr-2" />
+                                            Issue Refund
+                                          </Button>
+                                        </div>
                                       ) : (
-                                        <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
+                                        <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                                           <div>
                                             <label className="block text-xs font-medium text-gray-700 mb-1">
                                               Amount ({payment.currency.toUpperCase()})
@@ -535,6 +478,59 @@ export default function AdminPaymentsPage() {
                                           </div>
                                         </div>
                                       )}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Customer Information */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-3">
+                                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Customer Information</h3>
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                    <div>
+                                      <p className="text-xs text-gray-500">Name</p>
+                                      <p className="text-gray-900 text-xs">{payment.users.display_name}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500">Username</p>
+                                      <p className="text-gray-900 text-xs">@{payment.users.username}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                      <p className="text-xs text-gray-500">Email</p>
+                                      <p className="text-gray-900 text-xs">{payment.users.email}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500">Account Created</p>
+                                      <p className="text-gray-900 text-xs">
+                                        {new Date(payment.users.created_at).toLocaleDateString('en-GB')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Refund History */}
+                                {payment.refunds.length > 0 && (
+                                  <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-3">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Refund History</h3>
+                                    <div className="space-y-2">
+                                      {payment.refunds.map((refund) => (
+                                        <div key={refund.id} className="border border-gray-200 rounded-lg p-2 text-sm">
+                                          <div className="flex items-center justify-between mb-1">
+                                            <span className="font-semibold text-red-600 text-sm">
+                                              {formatAmount(refund.amount, refund.currency)}
+                                            </span>
+                                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${refund.status === 'SUCCEEDED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                              {refund.status}
+                                            </span>
+                                          </div>
+                                          {refund.reason && (
+                                            <p className="text-gray-600 text-xs mb-1">Reason: {refund.reason}</p>
+                                          )}
+                                          <p className="text-gray-500 text-xs">
+                                            Processed by {refund.users_refunds_processed_byTousers.display_name} on{' '}
+                                            {new Date(refund.created_at).toLocaleString('en-GB')}
+                                          </p>
+                                        </div>
+                                      ))}
                                     </div>
                                   </div>
                                 )}
