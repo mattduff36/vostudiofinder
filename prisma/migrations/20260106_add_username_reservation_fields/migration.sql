@@ -20,6 +20,7 @@ ALTER TABLE "users" ADD COLUMN "payment_retry_count" INTEGER NOT NULL DEFAULT 0;
 -- Add email reminder tracking (NULL if reminder hasn't been sent yet)
 ALTER TABLE "users" ADD COLUMN "day2_reminder_sent_at" TIMESTAMP(3);
 ALTER TABLE "users" ADD COLUMN "day5_reminder_sent_at" TIMESTAMP(3);
+ALTER TABLE "users" ADD COLUMN "failed_payment_email_sent_at" TIMESTAMP(3);
 
 -- Create index on status for efficient querying of PENDING/EXPIRED users
 CREATE INDEX "users_status_idx" ON "users"("status");
@@ -38,4 +39,5 @@ COMMENT ON COLUMN "users"."payment_attempted_at" IS 'Timestamp of first payment 
 COMMENT ON COLUMN "users"."payment_retry_count" IS 'Number of payment attempts (incremented on each failure)';
 COMMENT ON COLUMN "users"."day2_reminder_sent_at" IS 'Timestamp when Day 2 reminder email was sent (prevents duplicates)';
 COMMENT ON COLUMN "users"."day5_reminder_sent_at" IS 'Timestamp when Day 5 urgency email was sent (prevents duplicates)';
+COMMENT ON COLUMN "users"."failed_payment_email_sent_at" IS 'Timestamp when failed payment retry email was sent (prevents duplicates)';
 
