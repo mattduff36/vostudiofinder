@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import EditStudioModal from '@/components/admin/EditStudioModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
 import { AdminTabs } from '@/components/admin/AdminTabs';
+import FloatingHorizontalScrollbar from '@/components/admin/FloatingHorizontalScrollbar';
 import { getCompletionBgColor } from '@/lib/profile-completion';
 import { formatRelativeDate, formatDate } from '@/lib/date-format';
 
@@ -59,6 +60,89 @@ export default function AdminStudiosPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  interface HideableColumnKeyMap {
+    type: true;
+    lastLogin: true;
+    updated: true;
+    owner: true;
+    select: true;
+  }
+
+  const HIDE_PRIORITY: Array<keyof HideableColumnKeyMap> = useMemo(
+    () => ['type', 'lastLogin', 'updated', 'owner', 'select'],
+    []
+  );
+
+  const [hiddenColumns, setHiddenColumns] = useState<Array<keyof HideableColumnKeyMap>>([]);
+  const hiddenColumnsSet = useMemo(() => new Set(hiddenColumns), [hiddenColumns]);
+
+  const tableScrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const tableRef = useRef<HTMLTableElement | null>(null);
+  const recomputeTokenRef = useRef(0);
+
+  const [isFloatingScrollbarVisible, setIsFloatingScrollbarVisible] = useState(false);
+
+  const isColumnHidden = useCallback(
+    (key: keyof HideableColumnKeyMap) => hiddenColumnsSet.has(key),
+    [hiddenColumnsSet]
+  );
+
+  const recomputeHiddenColumns = useCallback(async () => {
+    const container = tableScrollContainerRef.current;
+    const table = tableRef.current;
+    if (!container || !table) return;
+
+    const token = ++recomputeTokenRef.current;
+
+    const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+    const isOverflowing = () => {
+      const c = tableScrollContainerRef.current;
+      const t = tableRef.current;
+      if (!c || !t) return false;
+      return t.scrollWidth > c.clientWidth + 1;
+    };
+
+    // Start from a clean slate so columns can re-appear when resizing wider.
+    setHiddenColumns([]);
+    await nextFrame();
+
+    for (const key of HIDE_PRIORITY) {
+      if (token !== recomputeTokenRef.current) return;
+      if (!isOverflowing()) break;
+
+      setHiddenColumns(prev => (prev.includes(key) ? prev : [...prev, key]));
+      await nextFrame();
+    }
+  }, [HIDE_PRIORITY]);
+
+  useEffect(() => {
+    if (loading) return;
+    // Defer so the DOM is painted before we measure.
+    const id = requestAnimationFrame(() => {
+      recomputeHiddenColumns();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [loading, studios.length, recomputeHiddenColumns]);
+
+  useEffect(() => {
+    if (loading) return;
+    const container = tableScrollContainerRef.current;
+    if (!container) return;
+
+    const ro = new ResizeObserver(() => {
+      recomputeHiddenColumns();
+    });
+    ro.observe(container);
+
+    window.addEventListener('resize', recomputeHiddenColumns, { passive: true } as AddEventListenerOptions);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', recomputeHiddenColumns);
+    };
+  }, [loading, recomputeHiddenColumns]);
 
   useEffect(() => {
     fetchStudios();
@@ -352,7 +436,7 @@ export default function AdminStudiosPage() {
   return (
     <>
       <AdminTabs activeTab="studios" />
-      <div className="p-8 min-h-screen">
+      <div className={`p-8 min-h-screen ${isFloatingScrollbarVisible ? 'pb-24' : ''}`}>
         <div className="max-w-full mx-auto px-4">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -443,7 +527,7 @@ export default function AdminStudiosPage() {
               <div className="flex items-center justify-between">
                 {/* Left side - Select All checkbox */}
                 <div className="flex items-center">
-                  {studios.length > 0 && (
+                  {studios.length > 0 && !isColumnHidden('select') && (
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -462,11 +546,11 @@ export default function AdminStudiosPage() {
                 </h2>
               </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+            <div ref={tableScrollContainerRef} className="overflow-x-auto">
+              <table ref={tableRef} className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${isColumnHidden('select') ? 'hidden' : ''}`}>
                       Select
                     </th>
                     <th 
@@ -476,11 +560,11 @@ export default function AdminStudiosPage() {
                     >
                       Studio{getSortIcon('name')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${isColumnHidden('type') ? 'hidden' : ''}`}>
                       Type
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${isColumnHidden('owner') ? 'hidden' : ''}`}
                       onClick={() => handleSort('owner')}
                       title="Click to sort by owner name"
                     >
@@ -522,7 +606,7 @@ export default function AdminStudiosPage() {
                       Featured{getSortIcon('is_featured')}
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${isColumnHidden('lastLogin') ? 'hidden' : ''}`}
                       onClick={() => handleSort('last_login')}
                       title="Click to sort by last login date"
                     >
@@ -535,7 +619,7 @@ export default function AdminStudiosPage() {
                       Membership Expires
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${isColumnHidden('updated') ? 'hidden' : ''}`}
                       onClick={() => handleSort('updated_at')}
                     >
                       Updated{getSortIcon('updated_at')}
@@ -548,7 +632,7 @@ export default function AdminStudiosPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {studios.map((studio) => (
                     <tr key={studio.id} className={`hover:bg-gray-50 ${selectedStudios.includes(studio.id) ? 'bg-blue-50' : ''}`}>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className={`px-6 py-4 whitespace-nowrap ${isColumnHidden('select') ? 'hidden' : ''}`}>
                         <input
                           type="checkbox"
                           checked={selectedStudios.includes(studio.id)}
@@ -573,7 +657,7 @@ export default function AdminStudiosPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className={`px-6 py-4 whitespace-nowrap ${isColumnHidden('type') ? 'hidden' : ''}`}>
                         <span className="text-sm font-medium text-gray-900">
                           {studio.studio_studio_types && studio.studio_studio_types.length > 0 
                             ? studio.studio_studio_types
@@ -587,7 +671,7 @@ export default function AdminStudiosPage() {
                           }
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className={`px-6 py-4 whitespace-nowrap ${isColumnHidden('owner') ? 'hidden' : ''}`}>
                         <div className="text-sm text-gray-900">{studio.users.display_name}</div>
                         <div className="text-sm text-gray-500">{studio.users.email}</div>
                       </td>
@@ -675,7 +759,7 @@ export default function AdminStudiosPage() {
                         </button>
                       </td>
                       {/* Last Login */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${isColumnHidden('lastLogin') ? 'hidden' : ''}`}>
                         {studio.last_login ? formatRelativeDate(studio.last_login) : (
                           <span className="text-gray-400 italic">No data</span>
                         )}
@@ -697,7 +781,7 @@ export default function AdminStudiosPage() {
                         )}
                       </td>
                       {/* Updated Date */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${isColumnHidden('updated') ? 'hidden' : ''}`}>
                         {formatDate(studio.updated_at)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -728,6 +812,12 @@ export default function AdminStudiosPage() {
               </table>
             </div>
           </div>
+
+          <FloatingHorizontalScrollbar
+            scrollContainerRef={tableScrollContainerRef}
+            scrollContentRef={tableRef}
+            onVisibilityChange={setIsFloatingScrollbarVisible}
+          />
 
           {/* Load More Button */}
           {pagination.hasMore && (
