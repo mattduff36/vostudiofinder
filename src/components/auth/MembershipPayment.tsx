@@ -158,7 +158,7 @@ export function MembershipPayment() {
                       What Happens Next?
                     </h4>
                     <p className="text-gray-700 leading-relaxed mb-4">
-                      Once your payment is complete, you'll create your professional studio profile in minutes!
+                      Almost there! 3 quick steps to complete your profile and start receiving bookings!
                     </p>
                   </div>
                 </div>
@@ -187,12 +187,6 @@ export function MembershipPayment() {
                       <p className="text-gray-600 text-sm">Your profile becomes instantly searchable to thousands of voice artists globally</p>
                     </div>
                   </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-[#d42027]/20">
-                  <p className="text-sm text-gray-600 italic">
-                    ⏱️ Takes just 5 minutes to complete your profile and start receiving bookings!
-                  </p>
                 </div>
               </div>
             </div>
