@@ -104,8 +104,23 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
     where: { email: user_email },
   });
 
-  // If user doesn't exist yet, we'll record the payment and associate it later
-  // This handles race condition where webhook arrives before account creation completes
+  // CRITICAL: If user doesn't exist yet, we CANNOT create the payment record due to FK constraint
+  // Store the event as unprocessed and it will be picked up when user signs in
+  if (!user) {
+    logger.log(`⏳ User ${user_email} not yet created, deferring payment processing`);
+    logger.log(`   Session ${session.id} will be processed when user account is created`);
+    
+    // Mark webhook event as unprocessed so it can be retried
+    await db.stripe_webhook_events.updateMany({
+      where: { stripe_event_id: session.id },
+      data: { 
+        processed: false,
+        error: 'User account not yet created - deferred processing',
+      },
+    });
+    
+    return; // Exit early - signup flow will process this payment
+  }
 
   // Record payment (idempotent on checkout_session_id)
   const existingPayment = await db.payments.findUnique({
@@ -120,7 +135,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   const payment = await db.payments.create({
     data: {
       id: randomBytes(12).toString('base64url'),
-      user_id: user?.id || 'PENDING', // Will be updated when user is created
+      user_id: user.id, // Now guaranteed to exist
       stripe_checkout_session_id: session.id,
       stripe_payment_intent_id: paymentIntent.id,
       stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
@@ -249,6 +264,16 @@ async function handleRefund(refund: Stripe.Refund) {
 
   logger.log(`✅ Payment ${payment.id} updated: refunded ${newRefundedAmount}/${payment.amount}`);
 
+  // CRITICAL: processed_by requires a valid user ID (FK constraint)
+  // For automated webhook refunds, use the first admin user or the user being refunded
+  const adminUser = await db.users.findFirst({
+    where: { role: 'ADMIN' },
+    select: { id: true },
+  });
+  
+  const processedBy = adminUser?.id || payment.user_id;
+  logger.log(`📝 Recording refund processed by: ${processedBy === payment.user_id ? 'USER (no admin found)' : 'ADMIN'}`);
+
   // Record refund
   await db.refunds.create({
     data: {
@@ -259,8 +284,8 @@ async function handleRefund(refund: Stripe.Refund) {
       currency: refund.currency,
       reason: refund.reason || null,
       status: refund.status === 'succeeded' ? 'SUCCEEDED' : 'PENDING',
-      processed_by: 'SYSTEM', // Will be updated by admin action if initiated from admin panel
-      user_id: payment.user_id === 'PENDING' ? null : payment.user_id,
+      processed_by: processedBy, // Use admin user or fallback to payment user
+      user_id: payment.user_id, // Now guaranteed to be valid (not 'PENDING')
       payment_id: payment.id,
       created_at: new Date(),
       updated_at: new Date(),
@@ -268,7 +293,7 @@ async function handleRefund(refund: Stripe.Refund) {
   })
 
   // If full refund, end membership immediately
-  if (isFullRefund && payment.user_id !== 'PENDING') {
+  if (isFullRefund) { // payment.user_id is now always valid
     logger.log(`🚫 Full refund detected, ending membership for user ${payment.user_id}`);
     
     // Find active subscription
