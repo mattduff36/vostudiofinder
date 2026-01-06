@@ -116,10 +116,16 @@ export function MembershipPayment() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-0">
             {/* LEFT: Features & Account Info - Takes 3 columns */}
             <div className="px-8 py-8 lg:col-span-3 border-r border-gray-200">
-              <h4 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                <Building className="w-6 h-6 mr-3 text-[#d42027]" />
-                What's Included
-              </h4>
+              <div className="flex items-start mb-6">
+                <div className="bg-[#d42027] text-white p-2 rounded-lg mr-4">
+                  <Building className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-xl font-semibold text-gray-900">
+                    What's Included
+                  </h4>
+                </div>
+              </div>
               
               <ul className="space-y-4 mb-8">
                 {[
@@ -138,8 +144,11 @@ export function MembershipPayment() {
                 ))}
               </ul>
 
+              {/* Divider */}
+              <div className="my-8 border-t border-gray-200"></div>
+
               {/* What's Next Section */}
-              <div className="mt-8 bg-gradient-to-br from-[#d42027]/5 to-[#d42027]/10 rounded-lg p-6 border border-[#d42027]/20">
+              <div className="bg-gradient-to-br from-[#d42027]/5 to-[#d42027]/10 rounded-lg p-6 border border-[#d42027]/20">
                 <div className="flex items-start mb-4">
                   <div className="bg-[#d42027] text-white p-2 rounded-lg mr-4">
                     <Sparkles className="w-6 h-6" />
