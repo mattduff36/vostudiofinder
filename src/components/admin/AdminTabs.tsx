@@ -7,10 +7,11 @@ import {
   Building, 
   Activity, 
   MessageSquare,
-  Users 
+  Users,
+  Headphones
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -28,6 +29,7 @@ const tabs: TabConfig[] = [
   { id: 'studios', label: 'Studios', icon: Building, href: '/admin/studios' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'waitlist', label: 'Waiting List', icon: Users, href: '/admin/waitlist' },
+  { id: 'support', label: 'Support', icon: Headphones, href: '/admin/support' },
   { id: 'faq', label: 'FAQ', icon: MessageSquare, href: '/admin/faq' },
 ];
 
