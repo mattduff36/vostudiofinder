@@ -7,6 +7,7 @@ DROP INDEX IF EXISTS "users_reservation_expires_at_idx";
 DROP INDEX IF EXISTS "users_status_idx";
 
 -- Drop the columns
+ALTER TABLE "users" DROP COLUMN IF EXISTS "failed_payment_email_sent_at";
 ALTER TABLE "users" DROP COLUMN IF EXISTS "day5_reminder_sent_at";
 ALTER TABLE "users" DROP COLUMN IF EXISTS "day2_reminder_sent_at";
 ALTER TABLE "users" DROP COLUMN IF EXISTS "payment_retry_count";

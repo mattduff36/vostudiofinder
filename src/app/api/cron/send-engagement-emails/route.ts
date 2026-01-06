@@ -220,6 +220,7 @@ export async function GET(request: NextRequest) {
         payment_retry_count: {
           gte: 1, // At least one failed attempt
         },
+        failed_payment_email_sent_at: null, // Haven't sent failed payment email yet
       },
       include: {
         payments: {
@@ -267,6 +268,12 @@ export async function GET(request: NextRequest) {
             }),
             retryUrl: `${process.env.NEXTAUTH_URL}/api/auth/retry-payment?userId=${user.id}`,
           }),
+        });
+
+        // Mark failed payment email as sent to prevent duplicates
+        await db.users.update({
+          where: { id: user.id },
+          data: { failed_payment_email_sent_at: now },
         });
 
         console.log(`✅ [CRON] Failed payment email sent to ${user.email}`);

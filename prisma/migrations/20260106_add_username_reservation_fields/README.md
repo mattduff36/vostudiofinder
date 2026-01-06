@@ -34,6 +34,9 @@ This migration adds fields to support the Username Reservation & Payment Capture
 6. **`day5_reminder_sent_at`** (`TIMESTAMP`, NULL)
    - Timestamp when Day 5 urgency email was sent (prevents duplicate emails)
 
+7. **`failed_payment_email_sent_at`** (`TIMESTAMP`, NULL)
+   - Timestamp when failed payment retry email was sent (prevents duplicate emails)
+
 ### New Indexes:
 - `users_status_idx` on `status` column
 - `users_reservation_expires_at_idx` on `reservation_expires_at` column
