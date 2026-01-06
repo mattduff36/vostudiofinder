@@ -67,17 +67,40 @@ export default function AdminStudiosPage() {
 
   const computeHiddenColumns = useCallback(() => {
     const container = tableContainerRef.current;
-    if (!container) return;
+    if (!container) {
+      console.log('[COLUMN-HIDE] No container ref');
+      return;
+    }
 
     const table = container.querySelector('table');
-    if (!table) return;
+    if (!table) {
+      console.log('[COLUMN-HIDE] No table found');
+      return;
+    }
 
-    // Add 5px buffer to avoid flickering at exact boundaries
-    const overflowAmount = table.scrollWidth - container.clientWidth;
+    const containerWidth = container.clientWidth;
+    const tableWidth = table.scrollWidth;
+    const overflowAmount = tableWidth - containerWidth;
+    
+    console.log('[COLUMN-HIDE] Measurement:', {
+      containerWidth,
+      tableWidth,
+      overflowAmount,
+      hasOverflow: overflowAmount > 5,
+      currentHidden: hiddenColumns.length
+    });
     
     if (overflowAmount <= 5) {
       // No significant overflow, show all columns
-      setHiddenColumns(prev => prev.length === 0 ? prev : []);
+      console.log('[COLUMN-HIDE] No overflow, clearing hidden columns');
+      setHiddenColumns(prev => {
+        if (prev.length === 0) {
+          console.log('[COLUMN-HIDE] Already empty, no state update');
+          return prev;
+        }
+        console.log('[COLUMN-HIDE] Setting to empty array');
+        return [];
+      });
       return;
     }
 
@@ -90,46 +113,86 @@ export default function AdminStudiosPage() {
 
     const newHidden = HIDE_ORDER.slice(0, columnsToHide);
     
+    console.log('[COLUMN-HIDE] Calculated columns to hide:', {
+      overflowAmount,
+      columnsToHide,
+      newHidden,
+      hideOrder: HIDE_ORDER
+    });
+    
     // Only update if actually different
     setHiddenColumns(prev => {
-      if (prev.length === newHidden.length && 
-          prev.every((col, i) => col === newHidden[i])) {
+      const isSame = prev.length === newHidden.length && 
+                     prev.every((col, i) => col === newHidden[i]);
+      
+      console.log('[COLUMN-HIDE] State comparison:', {
+        prev,
+        newHidden,
+        isSame,
+        willUpdate: !isSame
+      });
+      
+      if (isSame) {
+        console.log('[COLUMN-HIDE] No change needed, returning prev');
         return prev; // Don't trigger re-render
       }
+      
+      console.log('[COLUMN-HIDE] Updating state from', prev, 'to', newHidden);
       return newHidden;
     });
-  }, [HIDE_ORDER]);
+  }, [HIDE_ORDER, hiddenColumns.length]);
 
   useEffect(() => {
-    if (loading || studios.length === 0) return;
+    console.log('[EFFECT-1] Studios/loading changed:', { loading, studiosCount: studios.length });
     
+    if (loading || studios.length === 0) {
+      console.log('[EFFECT-1] Skipping - still loading or no studios');
+      return;
+    }
+    
+    console.log('[EFFECT-1] Scheduling column computation in 100ms');
     // Wait for DOM to render, then compute
     const timer = setTimeout(() => {
+      console.log('[EFFECT-1] Timer fired, calling computeHiddenColumns');
       computeHiddenColumns();
     }, 100);
 
-    return () => clearTimeout(timer);
+    return () => {
+      console.log('[EFFECT-1] Cleanup - clearing timer');
+      clearTimeout(timer);
+    };
   }, [loading, studios.length, computeHiddenColumns]);
 
   useEffect(() => {
+    console.log('[EFFECT-2] Setting up resize listener');
     // Only respond to window resize, not container resize
     let timeoutId: NodeJS.Timeout;
     
     const handleResize = () => {
+      console.log('[RESIZE-EVENT] Window resize fired, viewport:', {
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
       // Clear any pending computation
       clearTimeout(timeoutId);
       // Debounce to handle window snapping and animations
       timeoutId = setTimeout(() => {
+        console.log('[RESIZE-EVENT] Debounce timer fired (150ms), calling computeHiddenColumns');
         computeHiddenColumns();
       }, 150);
     };
 
     window.addEventListener('resize', handleResize);
     return () => {
+      console.log('[EFFECT-2] Cleanup - removing resize listener');
       window.removeEventListener('resize', handleResize);
       clearTimeout(timeoutId);
     };
   }, [computeHiddenColumns]);
+
+  useEffect(() => {
+    console.log('[STATE-CHANGE] hiddenColumns changed:', hiddenColumns);
+  }, [hiddenColumns]);
 
   useEffect(() => {
     fetchStudios();
