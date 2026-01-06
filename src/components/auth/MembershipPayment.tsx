@@ -138,15 +138,6 @@ export function MembershipPayment() {
                 ))}
               </ul>
 
-              {/* Account Details */}
-              {(email || name) && (
-                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Account Details</h4>
-                  {name && <p className="text-gray-700 mb-1"><span className="font-medium">Name:</span> {name}</p>}
-                  {email && <p className="text-gray-700"><span className="font-medium">Email:</span> {email}</p>}
-                </div>
-              )}
-
               {/* What's Next Section */}
               <div className="mt-8 bg-gradient-to-br from-[#d42027]/5 to-[#d42027]/10 rounded-lg p-6 border border-[#d42027]/20">
                 <div className="flex items-start mb-4">
