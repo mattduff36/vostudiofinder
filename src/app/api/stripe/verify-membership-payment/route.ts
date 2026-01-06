@@ -18,29 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // DEVELOPMENT MODE: Accept mock session IDs
-    if (process.env.NODE_ENV === 'development' || sessionId.startsWith('cs_dev_')) {
-      console.log('🔧 DEV MODE: Simulating payment verification for session:', sessionId);
-      
-      // Extract user data from URL parameters or use defaults
-      const url = new URL(request.url);
-      const email = url.searchParams.get('email') || 'test@example.com';
-      const name = url.searchParams.get('name') || 'Test User';
-      const username = url.searchParams.get('username') || 'testuser';
-
-      return NextResponse.json({
-        verified: true,
-        customerData: {
-          email,
-          name,
-          username,
-        },
-        paymentId: `pay_dev_${Date.now()}`,
-        dev_mode: true,
-      });
-    }
-
-    // PRODUCTION MODE: Verify real Stripe session
+    // Verify real Stripe session
     if (!process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json(
         { error: 'Stripe configuration not available' },
