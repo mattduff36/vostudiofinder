@@ -165,80 +165,105 @@ export async function POST(request: NextRequest) {
     const pendingWebhooks = await db.stripe_webhook_events.findMany({
       where: {
         processed: false,
-        type: 'checkout.session.completed',
         error: {
           contains: 'User account not yet created',
         },
       },
     });
 
+    console.log(`📦 Found ${pendingWebhooks.length} pending webhook events to check`);
+
     for (const webhookEvent of pendingWebhooks) {
       try {
-        const sessionData = webhookEvent.payload as Stripe.Checkout.Session;
-        const sessionMetadata = sessionData.metadata || {};
+        const eventPayload = webhookEvent.payload as any;
+        const eventType = webhookEvent.type;
+        
+        console.log(`🔎 Checking webhook event: ${eventType} (ID: ${webhookEvent.stripe_event_id})`);
+        
+        // Extract email from different event types
+        let eventEmail: string | null = null;
+        
+        if (eventType === 'checkout.session.completed') {
+          const sessionData = eventPayload.data?.object || eventPayload;
+          eventEmail = sessionData.metadata?.user_email || sessionData.customer_email || null;
+        } else if (eventType === 'payment_intent.succeeded' || eventType === 'payment_intent.payment_failed') {
+          const paymentIntentData = eventPayload.data?.object || eventPayload;
+          eventEmail = paymentIntentData.metadata?.user_email || null;
+        }
+        
+        console.log(`📧 Event email: ${eventEmail}, Target email: ${email}`);
         
         // Check if this event is for this user
-        if (sessionMetadata.user_email === email) {
-          console.log(`💳 Processing deferred payment for session ${sessionData.id}`);
+        if (eventEmail === email) {
+          console.log(`💳 Processing deferred ${eventType} for ${email}`);
           
-          // Retrieve full session with payment_intent
-          const session = await stripe.checkout.sessions.retrieve(sessionData.id, {
-            expand: ['payment_intent'],
+          if (eventType === 'checkout.session.completed') {
+            const sessionData = eventPayload.data?.object || eventPayload;
+            const sessionMetadata = sessionData.metadata || {};
+            
+            // Retrieve full session with payment_intent
+            const session = await stripe.checkout.sessions.retrieve(sessionData.id, {
+              expand: ['payment_intent'],
+            });
+            
+            const paymentIntent = session.payment_intent as Stripe.PaymentIntent | null;
+            
+            if (paymentIntent && session.payment_status === 'paid') {
+              // Create payment record
+              const paymentId = crypto.randomBytes(12).toString('base64url');
+              await db.payments.create({
+                data: {
+                  id: paymentId,
+                  user_id: user.id,
+                  stripe_checkout_session_id: session.id,
+                  stripe_payment_intent_id: paymentIntent.id,
+                  stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
+                  amount: paymentIntent.amount,
+                  currency: paymentIntent.currency,
+                  status: 'SUCCEEDED',
+                  refunded_amount: 0,
+                  metadata: sessionMetadata || {},
+                  created_at: new Date(session.created * 1000), // Use original session timestamp
+                  updated_at: new Date(),
+                },
+              });
+              
+              // Grant 12-month membership
+              const now = new Date();
+              const oneYearFromNow = new Date(now);
+              oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+              
+              await db.subscriptions.create({
+                data: {
+                  id: crypto.randomBytes(12).toString('base64url'),
+                  user_id: user.id,
+                  status: 'ACTIVE',
+                  payment_method: 'STRIPE',
+                  current_period_start: now,
+                  current_period_end: oneYearFromNow,
+                  created_at: now,
+                  updated_at: now,
+                },
+              });
+              
+              console.log(`✅ Deferred payment processed: ${paymentId}`);
+              console.log(`✅ Membership granted to ${email} until ${oneYearFromNow.toISOString()}`);
+            }
+          }
+          
+          // Mark webhook as processed
+          await db.stripe_webhook_events.update({
+            where: { id: webhookEvent.id },
+            data: {
+              processed: true,
+              processed_at: new Date(),
+              error: null,
+            },
           });
           
-          const paymentIntent = session.payment_intent as Stripe.PaymentIntent | null;
-          
-          if (paymentIntent && session.payment_status === 'paid') {
-            // Create payment record
-            const paymentId = crypto.randomBytes(12).toString('base64url');
-            await db.payments.create({
-              data: {
-                id: paymentId,
-                user_id: user.id,
-                stripe_checkout_session_id: session.id,
-                stripe_payment_intent_id: paymentIntent.id,
-                stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
-                amount: paymentIntent.amount,
-                currency: paymentIntent.currency,
-                status: 'SUCCEEDED',
-                refunded_amount: 0,
-                metadata: sessionMetadata || {},
-                created_at: new Date(session.created * 1000), // Use original session timestamp
-                updated_at: new Date(),
-              },
-            });
-            
-            // Grant 12-month membership
-            const now = new Date();
-            const oneYearFromNow = new Date(now);
-            oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-            
-            await db.subscriptions.create({
-              data: {
-                id: crypto.randomBytes(12).toString('base64url'),
-                user_id: user.id,
-                status: 'ACTIVE',
-                payment_method: 'STRIPE',
-                current_period_start: now,
-                current_period_end: oneYearFromNow,
-                created_at: now,
-                updated_at: now,
-              },
-            });
-            
-            // Mark webhook as processed
-            await db.stripe_webhook_events.update({
-              where: { id: webhookEvent.id },
-              data: {
-                processed: true,
-                processed_at: new Date(),
-                error: null,
-              },
-            });
-            
-            console.log(`✅ Deferred payment processed: ${paymentId}`);
-            console.log(`✅ Membership granted to ${email} until ${oneYearFromNow.toISOString()}`);
-          }
+          console.log(`✅ Deferred webhook ${webhookEvent.stripe_event_id} marked as processed`);
+        } else {
+          console.log(`⏭️ Skipping webhook (different user): ${eventEmail} !== ${email}`);
         }
       } catch (deferredError) {
         console.error(`❌ Error processing deferred payment:`, deferredError);
