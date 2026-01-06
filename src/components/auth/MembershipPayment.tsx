@@ -145,12 +145,9 @@ export function MembershipPayment() {
                     <Sparkles className="w-6 h-6" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h4 className="text-xl font-semibold text-gray-900 mb-4">
                       What Happens Next?
                     </h4>
-                    <p className="text-gray-700 leading-relaxed mb-4">
-                      Almost there! 3 quick steps to complete your profile and start receiving bookings!
-                    </p>
                   </div>
                 </div>
 
