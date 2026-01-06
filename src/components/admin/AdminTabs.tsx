@@ -9,10 +9,11 @@ import {
   MessageSquare,
   Users,
   Headphones,
-  CreditCard
+  CreditCard,
+  Clock
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support' | 'payments';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support' | 'payments' | 'reservations';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -29,6 +30,7 @@ const tabs: TabConfig[] = [
   { id: 'overview', label: 'Overview', icon: TrendingUp, href: '/admin' },
   { id: 'studios', label: 'Studios', icon: Building, href: '/admin/studios' },
   { id: 'payments', label: 'Payments', icon: CreditCard, href: '/admin/payments' },
+  { id: 'reservations', label: 'Reservations', icon: Clock, href: '/admin/reservations' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'waitlist', label: 'Waiting List', icon: Users, href: '/admin/waitlist' },
   { id: 'support', label: 'Support', icon: Headphones, href: '/admin/support' },
