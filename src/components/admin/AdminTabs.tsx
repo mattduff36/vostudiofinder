@@ -8,10 +8,11 @@ import {
   Activity, 
   MessageSquare,
   Users,
-  Headphones
+  Headphones,
+  CreditCard
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support' | 'payments';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -27,6 +28,7 @@ interface TabConfig {
 const tabs: TabConfig[] = [
   { id: 'overview', label: 'Overview', icon: TrendingUp, href: '/admin' },
   { id: 'studios', label: 'Studios', icon: Building, href: '/admin/studios' },
+  { id: 'payments', label: 'Payments', icon: CreditCard, href: '/admin/payments' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'waitlist', label: 'Waiting List', icon: Users, href: '/admin/waitlist' },
   { id: 'support', label: 'Support', icon: Headphones, href: '/admin/support' },
