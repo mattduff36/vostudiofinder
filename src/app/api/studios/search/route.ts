@@ -114,6 +114,98 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Lazy enforcement: update expired memberships to INACTIVE status (skip admin accounts)
+    // This ensures search results are accurate even if no one has logged in recently
+    try {
+      const now = new Date();
+      
+      // Find studios with expired memberships that are still ACTIVE (exclude admin emails)
+      const expiredStudios = await db.studio_profiles.findMany({
+        where: {
+          status: 'ACTIVE',
+          users: {
+            email: {
+              notIn: ['admin@mpdee.co.uk', 'guy@voiceoverguy.co.uk']
+            },
+            subscriptions: {
+              some: {
+                current_period_end: {
+                  lt: now
+                }
+              }
+            }
+          }
+        },
+        select: {
+          id: true,
+          users: {
+            select: {
+              subscriptions: {
+                orderBy: { created_at: 'desc' },
+                take: 1,
+                select: {
+                  current_period_end: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Filter to only include studios whose latest subscription is expired
+      const studiesToDeactivate = expiredStudios.filter(studio => {
+        const latestSub = studio.users?.subscriptions[0];
+        return latestSub && latestSub.current_period_end && latestSub.current_period_end < now;
+      });
+
+      // Batch update expired studios to INACTIVE
+      if (studiesToDeactivate.length > 0) {
+        await db.studio_profiles.updateMany({
+          where: {
+            id: {
+              in: studiesToDeactivate.map(s => s.id)
+            }
+          },
+          data: {
+            status: 'INACTIVE',
+            updated_at: now
+          }
+        });
+        logger.log(`🔄 Search: Updated ${studiesToDeactivate.length} expired studios to INACTIVE`);
+      }
+      
+      // Lazy enforcement: unfeature expired featured studios
+      const expiredFeaturedStudios = await db.studio_profiles.findMany({
+        where: {
+          is_featured: true,
+          featured_until: {
+            lt: now
+          }
+        },
+        select: {
+          id: true
+        }
+      });
+
+      if (expiredFeaturedStudios.length > 0) {
+        await db.studio_profiles.updateMany({
+          where: {
+            id: {
+              in: expiredFeaturedStudios.map(s => s.id)
+            }
+          },
+          data: {
+            is_featured: false,
+            updated_at: now
+          }
+        });
+        logger.log(`🔄 Search: Unfeatured ${expiredFeaturedStudios.length} expired featured studios`);
+      }
+    } catch (enforcementError) {
+      // Log but don't fail the search if enforcement fails
+      logger.error('Search lazy enforcement error:', enforcementError);
+    }
+
     // Build where clause
     const where: Prisma.studio_profilesWhereInput = {
       status: 'ACTIVE',

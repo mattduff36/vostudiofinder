@@ -22,6 +22,7 @@ interface Studio {
   is_profile_visible?: boolean;
   profile_completion?: number;
   last_login?: string | null;
+  membership_expires_at?: string | null;
   users: {
     display_name: string;
     email: string;
@@ -528,6 +529,12 @@ export default function AdminStudiosPage() {
                       Last Login{getSortIcon('last_login')}
                     </th>
                     <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      title="Membership expiry date"
+                    >
+                      Membership Expires
+                    </th>
+                    <th 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort('updated_at')}
                     >
@@ -671,6 +678,22 @@ export default function AdminStudiosPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {studio.last_login ? formatRelativeDate(studio.last_login) : (
                           <span className="text-gray-400 italic">No data</span>
+                        )}
+                      </td>
+                      {/* Membership Expires */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {studio.membership_expires_at ? (
+                          <span className={
+                            new Date(studio.membership_expires_at) < new Date()
+                              ? 'text-red-600 font-medium'
+                              : new Date(studio.membership_expires_at) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                              ? 'text-orange-600 font-medium'
+                              : ''
+                          }>
+                            {formatDate(studio.membership_expires_at)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 italic">—</span>
                         )}
                       </td>
                       {/* Updated Date */}

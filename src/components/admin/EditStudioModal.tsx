@@ -127,6 +127,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       const data = await response.json();
       setProfile(data.profile);
       logger.log('[Admin Modal] Profile visibility:', data.profile._meta?.is_profile_visible);
+      logger.log('[Admin Modal] Membership expires at:', data.profile._meta?.membership_expires_at);
+      logger.log('[Admin Modal] Featured expires at:', data.profile._meta?.featured_expires_at);
     } catch (error) {
       logger.error('Error fetching profile:', error);
     } finally {
@@ -852,6 +854,48 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                   When should this studio stop being featured? Leave empty for no expiry.
                 </p>
               </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Membership</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Membership Expiry Date
+            </label>
+            {(profile?.email === 'admin@mpdee.co.uk' || profile?.email === 'guy@voiceoverguy.co.uk') ? (
+              <>
+                <input
+                  type="date"
+                  disabled
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-500"
+                  placeholder="N/A"
+                />
+                <div className="flex items-start space-x-2 mt-2 p-2 bg-blue-50 rounded-md border border-blue-200">
+                  <span className="text-sm">👑</span>
+                  <p className="text-xs text-blue-700">
+                    This is an admin account. Admin accounts have permanent access with no membership expiry date.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <input
+                  type="date"
+                  value={profile?._meta?.membership_expires_at ? new Date(profile._meta.membership_expires_at).toISOString().split('T')[0] : ''}
+                  onChange={(e) => {
+                    const dateValue = e.target.value ? new Date(e.target.value).toISOString() : '';
+                    handleMetaChange('membership_expires_at', dateValue);
+                  }}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Set when the user's membership expires. Studio will become INACTIVE after this date. Leave empty to clear.
+                </p>
+              </>
             )}
           </div>
         </div>
