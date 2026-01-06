@@ -116,10 +116,10 @@ export function MembershipPayment() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-0">
             {/* LEFT: Features & Account Info - Takes 3 columns */}
             <div className="px-8 py-8 lg:col-span-3 border-r border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+              <h4 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
                 <Building className="w-6 h-6 mr-3 text-[#d42027]" />
                 What's Included
-              </h3>
+              </h4>
               
               <ul className="space-y-4 mb-8">
                 {[
