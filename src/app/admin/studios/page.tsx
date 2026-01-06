@@ -143,12 +143,22 @@ export default function AdminStudiosPage() {
 
   useEffect(() => {
     // Only respond to window resize, not container resize
+    let timeoutId: NodeJS.Timeout;
+    
     const handleResize = () => {
-      computeHiddenColumns();
+      // Clear any pending computation
+      clearTimeout(timeoutId);
+      // Debounce to handle window snapping and animations
+      timeoutId = setTimeout(() => {
+        computeHiddenColumns();
+      }, 150);
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
   }, [computeHiddenColumns]);
 
   useEffect(() => {
