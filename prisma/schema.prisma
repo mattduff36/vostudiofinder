@@ -408,6 +408,13 @@ model users {
   deletion_scheduled_for                                     DateTime?
   deletion_status                                            String                  @default("ACTIVE")
   last_login                                                 DateTime?
+  
+  // Username reservation & payment tracking
+  status                                                     UserStatus              @default(PENDING)
+  reservation_expires_at                                     DateTime?
+  payment_attempted_at                                       DateTime?
+  payment_retry_count                                        Int                     @default(0)
+  
   created_at                                                 DateTime                @default(now())
   updated_at                                                 DateTime
   accounts                                                   accounts[]
@@ -590,4 +597,10 @@ enum SupportPriority {
   MEDIUM
   HIGH
   URGENT
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
 }
