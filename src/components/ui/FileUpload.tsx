@@ -40,7 +40,7 @@ export function FileUpload({
     const fileArray = Array.from(files);
     const validFiles = fileArray.filter(file => {
       // Check file type
-      if (accept && !file.type.match(accept.replace('*', '.*'))) {
+      if (accept && file.type && !file.type.match(accept.replace('*', '.*'))) {
         return false;
       }
       

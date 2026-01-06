@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, username, priceId } = await request.json();
+    const { email, name, username } = await request.json();
 
     if (!email || !name) {
       return NextResponse.json(
@@ -17,55 +17,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // DEVELOPMENT MODE: Bypass Stripe and simulate successful payment
-    if (process.env.NODE_ENV === 'development' || !process.env.STRIPE_SECRET_KEY) {
-      console.log('🔧 DEV MODE: Simulating Stripe checkout for:', { email, name, username });
-      
-      // Create a mock session ID for development
-      const mockSessionId = `cs_dev_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      
-      // Return mock success URL with test session ID
-      const mockSuccessUrl = `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id=${mockSessionId}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username || '')}`;
-      
-      return NextResponse.json({ 
-        sessionId: mockSessionId, 
-        url: mockSuccessUrl,
-        dev_mode: true 
-      });
+    // Use real Stripe with one-time payment
+    // Server selects price ID (never accept from client for security)
+    const priceId = process.env.STRIPE_MEMBERSHIP_PRICE_ID;
+    
+    if (!priceId) {
+      console.error('STRIPE_MEMBERSHIP_PRICE_ID not configured');
+      return NextResponse.json(
+        { error: 'Payment system not configured' },
+        { status: 500 }
+      );
     }
 
-    // PRODUCTION MODE: Use real Stripe
-    // Create Stripe checkout session
+    // Create Stripe checkout session for one-time payment (embedded mode)
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
       payment_method_types: ['card'],
       line_items: [
         {
-          price: priceId || process.env.STRIPE_MEMBERSHIP_PRICE_ID,
+          price: priceId,
           quantity: 1,
         },
       ],
-      mode: 'subscription',
-      success_url: `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/auth/membership?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username || '')}`,
+      mode: 'payment', // One-time annual fee
+      ui_mode: 'embedded', // Embedded checkout stays on our site
+      return_url: `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
         user_email: email,
         user_name: name,
         user_username: username || '',
-        type: 'studio_membership',
+        purpose: 'membership', // Standardized key for webhook routing
       },
-      subscription_data: {
+      // CRITICAL: Propagate metadata to payment intent for failed payment tracking
+      payment_intent_data: {
         metadata: {
           user_email: email,
           user_name: name,
           user_username: username || '',
-          type: 'studio_membership',
+          purpose: 'membership',
         },
       },
       allow_promotion_codes: true,
     });
 
-    return NextResponse.json({ sessionId: session.id, url: session.url });
+    return NextResponse.json({ clientSecret: session.client_secret });
   } catch (error) {
     console.error('Stripe checkout error:', error);
     handleApiError(error, 'Stripe checkout failed');

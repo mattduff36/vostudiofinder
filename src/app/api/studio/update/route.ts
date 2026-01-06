@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { updateStudioSchema } from '@/lib/validations/studio';
+import { requireActiveMembership } from '@/lib/membership';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -10,6 +11,15 @@ export async function PUT(request: NextRequest) {
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check membership
+    const membershipCheck = await requireActiveMembership(session.user.id);
+    if (membershipCheck.error) {
+      return NextResponse.json(
+        { error: membershipCheck.error, requiresPayment: true },
+        { status: membershipCheck.status || 403 }
+      );
     }
 
     const body = await request.json();

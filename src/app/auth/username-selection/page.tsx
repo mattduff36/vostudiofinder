@@ -1,4 +1,7 @@
 import { Metadata } from 'next';
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
+import { authOptions } from '@/lib/auth';
 import { UsernameSelectionForm } from '@/components/auth/UsernameSelectionForm';
 import Image from 'next/image';
 
@@ -7,7 +10,18 @@ export const metadata: Metadata = {
   description: 'Select your profile URL username',
 };
 
-export default function UsernameSelectionPage() {
+export default async function UsernameSelectionPage() {
+  const session = await getServerSession(authOptions);
+
+  // Redirect if already authenticated
+  if (session) {
+    // Special redirect for admin@mpdee.co.uk
+    if (session.user?.email === 'admin@mpdee.co.uk') {
+      redirect('/admin');
+    } else {
+      redirect('/dashboard');
+    }
+  }
   return (
     <div className="h-[calc(100vh-5rem)] relative overflow-hidden flex flex-col justify-start sm:justify-center py-8 sm:py-12 sm:px-6 lg:px-8">
       {/* Background Image */}

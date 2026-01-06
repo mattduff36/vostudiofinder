@@ -95,16 +95,23 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="your-google-maps-api-key"
 
 #### Stripe
 ```env
+# Server-side secret key (never expose to client)
 STRIPE_SECRET_KEY="sk_test_your-stripe-secret-key"
+
+# Client-side publishable key
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_your-stripe-publishable-key"
+
+# Webhook signing secret (required for webhook verification)
 STRIPE_WEBHOOK_SECRET="whsec_your-webhook-secret"
-NEXT_PUBLIC_STRIPE_PRICE_ID="price_your-stripe-price-id"
+
+# Membership Price ID (server-only, one-time annual payment)
 STRIPE_MEMBERSHIP_PRICE_ID="price_your-membership-price-id"
-NEXT_PUBLIC_STRIPE_MEMBERSHIP_PRICE_ID="price_your-membership-price-id"
 ```
 - **Required**: No (for payment features)
 - **Description**: Stripe payment processing configuration
 - **Setup**: Create products and prices in Stripe Dashboard
+- **Security Note**: Price IDs are server-only. Server determines pricing, never accept from client
+- **See**: `docs/STRIPE_SETUP_GUIDE.md` for detailed configuration instructions
 
 #### PayPal (Alternative)
 ```env
