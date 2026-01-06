@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET endpoint to check retry eligibility
+ * GET endpoint - Redirects user to payment page (for email links)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -143,10 +143,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId');
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.redirect(new URL('/auth/signup', request.url));
     }
 
     const user = await db.users.findUnique({
@@ -164,29 +161,39 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      // User not found - redirect to signup
+      return NextResponse.redirect(new URL('/auth/signup', request.url));
     }
 
     const now = new Date();
     const isExpired = user.reservation_expires_at && user.reservation_expires_at < now;
 
-    return NextResponse.json(
-      {
-        eligible: user.status === UserStatus.PENDING && !isExpired,
-        user: {
-          ...user,
-          is_expired: isExpired,
-        },
-      },
-      { status: 200 }
-    );
+    // If already active, redirect to dashboard/home
+    if (user.status === UserStatus.ACTIVE) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    // If expired, mark as EXPIRED and redirect to signup
+    if (isExpired || user.status === UserStatus.EXPIRED) {
+      if (user.status !== UserStatus.EXPIRED) {
+        await db.users.update({
+          where: { id: userId },
+          data: {
+            status: UserStatus.EXPIRED,
+            updated_at: now,
+          },
+        });
+      }
+      return NextResponse.redirect(new URL('/auth/signup?expired=true', request.url));
+    }
+
+    // User is PENDING and reservation valid - redirect to payment page
+    const checkoutUrl = `/auth/membership?userId=${user.id}&email=${encodeURIComponent(user.email)}&name=${encodeURIComponent(user.display_name)}&username=${encodeURIComponent(user.username)}`;
+    return NextResponse.redirect(new URL(checkoutUrl, request.url));
   } catch (error) {
-    console.error('Check retry eligibility error:', error);
-    const errorResponse = handleApiError(error, request);
-    return NextResponse.json(errorResponse, { status: 500 });
+    console.error('Retry payment redirect error:', error);
+    // On error, redirect to signup
+    return NextResponse.redirect(new URL('/auth/signup', request.url));
   }
 }
 
