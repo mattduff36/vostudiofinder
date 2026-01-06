@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { Check, Building, Loader2 } from 'lucide-react';
+import { Check, Building, Loader2, Sparkles, Upload, Globe } from 'lucide-react';
 import Image from 'next/image';
 
 // Initialize Stripe
@@ -146,6 +146,55 @@ export function MembershipPayment() {
                   {email && <p className="text-gray-700"><span className="font-medium">Email:</span> {email}</p>}
                 </div>
               )}
+
+              {/* What's Next Section */}
+              <div className="mt-8 bg-gradient-to-br from-[#d42027]/5 to-[#d42027]/10 rounded-lg p-6 border border-[#d42027]/20">
+                <div className="flex items-start mb-4">
+                  <div className="bg-[#d42027] text-white p-2 rounded-lg mr-4">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                      What Happens Next?
+                    </h4>
+                    <p className="text-gray-700 leading-relaxed mb-4">
+                      Once your payment is complete, you'll create your professional studio profile in minutes!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-start">
+                    <Building className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-gray-800 font-medium">Add Your Studio Details</p>
+                      <p className="text-gray-600 text-sm">Studio name, description, and type (Home/Recording/Podcast)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <Upload className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-gray-800 font-medium">Upload Studio Images</p>
+                      <p className="text-gray-600 text-sm">Showcase your space with 1-5 professional photos</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <Globe className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-gray-800 font-medium">Go Live Worldwide</p>
+                      <p className="text-gray-600 text-sm">Your profile becomes instantly searchable to thousands of voice artists globally</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-[#d42027]/20">
+                  <p className="text-sm text-gray-600 italic">
+                    ⏱️ Takes just 5 minutes to complete your profile and start receiving bookings!
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* RIGHT: Payment Form - Takes 2 columns */}
