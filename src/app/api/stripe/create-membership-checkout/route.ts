@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, username } = await request.json();
+    const { email, name, username, userId } = await request.json();
 
     if (!email || !name) {
       return NextResponse.json(
@@ -16,6 +16,15 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
+
+    console.log(`💳 Creating Stripe checkout for user: ${userId} (${email})`);
 
     // Use real Stripe with one-time payment
     // Server selects price ID (never accept from client for security)
@@ -43,6 +52,7 @@ export async function POST(request: NextRequest) {
       ui_mode: 'embedded', // Embedded checkout stays on our site
       return_url: `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
+        user_id: userId, // CRITICAL: User always exists now (PENDING status)
         user_email: email,
         user_name: name,
         user_username: username || '',
@@ -51,6 +61,7 @@ export async function POST(request: NextRequest) {
       // CRITICAL: Propagate metadata to payment intent for failed payment tracking
       payment_intent_data: {
         metadata: {
+          user_id: userId, // CRITICAL: This enables immediate webhook processing
           user_email: email,
           user_name: name,
           user_username: username || '',
@@ -59,6 +70,8 @@ export async function POST(request: NextRequest) {
       },
       allow_promotion_codes: true,
     });
+
+    console.log(`✅ Stripe checkout created: ${session.id} for user ${userId}`);
 
     return NextResponse.json({ clientSecret: session.client_secret });
   } catch (error) {

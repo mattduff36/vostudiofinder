@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { UserStatus } from '@prisma/client';
 import { 
   generateUsernameSuggestions, 
   addNumberSuffix,
@@ -8,6 +9,7 @@ import {
 
 /**
  * Check if username exists (case-insensitive)
+ * Excludes EXPIRED users - their usernames are available for reuse
  */
 async function usernameExists(username: string): Promise<boolean> {
   const existing = await db.users.findFirst({
@@ -15,6 +17,9 @@ async function usernameExists(username: string): Promise<boolean> {
       username: {
         equals: username,
         mode: 'insensitive',
+      },
+      status: {
+        not: UserStatus.EXPIRED, // Exclude expired reservations
       },
     },
   });

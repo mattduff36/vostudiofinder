@@ -94,7 +94,7 @@ export function UsernameSelectionForm() {
     return undefined;
   }, [customUsername]);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedUsername) {
       setError('Please select a username');
       return;
@@ -109,12 +109,68 @@ export function UsernameSelectionForm() {
     }
 
     const data = JSON.parse(signupData);
-    const params = new URLSearchParams();
-    params.set('email', data.email);
-    params.set('name', data.display_name);
-    params.set('username', selectedUsername);
+    const userId = data.userId;
 
-    router.push(`/auth/membership?${params.toString()}`);
+    if (!userId) {
+      setError('Session data invalid. Please start over.');
+      router.push('/auth/signup');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Reserve the username for this user
+      const response = await fetch('/api/auth/reserve-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          username: selectedUsername,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 410) {
+          // Reservation expired
+          setError('Your reservation has expired. Please sign up again.');
+          sessionStorage.removeItem('signupData');
+          setTimeout(() => router.push('/auth/signup'), 2000);
+          return;
+        }
+
+        if (response.status === 409) {
+          // Username taken
+          setError('Username is no longer available. Please select another.');
+          return;
+        }
+
+        setError(result.error || 'Failed to reserve username');
+        return;
+      }
+
+      console.log(`✅ Username reserved: @${selectedUsername}`);
+
+      // Store user_id for payment flow
+      sessionStorage.setItem('pendingUserId', userId);
+
+      // Navigate to membership payment with user_id
+      const params = new URLSearchParams();
+      params.set('userId', userId);
+      params.set('email', data.email);
+      params.set('name', data.display_name);
+      params.set('username', selectedUsername);
+
+      router.push(`/auth/membership?${params.toString()}`);
+    } catch (err) {
+      console.error('Username reservation error:', err);
+      setError('Failed to reserve username. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
