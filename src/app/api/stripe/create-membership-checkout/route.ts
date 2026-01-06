@@ -48,6 +48,15 @@ export async function POST(request: NextRequest) {
         user_username: username || '',
         purpose: 'membership', // Standardized key for webhook routing
       },
+      // CRITICAL: Propagate metadata to payment intent for failed payment tracking
+      payment_intent_data: {
+        metadata: {
+          user_email: email,
+          user_name: name,
+          user_username: username || '',
+          purpose: 'membership',
+        },
+      },
       allow_promotion_codes: true,
     });
 
