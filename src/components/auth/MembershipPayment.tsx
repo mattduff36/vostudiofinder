@@ -79,7 +79,7 @@ export function MembershipPayment() {
   const options = { fetchClientSecret };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen relative overflow-hidden flex flex-col justify-center py-8 px-4">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -91,9 +91,9 @@ export function MembershipPayment() {
         />
       </div>
 
-      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-4xl">
+      <div className="relative z-10 w-full max-w-7xl mx-auto">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6">
           <Image
             src="/images/voiceover-studio-finder-header-logo2-black.png"
             alt="VoiceoverStudioFinder"
@@ -104,89 +104,103 @@ export function MembershipPayment() {
           />
         </div>
 
-        <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-lg overflow-hidden">
-          {/* Pricing Header */}
-          <div className="bg-[#d42027] px-8 py-6 text-white text-center">
-            <div className="text-4xl font-bold mb-2">£25</div>
-            <div className="text-lg opacity-90">per year</div>
-            <div className="text-sm opacity-75 mt-1">Exceptional value for global reach</div>
-          </div>
+        {/* Pricing Header */}
+        <div className="bg-[#d42027] px-8 py-8 text-white text-center rounded-t-xl shadow-lg">
+          <div className="text-5xl font-bold mb-2">£25</div>
+          <div className="text-xl opacity-90">per year</div>
+          <div className="text-sm opacity-80 mt-2">Exceptional value for global reach</div>
+        </div>
 
-          {/* Features List */}
-          <div className="px-8 py-6 border-b border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-              <Building className="w-5 h-5 mr-2 text-[#d42027]" />
-              What's Included
-            </h3>
-            
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-              {[
-                'Professional studio listing with photos & details',
-                'Reach thousands of voice artists worldwide',
-                'Direct contact from qualified clients',
-                'SEO-optimised profile for search engines',
-                'Manage your availability and booking preferences',
-                'Respond to reviews and build your reputation',
-                'Analytics on profile views and inquiries'
-              ].map((feature, index) => (
-                <li key={index} className="flex items-start">
-                  <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 text-sm">{feature}</span>
-                </li>
-              ))}
-            </ul>
+        <div className="bg-white shadow-2xl rounded-b-xl overflow-hidden">
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            {/* LEFT: Features & Account Info */}
+            <div className="px-8 py-8 border-r border-gray-200">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
+                <Building className="w-6 h-6 mr-3 text-[#d42027]" />
+                What's Included
+              </h3>
+              
+              <ul className="space-y-4 mb-8">
+                {[
+                  'Professional studio listing with photos & details',
+                  'Direct contact from qualified clients',
+                  'Manage your availability and booking preferences',
+                  'Analytics on profile views and inquiries',
+                  'Reach thousands of voice artists worldwide',
+                  'SEO-optimised profile for search engines',
+                  'Respond to reviews and build your reputation'
+                ].map((feature, index) => (
+                  <li key={index} className="flex items-start">
+                    <Check className="w-6 h-6 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">{feature}</span>
+                  </li>
+                ))}
+              </ul>
 
-            {/* User Info */}
-            {(email || name) && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Account Details</h4>
-                {name && <p className="text-sm text-gray-600">Name: {name}</p>}
-                {email && <p className="text-sm text-gray-600">Email: {email}</p>}
-              </div>
-            )}
-          </div>
-
-          {/* Error Display */}
-          {error && (
-            <div className="px-8 py-4 bg-red-50 border-b border-red-200">
-              <div className="flex items-start">
-                <div className="text-red-600 mr-3">⚠️</div>
-                <p className="text-red-700 text-sm">{error}</p>
-              </div>
+              {/* Account Details */}
+              {(email || name) && (
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Account Details</h4>
+                  {name && <p className="text-gray-700 mb-1"><span className="font-medium">Name:</span> {name}</p>}
+                  {email && <p className="text-gray-700"><span className="font-medium">Email:</span> {email}</p>}
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Embedded Stripe Checkout */}
-          <div className="px-8 py-6">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-[#d42027]" />
-                <span className="ml-3 text-gray-600">Loading payment form...</span>
-              </div>
-            ) : !stripePromise ? (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                <p className="text-red-800 font-medium">Payment system configuration error</p>
-                <p className="text-red-600 text-sm mt-2">
-                  Please contact support. Error: Stripe not configured
+            {/* RIGHT: Payment Form */}
+            <div className="px-8 py-8 bg-gray-50">
+              {/* Error Display */}
+              {error && (
+                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <div className="text-red-600 mr-3 text-xl">⚠️</div>
+                    <p className="text-red-700">{error}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Embedded Stripe Checkout */}
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <Loader2 className="w-10 h-10 animate-spin text-[#d42027] mb-4" />
+                  <span className="text-gray-600 text-lg">Loading payment form...</span>
+                </div>
+              ) : !stripePromise ? (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                  <p className="text-red-800 font-medium text-lg mb-2">Payment system configuration error</p>
+                  <p className="text-red-600">
+                    Please contact support. Error: Stripe not configured
+                  </p>
+                </div>
+              ) : (
+                <div id="checkout" className="stripe-embedded-checkout">
+                  <EmbeddedCheckoutProvider
+                    stripe={stripePromise}
+                    options={options}
+                  >
+                    <EmbeddedCheckout />
+                  </EmbeddedCheckoutProvider>
+                </div>
+              )}
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-500">
+                  🔒 Secure payment powered by Stripe
                 </p>
               </div>
-            ) : (
-              <div id="checkout">
-                <EmbeddedCheckoutProvider
-                  stripe={stripePromise}
-                  options={options}
-                >
-                  <EmbeddedCheckout />
-                </EmbeddedCheckoutProvider>
-              </div>
-            )}
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-500">
-                Secure payment powered by Stripe • Cancel anytime
-              </p>
             </div>
           </div>
+        </div>
+
+        {/* Footer Note */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Questions? Contact us at{' '}
+            <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#d42027] hover:underline">
+              support@voiceoverstudiofinder.com
+            </a>
+          </p>
         </div>
       </div>
     </div>
