@@ -7,6 +7,7 @@ import { sendEmail } from '@/lib/email/email-service';
 import { paymentSuccessTemplate } from '@/lib/email/templates/payment-success';
 import { randomBytes } from 'crypto';
 import type Stripe from 'stripe';
+import { UserStatus } from '@prisma/client';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
@@ -189,7 +190,7 @@ async function grantMembership(userId: string, _paymentId: string) {
   await db.users.update({
     where: { id: userId },
     data: {
-      status: 'ACTIVE',
+      status: UserStatus.ACTIVE,
       updated_at: now,
     },
   });
