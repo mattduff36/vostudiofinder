@@ -72,58 +72,28 @@ export default function AdminStudiosPage() {
     const table = container.querySelector('table');
     if (!table) return;
 
-    // Check if overflow exists
-    const hasOverflow = table.scrollWidth > container.clientWidth;
+    // Add 5px buffer to avoid flickering at exact boundaries
+    const overflowAmount = table.scrollWidth - container.clientWidth;
     
-    if (!hasOverflow) {
-      // No overflow, show all columns
-      setHiddenColumns([]);
+    if (overflowAmount <= 5) {
+      // No significant overflow, show all columns
+      setHiddenColumns(prev => prev.length === 0 ? prev : []);
       return;
     }
 
-    // Binary search to find minimum columns to hide
-    let left = 0;
-    let right = HIDE_ORDER.length;
-    let result = HIDE_ORDER.length;
+    // Progressive hiding: hide columns one by one until it fits
+    // Estimate ~120px per column (conservative estimate)
+    const columnsToHide = Math.min(
+      Math.ceil(overflowAmount / 120),
+      HIDE_ORDER.length
+    );
 
-    // We need to test each combination by temporarily applying styles
-    const testHiding = (count: number): boolean => {
-      const toHide = HIDE_ORDER.slice(0, count);
-      
-      // Temporarily hide columns
-      toHide.forEach(col => {
-        const cells = table.querySelectorAll(`[data-column="${col}"]`);
-        cells.forEach(cell => ((cell as HTMLElement).style.display = 'none'));
-      });
-
-      // Check overflow
-      const stillOverflows = table.scrollWidth > container.clientWidth;
-
-      // Restore
-      toHide.forEach(col => {
-        const cells = table.querySelectorAll(`[data-column="${col}"]`);
-        cells.forEach(cell => ((cell as HTMLElement).style.display = ''));
-      });
-
-      return !stillOverflows; // Return true if it fits
-    };
-
-    // Find minimum columns to hide
-    while (left < right) {
-      const mid = Math.floor((left + right) / 2);
-      if (testHiding(mid)) {
-        result = mid;
-        right = mid;
-      } else {
-        left = mid + 1;
-      }
-    }
-
-    const newHidden = HIDE_ORDER.slice(0, result);
+    const newHidden = HIDE_ORDER.slice(0, columnsToHide);
     
     // Only update if actually different
     setHiddenColumns(prev => {
-      if (JSON.stringify(prev) === JSON.stringify(newHidden)) {
+      if (prev.length === newHidden.length && 
+          prev.every((col, i) => col === newHidden[i])) {
         return prev; // Don't trigger re-render
       }
       return newHidden;
