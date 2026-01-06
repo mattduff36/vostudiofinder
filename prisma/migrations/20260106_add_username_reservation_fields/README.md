@@ -28,6 +28,12 @@ This migration adds fields to support the Username Reservation & Payment Capture
 4. **`payment_retry_count`** (`INTEGER`, NOT NULL, DEFAULT 0)
    - Counter for failed payment attempts
 
+5. **`day2_reminder_sent_at`** (`TIMESTAMP`, NULL)
+   - Timestamp when Day 2 reminder email was sent (prevents duplicate emails)
+
+6. **`day5_reminder_sent_at`** (`TIMESTAMP`, NULL)
+   - Timestamp when Day 5 urgency email was sent (prevents duplicate emails)
+
 ### New Indexes:
 - `users_status_idx` on `status` column
 - `users_reservation_expires_at_idx` on `reservation_expires_at` column
