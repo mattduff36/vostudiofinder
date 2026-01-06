@@ -1,5 +1,25 @@
 import { z } from 'zod';
 
+// Server-side schema for API (no confirmPassword or acceptTerms needed)
+export const registerSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters long')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/\d/, 'Password must contain at least one number')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character'),
+  display_name: z
+    .string()
+    .min(2, 'Display name must be at least 2 characters long')
+    .max(50, 'Display name must be less than 50 characters'),
+});
+
+// Client-side schema (includes confirmPassword and acceptTerms)
 export const signupSchema = z.object({
   email: z
     .string()
@@ -69,6 +89,7 @@ export const updateProfileSchema = z.object({
   avatar_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
 });
 
+export type RegisterInput = z.infer<typeof registerSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type SigninInput = z.infer<typeof signinSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;

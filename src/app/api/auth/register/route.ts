@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { signupSchema } from '@/lib/validations/auth';
+import { registerSchema } from '@/lib/validations/auth';
 import { hashPassword } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
@@ -10,8 +10,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Validate input
-    const validatedData = signupSchema.parse(body);
+    // Validate input using server-side schema (no confirmPassword or acceptTerms)
+    const validatedData = registerSchema.parse(body);
     
     // Check if user already exists
     const existingUser = await db.users.findUnique({
