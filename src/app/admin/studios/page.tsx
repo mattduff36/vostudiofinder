@@ -522,6 +522,13 @@ export default function AdminStudiosPage() {
         </div>
       </div>
 
+      {/* Column visibility warning */}
+      {hiddenColumns.length > 0 && (
+        <div className="text-sm text-red-600 text-center py-2">
+          Some columns are hidden due to window width. Maximize your browser or use a resolution of 1920×1080 or higher for optimal viewing.
+        </div>
+      )}
+
       {/* Studios Table */}
       {loading && pagination.offset === 0 ? (
         <div className="flex items-center justify-center min-h-64">
