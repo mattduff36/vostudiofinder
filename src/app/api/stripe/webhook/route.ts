@@ -144,12 +144,16 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
 
   logger.log(`✅ Payment recorded: ${payment.id}`);
 
-  // Update user payment tracking and reset retry count on success
+  // Update user payment tracking and reset retry count + email flags on success
   await db.users.update({
     where: { id: user.id },
     data: {
       payment_attempted_at: user.payment_attempted_at || new Date(), // Preserve first attempt timestamp
       payment_retry_count: 0, // Reset failed payment counter on success
+      // Reset email tracking flags (no longer relevant after successful payment)
+      day2_reminder_sent_at: null,
+      day5_reminder_sent_at: null,
+      failed_payment_email_sent_at: null,
       updated_at: new Date(),
     },
   });
