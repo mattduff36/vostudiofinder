@@ -314,7 +314,7 @@ export function MembershipSuccess() {
           }
         } catch (err) {
           setError('Please enter a valid website URL (e.g., yourstudio.com)');
-          setIsSubmitting(false);
+          setIsLoading(false);
           return;
         }
       }
