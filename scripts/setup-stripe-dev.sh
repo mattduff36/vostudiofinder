@@ -136,9 +136,12 @@ fi
 
 # Stop any existing Stripe listeners
 print_header "🛑 Stopping existing Stripe listeners"
-if pgrep -f "stripe listen" > /dev/null; then
+
+# Cross-platform process detection (works on Windows Git Bash, macOS, Linux)
+if ps aux 2>/dev/null | grep -q "[s]tripe listen"; then
     print_info "Stopping existing Stripe listener processes..."
-    pkill -f "stripe listen" || true
+    # Kill stripe listen processes (cross-platform)
+    ps aux 2>/dev/null | grep "[s]tripe listen" | awk '{print $2}' | xargs kill 2>/dev/null || true
     sleep 2
     print_status "Existing listeners stopped"
 else
@@ -148,33 +151,73 @@ fi
 # Get Stripe API keys
 print_header "🔑 Retrieving Stripe API keys"
 
-print_info "Fetching secret key..."
-STRIPE_SECRET_KEY=$(stripe keys list --json 2>/dev/null | grep -o '"secret":"sk_test_[^"]*"' | head -n 1 | cut -d'"' -f4)
+# Function to extract value from .env.local
+get_env_value() {
+    local key=$1
+    if [ -f "$ENV_FILE" ]; then
+        grep "^${key}=" "$ENV_FILE" 2>/dev/null | cut -d'=' -f2- | tr -d '"' | tr -d "'"
+    fi
+}
 
-if [ -z "$STRIPE_SECRET_KEY" ]; then
-    print_warning "Could not automatically retrieve secret key."
-    echo ""
-    echo "Please manually copy your test secret key from:"
-    echo "https://dashboard.stripe.com/test/apikeys"
-    echo ""
-    read -p "Paste your test secret key (sk_test_...): " STRIPE_SECRET_KEY
+# Check if keys already exist in .env.local
+EXISTING_SECRET_KEY=$(get_env_value "STRIPE_SECRET_KEY")
+EXISTING_PUBLISHABLE_KEY=$(get_env_value "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY")
+
+if [ -n "$EXISTING_SECRET_KEY" ] && [[ "$EXISTING_SECRET_KEY" == sk_test_* ]]; then
+    print_status "Found existing secret key in .env.local"
+    STRIPE_SECRET_KEY="$EXISTING_SECRET_KEY"
+else
+    print_info "Checking Stripe account for API keys..."
+    
+    # Try to get keys from Stripe CLI (this often doesn't work due to security)
+    STRIPE_SECRET_KEY=$(stripe config --list 2>/dev/null | grep -o "sk_test_[a-zA-Z0-9_]*" | head -n 1)
+    
+    if [ -z "$STRIPE_SECRET_KEY" ]; then
+        print_warning "Could not automatically retrieve secret key."
+        echo ""
+        echo "📋 Please copy your test secret key from Stripe Dashboard:"
+        echo "   https://dashboard.stripe.com/test/apikeys"
+        echo ""
+        echo "💡 Tip: You only need to enter this once - it will be saved to .env.local"
+        echo ""
+        read -p "Paste your test secret key (sk_test_...): " STRIPE_SECRET_KEY
+        
+        # Validate format
+        if [[ ! "$STRIPE_SECRET_KEY" =~ ^sk_test_ ]]; then
+            print_error "Invalid secret key format. Must start with 'sk_test_'"
+            exit 1
+        fi
+    fi
 fi
 
-print_status "Secret key retrieved: ${STRIPE_SECRET_KEY:0:20}..."
+print_status "Secret key: ${STRIPE_SECRET_KEY:0:20}..."
 
-print_info "Fetching publishable key..."
-STRIPE_PUBLISHABLE_KEY=$(stripe keys list --json 2>/dev/null | grep -o '"publishable":"pk_test_[^"]*"' | head -n 1 | cut -d'"' -f4)
-
-if [ -z "$STRIPE_PUBLISHABLE_KEY" ]; then
-    print_warning "Could not automatically retrieve publishable key."
-    echo ""
-    echo "Please manually copy your test publishable key from:"
-    echo "https://dashboard.stripe.com/test/apikeys"
-    echo ""
-    read -p "Paste your test publishable key (pk_test_...): " STRIPE_PUBLISHABLE_KEY
+if [ -n "$EXISTING_PUBLISHABLE_KEY" ] && [[ "$EXISTING_PUBLISHABLE_KEY" == pk_test_* ]]; then
+    print_status "Found existing publishable key in .env.local"
+    STRIPE_PUBLISHABLE_KEY="$EXISTING_PUBLISHABLE_KEY"
+else
+    print_info "Checking for publishable key..."
+    
+    # Try to get from Stripe CLI config
+    STRIPE_PUBLISHABLE_KEY=$(stripe config --list 2>/dev/null | grep -o "pk_test_[a-zA-Z0-9_]*" | head -n 1)
+    
+    if [ -z "$STRIPE_PUBLISHABLE_KEY" ]; then
+        print_warning "Could not automatically retrieve publishable key."
+        echo ""
+        echo "📋 Please copy your test publishable key from:"
+        echo "   https://dashboard.stripe.com/test/apikeys"
+        echo ""
+        read -p "Paste your test publishable key (pk_test_...): " STRIPE_PUBLISHABLE_KEY
+        
+        # Validate format
+        if [[ ! "$STRIPE_PUBLISHABLE_KEY" =~ ^pk_test_ ]]; then
+            print_error "Invalid publishable key format. Must start with 'pk_test_'"
+            exit 1
+        fi
+    fi
 fi
 
-print_status "Publishable key retrieved: ${STRIPE_PUBLISHABLE_KEY:0:20}..."
+print_status "Publishable key: ${STRIPE_PUBLISHABLE_KEY:0:20}..."
 
 # Create product and price
 print_header "💰 Creating Stripe product and price"

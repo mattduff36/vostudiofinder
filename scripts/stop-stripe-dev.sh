@@ -60,34 +60,35 @@ print_info() {
 
 print_header "🛑 Stopping Stripe Development Environment"
 
-# Check for running Stripe listeners
-if pgrep -f "stripe listen" > /dev/null; then
+# Check for running Stripe listeners (cross-platform)
+if ps aux 2>/dev/null | grep -q "[s]tripe listen"; then
     print_info "Found running Stripe listener(s)"
     
     # Show PIDs
-    PIDS=$(pgrep -f "stripe listen")
+    PIDS=$(ps aux 2>/dev/null | grep "[s]tripe listen" | awk '{print $2}')
     for PID in $PIDS; do
         print_info "  PID: $PID"
     done
     
     # Stop the listeners
     print_info "Stopping Stripe listener(s)..."
-    pkill -f "stripe listen"
+    echo "$PIDS" | xargs kill 2>/dev/null || true
     
     # Wait a moment to ensure they're stopped
     sleep 1
     
     # Verify they're stopped
-    if pgrep -f "stripe listen" > /dev/null; then
+    if ps aux 2>/dev/null | grep -q "[s]tripe listen"; then
         print_error "Failed to stop some listener(s). Trying force kill..."
-        pkill -9 -f "stripe listen"
+        ps aux 2>/dev/null | grep "[s]tripe listen" | awk '{print $2}' | xargs kill -9 2>/dev/null || true
         sleep 1
     fi
     
-    if ! pgrep -f "stripe listen" > /dev/null; then
+    if ! ps aux 2>/dev/null | grep -q "[s]tripe listen"; then
         print_status "All Stripe listeners stopped"
     else
         print_error "Could not stop all listeners. You may need to manually kill them."
+        print_info "Try: ps aux | grep stripe"
         exit 1
     fi
 else
