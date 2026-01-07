@@ -85,31 +85,50 @@ export async function POST(request: NextRequest) {
     const daysSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
     const maxReservationDays = 14;
 
-    let currentExpiry = user.reservation_expires_at;
-
-    if (daysSinceCreation < maxReservationDays) {
-      const newExpiry = new Date(user.reservation_expires_at || now);
-      newExpiry.setDate(newExpiry.getDate() + 2); // Extend by 2 days
-
-      // Don't exceed max reservation period
-      const maxExpiry = new Date(createdAt);
-      maxExpiry.setDate(maxExpiry.getDate() + maxReservationDays);
-
-      const finalExpiry = newExpiry > maxExpiry ? maxExpiry : newExpiry;
-
+    // If user has exceeded max reservation period, mark as EXPIRED
+    if (daysSinceCreation >= maxReservationDays) {
       await db.users.update({
         where: { id: userId },
         data: {
-          reservation_expires_at: finalExpiry,
+          status: UserStatus.EXPIRED,
           updated_at: now,
         },
       });
 
-      // Update the currentExpiry to the new extended date
-      currentExpiry = finalExpiry;
+      console.log(`❌ Reservation expired for ${user.email} (${daysSinceCreation} days since creation)`);
 
-      console.log(`✅ Extended reservation for ${user.email} to ${finalExpiry.toISOString()}`);
+      return NextResponse.json(
+        {
+          error: 'Your username reservation has expired. Please sign up again.',
+          expired: true,
+          daysSinceCreation,
+          maxDays: maxReservationDays,
+        },
+        { status: 410 } // 410 Gone
+      );
     }
+
+    // Extend reservation by 2 days (within max period)
+    const newExpiry = new Date(user.reservation_expires_at || now);
+    newExpiry.setDate(newExpiry.getDate() + 2); // Extend by 2 days
+
+    // Don't exceed max reservation period
+    const maxExpiry = new Date(createdAt);
+    maxExpiry.setDate(maxExpiry.getDate() + maxReservationDays);
+
+    const finalExpiry = newExpiry > maxExpiry ? maxExpiry : newExpiry;
+
+    await db.users.update({
+      where: { id: userId },
+      data: {
+        reservation_expires_at: finalExpiry,
+        updated_at: now,
+      },
+    });
+
+    console.log(`✅ Extended reservation for ${user.email} to ${finalExpiry.toISOString()}`);
+
+    const currentExpiry = finalExpiry;
 
     // Return user data for retry with the UPDATED expiration date
     return NextResponse.json(
