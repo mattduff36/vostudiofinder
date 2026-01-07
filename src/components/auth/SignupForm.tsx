@@ -96,8 +96,6 @@ export function SignupForm() {
           });
 
           if (!reserveResponse.ok) {
-            const reserveResult = await reserveResponse.json();
-            
             // Handle expired reservation
             if (reserveResponse.status === 410) {
               setError('Your reservation has expired. Please sign up again.');
