@@ -45,14 +45,18 @@ export async function POST(request: NextRequest) {
 
     // Check if reservation has expired
     if (user.reservation_expires_at && user.reservation_expires_at < new Date()) {
-      // Mark user as EXPIRED
+      // Mark user as EXPIRED and clear their username (consistent with cron job)
+      const expiredUsername = `expired_${user.username}_${Date.now()}_${userId.substring(0, 4)}`;
       await db.users.update({
         where: { id: userId },
         data: {
           status: UserStatus.EXPIRED,
+          username: expiredUsername, // Free up the username
           updated_at: new Date(),
         },
       });
+
+      console.log(`✅ Expired current user: ${user.username} → ${expiredUsername} (${userId})`);
 
       return NextResponse.json(
         { error: 'Username reservation has expired. Please sign up again.' },
@@ -78,19 +82,60 @@ export async function POST(request: NextRequest) {
         existingUsername.reservation_expires_at &&
         existingUsername.reservation_expires_at < new Date()
       ) {
-        // Mark expired PENDING user as EXPIRED and clear their username
-        // CRITICAL: Must clear username to free it up for the new user (unique constraint)
-        const expiredUsername = `expired_${existingUsername.username}_${Date.now()}`;
-        await db.users.update({
-          where: { id: existingUsername.id },
-          data: {
-            status: UserStatus.EXPIRED,
-            username: expiredUsername, // Free up the username
-            updated_at: new Date(),
-          },
-        });
-        console.log(`✅ Freed username: ${existingUsername.username} (user ${existingUsername.id} → ${expiredUsername})`);
-        // Username is now available (continue to reservation)
+        // Use transaction to atomically free old username and claim it for current user
+        // This prevents race conditions where another request claims it in between
+        try {
+          const updatedUser = await db.$transaction(async (tx) => {
+            // Step 1: Free the expired user's username
+            const expiredUsername = `expired_${existingUsername.username}_${Date.now()}`;
+            await tx.users.update({
+              where: { id: existingUsername.id },
+              data: {
+                status: UserStatus.EXPIRED,
+                username: expiredUsername, // Free up the username
+                updated_at: new Date(),
+              },
+            });
+
+            // Step 2: Immediately claim it for current user (atomic!)
+            const updated = await tx.users.update({
+              where: { id: userId },
+              data: {
+                username,
+                updated_at: new Date(),
+              },
+            });
+
+            console.log(`✅ Freed and claimed username: ${existingUsername.username} (${existingUsername.id} → ${expiredUsername}, claimed by ${userId})`);
+            return updated;
+          });
+
+          // Transaction succeeded - username claimed
+          console.log(`✅ Username reserved: ${username} for user ${userId} (expires: ${updatedUser.reservation_expires_at?.toISOString()})`);
+
+          return NextResponse.json(
+            {
+              message: `Username @${username} reserved successfully`,
+              user: {
+                id: updatedUser.id,
+                username: updatedUser.username,
+                reservation_expires_at: updatedUser.reservation_expires_at,
+              },
+            },
+            { status: 200 }
+          );
+        } catch (error: any) {
+          // Handle unique constraint violation (race condition with another transaction)
+          if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
+            console.error(`⚠️  Race condition: Username ${username} claimed during transaction`);
+            return NextResponse.json(
+              { error: 'Username was just claimed by another user. Please select a different username.', available: false },
+              { status: 409 }
+            );
+          }
+          // Re-throw other errors
+          throw error;
+        }
       } else {
         // Username is taken by an active user or pending user with valid reservation
         return NextResponse.json(
@@ -100,7 +145,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update user with selected username
+    // Update user with selected username (no conflict, direct update)
     // Wrap in try-catch to handle race condition (unique constraint violation)
     let updatedUser;
     try {
