@@ -144,22 +144,11 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
 
   logger.log(`✅ Payment recorded: ${payment.id}`);
 
-  // Update user payment tracking and reset retry count + email flags on success
-  await db.users.update({
-    where: { id: user.id },
-    data: {
-      payment_attempted_at: user.payment_attempted_at || new Date(), // Preserve first attempt timestamp
-      payment_retry_count: 0, // Reset failed payment counter on success
-      // Reset email tracking flags (no longer relevant after successful payment)
-      day2_reminder_sent_at: null,
-      day5_reminder_sent_at: null,
-      failed_payment_email_sent_at: null,
-      updated_at: new Date(),
-    },
+  // Grant membership and update payment tracking in single atomic operation
+  await grantMembership(user.id, payment.id, {
+    payment_attempted_at: user.payment_attempted_at || new Date(),
+    payment_retry_count: 0,
   });
-
-  // Grant membership (will update user status to ACTIVE)
-  await grantMembership(user.id, payment.id);
 
   // Send confirmation email
   if (customer?.email || user_email) {
@@ -185,17 +174,34 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
 
 /**
  * Grant 12-month membership to user
+ * Atomically updates user status and payment tracking fields
  */
-async function grantMembership(userId: string, _paymentId: string) {
+async function grantMembership(
+  userId: string, 
+  _paymentId: string,
+  paymentTracking?: {
+    payment_attempted_at: Date;
+    payment_retry_count: number;
+  }
+) {
   const now = new Date();
   const oneYearFromNow = new Date(now);
   oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
 
-  // Update user status from PENDING to ACTIVE
+  // ATOMIC UPDATE: status, payment tracking, and email flags in single operation
   await db.users.update({
     where: { id: userId },
     data: {
       status: UserStatus.ACTIVE,
+      // Include payment tracking fields if provided (from webhook success handler)
+      ...(paymentTracking && {
+        payment_attempted_at: paymentTracking.payment_attempted_at,
+        payment_retry_count: paymentTracking.payment_retry_count,
+        // Reset email tracking flags (no longer relevant after successful payment)
+        day2_reminder_sent_at: null,
+        day5_reminder_sent_at: null,
+        failed_payment_email_sent_at: null,
+      }),
       updated_at: now,
     },
   });
