@@ -22,9 +22,9 @@ export const paymentSuccessTemplate = (data: {
   <meta name="supported-color-schemes" content="light dark">
   <title>Payment received</title>
   <style>
-    .cta-button { color: #ffffff !important; }
-    .cta-button span { color: #ffffff !important; }
-    a.cta-button { color: #ffffff !important; mso-color-alt: #ffffff; }
+    .btn a, .btn a span { color: #FFFFFF !important; }
+    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
+    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
@@ -79,10 +79,27 @@ export const paymentSuccessTemplate = (data: {
           </tr>
           <tr>
             <td style="padding: 0 40px 32px 40px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="left">
-                    <a href="https://voiceoverstudiofinder.com/dashboard" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5; mso-color-alt: #ffffff;"><span style="color: #ffffff !important; mso-color-alt: #ffffff;">&nbsp;View dashboard&nbsp;</span></a>
+                  <td align="left" class="btn" style="border-radius: 6px;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+                      href="https://voiceoverstudiofinder.com/dashboard" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="12%"
+                      stroke="f" fillcolor="#d42027">
+                      <w:anchorlock/>
+                      <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
+                        View dashboard
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="https://voiceoverstudiofinder.com/dashboard"
+                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
+                      text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
+                      <span style="color:#FFFFFF !important;display:inline-block;">View dashboard</span>
+                    </a>
+                    <!--<![endif]-->
                   </td>
                 </tr>
               </table>
@@ -121,9 +138,9 @@ export const paymentFailedTemplate = (data: {
   <meta name="supported-color-schemes" content="light dark">
   <title>Payment failed</title>
   <style>
-    .cta-button { color: #ffffff !important; }
-    .cta-button span { color: #ffffff !important; }
-    a.cta-button { color: #ffffff !important; mso-color-alt: #ffffff; }
+    .btn a, .btn a span { color: #FFFFFF !important; }
+    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
+    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
@@ -160,10 +177,27 @@ export const paymentFailedTemplate = (data: {
           ` : ''}
           <tr>
             <td style="padding: 0 40px 32px 40px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="left">
-                    <a href="https://voiceoverstudiofinder.com/billing" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5; mso-color-alt: #ffffff;"><span style="color: #ffffff !important; mso-color-alt: #ffffff;">&nbsp;Update payment method&nbsp;</span></a>
+                  <td align="left" class="btn" style="border-radius: 6px;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+                      href="https://voiceoverstudiofinder.com/billing" style="height:48px;v-text-anchor:middle;width:240px;" arcsize="12%"
+                      stroke="f" fillcolor="#d42027">
+                      <w:anchorlock/>
+                      <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
+                        Update payment method
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="https://voiceoverstudiofinder.com/billing"
+                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
+                      text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
+                      <span style="color:#FFFFFF !important;display:inline-block;">Update payment method</span>
+                    </a>
+                    <!--<![endif]-->
                   </td>
                 </tr>
               </table>

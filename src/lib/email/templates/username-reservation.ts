@@ -23,9 +23,9 @@ export const paymentFailedReservationTemplate = (data: {
   <meta name="supported-color-schemes" content="light dark">
   <title>Payment issue with your signup</title>
   <style>
-    .cta-button { color: #ffffff !important; }
-    .cta-button span { color: #ffffff !important; }
-    a.cta-button { color: #ffffff !important; mso-color-alt: #ffffff; }
+    .btn a, .btn a span { color: #FFFFFF !important; }
+    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
+    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
@@ -68,10 +68,27 @@ export const paymentFailedReservationTemplate = (data: {
           </tr>
           <tr>
             <td style="padding: 0 40px 32px 40px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="left">
-                    <a href="${data.retryUrl}" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5; mso-color-alt: #ffffff;"><span style="color: #ffffff !important; mso-color-alt: #ffffff;">&nbsp;Retry payment&nbsp;</span></a>
+                  <td align="left" class="btn" style="border-radius: 6px;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+                      href="${data.retryUrl}" style="height:48px;v-text-anchor:middle;width:180px;" arcsize="12%"
+                      stroke="f" fillcolor="#d42027">
+                      <w:anchorlock/>
+                      <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
+                        Retry payment
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="${data.retryUrl}"
+                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
+                      text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
+                      <span style="color:#FFFFFF !important;display:inline-block;">Retry payment</span>
+                    </a>
+                    <!--<![endif]-->
                   </td>
                 </tr>
               </table>
@@ -110,22 +127,10 @@ export const reservationReminderDay2Template = (data: {
   <meta name="supported-color-schemes" content="light">
   <title>Complete your signup</title>
   <style>
-    .cta-button-table { background-color: #d42027; border-radius: 6px; }
-    .cta-button-link { color: #ffffff !important; text-decoration: none !important; -webkit-text-fill-color: #ffffff !important; }
-    .cta-button-text { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
-    @media (prefers-color-scheme: dark) {
-      .cta-button-table { background-color: #d42027 !important; }
-      .cta-button-link { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
-      .cta-button-text { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
-    }
+    .btn a, .btn a span { color: #FFFFFF !important; }
+    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
+    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
-  <!--[if mso]>
-  <style>
-    .cta-button-table { background-color: #d42027 !important; }
-    .cta-button-link { color: #ffffff !important; }
-    .cta-button-text { color: #ffffff !important; }
-  </style>
-  <![endif]-->
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -156,21 +161,30 @@ export const reservationReminderDay2Template = (data: {
           </tr>
           <tr>
             <td style="padding: 0 40px 32px 40px;">
-              <!--[if mso]>
-              <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${data.signupUrl}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="6%" stroke="f" fillcolor="#d42027">
-                <w:anchorlock/>
-                <center style="color:#ffffff;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;font-size:16px;font-weight:500;">&nbsp;Complete signup&nbsp;</center>
-              </v:roundrect>
-              <![endif]-->
-              <!--[if !mso]><!-->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="cta-button-table" style="background-color: #d42027; border-radius: 6px;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="center" style="padding: 14px 28px;">
-                    <a href="${data.signupUrl}" class="cta-button-link" style="display: inline-block; color: #ffffff !important; text-decoration: none !important; font-size: 16px; font-weight: 500; line-height: 1.5; -webkit-text-fill-color: #ffffff !important;"><span class="cta-button-text" style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">&nbsp;Complete signup&nbsp;</span></a>
+                  <td align="left" class="btn" style="border-radius: 6px;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+                      href="${data.signupUrl}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="12%"
+                      stroke="f" fillcolor="#d42027">
+                      <w:anchorlock/>
+                      <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
+                        Complete signup
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="${data.signupUrl}"
+                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
+                      text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
+                      <span style="color:#FFFFFF !important;display:inline-block;">Complete signup</span>
+                    </a>
+                    <!--<![endif]-->
                   </td>
                 </tr>
               </table>
-              <!--<![endif]-->
             </td>
           </tr>
           <tr>
@@ -206,9 +220,9 @@ export const reservationUrgencyDay5Template = (data: {
   <meta name="supported-color-schemes" content="light dark">
   <title>Your username reservation expires in ${data.daysRemaining} days</title>
   <style>
-    .cta-button { color: #ffffff !important; }
-    .cta-button span { color: #ffffff !important; }
-    a.cta-button { color: #ffffff !important; mso-color-alt: #ffffff; }
+    .btn a, .btn a span { color: #FFFFFF !important; }
+    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
+    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
@@ -240,10 +254,27 @@ export const reservationUrgencyDay5Template = (data: {
           </tr>
           <tr>
             <td style="padding: 0 40px 32px 40px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="left">
-                    <a href="${data.signupUrl}" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5; mso-color-alt: #ffffff;"><span style="color: #ffffff !important; mso-color-alt: #ffffff;">&nbsp;Complete signup&nbsp;</span></a>
+                  <td align="left" class="btn" style="border-radius: 6px;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+                      href="${data.signupUrl}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="12%"
+                      stroke="f" fillcolor="#d42027">
+                      <w:anchorlock/>
+                      <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
+                        Complete signup
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="${data.signupUrl}"
+                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
+                      text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
+                      <span style="color:#FFFFFF !important;display:inline-block;">Complete signup</span>
+                    </a>
+                    <!--<![endif]-->
                   </td>
                 </tr>
               </table>
@@ -280,9 +311,9 @@ export const reservationExpiredTemplate = (data: {
   <meta name="supported-color-schemes" content="light dark">
   <title>Your username reservation has expired</title>
   <style>
-    .cta-button { color: #ffffff !important; }
-    .cta-button span { color: #ffffff !important; }
-    a.cta-button { color: #ffffff !important; mso-color-alt: #ffffff; }
+    .btn a, .btn a span { color: #FFFFFF !important; }
+    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
+    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
@@ -319,10 +350,27 @@ export const reservationExpiredTemplate = (data: {
           </tr>
           <tr>
             <td style="padding: 0 40px 32px 40px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="left">
-                    <a href="${data.signupUrl}" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5; mso-color-alt: #ffffff;"><span style="color: #ffffff !important; mso-color-alt: #ffffff;">&nbsp;Sign up again&nbsp;</span></a>
+                  <td align="left" class="btn" style="border-radius: 6px;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+                      href="${data.signupUrl}" style="height:48px;v-text-anchor:middle;width:180px;" arcsize="12%"
+                      stroke="f" fillcolor="#d42027">
+                      <w:anchorlock/>
+                      <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
+                        Sign up again
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="${data.signupUrl}"
+                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
+                      text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
+                      <span style="color:#FFFFFF !important;display:inline-block;">Sign up again</span>
+                    </a>
+                    <!--<![endif]-->
                   </td>
                 </tr>
               </table>
