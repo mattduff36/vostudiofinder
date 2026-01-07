@@ -78,14 +78,18 @@ export async function POST(request: NextRequest) {
         existingUsername.reservation_expires_at &&
         existingUsername.reservation_expires_at < new Date()
       ) {
-        // Mark expired PENDING user as EXPIRED
+        // Mark expired PENDING user as EXPIRED and clear their username
+        // CRITICAL: Must clear username to free it up for the new user (unique constraint)
+        const expiredUsername = `expired_${existingUsername.username}_${Date.now()}`;
         await db.users.update({
           where: { id: existingUsername.id },
           data: {
             status: UserStatus.EXPIRED,
+            username: expiredUsername, // Free up the username
             updated_at: new Date(),
           },
         });
+        console.log(`✅ Freed username: ${existingUsername.username} (user ${existingUsername.id} → ${expiredUsername})`);
         // Username is now available (continue to reservation)
       } else {
         // Username is taken by an active user or pending user with valid reservation

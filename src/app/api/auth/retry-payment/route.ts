@@ -52,11 +52,13 @@ export async function POST(request: NextRequest) {
 
     // Check if reservation has expired
     if (user.reservation_expires_at && user.reservation_expires_at < new Date()) {
-      // Mark as expired
+      // Mark as expired and clear username (unique constraint)
+      const expiredUsername = `expired_${user.username}_${Date.now()}`;
       await db.users.update({
         where: { id: userId },
         data: {
           status: UserStatus.EXPIRED,
+          username: expiredUsername, // Free up username for reuse
           updated_at: new Date(),
         },
       });
@@ -87,10 +89,13 @@ export async function POST(request: NextRequest) {
 
     // If user has exceeded max reservation period, mark as EXPIRED
     if (daysSinceCreation > maxReservationDays) {
+      // Clear username to free it up (unique constraint)
+      const expiredUsername = `expired_${user.username}_${Date.now()}`;
       await db.users.update({
         where: { id: userId },
         data: {
           status: UserStatus.EXPIRED,
+          username: expiredUsername, // Free up username for reuse
           updated_at: now,
         },
       });
@@ -195,10 +200,13 @@ export async function GET(request: NextRequest) {
     // If expired, mark as EXPIRED and redirect to signup
     if (isExpired || user.status === UserStatus.EXPIRED) {
       if (user.status !== UserStatus.EXPIRED) {
+        // Clear username to free it up for reuse (unique constraint)
+        const expiredUsername = `expired_${user.username}_${Date.now()}`;
         await db.users.update({
           where: { id: userId },
           data: {
             status: UserStatus.EXPIRED,
+            username: expiredUsername,
             updated_at: now,
           },
         });
