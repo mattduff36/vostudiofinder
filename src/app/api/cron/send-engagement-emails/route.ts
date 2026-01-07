@@ -29,11 +29,22 @@ import {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret (security measure)
+    // Verify cron secret (REQUIRED security measure)
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // CRITICAL: Always require CRON_SECRET to be configured
+    if (!cronSecret) {
+      console.error('❌ [CRON] CRON_SECRET environment variable not configured');
+      return NextResponse.json(
+        { error: 'Server misconfigured' },
+        { status: 500 }
+      );
+    }
+
+    // CRITICAL: Always verify the secret matches
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      console.error('❌ [CRON] Unauthorized attempt to access cron endpoint');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
