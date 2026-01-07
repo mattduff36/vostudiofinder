@@ -6,6 +6,7 @@
   "description": "Modern platform for finding and connecting voiceover professionals with recording studios",
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:full": "bash scripts/dev-full.sh",
     "build": "prisma generate && next build --turbopack",
     "start": "next start",
     "lint": "eslint .",
@@ -49,6 +50,10 @@
     "audit:full": "npm run type-check && npm run lint && npm run lint:fast && npm run deps:check",
     "cleanup:neon-branches": "tsx scripts/cleanup-neon-branches.ts",
     "email:diagnose": "tsx scripts/diagnose-email-config.ts",
+    "stripe:setup": "bash scripts/setup-stripe-dev.sh",
+    "stripe:setup:dev": "bash scripts/setup-stripe-dev.sh --start-dev",
+    "stripe:stop": "bash scripts/stop-stripe-dev.sh",
+    "stripe:stop:clean": "bash scripts/stop-stripe-dev.sh --clean",
     "postinstall": "prisma generate"
   },
   "dependencies": {
