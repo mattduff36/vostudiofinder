@@ -45,7 +45,8 @@ export async function POST(request: NextRequest) {
     reservationExpires.setDate(reservationExpires.getDate() + 7); // 7 days from now
     
     // Generate temporary username (will be updated during username selection)
-    const tempUsername = `temp_${userId.substring(0, 8)}`;
+    // Replace hyphens with underscores to comply with username validation regex
+    const tempUsername = `temp_${userId.substring(0, 8).replace(/-/g, '_')}`;
     
     const user = await db.users.create({
       data: {
