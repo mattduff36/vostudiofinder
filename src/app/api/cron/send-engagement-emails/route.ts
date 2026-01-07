@@ -214,9 +214,10 @@ export async function GET(request: NextRequest) {
         reservation_expires_at: {
           gte: now, // Not expired
         },
-        payment_attempted_at: {
-          gte: oneDayAgo, // Failed within last 24 hours
-        },
+        // NOTE: Don't filter by payment_attempted_at here!
+        // payment_attempted_at stores the FIRST attempt timestamp (preserved across retries)
+        // We need to find users with recent failed payments, not just recent first attempts
+        // The payments.created_at filter below handles finding recent failures
         payment_retry_count: {
           gte: 1, // At least one failed attempt
         },
@@ -227,7 +228,7 @@ export async function GET(request: NextRequest) {
           where: {
             status: 'FAILED',
             created_at: {
-              gte: oneDayAgo,
+              gte: oneDayAgo, // This correctly finds recent failed payment attempts
             },
           },
           orderBy: {
