@@ -29,7 +29,7 @@ export default function AdminReservationsPage() {
   const [users, setUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'PENDING' | 'EXPIRED' | ''>('PENDING');
+  const [statusFilter, setStatusFilter] = useState<'PENDING' | 'EXPIRED' | ''>(''); // Default to all statuses
   const [stats, setStats] = useState({
     pending: 0,
     expiringSoon: 0,
