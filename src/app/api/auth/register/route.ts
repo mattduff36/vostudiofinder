@@ -22,9 +22,14 @@ export async function POST(request: NextRequest) {
       // If user is EXPIRED, allow them to re-register with a new account
       if (existingUser.status === UserStatus.EXPIRED) {
         // Delete the expired user and their old reservation
-        await db.users.delete({
-          where: { id: existingUser.id },
+        // Use deleteMany to avoid race condition if another request already deleted it
+        const deleteResult = await db.users.deleteMany({
+          where: { 
+            id: existingUser.id,
+            status: UserStatus.EXPIRED, // Extra safety: only delete if still EXPIRED
+          },
         });
+        console.log(`🗑️ Deleted ${deleteResult.count} EXPIRED user(s) with email: ${validatedData.email}`);
       } else {
         return NextResponse.json(
           { error: 'User already exists with this email' },
