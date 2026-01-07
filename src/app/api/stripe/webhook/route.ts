@@ -148,7 +148,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   await db.users.update({
     where: { id: user.id },
     data: {
-      payment_attempted_at: new Date(),
+      payment_attempted_at: user.payment_attempted_at || new Date(), // Preserve first attempt timestamp
       payment_retry_count: 0, // Reset failed payment counter on success
       updated_at: new Date(),
     },
