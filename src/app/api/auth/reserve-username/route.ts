@@ -101,13 +101,28 @@ export async function POST(request: NextRequest) {
     }
 
     // Update user with selected username
-    const updatedUser = await db.users.update({
-      where: { id: userId },
-      data: {
-        username,
-        updated_at: new Date(),
-      },
-    });
+    // Wrap in try-catch to handle race condition (unique constraint violation)
+    let updatedUser;
+    try {
+      updatedUser = await db.users.update({
+        where: { id: userId },
+        data: {
+          username,
+          updated_at: new Date(),
+        },
+      });
+    } catch (error: any) {
+      // Handle unique constraint violation (race condition)
+      if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
+        console.error(`⚠️  Race condition: Username ${username} claimed by another request`);
+        return NextResponse.json(
+          { error: 'Username was just claimed by another user. Please select a different username.', available: false },
+          { status: 409 }
+        );
+      }
+      // Re-throw other errors
+      throw error;
+    }
 
     console.log(`✅ Username reserved: ${username} for user ${userId} (expires: ${updatedUser.reservation_expires_at?.toISOString()})`);
 

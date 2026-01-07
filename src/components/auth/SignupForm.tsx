@@ -96,7 +96,16 @@ export function SignupForm() {
           });
 
           if (!reserveResponse.ok) {
-            // If reservation fails, go to username selection
+            const reserveResult = await reserveResponse.json();
+            
+            // Handle expired reservation
+            if (reserveResponse.status === 410) {
+              setError('Your reservation has expired. Please sign up again.');
+              sessionStorage.removeItem('signupData');
+              return;
+            }
+            
+            // For other errors, go to username selection
             router.push(`/auth/username-selection?display_name=${encodeURIComponent(display_name)}`);
             return;
           }
