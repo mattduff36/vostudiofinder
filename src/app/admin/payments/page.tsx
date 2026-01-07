@@ -317,58 +317,63 @@ export default function AdminPaymentsPage() {
                     const isRefundModalOpen = refundModalPaymentId === payment.id;
 
                     return (
-                      <tr key={payment.id} className="border-t border-gray-200">
-                        <td colSpan={6} className="p-0">
-                          {/* Success Message */}
-                          {refundSuccess === payment.id && (
-                            <div className="bg-green-50 border-b border-green-200 px-6 py-3 flex items-center">
-                              <Check className="w-5 h-5 text-green-600 mr-2" />
-                              <span className="text-sm text-green-800">Refund issued successfully</span>
-                            </div>
-                          )}
-
-                          {/* Main Payment Row - Clickable */}
-                          <div
-                            onClick={() => togglePaymentExpand(payment.id)}
-                            className="grid grid-cols-6 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                          >
-                            <div className="whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
-                                {payment.users.display_name}
+                      <>
+                        {/* Success Message Row */}
+                        {refundSuccess === payment.id && (
+                          <tr key={`${payment.id}-success`}>
+                            <td colSpan={6} className="px-6 py-3 bg-green-50 border-t border-green-200">
+                              <div className="flex items-center">
+                                <Check className="w-5 h-5 text-green-600 mr-2" />
+                                <span className="text-sm text-green-800">Refund issued successfully</span>
                               </div>
-                              <div className="text-sm text-gray-500">{payment.users.email}</div>
-                              <div className="text-xs text-gray-400">@{payment.users.username}</div>
-                            </div>
-                            <div className="whitespace-nowrap">
-                              <div className="text-sm font-semibold text-gray-900">
-                                {formatAmount(payment.amount, payment.currency)}
-                              </div>
-                            </div>
-                            <div className="whitespace-nowrap">
-                              <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(payment.status)}`}>
-                                {payment.status.replace(/_/g, ' ')}
-                              </span>
-                            </div>
-                            <div className="whitespace-nowrap text-sm text-gray-500">
-                              {payment.refunded_amount > 0
-                                ? formatAmount(payment.refunded_amount, payment.currency)
-                                : '—'}
-                            </div>
-                            <div className="whitespace-nowrap text-sm text-gray-500">
-                              {formatDate(payment.created_at)}
-                            </div>
-                            <div className="whitespace-nowrap text-right">
-                              {isExpanded ? (
-                                <ChevronUp className="w-5 h-5 text-gray-400 ml-auto" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5 text-gray-400 ml-auto" />
-                              )}
-                            </div>
-                          </div>
+                            </td>
+                          </tr>
+                        )}
 
-                          {/* Expanded Details */}
-                          {isExpanded && (
-                            <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+                        {/* Main Payment Row */}
+                        <tr
+                          key={payment.id}
+                          onClick={() => togglePaymentExpand(payment.id)}
+                          className="border-t border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {payment.users.display_name}
+                            </div>
+                            <div className="text-sm text-gray-500">{payment.users.email}</div>
+                            <div className="text-xs text-gray-400">@{payment.users.username}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-semibold text-gray-900">
+                              {formatAmount(payment.amount, payment.currency)}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(payment.status)}`}>
+                              {payment.status.replace(/_/g, ' ')}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {payment.refunded_amount > 0
+                              ? formatAmount(payment.refunded_amount, payment.currency)
+                              : '—'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {formatDate(payment.created_at)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            {isExpanded ? (
+                              <ChevronUp className="w-5 h-5 text-gray-400 ml-auto" />
+                            ) : (
+                              <ChevronDown className="w-5 h-5 text-gray-400 ml-auto" />
+                            )}
+                          </td>
+                        </tr>
+
+                        {/* Expanded Details Row */}
+                        {isExpanded && (
+                          <tr key={`${payment.id}-details`}>
+                            <td colSpan={6} className="px-6 py-4 bg-gray-50 border-t border-gray-200">
                               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 {/* Payment Information with Refund Action */}
                                 <div className="bg-white rounded-lg border border-gray-200 p-3">
@@ -539,10 +544,10 @@ export default function AdminPaymentsPage() {
                                   </div>
                                 )}
                               </div>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     );
                   })
                 )}
