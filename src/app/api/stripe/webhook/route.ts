@@ -7,6 +7,7 @@ import { sendEmail } from '@/lib/email/email-service';
 import { paymentSuccessTemplate } from '@/lib/email/templates/payment-success';
 import { randomBytes } from 'crypto';
 import type Stripe from 'stripe';
+import { UserStatus } from '@prisma/client';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
@@ -70,18 +71,22 @@ async function markEventProcessed(eventId: string, success: boolean, error?: str
  * Handle one-time membership payment completion
  */
 async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) {
-  const { user_email, user_name, purpose } = session.metadata || {};
+  const { user_id, user_email, user_name, purpose } = session.metadata || {};
 
   if (purpose !== 'membership') {
     logger.log(`⏭️  Session ${session.id} is not a membership payment, skipping`);
     return;
   }
 
+  if (!user_id) {
+    throw new Error('Missing user_id in session metadata - user should exist before payment');
+  }
+
   if (!user_email) {
     throw new Error('Missing user_email in session metadata');
   }
 
-  logger.log(`💳 Processing membership payment for ${user_email}`);
+  logger.log(`💳 Processing membership payment for user ${user_id} (${user_email})`);
 
   // Expand session to get payment_intent
   const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
@@ -99,28 +104,16 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
     customer = await stripe.customers.retrieve(session.customer as string) as Stripe.Customer;
   }
 
-  // Find user by email (they might not exist yet if payment was completed before account creation)
-  let user = await db.users.findUnique({
-    where: { email: user_email },
+  // Find user by ID (they should already exist as PENDING)
+  const user = await db.users.findUnique({
+    where: { id: user_id },
   });
 
-  // CRITICAL: If user doesn't exist yet, we CANNOT create the payment record due to FK constraint
-  // Store the event as unprocessed and it will be picked up when user signs in
   if (!user) {
-    logger.log(`⏳ User ${user_email} not yet created, deferring payment processing`);
-    logger.log(`   Session ${session.id} will be processed when user account is created`);
-    
-    // Mark webhook event as unprocessed so it can be retried
-    await db.stripe_webhook_events.updateMany({
-      where: { stripe_event_id: session.id },
-      data: { 
-        processed: false,
-        error: 'User account not yet created - deferred processing',
-      },
-    });
-    
-    return; // Exit early - signup flow will process this payment
+    throw new Error(`User ${user_id} not found - this should not happen with new flow`);
   }
+
+  logger.log(`✅ Found ${user.status} user: ${user.email}`);
 
   // Record payment (idempotent on checkout_session_id)
   const existingPayment = await db.payments.findUnique({
@@ -135,7 +128,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   const payment = await db.payments.create({
     data: {
       id: randomBytes(12).toString('base64url'),
-      user_id: user.id, // Now guaranteed to exist
+      user_id: user.id,
       stripe_checkout_session_id: session.id,
       stripe_payment_intent_id: paymentIntent.id,
       stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
@@ -151,42 +144,68 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
 
   logger.log(`✅ Payment recorded: ${payment.id}`);
 
-  // Grant membership if user exists
-  if (user) {
-    await grantMembership(user.id, payment.id);
+  // Grant membership and update payment tracking in single atomic operation
+  await grantMembership(user.id, payment.id, {
+    payment_attempted_at: user.payment_attempted_at || new Date(),
+    payment_retry_count: 0,
+  });
 
-    // Send confirmation email
-    if (customer?.email) {
-      try {
-        await sendEmail({
-          to: customer.email,
-          subject: 'Membership Confirmed - VoiceoverStudioFinder',
-          html: paymentSuccessTemplate({
-            customerName: user_name || customer.name || customer.email || 'Valued Member',
-            amount: (payment.amount / 100).toFixed(2),
-            currency: payment.currency.toUpperCase(),
-            invoiceNumber: session.id,
-            planName: 'Annual Membership',
-            nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-          }),
-        });
-        logger.log(`📧 Confirmation email sent to ${customer.email}`);
-      } catch (emailError) {
-        logger.log(`⚠️  Failed to send confirmation email: ${emailError}`);
-      }
+  // Send confirmation email
+  if (customer?.email || user_email) {
+    try {
+      await sendEmail({
+        to: customer?.email || user_email,
+        subject: 'Membership Confirmed - VoiceoverStudioFinder',
+        html: paymentSuccessTemplate({
+          customerName: user_name || customer?.name || user.display_name || 'Valued Member',
+          amount: (payment.amount / 100).toFixed(2),
+          currency: payment.currency.toUpperCase(),
+          invoiceNumber: session.id,
+          planName: 'Annual Membership',
+          nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        }),
+      });
+      logger.log(`📧 Confirmation email sent to ${customer?.email || user_email}`);
+    } catch (emailError) {
+      logger.log(`⚠️  Failed to send confirmation email: ${emailError}`);
     }
-  } else {
-    logger.log(`⏳ User ${user_email} not yet created, membership will be granted on account creation`);
   }
 }
 
 /**
  * Grant 12-month membership to user
+ * Atomically updates user status and payment tracking fields
  */
-async function grantMembership(userId: string, _paymentId: string) {
+async function grantMembership(
+  userId: string, 
+  _paymentId: string,
+  paymentTracking?: {
+    payment_attempted_at: Date;
+    payment_retry_count: number;
+  }
+) {
   const now = new Date();
   const oneYearFromNow = new Date(now);
   oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+  // ATOMIC UPDATE: status, payment tracking, and email flags in single operation
+  await db.users.update({
+    where: { id: userId },
+    data: {
+      status: UserStatus.ACTIVE,
+      // Include payment tracking fields if provided (from webhook success handler)
+      ...(paymentTracking && {
+        payment_attempted_at: paymentTracking.payment_attempted_at,
+        payment_retry_count: paymentTracking.payment_retry_count,
+        // Reset email tracking flags (no longer relevant after successful payment)
+        day2_reminder_sent_at: null,
+        day5_reminder_sent_at: null,
+        failed_payment_email_sent_at: null,
+      }),
+      updated_at: now,
+    },
+  });
+  logger.log(`✅ User ${userId} status updated: PENDING → ACTIVE`);
 
   // Create membership record in subscriptions table
   const subscription = await db.subscriptions.create({
@@ -229,37 +248,27 @@ async function grantMembership(userId: string, _paymentId: string) {
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   logger.log(`❌ Processing failed payment ${paymentIntent.id}`);
   
-  // Extract user email from metadata
+  // Extract user_id from metadata
   const metadata = paymentIntent.metadata || {};
+  const user_id = metadata.user_id;
   const user_email = metadata.user_email || metadata.email;
   
-  if (!user_email) {
-    logger.log(`⚠️  No user email in payment intent metadata`);
+  if (!user_id) {
+    logger.log(`⚠️  No user_id in payment intent metadata - cannot process failed payment`);
     return;
   }
   
-  // Find user
+  // Find user by ID
   const user = await db.users.findUnique({
-    where: { email: user_email },
+    where: { id: user_id },
   });
   
-  // CRITICAL: If user doesn't exist yet, defer processing (same as successful payments)
   if (!user) {
-    logger.log(`⏳ User ${user_email} not yet created, deferring failed payment processing`);
-    logger.log(`   Payment Intent ${paymentIntent.id} will be processed when user account is created`);
-    logger.log(`   Error: ${paymentIntent.last_payment_error?.message || 'Unknown error'}`);
-    
-    // Mark webhook event as unprocessed so it can be retried
-    await db.stripe_webhook_events.updateMany({
-      where: { stripe_event_id: paymentIntent.id },
-      data: { 
-        processed: false,
-        error: 'User account not yet created - deferred processing (failed payment)',
-      },
-    });
-    
-    return; // Exit early - signup flow will process this payment
+    logger.log(`⚠️  User ${user_id} not found - cannot record failed payment`);
+    return;
   }
+  
+  logger.log(`Processing failed payment for ${user.status} user: ${user.email}`);
   
   // Check if payment already recorded
   const existingPayment = await db.payments.findUnique({
@@ -300,7 +309,21 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
     },
   });
   
-  logger.log(`✅ Failed payment recorded for user ${user_email}`);
+  // Update user payment tracking - increment retry count
+  const now = new Date();
+  await db.users.update({
+    where: { id: user.id },
+    data: {
+      payment_attempted_at: user.payment_attempted_at || now,
+      payment_retry_count: user.payment_retry_count + 1,
+      updated_at: now,
+    },
+  });
+  
+  logger.log(`✅ Failed payment recorded for user ${user_email}: ${paymentIntent.id}`);
+  logger.log(`📊 Payment retry count: ${user.payment_retry_count + 1}`);
+  
+  // TODO: Send failed payment email with retry link (Phase 4)
 }
 
 /**

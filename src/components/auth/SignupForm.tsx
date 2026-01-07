@@ -33,11 +33,39 @@ export function SignupForm() {
     try {
       const display_name = data.display_name ?? data.email.split('@')[0];
       
-      // Store signup data in session storage for the next step
+      // Create PENDING user account immediately
+      const registerResponse = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          display_name: display_name,
+        }),
+      });
+
+      const registerResult = await registerResponse.json();
+
+      if (!registerResponse.ok) {
+        setError(registerResult.error || 'Failed to create account');
+        return;
+      }
+
+      const userId = registerResult.user?.id;
+      if (!userId) {
+        setError('Failed to create account');
+        return;
+      }
+
+      console.log(`✅ PENDING user created: ${userId}`);
+
+      // Store signup data with userId in session storage
       sessionStorage.setItem('signupData', JSON.stringify({
+        userId,
         email: data.email,
         password: data.password,
         display_name: display_name,
+        reservation_expires_at: registerResult.user.reservation_expires_at,
       }));
 
       // Check if display name has spaces
@@ -57,8 +85,32 @@ export function SignupForm() {
         const result = await response.json();
 
         if (result.available) {
-          // Username available - proceed directly to membership
+          // Reserve the username immediately
+          const reserveResponse = await fetch('/api/auth/reserve-username', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              username: display_name,
+            }),
+          });
+
+          if (!reserveResponse.ok) {
+            // Handle expired reservation
+            if (reserveResponse.status === 410) {
+              setError('Your reservation has expired. Please sign up again.');
+              sessionStorage.removeItem('signupData');
+              return;
+            }
+            
+            // For other errors, go to username selection
+            router.push(`/auth/username-selection?display_name=${encodeURIComponent(display_name)}`);
+            return;
+          }
+
+          // Username reserved - proceed directly to membership
           const params = new URLSearchParams();
+          params.set('userId', userId);
           params.set('email', data.email);
           params.set('name', display_name);
           params.set('username', display_name);

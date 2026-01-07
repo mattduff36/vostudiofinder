@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Button } from '@/components/ui/Button';
-import { Search, RefreshCw, Eye, Filter } from 'lucide-react';
+import { Search, RefreshCw, Filter, ChevronDown, ChevronUp, Banknote, AlertCircle, Check } from 'lucide-react';
 import { formatDate } from '@/lib/date-format';
 
 interface Payment {
@@ -16,12 +16,29 @@ interface Payment {
   status: string;
   refunded_amount: number;
   created_at: string;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
   users: {
+    id: string;
     email: string;
     username: string;
     display_name: string;
+    role: string;
+    created_at: string;
   };
-  refunds: any[];
+  refunds: Array<{
+    id: string;
+    stripe_refund_id: string;
+    amount: number;
+    currency: string;
+    reason: string | null;
+    status: string;
+    created_at: string;
+    users_refunds_processed_byTousers: {
+      email: string;
+      display_name: string;
+    };
+  }>;
 }
 
 export default function AdminPaymentsPage() {
@@ -31,6 +48,13 @@ export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [expandedPaymentId, setExpandedPaymentId] = useState<string | null>(null);
+  const [refundModalPaymentId, setRefundModalPaymentId] = useState<string | null>(null);
+  const [refundAmount, setRefundAmount] = useState('');
+  const [refundReason, setRefundReason] = useState('');
+  const [refunding, setRefunding] = useState(false);
+  const [refundError, setRefundError] = useState('');
+  const [refundSuccess, setRefundSuccess] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 50,
@@ -85,6 +109,59 @@ export default function AdminPaymentsPage() {
   const handleSearch = () => {
     setPagination({ ...pagination, page: 1 });
     fetchPayments();
+  };
+
+  const togglePaymentExpand = (paymentId: string) => {
+    setExpandedPaymentId(expandedPaymentId === paymentId ? null : paymentId);
+  };
+
+  const handleRefund = async (payment: Payment) => {
+    if (!refundAmount || parseFloat(refundAmount) <= 0) {
+      setRefundError('Please enter a valid refund amount');
+      return;
+    }
+
+    const amountInCents = Math.round(parseFloat(refundAmount) * 100);
+    const maxRefundable = payment.amount - payment.refunded_amount;
+
+    if (amountInCents > maxRefundable) {
+      setRefundError(`Amount exceeds available balance (${(maxRefundable / 100).toFixed(2)})`);
+      return;
+    }
+
+    setRefunding(true);
+    setRefundError('');
+
+    try {
+      const response = await fetch(`/api/admin/payments/${payment.id}/refund`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amountInCents,
+          reason: refundReason || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Refund failed');
+      }
+
+      setRefundSuccess(payment.id);
+      setRefundModalPaymentId(null);
+      setRefundAmount('');
+      setRefundReason('');
+
+      // Refresh payments
+      await fetchPayments();
+
+      // Reset success message after 3 seconds
+      setTimeout(() => setRefundSuccess(null), 3000);
+    } catch (error: any) {
+      setRefundError(error.message);
+    } finally {
+      setRefunding(false);
+    }
   };
 
   const formatAmount = (amount: number, currency: string) => {
@@ -145,18 +222,18 @@ export default function AdminPaymentsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search by Email or Username
               </label>
-              <div className="flex">
+              <div className="flex h-10">
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="user@example.com or username"
-                  className="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                  className="flex-1 h-10 px-3 rounded-l-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
                 />
                 <Button
                   onClick={handleSearch}
-                  className="rounded-l-none bg-red-600 hover:bg-red-700 px-4"
+                  className="h-10 rounded-l-none bg-red-600 hover:bg-red-700 px-4"
                 >
                   <Search className="w-4 h-4" />
                 </Button>
@@ -171,7 +248,7 @@ export default function AdminPaymentsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                className="w-full h-10 px-3 rounded-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
               >
                 <option value="">All Statuses</option>
                 <option value="SUCCEEDED">Succeeded</option>
@@ -225,54 +302,254 @@ export default function AdminPaymentsPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white">
                 {payments.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 border-t border-gray-200">
                       {searchTerm || statusFilter ? 'No payments found matching your filters' : 'No payments found'}
                     </td>
                   </tr>
                 ) : (
-                  payments.map((payment) => (
-                    <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {payment.users.display_name}
-                        </div>
-                        <div className="text-sm text-gray-500">{payment.users.email}</div>
-                        <div className="text-xs text-gray-400">@{payment.users.username}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">
-                          {formatAmount(payment.amount, payment.currency)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(payment.status)}`}>
-                          {payment.status.replace(/_/g, ' ')}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {payment.refunded_amount > 0
-                          ? formatAmount(payment.refunded_amount, payment.currency)
-                          : '—'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(payment.created_at)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <Button
-                          onClick={() => router.push(`/admin/payments/${payment.id}`)}
-                          variant="outline"
-                          className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                          size="sm"
+                  payments.map((payment) => {
+                    const isExpanded = expandedPaymentId === payment.id;
+                    const maxRefundable = payment.amount - payment.refunded_amount;
+                    const canRefund = maxRefundable > 0 && payment.status !== 'FAILED';
+                    const isRefundModalOpen = refundModalPaymentId === payment.id;
+
+                    return (
+                      <>
+                        {/* Success Message Row */}
+                        {refundSuccess === payment.id && (
+                          <tr key={`${payment.id}-success`}>
+                            <td colSpan={6} className="px-6 py-3 bg-green-50 border-t border-green-200">
+                              <div className="flex items-center">
+                                <Check className="w-5 h-5 text-green-600 mr-2" />
+                                <span className="text-sm text-green-800">Refund issued successfully</span>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+
+                        {/* Main Payment Row */}
+                        <tr
+                          key={payment.id}
+                          onClick={() => togglePaymentExpand(payment.id)}
+                          className="border-t border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
                         >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {payment.users.display_name}
+                            </div>
+                            <div className="text-sm text-gray-500">{payment.users.email}</div>
+                            <div className="text-xs text-gray-400">@{payment.users.username}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-semibold text-gray-900">
+                              {formatAmount(payment.amount, payment.currency)}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(payment.status)}`}>
+                              {payment.status.replace(/_/g, ' ')}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {payment.refunded_amount > 0
+                              ? formatAmount(payment.refunded_amount, payment.currency)
+                              : '—'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {formatDate(payment.created_at)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            {isExpanded ? (
+                              <ChevronUp className="w-5 h-5 text-gray-400 ml-auto" />
+                            ) : (
+                              <ChevronDown className="w-5 h-5 text-gray-400 ml-auto" />
+                            )}
+                          </td>
+                        </tr>
+
+                        {/* Expanded Details Row */}
+                        {isExpanded && (
+                          <tr key={`${payment.id}-details`}>
+                            <td colSpan={6} className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                {/* Payment Information with Refund Action */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-3">
+                                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Payment Information</h3>
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-3">
+                                    <div>
+                                      <p className="text-xs text-gray-500">Payment ID</p>
+                                      <p className="text-gray-900 font-mono text-xs">{payment.id}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500">Created</p>
+                                      <p className="text-gray-900 text-xs">
+                                        {new Date(payment.created_at).toLocaleString('en-GB')}
+                                      </p>
+                                    </div>
+                                    {payment.stripe_payment_intent_id && (
+                                      <div className="col-span-2">
+                                        <p className="text-xs text-gray-500">Stripe Payment Intent</p>
+                                        <p className="text-gray-900 font-mono text-xs break-all">
+                                          {payment.stripe_payment_intent_id}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Refund Action */}
+                                  {canRefund && (
+                                    <div className="border-t border-gray-200 pt-3 mt-3">
+                                      {!isRefundModalOpen ? (
+                                        <div>
+                                          <p className="text-xs text-gray-600 mb-2">
+                                            Available to refund: <span className="font-semibold">{formatAmount(maxRefundable, payment.currency)}</span>
+                                          </p>
+                                          <Button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              // Clear form state when opening modal for a new payment
+                                              setRefundAmount('');
+                                              setRefundReason('');
+                                              setRefundError('');
+                                              setRefundModalPaymentId(payment.id);
+                                            }}
+                                            className="w-full bg-red-600 hover:bg-red-700"
+                                            size="sm"
+                                          >
+                                            <Banknote className="w-4 h-4 mr-2" />
+                                            Issue Refund
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                                          <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                              Amount ({payment.currency.toUpperCase()})
+                                            </label>
+                                            <input
+                                              type="number"
+                                              step="0.01"
+                                              min="0"
+                                              max={maxRefundable / 100}
+                                              value={refundAmount}
+                                              onChange={(e) => setRefundAmount(e.target.value)}
+                                              placeholder="0.00"
+                                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                                            />
+                                          </div>
+
+                                          <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                              Reason (Optional)
+                                            </label>
+                                            <textarea
+                                              value={refundReason}
+                                              onChange={(e) => setRefundReason(e.target.value)}
+                                              placeholder="Enter reason..."
+                                              rows={2}
+                                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                                            />
+                                          </div>
+
+                                          {refundError && (
+                                            <div className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-start">
+                                              <AlertCircle className="w-4 h-4 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
+                                              <span className="text-xs text-red-800">{refundError}</span>
+                                            </div>
+                                          )}
+
+                                          <div className="flex space-x-2">
+                                            <Button
+                                              onClick={() => handleRefund(payment)}
+                                              disabled={refunding}
+                                              loading={refunding}
+                                              className="flex-1 bg-red-600 hover:bg-red-700"
+                                              size="sm"
+                                            >
+                                              Confirm
+                                            </Button>
+                                            <Button
+                                              onClick={() => {
+                                                setRefundModalPaymentId(null);
+                                                setRefundAmount('');
+                                                setRefundReason('');
+                                                setRefundError('');
+                                              }}
+                                              variant="outline"
+                                              disabled={refunding}
+                                              size="sm"
+                                            >
+                                              Cancel
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Customer Information */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-3">
+                                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Customer Information</h3>
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                    <div>
+                                      <p className="text-xs text-gray-500">Name</p>
+                                      <p className="text-gray-900 text-xs">{payment.users.display_name}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500">Username</p>
+                                      <p className="text-gray-900 text-xs">@{payment.users.username}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                      <p className="text-xs text-gray-500">Email</p>
+                                      <p className="text-gray-900 text-xs">{payment.users.email}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500">Account Created</p>
+                                      <p className="text-gray-900 text-xs">
+                                        {new Date(payment.users.created_at).toLocaleDateString('en-GB')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Refund History */}
+                                {payment.refunds.length > 0 && (
+                                  <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-3">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Refund History</h3>
+                                    <div className="space-y-2">
+                                      {payment.refunds.map((refund) => (
+                                        <div key={refund.id} className="border border-gray-200 rounded-lg p-2 text-sm">
+                                          <div className="flex items-center justify-between mb-1">
+                                            <span className="font-semibold text-red-600 text-sm">
+                                              {formatAmount(refund.amount, refund.currency)}
+                                            </span>
+                                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${refund.status === 'SUCCEEDED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                              {refund.status}
+                                            </span>
+                                          </div>
+                                          {refund.reason && (
+                                            <p className="text-gray-600 text-xs mb-1">Reason: {refund.reason}</p>
+                                          )}
+                                          <p className="text-gray-500 text-xs">
+                                            Processed by {refund.users_refunds_processed_byTousers.display_name} on{' '}
+                                            {new Date(refund.created_at).toLocaleString('en-GB')}
+                                          </p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    );
+                  })
                 )}
               </tbody>
             </table>

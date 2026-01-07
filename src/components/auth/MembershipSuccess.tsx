@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
-import { Loader2, Upload, X } from 'lucide-react';
+import { ImageCropperModal } from '@/components/images/ImageCropperModal';
+import { Loader2, Upload, X, AlertCircle } from 'lucide-react';
 import { extractCity } from '@/lib/utils/address';
 import Image from 'next/image';
 
@@ -61,6 +62,8 @@ export function MembershipSuccess() {
   const [paymentVerified, setPaymentVerified] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [images, setImages] = useState<{ url: string; alt_text?: string }[]>([]);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   const sessionId = searchParams?.get('session_id');
   const email = searchParams?.get('email') || '';
@@ -161,12 +164,16 @@ export function MembershipSuccess() {
     verifyPayment();
   }, [sessionId, email, name, username, reset]);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    // Clear the input so the same file can be selected again
+    e.target.value = '';
+
     if (images.length >= 5) {
       setError('Maximum 5 images allowed');
+      setTimeout(() => setError(null), 5000);
       return;
     }
 
@@ -176,22 +183,34 @@ export function MembershipSuccess() {
     // Validate file type
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      setError('Please select a valid image file (.png, .jpg, .webp)');
+      setError('Please select a valid image file (.png, .jpg, .jpeg, .webp)');
+      setTimeout(() => setError(null), 5000);
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image size must be less than 5MB');
+    // Validate file size (10MB - will be compressed)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      setError(`Image too large (${sizeMB}MB). Maximum size is 10MB. Please compress or resize your image.`);
+      setTimeout(() => setError(null), 7000);
       return;
     }
 
+    // Clear any existing error and open cropper
+    setError(null);
+    setSelectedFile(file);
+    setCropperOpen(true);
+  };
+
+  const handleCropConfirm = async (croppedFile: File) => {
     try {
       setUploading(true);
-      setError(null);
+      setCropperOpen(false);
+      setSelectedFile(null);
 
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', croppedFile);
       formData.append('folder', 'voiceover-studios');
 
       const response = await fetch('/api/upload/signup-image', {
@@ -208,11 +227,18 @@ export function MembershipSuccess() {
       const newImages = [...images, { url: result.image.url, alt_text: '' }];
       setImages(newImages);
       setValue('images', newImages);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload image');
+      setTimeout(() => setError(null), 5000);
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleCropCancel = () => {
+    setCropperOpen(false);
+    setSelectedFile(null);
   };
 
   const removeImage = (index: number) => {
@@ -265,7 +291,33 @@ export function MembershipSuccess() {
 
       if (!password) {
         setError('Session expired. Please start the signup process again.');
+        setIsLoading(false);
         return;
+      }
+
+      // Auto-add https:// to website URL if not present and validate format
+      let websiteUrl = data.website_url.trim();
+      if (websiteUrl && !websiteUrl.match(/^https?:\/\//i)) {
+        websiteUrl = `https://${websiteUrl}`;
+      }
+
+      // Validate the final URL format
+      if (websiteUrl) {
+        try {
+          const url = new URL(websiteUrl);
+          // Ensure it's a valid HTTP/HTTPS URL with a proper domain
+          if (!url.protocol.match(/^https?:$/)) {
+            throw new Error('Invalid protocol');
+          }
+          // Check for valid hostname (not just "invalid" or single word)
+          if (!url.hostname || !url.hostname.includes('.')) {
+            throw new Error('Invalid domain');
+          }
+        } catch (err) {
+          setError('Please enter a valid website URL (e.g., yourstudio.com)');
+          setIsLoading(false);
+          return;
+        }
       }
 
       console.log('📤 Submitting profile data:', {
@@ -273,7 +325,8 @@ export function MembershipSuccess() {
         hasSessionId: !!sessionId,
         studioTypes: data.studio_types,
         imageCount: images.length,
-        connections: Object.keys(data.connections).filter(k => data.connections[k])
+        connections: Object.keys(data.connections).filter(k => data.connections[k]),
+        websiteUrl
       });
 
       const response = await fetch('/api/auth/create-studio-profile', {
@@ -281,6 +334,7 @@ export function MembershipSuccess() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
+          website_url: websiteUrl, // Use the auto-prefixed URL
           password, // Include password from signup
           sessionId,
           images,
@@ -443,8 +497,9 @@ export function MembershipSuccess() {
         <div className="bg-white/90 backdrop-blur-sm py-8 px-6 shadow sm:rounded-lg">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="p-4 bg-red-50 border border-red-200 rounded-md flex items-start space-x-2">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-600 flex-1">{error}</p>
               </div>
             )}
 
@@ -578,10 +633,33 @@ export function MembershipSuccess() {
               
               <Input
                 label="Website URL *"
-                type="url"
-                {...register('website_url', { required: 'Website URL is required' })}
+                type="text"
+                {...register('website_url', { 
+                  required: 'Website URL is required',
+                  validate: (value) => {
+                    if (!value) return true; // Let required handle empty
+                    
+                    // Add https:// if not present (for validation)
+                    let url = value.trim();
+                    if (!url.match(/^https?:\/\//i)) {
+                      url = `https://${url}`;
+                    }
+                    
+                    try {
+                      const parsed = new URL(url);
+                      // Require proper domain with at least one dot
+                      if (!parsed.hostname.includes('.')) {
+                        return 'Please enter a valid domain (e.g., yourstudio.com)';
+                      }
+                      return true;
+                    } catch {
+                      return 'Please enter a valid website URL';
+                    }
+                  }
+                })}
                 error={errors.website_url?.message || ''}
-                placeholder="https://yourstudio.com"
+                placeholder="yourstudio.com"
+                helperText="https:// will be added automatically if not included"
               />
 
             <div>
@@ -612,7 +690,7 @@ export function MembershipSuccess() {
             {/* Images */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Studio Images *</h3>
-              <p className="text-sm text-gray-600">Upload 1-5 images of your studio</p>
+              <p className="text-sm text-gray-600">Upload 1-5 high-quality images of your studio. Each image will be cropped to the optimal ratio.</p>
               
               {images.length < 5 && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
@@ -627,20 +705,20 @@ export function MembershipSuccess() {
                               Uploading...
                             </>
                           ) : (
-                            'Upload Image'
+                            'Select Image to Crop'
                           )}
                         </span>
                         <input
                           type="file"
                           accept="image/png,image/jpeg,image/jpg,image/webp"
-                          onChange={handleImageUpload}
-                          disabled={uploading}
+                          onChange={handleImageSelect}
+                          disabled={uploading || cropperOpen}
                           className="hidden"
                         />
               </label>
                     </div>
                     <p className="mt-2 text-sm text-gray-500">
-                      PNG, JPG, WEBP up to 5MB
+                      PNG, JPG, WEBP up to 10MB • You'll crop each image before uploading
                     </p>
                   </div>
                 </div>
@@ -686,6 +764,17 @@ export function MembershipSuccess() {
           </form>
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      <ImageCropperModal
+        file={selectedFile}
+        isOpen={cropperOpen}
+        onConfirm={handleCropConfirm}
+        onCancel={handleCropCancel}
+        aspect={25 / 12}
+        maxWidth={2000}
+        maxHeight={960}
+      />
     </div>
   );
 }
