@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     const maxReservationDays = 14;
 
     // If user has exceeded max reservation period, mark as EXPIRED
-    if (daysSinceCreation >= maxReservationDays) {
+    if (daysSinceCreation > maxReservationDays) {
       await db.users.update({
         where: { id: userId },
         data: {
