@@ -1,8 +1,7 @@
 /**
  * Password Reset Email Template
  * 
- * Generates HTML email for password reset requests
- * Matches VoiceoverStudioFinder brand and tone
+ * Purpose: Allow users to reset their password
  */
 
 export interface PasswordResetEmailProps {
@@ -14,214 +13,82 @@ export function generatePasswordResetEmail({
   resetUrl,
   userEmail,
 }: PasswordResetEmailProps): { html: string; text: string } {
+  const subject = 'Reset your password';
+  const previewText = 'Click the link to reset your password. This link expires in 1 hour.';
+
   const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Your Password</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #f9fafb;
-      line-height: 1.6;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .email-wrapper {
-      background-color: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-    }
-    .header {
-      background-color: #ffffff;
-      padding: 30px 20px 20px 20px;
-      text-align: center;
-      border-bottom: 3px solid #d42027;
-    }
-    .logo-image {
-      max-width: 300px;
-      height: auto;
-      margin: 0 auto;
-    }
-    .content {
-      padding: 40px 30px;
-      background-color: #ffffff;
-    }
-    h1 {
-      color: #1f2937;
-      font-size: 26px;
-      margin: 0 0 20px 0;
-      font-weight: 600;
-    }
-    p {
-      color: #4b5563;
-      font-size: 16px;
-      margin: 0 0 16px 0;
-      line-height: 1.7;
-    }
-    .highlight {
-      color: #d42027;
-      font-weight: 600;
-    }
-    .button-container {
-      text-align: center;
-      margin: 32px 0;
-    }
-    .button {
-      display: inline-block;
-      padding: 16px 40px;
-      background-color: #d42027;
-      color: #ffffff;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 16px;
-      box-shadow: 0 2px 4px rgba(212, 32, 39, 0.3);
-    }
-    .button:hover {
-      background-color: #b61b21;
-    }
-    .alternative-link {
-      margin-top: 28px;
-      padding: 20px;
-      background-color: #f9fafb;
-      border-radius: 6px;
-      border: 1px solid #e5e7eb;
-    }
-    .alternative-link p {
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      color: #6b7280;
-    }
-    .alternative-link a {
-      color: #d42027;
-      font-size: 13px;
-      word-break: break-all;
-      text-decoration: underline;
-    }
-    .info-box {
-      margin-top: 28px;
-      padding: 20px;
-      background-color: #fef2f2;
-      border-left: 4px solid #d42027;
-      border-radius: 4px;
-    }
-    .info-box p {
-      color: #7f1d1d;
-      font-size: 14px;
-      margin: 0 0 8px 0;
-      line-height: 1.6;
-    }
-    .info-box p:last-child {
-      margin: 0;
-    }
-    .divider {
-      height: 1px;
-      background-color: #e5e7eb;
-      margin: 32px 0;
-    }
-    .footer {
-      padding: 30px 30px;
-      background-color: #f9fafb;
-      border-top: 1px solid #e5e7eb;
-      text-align: center;
-    }
-    .footer p {
-      color: #6b7280;
-      font-size: 13px;
-      margin: 0 0 8px 0;
-    }
-    .footer p:last-child {
-      margin: 0;
-    }
-    .footer-tagline {
-      color: #9ca3af;
-      font-size: 12px;
-      font-style: italic;
-      margin-top: 12px;
-    }
-  </style>
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>${subject}</title>
 </head>
-<body>
-  <div class="container">
-    <div class="email-wrapper">
-      <div class="header">
-        <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="VoiceoverStudioFinder" class="logo-image" />
-      </div>
-      
-      <div class="content">
-        <h1>Reset Your Password</h1>
-        
-        <p>Hello,</p>
-        
-        <p>We received a request to reset the password for your <span class="highlight">VoiceoverStudioFinder</span> account (<strong>${userEmail}</strong>).</p>
-        
-        <p>Finding a great recording studio shouldn't be hard — and neither should accessing your account. Click the button below to set a new password and get back to connecting with professional studios.</p>
-        
-        <div class="button-container">
-          <a href="${resetUrl}" class="button">Reset My Password</a>
-        </div>
-        
-        <div class="alternative-link">
-          <p>If the button doesn't work, copy and paste this link into your browser:</p>
-          <a href="${resetUrl}">${resetUrl}</a>
-        </div>
-        
-        <div class="info-box">
-          <p><strong>⏱️ This link expires in 1 hour</strong></p>
-          <p>For security, password reset links are only valid for one hour. If yours expires, just request a new one.</p>
-        </div>
-
-        <div class="divider"></div>
-        
-        <p style="font-size: 14px; color: #6b7280;">If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged and your account stays secure.</p>
-      </div>
-      
-      <div class="footer">
-        <p>© ${new Date().getFullYear()} VoiceoverStudioFinder</p>
-        <p>Connecting voice artists, podcasters, and producers with professional recording studios worldwide</p>
-        <p class="footer-tagline">Simple, transparent, and built by people who actually record for a living.</p>
-        <p style="margin-top: 16px; font-size: 12px;">This is an automated email. Please do not reply.</p>
-      </div>
-    </div>
-  </div>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 4px;">
+          <tr>
+            <td style="padding: 40px 40px 32px 40px;">
+              <div style="font-size: 20px; font-weight: 500; color: #1a1a1a; margin-bottom: 24px;">VoiceoverStudioFinder</div>
+              <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Reset your password</h1>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We received a request to reset the password for your account (${userEmail}). Click the button below to set a new password.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="left">
+                    <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: 500;">Reset password</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <p style="margin: 0 0 16px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">If the button doesn't work, copy and paste this link into your browser:</p>
+              <p style="margin: 0; font-size: 14px; color: #1a1a1a; word-break: break-all; line-height: 1.6;"><a href="${resetUrl}" style="color: #1a1a1a; text-decoration: underline;">${resetUrl}</a></p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">This link expires in 1 hour. If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">VoiceoverStudioFinder</p>
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} VoiceoverStudioFinder. All rights reserved.</p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">If you have questions, contact us at <a href="mailto:support@voiceoverstudiofinder.com" style="color: #1a1a1a; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `.trim();
 
   const text = `
-Reset Your Password - VoiceoverStudioFinder
+Reset your password
 
-Hello,
-
-We received a request to reset the password for your VoiceoverStudioFinder account (${userEmail}).
-
-Finding a great recording studio shouldn't be hard — and neither should accessing your account. Click the link below to set a new password and get back to connecting with professional studios.
+We received a request to reset the password for your account (${userEmail}). Click the link below to set a new password.
 
 Reset your password:
 ${resetUrl}
 
-⏱️ This link expires in 1 hour
-
-For security, password reset links are only valid for one hour. If yours expires, just request a new one.
-
-If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged and your account stays secure.
+This link expires in 1 hour. If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
 
 ---
-© ${new Date().getFullYear()} VoiceoverStudioFinder
-Connecting voice artists, podcasters, and producers with professional recording studios worldwide
-
-Simple, transparent, and built by people who actually record for a living.
-
-This is an automated email. Please do not reply.
+VoiceoverStudioFinder
+© ${new Date().getFullYear()} VoiceoverStudioFinder. All rights reserved.
+If you have questions, contact us at support@voiceoverstudiofinder.com
   `.trim();
 
   return { html, text };

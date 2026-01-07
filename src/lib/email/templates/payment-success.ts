@@ -1,3 +1,9 @@
+/**
+ * Payment Success Template
+ * 
+ * Purpose: Confirm successful payment processing
+ */
+
 export const paymentSuccessTemplate = (data: {
   customerName: string;
   amount: string;
@@ -5,151 +11,94 @@ export const paymentSuccessTemplate = (data: {
   invoiceNumber: string;
   planName: string;
   nextBillingDate: string;
-}) => `
+}) => {
+  const subject = 'Payment received';
+  const previewText = `We've received your payment of ${data.amount} ${data.currency.toUpperCase()}.`;
+
+  return `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payment Confirmation - VoiceoverStudioFinder</title>
-  <style>
-    body { 
-      font-family: 'Raleway', Arial, sans-serif; 
-      line-height: 1.6; 
-      color: #333; 
-      margin: 0; 
-      padding: 0; 
-      background-color: #f4f4f4;
-    }
-    .container { 
-      max-width: 600px; 
-      margin: 0 auto; 
-      background: white; 
-      padding: 20px; 
-      border-radius: 8px; 
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .header { 
-      text-align: center; 
-      border-bottom: 2px solid #f39c12; 
-      padding-bottom: 20px; 
-      margin-bottom: 30px;
-    }
-    .logo { 
-      font-size: 24px; 
-      font-weight: bold; 
-      color: #f39c12; 
-    }
-    .success-icon {
-      font-size: 48px;
-      color: #27ae60;
-      margin: 20px 0;
-    }
-    .amount {
-      font-size: 32px;
-      font-weight: bold;
-      color: #27ae60;
-      margin: 20px 0;
-    }
-    .details {
-      background: #f8f9fa;
-      padding: 20px;
-      border-radius: 6px;
-      margin: 20px 0;
-    }
-    .details h3 {
-      margin-top: 0;
-      color: #2c3e50;
-    }
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #ecf0f1;
-    }
-    .detail-row:last-child {
-      border-bottom: none;
-    }
-    .cta {
-      text-align: center;
-      margin: 30px 0;
-    }
-    .button {
-      display: inline-block;
-      background: #f39c12;
-      color: white;
-      padding: 12px 30px;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: bold;
-    }
-    .footer {
-      text-align: center;
-      color: #7f8c8d;
-      font-size: 14px;
-      border-top: 1px solid #ecf0f1;
-      padding-top: 20px;
-      margin-top: 30px;
-    }
-  </style>
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>${subject}</title>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div class="logo">VoiceoverStudioFinder</div>
-      <div class="success-icon">✅</div>
-      <h1>Payment Successful!</h1>
-    </div>
-
-    <p>Hi ${data.customerName},</p>
-
-    <p>Thank you for your payment! We've successfully processed your subscription payment.</p>
-
-    <div class="amount">${data.amount} ${data.currency.toUpperCase()}</div>
-
-    <div class="details">
-      <h3>Payment Details</h3>
-      <div class="detail-row">
-        <span>Invoice Number:</span>
-        <span><strong>${data.invoiceNumber}</strong></span>
-      </div>
-      <div class="detail-row">
-        <span>Plan:</span>
-        <span><strong>${data.planName}</strong></span>
-      </div>
-      <div class="detail-row">
-        <span>Next Billing Date:</span>
-        <span><strong>${data.nextBillingDate}</strong></span>
-      </div>
-    </div>
-
-    <p>Your premium studio features are now active! You can now:</p>
-    <ul>
-      <li>Feature your studio listing</li>
-      <li>Upload unlimited photos</li>
-      <li>Receive priority placement in search results</li>
-      <li>Access detailed analytics</li>
-    </ul>
-
-    <div class="cta">
-      <a href="https://voiceoverstudiofinder.com/dashboard" class="button">
-        Access Your Dashboard
-      </a>
-    </div>
-
-    <p>If you have any questions about your subscription or need help with your studio listing, please don't hesitate to contact our support team.</p>
-
-    <div class="footer">
-      <p>
-        © 2024 VoiceoverStudioFinder. All rights reserved.<br>
-        <a href="https://voiceoverstudiofinder.com/unsubscribe">Unsubscribe</a> |
-        <a href="https://voiceoverstudiofinder.com/support">Support</a>
-      </p>
-    </div>
-  </div>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 4px;">
+          <tr>
+            <td style="padding: 40px 40px 32px 40px;">
+              <div style="font-size: 20px; font-weight: 500; color: #1a1a1a; margin-bottom: 24px;">VoiceoverStudioFinder</div>
+              <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Payment received</h1>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We've successfully processed your payment. Your membership is now active.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f9f9f9; border-radius: 4px;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding: 0 0 12px 0;">
+                          <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Amount</p>
+                          <p style="margin: 4px 0 0 0; font-size: 20px; font-weight: 500; color: #1a1a1a; line-height: 1.6;">${data.amount} ${data.currency.toUpperCase()}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 12px 0; border-top: 1px solid #e5e5e5;">
+                          <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Invoice</p>
+                          <p style="margin: 4px 0 0 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">${data.invoiceNumber}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 12px 0; border-top: 1px solid #e5e5e5;">
+                          <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Plan</p>
+                          <p style="margin: 4px 0 0 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">${data.planName}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 12px 0 0 0; border-top: 1px solid #e5e5e5;">
+                          <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Next billing date</p>
+                          <p style="margin: 4px 0 0 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">${data.nextBillingDate}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="left">
+                    <a href="https://voiceoverstudiofinder.com/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: 500;">View dashboard</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">VoiceoverStudioFinder</p>
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} VoiceoverStudioFinder. All rights reserved.</p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">If you have questions, contact us at <a href="mailto:support@voiceoverstudiofinder.com" style="color: #1a1a1a; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
-`;
+  `.trim();
+};
 
 export const paymentFailedTemplate = (data: {
   customerName: string;
@@ -157,119 +106,73 @@ export const paymentFailedTemplate = (data: {
   currency: string;
   reason: string;
   retryDate?: string;
-}) => `
+}) => {
+  const subject = 'Payment failed';
+  const previewText = `We couldn't process your payment. Update your payment method to continue.`;
+
+  return `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payment Failed - VoiceoverStudioFinder</title>
-  <style>
-    body { 
-      font-family: 'Raleway', Arial, sans-serif; 
-      line-height: 1.6; 
-      color: #333; 
-      margin: 0; 
-      padding: 0; 
-      background-color: #f4f4f4;
-    }
-    .container { 
-      max-width: 600px; 
-      margin: 0 auto; 
-      background: white; 
-      padding: 20px; 
-      border-radius: 8px; 
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .header { 
-      text-align: center; 
-      border-bottom: 2px solid #e74c3c; 
-      padding-bottom: 20px; 
-      margin-bottom: 30px;
-    }
-    .logo { 
-      font-size: 24px; 
-      font-weight: bold; 
-      color: #f39c12; 
-    }
-    .error-icon {
-      font-size: 48px;
-      color: #e74c3c;
-      margin: 20px 0;
-    }
-    .amount {
-      font-size: 24px;
-      color: #e74c3c;
-      margin: 20px 0;
-    }
-    .reason {
-      background: #fdf2f2;
-      border: 1px solid #fca5a5;
-      padding: 15px;
-      border-radius: 6px;
-      color: #dc2626;
-      margin: 20px 0;
-    }
-    .cta {
-      text-align: center;
-      margin: 30px 0;
-    }
-    .button {
-      display: inline-block;
-      background: #e74c3c;
-      color: white;
-      padding: 12px 30px;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: bold;
-    }
-    .footer {
-      text-align: center;
-      color: #7f8c8d;
-      font-size: 14px;
-      border-top: 1px solid #ecf0f1;
-      padding-top: 20px;
-      margin-top: 30px;
-    }
-  </style>
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>${subject}</title>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div class="logo">VoiceoverStudioFinder</div>
-      <div class="error-icon">❌</div>
-      <h1>Payment Failed</h1>
-    </div>
-
-    <p>Hi ${data.customerName},</p>
-
-    <p>We were unable to process your payment for your VoiceoverStudioFinder subscription.</p>
-
-    <div class="amount">Failed Payment: ${data.amount} ${data.currency.toUpperCase()}</div>
-
-    <div class="reason">
-      <strong>Reason:</strong> ${data.reason}
-    </div>
-
-    ${data.retryDate ? `<p>We'll automatically retry your payment on <strong>${data.retryDate}</strong>. Please ensure your payment method is up to date.</p>` : ''}
-
-    <p>To avoid any interruption to your premium features, please update your payment method or try a different card.</p>
-
-    <div class="cta">
-      <a href="https://voiceoverstudiofinder.com/billing" class="button">
-        Update Payment Method
-      </a>
-    </div>
-
-    <p>If you continue to experience issues, please contact our support team for assistance.</p>
-
-    <div class="footer">
-      <p>
-        © 2024 VoiceoverStudioFinder. All rights reserved.<br>
-        <a href="https://voiceoverstudiofinder.com/support">Support</a>
-      </p>
-    </div>
-  </div>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 4px;">
+          <tr>
+            <td style="padding: 40px 40px 32px 40px;">
+              <div style="font-size: 20px; font-weight: 500; color: #1a1a1a; margin-bottom: 24px;">VoiceoverStudioFinder</div>
+              <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Payment failed</h1>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We couldn't process your payment of ${data.amount} ${data.currency.toUpperCase()}. Update your payment method to continue your membership.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 24px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fef2f2; border-left: 3px solid #dc2626; border-radius: 4px;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <p style="margin: 0; font-size: 14px; color: #991b1b; line-height: 1.6;"><strong>Reason:</strong> ${data.reason}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ${data.retryDate ? `
+          <tr>
+            <td style="padding: 0 40px 24px 40px;">
+              <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">We'll automatically retry this payment on ${data.retryDate}. Please ensure your payment method is up to date.</p>
+            </td>
+          </tr>
+          ` : ''}
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="left">
+                    <a href="https://voiceoverstudiofinder.com/billing" style="display: inline-block; padding: 12px 24px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: 500;">Update payment method</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">VoiceoverStudioFinder</p>
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} VoiceoverStudioFinder. All rights reserved.</p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">If you have questions, contact us at <a href="mailto:support@voiceoverstudiofinder.com" style="color: #1a1a1a; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
-`;
+  `.trim();
+};

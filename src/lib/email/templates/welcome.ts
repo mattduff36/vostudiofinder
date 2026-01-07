@@ -1,3 +1,9 @@
+/**
+ * Welcome Email Template
+ * 
+ * Purpose: Welcome new users after account creation
+ */
+
 export interface WelcomeEmailData {
   display_name: string;
   email: string;
@@ -5,128 +11,85 @@ export interface WelcomeEmailData {
 }
 
 export function getWelcomeEmailTemplate(data: WelcomeEmailData) {
-  const { display_name, email: _, verificationUrl } = data;
+  const { display_name, verificationUrl } = data;
+  
+  const subject = 'Welcome to VoiceoverStudioFinder';
+  const previewText = 'Verify your email address to get started.';
 
   return {
-    subject: 'Welcome to VoiceoverStudioFinder - Verify Your Email',
+    subject,
     html: `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to VoiceoverStudioFinder</title>
-    <style>
-        body {
-            font-family: 'Raleway', Arial, sans-serif;
-            line-height: 1.6;
-            color: #27292b;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background: linear-gradient(135deg, #5a4f66 0%, #666 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            border-radius: 8px 8px 0 0;
-        }
-        .content {
-            background: #ffffff;
-            padding: 30px;
-            border: 1px solid #e0dce8;
-            border-top: none;
-        }
-        .button {
-            display: inline-block;
-            background: #5a4f66;
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: 600;
-            margin: 20px 0;
-        }
-        .button:hover {
-            background: #4a3f56;
-        }
-        .footer {
-            background: #f8f7fa;
-            padding: 20px;
-            text-align: center;
-            font-size: 14px;
-            color: #999;
-            border-radius: 0 0 8px 8px;
-            border: 1px solid #e0dce8;
-            border-top: none;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>${subject}</title>
 </head>
-<body>
-    <div class="header">
-        <div class="logo">VoiceoverStudioFinder</div>
-        <h1>Welcome ${display_name}!</h1>
-    </div>
-    
-    <div class="content">
-        <h2>Thank you for joining our community!</h2>
-        
-        <p>We're excited to have you on board. VoiceoverStudioFinder connects voice professionals with recording studios worldwide.</p>
-        
-        <p>To get started, please verify your email address by clicking the button below:</p>
-        
-        <div style="text-align: center;">
-            <a href="${verificationUrl}" class="button">Verify Email Address</a>
-        </div>
-        
-        <p>Once verified, you'll be able to:</p>
-        <ul>
-            <li>Browse and search professional recording studios</li>
-            <li>Connect with studio owners and voice professionals</li>
-            <li>Manage your profile and preferences</li>
-            <li>Join our vibrant community</li>
-        </ul>
-        
-        <p>If the button doesn't work, copy and paste this link into your browser:</p>
-        <p style="word-break: break-all; color: #5a4f66;">${verificationUrl}</p>
-        
-        <p>This verification link will expire in 24 hours for security reasons.</p>
-    </div>
-    
-    <div class="footer">
-        <p>If you didn't create an account with us, please ignore this email.</p>
-        <p>© 2024 VoiceoverStudioFinder. All rights reserved.</p>
-        <p>Need help? Contact us at <a href="mailto:support@voiceoverstudiofinder.com">support@voiceoverstudiofinder.com</a></p>
-    </div>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 4px;">
+          <tr>
+            <td style="padding: 40px 40px 32px 40px;">
+              <div style="font-size: 20px; font-weight: 500; color: #1a1a1a; margin-bottom: 24px;">VoiceoverStudioFinder</div>
+              <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Welcome, ${display_name}</h1>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">Your account has been created. Verify your email address to get started.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="left">
+                    <a href="${verificationUrl}" style="display: inline-block; padding: 12px 24px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: 500;">Verify email address</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <p style="margin: 0 0 16px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">If the button doesn't work, copy and paste this link into your browser:</p>
+              <p style="margin: 0; font-size: 14px; color: #1a1a1a; word-break: break-all; line-height: 1.6;"><a href="${verificationUrl}" style="color: #1a1a1a; text-decoration: underline;">${verificationUrl}</a></p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">This verification link expires in 24 hours.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">VoiceoverStudioFinder</p>
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} VoiceoverStudioFinder. All rights reserved.</p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">If you have questions, contact us at <a href="mailto:support@voiceoverstudiofinder.com" style="color: #1a1a1a; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
-</html>`,
+</html>
+    `.trim(),
     text: `
-Welcome to VoiceoverStudioFinder, ${display_name}!
+Welcome to VoiceoverStudioFinder
 
-Thank you for joining our community of voice professionals and recording studios.
+Welcome, ${display_name}. Your account has been created. Verify your email address to get started.
 
-To complete your registration, please verify your email address by clicking the following link:
+Verify your email:
 ${verificationUrl}
 
-This verification link will expire in 24 hours for security reasons.
+This verification link expires in 24 hours.
 
-Once verified, you'll be able to:
-- Browse and search professional recording studios
-- Connect with studio owners and voice professionals  
-- Manage your profile and preferences
-- Join our vibrant community
-
-If you didn't create an account with us, please ignore this email.
-
-Need help? Contact us at support@voiceoverstudiofinder.com
-
-© 2024 VoiceoverStudioFinder. All rights reserved.
-`,
+---
+VoiceoverStudioFinder
+© ${new Date().getFullYear()} VoiceoverStudioFinder. All rights reserved.
+If you have questions, contact us at support@voiceoverstudiofinder.com
+    `.trim(),
   };
 }
