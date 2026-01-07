@@ -42,7 +42,7 @@ export function generatePasswordResetEmail({
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${resetUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"> Reset password </a>
+                    <a href="${resetUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Reset password&nbsp;</span></a>
                   </td>
                 </tr>
               </table>

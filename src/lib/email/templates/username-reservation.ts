@@ -66,7 +66,7 @@ export const paymentFailedReservationTemplate = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.retryUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"> Retry payment </a>
+                    <a href="${data.retryUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Retry payment&nbsp;</span></a>
                   </td>
                 </tr>
               </table>
@@ -137,7 +137,7 @@ export const reservationReminderDay2Template = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"> Complete signup </a>
+                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Complete signup&nbsp;</span></a>
                   </td>
                 </tr>
               </table>
@@ -208,7 +208,7 @@ export const reservationUrgencyDay5Template = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"> Complete signup </a>
+                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Complete signup&nbsp;</span></a>
                   </td>
                 </tr>
               </table>
@@ -282,7 +282,7 @@ export const reservationExpiredTemplate = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"> Sign up again </a>
+                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Sign up again&nbsp;</span></a>
                   </td>
                 </tr>
               </table>

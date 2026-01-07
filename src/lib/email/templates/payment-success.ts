@@ -77,7 +77,7 @@ export const paymentSuccessTemplate = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="https://voiceoverstudiofinder.com/dashboard" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"> View dashboard </a>
+                    <a href="https://voiceoverstudiofinder.com/dashboard" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;View dashboard&nbsp;</span></a>
                   </td>
                 </tr>
               </table>
@@ -153,7 +153,7 @@ export const paymentFailedTemplate = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="https://voiceoverstudiofinder.com/billing" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"> Update payment method </a>
+                    <a href="https://voiceoverstudiofinder.com/billing" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Update payment method&nbsp;</span></a>
                   </td>
                 </tr>
               </table>
