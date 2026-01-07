@@ -61,16 +61,18 @@ export async function GET(request: NextRequest) {
 
     for (const user of expiredUsers) {
       try {
-        // Mark user as EXPIRED
+        // Mark user as EXPIRED and clear username (unique constraint)
+        const expiredUsername = `expired_${user.username}_${Date.now()}_${user.id.substring(0, 4)}`;
         await db.users.update({
           where: { id: user.id },
           data: {
             status: UserStatus.EXPIRED,
+            username: expiredUsername, // Free up username for reuse
             updated_at: now,
           },
         });
 
-        console.log(`✅ [CRON] Expired: ${user.username} (${user.email})`);
+        console.log(`✅ [CRON] Expired: ${user.username} → ${expiredUsername} (${user.email})`);
 
         // Send expiration notification email
         try {
