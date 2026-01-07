@@ -22,6 +22,11 @@ export const paymentFailedReservationTemplate = (data: {
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Payment issue with your signup</title>
+  <style>
+    .cta-button { color: #ffffff !important; }
+    .cta-button span { color: #ffffff !important; }
+    a.cta-button { color: #ffffff !important; mso-color-alt: #ffffff; }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -66,7 +71,7 @@ export const paymentFailedReservationTemplate = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.retryUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Retry payment&nbsp;</span></a>
+                    <a href="${data.retryUrl}" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5; mso-color-alt: #ffffff;"><span style="color: #ffffff !important; mso-color-alt: #ffffff;">&nbsp;Retry payment&nbsp;</span></a>
                   </td>
                 </tr>
               </table>
@@ -104,6 +109,11 @@ export const reservationReminderDay2Template = (data: {
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Complete your signup</title>
+  <style>
+    .cta-button { color: #ffffff !important; }
+    .cta-button span { color: #ffffff !important; }
+    a.cta-button { color: #ffffff !important; mso-color-alt: #ffffff; }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -137,7 +147,7 @@ export const reservationReminderDay2Template = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Complete signup&nbsp;</span></a>
+                    <a href="${data.signupUrl}" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5; mso-color-alt: #ffffff;"><span style="color: #ffffff !important; mso-color-alt: #ffffff;">&nbsp;Complete signup&nbsp;</span></a>
                   </td>
                 </tr>
               </table>
@@ -175,6 +185,11 @@ export const reservationUrgencyDay5Template = (data: {
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Your username reservation expires in ${data.daysRemaining} days</title>
+  <style>
+    .cta-button { color: #ffffff !important; }
+    .cta-button span { color: #ffffff !important; }
+    a.cta-button { color: #ffffff !important; mso-color-alt: #ffffff; }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -208,7 +223,7 @@ export const reservationUrgencyDay5Template = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Complete signup&nbsp;</span></a>
+                    <a href="${data.signupUrl}" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5; mso-color-alt: #ffffff;"><span style="color: #ffffff !important; mso-color-alt: #ffffff;">&nbsp;Complete signup&nbsp;</span></a>
                   </td>
                 </tr>
               </table>
@@ -244,6 +259,11 @@ export const reservationExpiredTemplate = (data: {
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Your username reservation has expired</title>
+  <style>
+    .cta-button { color: #ffffff !important; }
+    .cta-button span { color: #ffffff !important; }
+    a.cta-button { color: #ffffff !important; mso-color-alt: #ffffff; }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -282,7 +302,7 @@ export const reservationExpiredTemplate = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Sign up again&nbsp;</span></a>
+                    <a href="${data.signupUrl}" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5; mso-color-alt: #ffffff;"><span style="color: #ffffff !important; mso-color-alt: #ffffff;">&nbsp;Sign up again&nbsp;</span></a>
                   </td>
                 </tr>
               </table>

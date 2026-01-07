@@ -22,6 +22,11 @@ export function generatePasswordResetEmail({
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Reset your password</title>
+  <style>
+    .cta-button { color: #ffffff !important; }
+    .cta-button span { color: #ffffff !important; }
+    a.cta-button { color: #ffffff !important; mso-color-alt: #ffffff; }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -42,7 +47,7 @@ export function generatePasswordResetEmail({
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${resetUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"><span style="color: #ffffff !important;">&nbsp;Reset password&nbsp;</span></a>
+                    <a href="${resetUrl}" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5; mso-color-alt: #ffffff;"><span style="color: #ffffff !important; mso-color-alt: #ffffff;">&nbsp;Reset password&nbsp;</span></a>
                   </td>
                 </tr>
               </table>
