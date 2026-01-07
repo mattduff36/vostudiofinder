@@ -21,17 +21,6 @@ export const paymentSuccessTemplate = (data: {
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Payment received</title>
-  <style>
-    @media (prefers-color-scheme: dark) {
-      .logo-light { display: none !important; }
-      .logo-dark { display: block !important; }
-    }
-    @media (prefers-color-scheme: light) {
-      .logo-light { display: block !important; }
-      .logo-dark { display: none !important; }
-    }
-    .logo-dark { display: none; }
-  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -41,8 +30,7 @@ export const paymentSuccessTemplate = (data: {
           <tr>
             <td style="padding: 40px 40px 32px 40px;">
               <div style="margin-bottom: 32px;">
-                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-light" style="max-width: 200px; height: auto; display: block;" />
-                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-white.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-dark" style="max-width: 200px; height: auto; display: none;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
               </div>
               <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Payment received</h1>
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We've successfully processed your payment. Your membership is now active.</p>
@@ -89,7 +77,7 @@ export const paymentSuccessTemplate = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="https://voiceoverstudiofinder.com/dashboard" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;">View dashboard</a>
+                    <a href="https://voiceoverstudiofinder.com/dashboard" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"> View dashboard </a>
                   </td>
                 </tr>
               </table>
@@ -127,17 +115,6 @@ export const paymentFailedTemplate = (data: {
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Payment failed</title>
-  <style>
-    @media (prefers-color-scheme: dark) {
-      .logo-light { display: none !important; }
-      .logo-dark { display: block !important; }
-    }
-    @media (prefers-color-scheme: light) {
-      .logo-light { display: block !important; }
-      .logo-dark { display: none !important; }
-    }
-    .logo-dark { display: none; }
-  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -147,8 +124,7 @@ export const paymentFailedTemplate = (data: {
           <tr>
             <td style="padding: 40px 40px 32px 40px;">
               <div style="margin-bottom: 32px;">
-                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-light" style="max-width: 200px; height: auto; display: block;" />
-                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-white.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-dark" style="max-width: 200px; height: auto; display: none;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
               </div>
               <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Payment failed</h1>
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We couldn't process your payment of ${data.amount} ${data.currency.toUpperCase()}. Update your payment method to continue.</p>
@@ -177,7 +153,7 @@ export const paymentFailedTemplate = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="https://voiceoverstudiofinder.com/billing" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;">Update payment method</a>
+                    <a href="https://voiceoverstudiofinder.com/billing" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"> Update payment method </a>
                   </td>
                 </tr>
               </table>

@@ -24,17 +24,6 @@ export function generateEmailVerificationEmail({
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Verify your email address</title>
-  <style>
-    @media (prefers-color-scheme: dark) {
-      .logo-light { display: none !important; }
-      .logo-dark { display: block !important; }
-    }
-    @media (prefers-color-scheme: light) {
-      .logo-light { display: block !important; }
-      .logo-dark { display: none !important; }
-    }
-    .logo-dark { display: none; }
-  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -44,8 +33,7 @@ export function generateEmailVerificationEmail({
           <tr>
             <td style="padding: 40px 40px 32px 40px;">
               <div style="margin-bottom: 32px;">
-                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-light" style="max-width: 200px; height: auto; display: block;" />
-                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-white.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-dark" style="max-width: 200px; height: auto; display: none;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
               </div>
               <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Verify your email address</h1>
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We received a request to create an account for ${userEmail}. Verify your email to activate your account.</p>
@@ -56,7 +44,7 @@ export function generateEmailVerificationEmail({
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${verificationUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;">Verify email address</a>
+                    <a href="${verificationUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;"> Verify email address </a>
                   </td>
                 </tr>
               </table>
