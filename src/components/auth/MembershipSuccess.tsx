@@ -294,10 +294,29 @@ export function MembershipSuccess() {
         return;
       }
 
-      // Auto-add https:// to website URL if not present
+      // Auto-add https:// to website URL if not present and validate format
       let websiteUrl = data.website_url.trim();
       if (websiteUrl && !websiteUrl.match(/^https?:\/\//i)) {
         websiteUrl = `https://${websiteUrl}`;
+      }
+
+      // Validate the final URL format
+      if (websiteUrl) {
+        try {
+          const url = new URL(websiteUrl);
+          // Ensure it's a valid HTTP/HTTPS URL with a proper domain
+          if (!url.protocol.match(/^https?:$/)) {
+            throw new Error('Invalid protocol');
+          }
+          // Check for valid hostname (not just "invalid" or single word)
+          if (!url.hostname || !url.hostname.includes('.')) {
+            throw new Error('Invalid domain');
+          }
+        } catch (err) {
+          setError('Please enter a valid website URL (e.g., yourstudio.com)');
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       console.log('📤 Submitting profile data:', {
@@ -614,7 +633,29 @@ export function MembershipSuccess() {
               <Input
                 label="Website URL *"
                 type="text"
-                {...register('website_url', { required: 'Website URL is required' })}
+                {...register('website_url', { 
+                  required: 'Website URL is required',
+                  validate: (value) => {
+                    if (!value) return true; // Let required handle empty
+                    
+                    // Add https:// if not present (for validation)
+                    let url = value.trim();
+                    if (!url.match(/^https?:\/\//i)) {
+                      url = `https://${url}`;
+                    }
+                    
+                    try {
+                      const parsed = new URL(url);
+                      // Require proper domain with at least one dot
+                      if (!parsed.hostname.includes('.')) {
+                        return 'Please enter a valid domain (e.g., yourstudio.com)';
+                      }
+                      return true;
+                    } catch {
+                      return 'Please enter a valid website URL';
+                    }
+                  }
+                })}
                 error={errors.website_url?.message || ''}
                 placeholder="yourstudio.com"
                 helperText="https:// will be added automatically if not included"
