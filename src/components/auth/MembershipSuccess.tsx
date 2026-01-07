@@ -291,6 +291,7 @@ export function MembershipSuccess() {
 
       if (!password) {
         setError('Session expired. Please start the signup process again.');
+        setIsLoading(false);
         return;
       }
 
