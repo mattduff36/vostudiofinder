@@ -6,10 +6,14 @@ dotenv.config({ path: '.env.local' });
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const ADMIN_EMAIL = 'admin@mpdee.co.uk';
+const ADMIN_EMAIL = 'matt.mpdee@gmail.com';
+
+// Helper function to add delay between emails
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function sendAllEmailTemplates() {
   console.log('\n📧 Sending all email templates to', ADMIN_EMAIL, '\n');
+  console.log('⏱️  Adding 2-second delays between emails to avoid rate limiting...\n');
 
   try {
     if (!process.env.RESEND_API_KEY) {
@@ -40,6 +44,8 @@ async function sendAllEmailTemplates() {
         </div>
       `,
     });
+    console.log('✅ Sent: Email Verification Template\n');
+    await delay(2000);
 
     // Email 2: Password Reset
     console.log('📤 Sending: Password Reset Template...');
@@ -65,6 +71,8 @@ async function sendAllEmailTemplates() {
         </div>
       `,
     });
+    console.log('✅ Sent: Password Reset Template\n');
+    await delay(2000);
 
     // Email 3: Welcome Email
     console.log('📤 Sending: Welcome Email Template...');
@@ -89,6 +97,8 @@ async function sendAllEmailTemplates() {
         </div>
       `,
     });
+    console.log('✅ Sent: Welcome Email Template\n');
+    await delay(2000);
 
     // Email 4: Payment Success
     console.log('📤 Sending: Payment Success Template...');
@@ -137,6 +147,8 @@ async function sendAllEmailTemplates() {
         </div>
       `,
     });
+    console.log('✅ Sent: Payment Failed Template\n');
+    await delay(2000);
 
     // Email 6: Payment Failed with Reservation
     console.log('📤 Sending: Payment Failed (Reservation) Template...');
@@ -161,6 +173,8 @@ async function sendAllEmailTemplates() {
         </div>
       `,
     });
+    console.log('✅ Sent: Payment Failed (Reservation) Template\n');
+    await delay(2000);
 
     // Email 7: Reservation Reminder (Day 2)
     console.log('📤 Sending: Reservation Reminder Day 2 Template...');
@@ -186,6 +200,8 @@ async function sendAllEmailTemplates() {
         </div>
       `,
     });
+    console.log('✅ Sent: Reservation Reminder Day 2 Template\n');
+    await delay(2000);
 
     // Email 8: Reservation Urgency (Day 5)
     console.log('📤 Sending: Reservation Urgency Day 5 Template...');
@@ -211,6 +227,8 @@ async function sendAllEmailTemplates() {
         </div>
       `,
     });
+    console.log('✅ Sent: Reservation Urgency Day 5 Template\n');
+    await delay(2000);
 
     // Email 9: Reservation Expired
     console.log('📤 Sending: Reservation Expired Template...');
@@ -236,6 +254,8 @@ async function sendAllEmailTemplates() {
         </div>
       `,
     });
+    console.log('✅ Sent: Reservation Expired Template\n');
+    await delay(2000);
 
     // Summary Email
     console.log('📤 Sending: Summary Email...');
@@ -304,6 +324,7 @@ async function sendAllEmailTemplates() {
         </div>
       `,
     });
+    console.log('✅ Sent: Summary Email\n');
 
     console.log('\n✅ All 9 email templates + summary sent successfully!');
     console.log(`📬 Check ${ADMIN_EMAIL} for the complete review package\n`);
