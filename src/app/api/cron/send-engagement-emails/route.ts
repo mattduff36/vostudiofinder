@@ -257,7 +257,9 @@ export async function GET(request: NextRequest) {
         if (!user.reservation_expires_at || user.payments.length === 0) continue;
 
         const failedPayment = user.payments[0];
-        const metadata = failedPayment?.metadata as any;
+        if (!failedPayment) continue; // TypeScript safety check
+        
+        const metadata = failedPayment.metadata as any;
         const errorMessage = metadata?.error || 'Payment was declined';
 
         // Use actual payment amount and currency from failed payment
