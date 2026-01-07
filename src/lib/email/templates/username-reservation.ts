@@ -22,6 +22,17 @@ export const paymentFailedReservationTemplate = (data: {
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Payment issue with your signup</title>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      .logo-light { display: none !important; }
+      .logo-dark { display: block !important; }
+    }
+    @media (prefers-color-scheme: light) {
+      .logo-light { display: block !important; }
+      .logo-dark { display: none !important; }
+    }
+    .logo-dark { display: none; }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -31,7 +42,8 @@ export const paymentFailedReservationTemplate = (data: {
           <tr>
             <td style="padding: 40px 40px 32px 40px;">
               <div style="margin-bottom: 32px;">
-                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-light" style="max-width: 200px; height: auto; display: block;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-white.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-dark" style="max-width: 200px; height: auto; display: none;" />
               </div>
               <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Payment issue with your signup</h1>
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We couldn't process your payment. Your username @${data.username} is reserved until ${data.reservationExpiresAt}.</p>
@@ -66,7 +78,7 @@ export const paymentFailedReservationTemplate = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.retryUrl}" style="display: inline-block; padding: 12px 24px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: 500;">Retry payment</a>
+                    <a href="${data.retryUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;">Retry payment</a>
                   </td>
                 </tr>
               </table>
@@ -104,6 +116,17 @@ export const reservationReminderDay2Template = (data: {
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Complete your signup</title>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      .logo-light { display: none !important; }
+      .logo-dark { display: block !important; }
+    }
+    @media (prefers-color-scheme: light) {
+      .logo-light { display: block !important; }
+      .logo-dark { display: none !important; }
+    }
+    .logo-dark { display: none; }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -113,7 +136,8 @@ export const reservationReminderDay2Template = (data: {
           <tr>
             <td style="padding: 40px 40px 32px 40px;">
               <div style="margin-bottom: 32px;">
-                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-light" style="max-width: 200px; height: auto; display: block;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-white.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-dark" style="max-width: 200px; height: auto; display: none;" />
               </div>
               <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Complete your signup</h1>
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">You started signing up but didn't complete your payment. Your username @${data.username} is reserved until ${data.reservationExpiresAt}.</p>
@@ -137,7 +161,7 @@ export const reservationReminderDay2Template = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.signupUrl}" style="display: inline-block; padding: 12px 24px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: 500;">Complete signup</a>
+                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;">Complete signup</a>
                   </td>
                 </tr>
               </table>
@@ -175,6 +199,17 @@ export const reservationUrgencyDay5Template = (data: {
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Your username reservation expires in ${data.daysRemaining} days</title>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      .logo-light { display: none !important; }
+      .logo-dark { display: block !important; }
+    }
+    @media (prefers-color-scheme: light) {
+      .logo-light { display: block !important; }
+      .logo-dark { display: none !important; }
+    }
+    .logo-dark { display: none; }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -184,7 +219,8 @@ export const reservationUrgencyDay5Template = (data: {
           <tr>
             <td style="padding: 40px 40px 32px 40px;">
               <div style="margin-bottom: 32px;">
-                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-light" style="max-width: 200px; height: auto; display: block;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-white.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-dark" style="max-width: 200px; height: auto; display: none;" />
               </div>
               <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Your username reservation expires in ${data.daysRemaining} days</h1>
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">Complete your signup before ${data.reservationExpiresAt} to keep @${data.username}. After this date, the username will become available to others.</p>
@@ -208,7 +244,7 @@ export const reservationUrgencyDay5Template = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.signupUrl}" style="display: inline-block; padding: 12px 24px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: 500;">Complete signup</a>
+                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;">Complete signup</a>
                   </td>
                 </tr>
               </table>
@@ -244,6 +280,17 @@ export const reservationExpiredTemplate = (data: {
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>Your username reservation has expired</title>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      .logo-light { display: none !important; }
+      .logo-dark { display: block !important; }
+    }
+    @media (prefers-color-scheme: light) {
+      .logo-light { display: block !important; }
+      .logo-dark { display: none !important; }
+    }
+    .logo-dark { display: none; }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
@@ -253,7 +300,8 @@ export const reservationExpiredTemplate = (data: {
           <tr>
             <td style="padding: 40px 40px 32px 40px;">
               <div style="margin-bottom: 32px;">
-                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-black.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-light" style="max-width: 200px; height: auto; display: block;" />
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-header-logo2-white.png" alt="Voiceover Studio Finder" width="200" height="auto" class="logo-dark" style="max-width: 200px; height: auto; display: none;" />
               </div>
               <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Your username reservation has expired</h1>
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">The reservation for @${data.username} has expired and is now available to others. Your signup data has been removed.</p>
@@ -282,7 +330,7 @@ export const reservationExpiredTemplate = (data: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left">
-                    <a href="${data.signupUrl}" style="display: inline-block; padding: 12px 24px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: 500;">Sign up again</a>
+                    <a href="${data.signupUrl}" style="display: inline-block; padding: 14px 28px; background-color: #d42027; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; line-height: 1.5;">Sign up again</a>
                   </td>
                 </tr>
               </table>
