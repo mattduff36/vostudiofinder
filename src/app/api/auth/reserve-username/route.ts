@@ -60,19 +60,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if username is already taken (excluding this user's temp username)
-    const existingUsername = await db.users.findUnique({
-      where: { username },
+    // Check if username is already taken (excluding this user and EXPIRED users)
+    // Consistent with check-username endpoint behavior
+    const existingUsername = await db.users.findFirst({
+      where: {
+        username,
+        status: {
+          not: UserStatus.EXPIRED, // Exclude already-expired reservations
+        },
+      },
     });
 
     if (existingUsername && existingUsername.id !== userId) {
-      // Check if the existing user's reservation is expired
+      // Check if the existing PENDING user's reservation has just expired
       if (
         existingUsername.status === UserStatus.PENDING &&
         existingUsername.reservation_expires_at &&
         existingUsername.reservation_expires_at < new Date()
       ) {
-        // Mark expired user as EXPIRED
+        // Mark expired PENDING user as EXPIRED
         await db.users.update({
           where: { id: existingUsername.id },
           data: {
@@ -80,8 +86,9 @@ export async function POST(request: NextRequest) {
             updated_at: new Date(),
           },
         });
-        // Username is now available
+        // Username is now available (continue to reservation)
       } else {
+        // Username is taken by an active user or pending user with valid reservation
         return NextResponse.json(
           { error: 'Username is already taken', available: false },
           { status: 409 }
