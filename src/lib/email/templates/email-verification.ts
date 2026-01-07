@@ -41,7 +41,7 @@ export function generateEmailVerificationEmail({
                 <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
               </div>
               <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Verify your email address</h1>
-              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We received a request to create an account for ${userEmail}. Verify your email to activate your account.</p>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">Hi ${displayName},<br><br>We received a request to create an account for ${userEmail}. Verify your email to activate your account.</p>
             </td>
           </tr>
           <tr>
@@ -83,6 +83,8 @@ export function generateEmailVerificationEmail({
 
   const text = `
 Verify your email address
+
+Hi ${displayName},
 
 We received a request to create an account for ${userEmail}. Verify your email to activate your account.
 
