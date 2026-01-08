@@ -51,7 +51,7 @@ export default function AdminPaymentsPage() {
   const [expandedPaymentId, setExpandedPaymentId] = useState<string | null>(null);
   const [refundModalPaymentId, setRefundModalPaymentId] = useState<string | null>(null);
   const [refundAmount, setRefundAmount] = useState('');
-  const [refundReason, setRefundReason] = useState('');
+  const [refundReason, setRefundReason] = useState<'duplicate' | 'fraudulent' | 'requested_by_customer'>('requested_by_customer');
   const [refunding, setRefunding] = useState(false);
   const [refundError, setRefundError] = useState('');
   const [refundSuccess, setRefundSuccess] = useState<string | null>(null);
@@ -202,7 +202,7 @@ export default function AdminPaymentsPage() {
       setRefundSuccess(payment.id);
       setRefundModalPaymentId(null);
       setRefundAmount('');
-      setRefundReason('');
+      setRefundReason('requested_by_customer');
 
       // Refresh payments
       await fetchPayments();
@@ -464,7 +464,7 @@ export default function AdminPaymentsPage() {
                                               e.stopPropagation();
                                               // Clear form state when opening modal for a new payment
                                               setRefundAmount('');
-                                              setRefundReason('');
+                                              setRefundReason('requested_by_customer');
                                               setRefundError('');
                                               setRefundModalPaymentId(payment.id);
                                             }}
@@ -476,7 +476,7 @@ export default function AdminPaymentsPage() {
                                           </Button>
                                         </div>
                                       ) : (
-                                        <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                                        <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
                                           <div>
                                             <label className="block text-xs font-medium text-gray-700 mb-1">
                                               Amount ({payment.currency.toUpperCase()})
@@ -494,16 +494,44 @@ export default function AdminPaymentsPage() {
                                           </div>
 
                                           <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                              Reason (Optional)
+                                            <label className="block text-xs font-medium text-gray-700 mb-2">
+                                              Reason
                                             </label>
-                                            <textarea
-                                              value={refundReason}
-                                              onChange={(e) => setRefundReason(e.target.value)}
-                                              placeholder="Enter reason..."
-                                              rows={2}
-                                              className="flex min-h-[60px] w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                            />
+                                            <div className="space-y-2">
+                                              <button
+                                                type="button"
+                                                onClick={() => setRefundReason('requested_by_customer')}
+                                                className={`w-full text-left px-3 py-2 rounded-md border text-sm transition-colors ${
+                                                  refundReason === 'requested_by_customer'
+                                                    ? 'border-red-500 bg-red-50 text-red-900 font-medium'
+                                                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                                                }`}
+                                              >
+                                                Requested by customer
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() => setRefundReason('duplicate')}
+                                                className={`w-full text-left px-3 py-2 rounded-md border text-sm transition-colors ${
+                                                  refundReason === 'duplicate'
+                                                    ? 'border-red-500 bg-red-50 text-red-900 font-medium'
+                                                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                                                }`}
+                                              >
+                                                Duplicate payment
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() => setRefundReason('fraudulent')}
+                                                className={`w-full text-left px-3 py-2 rounded-md border text-sm transition-colors ${
+                                                  refundReason === 'fraudulent'
+                                                    ? 'border-red-500 bg-red-50 text-red-900 font-medium'
+                                                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                                                }`}
+                                              >
+                                                Fraudulent transaction
+                                              </button>
+                                            </div>
                                           </div>
 
                                           {refundError && (
@@ -527,7 +555,7 @@ export default function AdminPaymentsPage() {
                                               onClick={() => {
                                                 setRefundModalPaymentId(null);
                                                 setRefundAmount('');
-                                                setRefundReason('');
+                                                setRefundReason('requested_by_customer');
                                                 setRefundError('');
                                               }}
                                               variant="outline"
@@ -562,7 +590,7 @@ export default function AdminPaymentsPage() {
                                     <div>
                                       <p className="text-xs text-gray-500">Account Created</p>
                                       <p className="text-gray-900 text-xs">
-                                        {new Date(payment.users.created_at).toLocaleDateString('en-GB')}
+                                        {formatDate(payment.users.created_at)}
                                       </p>
                                     </div>
                                   </div>
