@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Button } from '@/components/ui/Button';
 import { Search, RefreshCw, Filter, ChevronDown, ChevronUp, Banknote, AlertCircle, Check } from 'lucide-react';
-import { formatDate } from '@/lib/date-format';
+import { formatDate, formatDateTime } from '@/lib/date-format';
 
 interface Payment {
   id: string;
@@ -438,7 +438,7 @@ export default function AdminPaymentsPage() {
                                     <div>
                                       <p className="text-xs text-gray-500">Created</p>
                                       <p className="text-gray-900 text-xs">
-                                        {new Date(payment.created_at).toLocaleString('en-GB')}
+                                        {formatDateTime(payment.created_at)}
                                       </p>
                                     </div>
                                     {payment.stripe_payment_intent_id && (
@@ -616,7 +616,7 @@ export default function AdminPaymentsPage() {
                                           )}
                                           <p className="text-gray-500 text-xs">
                                             Processed by {refund.users_refunds_processed_byTousers.display_name} on{' '}
-                                            {new Date(refund.created_at).toLocaleString('en-GB')}
+                                            {formatDateTime(refund.created_at)}
                                           </p>
                                         </div>
                                       ))}

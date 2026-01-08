@@ -45,10 +45,35 @@ export function formatDate(date: Date | string | null): string {
   if (!date) return 'N/A';
   
   const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Check for invalid date
+  if (isNaN(dateObj.getTime())) return 'N/A';
+  
   return dateObj.toLocaleDateString('en-GB', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
+  });
+}
+
+/**
+ * Format date and time consistently across the app (DD/MM/YYYY, HH:MM:SS)
+ */
+export function formatDateTime(date: Date | string | null): string {
+  if (!date) return 'N/A';
+  
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Check for invalid date
+  if (isNaN(dateObj.getTime())) return 'N/A';
+  
+  return dateObj.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
   });
 }
 
