@@ -108,8 +108,10 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
             
             document.head.appendChild(script1);
           } else if (existingGA && !hasDataLayer) {
-            // Script is loading but dataLayer not ready - wait for it
-            existingGA.addEventListener('load', () => {
+            // Script exists but dataLayer not ready
+            // Initialize dataLayer immediately (script may already be loaded)
+            // Also add event listener as fallback in case script is still loading
+            const initializeDataLayer = () => {
               if (!window.dataLayer) {
                 window.dataLayer = [];
               }
@@ -119,7 +121,14 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
                 }
                 window.gtag = gtag;
               }
-            });
+            };
+            
+            // Try to initialize immediately (script may already be loaded)
+            initializeDataLayer();
+            
+            // Also listen for load event in case script is still loading
+            // This handles both cases: already loaded and still loading
+            existingGA.addEventListener('load', initializeDataLayer);
           }
         }
         
@@ -141,9 +150,13 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
           clearTimeout(animationTimeoutRef.current);
           animationTimeoutRef.current = null;
         }
-        // Reset all states immediately on error
+        // Reset all states immediately on error (including showBanner if animation started)
         setIsAnimatingOut(false);
         setIsSubmitting(false);
+        // Ensure banner is visible again on error (if animation had started)
+        if (!showBanner) {
+          setShowBanner(true);
+        }
       }
     } catch (error) {
       console.error('Error setting cookie consent:', error);
@@ -152,9 +165,13 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
         clearTimeout(animationTimeoutRef.current);
         animationTimeoutRef.current = null;
       }
-      // Reset all states immediately on error
+      // Reset all states immediately on error (including showBanner if animation started)
       setIsAnimatingOut(false);
       setIsSubmitting(false);
+      // Ensure banner is visible again on error (if animation had started)
+      if (!showBanner) {
+        setShowBanner(true);
+      }
     }
   };
 

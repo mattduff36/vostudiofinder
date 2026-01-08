@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email if provided (not just check if both are missing)
+    // Validate email if userId is not provided
     if (!userId && (!email || typeof email !== 'string' || !email.trim())) {
       return NextResponse.json(
         { error: 'Valid email is required when userId is not provided' },
@@ -23,19 +23,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user - only validate email if userId is not provided
-    if (!userId && (!email || typeof email !== 'string' || !email.trim())) {
-      return NextResponse.json(
-        { error: 'Valid email is required when userId is not provided' },
-        { status: 400 }
-      );
-    }
-
-    // Find user
+    // Find user with reservation_expires_at for time remaining calculation
     const user = await db.users.findFirst({
       where: userId
         ? { id: userId }
         : { email: email.toLowerCase().trim() },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        display_name: true,
+        status: true,
+        reservation_expires_at: true,
+      },
     });
 
     if (!user) {
@@ -104,6 +104,14 @@ export async function POST(request: NextRequest) {
 
     const resumeStep = paymentStatus === 'succeeded' ? 'profile' : 'payment';
 
+    // Calculate time remaining for reservation
+    const now = new Date();
+    const timeRemaining = user.reservation_expires_at
+      ? Math.max(0, user.reservation_expires_at.getTime() - now.getTime())
+      : 0;
+    const daysRemaining = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+    const hoursRemaining = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
     console.log(`💳 Payment status check: ${user.email}, payment: ${paymentStatus}, resume: ${resumeStep}`);
 
     return NextResponse.json(
@@ -118,6 +126,12 @@ export async function POST(request: NextRequest) {
           email: user.email,
           username: user.username,
           display_name: user.display_name,
+          reservation_expires_at: user.reservation_expires_at,
+        },
+        timeRemaining: {
+          days: daysRemaining,
+          hours: hoursRemaining,
+          total: Math.floor(timeRemaining / (1000 * 60 * 60)),
         },
         message: paymentStatus === 'succeeded'
           ? 'Payment succeeded - ready for profile creation'

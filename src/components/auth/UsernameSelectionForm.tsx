@@ -69,7 +69,8 @@ export function UsernameSelectionForm() {
     };
 
     checkExistingUsername();
-  }, [display_name, router]);
+    // router is stable and doesn't need to be in dependencies
+  }, [display_name]);
 
   const fetchSuggestions = async () => {
     try {
