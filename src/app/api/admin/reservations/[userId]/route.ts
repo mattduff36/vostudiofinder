@@ -49,30 +49,75 @@ export async function DELETE(
       );
     }
 
-    // Mark user as EXPIRED and prevent future reminder emails
-    // Set email flags to prevent cron job from sending reminders
-    const now = new Date();
-    const expiredUsername = `expired_${user.username}_${Date.now()}`;
+    // Delete user and all associated data in a transaction
+    // This will cascade delete:
+    // - All payment records
+    // - All studio profiles and related data (images, types, etc.)
+    // - All verification tokens
+    // - All reminder email tracking
+    await db.$transaction(async (tx) => {
+      // 1. Get all payment IDs for this user
+      const payments = await tx.payments.findMany({
+        where: { user_id: userId },
+        select: { id: true },
+      });
 
-    await db.users.update({
-      where: { id: userId },
-      data: {
-        username: expiredUsername,
-        status: UserStatus.EXPIRED,
-        reservation_expires_at: now, // Set to now to mark as immediately expired
-        // Prevent all future reminder emails by setting these flags
-        day2_reminder_sent_at: now, // Mark as sent to prevent Day 2 email
-        day5_reminder_sent_at: now, // Mark as sent to prevent Day 5 email
-        failed_payment_email_sent_at: now, // Mark as sent to prevent failed payment email
-        updated_at: now,
-      },
+      const paymentIds = payments.map(p => p.id);
+
+      // 2. Delete refunds first (if any exist)
+      if (paymentIds.length > 0) {
+        await tx.refunds.deleteMany({
+          where: {
+            OR: [
+              { user_id: userId },
+              { payment_id: { in: paymentIds } },
+            ],
+          },
+        });
+      }
+
+      // 3. Delete payments
+      await tx.payments.deleteMany({
+        where: { user_id: userId },
+      });
+
+      // 4. Get all studio profiles for this user
+      const studioProfiles = await tx.studio_profiles.findMany({
+        where: { user_id: userId },
+        select: { id: true },
+      });
+
+      const studioIds = studioProfiles.map(s => s.id);
+
+      // 5. Delete studio-related data
+      if (studioIds.length > 0) {
+        // Delete studio types
+        await tx.studio_studio_types.deleteMany({
+          where: { studio_id: { in: studioIds } },
+        });
+
+        // Delete studio images
+        await tx.studio_images.deleteMany({
+          where: { studio_id: { in: studioIds } },
+        });
+
+        // Delete studio profiles
+        await tx.studio_profiles.deleteMany({
+          where: { id: { in: studioIds } },
+        });
+      }
+
+      // 6. Finally, delete the user
+      await tx.users.delete({
+        where: { id: userId },
+      });
     });
 
-    console.log(`✅ Admin deleted reservation for user ${user.email} (${user.username})`);
+    console.log(`✅ Admin permanently deleted user ${user.email} (@${user.username}) and all associated data`);
 
     return NextResponse.json({
       success: true,
-      message: 'Reservation deleted successfully. Reminder emails have been disabled.',
+      message: 'User reservation deleted permanently. All data and reminder emails removed.',
     });
   } catch (error) {
     console.error('Error deleting reservation:', error);

@@ -85,7 +85,15 @@ export default function AdminReservationsPage() {
   };
 
   const handleDeleteReservation = async (userId: string, email: string, username: string) => {
-    if (!confirm(`Are you sure you want to delete the reservation for ${email} (@${username})?\n\nThis will:\n- Mark the reservation as expired\n- Stop all future reminder emails\n\nThis action cannot be undone.`)) {
+    if (!confirm(`⚠️  PERMANENT DELETION WARNING\n\nAre you sure you want to permanently delete ${email} (@${username})?\n\nThis will:\n✗ Delete the user account completely\n✗ Delete all payment records\n✗ Delete any studio profiles\n✗ Cancel all pending reminder emails\n\n⚠️  THIS ACTION CANNOT BE UNDONE!\n\nType their email to confirm deletion.`)) {
+      return;
+    }
+    
+    // Second confirmation for safety
+    const confirmEmail = prompt(`To confirm deletion, please type the email address:\n${email}`);
+    if (confirmEmail !== email) {
+      setDeleteError('Email confirmation did not match. Deletion cancelled.');
+      setTimeout(() => setDeleteError(null), 3000);
       return;
     }
 
@@ -103,7 +111,7 @@ export default function AdminReservationsPage() {
         throw new Error(data.error || 'Failed to delete reservation');
       }
 
-      setDeleteSuccess(`Reservation for ${email} has been deleted successfully.`);
+      setDeleteSuccess(`User ${email} has been permanently deleted along with all associated data.`);
       
       // Refresh the list
       setTimeout(() => {
@@ -414,7 +422,7 @@ export default function AdminReservationsPage() {
                           disabled={deletingUserId === user.id}
                           variant="outline"
                           className="border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 disabled:opacity-50"
-                          title="Delete reservation and stop reminder emails"
+                          title="Permanently delete user and all associated data"
                         >
                           {deletingUserId === user.id ? (
                             <RefreshCw className="w-4 h-4 animate-spin" />
