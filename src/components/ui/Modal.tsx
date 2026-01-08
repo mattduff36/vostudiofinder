@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
@@ -19,6 +19,12 @@ export function Modal({
   maxWidth = 'md'
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Track if component is mounted (client-side only)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Handle escape key
   useEffect(() => {
@@ -47,7 +53,8 @@ export function Modal({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // Don't render on server or if not open
+  if (!isOpen || !isMounted) return null;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (preventBackdropClose || !onClose) return;
@@ -99,9 +106,5 @@ export function Modal({
   );
 
   // Use portal to render modal at body level, outside any container constraints
-  if (typeof document !== 'undefined') {
-    return createPortal(modalContent, document.body);
-  }
-
-  return null;
+  return createPortal(modalContent, document.body);
 }
