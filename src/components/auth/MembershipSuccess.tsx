@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
@@ -70,10 +70,13 @@ export function MembershipSuccess() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [nextStep, setNextStep] = useState<'choose' | 'verify_now' | 'build_now'>('choose');
   
-  const sessionId = searchParams?.get('session_id');
-  const email = searchParams?.get('email') || '';
-  const name = searchParams?.get('name') || '';
-  const username = searchParams?.get('username') || '';
+  // Extract search params and memoize to prevent infinite loops
+  // useSearchParams() returns a new URLSearchParams instance on every render,
+  // so we need to extract values and memoize them for stable dependencies
+  const stableSessionId = useMemo(() => searchParams?.get('session_id') || '', [searchParams]);
+  const stableEmail = useMemo(() => searchParams?.get('email') || '', [searchParams]);
+  const stableName = useMemo(() => searchParams?.get('name') || '', [searchParams]);
+  const stableUsername = useMemo(() => searchParams?.get('username') || '', [searchParams]);
 
   const {
     register,
@@ -108,13 +111,14 @@ export function MembershipSuccess() {
   const formEmail = watch('email');
 
   // Verify payment on component mount
-  // Memoize verifyPayment to prevent infinite loops from reset dependency
+  // Memoize verifyPayment to prevent infinite loops from unstable searchParams
   const verifyPayment = useCallback(async () => {
-    // Try to recover from sessionStorage or URL params
-    let recoveredEmail = email;
-    let recoveredName = name;
-    let recoveredUsername = username;
-    let recoveredSessionId = sessionId;
+    // Use stable memoized values instead of direct searchParams.get() results
+    // This prevents infinite loops caused by new URLSearchParams instances on each render
+    let recoveredEmail = stableEmail;
+    let recoveredName = stableName;
+    let recoveredUsername = stableUsername;
+    let recoveredSessionId = stableSessionId || null;
 
     // If missing data, try sessionStorage
     if (!recoveredEmail || !recoveredName) {
@@ -287,11 +291,10 @@ export function MembershipSuccess() {
         canRetry: true,
       });
     }
-    // reset is from react-hook-form and should be stable, but including it causes
-    // verifyPayment to be recreated unnecessarily. We use reset inside the callback
-    // but don't need it as a dependency since it's only called conditionally.
+    // Use stable memoized values instead of direct searchParams.get() results
+    // This prevents infinite loops caused by new URLSearchParams instances on each render
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, email, name, username]);
+  }, [stableSessionId, stableEmail, stableName, stableUsername]);
 
   useEffect(() => {
     verifyPayment();

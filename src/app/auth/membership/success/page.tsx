@@ -48,9 +48,12 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
 
   // If not authenticated, verify payment via session_id
   if (!session && params.session_id) {
+    // Verify payment exists in database with SUCCEEDED status
+    // Note: redirect() throws a special error that should NOT be caught
+    // Moving all redirects outside try-catch to ensure they work properly
+    let payment;
     try {
-      // Verify payment exists in database with SUCCEEDED status
-      const payment = await db.payments.findUnique({
+      payment = await db.payments.findUnique({
         where: { stripe_checkout_session_id: params.session_id },
         select: {
           id: true,
@@ -59,84 +62,77 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
           metadata: true,
         },
       });
+    } catch (error) {
+      console.error('Error fetching payment:', error);
+      redirect('/auth/signup?error=verification_failed');
+    }
 
-      if (!payment) {
-        console.error('❌ Payment not found for session_id:', params.session_id);
-        console.error('💡 This usually means:');
-        console.error('   1. Stripe webhook hasn\'t been received yet (check Stripe CLI is running)');
-        console.error('   2. Payment is still processing');
-        console.error('   3. Webhook failed to create payment record');
-        redirect('/auth/signup?error=payment_not_found');
-      }
+    if (!payment) {
+      console.error('❌ Payment not found for session_id:', params.session_id);
+      console.error('💡 This usually means:');
+      console.error('   1. Stripe webhook hasn\'t been received yet (check Stripe CLI is running)');
+      console.error('   2. Payment is still processing');
+      console.error('   3. Webhook failed to create payment record');
+      redirect('/auth/signup?error=payment_not_found');
+    }
 
-      if (payment.status !== 'SUCCEEDED') {
-        console.error('❌ Payment not succeeded:', payment.status);
-        console.error('💡 Payment status:', payment.status);
-        redirect('/auth/signup?error=payment_not_completed');
-      }
+    if (payment.status !== 'SUCCEEDED') {
+      console.error('❌ Payment not succeeded:', payment.status);
+      console.error('💡 Payment status:', payment.status);
+      redirect('/auth/signup?error=payment_not_completed');
+    }
 
-      // Verify user exists and is in valid state (PENDING or ACTIVE)
-      // ACTIVE means webhook already processed successfully (race condition - webhook was faster)
-      const user = await db.users.findUnique({
+    // Verify user exists and is in valid state (PENDING or ACTIVE)
+    // ACTIVE means webhook already processed successfully (race condition - webhook was faster)
+    let user;
+    try {
+      user = await db.users.findUnique({
         where: { id: payment.user_id },
         select: { status: true, email: true },
       });
-
-      if (!user) {
-        console.error('❌ User not found for payment:', payment.user_id);
-        redirect('/auth/signup?error=invalid_user_status');
-      }
-
-      // Accept both PENDING and ACTIVE status
-      // - PENDING: Payment succeeded, but webhook hasn't processed yet
-      // - ACTIVE: Webhook processed before page loaded (common due to fast webhooks)
-      if (user.status !== 'PENDING' && user.status !== 'ACTIVE') {
-        console.error('❌ Invalid user status:', user.status, '(expected PENDING or ACTIVE)');
-        redirect('/auth/signup?error=invalid_user_status');
-      }
-
-      console.log(`✅ User verified: ${user.email} (status: ${user.status})`);
-
-
-      // Security: Verify email parameter matches payment's user email (if provided)
-      // This prevents unauthorized access if someone gets the session_id
-      if (params.email && params.email.toLowerCase() !== user.email.toLowerCase()) {
-        console.error('❌ Email mismatch:', params.email, 'vs', user.email);
-        redirect('/auth/signup?error=email_mismatch');
-      }
-
-      // If email is provided and matches, allow access (user is verifying their own payment)
-      // Otherwise, redirect to sign-in to authenticate before accessing profile creation
-      if (params.email && params.email.toLowerCase() === user.email.toLowerCase()) {
-        console.log(`✅ Payment verified for unauthenticated user: ${user.email} (email verified)`);
-        return <MembershipSuccess />;
-      }
-
-      // No email provided - require authentication for security
-      // Build callback URL without double-encoding (URLSearchParams.toString() already encodes)
-      const callbackParams = new URLSearchParams({
-        session_id: params.session_id || '',
-        email: user.email,
-      });
-      // Don't encodeURIComponent here - the redirect function will handle encoding
-      const callbackUrl = `/auth/membership/success?${callbackParams.toString()}`;
-      redirect(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}&email=${encodeURIComponent(user.email)}`);
     } catch (error) {
-      console.error('Error verifying payment:', error);
-      
-      // Provide more specific error messages based on the error type
-      if (error instanceof Error) {
-        if (error.message.includes('Payment not found') || error.message.includes('payment')) {
-          redirect('/auth/signup?error=payment_not_found');
-        } else if (error.message.includes('User not found') || error.message.includes('user')) {
-          redirect('/auth/signup?error=invalid_user_status');
-        } else {
-          redirect('/auth/signup?error=verification_failed');
-        }
-      } else {
-        redirect('/auth/signup?error=verification_failed');
-      }
+      console.error('Error fetching user:', error);
+      redirect('/auth/signup?error=verification_failed');
     }
+
+    if (!user) {
+      console.error('❌ User not found for payment:', payment.user_id);
+      redirect('/auth/signup?error=invalid_user_status');
+    }
+
+    // Accept both PENDING and ACTIVE status
+    // - PENDING: Payment succeeded, but webhook hasn't processed yet
+    // - ACTIVE: Webhook processed before page loaded (common due to fast webhooks)
+    if (user.status !== 'PENDING' && user.status !== 'ACTIVE') {
+      console.error('❌ Invalid user status:', user.status, '(expected PENDING or ACTIVE)');
+      redirect('/auth/signup?error=invalid_user_status');
+    }
+
+    console.log(`✅ User verified: ${user.email} (status: ${user.status})`);
+
+    // Security: Verify email parameter matches payment's user email (if provided)
+    // This prevents unauthorized access if someone gets the session_id
+    if (params.email && params.email.toLowerCase() !== user.email.toLowerCase()) {
+      console.error('❌ Email mismatch:', params.email, 'vs', user.email);
+      redirect('/auth/signup?error=email_mismatch');
+    }
+
+    // If email is provided and matches, allow access (user is verifying their own payment)
+    // Otherwise, redirect to sign-in to authenticate before accessing profile creation
+    if (params.email && params.email.toLowerCase() === user.email.toLowerCase()) {
+      console.log(`✅ Payment verified for unauthenticated user: ${user.email} (email verified)`);
+      return <MembershipSuccess />;
+    }
+
+    // No email provided - require authentication for security
+    // Build callback URL without double-encoding (URLSearchParams.toString() already encodes)
+    const callbackParams = new URLSearchParams({
+      session_id: params.session_id || '',
+      email: user.email,
+    });
+    // Don't encodeURIComponent here - the redirect function will handle encoding
+    const callbackUrl = `/auth/membership/success?${callbackParams.toString()}`;
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}&email=${encodeURIComponent(user.email)}`);
   }
 
   // No session and no valid session_id - redirect to signup
