@@ -494,44 +494,18 @@ export default function AdminPaymentsPage() {
                                           </div>
 
                                           <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-2">
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">
                                               Reason
                                             </label>
-                                            <div className="space-y-2">
-                                              <button
-                                                type="button"
-                                                onClick={() => setRefundReason('requested_by_customer')}
-                                                className={`w-full text-left px-3 py-2 rounded-md border text-sm transition-colors ${
-                                                  refundReason === 'requested_by_customer'
-                                                    ? 'border-red-500 bg-red-50 text-red-900 font-medium'
-                                                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                                                }`}
-                                              >
-                                                Requested by customer
-                                              </button>
-                                              <button
-                                                type="button"
-                                                onClick={() => setRefundReason('duplicate')}
-                                                className={`w-full text-left px-3 py-2 rounded-md border text-sm transition-colors ${
-                                                  refundReason === 'duplicate'
-                                                    ? 'border-red-500 bg-red-50 text-red-900 font-medium'
-                                                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                                                }`}
-                                              >
-                                                Duplicate payment
-                                              </button>
-                                              <button
-                                                type="button"
-                                                onClick={() => setRefundReason('fraudulent')}
-                                                className={`w-full text-left px-3 py-2 rounded-md border text-sm transition-colors ${
-                                                  refundReason === 'fraudulent'
-                                                    ? 'border-red-500 bg-red-50 text-red-900 font-medium'
-                                                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                                                }`}
-                                              >
-                                                Fraudulent transaction
-                                              </button>
-                                            </div>
+                                            <select
+                                              value={refundReason}
+                                              onChange={(e) => setRefundReason(e.target.value as 'duplicate' | 'fraudulent' | 'requested_by_customer')}
+                                              className="flex h-10 w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                              <option value="requested_by_customer">Requested by customer</option>
+                                              <option value="duplicate">Duplicate payment</option>
+                                              <option value="fraudulent">Fraudulent transaction</option>
+                                            </select>
                                           </div>
 
                                           {refundError && (
