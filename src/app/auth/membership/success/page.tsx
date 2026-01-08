@@ -75,16 +75,28 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
         redirect('/auth/signup?error=payment_not_completed');
       }
 
-      // Verify user exists and is PENDING
+      // Verify user exists and is in valid state (PENDING or ACTIVE)
+      // ACTIVE means webhook already processed successfully (race condition - webhook was faster)
       const user = await db.users.findUnique({
         where: { id: payment.user_id },
         select: { status: true, email: true },
       });
 
-      if (!user || user.status !== 'PENDING') {
-        console.error('❌ User not found or not PENDING:', user?.status);
+      if (!user) {
+        console.error('❌ User not found for payment:', payment.user_id);
         redirect('/auth/signup?error=invalid_user_status');
       }
+
+      // Accept both PENDING and ACTIVE status
+      // - PENDING: Payment succeeded, but webhook hasn't processed yet
+      // - ACTIVE: Webhook processed before page loaded (common due to fast webhooks)
+      if (user.status !== 'PENDING' && user.status !== 'ACTIVE') {
+        console.error('❌ Invalid user status:', user.status, '(expected PENDING or ACTIVE)');
+        redirect('/auth/signup?error=invalid_user_status');
+      }
+
+      console.log(`✅ User verified: ${user.email} (status: ${user.status})`);
+
 
       // Security: Verify email parameter matches payment's user email (if provided)
       // This prevents unauthorized access if someone gets the session_id
