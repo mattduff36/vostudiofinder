@@ -51,10 +51,17 @@ export function MembershipPayment() {
         if (response.ok) {
           const data = await response.json();
           
-          if (data.hasPayment && data.paymentStatus === 'succeeded') {
-            // Payment already completed - redirect to profile creation
+          // If user is ACTIVE (canResume: false), redirect to dashboard
+          if (data.hasPayment && data.paymentStatus === 'succeeded' && data.canResume === false) {
+            console.log('✅ Account already active, redirecting to dashboard');
+            window.location.href = '/dashboard';
+            return; // Don't set loading to false - we're redirecting
+          }
+          
+          // If user is PENDING with payment completed, redirect to profile creation
+          if (data.hasPayment && data.paymentStatus === 'succeeded' && data.sessionId) {
             console.log('✅ Payment already completed, redirecting to profile creation');
-            window.location.href = `/auth/membership/success?session_id=${data.sessionId || ''}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}`;
+            window.location.href = `/auth/membership/success?session_id=${data.sessionId}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}`;
             return; // Don't set loading to false - we're redirecting
           }
         }
