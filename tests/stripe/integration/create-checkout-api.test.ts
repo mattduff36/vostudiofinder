@@ -5,6 +5,8 @@
  * - Return URL includes email parameter (critical bug fix)
  * - Checkout session creation
  * - Metadata propagation
+ * 
+ * @jest-environment node
  */
 
 import { POST } from '@/app/api/stripe/create-membership-checkout/route';

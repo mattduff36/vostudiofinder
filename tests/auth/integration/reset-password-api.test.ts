@@ -7,6 +7,8 @@
  * - Password mismatch validation
  * - Invalid/expired token handling
  * - Password strength validation
+ * 
+ * @jest-environment node
  */
 
 import { POST } from '@/app/api/auth/reset-password/route';

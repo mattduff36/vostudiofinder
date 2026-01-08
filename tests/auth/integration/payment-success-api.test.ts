@@ -6,6 +6,8 @@
  * - Payment verification
  * - Email parameter handling
  * - Session parameter handling
+ * 
+ * @jest-environment node
  */
 
 import { db } from '@/lib/db';
