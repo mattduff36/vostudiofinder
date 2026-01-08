@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Button } from '@/components/ui/Button';
-import { Search, RefreshCw, Clock, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Search, RefreshCw, Clock, AlertCircle, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import { formatDate } from '@/lib/date-format';
 
 interface PendingUser {
@@ -36,6 +36,9 @@ export default function AdminReservationsPage() {
     failedPayments: 0,
     expired: 0,
   });
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
 
   // Redirect if not admin
   useEffect(() => {
@@ -79,6 +82,39 @@ export default function AdminReservationsPage() {
 
   const handleSearch = () => {
     fetchUsers();
+  };
+
+  const handleDeleteReservation = async (userId: string, email: string, username: string) => {
+    if (!confirm(`Are you sure you want to delete the reservation for ${email} (@${username})?\n\nThis will:\n- Mark the reservation as expired\n- Stop all future reminder emails\n\nThis action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingUserId(userId);
+    setDeleteError(null);
+    setDeleteSuccess(null);
+
+    try {
+      const response = await fetch(`/api/admin/reservations/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete reservation');
+      }
+
+      setDeleteSuccess(`Reservation for ${email} has been deleted successfully.`);
+      
+      // Refresh the list
+      setTimeout(() => {
+        fetchUsers();
+        setDeleteSuccess(null);
+      }, 2000);
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete reservation');
+    } finally {
+      setDeletingUserId(null);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -263,6 +299,25 @@ export default function AdminReservationsPage() {
           </div>
         </div>
 
+        {/* Success/Error Messages */}
+        {deleteSuccess && (
+          <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+              <p className="text-sm text-green-800">{deleteSuccess}</p>
+            </div>
+          </div>
+        )}
+
+        {deleteError && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+              <p className="text-sm text-red-800">{deleteError}</p>
+            </div>
+          </div>
+        )}
+
         {/* Users Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
@@ -287,12 +342,15 @@ export default function AdminReservationsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                       {searchTerm || statusFilter ? 'No reservations found matching your filters' : 'No reservations found'}
                     </td>
                   </tr>
@@ -344,6 +402,21 @@ export default function AdminReservationsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(user.created_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <Button
+                          onClick={() => handleDeleteReservation(user.id, user.email, user.username)}
+                          disabled={deletingUserId === user.id}
+                          variant="outline"
+                          className="border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 disabled:opacity-50"
+                          title="Delete reservation and stop reminder emails"
+                        >
+                          {deletingUserId === user.id ? (
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </Button>
                       </td>
                     </tr>
                   ))
