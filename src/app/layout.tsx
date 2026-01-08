@@ -84,23 +84,8 @@ export default async function RootLayout({
   return (
     <html lang='en'>
       <head>
-        {/* Google Analytics - Only load with user consent */}
-        {hasConsent && (
-          <>
-            <Script
-              src="https://www.googletagmanager.com/gtag/js?id=G-JKPCYM50W7"
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', 'G-JKPCYM50W7');
-              `}
-            </Script>
-          </>
-        )}
+        {/* Google Analytics is loaded dynamically by DynamicAnalytics component based on consent */}
+        {/* No server-side GA initialization needed - handled client-side */}
         <meta 
           name="viewport" 
           content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" 

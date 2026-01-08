@@ -27,7 +27,12 @@ export function DynamicAnalytics() {
     // Check immediately
     const initialConsent = checkConsent();
     
-    // Always set up polling to detect consent changes after mount
+    // If consent already exists, no need to poll
+    if (initialConsent) {
+      return;
+    }
+    
+    // Set up polling to detect consent changes after mount
     // This handles cases where consent changes from non-'all' to 'all' after page load
     const interval = setInterval(() => {
       const hasConsentNow = checkConsent();

@@ -78,9 +78,9 @@ export async function POST(request: NextRequest) {
           }
           
           // Calculate time remaining until reservation expires
+          // Use the 'now' variable already declared above (line 35)
           let timeRemaining = { days: 0, hours: 0, total: 0 };
           if (existingUser.reservation_expires_at) {
-            const now = new Date();
             const expiresAt = new Date(existingUser.reservation_expires_at);
             const diffMs = expiresAt.getTime() - now.getTime();
             
