@@ -23,53 +23,24 @@ interface ActivityItem {
   };
 }
 
-/**
- * Helper function to identify test accounts
- */
-function isTestAccount(email: string, username: string): boolean {
-  const emailLower = email.toLowerCase();
-  const usernameLower = username.toLowerCase();
-  
-  return (
-    emailLower.includes('test') ||
-    emailLower.includes('temp') ||
-    emailLower.endsWith('@test.com') ||
-    usernameLower.startsWith('test') ||
-    usernameLower.startsWith('temp') ||
-    usernameLower.startsWith('expired_')
-  );
-}
-
 export default async function AdminPage() {
   // Ensure user has admin permissions
   await requireRole(Role.ADMIN);
 
   // Fetch dashboard statistics
   const [
-    allUsers,
+    totalUsers,
     totalStudios,
     activeStudios,
     verifiedStudios,
     featuredStudios,
     premiumStudios,
+    activeUsers30d,
     recentUsers,
     recentStudios,
   ] = await Promise.all([
-    // Get all users with email/username for test account filtering
-    db.users.findMany({
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        display_name: true,
-        role: true,
-        created_at: true,
-        updated_at: true,
-        studio_profiles: {
-          select: { id: true },
-        },
-      },
-    }),
+    // Total registered users
+    db.users.count(),
     
     // Total studio profiles (1:1 with users who have studios)
     db.studio_profiles.count(),
@@ -86,15 +57,23 @@ export default async function AdminPage() {
     // Premium studios
     db.studio_profiles.count({ where: { is_premium: true } }),
     
-    // Recent users (last 20) - exclude test accounts
+    // Active users in last 30 days (based on updated_at)
+    db.users.count({
+      where: {
+        updated_at: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+    }),
+    
+    // Recent users (last 20)
     db.users.findMany({
       take: 20,
       orderBy: { created_at: 'desc' },
       select: {
         id: true,
-        email: true,
-        username: true,
         display_name: true,
+        username: true,
         role: true,
         created_at: true,
       },
@@ -113,31 +92,15 @@ export default async function AdminPage() {
         users: {
           select: {
             display_name: true,
-            email: true,
-            username: true,
           },
         },
       },
     }),
   ]);
 
-  // Filter out test accounts
-  const realUsers = allUsers.filter(u => !isTestAccount(u.email, u.username));
-  const testUsers = allUsers.filter(u => isTestAccount(u.email, u.username));
-  
-  // Count real users with studios
-  const realUsersWithStudios = realUsers.filter(u => u.studio_profiles !== null).length;
-  
-  // Count active users in last 30 days (excluding test accounts)
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const activeUsers30d = realUsers.filter(u => 
-    u.updated_at >= thirtyDaysAgo
-  ).length;
-
   const stats = {
-    totalUsers: realUsers.length,
-    testUsers: testUsers.length,
-    usersWithStudios: realUsersWithStudios,
+    totalUsers,
+    usersWithStudios: totalStudios, // Same as totalStudios (1:1 relationship)
     totalStudios,
     activeStudios,
     verifiedStudios,
@@ -149,39 +112,35 @@ export default async function AdminPage() {
   // Create unified activity feed
   const activities: ActivityItem[] = [];
 
-  // Add user activities (exclude test accounts)
-  recentUsers
-    .filter(user => !isTestAccount(user.email, user.username))
-    .forEach(user => {
-      activities.push({
-        id: `user-${user.id}`,
-        type: 'user',
-        action: 'New User Registration',
-        description: `${user.display_name} (@${user.username}) joined the platform`,
-        timestamp: user.created_at,
-        metadata: {
-          username: user.username,
-        },
-      });
+  // Add user activities
+  recentUsers.forEach(user => {
+    activities.push({
+      id: `user-${user.id}`,
+      type: 'user',
+      action: 'New User Registration',
+      description: `${user.display_name} (@${user.username}) joined the platform`,
+      timestamp: user.created_at,
+      metadata: {
+        username: user.username,
+      },
     });
+  });
 
-  // Add studio activities (exclude test accounts)
-  recentStudios
-    .filter(studio => !isTestAccount(studio.users.email, studio.users.username))
-    .forEach(studio => {
-      activities.push({
-        id: `studio-${studio.id}`,
-        type: 'studio',
-        action: 'Studio Created',
-        description: `${studio.name} by ${studio.users.display_name}`,
-        timestamp: studio.created_at,
-        metadata: {
-          studioName: studio.name,
-          status: studio.status,
-          isVerified: studio.is_verified,
-        },
-      });
+  // Add studio activities
+  recentStudios.forEach(studio => {
+    activities.push({
+      id: `studio-${studio.id}`,
+      type: 'studio',
+      action: 'Studio Created',
+      description: `${studio.name} by ${studio.users.display_name}`,
+      timestamp: studio.created_at,
+      metadata: {
+        studioName: studio.name,
+        status: studio.status,
+        isVerified: studio.is_verified,
+      },
     });
+  });
 
   // Sort by timestamp (most recent first) and limit to 30
   const recentActivity = activities
