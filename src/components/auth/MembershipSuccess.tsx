@@ -110,7 +110,68 @@ export function MembershipSuccess() {
   // Verify payment on component mount
   useEffect(() => {
     const verifyPayment = async () => {
-      if (!sessionId) {
+      // Try to recover from sessionStorage or URL params
+      let recoveredEmail = email;
+      let recoveredName = name;
+      let recoveredUsername = username;
+      let recoveredSessionId = sessionId;
+
+      // If missing data, try sessionStorage
+      if (!recoveredEmail || !recoveredName) {
+        const signupDataStr = sessionStorage.getItem('signupData');
+        if (signupDataStr) {
+          try {
+            const signupData = JSON.parse(signupDataStr);
+            recoveredEmail = recoveredEmail || signupData.email;
+            recoveredName = recoveredName || signupData.display_name;
+          } catch (err) {
+            console.error('Error parsing signup data:', err);
+          }
+        }
+      }
+
+      // If still missing email, try to recover from payment status
+      if (!recoveredEmail && !recoveredSessionId) {
+        setError({
+          message: 'Session data missing. Please check your email for a recovery link or contact support.',
+          code: 'NO_DATA',
+          canRetry: false,
+        });
+        return;
+      }
+
+      // If we have email but no session ID, check payment status
+      if (recoveredEmail && !recoveredSessionId) {
+        try {
+          console.log('🔍 Recovering payment status for:', recoveredEmail);
+          const statusResponse = await fetch('/api/auth/check-payment-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: recoveredEmail }),
+          });
+
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json();
+            if (statusData.hasPayment && statusData.paymentStatus === 'succeeded') {
+              recoveredSessionId = statusData.sessionId;
+              recoveredUsername = statusData.user.username;
+              recoveredName = statusData.user.display_name;
+              console.log('✅ Recovered payment data from database');
+            } else {
+              setError({
+                message: 'No successful payment found. Please complete your payment first.',
+                code: 'NO_PAYMENT',
+                canRetry: true,
+              });
+              return;
+            }
+          }
+        } catch (err) {
+          console.error('Error recovering payment status:', err);
+        }
+      }
+
+      if (!recoveredSessionId) {
         setError({
           message: 'No payment session found. Please start the signup process again.',
           code: 'NO_SESSION',
@@ -121,14 +182,14 @@ export function MembershipSuccess() {
 
       try {
         const params = new URLSearchParams();
-        if (email) params.set('email', email);
-        if (name) params.set('name', name);
-        if (username) params.set('username', username);
+        if (recoveredEmail) params.set('email', recoveredEmail);
+        if (recoveredName) params.set('name', recoveredName);
+        if (recoveredUsername) params.set('username', recoveredUsername);
 
         const response = await fetch(`/api/stripe/verify-membership-payment?${params.toString()}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId }),
+          body: JSON.stringify({ sessionId: recoveredSessionId }),
         });
 
         const result = await response.json();
@@ -144,9 +205,9 @@ export function MembershipSuccess() {
           console.log('✅ Customer data found:', result.customerData);
           // Use reset() to properly update disabled fields and trigger re-render
           reset({
-            username: result.customerData.username || '',
-            display_name: result.customerData.name || '',
-            email: result.customerData.email || '',
+            username: result.customerData.username || recoveredUsername || '',
+            display_name: result.customerData.name || recoveredName || '',
+            email: result.customerData.email || recoveredEmail || '',
             studio_name: '',
             short_about: '',
             about: '',

@@ -30,7 +30,67 @@ export async function POST(request: NextRequest) {
           },
         });
         console.log(`🗑️ Deleted ${deleteResult.count} EXPIRED user(s) with email: ${validatedData.email}`);
+      } else if (existingUser.status === UserStatus.PENDING) {
+        // User has incomplete signup - check if reservation is still valid
+        const now = new Date();
+        const isExpired = existingUser.reservation_expires_at && existingUser.reservation_expires_at < now;
+        
+        if (isExpired) {
+          // Mark as EXPIRED and free up username
+          const expiredUsername = `expired_${existingUser.username}_${Date.now()}_${existingUser.id.substring(0, 4)}`;
+          await db.users.update({
+            where: { id: existingUser.id },
+            data: {
+              status: UserStatus.EXPIRED,
+              username: expiredUsername,
+              updated_at: new Date(),
+            },
+          });
+          console.log(`⏰ Expired PENDING user: ${existingUser.email} (ID: ${existingUser.id})`);
+          // Allow new signup - user object deleted in next iteration
+        } else {
+          // Reservation still valid - check signup progress
+          const hasRealUsername = existingUser.username && !existingUser.username.startsWith('temp_');
+          
+          // Check if payment exists
+          const payment = await db.payments.findFirst({
+            where: { user_id: existingUser.id },
+            orderBy: { created_at: 'desc' },
+          });
+          
+          const hasPayment = payment?.status === 'SUCCEEDED';
+          
+          // Determine resume step
+          let resumeStep: 'username' | 'payment' | 'profile' = 'username';
+          if (hasPayment) {
+            resumeStep = 'profile';
+          } else if (hasRealUsername) {
+            resumeStep = 'payment';
+          }
+          
+          console.log(`🔄 PENDING user found: ${existingUser.email}, can resume from step: ${resumeStep}`);
+          
+          return NextResponse.json(
+            {
+              canResume: true,
+              resumeStep,
+              hasUsername: hasRealUsername,
+              hasPayment,
+              user: {
+                id: existingUser.id,
+                email: existingUser.email,
+                username: hasRealUsername ? existingUser.username : null,
+                display_name: existingUser.display_name,
+                status: existingUser.status,
+                reservation_expires_at: existingUser.reservation_expires_at,
+              },
+              message: 'You have an incomplete signup. Would you like to continue?',
+            },
+            { status: 200 }
+          );
+        }
       } else {
+        // User is ACTIVE - cannot re-register
         return NextResponse.json(
           { error: 'User already exists with this email' },
           { status: 400 }

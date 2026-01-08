@@ -12,13 +12,34 @@ export const metadata: Metadata = {
 export default async function MembershipSuccessPage() {
   const session = await getServerSession(authOptions);
 
-  // If already authenticated, redirect based on user type
+  // If already authenticated, check user status
   if (session) {
-    // Special redirect for admin@mpdee.co.uk
-    if (session.user?.email === 'admin@mpdee.co.uk') {
-      redirect('/admin');
-    } else {
-      redirect('/dashboard');
+    // Import db to check user status
+    const { db } = await import('@/lib/db');
+    
+    try {
+      const user = await db.users.findUnique({
+        where: { email: session.user?.email || '' },
+        select: { status: true, email: true },
+      });
+
+      // If user is PENDING, allow access to complete profile
+      if (user && user.status === 'PENDING') {
+        console.log(`✅ PENDING user accessing profile creation: ${user.email}`);
+        return <MembershipSuccess />;
+      }
+
+      // If user is ACTIVE, redirect to dashboard
+      // Special redirect for admin@mpdee.co.uk
+      if (session.user?.email === 'admin@mpdee.co.uk') {
+        redirect('/admin');
+      } else {
+        redirect('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error checking user status:', error);
+      // On error, allow access (fail open for better UX)
+      return <MembershipSuccess />;
     }
   }
 

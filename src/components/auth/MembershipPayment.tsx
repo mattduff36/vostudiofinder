@@ -27,16 +27,46 @@ export function MembershipPayment() {
   useEffect(() => {
     console.log('🎯 MembershipPayment mounted with:', { userId, email, name, username });
     
-    if (!stripeKey) {
-      setError('Stripe configuration missing. Please contact support.');
+    const checkExistingPayment = async () => {
+      if (!userId) {
+        setError('Session expired. Please sign up again.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!stripeKey) {
+        setError('Stripe configuration missing. Please contact support.');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Check if payment already exists
+        const response = await fetch('/api/auth/check-payment-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.hasPayment && data.paymentStatus === 'succeeded') {
+            // Payment already completed - redirect to profile creation
+            console.log('✅ Payment already completed, redirecting to profile creation');
+            window.location.href = `/auth/membership/success?session_id=${data.sessionId || ''}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}`;
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Error checking payment status:', err);
+      }
+
       setIsLoading(false);
-    } else if (!userId) {
-      setError('Session expired. Please sign up again.');
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
-    }
-  }, [userId, email, name, username]);
+    };
+
+    checkExistingPayment();
+  }, [userId, email, name, username, stripeKey]);
 
   const fetchClientSecret = useCallback(async () => {
     console.log('🔄 Fetching client secret...');
