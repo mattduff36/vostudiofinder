@@ -52,7 +52,8 @@ export async function createTestUserInDb(data: {
   const { randomBytes } = await import('crypto');
   
   const hashedPassword = await authUtils.hashPassword(data.password);
-  const userId = data.username ? undefined : randomBytes(12).toString('base64url');
+  // Always generate userId - it's required
+  const userId = randomBytes(12).toString('base64url');
   
   const user = await prisma.users.create({
     data: {
