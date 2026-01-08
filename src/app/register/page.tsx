@@ -17,8 +17,10 @@ export default async function RegisterRedirect() {
 
   // If not authenticated, redirect based on environment
   // In production, redirect to join waitlist
-  // In development, redirect to signup form
-  const destination = process.env.NODE_ENV === 'production' 
+  // In preview/development, redirect to signup form
+  // VERCEL_ENV is set by Vercel: 'development' | 'preview' | 'production'
+  // If VERCEL_ENV is undefined (local dev), show signup form
+  const destination = process.env.VERCEL_ENV === 'production' 
     ? '/join-waitlist' 
     : '/auth/signup';
   
