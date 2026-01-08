@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Button } from '@/components/ui/Button';
-import { Search, RefreshCw, Clock, AlertCircle, CheckCircle, XCircle, Trash2 } from 'lucide-react';
+import { Search, RefreshCw, Clock, AlertCircle, CheckCircle, XCircle, Trash2, Filter } from 'lucide-react';
 import { formatDate } from '@/lib/date-format';
 
 interface PendingUser {
@@ -242,24 +242,29 @@ export default function AdminReservationsPage() {
 
         {/* Filters Card */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-center mb-4">
+            <Filter className="w-5 h-5 text-gray-400 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search by Email or Username
               </label>
-              <div className="flex">
+              <div className="flex h-10">
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="user@example.com or username"
-                  className="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                  className="flex-1 h-10 px-3 rounded-l-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
                 />
                 <Button
                   onClick={handleSearch}
-                  className="rounded-l-none bg-red-600 hover:bg-red-700 px-4"
+                  className="h-10 rounded-l-none bg-red-600 hover:bg-red-700 px-4"
                 >
                   <Search className="w-4 h-4" />
                 </Button>
@@ -274,7 +279,7 @@ export default function AdminReservationsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                className="w-full h-10 px-3 rounded-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
               >
                 <option value="">All Statuses</option>
                 <option value="PENDING">Pending</option>
