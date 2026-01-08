@@ -127,7 +127,7 @@ export function generateLegacyUserAnnouncementEmail({
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">Voiceover Studio Finder is back, and we're genuinely excited to share it with you!</p>
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We've rebuilt everything. The platform is faster. The search is smarter. The design is beautifully clean.</p>
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">Every feature has been meticulously rethought and redesigned. Every interaction has been refined. Every detail matters.</p>
-              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">You've been part of our community from the beginning. That's why six months of free membership starts the moment you sign in and see your new profile.</p>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">You've been part of our community from the beginning. That's why <strong>six months of free membership</strong> starts the moment you sign in and see your new profile.</p>
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">Thank you for being a member. We can't wait to show you what we've built!</p>
             </td>
           </tr>
@@ -213,7 +213,7 @@ We've rebuilt everything. The platform is faster. The search is smarter. The des
 
 Every feature has been meticulously rethought and redesigned. Every interaction has been refined. Every detail matters.
 
-You've been part of our community from the beginning. That's why six months of free membership starts the moment you sign in and see your new profile.
+You've been part of our community from the beginning. That's why *six months of free membership* starts the moment you sign in and see your new profile.
 
 Thank you for being a member. We can't wait to show you what we've built!
 
