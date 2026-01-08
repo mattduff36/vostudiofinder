@@ -91,52 +91,50 @@ export function SignupErrorAlert({ error }: SignupErrorAlertProps) {
   };
 
   return (
-    <Modal isOpen={true} preventBackdropClose={true} maxWidth="md">
-      <div className="py-8 px-4 sm:px-10">
-        <div className="flex items-start space-x-4">
-          <div className="flex-shrink-0 text-red-600">
+    <Modal isOpen={true} preventBackdropClose={true} maxWidth="lg">
+      <div className="py-10 px-6 sm:px-12">
+        <div className="text-center mb-6">
+          <div className="flex justify-center mb-3 text-red-600">
             {config.icon}
           </div>
-          
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-text-primary mb-2">
-              {config.title}
-            </h3>
+          <h3 className="text-xl font-semibold text-text-primary mb-3">
+            {config.title}
+          </h3>
+          <p className="text-base text-text-secondary max-w-md mx-auto">
+            {config.message}
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap gap-4 justify-center">
+          {config.actions.map((action, index) => {
+            if (action.href) {
+              return (
+                <Link key={index} href={action.href}>
+                  <Button
+                    variant={action.variant === 'primary' ? 'primary' : 'outline'}
+                    className="sm:min-w-[180px]"
+                  >
+                    {action.label}
+                  </Button>
+                </Link>
+              );
+            }
             
-            <p className="text-sm text-text-secondary mb-4">
-              {config.message}
-            </p>
+            if ('onClick' in action && action.onClick) {
+              return (
+                <Button
+                  key={index}
+                  variant={action.variant === 'primary' ? 'primary' : 'outline'}
+                  onClick={action.onClick}
+                  className="sm:min-w-[180px]"
+                >
+                  {action.label}
+                </Button>
+              );
+            }
             
-            <div className="flex flex-wrap gap-3">
-              {config.actions.map((action, index) => {
-                if (action.href) {
-                  return (
-                    <Link key={index} href={action.href}>
-                      <Button
-                        variant={action.variant === 'primary' ? 'primary' : 'outline'}
-                      >
-                        {action.label}
-                      </Button>
-                    </Link>
-                  );
-                }
-                
-                if ('onClick' in action && action.onClick) {
-                  return (
-                    <Button
-                      key={index}
-                      variant={action.variant === 'primary' ? 'primary' : 'outline'}
-                      onClick={action.onClick}
-                    >
-                      {action.label}
-                    </Button>
-                  );
-                }
-                
-                return null;
-              })}
-            </div>
-          </div>
+            return null;
+          })}
         </div>
       </div>
     </Modal>
