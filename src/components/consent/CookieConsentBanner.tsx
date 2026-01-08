@@ -134,6 +134,8 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
         
         // Hide banner with smooth animation
         setIsAnimatingOut(true);
+        // Reset submitting state since operation succeeded
+        setIsSubmitting(false);
         // Clear any existing timeout
         if (animationTimeoutRef.current) {
           clearTimeout(animationTimeoutRef.current);

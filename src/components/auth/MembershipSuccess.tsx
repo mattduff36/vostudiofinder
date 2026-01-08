@@ -287,7 +287,11 @@ export function MembershipSuccess() {
         canRetry: true,
       });
     }
-  }, [sessionId, email, name, username, reset]);
+    // reset is from react-hook-form and should be stable, but including it causes
+    // verifyPayment to be recreated unnecessarily. We use reset inside the callback
+    // but don't need it as a dependency since it's only called conditionally.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, email, name, username]);
 
   useEffect(() => {
     verifyPayment();
