@@ -19,14 +19,27 @@ export function DynamicAnalytics() {
         .find(row => row.startsWith('vsf_cookie_consent='));
       
       const consentLevel = consentCookie?.split('=')[1];
-      setHasConsent(consentLevel === 'all');
+      const hasConsentNow = consentLevel === 'all';
+      setHasConsent(hasConsentNow);
+      return hasConsentNow;
     };
 
     // Check immediately
-    checkConsent();
+    const initialConsent = checkConsent();
+    
+    // If consent already exists, no need to poll
+    if (initialConsent) {
+      return;
+    }
 
-    // Listen for cookie changes (when consent banner updates)
-    const interval = setInterval(checkConsent, 500);
+    // Listen for cookie changes with longer interval to reduce CPU usage
+    // Check every 2 seconds instead of 500ms, and stop once consent is detected
+    const interval = setInterval(() => {
+      const hasConsentNow = checkConsent();
+      if (hasConsentNow) {
+        clearInterval(interval);
+      }
+    }, 2000);
     
     return () => clearInterval(interval);
   }, []);

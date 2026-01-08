@@ -142,6 +142,16 @@ export function MembershipSuccess() {
 
       // If we have email but no session ID, check payment status
       if (recoveredEmail && !recoveredSessionId) {
+        // Validate email is not empty before making API call
+        if (!recoveredEmail.trim()) {
+          setError({
+            message: 'Invalid email address. Please check your email and try again.',
+            code: 'INVALID_EMAIL',
+            canRetry: false,
+          });
+          return;
+        }
+
         try {
           console.log('🔍 Recovering payment status for:', recoveredEmail);
           const statusResponse = await fetch('/api/auth/check-payment-status', {
@@ -151,11 +161,23 @@ export function MembershipSuccess() {
           });
 
           if (statusResponse.ok) {
-            const statusData = await statusResponse.json();
+            let statusData;
+            try {
+              statusData = await statusResponse.json();
+            } catch (jsonError) {
+              console.error('Error parsing payment status response:', jsonError);
+              setError({
+                message: 'Invalid response from server. Please try again or contact support.',
+                code: 'INVALID_RESPONSE',
+                canRetry: true,
+              });
+              return;
+            }
+
             if (statusData.hasPayment && statusData.paymentStatus === 'succeeded') {
               recoveredSessionId = statusData.sessionId;
-              recoveredUsername = statusData.user.username;
-              recoveredName = statusData.user.display_name;
+              recoveredUsername = statusData.user?.username;
+              recoveredName = statusData.user?.display_name;
               console.log('✅ Recovered payment data from database');
             } else {
               setError({
@@ -167,7 +189,14 @@ export function MembershipSuccess() {
             }
           } else {
             // Handle non-OK response from payment status check
-            const errorData = await statusResponse.json().catch(() => ({ error: 'Unknown error' }));
+            let errorData;
+            try {
+              errorData = await statusResponse.json();
+            } catch (jsonError) {
+              // If JSON parsing fails, use status code for error message
+              errorData = { error: `Server error (${statusResponse.status})` };
+            }
+            
             setError({
               message: errorData.error || `Failed to check payment status (${statusResponse.status}). Please try again or contact support.`,
               code: 'PAYMENT_STATUS_CHECK_FAILED',

@@ -59,7 +59,11 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
         // Apply consent settings without page reload
         if (level === 'all') {
           // Dynamically load Google Analytics if user accepts
-          if (!window.dataLayer) {
+          // Check if GA is already loaded or loading to prevent duplicates
+          const existingGA = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
+          const hasDataLayer = window.dataLayer && Array.isArray(window.dataLayer);
+          
+          if (!existingGA && !hasDataLayer) {
             window.dataLayer = [];
             function gtag(...args: any[]) {
               window.dataLayer!.push(args);
@@ -71,8 +75,12 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
             script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-JKPCYM50W7';
             script1.async = true;
             
+            // Mark script as loading to prevent duplicate loads
+            script1.setAttribute('data-ga-loading', 'true');
+            
             // Wait for script1 to load before adding script2
             script1.onload = () => {
+              script1.removeAttribute('data-ga-loading');
               const script2 = document.createElement('script');
               script2.innerHTML = `
                 window.dataLayer = window.dataLayer || [];
@@ -85,9 +93,23 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
             
             script1.onerror = () => {
               console.error('Failed to load Google Analytics script');
+              script1.removeAttribute('data-ga-loading');
             };
             
             document.head.appendChild(script1);
+          } else if (existingGA && !hasDataLayer) {
+            // Script is loading but dataLayer not ready - wait for it
+            existingGA.addEventListener('load', () => {
+              if (!window.dataLayer) {
+                window.dataLayer = [];
+              }
+              if (!window.gtag) {
+                function gtag(...args: any[]) {
+                  window.dataLayer!.push(args);
+                }
+                window.gtag = gtag;
+              }
+            });
           }
         }
         

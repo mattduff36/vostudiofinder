@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         const isExpired = existingUser.reservation_expires_at && existingUser.reservation_expires_at < now;
         
         if (isExpired) {
-          // Mark as EXPIRED and free up username
+          // Mark as EXPIRED and free up username, then delete like other EXPIRED users
           const expiredUsername = `expired_${existingUser.username}_${Date.now()}_${existingUser.id.substring(0, 4)}`;
           await db.users.update({
             where: { id: existingUser.id },
@@ -47,7 +47,16 @@ export async function POST(request: NextRequest) {
             },
           });
           console.log(`⏰ Expired PENDING user: ${existingUser.email} (ID: ${existingUser.id})`);
-          // Allow new signup - user object deleted in next iteration
+          
+          // Delete the expired user to allow new signup (same as EXPIRED handling above)
+          const deleteResult = await db.users.deleteMany({
+            where: { 
+              id: existingUser.id,
+              status: UserStatus.EXPIRED, // Extra safety: only delete if still EXPIRED
+            },
+          });
+          console.log(`🗑️ Deleted ${deleteResult.count} expired PENDING user(s) with email: ${validatedData.email}`);
+          // Continue to create new user below
         } else {
           // Reservation still valid - check signup progress
           const hasRealUsername = existingUser.username && !existingUser.username.startsWith('temp_');

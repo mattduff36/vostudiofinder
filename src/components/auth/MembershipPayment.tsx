@@ -55,18 +55,20 @@ export function MembershipPayment() {
             // Payment already completed - redirect to profile creation
             console.log('✅ Payment already completed, redirecting to profile creation');
             window.location.href = `/auth/membership/success?session_id=${data.sessionId || ''}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}`;
-            return;
+            return; // Don't set loading to false - we're redirecting
           }
         }
       } catch (err) {
         console.error('Error checking payment status:', err);
       }
 
+      // Only set loading to false after all checks complete and no redirect occurred
       setIsLoading(false);
     };
 
     checkExistingPayment();
-  }, [userId, email, name, username, stripeKey]);
+    // stripeKey is a constant from process.env, doesn't need to be in dependencies
+  }, [userId, email, name, username]);
 
   const fetchClientSecret = useCallback(async () => {
     console.log('🔄 Fetching client secret...');
