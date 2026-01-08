@@ -61,7 +61,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       });
 
       if (!payment) {
-        console.error('❌ Payment not found for session_id:', searchParams.session_id);
+        console.error('❌ Payment not found for session_id:', params.session_id);
         redirect('/auth/signup?error=payment_not_found');
       }
 

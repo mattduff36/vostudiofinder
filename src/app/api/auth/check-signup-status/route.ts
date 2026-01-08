@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
     });
 
     const hasPayment = payment?.status === 'SUCCEEDED';
+    const sessionId = payment?.stripe_checkout_session_id || null;
 
     // Determine resume step
     let resumeStep: 'username' | 'payment' | 'profile' = 'username';
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
         resumeStep,
         hasUsername: hasRealUsername,
         hasPayment,
+        sessionId, // Include session_id for profile step navigation
         user: {
           id: user.id,
           email: user.email,

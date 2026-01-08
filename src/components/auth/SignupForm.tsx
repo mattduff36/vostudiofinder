@@ -16,6 +16,7 @@ interface PendingSignupData {
   resumeStep: 'username' | 'payment' | 'profile';
   hasUsername: boolean;
   hasPayment: boolean;
+  sessionId?: string | null; // Stripe checkout session ID for payment verification
   user: {
     id: string;
     email: string;
@@ -108,8 +109,17 @@ export function SignupForm() {
       params.set('username', pendingSignup.user.username || '');
       router.push(`/auth/membership?${params.toString()}`);
     } else if (pendingSignup.resumeStep === 'profile') {
-      // Need to find session_id from payment
-      router.push('/auth/membership/success');
+      // Navigate to profile creation with session_id for payment verification
+      const params = new URLSearchParams();
+      if (pendingSignup.sessionId) {
+        params.set('session_id', pendingSignup.sessionId);
+      }
+      params.set('email', pendingSignup.user.email);
+      params.set('name', pendingSignup.user.display_name);
+      if (pendingSignup.user.username) {
+        params.set('username', pendingSignup.user.username);
+      }
+      router.push(`/auth/membership/success?${params.toString()}`);
     }
   };
 
