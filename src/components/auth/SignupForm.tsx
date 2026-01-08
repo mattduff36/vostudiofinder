@@ -153,7 +153,7 @@ export function SignupForm() {
         <Input
           label="Display Name"
           type="text"
-          placeholder="e.g. John Smith or Smith Studios"
+          placeholder="Your Display Name is how we address you"
           error={errors.display_name?.message || ''}
           {...register('display_name')}
         />

@@ -6,24 +6,27 @@ import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
 
 interface VerifyEmailContentProps {
-  isNewProfile: boolean;
+  flow: 'account' | 'profile';
+  email?: string;
 }
 
-export default function VerifyEmailContent({ isNewProfile }: VerifyEmailContentProps) {
+export default function VerifyEmailContent({ flow, email: emailProp }: VerifyEmailContentProps) {
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const handleResendEmail = async () => {
-    // Get email from sessionStorage (if available)
-    const signupDataStr = sessionStorage.getItem('signupData');
-    let email = '';
+    // Prefer email from query param, fallback to sessionStorage
+    let email = emailProp;
     
-    if (signupDataStr) {
-      try {
-        const signupData = JSON.parse(signupDataStr);
-        email = signupData.email;
-      } catch (e) {
-        console.error('Failed to parse signup data:', e);
+    if (!email) {
+      const signupDataStr = sessionStorage.getItem('signupData');
+      if (signupDataStr) {
+        try {
+          const signupData = JSON.parse(signupDataStr);
+          email = signupData.email;
+        } catch (e) {
+          console.error('Failed to parse signup data:', e);
+        }
       }
     }
 
@@ -84,7 +87,7 @@ export default function VerifyEmailContent({ isNewProfile }: VerifyEmailContentP
         <div className="bg-white/90 backdrop-blur-sm py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="text-center space-y-6">
             <div className="flex justify-center">
-              {isNewProfile ? (
+              {flow === 'profile' ? (
                 <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full shadow-lg">
                   <Sparkles className="w-10 h-10 text-white" />
                 </div>
@@ -99,9 +102,9 @@ export default function VerifyEmailContent({ isNewProfile }: VerifyEmailContentP
 
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {isNewProfile ? 'Welcome to VoiceoverStudioFinder!' : 'Check Your Email'}
+                {flow === 'profile' ? 'Welcome to VoiceoverStudioFinder!' : 'Check Your Email'}
               </h1>
-              {isNewProfile ? (
+              {flow === 'profile' ? (
                 <div className="mt-4 space-y-3">
                   <p className="text-gray-700 font-medium">
                     Thank you for creating your studio profile!
@@ -114,9 +117,17 @@ export default function VerifyEmailContent({ isNewProfile }: VerifyEmailContentP
                   </p>
                 </div>
               ) : (
-                <p className="mt-2 text-gray-600">
-                  We've sent a verification link to your email address. Please click the link to verify your account.
-                </p>
+                <div className="mt-4 space-y-3">
+                  <p className="text-gray-700 font-medium">
+                    Your account has been created successfully!
+                  </p>
+                  <p className="text-gray-600">
+                    We've sent a verification email to your inbox. Please click the verification link to verify your email address.
+                  </p>
+                  <p className="text-gray-600">
+                    After verification, sign in to complete your studio profile from your dashboard and turn visibility on when you're ready to go live.
+                  </p>
+                </div>
               )}
             </div>
 
@@ -134,19 +145,27 @@ export default function VerifyEmailContent({ isNewProfile }: VerifyEmailContentP
               </div>
             </div>
 
-            {isNewProfile && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <div className="text-sm text-red-900 text-left space-y-2">
-                  <p className="font-semibold">What happens next:</p>
+            <div className="bg-red-50 border border-red-200 rounded-md p-4">
+              <div className="text-sm text-red-900 text-left space-y-2">
+                <p className="font-semibold">What happens next:</p>
+                {flow === 'profile' ? (
                   <ol className="list-decimal list-inside space-y-1 ml-2">
                     <li>Check your email and click the verification link</li>
                     <li>Your email address will be verified</li>
                     <li>Sign in with your credentials</li>
                     <li>Your studio profile will be live!</li>
                   </ol>
-                </div>
+                ) : (
+                  <ol className="list-decimal list-inside space-y-1 ml-2">
+                    <li>Check your email and click the verification link</li>
+                    <li>Your email address will be verified</li>
+                    <li>Sign in with your credentials</li>
+                    <li>Complete your studio profile from the dashboard</li>
+                    <li>Turn visibility on when you're ready to go live</li>
+                  </ol>
+                )}
               </div>
-            )}
+            </div>
 
             {resendMessage && (
               <div className={`p-4 rounded-md ${

@@ -128,8 +128,11 @@ if [ ! -f "$ENV_FILE" ]; then
     fi
 else
     print_info "$ENV_FILE already exists"
-    # Create backup
-    BACKUP_FILE="${ENV_FILE}.backup.$(date +%Y%m%d_%H%M%S)"
+    # Create backup directory if it doesn't exist
+    BACKUP_DIR="backup"
+    mkdir -p "$BACKUP_DIR"
+    # Create backup in backup folder
+    BACKUP_FILE="${BACKUP_DIR}/${ENV_FILE}.backup.$(date +%Y%m%d_%H%M%S)"
     cp "$ENV_FILE" "$BACKUP_FILE"
     print_status "Backup created: $BACKUP_FILE"
 fi

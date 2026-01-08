@@ -47,7 +47,11 @@ export async function POST(request: NextRequest) {
     if (!sessionId || !username || !display_name || !email || !password) {
       console.log('❌ Missing account fields:', { sessionId: !!sessionId, username: !!username, display_name: !!display_name, email: !!email, password: !!password });
       return NextResponse.json(
-        { error: 'Missing required account fields' },
+        { 
+          error: 'Missing required account information. Please ensure all fields are filled out.',
+          errorCode: 'MISSING_ACCOUNT_FIELDS',
+          canRetry: true,
+        },
         { status: 400 }
       );
     }
@@ -55,7 +59,11 @@ export async function POST(request: NextRequest) {
     if (!studio_name || !short_about || !about || !location || !website_url) {
       console.log('❌ Missing studio fields:', { studio_name: !!studio_name, short_about: !!short_about, about: !!about, location: !!location, website_url: !!website_url });
       return NextResponse.json(
-        { error: 'Missing required studio fields' },
+        { 
+          error: 'Missing required studio information. Please complete all studio fields.',
+          errorCode: 'MISSING_STUDIO_FIELDS',
+          canRetry: true,
+        },
         { status: 400 }
       );
     }
@@ -63,7 +71,11 @@ export async function POST(request: NextRequest) {
     if (!studio_types || studio_types.length === 0) {
       console.log('❌ No studio types:', studio_types);
       return NextResponse.json(
-        { error: 'At least one studio type is required' },
+        { 
+          error: 'At least one studio type is required. Please select your studio type.',
+          errorCode: 'MISSING_STUDIO_TYPE',
+          canRetry: true,
+        },
         { status: 400 }
       );
     }
@@ -71,7 +83,11 @@ export async function POST(request: NextRequest) {
     if (!images || images.length === 0) {
       console.log('❌ No images:', images);
       return NextResponse.json(
-        { error: 'At least one image is required' },
+        { 
+          error: 'At least one image is required. Please upload at least one photo of your studio.',
+          errorCode: 'MISSING_IMAGES',
+          canRetry: true,
+        },
         { status: 400 }
       );
     }
@@ -80,7 +96,11 @@ export async function POST(request: NextRequest) {
     if (!hasConnection) {
       console.log('❌ No connections selected:', connections);
       return NextResponse.json(
-        { error: 'At least one connection method is required' },
+        { 
+          error: 'At least one connection method is required. Please select how you want to be contacted.',
+          errorCode: 'MISSING_CONNECTION',
+          canRetry: true,
+        },
         { status: 400 }
       );
     }
@@ -91,7 +111,11 @@ export async function POST(request: NextRequest) {
     if (!isDevMode) {
       if (!process.env.STRIPE_SECRET_KEY) {
         return NextResponse.json(
-          { error: 'Stripe configuration not available' },
+          { 
+            error: 'Payment system configuration error. Please contact support.',
+            errorCode: 'STRIPE_CONFIG_ERROR',
+            canRetry: false,
+          },
           { status: 500 }
         );
       }
@@ -100,7 +124,11 @@ export async function POST(request: NextRequest) {
       
       if (session.payment_status !== 'paid') {
         return NextResponse.json(
-          { error: 'Payment not verified' },
+          { 
+            error: 'Payment not verified. Please ensure your payment was successful or contact support.',
+            errorCode: 'PAYMENT_NOT_VERIFIED',
+            canRetry: false,
+          },
           { status: 400 }
         );
       }
@@ -115,8 +143,12 @@ export async function POST(request: NextRequest) {
     
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User already exists with this email' },
-        { status: 400 }
+        { 
+          error: 'An account with this email already exists. Please sign in instead.',
+          errorCode: 'EMAIL_EXISTS',
+          canRetry: false,
+        },
+        { status: 409 }
       );
     }
 
@@ -132,32 +164,153 @@ export async function POST(request: NextRequest) {
     
     if (existingUsername) {
       return NextResponse.json(
-        { error: 'Username is already taken' },
-        { status: 400 }
+        { 
+          error: 'This username is already taken. Please contact support if you believe this is an error.',
+          errorCode: 'USERNAME_TAKEN',
+          canRetry: false,
+        },
+        { status: 409 }
       );
     }
 
-    // Create user with membership info
-    const user = await createUser({
-      email,
-      password, // Password from signup form
-      display_name,
-      username,
-    });
+    let user: any;
+    let verificationToken: string;
+    let studioProfileId: string;
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    try {
+      // Create user, profile, and all related data in a transaction
+      // This ensures atomic operation - either everything succeeds or nothing persists
+      const result = await db.$transaction(async (tx) => {
+        // Create user with membership info (passing tx for atomicity)
+        const user = await createUser({
+          email,
+          password, // Password from signup form
+          display_name,
+          username,
+        }, tx);
 
-    // Update user with verification token (all users are USER role by default)
-    await db.users.update({
-      where: { id: user.id },
-      data: {
-        role: 'USER',
-        verification_token: verificationToken,
-        verification_token_expiry: verificationTokenExpiry,
-      },
-    });
+        console.log('✅ User created:', user.id);
+
+        // Generate verification token
+        const token = crypto.randomBytes(32).toString('hex');
+        const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+        // Update user with verification token (all users are USER role by default)
+        await tx.users.update({
+          where: { id: user.id },
+          data: {
+            role: 'USER',
+            verification_token: token,
+            verification_token_expiry: verificationTokenExpiry,
+          },
+        });
+
+        console.log('✅ Verification token generated and saved');
+
+        // Create studio profile
+        const profileId = nanoid();
+        
+        // Process connections - convert boolean object to connection strings
+        const connectionData: any = {};
+        Object.entries(connections).forEach(([key, value]) => {
+          if (value) {
+            connectionData[key] = '1';
+          }
+        });
+
+        await tx.studio_profiles.create({
+          data: {
+            id: profileId,
+            user_id: user.id,
+            name: studio_name,
+            short_about,
+            about,
+            full_address: full_address || null,
+            abbreviated_address: abbreviated_address || null,
+            city: city || '',
+            location,
+            website_url,
+            is_profile_visible: false, // Hidden by default, will be set to true upon email verification
+            created_at: new Date(),
+            updated_at: new Date(),
+            ...connectionData, // Spread connection methods
+          },
+        });
+
+        console.log('✅ Studio profile created:', profileId);
+
+        // Create studio types
+        for (const studioType of studio_types) {
+          await tx.studio_studio_types.create({
+            data: {
+              id: nanoid(),
+              studio_id: profileId,
+              studio_type: studioType as any,
+            },
+          });
+        }
+
+        console.log('✅ Studio types created:', studio_types.length);
+
+        // Create studio images
+        for (let i = 0; i < images.length; i++) {
+          const image = images[i];
+          await tx.studio_images.create({
+            data: {
+              id: nanoid(),
+              studio_id: profileId,
+              image_url: image.url,
+              alt_text: image.alt_text || `Studio image ${i + 1}`,
+              sort_order: i,
+            },
+          });
+        }
+
+        console.log('✅ Studio images created:', images.length);
+
+        return { user, verificationToken: token, studioProfileId: profileId };
+      });
+
+      // Extract results from transaction
+      user = result.user;
+      verificationToken = result.verificationToken;
+      studioProfileId = result.studioProfileId;
+
+      console.log('✅ Transaction completed successfully');
+    } catch (txError: any) {
+      // If transaction failed, nothing was created or everything was rolled back
+      console.error('❌ Transaction failed during profile creation:', txError);
+      
+      // Check if error is due to unique constraint violation (P2002)
+      if (txError.code === 'P2002') {
+        const target = txError.meta?.target;
+        
+        if (target?.includes('email')) {
+          return NextResponse.json(
+            { 
+              error: 'An account with this email already exists. Please sign in instead.',
+              errorCode: 'EMAIL_EXISTS',
+              canRetry: false,
+            },
+            { status: 409 }
+          );
+        }
+        
+        if (target?.includes('username')) {
+          return NextResponse.json(
+            { 
+              error: 'This username is already taken. Please contact support if you believe this is an error.',
+              errorCode: 'USERNAME_TAKEN',
+              canRetry: false,
+            },
+            { status: 409 }
+          );
+        }
+      }
+      
+      // For any other transaction error, user can retry
+      throw txError;
+    }
 
     // 🔄 PROCESS DEFERRED PAYMENTS
     // Check for any webhook events that were deferred because user didn't exist yet
@@ -303,71 +456,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create studio profile
-    const studioProfileId = nanoid();
-    
-    // Process connections - convert boolean object to connection strings
-    const connectionData: any = {};
-    Object.entries(connections).forEach(([key, value]) => {
-      if (value) {
-        connectionData[key] = '1';
-      }
-    });
-
-    await db.studio_profiles.create({
-      data: {
-        id: studioProfileId,
-        user_id: user.id,
-        name: studio_name,
-        short_about,
-        about,
-        full_address: full_address || null,
-        abbreviated_address: abbreviated_address || null,
-        city: city || '',
-        location,
-        website_url,
-        created_at: new Date(),
-        updated_at: new Date(),
-        ...connectionData, // Spread connection methods
-      },
-    });
-
-    // Create studio types
-    for (const studioType of studio_types) {
-      await db.studio_studio_types.create({
-        data: {
-          id: nanoid(),
-          studio_id: studioProfileId,
-          studio_type: studioType as any,
-        },
-      });
-    }
-
-    // Create studio images
-    for (let i = 0; i < images.length; i++) {
-      const image = images[i];
-      await db.studio_images.create({
-        data: {
-          id: nanoid(),
-          studio_id: studioProfileId,
-          image_url: image.url,
-          alt_text: image.alt_text || `Studio image ${i + 1}`,
-          sort_order: i,
-        },
-      });
-    }
 
     // Mark the session as used (only in production)
+    // Do this AFTER successful user/profile creation
     if (!isDevMode && process.env.STRIPE_SECRET_KEY) {
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
-      await stripe.checkout.sessions.update(sessionId, {
-        metadata: {
-          ...session.metadata,
-          account_created: 'true',
-          user_id: user.id,
-          studio_id: studioProfileId,
-        },
-      });
+      try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        await stripe.checkout.sessions.update(sessionId, {
+          metadata: {
+            ...session.metadata,
+            account_created: 'true',
+            user_id: user.id,
+            studio_id: studioProfileId,
+          },
+        });
+        console.log('✅ Stripe session marked as used');
+      } catch (stripeError) {
+        console.error('⚠️ Failed to update Stripe session metadata:', stripeError);
+        // Don't fail the request, this is non-critical
+      }
     }
 
     // Send verification email
@@ -410,20 +517,49 @@ export async function POST(request: NextRequest) {
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     handleApiError(error, 'Studio profile creation failed');
     
-    if (error instanceof Error) {
-      // Return the actual error message in development
-      const errorMessage = process.env.NODE_ENV === 'development' 
-        ? error.message 
-        : 'Failed to create profile';
-      
+    // Validation errors
+    if (error instanceof Error && error.message.includes('validation')) {
       return NextResponse.json(
-        { error: errorMessage },
-        { status: 500 }
+        { 
+          error: 'The information provided is invalid. Please check your details and try again.',
+          errorCode: 'VALIDATION_ERROR',
+          canRetry: true,
+        },
+        { status: 400 }
       );
     }
     
+    // Payment verification errors
+    if (error instanceof Error && error.message.includes('Payment not')) {
+      return NextResponse.json(
+        { 
+          error: 'Payment could not be verified. Please contact support with your order details.',
+          errorCode: 'PAYMENT_VERIFICATION_FAILED',
+          canRetry: false,
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Image processing errors
+    if (error instanceof Error && (error.message.includes('image') || error.message.includes('Image'))) {
+      return NextResponse.json(
+        { 
+          error: 'There was an issue processing your images. Please try again or use different images.',
+          errorCode: 'IMAGE_PROCESSING_ERROR',
+          canRetry: true,
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Database/server errors (user can retry)
     return NextResponse.json(
-      { error: 'Failed to create profile' },
+      { 
+        error: 'We encountered a technical issue while creating your profile. Please try again or contact support if the problem persists.',
+        errorCode: 'SERVER_ERROR',
+        canRetry: true,
+      },
       { status: 500 }
     );
   }

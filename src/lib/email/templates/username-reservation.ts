@@ -24,8 +24,6 @@ export const paymentFailedReservationTemplate = (data: {
   <title>Payment issue with your signup</title>
   <style>
     .btn a, .btn a span { color: #FFFFFF !important; }
-    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
-    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
@@ -128,8 +126,6 @@ export const reservationReminderDay2Template = (data: {
   <title>Complete your signup</title>
   <style>
     .btn a, .btn a span { color: #FFFFFF !important; }
-    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
-    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
@@ -221,8 +217,6 @@ export const reservationUrgencyDay5Template = (data: {
   <title>Your username reservation expires in ${data.daysRemaining} days</title>
   <style>
     .btn a, .btn a span { color: #FFFFFF !important; }
-    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
-    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
@@ -312,8 +306,6 @@ export const reservationExpiredTemplate = (data: {
   <title>Your username reservation has expired</title>
   <style>
     .btn a, .btn a span { color: #FFFFFF !important; }
-    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
-    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">

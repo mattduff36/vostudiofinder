@@ -109,7 +109,6 @@ export function CloseAccountModal({ isOpen, onClose }: CloseAccountModalProps) {
                   <li>Schedule your account for deletion in 7 days</li>
                   <li>Hide your profile from search results immediately</li>
                   <li>Permanently delete all your data after 7 days</li>
-                  <li>Remove all your reviews and ratings</li>
                   <li>Cancel any active subscriptions</li>
                 </ul>
               </div>

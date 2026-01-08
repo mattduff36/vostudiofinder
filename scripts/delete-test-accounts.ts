@@ -1,4 +1,8 @@
 import { PrismaClient } from '@prisma/client';
+import * as dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config({ path: '.env.local' });
 
 const prisma = new PrismaClient();
 
@@ -50,28 +54,121 @@ async function deleteTestAccounts() {
     for (const user of users) {
       console.log(`Deleting user: ${user.username} (${user.id})...`);
       
-      // Delete subscriptions first (foreign key constraint)
-      if (user.subscriptions.length > 0) {
-        console.log(`  Deleting ${user.subscriptions.length} subscription(s)...`);
-        await prisma.subscriptions.deleteMany({
+      // Use transaction to ensure all data is deleted atomically
+      await prisma.$transaction(async (tx) => {
+        // 1. Delete studio-related data
+        if (user.studio_profiles) {
+          const studioId = user.studio_profiles.id;
+          console.log(`  Deleting studio profile and related data...`);
+          
+          // Delete studio services
+          const servicesDeleted = await tx.studio_services.deleteMany({
+            where: { studio_id: studioId }
+          });
+          console.log(`    ✅ Deleted ${servicesDeleted.count} studio service(s)`);
+          
+          // Delete studio types
+          const typesDeleted = await tx.studio_studio_types.deleteMany({
+            where: { studio_id: studioId }
+          });
+          console.log(`    ✅ Deleted ${typesDeleted.count} studio type(s)`);
+          
+          // Delete studio images
+          const imagesDeleted = await tx.studio_images.deleteMany({
+            where: { studio_id: studioId }
+          });
+          console.log(`    ✅ Deleted ${imagesDeleted.count} studio image(s)`);
+          
+          // Delete reviews (as reviewer or owner)
+          const reviewsDeleted = await tx.reviews.deleteMany({
+            where: {
+              OR: [
+                { reviewer_id: user.id },
+                { studio_id: studioId }
+              ]
+            }
+          });
+          console.log(`    ✅ Deleted ${reviewsDeleted.count} review(s)`);
+          
+          // Delete studio profile
+          await tx.studio_profiles.delete({
+            where: { id: studioId }
+          });
+          console.log(`    ✅ Deleted studio profile`);
+        }
+        
+        // 2. Delete messages
+        const messagesDeleted = await tx.messages.deleteMany({
+          where: {
+            OR: [
+              { sender_id: user.id },
+              { receiver_id: user.id }
+            ]
+          }
+        });
+        console.log(`  ✅ Deleted ${messagesDeleted.count} message(s)`);
+        
+        // 3. Delete user connections
+        const connectionsDeleted = await tx.user_connections.deleteMany({
+          where: {
+            OR: [
+              { user_id: user.id },
+              { connected_user_id: user.id }
+            ]
+          }
+        });
+        console.log(`  ✅ Deleted ${connectionsDeleted.count} connection(s)`);
+        
+        // 4. Delete refunds (check both user_id and payment_id)
+        // First, get all payment IDs for this user
+        const userPayments = await tx.payments.findMany({
+          where: { user_id: user.id },
+          select: { id: true },
+        });
+        const paymentIds = userPayments.map(p => p.id);
+        
+        // Delete refunds linked to these payments OR directly to the user
+        const refundsDeleted = await tx.refunds.deleteMany({
+          where: {
+            OR: [
+              { user_id: user.id },
+              { payment_id: { in: paymentIds } }
+            ]
+          }
+        });
+        console.log(`  ✅ Deleted ${refundsDeleted.count} refund(s)`);
+        
+        // 5. Delete payments
+        const paymentsDeleted = await tx.payments.deleteMany({
           where: { user_id: user.id }
         });
-      }
-      
-      // Delete payments
-      if (user.payments.length > 0) {
-        console.log(`  Deleting ${user.payments.length} payment record(s)...`);
-        await prisma.payments.deleteMany({
+        console.log(`  ✅ Deleted ${paymentsDeleted.count} payment record(s)`);
+        
+        // 6. Delete subscriptions
+        const subscriptionsDeleted = await tx.subscriptions.deleteMany({
           where: { user_id: user.id }
         });
-      }
-      
-      // Now delete the user (CASCADE will handle other related records)
-      await prisma.users.delete({
-        where: { id: user.id }
+        console.log(`  ✅ Deleted ${subscriptionsDeleted.count} subscription(s)`);
+        
+        // 7. Delete auth-related data
+        const sessionsDeleted = await tx.sessions.deleteMany({
+          where: { user_id: user.id }
+        });
+        console.log(`  ✅ Deleted ${sessionsDeleted.count} session(s)`);
+        
+        const accountsDeleted = await tx.accounts.deleteMany({
+          where: { user_id: user.id }
+        });
+        console.log(`  ✅ Deleted ${accountsDeleted.count} OAuth account(s)`);
+        
+        // 8. Finally, delete the user
+        await tx.users.delete({
+          where: { id: user.id }
+        });
+        console.log(`  ✅ Deleted user account`);
       });
       
-      console.log(`✅ Deleted: ${user.username}\n`);
+      console.log(`✅ Successfully deleted: ${user.username}\n`);
     }
 
     console.log(`✅ Successfully deleted ${users.length} test account(s).\n`);

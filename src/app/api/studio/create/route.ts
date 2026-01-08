@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
           longitude: longitude,
           website_url: validatedData.website_url || null,
           phone: validatedData.phone || null,
+          is_profile_visible: false, // Hidden by default, user can manually enable when ready
           status: 'ACTIVE',
           updated_at: new Date(), // Add required timestamp
         },

@@ -58,6 +58,20 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ Email verified successfully for user:', user.email);
 
+    // If user has a studio profile, automatically set it to visible
+    // This applies to Option 2 (complete profile now) flow
+    const studioProfile = await db.studio_profiles.findUnique({
+      where: { user_id: user.id },
+    });
+
+    if (studioProfile) {
+      await db.studio_profiles.update({
+        where: { id: studioProfile.id },
+        data: { is_profile_visible: true },
+      });
+      console.log('✅ Studio profile set to visible for user:', user.email);
+    }
+
     // Redirect to signin with success message
     return NextResponse.redirect(
       new URL('/auth/signin?verified=true', request.url)

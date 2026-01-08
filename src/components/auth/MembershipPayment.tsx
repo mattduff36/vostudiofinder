@@ -113,11 +113,11 @@ export function MembershipPayment() {
           />
         </div>
 
-        {/* Pricing Header */}
+        {/* Welcome Header */}
         <div className="bg-[#d42027] px-8 py-8 text-white text-center rounded-t-xl shadow-lg">
-          <div className="text-5xl font-bold mb-2">£25</div>
-          <div className="text-xl opacity-90">per year</div>
-          <div className="text-sm opacity-80 mt-2">Exceptional value for global reach</div>
+          <div className="text-4xl font-bold mb-3">Welcome {name || 'Studio Owner'}!</div>
+          <div className="text-xl mb-2">VoiceoverStudioFinder.com/{username || 'YourStudio'} has been secured</div>
+          <div className="text-base opacity-90">You&apos;re minutes away from showcasing your studio!</div>
         </div>
 
         <div className="bg-white shadow-2xl rounded-b-xl overflow-hidden">
@@ -141,10 +141,10 @@ export function MembershipPayment() {
                   'Professional studio listing with photos & details',
                   'Direct contact from qualified clients',
                   'Manage your availability and booking preferences',
-                  'Analytics on profile views and inquiries',
-                  'Reach thousands of voice artists worldwide',
+                  'Analytics on profile views and enquiries',
+                  'Be discoverable by voice artists worldwide',
                   'SEO-optimised profile for search engines',
-                  'Respond to reviews and build your reputation'
+                  'Build trust with a professional studio presence'
                 ].map((feature, index) => (
                   <li key={index} className="flex items-start">
                     <Check className="w-6 h-6 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
