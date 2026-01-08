@@ -23,6 +23,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Find user - only validate email if userId is not provided
+    if (!userId && (!email || typeof email !== 'string' || !email.trim())) {
+      return NextResponse.json(
+        { error: 'Valid email is required when userId is not provided' },
+        { status: 400 }
+      );
+    }
+
     // Find user
     const user = await db.users.findFirst({
       where: userId

@@ -256,8 +256,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
   // Request location permission when user clicks "Get Directions" (for better directions)
   const handleGetDirections = async () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const isAndroid = /Android/i.test(navigator.userAgent);
     
     // Request user's current location for better directions (optional - will use if available)
     let userLocation: { lat: number; lng: number } | null = null;
@@ -287,6 +285,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       }
       
       if (isMobile) {
+        // Detect platform only within mobile check to prevent inconsistent state
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        
         // Try to open native app first
         let appUrl = '';
         if (isIOS) {
@@ -295,6 +297,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             appUrl += `&saddr=${userLocation.lat},${userLocation.lng}`;
           }
         } else if (isAndroid) {
+          // Android navigation scheme doesn't support origin parameter
+          // Only destination is supported: google.navigation:q=lat,lng
           appUrl = `google.navigation:q=${studio.latitude},${studio.longitude}`;
         }
         

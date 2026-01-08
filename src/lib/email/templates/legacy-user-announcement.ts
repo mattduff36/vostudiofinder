@@ -4,18 +4,54 @@
  * Purpose: Announce new website launch and invite legacy users back with 6 months free
  */
 
+import { generateResetToken } from '@/lib/auth-utils';
+import { db } from '@/lib/db';
+
 export interface LegacyUserAnnouncementProps {
   userEmail: string;
   displayName: string;
-  signinUrl: string;
-  forgotPasswordUrl: string;
+  resetPasswordUrl: string;
+}
+
+/**
+ * Helper function to generate a password reset token and URL for a legacy user
+ * This creates a direct link that allows the user to set their password immediately
+ */
+export async function generateLegacyUserResetUrl(userEmail: string): Promise<string> {
+  // Find user
+  const user = await db.users.findUnique({
+    where: { email: userEmail.toLowerCase() },
+  });
+
+  if (!user) {
+    throw new Error(`User not found: ${userEmail}`);
+  }
+
+  // Generate reset token
+  const resetToken = await generateResetToken();
+  const resetTokenExpiry = new Date(Date.now() + 7 * 24 * 3600000); // 7 days for legacy users (longer expiry)
+
+  // Save reset token to database
+  await db.users.update({
+    where: { id: user.id },
+    data: {
+      reset_token: resetToken,
+      reset_token_expiry: resetTokenExpiry,
+      updated_at: new Date(),
+    },
+  });
+
+  // Build reset URL
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://voiceoverstudiofinder.com';
+  const resetUrl = `${baseUrl}/auth/reset-password?token=${resetToken}`;
+
+  return resetUrl;
 }
 
 export function generateLegacyUserAnnouncementEmail({
   userEmail,
   displayName,
-  signinUrl,
-  forgotPasswordUrl,
+  resetPasswordUrl,
 }: LegacyUserAnnouncementProps): { 
   subject: string;
   previewText: string;
@@ -109,8 +145,7 @@ export function generateLegacyUserAnnouncementEmail({
           </tr>
           <tr>
             <td style="padding: 0 40px 24px 40px;">
-              <p style="margin: 0 0 16px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">To get started, use the <a href="${forgotPasswordUrl}" style="color: #d42027; text-decoration: underline;">Forgot password</a> link.</p>
-              <p style="margin: 0 0 16px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We'll send you an email to set a new password. Then you can sign in and explore.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">Click the button below to set your password and sign in instantly.</p>
             </td>
           </tr>
           <tr>
@@ -120,20 +155,20 @@ export function generateLegacyUserAnnouncementEmail({
                   <td align="left" class="btn" style="border-radius: 6px;">
                     <!--[if mso]>
                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
-                      href="${signinUrl}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="12%"
+                      href="${resetPasswordUrl}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="12%"
                       stroke="f" fillcolor="#d42027">
                       <w:anchorlock/>
                       <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
-                        Sign in and claim 6 months free
+                        Set password and sign in
                       </center>
                     </v:roundrect>
                     <![endif]-->
                     <!--[if !mso]><!-- -->
-                    <a href="${signinUrl}"
+                    <a href="${resetPasswordUrl}"
                       style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
                       font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
                       text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
-                      <span style="color:#FFFFFF !important;display:inline-block;">Sign in and claim 6 months free</span>
+                      <span style="color:#FFFFFF !important;display:inline-block;">Set password and sign in</span>
                     </a>
                     <!--<![endif]-->
                   </td>
@@ -144,7 +179,7 @@ export function generateLegacyUserAnnouncementEmail({
           <tr>
             <td style="padding: 0 40px 32px 40px;">
               <p style="margin: 0 0 16px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">If the button doesn't work, copy and paste this link:</p>
-              <p style="margin: 0; font-size: 14px; color: #1a1a1a; word-break: break-all; line-height: 1.6;"><a href="${signinUrl}" style="color: #d42027; text-decoration: underline;">${signinUrl}</a></p>
+              <p style="margin: 0; font-size: 14px; color: #1a1a1a; word-break: break-all; line-height: 1.6;"><a href="${resetPasswordUrl}" style="color: #d42027; text-decoration: underline;">${resetPasswordUrl}</a></p>
             </td>
           </tr>
           <tr>
@@ -184,12 +219,8 @@ Thank you for being a member. We can't wait to show you what we've built!
 
 Your account: ${userEmail}
 
-To get started, use the Forgot password link: ${forgotPasswordUrl}
-
-We'll send you an email to set a new password. Then you can sign in and explore.
-
-Sign in and claim 6 months free:
-${signinUrl}
+Click this link to set your password and sign in instantly:
+${resetPasswordUrl}
 
 We're looking forward to welcoming you back.
 

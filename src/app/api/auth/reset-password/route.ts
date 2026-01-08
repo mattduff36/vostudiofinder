@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: 'Password has been reset successfully. You can now sign in with your new password.',
+        email: user.email, // Return email for auto sign-in
       },
       { status: 200 }
     );
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+
 
 
 
