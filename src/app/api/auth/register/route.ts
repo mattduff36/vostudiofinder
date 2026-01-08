@@ -77,6 +77,26 @@ export async function POST(request: NextRequest) {
             resumeStep = 'payment';
           }
           
+          // Calculate time remaining until reservation expires
+          let timeRemaining = { days: 0, hours: 0, total: 0 };
+          if (existingUser.reservation_expires_at) {
+            const now = new Date();
+            const expiresAt = new Date(existingUser.reservation_expires_at);
+            const diffMs = expiresAt.getTime() - now.getTime();
+            
+            if (diffMs > 0) {
+              const totalHours = Math.floor(diffMs / (1000 * 60 * 60));
+              const days = Math.floor(totalHours / 24);
+              const hours = totalHours % 24;
+              
+              timeRemaining = {
+                days,
+                hours,
+                total: totalHours,
+              };
+            }
+          }
+          
           console.log(`🔄 PENDING user found: ${existingUser.email}, can resume from step: ${resumeStep}`);
           
           return NextResponse.json(
@@ -93,6 +113,7 @@ export async function POST(request: NextRequest) {
                 status: existingUser.status,
                 reservation_expires_at: existingUser.reservation_expires_at,
               },
+              timeRemaining,
               message: 'You have an incomplete signup. Would you like to continue?',
             },
             { status: 200 }

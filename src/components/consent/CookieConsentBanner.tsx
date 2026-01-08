@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 type ConsentLevel = 'all' | 'necessary' | 'decline' | null;
@@ -21,6 +21,16 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
   const [showBanner, setShowBanner] = useState(initialLevel === null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const animationTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Don't render if user has already made a choice and animation is complete
   if (!showBanner && !isAnimatingOut) {
@@ -115,17 +125,32 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
         
         // Hide banner with smooth animation
         setIsAnimatingOut(true);
-        setTimeout(() => {
+        // Clear any existing timeout
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current);
+        }
+        animationTimeoutRef.current = setTimeout(() => {
           setShowBanner(false);
           setIsAnimatingOut(false);
+          animationTimeoutRef.current = null;
         }, 300); // Match transition duration
       } else {
         console.error('Failed to set cookie consent');
+        // Clear any pending animation timeout
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current);
+          animationTimeoutRef.current = null;
+        }
         setIsSubmitting(false);
         setIsAnimatingOut(false); // Ensure animation state is cleared on error
       }
     } catch (error) {
       console.error('Error setting cookie consent:', error);
+      // Clear any pending animation timeout
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+        animationTimeoutRef.current = null;
+      }
       setIsSubmitting(false);
       setIsAnimatingOut(false); // Ensure animation state is cleared on error
     }

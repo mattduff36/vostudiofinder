@@ -15,11 +15,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate email if provided (not just check if both are missing)
+    if (!userId && (!email || typeof email !== 'string' || !email.trim())) {
+      return NextResponse.json(
+        { error: 'Valid email is required when userId is not provided' },
+        { status: 400 }
+      );
+    }
+
     // Find user
     const user = await db.users.findFirst({
       where: userId
         ? { id: userId }
-        : { email: email.toLowerCase() },
+        : { email: email.toLowerCase().trim() },
     });
 
     if (!user) {
