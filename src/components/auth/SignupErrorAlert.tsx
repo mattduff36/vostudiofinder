@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, CreditCard, RefreshCw, Mail, Shield, XCircle } from 'lucide-react';
+import { AlertCircle, CreditCard, Mail, Shield, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 
@@ -135,27 +135,35 @@ export function SignupErrorAlert({ error, onDismiss }: SignupErrorAlertProps) {
           </p>
           
           <div className="flex flex-wrap gap-3">
-            {config.actions.map((action, index) => (
-              action.href ? (
-                <Link key={index} href={action.href}>
+            {config.actions.map((action, index) => {
+              if (action.href) {
+                return (
+                  <Link key={index} href={action.href}>
+                    <Button
+                      variant={action.variant === 'primary' ? 'primary' : 'outline'}
+                      className={action.variant === 'primary' ? 'bg-red-600 hover:bg-red-700' : ''}
+                    >
+                      {action.label}
+                    </Button>
+                  </Link>
+                );
+              }
+              
+              if ('onClick' in action && action.onClick) {
+                return (
                   <Button
-                    variant={action.variant === 'primary' ? 'default' : 'outline'}
+                    key={index}
+                    variant={action.variant === 'primary' ? 'primary' : 'outline'}
+                    onClick={action.onClick}
                     className={action.variant === 'primary' ? 'bg-red-600 hover:bg-red-700' : ''}
                   >
                     {action.label}
                   </Button>
-                </Link>
-              ) : (
-                <Button
-                  key={index}
-                  variant={action.variant === 'primary' ? 'default' : 'outline'}
-                  onClick={action.onClick}
-                  className={action.variant === 'primary' ? 'bg-red-600 hover:bg-red-700' : ''}
-                >
-                  {action.label}
-                </Button>
-              )
-            ))}
+                );
+              }
+              
+              return null;
+            })}
           </div>
         </div>
       </div>
