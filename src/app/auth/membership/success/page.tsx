@@ -62,11 +62,16 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
 
       if (!payment) {
         console.error('❌ Payment not found for session_id:', params.session_id);
+        console.error('💡 This usually means:');
+        console.error('   1. Stripe webhook hasn\'t been received yet (check Stripe CLI is running)');
+        console.error('   2. Payment is still processing');
+        console.error('   3. Webhook failed to create payment record');
         redirect('/auth/signup?error=payment_not_found');
       }
 
       if (payment.status !== 'SUCCEEDED') {
         console.error('❌ Payment not succeeded:', payment.status);
+        console.error('💡 Payment status:', payment.status);
         redirect('/auth/signup?error=payment_not_completed');
       }
 
@@ -106,7 +111,19 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       redirect(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}&email=${encodeURIComponent(user.email)}`);
     } catch (error) {
       console.error('Error verifying payment:', error);
-      redirect('/auth/signup?error=verification_failed');
+      
+      // Provide more specific error messages based on the error type
+      if (error instanceof Error) {
+        if (error.message.includes('Payment not found') || error.message.includes('payment')) {
+          redirect('/auth/signup?error=payment_not_found');
+        } else if (error.message.includes('User not found') || error.message.includes('user')) {
+          redirect('/auth/signup?error=invalid_user_status');
+        } else {
+          redirect('/auth/signup?error=verification_failed');
+        }
+      } else {
+        redirect('/auth/signup?error=verification_failed');
+      }
     }
   }
 

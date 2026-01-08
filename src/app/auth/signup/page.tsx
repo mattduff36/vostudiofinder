@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { SignupForm } from '@/components/auth/SignupForm';
+import { SignupErrorAlert } from '@/components/auth/SignupErrorAlert';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
@@ -10,7 +11,13 @@ export const metadata: Metadata = {
   description: 'Create your account to get started',
 };
 
-export default async function SignupPage() {
+interface SignupPageProps {
+  searchParams: Promise<{ error?: string }>;
+}
+
+export default async function SignupPage({ searchParams }: SignupPageProps) {
+  const params = await searchParams;
+  const error = params.error;
   const session = await getServerSession(authOptions);
 
   // Redirect if already authenticated
@@ -60,6 +67,7 @@ export default async function SignupPage() {
 
       <div className="relative z-10 mt-4 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-white/90 backdrop-blur-sm py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && <SignupErrorAlert error={error} />}
           <SignupForm />
         </div>
       </div>
