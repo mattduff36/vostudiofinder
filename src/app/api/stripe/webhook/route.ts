@@ -353,7 +353,8 @@ async function handleRefund(refund: Stripe.Refund) {
   }
 
   // Update payment refund amount
-  const newRefundedAmount = payment.refunded_amount + refund.amount;
+  // Safeguard: Ensure refund doesn't exceed payment amount (Stripe should prevent this, but add safety check)
+  const newRefundedAmount = Math.min(payment.refunded_amount + refund.amount, payment.amount);
   const isFullRefund = newRefundedAmount >= payment.amount;
 
   await db.payments.update({
@@ -393,7 +394,7 @@ async function handleRefund(refund: Stripe.Refund) {
       created_at: new Date(),
       updated_at: new Date(),
     },
-  })
+  });
 
   // If full refund, end membership immediately
   if (isFullRefund) { // payment.user_id is now always valid

@@ -35,9 +35,10 @@ interface Payment {
     status: string;
     created_at: string;
     users_refunds_processed_byTousers: {
+      id: string;
       email: string;
       display_name: string;
-    };
+    } | null;
   }>;
 }
 
@@ -595,7 +596,7 @@ export default function AdminPaymentsPage() {
                                             <p className="text-gray-600 text-xs mb-1">Reason: {refund.reason}</p>
                                           )}
                                           <p className="text-gray-500 text-xs">
-                                            Processed by {refund.users_refunds_processed_byTousers.display_name} on{' '}
+                                            Processed by {refund.users_refunds_processed_byTousers?.display_name || 'System'} on{' '}
                                             {formatDateTime(refund.created_at)}
                                           </p>
                                         </div>

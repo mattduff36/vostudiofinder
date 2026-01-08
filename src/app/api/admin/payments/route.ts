@@ -91,7 +91,17 @@ export async function GET(request: NextRequest) {
               display_name: true,
             },
           },
-          refunds: true,
+          refunds: {
+            include: {
+              users_refunds_processed_byTousers: {
+                select: {
+                  id: true,
+                  email: true,
+                  display_name: true,
+                },
+              },
+            },
+          },
         },
         orderBy: { created_at: 'desc' },
         skip,
