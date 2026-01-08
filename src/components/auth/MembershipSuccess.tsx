@@ -73,10 +73,17 @@ export function MembershipSuccess() {
   // Extract search params and memoize to prevent infinite loops
   // useSearchParams() returns a new URLSearchParams instance on every render,
   // so we need to extract values and memoize them for stable dependencies
-  const stableSessionId = useMemo(() => searchParams?.get('session_id') || '', [searchParams]);
-  const stableEmail = useMemo(() => searchParams?.get('email') || '', [searchParams]);
-  const stableName = useMemo(() => searchParams?.get('name') || '', [searchParams]);
-  const stableUsername = useMemo(() => searchParams?.get('username') || '', [searchParams]);
+  const sessionId = searchParams?.get('session_id') || null;
+  const email = searchParams?.get('email') || '';
+  const name = searchParams?.get('name') || '';
+  const username = searchParams?.get('username') || '';
+  
+  // Memoize the extracted values to prevent dependency array instability
+  // These stable values are used in useCallback dependencies
+  const stableSessionId = useMemo(() => sessionId || '', [sessionId]);
+  const stableEmail = useMemo(() => email || '', [email]);
+  const stableName = useMemo(() => name || '', [name]);
+  const stableUsername = useMemo(() => username || '', [username]);
 
   const {
     register,

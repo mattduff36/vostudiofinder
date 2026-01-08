@@ -55,10 +55,10 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
                 key={tab.id}
                 onClick={() => router.push(tab.href)}
                 className={`
-                  flex items-center gap-2 py-4 px-2 border-b-4 font-medium text-sm transition-colors
+                  flex items-center gap-2 py-4 px-2 font-medium text-sm transition-colors
                   ${isActive
-                    ? 'border-white text-white'
-                    : 'border-transparent text-black hover:text-white hover:border-red-400'
+                    ? 'border-b-[6px] border-white text-white'
+                    : 'border-b-4 border-transparent text-white hover:text-white hover:border-red-400'
                   }
                 `}
                 aria-current={isActive ? 'page' : undefined}
