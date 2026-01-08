@@ -125,17 +125,13 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     }
 
     // No email provided - require authentication for security
-    // Build callback URL with URLSearchParams (properly encodes values once)
-    const callbackParams = new URLSearchParams({
-      session_id: params.session_id || '',
-      email: user.email,
-    });
-    const callbackUrl = `/auth/membership/success?${callbackParams.toString()}`;
+    // Build callback URL WITHOUT pre-encoding to avoid double-encoding
+    // We'll encode the entire callbackUrl once when putting it in the signin redirect
+    const callbackUrl = `/auth/membership/success?session_id=${params.session_id || ''}&email=${user.email}`;
     
-    // Build signin redirect URL manually to avoid double-encoding
-    // callbackUrl already contains encoded values (%40 for @), so we encode it as-is
-    // URLSearchParams would encode % to %25, causing double-encoding
-    // Instead, manually construct: encodeURIComponent encodes the entire callbackUrl properly
+    // Build signin redirect URL manually
+    // encodeURIComponent will encode the entire callbackUrl (including @ -> %40) once
+    // This avoids double-encoding that would occur if callbackUrl was already encoded
     const encodedCallbackUrl = encodeURIComponent(callbackUrl);
     const encodedEmail = encodeURIComponent(user.email);
     redirect(`/auth/signin?callbackUrl=${encodedCallbackUrl}&email=${encodedEmail}`);
