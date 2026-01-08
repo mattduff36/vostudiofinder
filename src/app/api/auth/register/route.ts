@@ -5,17 +5,46 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 import { UserStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
+import { ZodError } from 'zod';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
     
     // Validate input using server-side schema (no confirmPassword or acceptTerms)
-    const validatedData = registerSchema.parse(body);
+    let validatedData;
+    try {
+      validatedData = registerSchema.parse(body);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return NextResponse.json(
+          { error: 'Invalid input data', details: error.errors },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
+    
+    // Normalize email to lowercase
+    const normalizedEmail = validatedData.email.toLowerCase().trim();
+    
+    // Sanitize display_name to prevent XSS
+    const sanitizedDisplayName = validatedData.display_name
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<[^>]+>/g, '')
+      .trim();
     
     // Check if user already exists
     const existingUser = await db.users.findUnique({
-      where: { email: validatedData.email },
+      where: { email: normalizedEmail },
     });
     
     if (existingUser) {
@@ -29,7 +58,7 @@ export async function POST(request: NextRequest) {
             status: UserStatus.EXPIRED, // Extra safety: only delete if still EXPIRED
           },
         });
-        console.log(`🗑️ Deleted ${deleteResult.count} EXPIRED user(s) with email: ${validatedData.email}`);
+        console.log(`🗑️ Deleted ${deleteResult.count} EXPIRED user(s) with email: ${normalizedEmail}`);
       } else if (existingUser.status === UserStatus.PENDING) {
         // User has incomplete signup - check if reservation is still valid
         const now = new Date();
@@ -55,7 +84,7 @@ export async function POST(request: NextRequest) {
               status: UserStatus.EXPIRED, // Extra safety: only delete if still EXPIRED
             },
           });
-          console.log(`🗑️ Deleted ${deleteResult.count} expired PENDING user(s) with email: ${validatedData.email}`);
+          console.log(`🗑️ Deleted ${deleteResult.count} expired PENDING user(s) with email: ${normalizedEmail}`);
           // Continue to create new user below
         } else {
           // Reservation still valid - check signup progress
@@ -143,10 +172,10 @@ export async function POST(request: NextRequest) {
     const user = await db.users.create({
       data: {
         id: userId,
-        email: validatedData.email,
+        email: normalizedEmail,
         password: hashedPassword,
         username: tempUsername,
-        display_name: validatedData.display_name,
+        display_name: sanitizedDisplayName,
         status: UserStatus.PENDING,
         reservation_expires_at: reservationExpires,
         email_verified: false,

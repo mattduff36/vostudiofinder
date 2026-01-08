@@ -65,10 +65,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if username is already taken (excluding this user and EXPIRED users)
+    // Use case-insensitive comparison for username checking
     // Consistent with check-username endpoint behavior
     const existingUsername = await db.users.findFirst({
       where: {
-        username,
+        username: {
+          equals: username,
+          mode: 'insensitive', // Case-insensitive username check
+        },
         status: {
           not: UserStatus.EXPIRED, // Exclude already-expired reservations
         },

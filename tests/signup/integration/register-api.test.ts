@@ -473,7 +473,8 @@ describe('POST /api/auth/register', () => {
       });
 
       const response = await POST(request);
-      expect(response.status).toBe(500);
+      // Should return 400 for invalid JSON (now handled properly)
+      expect(response.status).toBe(400);
     });
 
     it('should handle empty request body', async () => {

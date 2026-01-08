@@ -15,10 +15,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email is a string (matches check-payment-status validation)
+    // Validate email is a string and has valid format
     if (typeof email !== 'string' || !email.trim()) {
       return NextResponse.json(
         { error: 'Valid email is required' },
+        { status: 400 }
+      );
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return NextResponse.json(
+        { error: 'Please enter a valid email address' },
+        { status: 400 }
+      );
+    }
+    
+    // Validate email length (RFC 5321 limit)
+    if (email.length > 254) {
+      return NextResponse.json(
+        { error: 'Email address is too long' },
         { status: 400 }
       );
     }

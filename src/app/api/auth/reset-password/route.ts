@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { hashPassword, isResetTokenValid } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
-
-const resetPasswordSchema = z.object({
-  token: z.string().min(1, 'Reset token is required'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/\d/, 'Password must contain at least one number'),
-});
+import { resetPasswordSchema } from '@/lib/validations/auth';
 
 export async function POST(request: NextRequest) {
   try {

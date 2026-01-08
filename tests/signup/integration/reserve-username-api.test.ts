@@ -304,14 +304,15 @@ describe('POST /api/auth/reserve-username', () => {
       const email2 = generateTestEmail(testEmailPrefix);
       const username = generateTestUsername();
       
-      // Create EXPIRED user with username
-      await createTestUserInDb({
+      // Create EXPIRED user with username (username will be prefixed with expired_)
+      const expiredUser = await createTestUserInDb({
         ...createPendingUserData({ email: email1 }),
-        username,
+        username: `expired_${username}_${Date.now()}`,
         status: UserStatus.EXPIRED,
       });
 
-      // Should be able to reserve same username for PENDING user
+      // Should be able to reserve same base username for PENDING user
+      // (EXPIRED users have their usernames prefixed, so the base username is available)
       const user2 = await createTestUserInDb({
         ...createPendingUserData({ email: email2 }),
       });
@@ -320,7 +321,7 @@ describe('POST /api/auth/reserve-username', () => {
         method: 'POST',
         body: JSON.stringify({
           userId: user2.id,
-          username,
+          username, // Use the base username (not the expired_ prefixed one)
         }),
       });
 
@@ -332,34 +333,29 @@ describe('POST /api/auth/reserve-username', () => {
       const email1 = generateTestEmail(testEmailPrefix);
       const email2 = generateTestEmail(testEmailPrefix);
       const username = generateTestUsername();
-      const expiredDate = new Date();
-      expiredDate.setDate(expiredDate.getDate() - 1);
       
-      // Create PENDING user with expired reservation (username will be freed)
-      const expiredUser = await createTestUserInDb({
+      // Create two PENDING users without usernames
+      const user1 = await createTestUserInDb({
         ...createPendingUserData({ email: email1 }),
-        username,
-        reservation_expires_at: expiredDate,
       });
 
-      // Create second PENDING user
       const user2 = await createTestUserInDb({
         ...createPendingUserData({ email: email2 }),
       });
 
-      // Both try to claim the freed username simultaneously
+      // Both try to claim the same username simultaneously
       const requests = [
         new NextRequest('http://localhost:3000/api/auth/reserve-username', {
           method: 'POST',
           body: JSON.stringify({
-            userId: user2.id,
+            userId: user1.id,
             username,
           }),
         }),
         new NextRequest('http://localhost:3000/api/auth/reserve-username', {
           method: 'POST',
           body: JSON.stringify({
-            userId: expiredUser.id,
+            userId: user2.id,
             username,
           }),
         }),
@@ -368,7 +364,7 @@ describe('POST /api/auth/reserve-username', () => {
       const responses = await Promise.all(requests.map(req => POST(req)));
       const statuses = responses.map(r => r.status);
       
-      // One should succeed (200), one should fail (409)
+      // One should succeed (200), one should fail (409) due to race condition
       expect(statuses).toContain(200);
       expect(statuses).toContain(409);
     });

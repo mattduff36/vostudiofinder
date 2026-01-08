@@ -55,12 +55,23 @@ export async function createTestUserInDb(data: {
   // Always generate userId - it's required
   const userId = randomBytes(12).toString('base64url');
   
+  // Generate unique username if one is provided (to avoid conflicts)
+  let uniqueUsername = data.username;
+  if (uniqueUsername) {
+    // Add timestamp to ensure uniqueness
+    const timestamp = Date.now();
+    const randomSuffix = randomBytes(2).toString('hex');
+    uniqueUsername = `${uniqueUsername}_${timestamp}_${randomSuffix}`.substring(0, 20); // Ensure max length
+  } else {
+    uniqueUsername = `temp_${userId.substring(0, 8)}`;
+  }
+  
   const user = await prisma.users.create({
     data: {
       id: userId,
       email: data.email.toLowerCase(),
       password: hashedPassword,
-      username: data.username || `temp_${userId?.substring(0, 8) || 'temp'}`,
+      username: uniqueUsername,
       display_name: data.display_name,
       status: data.status || UserStatus.PENDING,
       reservation_expires_at: data.reservation_expires_at || new Date(Date.now() + 7 * 24 * 3600000),

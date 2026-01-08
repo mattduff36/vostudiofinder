@@ -227,10 +227,12 @@ describe('Signup Security Tests', () => {
       const email1 = generateTestEmail(testEmailPrefix);
       const email2 = generateTestEmail(testEmailPrefix);
       
+      // Create user1 as ACTIVE (not PENDING)
       const user1 = await createTestUserInDb({
         email: email1,
         password: 'Test1234!@#$',
         display_name: 'User 1',
+        status: UserStatus.ACTIVE,
       });
 
       const user2 = await createTestUserInDb({
@@ -239,20 +241,19 @@ describe('Signup Security Tests', () => {
         display_name: 'User 2',
       });
 
-      // User2 tries to reserve username for User1's account
+      // User2 tries to reserve username for User1's account (user1 is ACTIVE, not PENDING)
       const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
-          userId: user1.id, // User1's ID
+          userId: user1.id, // User1's ID (ACTIVE user)
           username: 'hacked_username',
         }),
       });
 
-      // This should fail because user1 is not PENDING or user2 doesn't have permission
-      // The endpoint checks user status, so if user1 is not PENDING, it will fail
+      // This should fail because user1 is ACTIVE, not PENDING
+      // The endpoint only allows username reservation for PENDING users
       const response = await ReserveUsernamePOST(request);
-      // Should fail because user1 might not be in correct state
-      expect([400, 404]).toContain(response.status);
+      expect(response.status).toBe(400); // User account is not in PENDING status
     });
 
     it('should require valid userId for username reservation', async () => {
