@@ -135,8 +135,8 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
         
         // Hide banner with smooth animation
         setIsAnimatingOut(true);
-        // Reset submitting state since operation succeeded
-        setIsSubmitting(false);
+        // Don't reset isSubmitting yet - wait for animation to complete
+        // This prevents race condition where buttons become enabled while banner is still animating
         // Reset error flag before setting timeout
         errorOccurredRef.current = false;
         // Clear any existing timeout
@@ -149,6 +149,8 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
           if (!errorOccurredRef.current) {
             setShowBanner(false);
             setIsAnimatingOut(false);
+            // Reset submitting state after animation completes
+            setIsSubmitting(false);
           }
           animationTimeoutRef.current = null;
         }, 300); // Match transition duration

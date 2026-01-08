@@ -4,6 +4,13 @@
  * Provides utilities for database operations in tests
  */
 
+// Load environment variables from .env.local
+import * as dotenv from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env.local file
+dotenv.config({ path: resolve(process.cwd(), '.env.local') });
+
 import { PrismaClient, UserStatus, PaymentStatus } from '@prisma/client';
 import { createPendingUserData, createExpiredUserData, createActiveUserData } from './test-factories';
 

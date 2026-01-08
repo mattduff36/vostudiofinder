@@ -10,9 +10,6 @@
  * - Edge cases
  */
 
-// Setup polyfills before imports
-import '../__helpers__/test-setup';
-
 import { POST } from '@/app/api/auth/register/route';
 import { NextRequest } from 'next/server';
 import { createTestUserInDb, cleanupTestUsers, getUserByEmail } from '../__helpers__/test-db';

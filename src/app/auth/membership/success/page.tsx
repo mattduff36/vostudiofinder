@@ -96,13 +96,14 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       }
 
       // No email provided - require authentication for security
-      // Use URLSearchParams to properly encode callback URL parameters
+      // Build callback URL without double-encoding (URLSearchParams.toString() already encodes)
       const callbackParams = new URLSearchParams({
         session_id: params.session_id || '',
         email: user.email,
       });
-      const callbackUrl = encodeURIComponent(`/auth/membership/success?${callbackParams.toString()}`);
-      redirect(`/auth/signin?callbackUrl=${callbackUrl}&email=${encodeURIComponent(user.email)}`);
+      // Don't encodeURIComponent here - the redirect function will handle encoding
+      const callbackUrl = `/auth/membership/success?${callbackParams.toString()}`;
+      redirect(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}&email=${encodeURIComponent(user.email)}`);
     } catch (error) {
       console.error('Error verifying payment:', error);
       redirect('/auth/signup?error=verification_failed');

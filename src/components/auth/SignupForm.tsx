@@ -127,12 +127,29 @@ export function SignupForm() {
     if (!pendingSignup) return;
 
     setIsLoading(true);
+    setError(null);
+    
     try {
-      // Mark existing user as expired
-      const expiredUsername = `expired_${pendingSignup.user.username}_${Date.now()}`;
-      // This will be handled by the register endpoint
+      // Call API to mark existing PENDING user as EXPIRED on the backend
+      const response = await fetch('/api/auth/expire-pending-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: pendingSignup.user.email }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        setError(result.error || 'Failed to expire existing account');
+        return;
+      }
+
+      console.log(`✅ Existing PENDING account expired for: ${pendingSignup.user.email}`);
+      
+      // Clear UI state - user can now start fresh signup
       setPendingSignup(null);
-      setError(null);
+    } catch (err) {
+      console.error('Error expiring pending user:', err);
+      setError('Failed to expire existing account. Please try again.');
     } finally {
       setIsLoading(false);
     }

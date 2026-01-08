@@ -30,10 +30,38 @@ jest.mock('next-auth/react', () => ({
   getSession: jest.fn(),
 }))
 
-// Mock environment variables
-process.env.NEXTAUTH_SECRET = 'test-secret'
-process.env.NEXTAUTH_URL = 'http://localhost:3000'
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+// Load .env.local if it exists (for DATABASE_URL and other env vars)
+require('dotenv').config({ path: '.env.local' })
+
+// Polyfill TextDecoder/TextEncoder for Node.js < 18 (if needed)
+if (typeof globalThis.TextDecoder === 'undefined') {
+  const { TextDecoder, TextEncoder } = require('util')
+  globalThis.TextDecoder = TextDecoder
+  globalThis.TextEncoder = TextEncoder
+}
+
+// Polyfill Request/Response for Next.js API routes in Node.js test environment
+// Only add if not already present (Next.js may provide these)
+if (typeof globalThis.Request === 'undefined') {
+  try {
+    const { Request, Response, Headers } = require('next/dist/compiled/@edge-runtime/primitives')
+    globalThis.Request = Request
+    globalThis.Response = Response
+    globalThis.Headers = Headers
+  } catch (e) {
+    // Fallback: Next.js will provide these when needed
+    console.warn('Could not load Next.js Request/Response polyfills:', e.message)
+  }
+}
+
+// Mock environment variables (only if not already set)
+if (!process.env.NEXTAUTH_SECRET) {
+  process.env.NEXTAUTH_SECRET = 'test-secret'
+}
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = 'http://localhost:3000'
+}
+// Don't override DATABASE_URL - use the one from .env.local
 
 // Mock console methods to reduce noise in tests
 global.console = {
@@ -62,26 +90,28 @@ global.ResizeObserver = class ResizeObserver {
   unobserve() {}
 }
 
-// Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-})
+// Mock matchMedia (only in jsdom environment)
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(), // deprecated
+      removeListener: jest.fn(), // deprecated
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  })
 
-// Mock window.scrollTo
-Object.defineProperty(window, 'scrollTo', {
-  writable: true,
-  value: jest.fn(),
-})
+  // Mock window.scrollTo
+  Object.defineProperty(window, 'scrollTo', {
+    writable: true,
+    value: jest.fn(),
+  })
+}
 
 // Mock window.location methods
 // Note: In jsdom, window.location is a special object that cannot be fully mocked
