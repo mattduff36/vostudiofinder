@@ -489,7 +489,7 @@ export default function AdminPaymentsPage() {
                                               value={refundAmount}
                                               onChange={(e) => setRefundAmount(e.target.value)}
                                               placeholder="0.00"
-                                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                                              className="flex h-10 w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                             />
                                           </div>
 
@@ -502,7 +502,7 @@ export default function AdminPaymentsPage() {
                                               onChange={(e) => setRefundReason(e.target.value)}
                                               placeholder="Enter reason..."
                                               rows={2}
-                                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                                              className="flex min-h-[60px] w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                             />
                                           </div>
 
