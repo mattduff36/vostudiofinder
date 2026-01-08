@@ -12,7 +12,7 @@ import { db } from '@/lib/db';
 import { createTestUserInDb, cleanupTestUsers, getUserByEmail } from '../../signup/__helpers__/test-db';
 import { createTestPaymentInDb } from '../../signup/__helpers__/test-db';
 import { generateTestEmail } from '../../signup/__helpers__/test-factories';
-import { UserStatus } from '@prisma/client';
+import { UserStatus, PaymentStatus } from '@prisma/client';
 import { disconnectDb } from '../../signup/__helpers__/test-db';
 import { randomBytes } from 'crypto';
 
@@ -38,9 +38,9 @@ describe('Payment Success Page - Race Condition Fix', () => {
 
       const sessionId = `cs_test_${randomBytes(16).toString('hex')}`;
       await createTestPaymentInDb({
-        userId: user.id,
-        sessionId,
-        status: 'SUCCEEDED',
+        user_id: user.id,
+        stripe_checkout_session_id: sessionId,
+        status: PaymentStatus.SUCCEEDED,
       });
 
       // Simulate checking payment (what the success page does)
@@ -77,9 +77,9 @@ describe('Payment Success Page - Race Condition Fix', () => {
 
       const sessionId = `cs_test_${randomBytes(16).toString('hex')}`;
       await createTestPaymentInDb({
-        userId: user.id,
-        sessionId,
-        status: 'SUCCEEDED',
+        user_id: user.id,
+        stripe_checkout_session_id: sessionId,
+        status: PaymentStatus.SUCCEEDED,
       });
 
       // Simulate checking payment (what the success page does)
@@ -116,9 +116,9 @@ describe('Payment Success Page - Race Condition Fix', () => {
 
       const sessionId = `cs_test_${randomBytes(16).toString('hex')}`;
       await createTestPaymentInDb({
-        userId: user.id,
-        sessionId,
-        status: 'SUCCEEDED',
+        user_id: user.id,
+        stripe_checkout_session_id: sessionId,
+        status: PaymentStatus.SUCCEEDED,
       });
 
       const payment = await db.payments.findUnique({
@@ -155,9 +155,9 @@ describe('Payment Success Page - Race Condition Fix', () => {
 
       const sessionId = `cs_test_${randomBytes(16).toString('hex')}`;
       await createTestPaymentInDb({
-        userId: user.id,
-        sessionId,
-        status: 'SUCCEEDED',
+        user_id: user.id,
+        stripe_checkout_session_id: sessionId,
+        status: PaymentStatus.SUCCEEDED,
       });
 
       const payment = await db.payments.findUnique({
@@ -200,9 +200,9 @@ describe('Payment Success Page - Race Condition Fix', () => {
 
       const sessionId = `cs_test_${randomBytes(16).toString('hex')}`;
       await createTestPaymentInDb({
-        userId: user.id,
-        sessionId,
-        status: 'PENDING', // Not succeeded
+        user_id: user.id,
+        stripe_checkout_session_id: sessionId,
+        status: PaymentStatus.PENDING, // Not succeeded
       });
 
       const payment = await db.payments.findUnique({
