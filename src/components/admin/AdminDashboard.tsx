@@ -28,6 +28,7 @@ interface ActivityItem {
 interface AdminDashboardProps {
   stats: {
     totalUsers: number;
+    testUsers?: number;
     usersWithStudios: number;
     totalStudios: number;
     activeStudios: number;
@@ -44,7 +45,9 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
     {
       title: 'Total Users',
       value: stats.totalUsers.toLocaleString(),
-      subtitle: `${stats.usersWithStudios} have studios`,
+      subtitle: stats.testUsers 
+        ? `${stats.usersWithStudios} have studios (${stats.testUsers} test accounts excluded)`
+        : `${stats.usersWithStudios} have studios`,
       icon: Users,
       color: 'bg-blue-500',
     },

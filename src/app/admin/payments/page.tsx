@@ -52,7 +52,7 @@ export default function AdminPaymentsPage() {
   const [expandedPaymentId, setExpandedPaymentId] = useState<string | null>(null);
   const [refundModalPaymentId, setRefundModalPaymentId] = useState<string | null>(null);
   const [refundAmount, setRefundAmount] = useState('');
-  const [refundReason, setRefundReason] = useState<'duplicate' | 'fraudulent' | 'requested_by_customer' | ''>('');
+  const [refundReason, setRefundReason] = useState<'duplicate' | 'fraudulent' | 'requested_by_customer' | '' | null>(null);
   const [refunding, setRefunding] = useState(false);
   const [refundError, setRefundError] = useState('');
   const [refundSuccess, setRefundSuccess] = useState<string | null>(null);
@@ -208,7 +208,7 @@ export default function AdminPaymentsPage() {
       setRefundSuccess(payment.id);
       setRefundModalPaymentId(null);
       setRefundAmount('');
-      setRefundReason('');
+      setRefundReason(null);
 
       // Refresh payments
       await fetchPayments();
@@ -470,7 +470,7 @@ export default function AdminPaymentsPage() {
                                               e.stopPropagation();
                                               // Clear form state when opening modal for a new payment
                                               setRefundAmount('');
-                                              setRefundReason('');
+                                              setRefundReason(null);
                                               setRefundError('');
                                               setRefundModalPaymentId(payment.id);
                                             }}
@@ -504,8 +504,8 @@ export default function AdminPaymentsPage() {
                                               Reason
                                             </label>
                                             <select
-                                              value={refundReason}
-                                              onChange={(e) => setRefundReason(e.target.value as 'duplicate' | 'fraudulent' | 'requested_by_customer' | '')}
+                                              value={refundReason || ''}
+                                              onChange={(e) => setRefundReason(e.target.value ? (e.target.value as 'duplicate' | 'fraudulent' | 'requested_by_customer') : null)}
                                               className="flex h-10 w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                               <option value="" disabled className="text-gray-400">Select a reason...</option>
@@ -536,7 +536,7 @@ export default function AdminPaymentsPage() {
                                               onClick={() => {
                                                 setRefundModalPaymentId(null);
                                                 setRefundAmount('');
-                                                setRefundReason('');
+                                                setRefundReason(null);
                                                 setRefundError('');
                                               }}
                                               variant="outline"
