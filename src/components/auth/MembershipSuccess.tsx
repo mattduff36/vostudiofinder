@@ -165,9 +165,24 @@ export function MembershipSuccess() {
               });
               return;
             }
+          } else {
+            // Handle non-OK response from payment status check
+            const errorData = await statusResponse.json().catch(() => ({ error: 'Unknown error' }));
+            setError({
+              message: errorData.error || `Failed to check payment status (${statusResponse.status}). Please try again or contact support.`,
+              code: 'PAYMENT_STATUS_CHECK_FAILED',
+              canRetry: true,
+            });
+            return;
           }
         } catch (err) {
           console.error('Error recovering payment status:', err);
+          setError({
+            message: err instanceof Error ? err.message : 'Failed to check payment status. Please try again or contact support.',
+            code: 'PAYMENT_STATUS_CHECK_ERROR',
+            canRetry: true,
+          });
+          return;
         }
       }
 

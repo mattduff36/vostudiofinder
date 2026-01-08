@@ -66,20 +66,28 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
             }
             window.gtag = gtag;
             
-            // Load GA script
+            // Load GA script and wait for it to load before adding config script
             const script1 = document.createElement('script');
             script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-JKPCYM50W7';
             script1.async = true;
-            document.head.appendChild(script1);
             
-            const script2 = document.createElement('script');
-            script2.innerHTML = `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-JKPCYM50W7');
-            `;
-            document.head.appendChild(script2);
+            // Wait for script1 to load before adding script2
+            script1.onload = () => {
+              const script2 = document.createElement('script');
+              script2.innerHTML = `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-JKPCYM50W7');
+              `;
+              document.head.appendChild(script2);
+            };
+            
+            script1.onerror = () => {
+              console.error('Failed to load Google Analytics script');
+            };
+            
+            document.head.appendChild(script1);
           }
         }
         
@@ -92,10 +100,12 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
       } else {
         console.error('Failed to set cookie consent');
         setIsSubmitting(false);
+        setIsAnimatingOut(false); // Ensure animation state is cleared on error
       }
     } catch (error) {
       console.error('Error setting cookie consent:', error);
       setIsSubmitting(false);
+      setIsAnimatingOut(false); // Ensure animation state is cleared on error
     }
   };
 
