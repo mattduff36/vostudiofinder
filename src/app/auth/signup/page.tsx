@@ -41,10 +41,10 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   // In development, show the signup form
   return (
     <>
-      {/* Render error modal separately */}
+      {/* Render error modal separately - portal to body level */}
       {error && <SignupErrorAlert error={error} />}
       
-      <div className="h-[calc(100vh-5rem)] relative overflow-hidden flex flex-col justify-start sm:justify-center py-8 sm:py-12 sm:px-6 lg:px-8">
+      <div className="h-[calc(100vh-5rem)] overflow-hidden flex flex-col justify-start sm:justify-center py-8 sm:py-12 sm:px-6 lg:px-8">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
