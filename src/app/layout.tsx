@@ -79,7 +79,6 @@ export default async function RootLayout({
     console.error('Error reading cookie consent:', error);
     consentLevel = undefined;
   }
-  const hasConsent = consentLevel === 'all';
 
   return (
     <html lang='en'>

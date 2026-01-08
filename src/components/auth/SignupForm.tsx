@@ -39,7 +39,6 @@ export function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [pendingSignup, setPendingSignup] = useState<PendingSignupData | null>(null);
-  const [checkingExisting, setCheckingExisting] = useState(false);
 
   const {
     register,
@@ -60,7 +59,6 @@ export function SignupForm() {
         return;
       }
 
-      setCheckingExisting(true);
       try {
         const response = await fetch('/api/auth/check-signup-status', {
           method: 'POST',
@@ -78,8 +76,6 @@ export function SignupForm() {
         }
       } catch (err) {
         console.error('Error checking signup status:', err);
-      } finally {
-        setCheckingExisting(false);
       }
     };
 

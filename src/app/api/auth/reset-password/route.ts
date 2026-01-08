@@ -3,6 +3,7 @@ import { hashPassword, isResetTokenValid } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 import { resetPasswordSchema } from '@/lib/validations/auth';
+import { ZodError } from 'zod';
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Reset password error:', error);
     
-    if (error instanceof z.ZodError) {
+    if (error instanceof ZodError) {
       return NextResponse.json(
         { error: error.issues[0]?.message || 'Invalid input' },
         { status: 400 }
