@@ -83,7 +83,7 @@ async function checkDeletionPattern(envFile: string, label: string) {
         console.log(`   ${index + 1}. "${s.name}"`);
         console.log(`      Owner: ${s.users.email} (${s.users.username})`);
         console.log(`      Status: ${s.status}`);
-        console.log(`      Updated: ${u.updated_at.toISOString()} (${hoursAgo} hours ago)`);
+        console.log(`      Updated: ${s.updated_at.toISOString()} (${hoursAgo} hours ago)`);
         console.log();
       });
     } else {

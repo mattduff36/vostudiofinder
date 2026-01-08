@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
@@ -108,179 +108,180 @@ export function MembershipSuccess() {
   const formEmail = watch('email');
 
   // Verify payment on component mount
-  useEffect(() => {
-    const verifyPayment = async () => {
-      // Try to recover from sessionStorage or URL params
-      let recoveredEmail = email;
-      let recoveredName = name;
-      let recoveredUsername = username;
-      let recoveredSessionId = sessionId;
+  // Memoize verifyPayment to prevent infinite loops from reset dependency
+  const verifyPayment = useCallback(async () => {
+    // Try to recover from sessionStorage or URL params
+    let recoveredEmail = email;
+    let recoveredName = name;
+    let recoveredUsername = username;
+    let recoveredSessionId = sessionId;
 
-      // If missing data, try sessionStorage
-      if (!recoveredEmail || !recoveredName) {
-        const signupDataStr = sessionStorage.getItem('signupData');
-        if (signupDataStr) {
-          try {
-            const signupData = JSON.parse(signupDataStr);
-            recoveredEmail = recoveredEmail || signupData.email;
-            recoveredName = recoveredName || signupData.display_name;
-          } catch (err) {
-            console.error('Error parsing signup data:', err);
-          }
-        }
-      }
-
-      // If still missing email, try to recover from payment status
-      if (!recoveredEmail && !recoveredSessionId) {
-        setError({
-          message: 'Session data missing. Please check your email for a recovery link or contact support.',
-          code: 'NO_DATA',
-          canRetry: false,
-        });
-        return;
-      }
-
-      // If we have email but no session ID, check payment status
-      if (recoveredEmail && !recoveredSessionId) {
-        // Validate email is not empty before making API call
-        if (!recoveredEmail.trim()) {
-          setError({
-            message: 'Invalid email address. Please check your email and try again.',
-            code: 'INVALID_EMAIL',
-            canRetry: false,
-          });
-          return;
-        }
-
+    // If missing data, try sessionStorage
+    if (!recoveredEmail || !recoveredName) {
+      const signupDataStr = sessionStorage.getItem('signupData');
+      if (signupDataStr) {
         try {
-          console.log('🔍 Recovering payment status for:', recoveredEmail);
-          const statusResponse = await fetch('/api/auth/check-payment-status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: recoveredEmail }),
-          });
-
-          if (statusResponse.ok) {
-            let statusData;
-            try {
-              statusData = await statusResponse.json();
-            } catch (jsonError) {
-              console.error('Error parsing payment status response:', jsonError);
-              setError({
-                message: 'Invalid response from server. Please try again or contact support.',
-                code: 'INVALID_RESPONSE',
-                canRetry: true,
-              });
-              return;
-            }
-
-            if (statusData.hasPayment && statusData.paymentStatus === 'succeeded') {
-              recoveredSessionId = statusData.sessionId;
-              recoveredUsername = statusData.user?.username;
-              recoveredName = statusData.user?.display_name;
-              console.log('✅ Recovered payment data from database');
-            } else {
-              setError({
-                message: 'No successful payment found. Please complete your payment first.',
-                code: 'NO_PAYMENT',
-                canRetry: true,
-              });
-              return;
-            }
-          } else {
-            // Handle non-OK response from payment status check
-            let errorData;
-            try {
-              errorData = await statusResponse.json();
-            } catch (jsonError) {
-              // If JSON parsing fails, use status code for error message
-              errorData = { error: `Server error (${statusResponse.status})` };
-            }
-            
-            setError({
-              message: errorData.error || `Failed to check payment status (${statusResponse.status}). Please try again or contact support.`,
-              code: 'PAYMENT_STATUS_CHECK_FAILED',
-              canRetry: true,
-            });
-            return;
-          }
+          const signupData = JSON.parse(signupDataStr);
+          recoveredEmail = recoveredEmail || signupData.email;
+          recoveredName = recoveredName || signupData.display_name;
         } catch (err) {
-          console.error('Error recovering payment status:', err);
-          setError({
-            message: err instanceof Error ? err.message : 'Failed to check payment status. Please try again or contact support.',
-            code: 'PAYMENT_STATUS_CHECK_ERROR',
-            canRetry: true,
-          });
-          return;
+          console.error('Error parsing signup data:', err);
         }
       }
+    }
 
-      if (!recoveredSessionId) {
+    // If still missing email, try to recover from payment status
+    if (!recoveredEmail && !recoveredSessionId) {
+      setError({
+        message: 'Session data missing. Please check your email for a recovery link or contact support.',
+        code: 'NO_DATA',
+        canRetry: false,
+      });
+      return;
+    }
+
+    // If we have email but no session ID, check payment status
+    if (recoveredEmail && !recoveredSessionId) {
+      // Validate email is not empty before making API call
+      if (!recoveredEmail.trim()) {
         setError({
-          message: 'No payment session found. Please start the signup process again.',
-          code: 'NO_SESSION',
+          message: 'Invalid email address. Please check your email and try again.',
+          code: 'INVALID_EMAIL',
           canRetry: false,
         });
         return;
       }
 
       try {
-        const params = new URLSearchParams();
-        if (recoveredEmail) params.set('email', recoveredEmail);
-        if (recoveredName) params.set('name', recoveredName);
-        if (recoveredUsername) params.set('username', recoveredUsername);
-
-        const response = await fetch(`/api/stripe/verify-membership-payment?${params.toString()}`, {
+        console.log('🔍 Recovering payment status for:', recoveredEmail);
+        const statusResponse = await fetch('/api/auth/check-payment-status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId: recoveredSessionId }),
+          body: JSON.stringify({ email: recoveredEmail }),
         });
 
-        const result = await response.json();
+        if (statusResponse.ok) {
+          let statusData;
+          try {
+            statusData = await statusResponse.json();
+          } catch (jsonError) {
+            console.error('Error parsing payment status response:', jsonError);
+            setError({
+              message: 'Invalid response from server. Please try again or contact support.',
+              code: 'INVALID_RESPONSE',
+              canRetry: true,
+            });
+            return;
+          }
 
-        console.log('🔍 Verification result:', result);
-
-        if (!response.ok) {
-          throw new Error(result.error || 'Payment verification failed');
-        }
-
-        // Populate form fields with customer data from Stripe session metadata
-        if (result.customerData) {
-          console.log('✅ Customer data found:', result.customerData);
-          // Use reset() to properly update disabled fields and trigger re-render
-          reset({
-            username: result.customerData.username || recoveredUsername || '',
-            display_name: result.customerData.name || recoveredName || '',
-            email: result.customerData.email || recoveredEmail || '',
-            studio_name: '',
-            short_about: '',
-            about: '',
-            studio_types: [],
-            full_address: '',
-            abbreviated_address: '',
-            city: '',
-            location: '',
-            website_url: '',
-            connections: {},
-            images: [],
-          });
-          console.log('✅ Form reset with customer data');
+          if (statusData.hasPayment && statusData.paymentStatus === 'succeeded') {
+            recoveredSessionId = statusData.sessionId;
+            recoveredUsername = statusData.user?.username;
+            recoveredName = statusData.user?.display_name;
+            console.log('✅ Recovered payment data from database');
+          } else {
+            setError({
+              message: 'No successful payment found. Please complete your payment first.',
+              code: 'NO_PAYMENT',
+              canRetry: true,
+            });
+            return;
+          }
         } else {
-          console.error('❌ No customer data in verification response');
+          // Handle non-OK response from payment status check
+          let errorData;
+          try {
+            errorData = await statusResponse.json();
+          } catch (jsonError) {
+            // If JSON parsing fails, use status code for error message
+            errorData = { error: `Server error (${statusResponse.status})` };
+          }
+          
+          setError({
+            message: errorData.error || `Failed to check payment status (${statusResponse.status}). Please try again or contact support.`,
+            code: 'PAYMENT_STATUS_CHECK_FAILED',
+            canRetry: true,
+          });
+          return;
         }
-
-        setPaymentVerified(true);
       } catch (err) {
+        console.error('Error recovering payment status:', err);
         setError({
-          message: err instanceof Error ? err.message : 'Payment verification failed. Please refresh the page or contact support.',
-          code: 'PAYMENT_VERIFICATION_ERROR',
+          message: err instanceof Error ? err.message : 'Failed to check payment status. Please try again or contact support.',
+          code: 'PAYMENT_STATUS_CHECK_ERROR',
           canRetry: true,
         });
+        return;
       }
-    };
+    }
 
-    verifyPayment();
+    if (!recoveredSessionId) {
+      setError({
+        message: 'No payment session found. Please start the signup process again.',
+        code: 'NO_SESSION',
+        canRetry: false,
+      });
+      return;
+    }
+
+    try {
+      const params = new URLSearchParams();
+      if (recoveredEmail) params.set('email', recoveredEmail);
+      if (recoveredName) params.set('name', recoveredName);
+      if (recoveredUsername) params.set('username', recoveredUsername);
+
+      const response = await fetch(`/api/stripe/verify-membership-payment?${params.toString()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: recoveredSessionId }),
+      });
+
+      const result = await response.json();
+
+      console.log('🔍 Verification result:', result);
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Payment verification failed');
+      }
+
+      // Populate form fields with customer data from Stripe session metadata
+      if (result.customerData) {
+        console.log('✅ Customer data found:', result.customerData);
+        // Use reset() to properly update disabled fields and trigger re-render
+        reset({
+          username: result.customerData.username || recoveredUsername || '',
+          display_name: result.customerData.name || recoveredName || '',
+          email: result.customerData.email || recoveredEmail || '',
+          studio_name: '',
+          short_about: '',
+          about: '',
+          studio_types: [],
+          full_address: '',
+          abbreviated_address: '',
+          city: '',
+          location: '',
+          website_url: '',
+          connections: {},
+          images: [],
+        });
+        console.log('✅ Form reset with customer data');
+      } else {
+        console.error('❌ No customer data in verification response');
+      }
+
+      setPaymentVerified(true);
+    } catch (err) {
+      setError({
+        message: err instanceof Error ? err.message : 'Payment verification failed. Please refresh the page or contact support.',
+        code: 'PAYMENT_VERIFICATION_ERROR',
+        canRetry: true,
+      });
+    }
   }, [sessionId, email, name, username, reset]);
+
+  useEffect(() => {
+    verifyPayment();
+  }, [verifyPayment]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
