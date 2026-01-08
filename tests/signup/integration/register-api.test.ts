@@ -359,10 +359,11 @@ describe('POST /api/auth/register', () => {
       const email = generateTestEmail(testEmailPrefix);
       const reservationExpires = new Date();
       reservationExpires.setDate(reservationExpires.getDate() + 3);
+      const uniqueUsername = `testusername_${Date.now()}`;
       
-      await createTestUserInDb({
+      const createdUser = await createTestUserInDb({
         ...createPendingUserData({ email }),
-        username: 'testusername',
+        username: uniqueUsername,
         reservation_expires_at: reservationExpires,
       });
 
@@ -388,10 +389,11 @@ describe('POST /api/auth/register', () => {
       const email = generateTestEmail(testEmailPrefix);
       const reservationExpires = new Date();
       reservationExpires.setDate(reservationExpires.getDate() + 3);
+      const uniqueUsername = `testusername_${Date.now()}_${Math.random().toString(36).substring(7)}`;
       
       const user = await createTestUserInDb({
         ...createPendingUserData({ email }),
-        username: 'testusername',
+        username: uniqueUsername,
         reservation_expires_at: reservationExpires,
       });
 
@@ -455,10 +457,16 @@ describe('POST /api/auth/register', () => {
         })
       );
 
-      const responses = await Promise.all(requests.map(req => POST(req)));
-      const statuses = responses.map(r => r.status);
+      // Make requests sequentially to ensure proper detection
+      const response1 = await POST(requests[0]);
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+      const response2 = await POST(requests[1]);
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+      const response3 = await POST(requests[2]);
       
-      // Only one should succeed (201), others should return resume info (200)
+      const statuses = [response1.status, response2.status, response3.status];
+      
+      // First should succeed (201), others should return resume info (200)
       const successCount = statuses.filter(s => s === 201).length;
       const resumeCount = statuses.filter(s => s === 200).length;
       

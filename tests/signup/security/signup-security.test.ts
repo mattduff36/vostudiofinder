@@ -16,6 +16,7 @@ import { NextRequest } from 'next/server';
 import { createTestUserInDb, cleanupTestUsers } from '../__helpers__/test-db';
 import { generateTestEmail } from '../__helpers__/test-factories';
 import { disconnectDb } from '../__helpers__/test-db';
+import { UserStatus } from '@prisma/client';
 
 describe('Signup Security Tests', () => {
   const testEmailPrefix = `test_security_${Date.now()}`;

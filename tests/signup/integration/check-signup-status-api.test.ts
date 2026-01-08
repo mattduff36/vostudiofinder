@@ -80,10 +80,11 @@ describe('POST /api/auth/check-signup-status', () => {
       const email = generateTestEmail(testEmailPrefix);
       const reservationExpires = new Date();
       reservationExpires.setDate(reservationExpires.getDate() + 3);
+      const uniqueUsername = `testusername_${Date.now()}_${Math.random().toString(36).substring(7)}`;
       
       await createTestUserInDb({
         ...createPendingUserData({ email }),
-        username: 'testusername',
+        username: uniqueUsername,
         reservation_expires_at: reservationExpires,
       });
 
@@ -108,10 +109,11 @@ describe('POST /api/auth/check-signup-status', () => {
       const email = generateTestEmail(testEmailPrefix);
       const reservationExpires = new Date();
       reservationExpires.setDate(reservationExpires.getDate() + 3);
+      const uniqueUsername = `testusername_${Date.now()}_${Math.random().toString(36).substring(7)}`;
       
       const user = await createTestUserInDb({
         ...createPendingUserData({ email }),
-        username: 'testusername',
+        username: uniqueUsername,
         reservation_expires_at: reservationExpires,
       });
 
@@ -338,9 +340,10 @@ describe('POST /api/auth/check-signup-status', () => {
       const reservationExpires = new Date();
       reservationExpires.setDate(reservationExpires.getDate() + 3);
       
+      const uniqueUsername = `testusername_${Date.now()}_${Math.random().toString(36).substring(7)}`;
       const user = await createTestUserInDb({
         ...createPendingUserData({ email }),
-        username: 'testusername',
+        username: uniqueUsername,
         reservation_expires_at: reservationExpires,
       });
 
@@ -377,9 +380,10 @@ describe('POST /api/auth/check-signup-status', () => {
       const reservationExpires = new Date();
       reservationExpires.setDate(reservationExpires.getDate() + 3);
       
+      const uniqueUsername = `testusername_${Date.now()}_${Math.random().toString(36).substring(7)}`;
       const user = await createTestUserInDb({
         ...createPendingUserData({ email }),
-        username: 'testusername',
+        username: uniqueUsername,
         reservation_expires_at: reservationExpires,
       });
 

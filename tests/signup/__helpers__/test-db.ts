@@ -55,15 +55,31 @@ export async function createTestUserInDb(data: {
   // Always generate userId - it's required
   const userId = randomBytes(12).toString('base64url');
   
-  // Generate unique username if one is provided (to avoid conflicts)
+  // Generate unique username - userId is already unique, use it directly
   let uniqueUsername = data.username;
-  if (uniqueUsername) {
-    // Add timestamp to ensure uniqueness
-    const timestamp = Date.now();
-    const randomSuffix = randomBytes(2).toString('hex');
-    uniqueUsername = `${uniqueUsername}_${timestamp}_${randomSuffix}`.substring(0, 20); // Ensure max length
+  
+  if (!uniqueUsername || uniqueUsername.startsWith('temp_') || uniqueUsername.startsWith('expired_')) {
+    // For temp_ or expired_ usernames, or when no username provided
+    // Use userId directly (it's already unique) - format: temp_<userId>
+    // userId is base64url (safe chars), so we can use it directly
+    const safeUserId = userId.replace(/[^a-zA-Z0-9_]/g, '_');
+    uniqueUsername = `temp_${safeUserId}`.substring(0, 20);
   } else {
-    uniqueUsername = `temp_${userId.substring(0, 8)}`;
+    // For provided usernames, check if they look like simple test usernames
+    // Simple test usernames (like "testuser", "TESTUSER", "TestUser") should be preserved
+    // Complex usernames with timestamps/random (from generateTestUsername) will be unique anyway
+    // If it's a simple alphanumeric username <= 20 chars, preserve it exactly for case-insensitive tests
+    if (data.username.length <= 20 && /^[a-zA-Z0-9_]+$/.test(data.username)) {
+      // Check if it's a simple username (no numbers at the end suggesting timestamp/random)
+      // Simple usernames like "testuser", "TESTUSER", "TestUser" should be preserved
+      // Complex usernames like "testuser_1234567890_abc" are already unique, so preserve them too
+      uniqueUsername = data.username;
+    } else {
+      // Invalid format - append userId to ensure uniqueness
+      const safeUserId = userId.substring(0, 10).replace(/[^a-zA-Z0-9_]/g, '_');
+      const baseName = uniqueUsername.substring(0, 8); // Keep some of original
+      uniqueUsername = `${baseName}_${safeUserId}`.substring(0, 20);
+    }
   }
   
   const user = await prisma.users.create({
@@ -91,8 +107,9 @@ export async function createTestPaymentInDb(data: {
   status?: PaymentStatus;
   stripe_checkout_session_id?: string;
 }) {
-  const { nanoid } = await import('nanoid');
-  const paymentId = nanoid();
+  // Use randomBytes instead of nanoid to avoid ES module issues in Jest
+  const { randomBytes } = await import('crypto');
+  const paymentId = randomBytes(12).toString('base64url');
   
   const payment = await prisma.payments.create({
     data: {

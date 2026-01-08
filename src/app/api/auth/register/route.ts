@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
     const sanitizedDisplayName = validatedData.display_name
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<[^>]+>/g, '')
+      .replace(/javascript:/gi, '') // Remove javascript: URLs
+      .replace(/on\w+\s*=/gi, '') // Remove event handlers
       .trim();
     
     // Check if user already exists
