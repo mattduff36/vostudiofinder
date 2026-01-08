@@ -58,7 +58,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
                   flex items-center gap-2 py-4 px-2 font-medium text-sm transition-colors
                   ${isActive
                     ? 'border-b-[6px] border-white text-white'
-                    : 'border-b-4 border-transparent text-white hover:text-white hover:border-red-400'
+                    : 'border-b-4 border-transparent text-white hover:text-white hover:border-b-[5px] hover:border-red-400'
                   }
                 `}
                 aria-current={isActive ? 'page' : undefined}
