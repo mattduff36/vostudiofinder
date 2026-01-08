@@ -463,6 +463,7 @@ export async function PUT(request: NextRequest) {
               user_id: userId,
               name: updates.name || 'My Studio', // Required field
               city: updates.city || '', // Required field with default
+              is_profile_visible: false, // Hidden by default, user can manually enable when ready
               ...profileUpdates,
               updated_at: new Date(),
             },

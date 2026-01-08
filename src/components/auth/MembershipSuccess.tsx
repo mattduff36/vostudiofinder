@@ -58,12 +58,17 @@ export function MembershipSuccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{
+    message: string;
+    code?: string;
+    canRetry?: boolean;
+  } | null>(null);
   const [paymentVerified, setPaymentVerified] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [images, setImages] = useState<{ url: string; alt_text?: string }[]>([]);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [nextStep, setNextStep] = useState<'choose' | 'verify_now' | 'build_now'>('choose');
   
   const sessionId = searchParams?.get('session_id');
   const email = searchParams?.get('email') || '';
@@ -106,7 +111,11 @@ export function MembershipSuccess() {
   useEffect(() => {
     const verifyPayment = async () => {
       if (!sessionId) {
-        setError('No payment session found');
+        setError({
+          message: 'No payment session found. Please start the signup process again.',
+          code: 'NO_SESSION',
+          canRetry: false,
+        });
         return;
       }
 
@@ -157,7 +166,11 @@ export function MembershipSuccess() {
 
         setPaymentVerified(true);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Payment verification failed');
+        setError({
+          message: err instanceof Error ? err.message : 'Payment verification failed. Please refresh the page or contact support.',
+          code: 'PAYMENT_VERIFICATION_ERROR',
+          canRetry: true,
+        });
       }
     };
 
@@ -166,33 +179,56 @@ export function MembershipSuccess() {
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    // Clear the input so the same file can be selected again
-    e.target.value = '';
-
-    if (images.length >= 5) {
-      setError('Maximum 5 images allowed');
-      setTimeout(() => setError(null), 5000);
+    
+    if (!files || files.length === 0) {
       return;
     }
 
+    // IMPORTANT: Capture the file BEFORE clearing the input
+    // FileList is a live object that gets cleared when input.value is cleared
     const file = files[0];
-    if (!file) return;
+    
+    if (!file) {
+      return;
+    }
+
+    // Clear the input so the same file can be selected again
+    // Do this AFTER capturing the file
+    e.target.value = '';
+
+    if (images.length >= 5) {
+      setError({
+        message: 'Maximum 5 images allowed. Please remove an image before adding another.',
+        code: 'IMAGE_LIMIT',
+        canRetry: false,
+      });
+      setTimeout(() => setError(null), 5000);
+      return;
+    }
     
     // Validate file type
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    
     if (!allowedTypes.includes(file.type)) {
-      setError('Please select a valid image file (.png, .jpg, .jpeg, .webp)');
+      setError({
+        message: 'Please select a valid image file (.png, .jpg, .jpeg, .webp)',
+        code: 'INVALID_FILE_TYPE',
+        canRetry: false,
+      });
       setTimeout(() => setError(null), 5000);
       return;
     }
 
     // Validate file size (10MB - will be compressed)
     const maxSize = 10 * 1024 * 1024; // 10MB
+    
     if (file.size > maxSize) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      setError(`Image too large (${sizeMB}MB). Maximum size is 10MB. Please compress or resize your image.`);
+      setError({
+        message: `Image too large (${sizeMB}MB). Maximum size is 10MB. Please compress or resize your image.`,
+        code: 'FILE_TOO_LARGE',
+        canRetry: false,
+      });
       setTimeout(() => setError(null), 7000);
       return;
     }
@@ -229,7 +265,11 @@ export function MembershipSuccess() {
       setValue('images', newImages);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload image');
+      setError({
+        message: err instanceof Error ? err.message : 'Failed to process image. Please try again.',
+        code: 'IMAGE_UPLOAD_ERROR',
+        canRetry: true,
+      });
       setTimeout(() => setError(null), 5000);
     } finally {
       setUploading(false);
@@ -259,21 +299,105 @@ export function MembershipSuccess() {
     setValue(`connections.${connectionId}`, !connections[connectionId]);
   };
 
+  const handleVerifyNow = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Get password from session storage (stored during signup)
+      const signupDataStr = sessionStorage.getItem('signupData');
+      let password = '';
+      if (signupDataStr) {
+        const signupData = JSON.parse(signupDataStr);
+        password = signupData.password;
+      }
+
+      if (!password) {
+        setError({
+          message: 'Session expired. Please start the signup process again from the beginning.',
+          code: 'SESSION_EXPIRED',
+          canRetry: false,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/auth/create-paid-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          username: formUsername,
+          email: formEmail,
+          display_name: formDisplayName,
+          password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Throw the entire result object so we can parse it in the catch block
+        throw new Error(JSON.stringify(result));
+      }
+
+      // Clear signup data from session storage
+      sessionStorage.removeItem('signupData');
+      sessionStorage.removeItem('selectedUsername');
+
+      // Redirect to email verification page with flow=account
+      router.push(`/auth/verify-email?flow=account&email=${encodeURIComponent(formEmail)}`);
+    } catch (err) {
+      // Parse API error response safely
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      let apiError: any = { error: errorMessage, canRetry: true };
+      
+      if (typeof errorMessage === 'string' && errorMessage.includes('{')) {
+        try {
+          apiError = JSON.parse(errorMessage);
+        } catch (parseError) {
+          // If parsing fails, use the original error message
+          console.warn('Failed to parse error message as JSON:', errorMessage);
+        }
+      }
+      
+      setError({
+        message: apiError.error || apiError.message || 'Failed to create account. Please try again.',
+        code: apiError.errorCode || 'UNKNOWN_ERROR',
+        canRetry: apiError.canRetry !== false,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const onSubmit = async (data: ProfileFormData) => {
     // Validation
     if (images.length === 0) {
-      setError('Please upload at least 1 image of your studio');
+      setError({
+        message: 'Please upload at least 1 image of your studio to continue.',
+        code: 'MISSING_IMAGES',
+        canRetry: false,
+      });
       return;
     }
 
     if (data.studio_types.length === 0) {
-      setError('Please select at least one studio type');
+      setError({
+        message: 'Please select at least one studio type to continue.',
+        code: 'MISSING_STUDIO_TYPE',
+        canRetry: false,
+      });
       return;
     }
 
     const hasConnection = Object.values(data.connections).some(v => v);
     if (!hasConnection) {
-      setError('Please select at least one connection method');
+      setError({
+        message: 'Please select at least one connection method to continue.',
+        code: 'MISSING_CONNECTION',
+        canRetry: false,
+      });
       return;
     }
 
@@ -290,7 +414,11 @@ export function MembershipSuccess() {
       }
 
       if (!password) {
-        setError('Session expired. Please start the signup process again.');
+        setError({
+          message: 'Session expired. Please start the signup process again from the beginning.',
+          code: 'SESSION_EXPIRED',
+          canRetry: false,
+        });
         setIsLoading(false);
         return;
       }
@@ -314,7 +442,11 @@ export function MembershipSuccess() {
             throw new Error('Invalid domain');
           }
         } catch (err) {
-          setError('Please enter a valid website URL (e.g., yourstudio.com)');
+          setError({
+            message: 'Please enter a valid website URL (e.g., yourstudio.com)',
+            code: 'INVALID_WEBSITE_URL',
+            canRetry: false,
+          });
           setIsLoading(false);
           return;
         }
@@ -345,7 +477,8 @@ export function MembershipSuccess() {
       console.log('📥 Server response:', { ok: response.ok, status: response.status, result });
 
       if (!response.ok) {
-        throw new Error(result.error || 'Profile creation failed');
+        // Throw the entire result object so we can parse it in the catch block
+        throw new Error(JSON.stringify(result));
       }
 
       // Clear signup data from session storage
@@ -353,9 +486,26 @@ export function MembershipSuccess() {
       sessionStorage.removeItem('selectedUsername');
 
       // Redirect to email verification page
-      router.push('/auth/verify-email?new=true');
+      router.push(`/auth/verify-email?flow=profile&email=${encodeURIComponent(formEmail)}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // Parse API error response safely
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      let apiError: any = { error: errorMessage, canRetry: true };
+      
+      if (typeof errorMessage === 'string' && errorMessage.includes('{')) {
+        try {
+          apiError = JSON.parse(errorMessage);
+        } catch (parseError) {
+          // If parsing fails, use the original error message
+          console.warn('Failed to parse error message as JSON:', errorMessage);
+        }
+      }
+      
+      setError({
+        message: apiError.error || apiError.message || 'Failed to create profile. Please try again.',
+        code: apiError.errorCode || 'UNKNOWN_ERROR',
+        canRetry: apiError.canRetry !== false,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -439,7 +589,7 @@ export function MembershipSuccess() {
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 Payment Verification Failed
               </h1>
-              <p className="text-red-600 mb-6">{error}</p>
+              <p className="text-red-600 mb-6">{error.message}</p>
               <Button
                 onClick={() => router.push('/auth/signup')}
                 className="w-full bg-red-600 hover:bg-red-700"
@@ -480,7 +630,7 @@ export function MembershipSuccess() {
 
         {/* Success Header */}
         <div className="text-center mb-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
             <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
@@ -489,17 +639,182 @@ export function MembershipSuccess() {
             Payment Successful!
           </h1>
           <p className="mt-2 text-gray-600">
-            Complete your studio profile to get your listing live
+            {nextStep === 'choose' 
+              ? 'Choose your next step to get started'
+              : 'Complete your studio profile to get your listing live'
+            }
           </p>
         </div>
 
-        {/* Profile Setup Form */}
-        <div className="bg-white/90 backdrop-blur-sm py-8 px-6 shadow sm:rounded-lg">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        {/* Two-Card Chooser UI */}
+        {nextStep === 'choose' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Option 1: Verify Now */}
+            <button
+              type="button"
+              onClick={handleVerifyNow}
+              disabled={isLoading}
+              className="group bg-white/90 backdrop-blur-sm p-8 shadow-lg hover:shadow-2xl rounded-lg transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-red-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Verify your email now, go live when you're ready
+                  </h3>
+                  <div className="text-gray-600 space-y-2 text-sm">
+                    <p>We'll send your verification email immediately.</p>
+                    <p>After you verify and sign in, you can build your studio profile from your dashboard at your own pace.</p>
+                    <p>Your profile stays hidden until you complete the required details and turn visibility on.</p>
+                  </div>
+                </div>
+                {isLoading && (
+                  <div className="flex items-center space-x-2 text-red-600">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="text-sm">Creating account...</span>
+                  </div>
+                )}
+              </div>
+            </button>
+
+            {/* Option 2: Build Now */}
+            <button
+              type="button"
+              onClick={() => setNextStep('build_now')}
+              disabled={isLoading}
+              className="group bg-white/90 backdrop-blur-sm p-8 shadow-lg hover:shadow-2xl rounded-lg transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-red-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Complete your studio details now, publish faster
+                  </h3>
+                  <div className="text-gray-600 space-y-2 text-sm">
+                    <p>Add the required studio info and at least one image now.</p>
+                    <p>After verification, your profile will be visible right away and you'll be able to start connecting with voice artists immediately.</p>
+                    <p>Best choice if you want your profile ready to share as soon as you sign in.</p>
+                  </div>
+                </div>
+              </div>
+            </button>
+          </div>
+        )}
+
+        {/* Error Display */}
+        {error && nextStep === 'choose' && (
+          <div className="mb-6 p-6 bg-red-50 border-2 border-red-200 rounded-lg shadow-md">
+            <div className="flex items-start space-x-3 mb-4">
+              <div className="flex-shrink-0">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-red-900 mb-1">
+                  {error.code === 'SESSION_EXPIRED' && 'Session Expired'}
+                  {error.code === 'EMAIL_EXISTS' && 'Account Already Exists'}
+                  {error.code === 'USERNAME_TAKEN' && 'Username Unavailable'}
+                  {error.code === 'PAYMENT_VERIFICATION_FAILED' && 'Payment Issue'}
+                  {error.code === 'VALIDATION_ERROR' && 'Invalid Information'}
+                  {error.code === 'SERVER_ERROR' && 'Technical Issue'}
+                  {!error.code && 'Error'}
+                </h3>
+                <p className="text-sm text-red-700 leading-relaxed">
+                  {error.message}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+              {error.canRetry && (
+                <Button
+                  onClick={() => {
+                    setError(null);
+                    // Retry logic could be added here
+                  }}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Try Again
+                </Button>
+              )}
+              <Button
+                onClick={() => router.push('/contact')}
+                variant="outline"
+                className="flex-1 border-red-300 text-red-700 hover:bg-red-50"
+              >
+                Contact Support
+              </Button>
+              {error.code === 'EMAIL_EXISTS' && (
+                <Button
+                  onClick={() => router.push('/auth/signin')}
+                  className="flex-1 bg-gray-700 hover:bg-gray-800 text-white"
+                >
+                  Sign In
+                </Button>
+              )}
+              {(error.code === 'SESSION_EXPIRED' || error.code === 'USERNAME_TAKEN') && (
+                <Button
+                  onClick={() => router.push('/auth/signup')}
+                  className="flex-1 bg-gray-700 hover:bg-gray-800 text-white"
+                >
+                  Start Over
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Profile Setup Form - Only show when Option 2 is chosen */}
+        {nextStep === 'build_now' && (
+          <div className="bg-white/90 backdrop-blur-sm py-8 px-6 shadow sm:rounded-lg">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-md flex items-start space-x-2">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-600 flex-1">{error}</p>
+              <div className="p-6 bg-red-50 border-2 border-red-200 rounded-lg shadow-md">
+                <div className="flex items-start space-x-3 mb-4">
+                  <div className="flex-shrink-0">
+                    <AlertCircle className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-semibold text-red-900 mb-1">
+                      {error.code === 'MISSING_IMAGES' && 'Images Required'}
+                      {error.code === 'MISSING_STUDIO_TYPE' && 'Studio Type Required'}
+                      {error.code === 'MISSING_CONNECTION' && 'Connection Method Required'}
+                      {error.code === 'INVALID_WEBSITE_URL' && 'Invalid Website URL'}
+                      {error.code === 'SESSION_EXPIRED' && 'Session Expired'}
+                      {error.code === 'EMAIL_EXISTS' && 'Account Already Exists'}
+                      {error.code === 'SERVER_ERROR' && 'Technical Issue'}
+                      {!error.code && 'Error'}
+                    </h3>
+                    <p className="text-sm text-red-700 leading-relaxed">
+                      {error.message}
+                    </p>
+                  </div>
+                </div>
+                {(error.canRetry || error.code === 'SERVER_ERROR') && (
+                  <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                    <Button
+                      type="button"
+                      onClick={() => setError(null)}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      Dismiss & Try Again
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => router.push('/contact')}
+                      variant="outline"
+                      className="flex-1 border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      Contact Support
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -763,6 +1078,7 @@ export function MembershipSuccess() {
             </div>
           </form>
         </div>
+        )}
       </div>
 
       {/* Image Cropper Modal */}

@@ -26,8 +26,6 @@ export function getWelcomeEmailTemplate(data: WelcomeEmailData) {
   <title>Welcome to Voiceover Studio Finder</title>
   <style>
     .btn a, .btn a span { color: #FFFFFF !important; }
-    [data-ogsc] .btn a, [data-ogsc] .btn a span { color: #FFFFFF !important; }
-    [data-ogsb] .btn a, [data-ogsb] .btn a span { color: #FFFFFF !important; }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">

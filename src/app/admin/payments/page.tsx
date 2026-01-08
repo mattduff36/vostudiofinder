@@ -91,24 +91,76 @@ export default function AdminPaymentsPage() {
       if (!response.ok) throw new Error('Failed to fetch payments');
 
       const data = await response.json();
-      setPayments(data.payments);
-      setPagination(data.pagination);
+      setPayments(data.payments || []);
+      setPagination(data.pagination || {
+        page: 1,
+        limit: 50,
+        total: 0,
+        totalPages: 0,
+      });
     } catch (error) {
       console.error('Error fetching payments:', error);
+      setPayments([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Reset to page 1 when statusFilter changes (including when cleared)
+  useEffect(() => {
+    if (pagination.page !== 1) {
+      setPagination(prev => ({ ...prev, page: 1 }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter]);
+
+  // Fetch payments when dependencies change
   useEffect(() => {
     if (session?.user?.role === 'ADMIN') {
       fetchPayments();
     }
-  }, [session, pagination.page, statusFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.role, pagination.page, statusFilter]);
 
   const handleSearch = () => {
-    setPagination({ ...pagination, page: 1 });
-    fetchPayments();
+    // Fetch payments with page 1 directly
+    // Don't update pagination state here - let the response update it
+    // This prevents triggering the useEffect which would cause duplicate API calls
+    setLoading(true);
+    
+    const params = new URLSearchParams({
+      page: '1',
+      limit: pagination.limit.toString(),
+    });
+
+    if (searchTerm) {
+      params.append('search', searchTerm);
+    }
+    if (statusFilter) {
+      params.append('status', statusFilter);
+    }
+
+    fetch(`/api/admin/payments?${params}`)
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch payments');
+        return response.json();
+      })
+      .then(data => {
+        setPayments(data.payments || []);
+        setPagination(data.pagination || {
+          page: 1,
+          limit: 50,
+          total: 0,
+          totalPages: 0,
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching payments:', error);
+        setPayments([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const togglePaymentExpand = (paymentId: string) => {

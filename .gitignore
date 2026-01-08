@@ -48,8 +48,12 @@ logs/
 
 # Backups & Archives
 backups/
+backup/
+**/backup/
 *.dump
 *.backup
+*.backup.*
+.env*.backup*
 
 # Project Archive
 project-archive/

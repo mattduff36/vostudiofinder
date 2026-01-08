@@ -38,19 +38,26 @@ export function generateUsername(email: string): string {
 
 /**
  * Create a new user with hashed password
+ * @param data - User data
+ * @param tx - Optional transaction client for atomic operations
  */
-export async function createUser(data: {
-  email: string;
-  password: string;
-  display_name: string;
-  username?: string;
-  role?: Role;
-}) {
+export async function createUser(
+  data: {
+    email: string;
+    password: string;
+    display_name: string;
+    username?: string;
+    role?: Role;
+  },
+  tx?: any
+) {
   const hashedPassword = await hashPassword(data.password);
-  const username = data.username || await generateUniqueUsername(data.email);
+  const username = data.username || await generateUniqueUsername(data.email, tx);
 
   const { randomBytes } = await import('crypto');
-  return db.users.create({
+  const client = tx || db;
+  
+  return client.users.create({
     data: {
       id: randomBytes(12).toString('base64url'),
       email: data.email,
@@ -66,14 +73,17 @@ export async function createUser(data: {
 
 /**
  * Generate a unique username (check database for conflicts)
+ * @param email - Email to generate username from
+ * @param tx - Optional transaction client
  */
-async function generateUniqueUsername(email: string): Promise<string> {
+async function generateUniqueUsername(email: string, tx?: any): Promise<string> {
   let username = generateUsername(email);
   let attempts = 0;
   const maxAttempts = 10;
+  const client = tx || db;
 
   while (attempts < maxAttempts) {
-    const existingUser = await db.users.findUnique({
+    const existingUser = await client.users.findUnique({
       where: { username },
     });
 

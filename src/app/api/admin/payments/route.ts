@@ -30,16 +30,52 @@ export async function GET(request: NextRequest) {
     if (status) {
       where.status = status;
     }
-    if (userId) {
-      where.user_id = userId;
-    }
+    
+    // Handle email search - need to find user IDs first if searching by email
     if (search) {
-      where.users = {
-        email: {
-          contains: search,
-          mode: 'insensitive',
+      const users = await db.users.findMany({
+        where: {
+          email: {
+            contains: search,
+            mode: 'insensitive',
+          },
         },
-      };
+        select: { id: true },
+      });
+      const userIdsForSearch = users.map(u => u.id);
+      if (userIdsForSearch.length === 0) {
+        // No users found with this email, return empty results
+        return NextResponse.json({
+          payments: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 0,
+          },
+        });
+      }
+      // If userId is also provided, intersect the arrays
+      if (userId) {
+        if (userIdsForSearch.includes(userId)) {
+          where.user_id = userId;
+        } else {
+          // User ID doesn't match search, return empty
+          return NextResponse.json({
+            payments: [],
+            pagination: {
+              page,
+              limit,
+              total: 0,
+              totalPages: 0,
+            },
+          });
+        }
+      } else {
+        where.user_id = { in: userIdsForSearch };
+      }
+    } else if (userId) {
+      where.user_id = userId;
     }
 
     // Get payments with user info

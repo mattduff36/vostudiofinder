@@ -7,12 +7,16 @@ export const metadata: Metadata = {
 };
 
 interface VerifyEmailPageProps {
-  searchParams: Promise<{ new?: string }>;
+  searchParams: Promise<{ new?: string; flow?: string; email?: string }>;
 }
 
 export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageProps) {
   const params = await searchParams;
-  const isNewProfile = params?.new === 'true';
+  
+  // Determine flow type: 'account' (verify only) or 'profile' (profile already created)
+  // Support both 'new=true' (legacy) and 'flow=profile' for backward compatibility
+  const flow = params?.flow || (params?.new === 'true' ? 'profile' : 'account');
+  const email = params?.email;
 
-  return <VerifyEmailContent isNewProfile={isNewProfile} />;
+  return <VerifyEmailContent flow={flow as 'account' | 'profile'} {...(email ? { email } : {})} />;
 }

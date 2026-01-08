@@ -75,7 +75,9 @@ export function ImageCropperModal({
   // Track if component is mounted (for portal)
   useEffect(() => {
     setMounted(true);
-    return () => setMounted(false);
+    return () => {
+      setMounted(false);
+    };
   }, []);
 
   // Load image when file changes
@@ -98,10 +100,12 @@ export function ImageCropperModal({
         img.onload = () => {
           setImageSize({ width: img.width, height: img.height });
         };
+        img.onerror = () => {
+          setError('Failed to load image');
+        };
         img.src = dataUrl;
       } catch (err) {
         setError('Failed to load image');
-        console.error('Error loading image:', err);
       }
     };
 
@@ -174,7 +178,9 @@ export function ImageCropperModal({
     setZoom(value);
   };
 
-  if (!isOpen || !file || !mounted) return null;
+  if (!isOpen || !file || !mounted) {
+    return null;
+  }
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm">
@@ -222,7 +228,7 @@ export function ImageCropperModal({
 
       {/* Crop Area */}
       <div className="relative w-full h-full">
-        {imageSrc && (
+        {imageSrc ? (
           <Cropper
             image={imageSrc}
             crop={crop}
@@ -242,6 +248,13 @@ export function ImageCropperModal({
               },
             }}
           />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full">
+            <div className="text-center text-white/60">
+              <div className="inline-block w-8 h-8 border-4 border-white/20 border-t-white/60 rounded-full animate-spin mb-4"></div>
+              <p className="text-sm">Loading image...</p>
+            </div>
+          </div>
         )}
       </div>
 
@@ -314,6 +327,10 @@ export function ImageCropperModal({
   );
 
   // Render modal in a portal at document.body level
+  if (typeof document === 'undefined' || !document.body) {
+    return null;
+  }
+  
   return createPortal(modalContent, document.body);
 }
 

@@ -87,7 +87,7 @@ describe('Image Crop Utilities', () => {
         getContext: jest.fn(() => ({
           drawImage: jest.fn(),
         })),
-        toBlob: jest.fn((callback) => {
+        toBlob: jest.fn((callback: (blob: Blob | null) => void) => {
           const blob = new Blob(['mock-blob'], { type: 'image/jpeg' });
           callback(blob);
         }),

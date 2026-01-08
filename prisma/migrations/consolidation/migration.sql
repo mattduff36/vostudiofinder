@@ -1,0 +1,1 @@
+-- Consolidation migration already applied manually
