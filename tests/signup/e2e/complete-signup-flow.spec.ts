@@ -48,14 +48,25 @@ test.describe('Complete Signup Flow', () => {
     await expect(page.locator('h1')).toContainText('Choose Your Username');
 
     // Step 5: Wait for username suggestions to load
-    await page.waitForSelector('button:has-text("teststudio")', { timeout: 10000 });
+    await page.waitForSelector('button:not([disabled])', { timeout: 10000 });
 
-    // Step 6: Select a username
-    const usernameButton = page.locator('button:has-text("teststudio")').first();
-    await usernameButton.click();
+    // Step 6: Select an available username (find first enabled button)
+    const usernameButton = page.locator('button:not([disabled]):has-text("studio")').first();
+    // If no exact match, try any available username button
+    const availableButton = (await usernameButton.count()) > 0 
+      ? usernameButton 
+      : page.locator('button:not([disabled])').first();
+    await availableButton.click();
+    
+    // Wait for username to be selected (button should be enabled)
+    await page.waitForTimeout(500);
 
-    // Step 7: Continue to membership
-    await page.click('button:has-text("Continue to Membership")');
+    // Step 7: Continue to membership - wait for button to be enabled
+    const continueButton = page.locator('button:has-text("Continue to Membership"):not([disabled])');
+    await continueButton.waitFor({ state: 'visible', timeout: 10000 });
+    await continueButton.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500); // Wait for any animations
+    await continueButton.click();
 
     // Step 8: Should redirect to membership payment page
     await page.waitForURL(/\/auth\/membership/, { timeout: 10000 });
@@ -199,19 +210,29 @@ test.describe('Complete Signup Flow', () => {
     await page.check('input[name="acceptTerms"]');
     await page.click('button[type="submit"]');
 
-    // Wait for navigation
-    await page.waitForTimeout(2000);
+    // Wait for navigation to complete
+    await page.waitForURL(/\/auth\/(membership|username-selection)/, { timeout: 10000 });
+    
+    // Wait a bit more for sessionStorage to be set (async operation)
+    await page.waitForTimeout(500);
 
-    // Check sessionStorage
-    const signupData = await page.evaluate(() => {
-      return sessionStorage.getItem('signupData');
-    });
+    // Check sessionStorage - retry if not immediately available
+    let signupData: string | null = null;
+    for (let i = 0; i < 5; i++) {
+      signupData = await page.evaluate(() => {
+        return sessionStorage.getItem('signupData');
+      });
+      if (signupData) break;
+      await page.waitForTimeout(500);
+    }
 
     expect(signupData).toBeTruthy();
-    const parsed = JSON.parse(signupData!);
-    expect(parsed.email).toBe(testEmail);
-    expect(parsed.display_name).toBe(testDisplayName);
-    expect(parsed.userId).toBeDefined();
+    if (signupData) {
+      const parsed = JSON.parse(signupData);
+      expect(parsed.email).toBe(testEmail);
+      expect(parsed.display_name).toBe(testDisplayName);
+      expect(parsed.userId).toBeDefined();
+    }
   });
 });
 

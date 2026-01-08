@@ -1,0 +1,100 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Voiceover Studio Finder" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "Voiceover Studio Finder" [ref=e7]
+      - generic [ref=e8]:
+        - link "Studios" [ref=e9] [cursor=pointer]:
+          - /url: /studios
+        - link "About" [ref=e10] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e11]:
+          - text: Blog
+          - generic: Coming soon!
+      - generic [ref=e12]:
+        - button "Sign In" [ref=e13]
+        - button "List Your Studio" [ref=e14]
+  - main [ref=e15]:
+    - generic [ref=e16]:
+      - img "Signup background texture" [ref=e18]
+      - img "VoiceoverStudioFinder" [ref=e21]
+      - generic [ref=e24]:
+        - generic [ref=e26]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: "1"
+            - generic [ref=e30]: Sign Up
+          - generic [ref=e33]:
+            - generic [ref=e34]: "2"
+            - generic [ref=e35]: Username
+          - generic [ref=e38]:
+            - generic [ref=e39]: "3"
+            - generic [ref=e40]: Payment
+          - generic [ref=e43]:
+            - generic [ref=e44]: "4"
+            - generic [ref=e45]: Profile
+        - generic [ref=e46]:
+          - heading "List Your Studio" [level=1] [ref=e47]
+          - paragraph [ref=e48]: Start your membership to showcase your studio to voice artists worldwide
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - generic [ref=e51]: Display Name
+            - textbox "Display Name" [active] [ref=e52]:
+              - /placeholder: Your Display Name is how we address you
+            - paragraph [ref=e53]: Display name must be at least 2 characters long
+          - generic [ref=e54]:
+            - generic [ref=e55]:
+              - generic [ref=e56]: Email Address
+              - textbox "Email Address" [ref=e57]:
+                - /placeholder: your@email.com
+              - paragraph [ref=e58]: Email is required
+            - img [ref=e59]
+          - generic [ref=e62]:
+            - generic [ref=e63]:
+              - generic [ref=e64]: Password
+              - textbox "Password" [ref=e65]:
+                - /placeholder: Create a strong password
+              - paragraph [ref=e66]: Password must be at least 8 characters long
+            - button [ref=e67]:
+              - img [ref=e68]
+          - generic [ref=e71]:
+            - generic [ref=e72]:
+              - generic [ref=e73]: Confirm Password
+              - textbox "Confirm Password" [ref=e74]:
+                - /placeholder: Confirm your password
+              - paragraph [ref=e75]: Please confirm your password
+            - button [ref=e76]:
+              - img [ref=e77]
+          - generic [ref=e80]:
+            - checkbox "I accept the Terms of Service and Privacy Policy" [ref=e81] [cursor=pointer]
+            - generic [ref=e82]:
+              - text: I accept the
+              - link "Terms of Service" [ref=e83] [cursor=pointer]:
+                - /url: /terms
+              - text: and
+              - link "Privacy Policy" [ref=e84] [cursor=pointer]:
+                - /url: /privacy
+          - paragraph [ref=e85]: You must accept the terms and conditions
+          - button "Continue to Membership" [ref=e86]
+          - paragraph [ref=e88]:
+            - text: Already have an account?
+            - link "Sign in" [ref=e89] [cursor=pointer]:
+              - /url: /auth/signin
+  - generic [ref=e92]:
+    - generic [ref=e95]:
+      - paragraph [ref=e96]: We use cookies to ensure site functionality and, with your consent, to analyse traffic and improve your experience.
+      - paragraph [ref=e97]:
+        - text: Essential cookies (login, security) are always active. Analytics cookies require your consent.
+        - link "Learn more" [ref=e98] [cursor=pointer]:
+          - /url: /privacy
+    - generic [ref=e99]:
+      - button "Decline" [ref=e100]
+      - button "Necessary Only" [ref=e101]
+      - button "Accept All" [ref=e102]
+  - button "Open Next.js Dev Tools" [ref=e108] [cursor=pointer]:
+    - img [ref=e109]
+  - alert [ref=e112]: Sign Up - VoiceoverStudioFinder
+```
