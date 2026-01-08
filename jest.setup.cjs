@@ -40,17 +40,75 @@ if (typeof globalThis.TextDecoder === 'undefined') {
   globalThis.TextEncoder = TextEncoder
 }
 
+// Polyfill setImmediate for Node.js environments (needed by Prisma)
+if (typeof globalThis.setImmediate === 'undefined') {
+  globalThis.setImmediate = (fn, ...args) => setTimeout(() => fn(...args), 0)
+  globalThis.clearImmediate = clearTimeout
+}
+
 // Polyfill Request/Response for Next.js API routes in Node.js test environment
 // Only add if not already present (Next.js may provide these)
+// CRITICAL: Polyfill Request/Response BEFORE Next.js modules load
+// This must run synchronously before any imports
 if (typeof globalThis.Request === 'undefined') {
   try {
-    const { Request, Response, Headers } = require('next/dist/compiled/@edge-runtime/primitives')
-    globalThis.Request = Request
-    globalThis.Response = Response
-    globalThis.Headers = Headers
-  } catch (e) {
-    // Fallback: Next.js will provide these when needed
-    console.warn('Could not load Next.js Request/Response polyfills:', e.message)
+    // Try undici first (Node.js 18+ compatible, now installed as dev dependency)
+    const undici = require('undici')
+    if (undici.Request) {
+      globalThis.Request = undici.Request
+      globalThis.Response = undici.Response
+      globalThis.Headers = undici.Headers
+    } else {
+      throw new Error('undici.Request not found')
+    }
+  } catch (e1) {
+    try {
+      // Fallback to Next.js edge runtime primitives
+      const primitives = require('next/dist/compiled/@edge-runtime/primitives')
+      globalThis.Request = primitives.Request
+      globalThis.Response = primitives.Response
+      globalThis.Headers = primitives.Headers
+    } catch (e2) {
+      // Final fallback: create minimal polyfill
+      console.warn('Could not load Request/Response polyfills, creating minimal polyfill:', e2.message)
+      globalThis.Request = class Request {
+        constructor(input, init = {}) {
+          // Use Object.defineProperty to set read-only properties
+          const url = typeof input === 'string' ? input : input?.url || ''
+          Object.defineProperty(this, 'url', { value: url, writable: false, enumerable: true })
+          Object.defineProperty(this, 'method', { value: init.method || 'GET', writable: false, enumerable: true })
+          this.headers = new Map()
+          this.body = init.body
+        }
+        async json() { return JSON.parse(this.body || '{}') }
+        async text() { return this.body || '' }
+      }
+      globalThis.Response = class Response {
+        constructor(body, init = {}) {
+          this.body = body
+          this.status = init.status || 200
+          this.statusText = init.statusText || 'OK'
+          this.headers = new Headers(init.headers)
+        }
+        async json() { return JSON.parse(this.body || '{}') }
+        async text() { return this.body || '' }
+        static json(data, init = {}) {
+          return new Response(JSON.stringify(data), {
+            ...init,
+            headers: { 'Content-Type': 'application/json', ...init.headers },
+          })
+        }
+      }
+      globalThis.Headers = class Headers {
+        constructor(init) {
+          this._map = new Map()
+          if (init) Object.entries(init).forEach(([k, v]) => this._map.set(k.toLowerCase(), v))
+        }
+        get(name) { return this._map.get(name.toLowerCase()) }
+        set(name, value) { this._map.set(name.toLowerCase(), value) }
+        has(name) { return this._map.has(name.toLowerCase()) }
+      }
+    }
   }
 }
 

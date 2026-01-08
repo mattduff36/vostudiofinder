@@ -23,8 +23,9 @@ import {
   cleanupTestUserData,
   disconnectDb,
   generateTestId,
+  generateTestEmail,
   prisma,
-} from '../../__helpers__/test-db';
+} from '../__helpers__/test-db';
 import { UserStatus, PaymentStatus, RefundStatus } from '@prisma/client';
 import Stripe from 'stripe';
 
