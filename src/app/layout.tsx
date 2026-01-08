@@ -7,8 +7,8 @@ import { ToastProvider } from '@/components/providers/ToastProvider';
 import { Navbar } from '@/components/navigation/Navbar';
 import { MobileShell } from '@/components/navigation/MobileShell';
 import { CookieConsentBanner } from '@/components/consent/CookieConsentBanner';
+import { DynamicAnalytics } from '@/components/consent/DynamicAnalytics';
 import { authOptions } from '@/lib/auth';
-import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script';
 import { getBaseUrl, SITE_NAME } from '@/lib/seo/site';
 import './globals.css';
@@ -124,8 +124,8 @@ export default async function RootLayout({
           </main>
           <MobileShell session={session} />
         </SessionProvider>
-        {/* Vercel Analytics - Only load with user consent */}
-        {hasConsent && <Analytics />}
+        {/* Vercel Analytics - Dynamically loads based on consent (no reload needed) */}
+        <DynamicAnalytics />
         {/* Cookie Consent Banner */}
         <CookieConsentBanner initialLevel={consentLevel || null} />
       </body>

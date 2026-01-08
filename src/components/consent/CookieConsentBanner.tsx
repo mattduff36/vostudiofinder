@@ -5,6 +5,14 @@ import { X } from 'lucide-react';
 
 type ConsentLevel = 'all' | 'necessary' | 'decline' | null;
 
+// Extend Window interface for Google Analytics
+declare global {
+  interface Window {
+    dataLayer?: any[];
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 interface CookieConsentBannerProps {
   initialLevel: ConsentLevel;
 }
@@ -12,9 +20,10 @@ interface CookieConsentBannerProps {
 export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) {
   const [showBanner, setShowBanner] = useState(initialLevel === null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
-  // Don't render if user has already made a choice
-  if (!showBanner) {
+  // Don't render if user has already made a choice and animation is complete
+  if (!showBanner && !isAnimatingOut) {
     return null;
   }
 
@@ -47,9 +56,39 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
       });
 
       if (response.ok) {
-        setShowBanner(false);
-        // Reload page to apply the consent settings
-        window.location.reload();
+        // Apply consent settings without page reload
+        if (level === 'all') {
+          // Dynamically load Google Analytics if user accepts
+          if (!window.dataLayer) {
+            window.dataLayer = [];
+            function gtag(...args: any[]) {
+              window.dataLayer!.push(args);
+            }
+            window.gtag = gtag;
+            
+            // Load GA script
+            const script1 = document.createElement('script');
+            script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-JKPCYM50W7';
+            script1.async = true;
+            document.head.appendChild(script1);
+            
+            const script2 = document.createElement('script');
+            script2.innerHTML = `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-JKPCYM50W7');
+            `;
+            document.head.appendChild(script2);
+          }
+        }
+        
+        // Hide banner with smooth animation
+        setIsAnimatingOut(true);
+        setTimeout(() => {
+          setShowBanner(false);
+          setIsAnimatingOut(false);
+        }, 300); // Match transition duration
       } else {
         console.error('Failed to set cookie consent');
         setIsSubmitting(false);
@@ -61,7 +100,9 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-black/95 backdrop-blur-sm border-t border-white/10">
+    <div className={`fixed bottom-0 left-0 right-0 z-[9999] bg-black/95 backdrop-blur-sm border-t border-white/10 transition-all duration-300 ease-in-out ${
+      showBanner && !isAnimatingOut ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           {/* Content */}

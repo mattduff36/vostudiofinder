@@ -253,17 +253,47 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
   };
 
   // Directions handling with platform detection
-  const handleGetDirections = () => {
+  // Request location permission when user clicks "Get Directions" (for better directions)
+  const handleGetDirections = async () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
     
+    // Request user's current location for better directions (optional - will use if available)
+    let userLocation: { lat: number; lng: number } | null = null;
+    try {
+      if (navigator.geolocation) {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            timeout: 3000, // Quick timeout - don't wait too long
+            maximumAge: 300000, // Accept cached location up to 5 minutes old
+          });
+        });
+        userLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+      }
+    } catch (error) {
+      // Silently fail - location is optional for directions
+      // Google Maps will use browser's location if available
+    }
+    
     if (studio.latitude && studio.longitude) {
+      // Build directions URL with optional origin
+      let directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${studio.latitude},${studio.longitude}`;
+      if (userLocation) {
+        directionsUrl += `&origin=${userLocation.lat},${userLocation.lng}`;
+      }
+      
       if (isMobile) {
         // Try to open native app first
         let appUrl = '';
         if (isIOS) {
           appUrl = `comgooglemaps://?daddr=${studio.latitude},${studio.longitude}&directionsmode=driving`;
+          if (userLocation) {
+            appUrl += `&saddr=${userLocation.lat},${userLocation.lng}`;
+          }
         } else if (isAndroid) {
           appUrl = `google.navigation:q=${studio.latitude},${studio.longitude}`;
         }
@@ -273,21 +303,28 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           window.location.href = appUrl;
           // Fallback to web after a short delay if app doesn't open
           setTimeout(() => {
-            window.open(`https://www.google.com/maps/dir/?api=1&destination=${studio.latitude},${studio.longitude}`, '_blank');
+            window.open(directionsUrl, '_blank');
           }, 1000);
+        } else {
+          window.open(directionsUrl, '_blank');
         }
       } else {
         // Desktop: open in new tab
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${studio.latitude},${studio.longitude}`, '_blank');
+        window.open(directionsUrl, '_blank');
       }
     } else if (studio.full_address || studio.address) {
       // Fallback to full_address or legacy address if no coordinates
       const addressToUse = studio.full_address || studio.address || '';
       const encodedAddress = encodeURIComponent(addressToUse);
+      let directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+      if (userLocation) {
+        directionsUrl += `&origin=${userLocation.lat},${userLocation.lng}`;
+      }
+      
       if (isMobile) {
-        window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+        window.location.href = directionsUrl;
       } else {
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`, '_blank');
+        window.open(directionsUrl, '_blank');
       }
     }
   };
