@@ -160,7 +160,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
           customerName: user_name || customer?.name || user.display_name || 'Valued Member',
           amount: (payment.amount / 100).toFixed(2),
           currency: payment.currency.toUpperCase(),
-          invoiceNumber: session.id,
+          paymentId: payment.id,
           planName: 'Annual Membership',
           nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         }),

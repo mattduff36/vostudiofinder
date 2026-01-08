@@ -8,7 +8,7 @@ export const paymentSuccessTemplate = (data: {
   customerName: string;
   amount: string;
   currency: string;
-  invoiceNumber: string;
+  paymentId: string;
   planName: string;
   nextBillingDate: string;
 }) => {
@@ -53,8 +53,8 @@ export const paymentSuccessTemplate = (data: {
                       </tr>
                       <tr>
                         <td style="padding: 12px 0; border-top: 1px solid #e5e5e5;">
-                          <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Invoice</p>
-                          <p style="margin: 4px 0 0 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">${data.invoiceNumber}</p>
+                          <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Payment ID</p>
+                          <p style="margin: 4px 0 0 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">${data.paymentId}</p>
                         </td>
                       </tr>
                       <tr>
