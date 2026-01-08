@@ -24,19 +24,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user with reservation_expires_at for time remaining calculation
-    const user = await db.users.findFirst({
-      where: userId
-        ? { id: userId }
-        : { email: email.toLowerCase().trim() },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        display_name: true,
-        status: true,
-        reservation_expires_at: true,
-      },
-    });
+    // Use findUnique when userId is provided (more efficient and semantically correct)
+    const user = userId
+      ? await db.users.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            display_name: true,
+            status: true,
+            reservation_expires_at: true,
+          },
+        })
+      : await db.users.findFirst({
+          where: { email: email.toLowerCase().trim() },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            display_name: true,
+            status: true,
+            reservation_expires_at: true,
+          },
+        });
 
     if (!user) {
       return NextResponse.json(

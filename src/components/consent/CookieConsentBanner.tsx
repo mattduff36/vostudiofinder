@@ -22,6 +22,7 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const animationTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const errorOccurredRef = React.useRef<boolean>(false);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -136,17 +137,25 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
         setIsAnimatingOut(true);
         // Reset submitting state since operation succeeded
         setIsSubmitting(false);
+        // Reset error flag before setting timeout
+        errorOccurredRef.current = false;
         // Clear any existing timeout
         if (animationTimeoutRef.current) {
           clearTimeout(animationTimeoutRef.current);
         }
         animationTimeoutRef.current = setTimeout(() => {
-          setShowBanner(false);
-          setIsAnimatingOut(false);
+          // Only apply timeout state changes if no error occurred
+          // This prevents race condition where error occurs after timeout is set
+          if (!errorOccurredRef.current) {
+            setShowBanner(false);
+            setIsAnimatingOut(false);
+          }
           animationTimeoutRef.current = null;
         }, 300); // Match transition duration
       } else {
         console.error('Failed to set cookie consent');
+        // Mark error occurred to prevent timeout callback from overwriting error state
+        errorOccurredRef.current = true;
         // Clear any pending animation timeout
         if (animationTimeoutRef.current) {
           clearTimeout(animationTimeoutRef.current);
@@ -161,6 +170,8 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
       }
     } catch (error) {
       console.error('Error setting cookie consent:', error);
+      // Mark error occurred to prevent timeout callback from overwriting error state
+      errorOccurredRef.current = true;
       // Clear any pending animation timeout
       if (animationTimeoutRef.current) {
         clearTimeout(animationTimeoutRef.current);

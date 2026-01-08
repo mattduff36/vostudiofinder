@@ -15,6 +15,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate email is a string (matches check-payment-status validation)
+    if (typeof email !== 'string' || !email.trim()) {
+      return NextResponse.json(
+        { error: 'Valid email is required' },
+        { status: 400 }
+      );
+    }
+
     // Find user by email
     const user = await db.users.findUnique({
       where: { email: email.toLowerCase() },
