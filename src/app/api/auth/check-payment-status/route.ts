@@ -70,19 +70,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // User is PENDING - check for payment
+    // User is PENDING - check signup progress
+    const hasRealUsername = user.username && !user.username.startsWith('temp_');
+
+    // Check for payment
     const payment = await db.payments.findFirst({
       where: { user_id: user.id },
       orderBy: { created_at: 'desc' },
     });
 
     if (!payment) {
+      // Determine resume step based on username status
+      // If user only has temp username, they need to select a real username first
+      const resumeStep = hasRealUsername ? 'payment' : 'username';
+
       return NextResponse.json(
         {
           hasPayment: false,
           paymentStatus: 'none',
           canResume: true,
-          resumeStep: 'payment',
+          resumeStep,
           user: {
             id: user.id,
             email: user.email,
