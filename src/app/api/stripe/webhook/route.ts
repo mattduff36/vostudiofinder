@@ -370,32 +370,27 @@ async function handleRefund(refund: Stripe.Refund) {
 
   // CRITICAL: processed_by requires a valid user ID (FK constraint)
   // For automated webhook refunds, use the first admin user or the user being refunded
-  // Safeguard: Ensure we always have a valid user ID
   const adminUser = await db.users.findFirst({
     where: { role: 'ADMIN' },
     select: { id: true },
   });
   
-  // Use admin if available, otherwise use payment user_id (should be valid at this point)
-  // Final fallback: create a system user or skip if truly no user exists (shouldn't happen)
+  // Use admin if available, otherwise use payment user_id
+  // Safeguard: If payment.user_id is 'PENDING' (legacy case), use admin or log warning
   let processedBy = adminUser?.id || payment.user_id;
   
-  // Final safeguard: if payment.user_id is 'PENDING' (legacy case), try to find any valid user
-  if (!processedBy || processedBy === 'PENDING') {
-    const fallbackUser = await db.users.findFirst({
-      where: { role: 'ADMIN' },
-      select: { id: true },
-    });
-    if (fallbackUser) {
-      processedBy = fallbackUser.id;
+  if (processedBy === 'PENDING' || !processedBy) {
+    if (adminUser) {
+      processedBy = adminUser.id;
+      logger.log(`⚠️  Payment user_id is PENDING, using admin for processed_by`);
     } else {
-      logger.log(`⚠️  No valid user found for processed_by, using payment user_id: ${payment.user_id}`);
-      // This will fail FK constraint if invalid, which is acceptable - better to fail than corrupt data
+      logger.log(`⚠️  No admin found and payment.user_id is PENDING, refund may fail FK constraint`);
+      // Will fail FK constraint if invalid - better to fail than corrupt data
       processedBy = payment.user_id;
     }
   }
   
-  logger.log(`📝 Recording refund processed by: ${processedBy === payment.user_id ? 'USER' : 'ADMIN'}`);
+  logger.log(`📝 Recording refund processed by: ${processedBy === payment.user_id ? 'USER (no admin found)' : 'ADMIN'}`);
 
   // Record refund
   await db.refunds.create({
