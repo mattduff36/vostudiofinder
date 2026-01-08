@@ -141,8 +141,9 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
           clearTimeout(animationTimeoutRef.current);
           animationTimeoutRef.current = null;
         }
+        // Reset all states immediately on error
+        setIsAnimatingOut(false);
         setIsSubmitting(false);
-        setIsAnimatingOut(false); // Ensure animation state is cleared on error
       }
     } catch (error) {
       console.error('Error setting cookie consent:', error);
@@ -151,8 +152,9 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
         clearTimeout(animationTimeoutRef.current);
         animationTimeoutRef.current = null;
       }
+      // Reset all states immediately on error
+      setIsAnimatingOut(false);
       setIsSubmitting(false);
-      setIsAnimatingOut(false); // Ensure animation state is cleared on error
     }
   };
 

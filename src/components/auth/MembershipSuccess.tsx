@@ -175,10 +175,20 @@ export function MembershipSuccess() {
           }
 
           if (statusData.hasPayment && statusData.paymentStatus === 'succeeded') {
+            // Ensure sessionId was actually returned
+            if (!statusData.sessionId) {
+              setError({
+                message: 'Payment found but session ID is missing. Please contact support.',
+                code: 'MISSING_SESSION_ID',
+                canRetry: false,
+              });
+              return;
+            }
             recoveredSessionId = statusData.sessionId;
             recoveredUsername = statusData.user?.username;
             recoveredName = statusData.user?.display_name;
             console.log('✅ Recovered payment data from database');
+            // Continue to payment verification below
           } else {
             setError({
               message: 'No successful payment found. Please complete your payment first.',

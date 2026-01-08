@@ -81,9 +81,23 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
         redirect('/auth/signup?error=invalid_user_status');
       }
 
-      // Payment verified - allow access
-      console.log(`✅ Payment verified for unauthenticated user: ${user.email}`);
-      return <MembershipSuccess />;
+      // Security: Verify email parameter matches payment's user email (if provided)
+      // This prevents unauthorized access if someone gets the session_id
+      if (params.email && params.email.toLowerCase() !== user.email.toLowerCase()) {
+        console.error('❌ Email mismatch:', params.email, 'vs', user.email);
+        redirect('/auth/signup?error=email_mismatch');
+      }
+
+      // If email is provided and matches, allow access (user is verifying their own payment)
+      // Otherwise, redirect to sign-in to authenticate before accessing profile creation
+      if (params.email && params.email.toLowerCase() === user.email.toLowerCase()) {
+        console.log(`✅ Payment verified for unauthenticated user: ${user.email} (email verified)`);
+        return <MembershipSuccess />;
+      }
+
+      // No email provided - require authentication for security
+      const callbackUrl = encodeURIComponent(`/auth/membership/success?session_id=${params.session_id}&email=${encodeURIComponent(user.email)}`);
+      redirect(`/auth/signin?callbackUrl=${callbackUrl}&email=${encodeURIComponent(user.email)}`);
     } catch (error) {
       console.error('Error verifying payment:', error);
       redirect('/auth/signup?error=verification_failed');
