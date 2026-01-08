@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
@@ -196,7 +196,7 @@ export default function AdminReservationsPage() {
       {/* Admin Tabs */}
       <AdminTabs activeTab="reservations" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8" style={{ minWidth: '1024px' }}>
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Username Reservations</h1>
@@ -334,33 +334,33 @@ export default function AdminReservationsPage() {
         {/* Users Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="w-full divide-y divide-gray-200" style={{ tableLayout: 'fixed' }}>
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '18%' }}>
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '14%' }}>
                     Username
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '10%' }}>
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Reservation Expires
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '14%' }}>
                     Payment Attempts
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '12%' }}>
                     Created
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '16%' }}>
+                    Reservation Expires
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '8%' }}>
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white">
                 {users.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
@@ -368,70 +368,81 @@ export default function AdminReservationsPage() {
                     </td>
                   </tr>
                 ) : (
-                  users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.display_name}
-                        </div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-mono text-gray-900">
-                          @{user.username}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(user.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {user.reservation_expires_at ? (
-                          <div>
-                            <div className="text-sm text-gray-900">
-                              {formatDate(user.reservation_expires_at)}
-                            </div>
-                            <div className="text-xs">
-                              {getExpiryStatus(user.reservation_expires_at)}
-                            </div>
+                  users.map((user, index) => (
+                    <React.Fragment key={user.id}>
+                      {/* Main data row */}
+                      <tr className={`hover:bg-gray-50 transition-colors ${index > 0 ? 'border-t border-gray-200' : ''}`}>
+                        <td className="px-4 pt-4 pb-1 align-top">
+                          <div className="text-sm font-medium text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
+                            {user.display_name}
                           </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {user.payment_retry_count > 0 ? (
-                            <span className="text-red-600 font-semibold">
-                              {user.payment_retry_count} failed
-                            </span>
-                          ) : user._count.payments > 0 ? (
-                            <span className="text-green-600">
-                              {user._count.payments} attempt{user._count.payments > 1 ? 's' : ''}
-                            </span>
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap align-top">
+                          <div className="text-sm font-mono text-gray-900">
+                            @{user.username}
+                          </div>
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap align-top">
+                          {getStatusBadge(user.status)}
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap align-top">
+                          <div className="text-sm text-gray-900">
+                            {user.payment_retry_count > 0 ? (
+                              <span className="text-red-600 font-semibold">
+                                {user.payment_retry_count} failed
+                              </span>
+                            ) : user._count.payments > 0 ? (
+                              <span className="text-green-600">
+                                {user._count.payments} attempt{user._count.payments > 1 ? 's' : ''}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">No attempts</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap text-sm text-gray-500 align-top">
+                          {formatDate(user.created_at)}
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap align-top">
+                          {user.reservation_expires_at ? (
+                            <div>
+                              <div className="text-sm text-gray-900">
+                                {formatDate(user.reservation_expires_at)}
+                              </div>
+                              <div className="text-xs">
+                                {getExpiryStatus(user.reservation_expires_at)}
+                              </div>
+                            </div>
                           ) : (
-                            <span className="text-gray-400">No attempts</span>
+                            <span className="text-sm text-gray-400">N/A</span>
                           )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(user.created_at)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Button
-                          onClick={() => handleDeleteReservation(user.id, user.email, user.username)}
-                          disabled={deletingUserId === user.id}
-                          variant="outline"
-                          className="border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 disabled:opacity-50"
-                          title="Permanently delete user and all associated data"
-                        >
-                          {deletingUserId === user.id ? (
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </td>
-                    </tr>
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap text-sm align-top">
+                          <Button
+                            onClick={() => handleDeleteReservation(user.id, user.email, user.username)}
+                            disabled={deletingUserId === user.id}
+                            variant="outline"
+                            className="border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 disabled:opacity-50"
+                            title="Permanently delete user and all associated data"
+                          >
+                            {deletingUserId === user.id ? (
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </td>
+                      </tr>
+                      {/* Email row - spans first 5 columns */}
+                      <tr className="hover:bg-gray-50 transition-colors">
+                        <td colSpan={5} className="px-4 pt-0 pb-4">
+                          <div className="text-sm text-gray-500 break-words">
+                            {user.email}
+                          </div>
+                        </td>
+                        <td colSpan={2}></td>
+                      </tr>
+                    </React.Fragment>
                   ))
                 )}
               </tbody>
