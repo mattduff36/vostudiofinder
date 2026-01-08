@@ -2,11 +2,11 @@
 
 import { AlertCircle, CreditCard, Mail, Shield, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import Link from 'next/link';
 
 interface SignupErrorAlertProps {
   error: string;
-  onDismiss?: () => void;
 }
 
 const errorConfig: Record<string, {
@@ -78,7 +78,7 @@ const errorConfig: Record<string, {
   },
 };
 
-export function SignupErrorAlert({ error, onDismiss }: SignupErrorAlertProps) {
+export function SignupErrorAlert({ error }: SignupErrorAlertProps) {
   const config = errorConfig[error] || {
     title: 'An Error Occurred',
     message: 'We encountered an unexpected error. Please try again or contact support if the problem persists.',
@@ -90,84 +90,56 @@ export function SignupErrorAlert({ error, onDismiss }: SignupErrorAlertProps) {
     severity: 'error',
   };
 
-  const bgColor = config.severity === 'error' 
-    ? 'bg-red-50 border-red-200' 
-    : config.severity === 'warning'
-    ? 'bg-yellow-50 border-yellow-200'
-    : 'bg-blue-50 border-blue-200';
-
-  const textColor = config.severity === 'error'
-    ? 'text-red-800'
-    : config.severity === 'warning'
-    ? 'text-yellow-800'
-    : 'text-blue-800';
-
-  const iconColor = config.severity === 'error'
-    ? 'text-red-600'
-    : config.severity === 'warning'
-    ? 'text-yellow-600'
-    : 'text-blue-600';
-
   return (
-    <div className={`${bgColor} border rounded-lg p-6 mb-6 relative`}>
-      {onDismiss && (
-        <button
-          onClick={onDismiss}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-          aria-label="Dismiss"
-        >
-          <XCircle className="h-5 w-5" />
-        </button>
-      )}
-      
-      <div className="flex items-start space-x-4">
-        <div className={`flex-shrink-0 ${iconColor}`}>
-          {config.icon}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <h3 className={`text-lg font-semibold ${textColor} mb-2`}>
-            {config.title}
-          </h3>
+    <Modal isOpen={true} preventBackdropClose={true} maxWidth="md">
+      <div className="py-8 px-4 sm:px-10">
+        <div className="flex items-start space-x-4">
+          <div className="flex-shrink-0 text-red-600">
+            {config.icon}
+          </div>
           
-          <p className={`text-sm ${textColor} mb-4`}>
-            {config.message}
-          </p>
-          
-          <div className="flex flex-wrap gap-3">
-            {config.actions.map((action, index) => {
-              if (action.href) {
-                return (
-                  <Link key={index} href={action.href}>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-text-primary mb-2">
+              {config.title}
+            </h3>
+            
+            <p className="text-sm text-text-secondary mb-4">
+              {config.message}
+            </p>
+            
+            <div className="flex flex-wrap gap-3">
+              {config.actions.map((action, index) => {
+                if (action.href) {
+                  return (
+                    <Link key={index} href={action.href}>
+                      <Button
+                        variant={action.variant === 'primary' ? 'primary' : 'outline'}
+                      >
+                        {action.label}
+                      </Button>
+                    </Link>
+                  );
+                }
+                
+                if ('onClick' in action && action.onClick) {
+                  return (
                     <Button
+                      key={index}
                       variant={action.variant === 'primary' ? 'primary' : 'outline'}
-                      className={action.variant === 'primary' ? 'bg-red-600 hover:bg-red-700' : ''}
+                      onClick={action.onClick}
                     >
                       {action.label}
                     </Button>
-                  </Link>
-                );
-              }
-              
-              if ('onClick' in action && action.onClick) {
-                return (
-                  <Button
-                    key={index}
-                    variant={action.variant === 'primary' ? 'primary' : 'outline'}
-                    onClick={action.onClick}
-                    className={action.variant === 'primary' ? 'bg-red-600 hover:bg-red-700' : ''}
-                  >
-                    {action.label}
-                  </Button>
-                );
-              }
-              
-              return null;
-            })}
+                  );
+                }
+                
+                return null;
+              })}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 

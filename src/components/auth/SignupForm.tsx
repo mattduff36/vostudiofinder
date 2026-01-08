@@ -261,16 +261,8 @@ export function SignupForm() {
   };
 
   return (
-    <div className="w-full max-w-2xl space-y-6">
-      <SignupProgressIndicator currentStep="signup" />
-      
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-text-primary">List Your Studio</h1>
-        <p className="mt-2 text-text-secondary">
-          Start your membership to showcase your studio to voice artists worldwide
-        </p>
-      </div>
-
+    <>
+      {/* Render modal separately from form */}
       {pendingSignup && (
         <ResumeSignupBanner
           resumeStep={pendingSignup.resumeStep}
@@ -280,6 +272,16 @@ export function SignupForm() {
           isLoading={isLoading}
         />
       )}
+
+      <div className="w-full max-w-2xl space-y-6">
+        <SignupProgressIndicator currentStep="signup" />
+        
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-text-primary">List Your Studio</h1>
+          <p className="mt-2 text-text-secondary">
+            Start your membership to showcase your studio to voice artists worldwide
+          </p>
+        </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {error && (
@@ -390,6 +392,7 @@ export function SignupForm() {
           </p>
         </div>
       </form>
-    </div>
+      </div>
+    </>
   );
 }
