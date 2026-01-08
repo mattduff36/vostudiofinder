@@ -96,7 +96,12 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       }
 
       // No email provided - require authentication for security
-      const callbackUrl = encodeURIComponent(`/auth/membership/success?session_id=${params.session_id}&email=${encodeURIComponent(user.email)}`);
+      // Use URLSearchParams to properly encode callback URL parameters
+      const callbackParams = new URLSearchParams({
+        session_id: params.session_id || '',
+        email: user.email,
+      });
+      const callbackUrl = encodeURIComponent(`/auth/membership/success?${callbackParams.toString()}`);
       redirect(`/auth/signin?callbackUrl=${callbackUrl}&email=${encodeURIComponent(user.email)}`);
     } catch (error) {
       console.error('Error verifying payment:', error);
