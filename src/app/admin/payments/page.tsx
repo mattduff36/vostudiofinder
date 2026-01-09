@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
@@ -375,7 +375,7 @@ export default function AdminPaymentsPage() {
                     const isRefundModalOpen = refundModalPaymentId === payment.id;
 
                     return (
-                      <>
+                      <Fragment key={payment.id}>
                         {/* Success Message Row */}
                         {refundSuccess === payment.id && (
                           <tr key={`${payment.id}-success`}>
@@ -608,7 +608,7 @@ export default function AdminPaymentsPage() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })
                 )}
