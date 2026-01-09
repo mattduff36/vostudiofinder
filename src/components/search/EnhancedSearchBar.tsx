@@ -460,38 +460,40 @@ export function EnhancedSearchBar({
 
   // Handle suggestion selection
   const handleSelect = (suggestion: SearchSuggestion, shouldSearch: boolean = false) => {
+    let locationToSearch: { name: string; coordinates?: { lat: number; lng: number } } | null = null;
+    
     if (suggestion.type === 'location') {
       // For locations, use the full address (now stored in suggestion.text)
       const fullAddress = suggestion.metadata?.full_address || suggestion.text;
-      setSelectedLocation({
+      locationToSearch = {
         name: fullAddress,
         ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
-      });
+      };
+      setSelectedLocation(locationToSearch);
       setQuery(fullAddress); // Put full address in input box
     } else if (suggestion.type === 'user') {
       // For users, use their actual location address from metadata, not the formatted text
       const actualLocation = suggestion.metadata?.full_location || suggestion.text;
-      setSelectedLocation({
+      locationToSearch = {
         name: actualLocation,
         ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
-      });
+      };
+      setSelectedLocation(locationToSearch);
       setQuery(suggestion.text); // Keep the formatted username in the search box for display
     }
     
     setIsOpen(false);
     setSelectedIndex(-1);
     
-    // If shouldSearch is true, perform the search immediately
-    if (shouldSearch) {
-      // Use setTimeout to ensure state updates are applied before searching
-      setTimeout(() => {
-        handleSearch();
-      }, 0);
+    // If shouldSearch is true, perform the search immediately with the selected location
+    if (shouldSearch && locationToSearch) {
+      // Pass the location directly to avoid state update timing issues
+      handleSearch(locationToSearch);
     }
   };
 
   // Handle search submission
-  const handleSearch = async () => {
+  const handleSearch = async (locationOverride?: { name: string; coordinates?: { lat: number; lng: number } }) => {
     // Close dropdown if open
     setIsOpen(false);
     setSelectedIndex(-1);
@@ -500,15 +502,16 @@ export function EnhancedSearchBar({
     // This is less intrusive than asking on page load
     await requestUserLocation();
     
+    // Use the provided location override (from suggestion click) or fall back to state
+    const locationToUse = locationOverride || selectedLocation;
     const searchQuery = query.trim();
-    if (searchQuery) {
-      if (selectedLocation) {
-        // Use the selected location (which is the actual address for users)
-        performLocationSearch(selectedLocation.name, selectedLocation.coordinates);
-      } else {
-        // Try to geocode the query
-        performLocationSearch(searchQuery);
-      }
+    
+    if (locationToUse) {
+      // Use the selected/provided location (which is the actual address for users)
+      performLocationSearch(locationToUse.name, locationToUse.coordinates);
+    } else if (searchQuery) {
+      // Try to geocode the query
+      performLocationSearch(searchQuery);
     }
   };
 
