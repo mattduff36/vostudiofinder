@@ -12,7 +12,8 @@ import { resolve } from 'path';
 dotenv.config({ path: resolve(process.cwd(), '.env.local') });
 
 import { PrismaClient, UserStatus, PaymentStatus } from '@prisma/client';
-import { createPendingUserData, createExpiredUserData, createActiveUserData } from './test-factories';
+// Unused test factory imports removed - can be re-added if needed
+// import { createPendingUserData, createExpiredUserData, createActiveUserData } from './test-factories';
 
 const prisma = new PrismaClient();
 

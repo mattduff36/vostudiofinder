@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
@@ -50,7 +50,7 @@ export default function AdminReservationsPage() {
   }, [session, sessionStatus, router]);
 
   // Fetch pending users
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -72,13 +72,13 @@ export default function AdminReservationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, statusFilter]);
 
   useEffect(() => {
     if (session?.user?.role === 'ADMIN') {
       fetchUsers();
     }
-  }, [session, statusFilter]);
+  }, [session, fetchUsers]);
 
   const handleSearch = () => {
     fetchUsers();

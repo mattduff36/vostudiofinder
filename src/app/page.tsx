@@ -34,6 +34,9 @@ export const metadata: Metadata = {
   },
 };
 
+// Cache homepage for 10 minutes (600 seconds)
+export const revalidate = 600;
+
 export default async function Home() {
   const session = await getServerSession(authOptions);
   

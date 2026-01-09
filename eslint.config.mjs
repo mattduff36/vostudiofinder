@@ -1,6 +1,7 @@
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 import reactHooks from 'eslint-plugin-react-hooks';
+import sonarjs from 'eslint-plugin-sonarjs';
 
 const eslintConfig = [
   {
@@ -42,6 +43,7 @@ const eslintConfig = [
     plugins: {
       '@typescript-eslint': tseslint,
       'react-hooks': reactHooks,
+      'sonarjs': sonarjs,
     },
     rules: {
       'no-console': 'warn',
@@ -51,6 +53,9 @@ const eslintConfig = [
       '@typescript-eslint/no-unused-vars': 'warn',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+      'sonarjs/cognitive-complexity': ['warn', 15],
+      'sonarjs/no-duplicate-string': 'warn',
+      'sonarjs/no-identical-functions': 'warn',
     },
   },
 ];

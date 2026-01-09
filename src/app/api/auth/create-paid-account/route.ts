@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 import { sendVerificationEmail } from '@/lib/email/email-service';
 import { UserStatus } from '@prisma/client';
+import { getBaseUrl } from '@/lib/seo/site';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
   apiVersion: '2025-10-29.clover',
@@ -209,7 +210,7 @@ export async function POST(request: NextRequest) {
       }
       
       // Send verification email
-      const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${result.verificationToken}`;
+      const verificationUrl = `${getBaseUrl()}/api/auth/verify-email?token=${result.verificationToken}`;
       
       try {
         const emailSent = await sendVerificationEmail(

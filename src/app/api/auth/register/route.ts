@@ -7,6 +7,7 @@ import { sendVerificationEmail } from '@/lib/email/email-service';
 import { UserStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { ZodError } from 'zod';
+import { getBaseUrl } from '@/lib/seo/site';
 
 export async function POST(request: NextRequest) {
   try {
@@ -195,7 +196,7 @@ export async function POST(request: NextRequest) {
     console.log(`✅ Created PENDING user: ${user.email} (ID: ${user.id}), reservation expires: ${reservationExpires.toISOString()}`);
     
     // Send verification email immediately
-    const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${getBaseUrl()}/api/auth/verify-email?token=${verificationToken}`;
     
     try {
       const emailSent = await sendVerificationEmail(

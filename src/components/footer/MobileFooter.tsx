@@ -97,7 +97,7 @@ export function MobileFooter() {
           {/* Social Link - Text only, no icon */}
           <div className="pt-4 border-t border-gray-800">
             <a
-              href="https://twitter.com/VOStudioFinder"
+              href="https://x.com/VOStudioFinder"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-gray-400 hover:text-white transition-colors inline-block"

@@ -291,11 +291,7 @@ export default function AdminStudiosPage() {
     };
   }, [loading, studios.length, hiddenColumns]);
 
-  useEffect(() => {
-    fetchStudios();
-  }, [search, statusFilter, pagination.offset, sortBy, sortOrder]);
-
-  const fetchStudios = async () => {
+  const fetchStudios = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -329,7 +325,11 @@ export default function AdminStudiosPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, statusFilter, pagination.offset, pagination.limit, sortBy, sortOrder]);
+
+  useEffect(() => {
+    fetchStudios();
+  }, [fetchStudios]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);

@@ -26,7 +26,7 @@ import {
   generateTestEmail,
   prisma,
 } from '../__helpers__/test-db';
-import { UserStatus, PaymentStatus, RefundStatus } from '@prisma/client';
+import { PaymentStatus, RefundStatus } from '@prisma/client';
 import Stripe from 'stripe';
 
 // Mock Stripe
@@ -70,7 +70,7 @@ describe('Refund Webhook Handler', () => {
     });
 
     // Mock webhook signature verification
-    (stripe.webhooks.constructEvent as jest.Mock).mockImplementation((payload, signature, secret) => {
+    (stripe.webhooks.constructEvent as jest.Mock).mockImplementation((payload, _signature, _secret) => {
       return JSON.parse(payload.toString());
     });
   });
