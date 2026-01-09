@@ -138,12 +138,12 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                       cx="50%"
                       cy="50%"
                       labelLine={true}
-                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      label={({ name, percent }) => `${name} (${percent ? (percent * 100).toFixed(0) : '0'}%)`}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {insights.locationStats.map((entry, index) => (
+                      {insights.locationStats.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -153,7 +153,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                         border: '1px solid #e5e7eb',
                         borderRadius: '8px',
                       }}
-                      formatter={(value: number) => [`${value} studios`, 'Count']}
+                      formatter={(value: number | undefined) => value !== undefined ? [`${value} studios`, 'Count'] : ['0 studios', 'Count']}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -278,7 +278,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                   }}
-                  formatter={(value: number | undefined, name: string) => {
+                  formatter={(value: number | undefined, name: string | undefined) => {
                     if (name === 'revenue' && value !== undefined) return [`£${value}`, 'Revenue'];
                     if (value !== undefined) return [value, 'Payments'];
                     return ['', ''];
