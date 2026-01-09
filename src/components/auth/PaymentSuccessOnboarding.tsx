@@ -220,7 +220,7 @@ export function PaymentSuccessOnboarding({
             </p>
           </motion.div>
         </div>
-      </div>
+      </main>
 
       {/* Floating Action Bar */}
       <FloatingActionBar
