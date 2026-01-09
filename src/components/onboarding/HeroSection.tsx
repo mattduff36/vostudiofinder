@@ -94,15 +94,15 @@ export function HeroSection({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.6 }}
-          className="text-center mb-8"
+          className="text-center mb-8 px-4"
         >
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
             Welcome to Your
             <span className="block bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
               Studio Journey
             </span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 font-medium">
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-600 font-medium">
             Great to have you here, {userName}!
           </p>
         </motion.div>

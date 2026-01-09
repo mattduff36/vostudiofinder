@@ -123,7 +123,8 @@ export function FloatingActionBar({
             <div className="flex items-center gap-3">
               <Button
                 onClick={() => window.location.href = '/dashboard'}
-                className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group"
+                className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold px-6 py-3 min-h-[48px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group touch-manipulation"
+                aria-label="Navigate to dashboard"
               >
                 <LayoutDashboard className="w-5 h-5" />
                 <span className="hidden md:inline">Go to Dashboard</span>

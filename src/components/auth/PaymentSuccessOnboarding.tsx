@@ -192,7 +192,8 @@ export function PaymentSuccessOnboarding({
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
                 onClick={() => window.location.href = '/dashboard'}
-                className="w-full sm:w-auto bg-white text-red-600 hover:bg-gray-50 font-bold text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 group"
+                className="w-full sm:w-auto bg-white text-red-600 hover:bg-gray-50 font-bold text-lg px-8 py-4 min-h-[56px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 group touch-manipulation"
+                aria-label="Go to your dashboard"
               >
                 Go to Dashboard
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
