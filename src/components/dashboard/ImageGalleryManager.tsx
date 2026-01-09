@@ -2,7 +2,7 @@
 import { logger } from '@/lib/logger';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon, ChevronUp, ChevronDown } from 'lucide-react';
+import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon, ChevronUp, ChevronDown, Star, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -53,9 +53,9 @@ export function ImageGalleryManager({
     profile: profileData.profile,
     studio: {
       name: profileData.studio?.name || null,
-      studio_types: profileData.studio_types,
+      studio_types: profileData.studio?.studio_types || [], // FIX: Access from studio object
       images: profileData.studio?.images || [],
-      website_url: profileData.studio?.website_url || null, // FIX: Add website_url
+      website_url: profileData.studio?.website_url || null,
     },
   }) : null;
 
@@ -465,7 +465,7 @@ export function ImageGalleryManager({
                 {/* Featured Badge for first image */}
                 {index === 0 && (
                   <div className="absolute top-2 left-2 px-2 py-1 bg-[#d42027] text-white text-xs font-bold rounded shadow-lg flex items-center gap-1">
-                    <span>⭐</span>
+                    <Star className="w-3 h-3" aria-hidden="true" />
                     <span>Featured</span>
                   </div>
                 )}
@@ -525,7 +525,7 @@ export function ImageGalleryManager({
                   {/* Featured Badge */}
                   {index === 0 && (
                     <div className="absolute top-3 left-3 px-2.5 py-1.5 bg-[#d42027] text-white text-xs font-bold rounded shadow-lg flex items-center gap-1">
-                      <span>⭐</span>
+                      <Star className="w-3 h-3" aria-hidden="true" />
                       <span>Featured</span>
                     </div>
                   )}
@@ -595,9 +595,12 @@ export function ImageGalleryManager({
           </div>
 
           <div className="mt-6 pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-500">
-              💡 <strong>Tip:</strong> <span className="hidden md:inline">Drag and drop images to reorder them.</span><span className="md:hidden">Use the up/down buttons to reorder images.</span> The first image is your featured image.<br />
-              <span className="text-gray-400">Recommended ratio: 25:12. Example sizes: 2500×1200 or 2000×960. You'll be able to adjust the framing after selecting an image.</span>
+            <p className="text-xs text-gray-500 flex gap-2">
+              <Lightbulb className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <span>
+                <strong>Tip:</strong> <span className="hidden md:inline">Drag and drop images to reorder them.</span><span className="md:hidden">Use the up/down buttons to reorder images.</span> The first image is your featured image.<br />
+                <span className="text-gray-400">Recommended ratio: 25:12. Example sizes: 2500×1200 or 2000×960. You'll be able to adjust the framing after selecting an image.</span>
+              </span>
             </p>
           </div>
         </div>
