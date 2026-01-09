@@ -161,7 +161,7 @@ describe('GET /api/auth/verify-email', () => {
         data: {
           user_id: user.id,
           name: 'Test Studio',
-          visible: false, // Initially not visible
+          is_profile_visible: false, // Initially not visible
         },
       });
 
@@ -183,7 +183,7 @@ describe('GET /api/auth/verify-email', () => {
       const studioProfile = await db.studio_profiles.findUnique({
         where: { user_id: user.id },
       });
-      expect(studioProfile?.visible).toBe(true);
+      expect(studioProfile?.is_profile_visible).toBe(true);
     });
   });
 

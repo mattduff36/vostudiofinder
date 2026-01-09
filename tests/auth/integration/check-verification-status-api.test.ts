@@ -250,7 +250,7 @@ describe('POST /api/auth/check-verification-status', () => {
       const response1 = await POST(request1);
       const data1 = await response1.json();
 
-      expect(data1.isVerified).toBe(false);
+      expect(data1.verified).toBe(false);
 
       // Verify user
       const { db } = await import('@/lib/db');
@@ -268,7 +268,7 @@ describe('POST /api/auth/check-verification-status', () => {
       const response2 = await POST(request2);
       const data2 = await response2.json();
 
-      expect(data2.isVerified).toBe(true);
+      expect(data2.verified).toBe(true);
     });
   });
 });
