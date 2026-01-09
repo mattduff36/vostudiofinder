@@ -120,7 +120,11 @@ if (typeof globalThis.Request === 'undefined') {
         get(name) { return this._map.get(name.toLowerCase()) }
         set(name, value) { this._map.set(name.toLowerCase(), value) }
         has(name) { return this._map.has(name.toLowerCase()) }
-        delete(name) { return this._map.delete(name.toLowerCase()) }
+        delete(name) { 
+          this._map.delete(name.toLowerCase())
+          // Fetch API spec requires delete() to return undefined, not boolean
+          return undefined
+        }
         entries() { return this._map.entries() }
         keys() { return this._map.keys() }
         values() { return this._map.values() }
