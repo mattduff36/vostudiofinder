@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { CheckCircle, Circle } from 'lucide-react';
+import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
 interface ProfileCompletionProgressProps {
   profileData: {
@@ -41,11 +42,54 @@ interface ProfileCompletionProgressProps {
 interface ProfileField {
   label: string;
   completed: boolean;
-  weight: number; // How much this field contributes to completion (out of 100)
-  required: boolean; // Whether this field is required for profile to go live
+  required: boolean;
 }
 
 export function ProfileCompletionProgress({ profileData }: ProfileCompletionProgressProps) {
+  // Use the single source of truth for calculation
+  const completionStats = useMemo(() => {
+    return calculateCompletionStats({
+      user: {
+        username: profileData.username || '',
+        display_name: profileData.display_name || '',
+        email: profileData.email || '',
+        avatar_url: profileData.avatar_url || null,
+      },
+      profile: {
+        short_about: profileData.short_about || null,
+        about: profileData.about || null,
+        phone: profileData.phone || null,
+        location: profileData.location || null,
+        website_url: profileData.website_url || null,
+        connection1: profileData.connection1 || null,
+        connection2: profileData.connection2 || null,
+        connection3: profileData.connection3 || null,
+        connection4: profileData.connection4 || null,
+        connection5: profileData.connection5 || null,
+        connection6: profileData.connection6 || null,
+        connection7: profileData.connection7 || null,
+        connection8: profileData.connection8 || null,
+        rate_tier_1: profileData.rate_tier_1 || null,
+        equipment_list: profileData.equipment_list || null,
+        services_offered: profileData.services_offered || null,
+        facebook_url: profileData.facebook_url || null,
+        twitter_url: profileData.twitter_url || null,
+        linkedin_url: profileData.linkedin_url || null,
+        instagram_url: profileData.instagram_url || null,
+        youtube_url: profileData.youtube_url || null,
+        vimeo_url: profileData.vimeo_url || null,
+        soundcloud_url: profileData.soundcloud_url || null,
+      },
+      studio: {
+        name: profileData.studio_name || null,
+        studio_types: profileData.studio_types_count ? Array(profileData.studio_types_count).fill('type') : [],
+        images: profileData.images_count ? Array(profileData.images_count).fill({}) : [],
+      },
+    });
+  }, [profileData]);
+
+  const completionPercentage = completionStats.overall.percentage;
+
   // Count social media links (need at least 2) - memoized to prevent recalculation on every render
   const socialMediaCount = useMemo(() => [
     profileData.facebook_url,
@@ -77,39 +121,31 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
     profileData.connection8 === '1'
   );
 
-  // REQUIRED fields - must complete all 11 to publish profile (each worth ~5.88%) - memoized
+  // REQUIRED fields - must complete all 11 to publish profile - memoized
   const requiredFields = useMemo((): ProfileField[] => [
-    { label: 'Username', completed: !!(profileData.username && profileData.username.trim()), weight: 5.88, required: true },
-    { label: 'Display Name', completed: !!(profileData.display_name && profileData.display_name.trim()), weight: 5.88, required: true },
-    { label: 'Email', completed: !!(profileData.email && profileData.email.trim()), weight: 5.88, required: true },
-    { label: 'Studio Name', completed: !!(profileData.studio_name && profileData.studio_name.trim()), weight: 5.88, required: true },
-    { label: 'Short About', completed: !!(profileData.short_about && profileData.short_about.trim()), weight: 5.88, required: true },
-    { label: 'Full About', completed: !!(profileData.about && profileData.about.trim()), weight: 5.88, required: true },
-    { label: 'Studio Type selected', completed: (profileData.studio_types_count || 0) >= 1, weight: 5.88, required: true },
-    { label: 'Location', completed: !!(profileData.location && profileData.location.trim()), weight: 5.88, required: true },
-    { label: 'Connection Methods', completed: hasConnectionMethod, weight: 5.88, required: true },
-    { label: 'Website URL', completed: !!(profileData.website_url && profileData.website_url.trim()), weight: 5.88, required: true },
-    { label: 'At least 1 image', completed: (profileData.images_count || 0) >= 1, weight: 5.92, required: true }, // 5.92 to balance to 100
+    { label: 'Username', completed: !!(profileData.username && !profileData.username.startsWith('temp_')), required: true },
+    { label: 'Display Name', completed: !!(profileData.display_name && profileData.display_name.trim()), required: true },
+    { label: 'Email', completed: !!(profileData.email && profileData.email.trim()), required: true },
+    { label: 'Studio Name', completed: !!(profileData.studio_name && profileData.studio_name.trim()), required: true },
+    { label: 'Short About', completed: !!(profileData.short_about && profileData.short_about.trim()), required: true },
+    { label: 'Full About', completed: !!(profileData.about && profileData.about.trim()), required: true },
+    { label: 'Studio Type selected', completed: (profileData.studio_types_count || 0) >= 1, required: true },
+    { label: 'Location', completed: !!(profileData.location && profileData.location.trim()), required: true },
+    { label: 'Connection Methods', completed: hasConnectionMethod, required: true },
+    { label: 'Website URL', completed: !!(profileData.website_url && profileData.website_url.trim()), required: true },
+    { label: 'At least 1 image', completed: (profileData.images_count || 0) >= 1, required: true },
   ], [profileData.username, profileData.display_name, profileData.email, profileData.studio_name, profileData.short_about, profileData.about, profileData.studio_types_count, profileData.location, hasConnectionMethod, profileData.website_url, profileData.images_count]);
 
-  // OPTIONAL fields - boost profile quality, also count toward 100% (each worth ~5.88%) - memoized
+  // OPTIONAL fields - boost profile quality, also count toward 100% - memoized
   const optionalFields = useMemo((): ProfileField[] => [
-    { label: 'Avatar', completed: !!(profileData.avatar_url && profileData.avatar_url.trim()), weight: 5.88, required: false },
-    { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), weight: 5.88, required: false },
-    { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, weight: 5.88, required: false },
-    { label: 'Session Rate Tier(s)', completed: !!(profileData.rate_tier_1 && (typeof profileData.rate_tier_1 === 'number' ? profileData.rate_tier_1 > 0 : parseFloat(profileData.rate_tier_1) > 0)), weight: 5.88, required: false },
-    { label: 'Equipment List', completed: !!(profileData.equipment_list && profileData.equipment_list.trim()), weight: 5.88, required: false },
-    { label: 'Services Offered', completed: !!(profileData.services_offered && profileData.services_offered.trim()), weight: 5.88, required: false },
+    { label: 'Avatar', completed: !!(profileData.avatar_url && profileData.avatar_url.trim()), required: false },
+    { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), required: false },
+    { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, required: false },
+    { label: 'Session Rate Tier(s)', completed: !!(profileData.rate_tier_1 && (typeof profileData.rate_tier_1 === 'number' ? profileData.rate_tier_1 > 0 : parseFloat(profileData.rate_tier_1) > 0)), required: false },
+    { label: 'Equipment List', completed: !!(profileData.equipment_list && profileData.equipment_list.trim()), required: false },
+    { label: 'Services Offered', completed: !!(profileData.services_offered && profileData.services_offered.trim()), required: false },
   ], [profileData.avatar_url, profileData.phone, socialMediaCount, profileData.rate_tier_1, profileData.equipment_list, profileData.services_offered]);
 
-  // Calculate completion percentage from ALL 17 fields (required + optional)
-  const allFields = [...requiredFields, ...optionalFields];
-  const completionPercentage = Math.round(
-    allFields.reduce((total, field) => {
-      return total + (field.completed ? field.weight : 0);
-    }, 0)
-  );
-  
   // Count completed optional fields
   const completedOptionalCount = optionalFields.filter(field => field.completed).length;
 
@@ -222,4 +258,3 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
     </div>
   );
 }
-
