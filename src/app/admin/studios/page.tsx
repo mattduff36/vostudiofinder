@@ -245,29 +245,53 @@ export default function AdminStudiosPage() {
       const tableContainer = tableContainerRef.current;
       const stickyScrollbarContent = stickyScrollbarContentRef.current;
       
-      if (!tableContainer || !stickyScrollbarContent) return;
+      if (!tableContainer || !stickyScrollbarContent) {
+        console.log('[STICKY-SCROLLBAR] Missing refs');
+        return;
+      }
 
       const table = tableContainer.querySelector('table');
-      if (!table) return;
+      if (!table) {
+        console.log('[STICKY-SCROLLBAR] No table found');
+        return;
+      }
 
-      const hasOverflow = table.scrollWidth > tableContainer.clientWidth;
+      const containerWidth = tableContainer.clientWidth;
+      const tableWidth = table.scrollWidth;
+      const hasOverflow = tableWidth > containerWidth;
+      
+      console.log('[STICKY-SCROLLBAR] Update:', {
+        containerWidth,
+        tableWidth,
+        hasOverflow,
+        currentShowState: showStickyScrollbar
+      });
+
       setShowStickyScrollbar(hasOverflow);
 
       if (hasOverflow) {
         // Set the content width to match the table's scroll width
-        stickyScrollbarContent.style.width = `${table.scrollWidth}px`;
+        stickyScrollbarContent.style.width = `${tableWidth}px`;
+        console.log('[STICKY-SCROLLBAR] Set content width to:', tableWidth);
       }
     };
 
-    // Initial update
-    const timer = setTimeout(updateStickyScrollbar, 100);
+    // Initial update with delay to ensure DOM is ready
+    const timer = setTimeout(updateStickyScrollbar, 150);
 
-    // Update on window resize
-    window.addEventListener('resize', updateStickyScrollbar);
+    // Update on window resize (debounced)
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(updateStickyScrollbar, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
 
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('resize', updateStickyScrollbar);
+      clearTimeout(resizeTimeout);
+      window.removeEventListener('resize', handleResize);
     };
   }, [loading, studios.length, hiddenColumns]);
 
@@ -1016,14 +1040,15 @@ export default function AdminStudiosPage() {
       {showStickyScrollbar && (
         <div
           ref={stickyScrollbarRef}
-          className="fixed bottom-0 left-0 right-0 h-4 overflow-x-auto overflow-y-hidden bg-gray-100 border-t border-gray-300 z-50"
+          className="fixed bottom-0 left-0 right-0 overflow-x-auto overflow-y-hidden bg-gray-200/95 backdrop-blur-sm border-t-2 border-gray-400 shadow-lg z-[9999]"
           style={{
-            scrollbarWidth: 'thin',
+            height: '20px',
+            scrollbarWidth: 'auto',
           }}
         >
           <div
             ref={stickyScrollbarContentRef}
-            className="h-full"
+            style={{ height: '1px' }}
           />
         </div>
       )}
