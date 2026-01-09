@@ -113,10 +113,11 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       console.log('💡 This usually means the Stripe webhook hasn\'t been received yet');
       console.log('💡 Retrying payment lookup (webhook may still be processing)...');
       
-      // Retry payment lookup up to 3 times with delays
+      // Retry payment lookup up to 5 times with delays
       // This handles the race condition where Stripe redirects before webhook processes
-      let retries = 3;
-      let retryDelay = 1000; // Start with 1 second
+      // Increased retries and delays to handle slower webhook processing
+      let retries = 5;
+      let retryDelay = 2000; // Start with 2 seconds (webhooks can take a few seconds)
       
       while (retries > 0) {
         await new Promise(resolve => setTimeout(resolve, retryDelay));
@@ -141,8 +142,8 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
         }
         
         retries--;
-        retryDelay *= 1.5; // Exponential backoff: 1s, 1.5s, 2.25s
-        console.log(`⏳ Retrying payment lookup... (${retries} attempts remaining)`);
+        retryDelay *= 1.5; // Exponential backoff: 2s, 3s, 4.5s, 6.75s, 10.125s
+        console.log(`⏳ Retrying payment lookup... (${retries} attempts remaining, next retry in ${Math.round(retryDelay / 1000)}s)`);
       }
       
       if (!payment) {
