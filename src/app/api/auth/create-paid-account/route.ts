@@ -6,6 +6,7 @@ import { createUser } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 import { sendVerificationEmail } from '@/lib/email/email-service';
+import { UserStatus } from '@prisma/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
   apiVersion: '2025-10-29.clover',
@@ -54,11 +55,78 @@ export async function POST(request: NextRequest) {
     // Check if user already exists
     const existingUser = await db.users.findUnique({
       where: { email: validatedData.email },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        display_name: true,
+        status: true,
+        verification_token: true,
+        verification_token_expiry: true,
+      },
     });
     
-    if (existingUser) {
+    // If user exists and is ACTIVE (webhook already processed), generate verification token and send email
+    if (existingUser && existingUser.status === UserStatus.ACTIVE) {
+      console.log('✅ User already ACTIVE (webhook processed), generating verification token');
+      
+      // Generate new verification token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      
+      // Update user with new verification token
+      await db.users.update({
+        where: { id: existingUser.id },
+        data: {
+          verification_token: verificationToken,
+          verification_token_expiry: verificationTokenExpiry,
+        },
+      });
+      
+      // Send verification email
+      const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${verificationToken}`;
+      
+      try {
+        const emailSent = await sendVerificationEmail(
+          existingUser.email,
+          existingUser.display_name,
+          verificationUrl
+        );
+        
+        if (emailSent) {
+          console.log('✅ Verification email sent successfully to:', existingUser.email);
+        } else {
+          console.warn('⚠️ Failed to send verification email to:', existingUser.email);
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending verification email:', emailError);
+        // Don't fail the request, email sending is non-critical
+      }
+      
       return NextResponse.json(
-        { error: 'User already exists with this email' },
+        {
+          success: true,
+          message: 'Verification email sent. Please check your email to verify your account.',
+          user: {
+            id: existingUser.id,
+            email: existingUser.email,
+            username: existingUser.username,
+            display_name: existingUser.display_name,
+            role: 'USER',
+          },
+        },
+        { status: 200 }
+      );
+    }
+    
+    // If user exists but is not ACTIVE, return error (shouldn't happen in normal flow)
+    if (existingUser && existingUser.status !== UserStatus.ACTIVE) {
+      return NextResponse.json(
+        { 
+          error: 'Account already exists but is not active. Please contact support.',
+          errorCode: 'ACCOUNT_EXISTS_NOT_ACTIVE',
+          canRetry: false,
+        },
         { status: 400 }
       );
     }
