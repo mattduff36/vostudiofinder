@@ -137,8 +137,37 @@ if (typeof globalThis.Request === 'undefined') {
           this.headers = new Headers(init.headers || undefined)
           this.body = init.body
         }
-        async json() { return JSON.parse(this.body || '{}') }
-        async text() { return this.body || '' }
+        async json() {
+          // Handle different body types safely
+          if (this.body === null || this.body === undefined) {
+            return {}
+          }
+          // If body is already an object, return it directly
+          if (typeof this.body === 'object' && !(this.body instanceof String)) {
+            return this.body
+          }
+          // If body is a string, parse it
+          if (typeof this.body === 'string') {
+            return JSON.parse(this.body || '{}')
+          }
+          // For other types, convert to string first
+          return JSON.parse(String(this.body || '{}'))
+        }
+        async text() {
+          if (this.body === null || this.body === undefined) {
+            return ''
+          }
+          // If body is already a string, return it
+          if (typeof this.body === 'string') {
+            return this.body
+          }
+          // If body is an object, stringify it
+          if (typeof this.body === 'object') {
+            return JSON.stringify(this.body)
+          }
+          // For other types, convert to string
+          return String(this.body)
+        }
       }
       globalThis.Response = class Response {
         constructor(body, init = {}) {
@@ -147,8 +176,37 @@ if (typeof globalThis.Request === 'undefined') {
           this.statusText = init.statusText || 'OK'
           this.headers = new Headers(init.headers || undefined)
         }
-        async json() { return JSON.parse(this.body || '{}') }
-        async text() { return this.body || '' }
+        async json() {
+          // Handle different body types safely
+          if (this.body === null || this.body === undefined) {
+            return {}
+          }
+          // If body is already an object, return it directly
+          if (typeof this.body === 'object' && !(this.body instanceof String)) {
+            return this.body
+          }
+          // If body is a string, parse it
+          if (typeof this.body === 'string') {
+            return JSON.parse(this.body || '{}')
+          }
+          // For other types, convert to string first
+          return JSON.parse(String(this.body || '{}'))
+        }
+        async text() {
+          if (this.body === null || this.body === undefined) {
+            return ''
+          }
+          // If body is already a string, return it
+          if (typeof this.body === 'string') {
+            return this.body
+          }
+          // If body is an object, stringify it
+          if (typeof this.body === 'object') {
+            return JSON.stringify(this.body)
+          }
+          // For other types, convert to string
+          return String(this.body)
+        }
         static json(data, init = {}) {
           // Convert Headers instance to plain object if needed, ensuring Content-Type is set
           // Use lowercase keys to prevent duplicate headers (HTTP headers are case-insensitive)
