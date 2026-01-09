@@ -50,6 +50,8 @@
     "audit:full": "npm run type-check && npm run lint && npm run lint:fast && npm run deps:check",
     "cleanup:neon-branches": "tsx scripts/cleanup-neon-branches.ts",
     "email:diagnose": "tsx scripts/diagnose-email-config.ts",
+    "dummy-data:add": "tsx scripts/add-dummy-admin-data.ts",
+    "dummy-data:delete": "tsx scripts/delete-dummy-admin-data.ts",
     "stripe:setup": "bash scripts/setup-stripe-dev.sh",
     "stripe:setup:dev": "bash scripts/setup-stripe-dev.sh --start-dev",
     "stripe:stop": "bash scripts/stop-stripe-dev.sh",
