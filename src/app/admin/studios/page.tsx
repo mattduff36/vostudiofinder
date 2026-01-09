@@ -216,16 +216,23 @@ export default function AdminStudiosPage() {
     const tableContainer = tableContainerRef.current;
     const stickyScrollbar = stickyScrollbarRef.current;
     
-    if (!tableContainer || !stickyScrollbar) return;
+    if (!tableContainer || !stickyScrollbar) {
+      console.log('[SCROLL-SYNC] Missing refs for scroll sync');
+      return;
+    }
+
+    console.log('[SCROLL-SYNC] Setting up scroll sync listeners');
 
     const handleTableScroll = () => {
       if (stickyScrollbar.scrollLeft !== tableContainer.scrollLeft) {
+        console.log('[SCROLL-SYNC] Table scrolled, syncing to sticky:', tableContainer.scrollLeft);
         stickyScrollbar.scrollLeft = tableContainer.scrollLeft;
       }
     };
 
     const handleStickyScroll = () => {
       if (tableContainer.scrollLeft !== stickyScrollbar.scrollLeft) {
+        console.log('[SCROLL-SYNC] Sticky scrolled, syncing to table:', stickyScrollbar.scrollLeft);
         tableContainer.scrollLeft = stickyScrollbar.scrollLeft;
       }
     };
@@ -234,6 +241,7 @@ export default function AdminStudiosPage() {
     stickyScrollbar.addEventListener('scroll', handleStickyScroll);
 
     return () => {
+      console.log('[SCROLL-SYNC] Cleaning up scroll sync listeners');
       tableContainer.removeEventListener('scroll', handleTableScroll);
       stickyScrollbar.removeEventListener('scroll', handleStickyScroll);
     };
@@ -243,9 +251,10 @@ export default function AdminStudiosPage() {
   useEffect(() => {
     const updateStickyScrollbar = () => {
       const tableContainer = tableContainerRef.current;
+      const stickyScrollbar = stickyScrollbarRef.current;
       const stickyScrollbarContent = stickyScrollbarContentRef.current;
       
-      if (!tableContainer || !stickyScrollbarContent) {
+      if (!tableContainer || !stickyScrollbar || !stickyScrollbarContent) {
         console.log('[STICKY-SCROLLBAR] Missing refs');
         return;
       }
@@ -256,6 +265,7 @@ export default function AdminStudiosPage() {
         return;
       }
 
+      const containerRect = tableContainer.getBoundingClientRect();
       const containerWidth = tableContainer.clientWidth;
       const tableWidth = table.scrollWidth;
       const hasOverflow = tableWidth > containerWidth;
@@ -264,15 +274,26 @@ export default function AdminStudiosPage() {
         containerWidth,
         tableWidth,
         hasOverflow,
+        containerLeft: containerRect.left,
+        containerRight: containerRect.right,
         currentShowState: showStickyScrollbar
       });
 
       setShowStickyScrollbar(hasOverflow);
 
       if (hasOverflow) {
+        // Position and size the sticky scrollbar to match the table container
+        stickyScrollbar.style.left = `${containerRect.left}px`;
+        stickyScrollbar.style.width = `${containerWidth}px`;
+        stickyScrollbar.style.right = 'auto'; // Override the right: 0 from className
+        
         // Set the content width to match the table's scroll width
         stickyScrollbarContent.style.width = `${tableWidth}px`;
-        console.log('[STICKY-SCROLLBAR] Set content width to:', tableWidth);
+        console.log('[STICKY-SCROLLBAR] Set dimensions:', {
+          scrollbarLeft: containerRect.left,
+          scrollbarWidth: containerWidth,
+          contentWidth: tableWidth
+        });
       }
     };
 
@@ -1039,7 +1060,7 @@ export default function AdminStudiosPage() {
       {/* Sticky Horizontal Scrollbar - Always rendered but hidden when not needed */}
       <div
         ref={stickyScrollbarRef}
-        className="fixed bottom-0 left-0 right-0 overflow-x-auto overflow-y-hidden bg-white/95 backdrop-blur-sm border-t-2 border-gray-300 shadow-lg z-[9999] transition-opacity"
+        className="fixed bottom-0 overflow-x-auto overflow-y-hidden bg-white/95 backdrop-blur-sm border-t-2 border-gray-300 shadow-lg z-[9999] transition-opacity"
         style={{
           height: '16px',
           opacity: showStickyScrollbar ? 1 : 0,
