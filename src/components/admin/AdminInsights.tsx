@@ -21,6 +21,7 @@ interface InsightsData {
   customConnectionsStats: Array<[string, number]>;
   locationStats: Array<{ name: string; count: number }>;
   studioTypeStats: Array<{ name: string; count: number }>;
+  studioTypeCombinationsStats: Array<{ name: string; count: number }>;
   signupTrend: Array<{ date: string; count: number }>;
   paymentTrend: Array<{ date: string; count: number; amount: number }>;
 }
@@ -151,43 +152,40 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
           )}
         </div>
 
-        {/* Studio Types Distribution */}
+        {/* Studio Types - Individual Counts */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-3 mb-6">
             <Building2 className="w-5 h-5 text-purple-600" />
             <div>
               <h3 className="text-lg font-bold text-gray-900">Studio Types</h3>
-              <p className="text-sm text-gray-600">Distribution by category</p>
+              <p className="text-sm text-gray-600">Individual type popularity</p>
             </div>
           </div>
-          {studioTypeChartData.length > 0 ? (
-            <div className="flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={studioTypeChartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {studioTypeChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff', 
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+          {insights.studioTypeStats.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={insights.studioTypeStats.map(item => ({
+                name: item.name.replace('_', ' ').toLowerCase(),
+                count: item.count,
+              }))} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis type="number" stroke="#6b7280" fontSize={12} />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  width={120}
+                  stroke="#6b7280" 
+                  fontSize={11}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           ) : (
             <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
               No studio type data available
@@ -195,6 +193,44 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
           )}
         </div>
       </div>
+
+      {/* Studio Type Combinations */}
+      {insights.studioTypeCombinationsStats.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Building2 className="w-5 h-5 text-purple-600" />
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Common Studio Type Combinations</h3>
+              <p className="text-sm text-gray-600">Most popular multi-type combinations</p>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={Math.min(insights.studioTypeCombinationsStats.length * 40 + 100, 400)}>
+            <BarChart data={insights.studioTypeCombinationsStats.map(item => ({
+              name: item.name.replace(/_/g, ' ').toLowerCase(),
+              count: item.count,
+            }))} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis type="number" stroke="#6b7280" fontSize={12} />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                width={200}
+                stroke="#6b7280" 
+                fontSize={10}
+                angle={0}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#fff', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                }}
+              />
+              <Bar dataKey="count" fill="#a855f7" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Trend Charts (Full Width) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

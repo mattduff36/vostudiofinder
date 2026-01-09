@@ -124,10 +124,12 @@ export default async function AdminPage() {
       select: { location: true },
     }),
 
-    // Studio types distribution
-    db.studio_studio_types.groupBy({
-      by: ['studio_type'],
-      _count: true,
+    // Studio types distribution - get all studio types with studio IDs to calculate combinations
+    db.studio_studio_types.findMany({
+      select: {
+        studio_id: true,
+        studio_type: true,
+      },
     }),
 
     // Signups in last 30 days (for trend chart)
@@ -172,11 +174,42 @@ export default async function AdminPage() {
     locationStats.push({ name: 'Other', count: otherLocationsCount });
   }
 
-  // Studio types data (already aggregated by Prisma)
-  const studioTypeStats = studioTypesData.map(item => ({
-    name: item.studio_type,
-    count: item._count,
-  }));
+  // Studio types data - calculate individual counts and combinations
+  const studioTypeMap = new Map<string, number>();
+  const studioTypeCombinations = new Map<string, number>();
+  
+  // Group by studio_id to get combinations
+  const studiosByType = new Map<string, Set<string>>();
+  studioTypesData.forEach(item => {
+    // Count individual types
+    studioTypeMap.set(item.studio_type, (studioTypeMap.get(item.studio_type) || 0) + 1);
+    
+    // Track which studios have which types
+    if (!studiosByType.has(item.studio_id)) {
+      studiosByType.set(item.studio_id, new Set());
+    }
+    studiosByType.get(item.studio_id)!.add(item.studio_type);
+  });
+  
+  // Calculate combinations
+  studiosByType.forEach((types, studioId) => {
+    if (types.size > 1) {
+      // Create sorted combination key
+      const combination = Array.from(types).sort().join(' + ');
+      studioTypeCombinations.set(combination, (studioTypeCombinations.get(combination) || 0) + 1);
+    }
+  });
+  
+  // Individual type stats
+  const studioTypeStats = Array.from(studioTypeMap.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+  
+  // Top combinations (most common)
+  const studioTypeCombinationsStats = Array.from(studioTypeCombinations.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10); // Top 10 combinations
 
   // Signups per day (last 30 days)
   const signupsByDay = new Map<string, number>();
@@ -395,6 +428,7 @@ export default async function AdminPage() {
         customConnectionsStats,
         locationStats,
         studioTypeStats,
+        studioTypeCombinationsStats,
         signupTrend,
         paymentTrend,
       }}
