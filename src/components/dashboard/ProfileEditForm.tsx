@@ -76,6 +76,7 @@ interface ProfileData {
     city?: string;
     website_url?: string;
     phone?: string;
+    images?: any[];
   };
   studio_types: string[];
 }
@@ -199,7 +200,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       studio: {
         name: profile.studio?.name || null,
         studio_types: profile.studio_types,
-        images: [], // Images are managed separately
+        images: profile.studio?.images || [], // Get actual images from studio
       },
     });
   }, [profile]);
