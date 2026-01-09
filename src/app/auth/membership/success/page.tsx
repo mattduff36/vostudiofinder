@@ -316,27 +316,27 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
 
   // Map fields to completion status
   const requiredFieldsWithStatus = [
-    { ...REQUIRED_FIELDS[0], completed: !!(user.username && !user.username.startsWith('temp_')) },
-    { ...REQUIRED_FIELDS[1], completed: !!(user.display_name && user.display_name.trim()) },
-    { ...REQUIRED_FIELDS[2], completed: !!(user.email && user.email.trim()) },
-    { ...REQUIRED_FIELDS[3], completed: !!(studioProfile?.name && studioProfile.name.trim()) },
-    { ...REQUIRED_FIELDS[4], completed: !!(studioProfile?.short_about && studioProfile.short_about.trim()) },
-    { ...REQUIRED_FIELDS[5], completed: !!(studioProfile?.about && studioProfile.about.trim()) },
-    { ...REQUIRED_FIELDS[6], completed: !!(studioProfile?.studio_studio_types && studioProfile.studio_studio_types.length >= 1) },
-    { ...REQUIRED_FIELDS[7], completed: !!(studioProfile?.location && studioProfile.location.trim()) },
-    { ...REQUIRED_FIELDS[8], completed: hasConnectionMethod },
-    { ...REQUIRED_FIELDS[9], completed: !!(studioProfile?.website_url && studioProfile.website_url.trim()) },
-    { ...REQUIRED_FIELDS[10], completed: !!(studioProfile?.studio_images && studioProfile.studio_images.length >= 1) },
-  ] as Array<{ name: string; required: boolean; completed: boolean; where: string; how: string; why: string }>;
+    { name: REQUIRED_FIELDS[0]!.name, required: true, completed: !!(user.username && !user.username.startsWith('temp_')), where: REQUIRED_FIELDS[0]!.where, how: REQUIRED_FIELDS[0]!.how, why: REQUIRED_FIELDS[0]!.why },
+    { name: REQUIRED_FIELDS[1]!.name, required: true, completed: !!(user.display_name && user.display_name.trim()), where: REQUIRED_FIELDS[1]!.where, how: REQUIRED_FIELDS[1]!.how, why: REQUIRED_FIELDS[1]!.why },
+    { name: REQUIRED_FIELDS[2]!.name, required: true, completed: !!(user.email && user.email.trim()), where: REQUIRED_FIELDS[2]!.where, how: REQUIRED_FIELDS[2]!.how, why: REQUIRED_FIELDS[2]!.why },
+    { name: REQUIRED_FIELDS[3]!.name, required: true, completed: !!(studioProfile?.name && studioProfile.name.trim()), where: REQUIRED_FIELDS[3]!.where, how: REQUIRED_FIELDS[3]!.how, why: REQUIRED_FIELDS[3]!.why },
+    { name: REQUIRED_FIELDS[4]!.name, required: true, completed: !!(studioProfile?.short_about && studioProfile.short_about.trim()), where: REQUIRED_FIELDS[4]!.where, how: REQUIRED_FIELDS[4]!.how, why: REQUIRED_FIELDS[4]!.why },
+    { name: REQUIRED_FIELDS[5]!.name, required: true, completed: !!(studioProfile?.about && studioProfile.about.trim()), where: REQUIRED_FIELDS[5]!.where, how: REQUIRED_FIELDS[5]!.how, why: REQUIRED_FIELDS[5]!.why },
+    { name: REQUIRED_FIELDS[6]!.name, required: true, completed: !!(studioProfile?.studio_studio_types && studioProfile.studio_studio_types.length >= 1), where: REQUIRED_FIELDS[6]!.where, how: REQUIRED_FIELDS[6]!.how, why: REQUIRED_FIELDS[6]!.why },
+    { name: REQUIRED_FIELDS[7]!.name, required: true, completed: !!(studioProfile?.location && studioProfile.location.trim()), where: REQUIRED_FIELDS[7]!.where, how: REQUIRED_FIELDS[7]!.how, why: REQUIRED_FIELDS[7]!.why },
+    { name: REQUIRED_FIELDS[8]!.name, required: true, completed: hasConnectionMethod, where: REQUIRED_FIELDS[8]!.where, how: REQUIRED_FIELDS[8]!.how, why: REQUIRED_FIELDS[8]!.why },
+    { name: REQUIRED_FIELDS[9]!.name, required: true, completed: !!(studioProfile?.website_url && studioProfile.website_url.trim()), where: REQUIRED_FIELDS[9]!.where, how: REQUIRED_FIELDS[9]!.how, why: REQUIRED_FIELDS[9]!.why },
+    { name: REQUIRED_FIELDS[10]!.name, required: true, completed: !!(studioProfile?.studio_images && studioProfile.studio_images.length >= 1), where: REQUIRED_FIELDS[10]!.where, how: REQUIRED_FIELDS[10]!.how, why: REQUIRED_FIELDS[10]!.why },
+  ];
 
   const optionalFieldsWithStatus = [
-    { ...OPTIONAL_FIELDS[0], completed: !!(user.avatar_url && user.avatar_url.trim()) },
-    { ...OPTIONAL_FIELDS[1], completed: !!(studioProfile?.phone && studioProfile.phone.trim()) },
-    { ...OPTIONAL_FIELDS[2], completed: socialMediaCount >= 2 },
-    { ...OPTIONAL_FIELDS[3], completed: !!(studioProfile?.rate_tier_1 && (typeof studioProfile.rate_tier_1 === 'number' ? studioProfile.rate_tier_1 > 0 : parseFloat(studioProfile.rate_tier_1) > 0)) },
-    { ...OPTIONAL_FIELDS[4], completed: !!(studioProfile?.equipment_list && studioProfile.equipment_list.trim()) },
-    { ...OPTIONAL_FIELDS[5], completed: !!(studioProfile?.services_offered && studioProfile.services_offered.trim()) },
-  ] as Array<{ name: string; required: boolean; completed: boolean; where: string; how: string; why: string }>;
+    { name: OPTIONAL_FIELDS[0]!.name, required: false, completed: !!(user.avatar_url && user.avatar_url.trim()), where: OPTIONAL_FIELDS[0]!.where, how: OPTIONAL_FIELDS[0]!.how, why: OPTIONAL_FIELDS[0]!.why },
+    { name: OPTIONAL_FIELDS[1]!.name, required: false, completed: !!(studioProfile?.phone && studioProfile.phone.trim()), where: OPTIONAL_FIELDS[1]!.where, how: OPTIONAL_FIELDS[1]!.how, why: OPTIONAL_FIELDS[1]!.why },
+    { name: OPTIONAL_FIELDS[2]!.name, required: false, completed: socialMediaCount >= 2, where: OPTIONAL_FIELDS[2]!.where, how: OPTIONAL_FIELDS[2]!.how, why: OPTIONAL_FIELDS[2]!.why },
+    { name: OPTIONAL_FIELDS[3]!.name, required: false, completed: !!(studioProfile?.rate_tier_1 && (typeof studioProfile.rate_tier_1 === 'number' ? studioProfile.rate_tier_1 > 0 : parseFloat(studioProfile.rate_tier_1) > 0)), where: OPTIONAL_FIELDS[3]!.where, how: OPTIONAL_FIELDS[3]!.how, why: OPTIONAL_FIELDS[3]!.why },
+    { name: OPTIONAL_FIELDS[4]!.name, required: false, completed: !!(studioProfile?.equipment_list && studioProfile.equipment_list.trim()), where: OPTIONAL_FIELDS[4]!.where, how: OPTIONAL_FIELDS[4]!.how, why: OPTIONAL_FIELDS[4]!.why },
+    { name: OPTIONAL_FIELDS[5]!.name, required: false, completed: !!(studioProfile?.services_offered && studioProfile.services_offered.trim()), where: OPTIONAL_FIELDS[5]!.where, how: OPTIONAL_FIELDS[5]!.how, why: OPTIONAL_FIELDS[5]!.why },
+  ];
 
   return (
     <PaymentSuccessOnboarding
