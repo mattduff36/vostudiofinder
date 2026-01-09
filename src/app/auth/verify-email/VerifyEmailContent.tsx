@@ -283,7 +283,7 @@ export default function VerifyEmailContent({ flow, email: emailProp, error }: Ve
             <div className="text-xs text-gray-600">
               <p>
                 Having trouble? Contact our{' '}
-                <a href="/support" className="text-red-600 hover:text-red-700 font-medium">
+                <a href="/help" className="text-red-600 hover:text-red-700 font-medium">
                   support team
                 </a>
               </p>
