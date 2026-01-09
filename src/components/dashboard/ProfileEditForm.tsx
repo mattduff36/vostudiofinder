@@ -201,6 +201,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         name: profile.studio?.name || null,
         studio_types: profile.studio_types,
         images: profile.studio?.images || [], // Get actual images from studio
+        website_url: profile.studio?.website_url || null, // FIX: Add website_url
       },
     });
   }, [profile]);

@@ -44,3 +44,19 @@ This causes website_url required field to always be incomplete on Dashboard, res
 
 1. Remove `website_url` from `profile` object (line 63)
 2. Add `website_url` to `studio` object (line 87)
+
+## Testing Results After First Fix
+
+### Dashboard (/dashboard)
+- Overall: 83% ✅
+- Required: 11/11 (all checked) ✅
+
+### Edit Profile (/dashboard#edit-profile)
+- Overall: 77% ❌
+- Required: 10/11 ❌
+
+**STILL DISCREPANCY!** Edit Profile is still showing wrong values.
+
+## Next Investigation
+
+Need to check ProfileEditForm data mapping more thoroughly.
