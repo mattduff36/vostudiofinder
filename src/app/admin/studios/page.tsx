@@ -213,31 +213,21 @@ export default function AdminStudiosPage() {
 
   // Sync scrolling between table and sticky scrollbar
   useEffect(() => {
-    if (!showStickyScrollbar) {
-      console.log('[SCROLL-SYNC] Sticky scrollbar not shown yet, skipping sync setup');
-      return;
-    }
+    if (!showStickyScrollbar) return;
 
     const tableContainer = tableContainerRef.current;
     const stickyScrollbar = stickyScrollbarRef.current;
     
-    if (!tableContainer || !stickyScrollbar) {
-      console.log('[SCROLL-SYNC] Missing refs for scroll sync');
-      return;
-    }
-
-    console.log('[SCROLL-SYNC] Setting up scroll sync listeners');
+    if (!tableContainer || !stickyScrollbar) return;
 
     const handleTableScroll = () => {
       if (stickyScrollbar.scrollLeft !== tableContainer.scrollLeft) {
-        console.log('[SCROLL-SYNC] Table scrolled, syncing to sticky:', tableContainer.scrollLeft);
         stickyScrollbar.scrollLeft = tableContainer.scrollLeft;
       }
     };
 
     const handleStickyScroll = () => {
       if (tableContainer.scrollLeft !== stickyScrollbar.scrollLeft) {
-        console.log('[SCROLL-SYNC] Sticky scrolled, syncing to table:', stickyScrollbar.scrollLeft);
         tableContainer.scrollLeft = stickyScrollbar.scrollLeft;
       }
     };
@@ -246,7 +236,6 @@ export default function AdminStudiosPage() {
     stickyScrollbar.addEventListener('scroll', handleStickyScroll);
 
     return () => {
-      console.log('[SCROLL-SYNC] Cleaning up scroll sync listeners');
       tableContainer.removeEventListener('scroll', handleTableScroll);
       stickyScrollbar.removeEventListener('scroll', handleStickyScroll);
     };
@@ -259,30 +248,15 @@ export default function AdminStudiosPage() {
       const stickyScrollbar = stickyScrollbarRef.current;
       const stickyScrollbarContent = stickyScrollbarContentRef.current;
       
-      if (!tableContainer || !stickyScrollbar || !stickyScrollbarContent) {
-        console.log('[STICKY-SCROLLBAR] Missing refs');
-        return;
-      }
+      if (!tableContainer || !stickyScrollbar || !stickyScrollbarContent) return;
 
       const table = tableContainer.querySelector('table');
-      if (!table) {
-        console.log('[STICKY-SCROLLBAR] No table found');
-        return;
-      }
+      if (!table) return;
 
       const containerRect = tableContainer.getBoundingClientRect();
       const containerWidth = tableContainer.clientWidth;
       const tableWidth = table.scrollWidth;
       const hasOverflow = tableWidth > containerWidth;
-      
-      console.log('[STICKY-SCROLLBAR] Update:', {
-        containerWidth,
-        tableWidth,
-        hasOverflow,
-        containerLeft: containerRect.left,
-        containerRight: containerRect.right,
-        currentShowState: showStickyScrollbar
-      });
 
       setShowStickyScrollbar(hasOverflow);
 
@@ -290,15 +264,10 @@ export default function AdminStudiosPage() {
         // Position and size the sticky scrollbar to match the table container
         stickyScrollbar.style.left = `${containerRect.left}px`;
         stickyScrollbar.style.width = `${containerWidth}px`;
-        stickyScrollbar.style.right = 'auto'; // Override the right: 0 from className
+        stickyScrollbar.style.right = 'auto';
         
         // Set the content width to match the table's scroll width
         stickyScrollbarContent.style.width = `${tableWidth}px`;
-        console.log('[STICKY-SCROLLBAR] Set dimensions:', {
-          scrollbarLeft: containerRect.left,
-          scrollbarWidth: containerWidth,
-          contentWidth: tableWidth
-        });
       }
     };
 
@@ -612,6 +581,11 @@ export default function AdminStudiosPage() {
 
   return (
     <>
+      <style jsx>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       <AdminTabs activeTab="studios" />
       <div className="p-8 min-h-screen">
         <div className="max-w-full mx-auto px-4">
@@ -730,7 +704,14 @@ export default function AdminStudiosPage() {
                 </h2>
               </div>
             </div>
-            <div ref={tableContainerRef} className="overflow-x-auto">
+            <div 
+              ref={tableContainerRef} 
+              className="overflow-x-auto hide-scrollbar"
+              style={{
+                scrollbarWidth: 'none', // Firefox
+                msOverflowStyle: 'none', // IE/Edge
+              }}
+            >
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
