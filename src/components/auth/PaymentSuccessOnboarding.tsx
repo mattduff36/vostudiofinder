@@ -148,20 +148,6 @@ export function PaymentSuccessOnboarding({
             </div>
           </motion.div>
 
-          {/* Footer Note */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.4, duration: 0.6 }}
-            className="text-center pb-8"
-          >
-            <p className="text-gray-600">
-              Need help?{' '}
-              <a href="/support" className="text-red-600 hover:text-red-700 font-semibold underline">
-                Contact Support
-              </a>
-            </p>
-          </motion.div>
         </div>
       </main>
 
