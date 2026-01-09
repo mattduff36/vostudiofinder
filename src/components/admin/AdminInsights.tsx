@@ -71,8 +71,8 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
         {/* Studio Types - 2 stat cards wide, 3 stat cards tall - Vertical Bar Chart */}
-        <div className="bg-white rounded-lg shadow p-6 md:col-span-2 lg:row-span-3">
-          <div className="flex items-center gap-3 mb-6">
+        <div className="bg-white rounded-lg shadow p-6 md:col-span-2 lg:row-span-3 flex flex-col">
+          <div className="flex items-center gap-3 mb-4">
             <Building2 className="w-5 h-5 text-purple-600" />
             <div>
               <h3 className="text-lg font-bold text-gray-900">Studio Types (Home, Recording & Podcast)</h3>
@@ -80,37 +80,39 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
             </div>
           </div>
           {insights.studioTypeStats.length > 0 ? (
-            <ResponsiveContainer width="100%" height={500}>
-              <BarChart data={insights.studioTypeStats.map(item => ({
-                name: item.name,
-                count: item.count,
-              }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#6b7280" 
-                  fontSize={11}
-                  angle={-45}
-                  textAnchor="end"
-                  height={100}
-                />
-                <YAxis stroke="#6b7280" fontSize={12} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#fff', 
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]}>
-                  {insights.studioTypeStats.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="flex-1 min-h-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={insights.studioTypeStats.map(item => ({
+                  name: item.name,
+                  count: item.count,
+                }))} margin={{ top: 5, right: 10, bottom: 60, left: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#6b7280" 
+                    fontSize={11}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis stroke="#6b7280" fontSize={12} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#fff', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]}>
+                    {insights.studioTypeStats.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
-            <div className="h-[500px] flex items-center justify-center text-gray-500 text-sm">
+            <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
               No studio type data available
             </div>
           )}
