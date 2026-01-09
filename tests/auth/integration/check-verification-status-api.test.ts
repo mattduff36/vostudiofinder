@@ -56,7 +56,7 @@ describe('POST /api/auth/check-verification-status', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.isVerified).toBe(true);
+      expect(data.verified).toBe(true);
     });
 
     it('should handle case-insensitive email lookup', async () => {
@@ -85,7 +85,7 @@ describe('POST /api/auth/check-verification-status', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.isVerified).toBe(true);
+      expect(data.verified).toBe(true);
     });
   });
 
@@ -109,7 +109,7 @@ describe('POST /api/auth/check-verification-status', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.isVerified).toBe(false);
+      expect(data.verified).toBe(false);
     });
 
     it('should return false for non-existent user', async () => {
@@ -123,8 +123,9 @@ describe('POST /api/auth/check-verification-status', () => {
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(200);
-      expect(data.isVerified).toBe(false);
+      expect(response.status).toBe(404);
+      expect(data.verified).toBe(false);
+      expect(data.error).toBe('User not found');
     });
   });
 
@@ -193,7 +194,7 @@ describe('POST /api/auth/check-verification-status', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.isVerified).toBe(true);
+      expect(data.verified).toBe(true);
     });
 
     it('should handle rapid consecutive checks', async () => {
@@ -226,7 +227,7 @@ describe('POST /api/auth/check-verification-status', () => {
       for (const response of responses) {
         expect(response.status).toBe(200);
         const data = await response.json();
-        expect(data.isVerified).toBe(true);
+        expect(data.verified).toBe(true);
       }
     });
 

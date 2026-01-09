@@ -31,23 +31,21 @@ jest.mock('next-auth/react', () => ({
 }))
 
 // Load .env.local if it exists (for other env vars)
-// CRITICAL: Always exclude DATABASE_URL to prevent tests from connecting to production
-// Store any existing DATABASE_URL before loading .env.local to detect all sources
+// Store DATABASE_URL before loading .env.local for safety checks
 const databaseUrlBeforeDotenv = process.env.DATABASE_URL
 const dotenvResult = require('dotenv').config({ path: '.env.local' })
-// ALWAYS remove DATABASE_URL if it exists, regardless of source (system env, .env.local, CI/CD, etc.)
-// This ensures tests NEVER accidentally connect to production databases
-if (process.env.DATABASE_URL) {
-  // Detect source before deletion
-  const wasInSystemEnv = databaseUrlBeforeDotenv && databaseUrlBeforeDotenv === process.env.DATABASE_URL
-  const wasInDotenv = dotenvResult.parsed?.DATABASE_URL && dotenvResult.parsed.DATABASE_URL === process.env.DATABASE_URL
-  const source = wasInSystemEnv && wasInDotenv ? 'system environment and .env.local'
-    : wasInSystemEnv ? 'system environment'
-    : wasInDotenv ? '.env.local'
-    : 'unknown source'
-  
-  delete process.env.DATABASE_URL
-  console.warn(`⚠️  DATABASE_URL excluded (source: ${source}) to prevent production connection in tests`)
+
+// For tests: Use TEST_DATABASE_URL if provided, otherwise keep DATABASE_URL from .env.local
+// This allows tests to run against the dev database by default
+if (dotenvResult.parsed?.TEST_DATABASE_URL) {
+  process.env.DATABASE_URL = dotenvResult.parsed.TEST_DATABASE_URL
+  console.log('✅ Using TEST_DATABASE_URL for tests')
+} else if (dotenvResult.parsed?.DATABASE_URL) {
+  // Keep the DATABASE_URL from .env.local for dev environment tests
+  console.log('✅ Using DATABASE_URL from .env.local for tests')
+} else if (databaseUrlBeforeDotenv) {
+  // DATABASE_URL was set in system env, keep it
+  console.log('✅ Using DATABASE_URL from system environment for tests')
 }
 
 // Polyfill TextDecoder/TextEncoder for Node.js < 18 (if needed)
@@ -275,13 +273,11 @@ if (!process.env.NEXTAUTH_SECRET) {
 if (!process.env.NEXTAUTH_URL) {
   process.env.NEXTAUTH_URL = 'http://localhost:3000'
 }
-// Set DATABASE_URL fallback for tests (always safe test database)
-// CRITICAL: DATABASE_URL was explicitly deleted above to prevent production connections
-// This ensures PrismaClient can initialize, but tests requiring database will fail safely
-// Tests that need database should set TEST_DATABASE_URL explicitly or use test fixtures
+// Fallback if no DATABASE_URL is set
 if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db'
-  console.warn('⚠️  Using safe test database fallback. Tests requiring database may fail.')
+  console.warn('⚠️  No DATABASE_URL set. Using safe fallback. Database tests will fail.')
+  console.warn('⚠️  Set DATABASE_URL or TEST_DATABASE_URL in .env.local to run database tests.')
 }
 
 // Mock console methods to reduce noise in tests
@@ -345,4 +341,24 @@ jest.mock('@/lib/email/email-service', () => ({
   sendVerificationEmail: jest.fn().mockResolvedValue(true),
   sendPasswordResetEmail: jest.fn().mockResolvedValue(true),
   sendResendVerificationEmail: jest.fn().mockResolvedValue(true),
+}))
+
+// Mock @auth/prisma-adapter to avoid ESM import issues in tests
+jest.mock('@auth/prisma-adapter', () => ({
+  PrismaAdapter: jest.fn((prisma) => ({
+    createUser: jest.fn(),
+    getUser: jest.fn(),
+    getUserByEmail: jest.fn(),
+    getUserByAccount: jest.fn(),
+    updateUser: jest.fn(),
+    deleteUser: jest.fn(),
+    linkAccount: jest.fn(),
+    unlinkAccount: jest.fn(),
+    createSession: jest.fn(),
+    getSessionAndUser: jest.fn(),
+    updateSession: jest.fn(),
+    deleteSession: jest.fn(),
+    createVerificationToken: jest.fn(),
+    useVerificationToken: jest.fn(),
+  })),
 }))

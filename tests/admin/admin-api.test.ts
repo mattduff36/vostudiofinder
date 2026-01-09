@@ -155,11 +155,11 @@ describe('Admin API Endpoints', () => {
 
     it('should reject non-SELECT queries', async () => {
       // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/query', {
-        method: 'POST',
-        body: JSON.stringify({
-          query: 'DELETE FROM studios WHERE id = 1'
-        })
-      });
+      //   method: 'POST',
+      //   body: JSON.stringify({
+      //     query: 'DELETE FROM studios WHERE id = 1'
+      //   })
+      // });
 
       // Test non-SELECT query rejection
       expect(true).toBe(true); // Placeholder for actual test

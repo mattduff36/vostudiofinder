@@ -40,6 +40,10 @@ const customJestConfig = {
   testEnvironmentOptions: {
     customExportConditions: [''],
   },
+  // Transform ESM packages that need it
+  transformIgnorePatterns: [
+    'node_modules/(?!(@auth/prisma-adapter)/)',
+  ],
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
