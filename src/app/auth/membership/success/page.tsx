@@ -132,6 +132,9 @@ const OPTIONAL_FIELDS = [
   },
 ];
 
+// Helper function to wait for a specified time
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export default async function MembershipSuccessPage({ searchParams }: MembershipSuccessPageProps) {
   const params = await searchParams;
 
@@ -141,18 +144,41 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     redirect('/auth/signup?error=session_expired');
   }
 
-  // Verify payment in database
-  const payment = await db.payments.findUnique({
-    where: { stripe_checkout_session_id: params.session_id },
-    select: {
-      id: true,
-      status: true,
-      user_id: true,
-    },
-  });
+  // CRITICAL: Handle race condition between Stripe redirect and webhook processing
+  // Stripe redirects users immediately after payment, but webhook may take several seconds
+  // Retry with exponential backoff: 1s, 2s, 4s, 8s, 10s = ~25 seconds total
+  const maxRetries = 5;
+  const retryDelays = [1000, 2000, 4000, 8000, 10000]; // milliseconds
+  let payment = null;
 
+  console.log(`🔍 Looking up payment for session: ${params.session_id}`);
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    payment = await db.payments.findUnique({
+      where: { stripe_checkout_session_id: params.session_id },
+      select: {
+        id: true,
+        status: true,
+        user_id: true,
+      },
+    });
+
+    if (payment && payment.status === 'SUCCEEDED') {
+      console.log(`✅ Payment found on attempt ${attempt + 1}: ${payment.id}`);
+      break;
+    }
+
+    // If not found or not succeeded yet, wait before retrying
+    if (attempt < maxRetries - 1) {
+      const delay = retryDelays[attempt] || 2000; // fallback to 2s if undefined
+      console.log(`⏳ Payment not ready, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+      await sleep(delay);
+    }
+  }
+
+  // After all retries, verify we have a successful payment
   if (!payment || payment.status !== 'SUCCEEDED') {
-    console.error('❌ Payment not found or not succeeded');
+    console.error(`❌ Payment not found or not succeeded after ${maxRetries} attempts`);
     redirect('/auth/signup?error=payment_not_found');
   }
 
