@@ -103,10 +103,11 @@ export async function POST(
     // Use direct API instead of SDK to avoid serverless issues
     const timestamp = Math.round(Date.now() / 1000);
     const folder = `vosf/studios/${studio.id}`;
+    const transformation = 'c_limit,h_960,w_2000/f_auto/q_auto';
     
     // Create signature for authenticated upload
     const crypto = require('crypto');
-    const paramsToSign = `folder=${folder}&timestamp=${timestamp}&transformation=c_limit,h_800,w_1200/f_auto/q_auto${process.env.CLOUDINARY_API_SECRET}`;
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}&transformation=${transformation}${process.env.CLOUDINARY_API_SECRET}`;
     const signature = crypto.createHash('sha256').update(paramsToSign).digest('hex');
     
     // Create form data for Cloudinary API
@@ -114,7 +115,7 @@ export async function POST(
     cloudinaryFormData.append('file', new Blob([buffer]), file.name);
     cloudinaryFormData.append('timestamp', timestamp.toString());
     cloudinaryFormData.append('folder', folder);
-    cloudinaryFormData.append('transformation', 'c_limit,h_960,w_2000/f_auto/q_auto');
+    cloudinaryFormData.append('transformation', transformation);
     cloudinaryFormData.append('api_key', process.env.CLOUDINARY_API_KEY!);
     cloudinaryFormData.append('signature', signature);
     
