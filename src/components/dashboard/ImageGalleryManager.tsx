@@ -55,6 +55,7 @@ export function ImageGalleryManager({
       name: profileData.studio?.name || null,
       studio_types: profileData.studio_types,
       images: profileData.studio?.images || [],
+      website_url: profileData.studio?.website_url || null, // FIX: Add website_url
     },
   }) : null;
 
