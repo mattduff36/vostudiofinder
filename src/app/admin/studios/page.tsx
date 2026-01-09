@@ -1036,22 +1036,23 @@ export default function AdminStudiosPage() {
         </div>
       </div>
 
-      {/* Sticky Horizontal Scrollbar */}
-      {showStickyScrollbar && (
+      {/* Sticky Horizontal Scrollbar - Always rendered but hidden when not needed */}
+      <div
+        ref={stickyScrollbarRef}
+        className="fixed bottom-0 left-0 right-0 overflow-x-auto overflow-y-hidden bg-white/95 backdrop-blur-sm border-t-2 border-gray-300 shadow-lg z-[9999] transition-opacity"
+        style={{
+          height: '16px',
+          opacity: showStickyScrollbar ? 1 : 0,
+          pointerEvents: showStickyScrollbar ? 'auto' : 'none',
+        }}
+      >
         <div
-          ref={stickyScrollbarRef}
-          className="fixed bottom-0 left-0 right-0 overflow-x-auto overflow-y-hidden bg-gray-200/95 backdrop-blur-sm border-t-2 border-gray-400 shadow-lg z-[9999]"
-          style={{
-            height: '20px',
-            scrollbarWidth: 'auto',
+          ref={stickyScrollbarContentRef}
+          style={{ 
+            height: '1px',
           }}
-        >
-          <div
-            ref={stickyScrollbarContentRef}
-            style={{ height: '1px' }}
-          />
-        </div>
-      )}
+        />
+      </div>
     </>
   );
 }
