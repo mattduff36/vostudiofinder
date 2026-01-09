@@ -7,7 +7,8 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ImageCropperModal } from '@/components/images/ImageCropperModal';
-// import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators'; // TODO: Re-enable when completionStats available
+import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
+import { calculateCompletionStats, type CompletionStats } from '@/lib/utils/profile-completion';
 
 interface StudioImage {
   id: string;
@@ -19,16 +20,11 @@ interface StudioImage {
 interface ImageGalleryManagerProps {
   studioId?: string; // Optional: for admin mode
   isAdminMode?: boolean; // Optional: to use admin API endpoints
-  completionStats?: {
-    required: { completed: number; total: number };
-    overall: { percentage: number };
-  };
 }
 
 export function ImageGalleryManager({ 
   studioId, 
-  isAdminMode = false,
-  completionStats
+  isAdminMode = false
 }: ImageGalleryManagerProps = {}) {
   const [images, setImages] = useState<StudioImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +38,16 @@ export function ImageGalleryManager({
   // Cropper state
   const [fileToCrop, setFileToCrop] = useState<File | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  
+  // Profile data for completion calculation
+  const [profileData, setProfileData] = useState<any>(null);
+  
+  // Calculate completion stats
+  const completionStats: CompletionStats | null = profileData ? calculateCompletionStats({
+    user: profileData.user,
+    profile: profileData.profile,
+    studio: profileData.studio,
+  }) : null;
 
   useEffect(() => {
     fetchImages();
@@ -62,6 +68,11 @@ export function ImageGalleryManager({
         ? data.profile?.images || []
         : data.data.studio?.images || [];
       setImages(imageData);
+      
+      // Store full profile data for completion stats (only for non-admin mode)
+      if (!isAdminMode && data.data) {
+        setProfileData(data.data);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load images');
     } finally {
@@ -343,8 +354,8 @@ export function ImageGalleryManager({
             </p>
           </div>
 
-          {/* Progress Indicators - TODO: Re-enable when completionStats are properly calculated */}
-          {/* {completionStats && (
+          {/* Progress Indicators */}
+          {completionStats && (
             <div className="hidden md:flex flex-shrink-0">
               <ProgressIndicators
                 requiredFieldsCompleted={completionStats.required.completed}
@@ -353,7 +364,7 @@ export function ImageGalleryManager({
                 variant="compact"
               />
             </div>
-          )} */}
+          )}
         </div>
       )}
 

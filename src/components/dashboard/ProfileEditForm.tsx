@@ -11,7 +11,8 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
-// import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators'; // TODO: Re-enable
+import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
+import { calculateCompletionStats, type CompletionStats } from '@/lib/utils/profile-completion';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
@@ -177,6 +178,22 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     if (!profile || !originalProfile) return false;
     return JSON.stringify(profile) !== JSON.stringify(originalProfile);
   }, [profile, originalProfile]);
+
+  // Calculate completion stats for progress indicators
+  const completionStats: CompletionStats = useMemo(() => {
+    if (!profile) {
+      return {
+        required: { completed: 0, total: 10 },
+        overall: { percentage: 0 },
+      };
+    }
+
+    return calculateCompletionStats({
+      user: profile.user,
+      profile: profile.profile,
+      studio: profile.studio,
+    });
+  }, [profile]);
 
   const handleSave = async () => {
     try {
@@ -762,15 +779,15 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             </div>
           </div>
 
-          {/* Progress Indicators - TODO: Re-enable when completionStats are calculated */}
-          {/* <div className="flex-shrink-0">
+          {/* Progress Indicators */}
+          <div className="flex-shrink-0">
             <ProgressIndicators
-              requiredFieldsCompleted={0}
-              totalRequiredFields={10}
-              overallCompletionPercentage={0}
+              requiredFieldsCompleted={completionStats.required.completed}
+              totalRequiredFields={completionStats.required.total}
+              overallCompletionPercentage={completionStats.overall.percentage}
               variant="compact"
             />
-          </div> */}
+          </div>
         </div>
 
         {/* Desktop Section Navigation with hover animations */}
