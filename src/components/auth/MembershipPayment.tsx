@@ -7,7 +7,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Check, Building, Loader2, Sparkles, Upload, Globe, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
-import { getSignupData, storeSignupData, recoverSignupState, updateURLParams } from '@/lib/signup-recovery';
+import { getSignupData, storeSignupData, recoverSignupState, updateURLParams, type SignupData } from '@/lib/signup-recovery';
 
 // Initialize Stripe
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -75,14 +75,21 @@ export function MembershipPayment() {
               
               // Store recovered data, preserving password from existing signup data
               const existingSignupData = getSignupData();
-              storeSignupData({
+              const signupDataToStore: SignupData = {
                 userId,
                 email,
                 display_name: name,
                 username,
-                password: existingSignupData?.password, // CRITICAL: Preserve password
-                reservation_expires_at: existingSignupData?.reservation_expires_at,
-              });
+              };
+              // Only include password if it exists (exactOptionalPropertyTypes: true requires this)
+              if (existingSignupData?.password) {
+                signupDataToStore.password = existingSignupData.password;
+              }
+              // Only include reservation_expires_at if it exists (exactOptionalPropertyTypes: true requires this)
+              if (existingSignupData?.reservation_expires_at !== undefined) {
+                signupDataToStore.reservation_expires_at = existingSignupData.reservation_expires_at;
+              }
+              storeSignupData(signupDataToStore);
               
               // Update URL
               updateURLParams({ userId, email, name, username });
@@ -104,14 +111,21 @@ export function MembershipPayment() {
       } else {
         // Store params in sessionStorage as backup, preserving password from existing data
         const existingSignupData = getSignupData();
-        storeSignupData({
+        const signupDataToStore: SignupData = {
           userId,
           email,
           display_name: name,
           username,
-          password: existingSignupData?.password, // CRITICAL: Preserve password
-          reservation_expires_at: existingSignupData?.reservation_expires_at,
-        });
+        };
+        // Only include password if it exists (exactOptionalPropertyTypes: true requires this)
+        if (existingSignupData?.password) {
+          signupDataToStore.password = existingSignupData.password;
+        }
+        // Only include reservation_expires_at if it exists (exactOptionalPropertyTypes: true requires this)
+        if (existingSignupData?.reservation_expires_at !== undefined) {
+          signupDataToStore.reservation_expires_at = existingSignupData.reservation_expires_at;
+        }
+        storeSignupData(signupDataToStore);
       }
 
       if (!userId) {

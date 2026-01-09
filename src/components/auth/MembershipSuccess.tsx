@@ -14,7 +14,7 @@ import { Loader2, Upload, X, AlertCircle } from 'lucide-react';
 import { extractCity } from '@/lib/utils/address';
 import Image from 'next/image';
 import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
-import { getSignupData, storeSignupData, recoverPaymentState, updateURLParams, clearSignupData } from '@/lib/signup-recovery';
+import { getSignupData, storeSignupData, recoverPaymentState, updateURLParams, clearSignupData, type SignupData } from '@/lib/signup-recovery';
 
 const STUDIO_TYPES = [
   { value: 'HOME', label: 'Home', description: 'Personal recording space in a home environment' },
@@ -177,14 +177,21 @@ export function MembershipSuccess() {
         const existingSignupData = getSignupData();
         
         // Store recovered data in sessionStorage, preserving password from existing data
-        storeSignupData({
+        const signupDataToStore: SignupData = {
           userId: recovery.data.userId,
           email: recoveredEmail,
           display_name: recoveredName,
           username: recoveredUsername,
-          password: existingSignupData?.password, // CRITICAL: Preserve password from existing data
-          reservation_expires_at: existingSignupData?.reservation_expires_at,
-        });
+        };
+        // Only include password if it exists (exactOptionalPropertyTypes: true requires this)
+        if (existingSignupData?.password) {
+          signupDataToStore.password = existingSignupData.password;
+        }
+        // Only include reservation_expires_at if it exists (exactOptionalPropertyTypes: true requires this)
+        if (existingSignupData?.reservation_expires_at !== undefined) {
+          signupDataToStore.reservation_expires_at = existingSignupData.reservation_expires_at;
+        }
+        storeSignupData(signupDataToStore);
         
         // Update URL params
         updateURLParams({
