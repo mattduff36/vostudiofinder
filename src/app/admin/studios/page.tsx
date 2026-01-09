@@ -213,6 +213,11 @@ export default function AdminStudiosPage() {
 
   // Sync scrolling between table and sticky scrollbar
   useEffect(() => {
+    if (!showStickyScrollbar) {
+      console.log('[SCROLL-SYNC] Sticky scrollbar not shown yet, skipping sync setup');
+      return;
+    }
+
     const tableContainer = tableContainerRef.current;
     const stickyScrollbar = stickyScrollbarRef.current;
     
@@ -245,7 +250,7 @@ export default function AdminStudiosPage() {
       tableContainer.removeEventListener('scroll', handleTableScroll);
       stickyScrollbar.removeEventListener('scroll', handleStickyScroll);
     };
-  }, []);
+  }, [showStickyScrollbar]);
 
   // Update sticky scrollbar width and visibility
   useEffect(() => {
