@@ -29,10 +29,14 @@ export function MembershipPayment() {
   let name = searchParams?.get('name') || '';
   let username = searchParams?.get('username') || '';
 
-  // Enable back button protection
+  // Enable back button protection only (not beforeunload)
+  // Note: We disable beforeunload because it interferes with Stripe's redirect after payment
+  // The beforeunload event fires for ALL navigation, including Stripe's redirect to success page
+  // We only want to prevent back button navigation, not forward navigation/redirects
   usePreventBackNavigation({
     enabled: true,
-    warningMessage: 'Your payment is in progress. Are you sure you want to leave? You may lose your progress.',
+    warningMessage: 'Your payment is in progress. Are you sure you want to go back? You may lose your progress.',
+    disableBeforeUnload: true, // Disable beforeunload to allow Stripe redirect without warning
     onBackAttempt: () => {
       console.log('⚠️  User attempted to navigate back from payment page');
     },

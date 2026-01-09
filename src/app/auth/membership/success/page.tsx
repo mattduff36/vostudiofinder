@@ -109,12 +109,50 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     }
 
     if (!payment) {
-      console.error('❌ Payment not found for session_id:', params.session_id);
-      console.error('💡 This usually means:');
-      console.error('   1. Stripe webhook hasn\'t been received yet (check Stripe CLI is running)');
-      console.error('   2. Payment is still processing');
-      console.error('   3. Webhook failed to create payment record');
-      redirect('/auth/signup?error=payment_not_found');
+      console.log('⏳ Payment not found yet, waiting for webhook processing...');
+      console.log('💡 This usually means the Stripe webhook hasn\'t been received yet');
+      console.log('💡 Retrying payment lookup (webhook may still be processing)...');
+      
+      // Retry payment lookup up to 3 times with delays
+      // This handles the race condition where Stripe redirects before webhook processes
+      let retries = 3;
+      let retryDelay = 1000; // Start with 1 second
+      
+      while (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        
+        try {
+          payment = await db.payments.findUnique({
+            where: { stripe_checkout_session_id: params.session_id },
+            select: {
+              id: true,
+              status: true,
+              user_id: true,
+              metadata: true,
+            },
+          });
+          
+          if (payment) {
+            console.log('✅ Payment found after retry');
+            break; // Payment found, exit retry loop
+          }
+        } catch (error) {
+          console.error('Error during payment retry:', error);
+        }
+        
+        retries--;
+        retryDelay *= 1.5; // Exponential backoff: 1s, 1.5s, 2.25s
+        console.log(`⏳ Retrying payment lookup... (${retries} attempts remaining)`);
+      }
+      
+      if (!payment) {
+        console.error('❌ Payment not found after retries for session_id:', params.session_id);
+        console.error('💡 This usually means:');
+        console.error('   1. Stripe webhook hasn\'t been received yet (check Stripe CLI is running)');
+        console.error('   2. Payment is still processing');
+        console.error('   3. Webhook failed to create payment record');
+        redirect('/auth/signup?error=payment_not_found');
+      }
     }
 
     if (payment.status !== 'SUCCEEDED') {

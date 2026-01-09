@@ -7,6 +7,8 @@ export interface UsePreventBackNavigationOptions {
   warningMessage?: string;
   onBackAttempt?: () => void;
   allowBackAfter?: () => boolean;
+  allowedUrls?: string[]; // URLs that should bypass the beforeunload warning
+  disableBeforeUnload?: boolean; // Disable beforeunload handler (only use popstate for back button)
 }
 
 /**
@@ -19,6 +21,8 @@ export function usePreventBackNavigation(options: UsePreventBackNavigationOption
     warningMessage = 'Are you sure you want to leave? Your progress may be lost.',
     onBackAttempt,
     allowBackAfter,
+    allowedUrls = [],
+    disableBeforeUnload = false,
   } = options;
 
   const historyPushedRef = useRef(false);
@@ -57,11 +61,19 @@ export function usePreventBackNavigation(options: UsePreventBackNavigationOption
       return;
     }
 
+    // Check if navigating to an allowed URL (e.g., payment success page)
+    // This prevents the warning when Stripe redirects after payment
+    const currentUrl = window.location.href;
+    const isAllowedUrl = allowedUrls.some(url => currentUrl.includes(url));
+    if (isAllowedUrl) {
+      return; // Allow navigation without warning
+    }
+
     // Standard way to show browser warning
     event.preventDefault();
     event.returnValue = warningMessage;
     return warningMessage;
-  }, [enabled, warningMessage, allowBackAfter]);
+  }, [enabled, warningMessage, allowBackAfter, allowedUrls]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -76,14 +88,19 @@ export function usePreventBackNavigation(options: UsePreventBackNavigationOption
     // Listen for back button
     window.addEventListener('popstate', handlePopState);
 
-    // Listen for page unload (close/refresh)
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    // Listen for page unload (close/refresh) - only if not disabled
+    // Disable beforeunload for pages that need to allow redirects (e.g., Stripe payment redirects)
+    if (!disableBeforeUnload) {
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    }
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (!disableBeforeUnload) {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      }
     };
-  }, [enabled, handlePopState, handleBeforeUnload]);
+  }, [enabled, handlePopState, handleBeforeUnload, disableBeforeUnload]);
 
   return {
     // Allow components to manually enable/disable protection

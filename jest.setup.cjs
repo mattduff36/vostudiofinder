@@ -30,8 +30,15 @@ jest.mock('next-auth/react', () => ({
   getSession: jest.fn(),
 }))
 
-// Load .env.local if it exists (for DATABASE_URL and other env vars)
-require('dotenv').config({ path: '.env.local' })
+// Load .env.local if it exists (for other env vars)
+// CRITICAL: Always exclude DATABASE_URL from .env.local to prevent tests from connecting to production
+const dotenvResult = require('dotenv').config({ path: '.env.local' })
+// Remove DATABASE_URL if it was loaded from .env.local (regardless of value)
+// This ensures tests always use the safe test fallback defined below
+if (dotenvResult.parsed && dotenvResult.parsed.DATABASE_URL) {
+  delete process.env.DATABASE_URL
+  console.warn('⚠️  DATABASE_URL excluded from .env.local to prevent production connection in tests')
+}
 
 // Polyfill TextDecoder/TextEncoder for Node.js < 18 (if needed)
 if (typeof globalThis.TextDecoder === 'undefined') {
@@ -94,32 +101,47 @@ if (typeof globalThis.Request === 'undefined') {
         async text() { return this.body || '' }
         static json(data, init = {}) {
           // Convert Headers instance to plain object if needed, ensuring Content-Type is set
-          let headersObj = { 'Content-Type': 'application/json' }
-          if (init.headers) {
-            // Check if init.headers is a Headers instance (has _map property from our polyfill)
-            if (init.headers._map && init.headers._map instanceof Map) {
-              // Convert our polyfill Headers instance to plain object
-              init.headers._map.forEach((value, key) => {
-                headersObj[key] = value
+          // Use lowercase keys to prevent duplicate headers (HTTP headers are case-insensitive)
+          let headersObj = { 'content-type': 'application/json' }
+          
+          // Helper function to normalize header keys to lowercase
+          const normalizeHeaders = (headers) => {
+            const normalized = {}
+            if (headers._map && headers._map instanceof Map) {
+              // Our polyfill Headers instance
+              headers._map.forEach((value, key) => {
+                normalized[key.toLowerCase()] = value
               })
-            } else if (typeof init.headers.entries === 'function') {
+            } else if (typeof headers.entries === 'function') {
               // Standard Headers instance with entries() method (undici, Next.js, etc.)
               try {
-                for (const [key, value] of init.headers.entries()) {
-                  headersObj[key] = value
+                for (const [key, value] of headers.entries()) {
+                  normalized[key.toLowerCase()] = value
                 }
               } catch (e) {
                 // If entries() fails, fall back to plain object handling
-                if (typeof init.headers === 'object' && !Array.isArray(init.headers) && init.headers !== null) {
-                  headersObj = { ...headersObj, ...init.headers }
+                if (typeof headers === 'object' && !Array.isArray(headers) && headers !== null) {
+                  Object.entries(headers).forEach(([key, value]) => {
+                    normalized[key.toLowerCase()] = value
+                  })
                 }
               }
-            } else if (typeof init.headers === 'object' && !Array.isArray(init.headers) && init.headers !== null) {
-              // Plain object - can spread directly
-              headersObj = { ...headersObj, ...init.headers }
+            } else if (typeof headers === 'object' && !Array.isArray(headers) && headers !== null) {
+              // Plain object - normalize keys to lowercase
+              Object.entries(headers).forEach(([key, value]) => {
+                normalized[key.toLowerCase()] = value
+              })
             }
+            return normalized
+          }
+          
+          if (init.headers) {
+            const normalizedHeaders = normalizeHeaders(init.headers)
+            // Merge normalized headers, with user headers taking precedence
+            headersObj = { ...headersObj, ...normalizedHeaders }
             // Invalid types (string, array, null, etc.) are ignored
           }
+          
           return new Response(JSON.stringify(data), {
             ...init,
             headers: headersObj,
