@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
 
 interface VerifyEmailContentProps {
-  flow: 'account' | 'profile';
+  flow: 'account' | 'profile' | 'signup';
   email?: string;
   error?: string;
 }
@@ -154,6 +154,18 @@ export default function VerifyEmailContent({ flow, email: emailProp, error }: Ve
                     Once verified, you'll be able to sign in and start connecting with voice artists worldwide.
                   </p>
                 </div>
+              ) : flow === 'signup' ? (
+                <div className="mt-4 space-y-3">
+                  <p className="text-gray-700 font-medium">
+                    Your account has been created successfully!
+                  </p>
+                  <p className="text-gray-600">
+                    We've sent a verification email to your inbox. Please click the verification link to verify your email address.
+                  </p>
+                  <p className="text-gray-600">
+                    After verification, you'll proceed to complete your membership payment and then you can start connecting with voice artists worldwide.
+                  </p>
+                </div>
               ) : (
                 <div className="mt-4 space-y-3">
                   <p className="text-gray-700 font-medium">
@@ -211,6 +223,13 @@ export default function VerifyEmailContent({ flow, email: emailProp, error }: Ve
                     <li>Your email address will be verified</li>
                     <li>Sign in with your credentials</li>
                     <li>Your studio profile will be live!</li>
+                  </ol>
+                ) : flow === 'signup' ? (
+                  <ol className="list-decimal list-inside space-y-1 ml-2">
+                    <li>Check your email and click the verification link</li>
+                    <li>Your email address will be verified</li>
+                    <li>Complete your membership payment</li>
+                    <li>Start connecting with voice artists worldwide</li>
                   </ol>
                 ) : (
                   <ol className="list-decimal list-inside space-y-1 ml-2">
