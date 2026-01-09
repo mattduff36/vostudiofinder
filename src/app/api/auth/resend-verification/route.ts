@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 import { sendVerificationEmail } from '@/lib/email/email-service';
+import { getBaseUrl } from '@/lib/seo/site';
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Send verification email
-    const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${getBaseUrl()}/api/auth/verify-email?token=${verificationToken}`;
     
     const emailSent = await sendVerificationEmail(
       user.email,
