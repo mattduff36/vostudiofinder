@@ -353,9 +353,15 @@ export default function AdminStudiosPage() {
   };
 
   const handleSaveStudio = () => {
-    setStudios([]); // Clear studios to prevent duplicates
-    setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page
-    // fetchStudios will be called automatically by the useEffect
+    // If we're already on the first page, fetchStudios won't be triggered by useEffect
+    // So we need to call it directly
+    if (pagination.offset === 0) {
+      setStudios([]); // Clear studios to prevent duplicates
+      fetchStudios(); // Directly call fetchStudios to refetch
+    } else {
+      setStudios([]); // Clear studios to prevent duplicates
+      setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page - this will trigger useEffect
+    }
   };
 
   const handleDeleteStudio = async (studio: Studio) => {

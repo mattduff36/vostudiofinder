@@ -476,23 +476,31 @@ export async function PUT(
       }
 
       // Handle membership expiry updates
-      if (body._meta?.membership_expires_at !== undefined) {
+      // Only process if membership_expires_at is explicitly being changed
+      // Check if it's different from the current value or if it's being explicitly set/cleared
+      const currentSubscription = await tx.subscriptions.findFirst({
+        where: { user_id: existingStudio.user_id },
+        orderBy: { created_at: 'desc' }
+      });
+      
+      const currentExpiryDate = currentSubscription?.current_period_end?.toISOString() || null;
+      const newExpiryValue = body._meta?.membership_expires_at || null;
+      
+      // Only process membership changes if the value has actually changed
+      const membershipExpiryChanged = body._meta?.membership_expires_at !== undefined && 
+        (newExpiryValue !== currentExpiryDate);
+      
+      if (membershipExpiryChanged) {
         const now = new Date();
         
         if (body._meta.membership_expires_at) {
           // Parse the date
           const expiryDate = new Date(body._meta.membership_expires_at);
           
-          // Check if user has an existing subscription
-          const existingSubscription = await tx.subscriptions.findFirst({
-            where: { user_id: existingStudio.user_id },
-            orderBy: { created_at: 'desc' }
-          });
-
-          if (existingSubscription) {
+          if (currentSubscription) {
             // Update existing subscription
             await tx.subscriptions.update({
-              where: { id: existingSubscription.id },
+              where: { id: currentSubscription.id },
               data: {
                 current_period_end: expiryDate,
                 status: 'ACTIVE',
@@ -516,29 +524,35 @@ export async function PUT(
           }
 
           // Update studio status based on expiry date
-          const isExpired = expiryDate < now;
-          const newStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
-          
-          await tx.studio_profiles.update({
-            where: { id: studioId },
-            data: { 
-              status: newStatus,
-              updated_at: now
-            }
-          });
+          // Only change status if it's not already explicitly being set in this request
+          if (body.status === undefined) {
+            const isExpired = expiryDate < now;
+            const newStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
+            
+            await tx.studio_profiles.update({
+              where: { id: studioId },
+              data: { 
+                status: newStatus,
+                updated_at: now
+              }
+            });
+          }
         } else {
-          // If empty string, delete subscription and set studio to INACTIVE
+          // If being explicitly cleared (empty string), delete subscription and set studio to INACTIVE
           await tx.subscriptions.deleteMany({
             where: { user_id: existingStudio.user_id }
           });
           
-          await tx.studio_profiles.update({
-            where: { id: studioId },
-            data: { 
-              status: 'INACTIVE',
-              updated_at: now
-            }
-          });
+          // Only change status if it's not already explicitly being set in this request
+          if (body.status === undefined) {
+            await tx.studio_profiles.update({
+              where: { id: studioId },
+              data: { 
+                status: 'INACTIVE',
+                updated_at: now
+              }
+            });
+          }
         }
       }
     });

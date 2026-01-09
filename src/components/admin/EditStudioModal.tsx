@@ -818,7 +818,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               <option value="inactive">Inactive</option>
               <option value="pending">Pending</option>
             </select>
-            <p className="text-xs text-gray-500 mt-1">Current account status</p>
+            <p className="text-xs text-gray-500 mt-1">Account status (controls login access). This is separate from Profile Visibility (toggle at bottom).</p>
           </div>
           
           <div className="space-y-3">
@@ -1027,8 +1027,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                   <Eye className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">View</span>
                 </button>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-md bg-white">
-                  <span className="text-xs font-medium text-gray-700 hidden sm:inline">Visibility:</span>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-md bg-white" title="Profile Visibility: Controls whether this profile appears in public listings. This is separate from Account Status.">
+                  <span className="text-xs font-medium text-gray-700 hidden sm:inline">Profile Visible:</span>
                   <Toggle
                     checked={profile?._meta?.is_profile_visible !== false}
                     onChange={(checked) => handleMetaChange('is_profile_visible', checked)}
