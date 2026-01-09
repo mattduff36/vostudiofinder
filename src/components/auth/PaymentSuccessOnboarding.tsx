@@ -58,7 +58,7 @@ export function PaymentSuccessOnboarding({
       </div>
 
       {/* Content */}
-      <main id="main-content" className="relative z-10 w-full max-w-7xl mx-auto px-4 py-8 md:py-12 pb-32 md:pb-40">
+      <main id="main-content" className="relative z-10 w-full max-w-7xl mx-auto px-4 py-8 md:py-12 pb-40 md:pb-48">
         <div className="space-y-8 md:space-y-12">
           {/* Hero Section */}
           <HeroSection
