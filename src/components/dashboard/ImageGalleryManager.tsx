@@ -3,9 +3,11 @@ import { logger } from '@/lib/logger';
 
 import { useState, useEffect, useRef } from 'react';
 import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon, ChevronUp, ChevronDown } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ImageCropperModal } from '@/components/images/ImageCropperModal';
+// import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators'; // TODO: Re-enable when completionStats available
 
 interface StudioImage {
   id: string;
@@ -17,9 +19,17 @@ interface StudioImage {
 interface ImageGalleryManagerProps {
   studioId?: string; // Optional: for admin mode
   isAdminMode?: boolean; // Optional: to use admin API endpoints
+  completionStats?: {
+    required: { completed: number; total: number };
+    overall: { percentage: number };
+  };
 }
 
-export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGalleryManagerProps = {}) {
+export function ImageGalleryManager({ 
+  studioId, 
+  isAdminMode = false,
+  completionStats
+}: ImageGalleryManagerProps = {}) {
   const [images, setImages] = useState<StudioImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -305,15 +315,45 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
+  // Use motion wrapper only for desktop, keep original div for mobile
+  const Container = !isAdminMode 
+    ? motion.div 
+    : 'div' as any;
+  
+  const containerProps = !isAdminMode 
+    ? {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.6, ease: 'easeOut' }
+      }
+    : {};
+
   return (
-    <div className={isAdminMode ? "" : "bg-white rounded-lg border border-gray-200 shadow-sm"}>
+    <Container 
+      {...containerProps}
+      className={isAdminMode ? "" : "bg-white rounded-lg border border-gray-200 shadow-sm md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"}
+    >
       {/* Header - Hidden in admin mode */}
       {!isAdminMode && (
-        <div className="border-b border-gray-200 px-4 md:px-6 py-4">
-          <h2 className="text-2xl font-bold text-gray-900">Manage Images</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Upload and organise your studio images ({images.length}/5)
-          </p>
+        <div className="border-b border-gray-200 px-4 md:px-6 py-4 md:py-5 md:border-gray-100 md:flex md:items-center md:justify-between md:gap-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 md:text-3xl md:font-extrabold md:tracking-tight">Manage Images</h2>
+            <p className="text-sm text-gray-600 mt-1 md:text-base">
+              Upload and organise your studio images ({images.length}/5)
+            </p>
+          </div>
+
+          {/* Progress Indicators - TODO: Re-enable when completionStats are properly calculated */}
+          {/* {completionStats && (
+            <div className="hidden md:flex flex-shrink-0">
+              <ProgressIndicators
+                requiredFieldsCompleted={completionStats.required.completed}
+                totalRequiredFields={completionStats.required.total}
+                overallCompletionPercentage={completionStats.overall.percentage}
+                variant="compact"
+              />
+            </div>
+          )} */}
         </div>
       )}
 
@@ -383,12 +423,14 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
           {/* Desktop Grid */}
           <div className={`hidden md:grid gap-3 ${isAdminMode ? 'grid-cols-3 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
             {images.map((image, index) => (
-              <div
+              <motion.div
                 key={image.id}
                 draggable
                 onDragStart={() => handleDragStart(index)}
                 onDragEnd={handleDragEnd}
                 onDragEnter={() => handleDragEnter(index)}
+                whileHover={{ scale: 1.02, y: -4 }}
+                transition={{ duration: 0.3 }}
                 className={`group relative aspect-[25/12] bg-gray-100 rounded-lg overflow-hidden cursor-move ${
                   draggedIndex === index ? 'opacity-50' : ''
                 } ${index === 0 ? 'ring-2 ring-[#d42027]' : ''}`}
@@ -438,7 +480,7 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
                     <p className="text-xs text-white truncate">{image.alt_text}</p>
                   </div>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
 
@@ -586,7 +628,6 @@ export function ImageGalleryManager({ studioId, isAdminMode = false }: ImageGall
         maxWidth={2000}
         maxHeight={960}
       />
-    </div>
+    </Container>
   );
 }
-

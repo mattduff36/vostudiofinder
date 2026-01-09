@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -10,6 +11,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
+// import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators'; // TODO: Re-enable
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
@@ -728,37 +730,56 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
   return (
     <>
-      {/* Desktop Container */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm hidden md:block">
-        {/* Desktop Header */}
-        <div className="flex border-b border-gray-200 px-6 py-4 items-center gap-4">
-          {/* Avatar */}
-          <AvatarUpload
-            currentAvatar={profile.user.avatar_url}
-            onAvatarChange={(url) => updateUser('avatar_url', url)}
-            size="medium"
-            editable={true}
-            userName={profile.user.display_name || profile.user.username}
-            variant="user"
-          />
-          
-          {/* Title and description */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Update your studio information and settings
-            </p>
+      {/* Desktop Container - Enhanced with animations and backdrop blur */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 shadow-2xl hidden md:block"
+      >
+        {/* Desktop Header with Progress Indicators */}
+        <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
+          <div className="flex items-center gap-4 flex-1">
+            {/* Avatar */}
+            <AvatarUpload
+              currentAvatar={profile.user.avatar_url}
+              onAvatarChange={(url) => updateUser('avatar_url', url)}
+              size="medium"
+              editable={true}
+              userName={profile.user.display_name || profile.user.username}
+              variant="user"
+            />
+            
+            {/* Title and description */}
+            <div>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Edit Profile</h2>
+              <p className="text-sm md:text-base text-gray-600 mt-1">
+                Update your studio information and settings
+              </p>
+            </div>
           </div>
+
+          {/* Progress Indicators - TODO: Re-enable when completionStats are calculated */}
+          {/* <div className="flex-shrink-0">
+            <ProgressIndicators
+              requiredFieldsCompleted={0}
+              totalRequiredFields={10}
+              overallCompletionPercentage={0}
+              variant="compact"
+            />
+          </div> */}
         </div>
 
-        {/* Desktop Section Navigation */}
-        <div className="border-b border-gray-200 px-6">
+        {/* Desktop Section Navigation with hover animations */}
+        <div className="border-b border-gray-100 px-6">
           <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
             {sections.map((section) => (
-              <button
+              <motion.button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
                 data-section={section.id}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
                   activeSection === section.id
                     ? 'border-red-500 text-red-600'
@@ -766,7 +787,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 }`}
               >
                 {section.label}
-              </button>
+              </motion.button>
             ))}
           </nav>
         </div>
@@ -780,7 +801,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
         {/* Desktop Footer Actions */}
         {hasChanges && (
-          <div className="flex border-t border-gray-200 px-6 py-4 bg-gray-50 items-center justify-between">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-white items-center justify-between"
+          >
             <Button
               onClick={handlePreview}
               variant="secondary"
@@ -801,9 +826,9 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               )}
               {saving ? 'Saving...' : 'Save Changes'}
             </Button>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Mobile Accordion Sections */}
       <div className="md:hidden space-y-3">
