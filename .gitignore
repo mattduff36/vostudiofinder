@@ -73,3 +73,5 @@ prisma/*.backup
 # Documentation (keep in repo but ignore build artifacts)
 docs/**/*.tsbuildinfo
 
+# Lighthouse CI
+.lighthouseci/
