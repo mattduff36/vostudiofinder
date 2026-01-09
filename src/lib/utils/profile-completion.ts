@@ -40,6 +40,7 @@ interface ProfileCompletionData {
     name?: string | null | undefined;
     studio_types?: string[] | undefined;
     images?: any[] | undefined;
+    website_url?: string | null | undefined;
   } | undefined;
 }
 
@@ -88,7 +89,7 @@ export function calculateCompletionStats(data: ProfileCompletionData): Completio
     { completed: !!(data.studio?.studio_types && data.studio.studio_types.length >= 1), weight: 5.92 },
     { completed: !!(data.profile?.location && data.profile.location.trim()), weight: 5.92 },
     { completed: hasConnectionMethod, weight: 5.92 },
-    { completed: !!(data.profile?.website_url && data.profile.website_url.trim()), weight: 5.92 },
+    { completed: !!(data.studio?.website_url && data.studio.website_url.trim()), weight: 5.92 },
     { completed: !!(data.studio?.images && data.studio.images.length >= 1), weight: 5.92 },
   ];
 
