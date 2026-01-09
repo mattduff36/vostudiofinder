@@ -735,7 +735,10 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 shadow-2xl hidden md:block"
+        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:block"
+        style={{
+          boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
+        }}
       >
         {/* Desktop Header with Progress Indicators */}
         <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">

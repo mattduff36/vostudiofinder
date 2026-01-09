@@ -201,7 +201,10 @@ export function UserDashboard({ data }: UserDashboardProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="bg-white rounded-lg border border-gray-200 shadow-sm md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"
+        className="bg-white rounded-lg border border-gray-200 shadow-sm md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100"
+        style={{
+          boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -287,7 +290,10 @@ export function UserDashboard({ data }: UserDashboardProps) {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-6 md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"
+                  className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-6 md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100"
+                  style={{
+                    boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
+                  }}
                 >
                   <ProfileCompletionProgress 
                     profileData={{
@@ -330,7 +336,10 @@ export function UserDashboard({ data }: UserDashboardProps) {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="lg:col-span-1 bg-gray-50 border border-gray-300 shadow-sm rounded-lg p-6 text-center md:bg-gradient-to-br md:from-red-50 md:to-white md:border-gray-100 md:rounded-2xl md:shadow-2xl"
+                  className="lg:col-span-1 bg-gray-50 border border-gray-300 shadow-sm rounded-lg p-6 text-center md:bg-gradient-to-br md:from-red-50 md:to-white md:border-gray-100 md:rounded-2xl"
+                  style={{
+                    boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
+                  }}
                 >
                   <h3 className="text-lg font-medium text-gray-900 mb-2 md:font-extrabold md:tracking-tight">Profile Tips</h3>
                   <ul className="space-y-2 text-sm text-text-secondary inline-block text-left">
@@ -355,7 +364,10 @@ export function UserDashboard({ data }: UserDashboardProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
-              className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"
+              className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100"
+              style={{
+                boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
+              }}
             >
               <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-medium text-text-primary mb-2">
