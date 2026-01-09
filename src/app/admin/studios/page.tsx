@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import EditStudioModal from '@/components/admin/EditStudioModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
@@ -863,10 +864,11 @@ export default function AdminStudiosPage() {
                         </button>
                         {studio.is_spotlight && (
                           <span 
-                            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800 cursor-help mt-1" 
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800 cursor-help mt-1" 
                             title="Spotlight Studio – highlighted in network"
                           >
-                            💡 Spotlight
+                            <Lightbulb className="w-3 h-3" aria-hidden="true" />
+                            <span>Spotlight</span>
                           </span>
                         )}
                       </td>

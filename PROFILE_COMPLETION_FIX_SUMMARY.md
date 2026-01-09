@@ -1,267 +1,155 @@
-# Profile Completion Calculation Fix - Summary
+# Profile Completion Fix Summary
 
-## Problem Identified
+## Issue
+Multiple pages were showing different profile completion percentages and required field counts for the same user profile.
 
-Three different pages were showing **different completion percentages** for the same profile (admin@mpdee.co.uk):
+### Initial State
+- Dashboard: 83% complete, 11/11 required ✅
+- Edit Profile: 77% complete, 10/11 required ❌
+- Manage Images: 71% complete, 9/11 required ❌
+- Admin Studios: 83% complete ✅
 
-1. **Dashboard (`/dashboard`)**: 82% complete
-2. **Edit Profile (`/dashboard#edit-profile`)**: 71% complete, 9/11 required fields
-3. **Admin Studios (`/admin/studios`)**: 83% complete
+## Root Causes Found
 
-## Root Cause Analysis
+### Bug #1: ProfileCompletionProgress (Dashboard Component)
+**File**: `src/components/profile/ProfileCompletionProgress.tsx`
+**Issue**: `website_url` was being passed to the `profile` object instead of the `studio` object in the data mapping to `calculateCompletionStats`.
+**Impact**: This didn't affect the Dashboard because the component was using a count-based simulation for studio_types and images, but the field location was still incorrect.
 
-### Multiple Calculation Sources Found:
+### Bug #2: ProfileEditForm (Edit Profile Page)
+**File**: `src/components/dashboard/ProfileEditForm.tsx`
+**Issue**: `website_url` was missing from the `studio` object passed to `calculateCompletionStats`.
+**Impact**: The "Website URL" required field was always counted as incomplete, causing Edit Profile to show 10/11 instead of 11/11.
 
-1. **`lib/profile-completion.ts`** ✅ CORRECT
-   - Used by: Admin API (`/api/admin/studios`)
-   - Calculation: 11 required fields @ 5.92% each, 6 optional @ 5.88% each
-   - Includes Email in required fields
+### Bug #3: ImageGalleryManager (Manage Images Page) - Part 1
+**File**: `src/components/dashboard/ImageGalleryManager.tsx`
+**Issue**: `website_url` was missing from the `studio` object passed to `calculateCompletionStats`.
+**Impact**: The "Website URL" required field was always counted as incomplete.
 
-2. **`lib/utils/profile-completion.ts`** ✅ NOW CORRECT (Phase 1 fix)
-   - Used by: Edit Profile, Manage Images, Success Page
-   - Was: 10 required fields, simple count-based calculation
-   - Now: 11 required fields @ 5.92% each, 6 optional @ 5.88% each (matches #1)
+### Bug #4: ImageGalleryManager (Manage Images Page) - Part 2
+**File**: `src/components/dashboard/ImageGalleryManager.tsx`
+**Issue**: `studio_types` was being accessed from `profileData.studio_types` (top-level) but the API returns it nested as `profileData.studio.studio_types`.
+**Impact**: `studio_types` was always undefined, causing the "Studio Type selected" required field to be counted as incomplete. This resulted in 9/11 instead of 11/11.
 
-3. **`components/profile/ProfileCompletionProgress.tsx`** ❌ WAS INCORRECT
-   - Used by: Dashboard overview
-   - Had: **Duplicate calculation logic with wrong weights**
-   - Used: 5.88% for ALL fields (both required and optional)
-   - Should use: 5.92% for required, 5.88% for optional
+## Fixes Applied
 
-## Solution Implemented
+### Fix #1: ProfileCompletionProgress
+```typescript
+// BEFORE (line 63)
+profile: {
+  ...
+  website_url: profileData.website_url || null,  // ❌ WRONG OBJECT
+  ...
+}
 
-### Phase 1 (Previous Fix):
-- ✅ Updated `lib/utils/profile-completion.ts` to match `lib/profile-completion.ts`
-- ✅ Updated `ProfileEditForm.tsx` to use single source
-- ✅ Updated `ImageGalleryManager.tsx` to use single source
-- ✅ Updated success page to use single source
+// AFTER
+profile: {
+  ...
+  // website_url removed from here
+}
+studio: {
+  ...
+  website_url: profileData.website_url || null,  // ✅ CORRECT OBJECT
+}
+```
 
-### Phase 2 (This Fix):
-- ✅ Refactored `ProfileCompletionProgress.tsx` to use `calculateCompletionStats` from single source
-- ✅ Removed duplicate calculation logic with incorrect weights
-- ✅ Now imports and uses the centralized calculation utility
+### Fix #2: ProfileEditForm
+```typescript
+// BEFORE (line 200-204)
+studio: {
+  name: profile.studio?.name || null,
+  studio_types: profile.studio_types,
+  images: profile.studio?.images || [],
+  // ❌ MISSING: website_url
+},
 
-## Files Modified
+// AFTER
+studio: {
+  name: profile.studio?.name || null,
+  studio_types: profile.studio_types,
+  images: profile.studio?.images || [],
+  website_url: profile.studio?.website_url || null,  // ✅ ADDED
+},
+```
 
-### Phase 2 Changes:
-- `src/components/profile/ProfileCompletionProgress.tsx`
-  - Added import: `calculateCompletionStats` from `@/lib/utils/profile-completion`
-  - Removed: Duplicate calculation logic (lines 80-111)
-  - Added: Call to `calculateCompletionStats` with proper data mapping
-  - Result: Now uses same weighted calculation as all other pages
+### Fix #3: ImageGalleryManager - website_url
+```typescript
+// BEFORE (line 54-58)
+studio: {
+  name: profileData.studio?.name || null,
+  studio_types: profileData.studio_types,
+  images: profileData.studio?.images || [],
+  // ❌ MISSING: website_url
+},
+
+// AFTER
+studio: {
+  name: profileData.studio?.name || null,
+  studio_types: profileData.studio_types,
+  images: profileData.studio?.images || [],
+  website_url: profileData.studio?.website_url || null,  // ✅ ADDED
+},
+```
+
+### Fix #4: ImageGalleryManager - studio_types
+```typescript
+// BEFORE (line 56)
+studio_types: profileData.studio_types,  // ❌ WRONG PATH (undefined)
+
+// AFTER
+studio_types: profileData.studio?.studio_types || [],  // ✅ CORRECT PATH
+```
+
+## Final State
+
+### Testing Results
+All pages now show **identical** calculations:
+
+| Page | Required Fields | Overall % | Status |
+|------|----------------|-----------|--------|
+| Dashboard | 11/11 ✅ | 83% ✅ | PASS |
+| Edit Profile | 11/11 ✅ | 83% ✅ | PASS |
+| Manage Images | 11/11 ✅ | 83% ✅ | PASS |
+| Admin Studios | N/A | 83% ✅ | PASS |
 
 ## Single Source of Truth
 
-All pages now use **one of two equivalent sources**:
+All pages now correctly use `calculateCompletionStats` from `src/lib/utils/profile-completion.ts` with proper data mapping.
 
-1. **`lib/profile-completion.ts`** - Used by Admin API
-2. **`lib/utils/profile-completion.ts`** - Used by all frontend components
+### Required Fields (11 total)
+1. Username (not starting with temp_)
+2. Display Name
+3. Email
+4. Studio Name
+5. Short About
+6. Full About
+7. Studio Type (at least 1)
+8. Location
+9. Connection Method (at least 1)
+10. Website URL
+11. Images (at least 1)
 
-Both use **identical calculation logic**:
-- **11 Required Fields** @ 5.92% each = 65.12%
-  1. Username
-  2. Display Name
-  3. **Email** ⭐ (was missing in old calculation)
-  4. Studio Name
-  5. Short About
-  6. About
-  7. Studio Types (min 1)
-  8. Location
-  9. Connection Methods (min 1)
-  10. Website URL
-  11. Images (min 1)
+### Optional Fields (6 total)
+1. Avatar
+2. Phone
+3. Social Media (at least 2 links)
+4. Session Rate Tier
+5. Equipment List
+6. Services Offered
 
-- **6 Optional Fields** @ 5.88% each = 35.28%
-  1. Avatar
-  2. Phone
-  3. Social Media (min 2)
-  4. Rate Tiers
-  5. Equipment List
-  6. Services Offered
+### Calculation
+- Required fields: 11 × 5.92% = 65.12%
+- Optional fields: 6 × 5.88% = 35.28%
+- Total: 100%
 
-**Total: 17 fields = 100.40% (rounded to 100%)**
+## Commits Made
 
-## Verification
+1. `Fix ProfileCompletionProgress website_url field location`
+2. `Fix ProfileEditForm missing website_url in completion calculation`
+3. `Fix ImageGalleryManager missing website_url in completion calculation`
+4. `Fix ImageGalleryManager studio_types access path`
 
-### Before Fix:
-- Dashboard: 82%
-- Edit Profile: 71% (9/11)
-- Admin: 83%
+## TypeScript Validation
 
-### After Fix (Expected):
-- Dashboard: **83%** (will match Admin)
-- Edit Profile: **83%** (will match Admin)
-- Admin: **83%** (unchanged)
-
-All three pages now calculate from the same weighted formula with 11 required fields including Email.
-
-## Testing Checklist
-
-- [ ] Dashboard shows same percentage as Edit Profile
-- [ ] Edit Profile shows same percentage as Admin Studios
-- [ ] Required fields count shows 11/11 when complete
-- [ ] Overall percentage matches across all three pages
-- [ ] Calculation includes Email as required field
-
-## Commits
-
-1. `18d8431` - Consolidate profile completion calculation into single source of truth
-2. `2d8ee40` - Fix TypeScript exactOptionalPropertyTypes errors
-3. `2e3bf7c` - Fix ProfileCompletionProgress to use single source of truth
-
-## Impact
-
-✅ **All profile completion calculations now consistent across entire application**
-✅ **Single source of truth established and enforced**
-✅ **No breaking changes to existing functionality**
-✅ **TypeScript compilation clean**
-
-## Architecture Diagram
-
-### Before Fix (3 Different Calculations):
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    INCONSISTENT STATE                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  Dashboard (/dashboard)                                      │
-│  └─> ProfileCompletionProgress.tsx                          │
-│      └─> ❌ Own calculation (5.88% all fields)              │
-│          Result: 82%                                         │
-│                                                              │
-│  Edit Profile (/dashboard#edit-profile)                     │
-│  └─> ProfileEditForm.tsx                                    │
-│      └─> ❌ lib/utils/profile-completion.ts (old)           │
-│          └─> 10 required fields, simple count               │
-│          Result: 71% (9/11)                                  │
-│                                                              │
-│  Admin Studios (/admin/studios)                             │
-│  └─> /api/admin/studios                                     │
-│      └─> ✅ lib/profile-completion.ts (correct)             │
-│          └─> 11 required @ 5.92%, 6 optional @ 5.88%        │
-│          Result: 83%                                         │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### After Fix (Single Source of Truth):
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     CONSISTENT STATE                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │      SINGLE SOURCE OF TRUTH                        │     │
-│  │                                                     │     │
-│  │  lib/profile-completion.ts                         │     │
-│  │  lib/utils/profile-completion.ts                   │     │
-│  │                                                     │     │
-│  │  Both use IDENTICAL logic:                         │     │
-│  │  • 11 Required @ 5.92% = 65.12%                    │     │
-│  │  • 6 Optional @ 5.88% = 35.28%                     │     │
-│  │  • Total: 17 fields = 100%                         │     │
-│  └────────────────────────────────────────────────────┘     │
-│                          ▲                                   │
-│                          │                                   │
-│         ┌────────────────┼────────────────┐                 │
-│         │                │                │                 │
-│         │                │                │                 │
-│  Dashboard         Edit Profile     Admin Studios           │
-│  (83%)             (83%)            (83%)                    │
-│                                                              │
-│  ✅ ProfileCompletionProgress.tsx                           │
-│     └─> calculateCompletionStats()                          │
-│                                                              │
-│  ✅ ProfileEditForm.tsx                                     │
-│     └─> calculateCompletionStats()                          │
-│                                                              │
-│  ✅ /api/admin/studios                                      │
-│     └─> calculateProfileCompletion()                        │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Summary
-
-**Problem**: Three different calculations producing three different results (82%, 71%, 83%)
-
-**Solution**: Centralized all calculations to use the same weighted formula
-
-**Result**: All pages now show **83%** for the same profile data
-
-**Key Change**: `ProfileCompletionProgress.tsx` now uses `calculateCompletionStats()` instead of its own duplicate logic
-
----
-
-## Phase 3: Final Fix for Edit Profile Page (71% → 83%)
-
-### Additional Issue Found
-
-After Phase 2, the user reported that Edit Profile was still showing **71% (9/11)** while Dashboard and Admin both showed **83% (11/11)**.
-
-### Root Cause
-
-In `ProfileEditForm.tsx` line 202:
-```typescript
-images: [], // Images are managed separately ❌
-```
-
-The calculation was hardcoding an empty array for images instead of using the actual images from the profile. This meant the "At least 1 image" required field was **always** counted as incomplete, even when images existed.
-
-### Fix Applied
-
-**File**: `src/components/dashboard/ProfileEditForm.tsx`
-
-1. **Line 202**: Changed from `images: []` to `images: profile.studio?.images || []`
-2. **Line 79**: Added `images?: any[]` to the `ProfileData` studio interface for TypeScript
-
-### Commits (Updated)
-
-1. `18d8431` - Consolidate profile completion calculation into single source of truth
-2. `2d8ee40` - Fix TypeScript exactOptionalPropertyTypes errors
-3. `2e3bf7c` - Fix ProfileCompletionProgress to use single source of truth
-4. `a361450` - Add comprehensive summary of profile completion fix
-5. `98985eb` - Add architecture diagrams to profile completion fix summary
-6. `60f0970` - **Fix ProfileEditForm images not being counted in completion calculation** ⭐
-
-### Final Verification
-
-**All three pages now show 83%:**
-- ✅ Dashboard: **83%** (using ProfileCompletionProgress → calculateCompletionStats)
-- ✅ Edit Profile: **83%** (using ProfileEditForm → calculateCompletionStats with images)
-- ✅ Admin Studios: **83%** (using Admin API → calculateProfileCompletion)
-
-**All required fields correctly counted:**
-- ✅ Username
-- ✅ Display Name
-- ✅ Email
-- ✅ Studio Name
-- ✅ Short About
-- ✅ About
-- ✅ Studio Types (min 1)
-- ✅ Location
-- ✅ Connection Methods (min 1)
-- ✅ Website URL
-- ✅ **Images (min 1)** ← Now correctly counted in Edit Profile
-
-## Complete Solution Summary
-
-### Three Bugs Fixed:
-
-1. **`lib/utils/profile-completion.ts`** - Wrong calculation (10 fields, no Email, simple count)
-   - **Fixed**: Now uses 11 required @ 5.92%, 6 optional @ 5.88%
-
-2. **`ProfileCompletionProgress.tsx`** - Duplicate calculation with wrong weights
-   - **Fixed**: Now uses `calculateCompletionStats()` from single source
-
-3. **`ProfileEditForm.tsx`** - Images hardcoded as empty array
-   - **Fixed**: Now uses `profile.studio?.images || []` from actual data
-
-### Result
-
-✅ **All profile completion calculations are now 100% consistent**
-✅ **Single source of truth enforced across entire application**
-✅ **All three pages show identical percentages (83% for admin profile)**
-✅ **All 11 required fields correctly tracked everywhere**
+✅ No TypeScript errors in modified files
+✅ Build-ready (Prisma permission issue is unrelated to code changes)

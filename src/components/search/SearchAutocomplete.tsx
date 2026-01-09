@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { MapPin, Mic, Settings, Search } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 
 interface SearchSuggestion {
@@ -92,13 +93,13 @@ export function SearchAutocomplete({
   const getSuggestionIcon = (type: SearchSuggestion['type']) => {
     switch (type) {
       case 'location':
-        return '📍';
+        return MapPin;
       case 'studio':
-        return '🎙️';
+        return Mic;
       case 'service':
-        return '⚙️';
+        return Settings;
       default:
-        return '🔍';
+        return Search;
     }
   };
 
@@ -117,26 +118,27 @@ export function SearchAutocomplete({
 
       {isOpen && suggestions.length > 0 && (
         <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-          {suggestions.map((suggestion, index) => (
-            <li
-              key={suggestion.id}
-              ref={(el) => { suggestionRefs.current[index] = el; }}
-              className={`px-4 py-2 cursor-pointer flex items-center gap-2 ${
-                index === selectedIndex
-                  ? 'bg-blue-50 text-blue-900'
-                  : 'hover:bg-gray-50'
-              }`}
-              onClick={() => handleSelect(suggestion)}
-            >
-              <span className="text-sm">
-                {getSuggestionIcon(suggestion.type)}
-              </span>
-              <span className="flex-1">{suggestion.text}</span>
-              <span className="text-xs text-gray-500 capitalize">
-                {suggestion.type}
-              </span>
-            </li>
-          ))}
+          {suggestions.map((suggestion, index) => {
+            const IconComponent = getSuggestionIcon(suggestion.type);
+            return (
+              <li
+                key={suggestion.id}
+                ref={(el) => { suggestionRefs.current[index] = el; }}
+                className={`px-4 py-2 cursor-pointer flex items-center gap-2 ${
+                  index === selectedIndex
+                    ? 'bg-blue-50 text-blue-900'
+                    : 'hover:bg-gray-50'
+                }`}
+                onClick={() => handleSelect(suggestion)}
+              >
+                <IconComponent className="w-4 h-4 text-gray-500 flex-shrink-0" aria-hidden="true" />
+                <span className="flex-1">{suggestion.text}</span>
+                <span className="text-xs text-gray-500 capitalize">
+                  {suggestion.type}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

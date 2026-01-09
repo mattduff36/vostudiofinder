@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
+import { Check, X } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { VATService, VATCalculation } from '@/lib/vat';
 
@@ -113,9 +113,9 @@ export function VATForm({
                 {isValidating ? (
                   <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-blue-600 rounded-full"></div>
                 ) : isVATNumberValid ? (
-                  <span className="text-green-500">✓</span>
+                  <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
                 ) : (
-                  <span className="text-red-500">✗</span>
+                  <X className="w-4 h-4 text-red-500" aria-hidden="true" />
                 )}
               </div>
             )}

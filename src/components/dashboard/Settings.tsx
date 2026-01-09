@@ -633,7 +633,7 @@ export function Settings({ data }: SettingsProps) {
       document.body.removeChild(a);
 
       showSuccess('Data downloaded successfully!');
-      logger.log('✅ Data downloaded successfully');
+      logger.log('[SUCCESS] Data downloaded successfully');
     } catch (err) {
       logger.error('Error downloading data:', err);
       showError('Failed to download data. Please try again.');
@@ -673,7 +673,7 @@ export function Settings({ data }: SettingsProps) {
       setIssueMessage('');
       setIssueCategory('');
       setIssueFormOpen(false);
-      logger.log('✅ Issue submitted:', result.ticketId);
+      logger.log('[SUCCESS] Issue submitted:', result.ticketId);
 
     } catch (err: any) {
       logger.error('Error submitting issue:', err);
@@ -714,7 +714,7 @@ export function Settings({ data }: SettingsProps) {
       setSuggestionMessage('');
       setSuggestionCategory('');
       setSuggestionFormOpen(false);
-      logger.log('✅ Suggestion submitted:', result.ticketId);
+      logger.log('[SUCCESS] Suggestion submitted:', result.ticketId);
 
     } catch (err: any) {
       logger.error('Error submitting suggestion:', err);

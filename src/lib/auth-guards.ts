@@ -124,7 +124,7 @@ export async function requireEmailVerification(userId?: string, email?: string) 
   // This allows flexibility for different contexts
   
   if (!userId && !email) {
-    console.error('❌ requireEmailVerification called without userId or email');
+    console.error('[ERROR] requireEmailVerification called without userId or email');
     redirect('/auth/signup');
   }
 
@@ -141,12 +141,12 @@ export async function requireEmailVerification(userId?: string, email?: string) 
     });
 
     if (!user) {
-      console.error('❌ User not found for verification check');
+      console.error('[ERROR] User not found for verification check');
       redirect('/auth/signup');
     }
 
     if (!user.email_verified) {
-      console.warn(`⚠️ User ${user.email} attempted to access protected route without verification`);
+      console.warn(`[WARNING] User ${user.email} attempted to access protected route without verification`);
       redirect(`/auth/verify-email?email=${encodeURIComponent(user.email)}&flow=signup`);
     }
 

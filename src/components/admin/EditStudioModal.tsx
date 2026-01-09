@@ -2,7 +2,7 @@
 import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from 'react';
-import { Loader2, Eye, Save, X } from 'lucide-react';
+import { Loader2, Eye, Save, X, FileText, MapPin, DollarSign, Globe, Link, Image as ImageIcon, Settings, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Toggle } from '@/components/ui/Toggle';
@@ -265,13 +265,13 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   if (!isOpen || !studio) return null;
 
   const tabs = [
-    { id: 'basic', name: 'Basic Info', icon: '📝' },
-    { id: 'contact', name: 'Contact & Location', icon: '📍' },
-    { id: 'rates', name: 'Rates & Pricing', icon: '💰' },
-    { id: 'social', name: 'Social Media', icon: '🌐' },
-    { id: 'connections', name: 'Connections', icon: '🔗' },
-    { id: 'images', name: 'Images', icon: '🖼️' },
-    { id: 'admin', name: 'Admin Settings', icon: '⚙️' }
+    { id: 'basic', name: 'Basic Info', icon: FileText },
+    { id: 'contact', name: 'Contact & Location', icon: MapPin },
+    { id: 'rates', name: 'Rates & Pricing', icon: DollarSign },
+    { id: 'social', name: 'Social Media', icon: Globe },
+    { id: 'connections', name: 'Connections', icon: Link },
+    { id: 'images', name: 'Images', icon: ImageIcon },
+    { id: 'admin', name: 'Admin Settings', icon: Settings }
   ];
 
   const renderBasicTab = () => (
@@ -735,11 +735,14 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   const renderAdminTab = () => (
     <div className="space-y-6">
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-        <h3 className="font-medium text-red-900 mb-1">⚠️ Admin Only Section</h3>
-        <p className="text-sm text-red-700">
-          These settings are only visible and editable by administrators. Changes here affect system-level configurations.
-        </p>
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex gap-3">
+        <AlertTriangle className="w-5 h-5 text-red-900 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <div>
+          <h3 className="font-medium text-red-900 mb-1">Admin Only Section</h3>
+          <p className="text-sm text-red-700">
+            These settings are only visible and editable by administrators. Changes here affect system-level configurations.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -986,20 +989,23 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               {/* Tab Navigation */}
               <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
                 <nav className="flex space-x-8 px-6 overflow-x-auto" aria-label="Tabs">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
-                        activeTab === tab.id
-                          ? 'border-red-500 text-red-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <span className="mr-2">{tab.icon}</span>
-                      {tab.name}
-                    </button>
-                  ))}
+                  {tabs.map((tab) => {
+                    const TabIcon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center ${
+                          activeTab === tab.id
+                            ? 'border-red-500 text-red-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                      >
+                        <TabIcon className="w-4 h-4 mr-2" aria-hidden="true" />
+                        {tab.name}
+                      </button>
+                    );
+                  })}
                 </nav>
               </div>
 

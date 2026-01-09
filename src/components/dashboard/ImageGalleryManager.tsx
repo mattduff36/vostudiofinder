@@ -96,7 +96,7 @@ export function ImageGalleryManager({
     const file = files[0];
     if (!file) return;
     
-    logger.log('🖼️ Image Upload Debug - File Selected:', {
+    logger.log('[IMAGE] Image Upload Debug - File Selected:', {
       name: file.name,
       type: file.type,
       size: file.size,
@@ -110,21 +110,21 @@ export function ImageGalleryManager({
     // Validate file type - only allow specific formats
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      logger.error('❌ Invalid file type:', file.type);
+      logger.error('[ERROR] Invalid file type:', file.type);
       setError('Please select a valid image file (.png, .jpg, .webp)');
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      logger.error('❌ File too large:', file.size, 'bytes');
+      logger.error('[ERROR] File too large:', file.size, 'bytes');
       setError('Image size must be less than 5MB');
       return;
     }
 
     // Check image limit - now 5 max
     if (images.length >= 5) {
-      logger.error('❌ Maximum images reached:', images.length);
+      logger.error('[ERROR] Maximum images reached:', images.length);
       setError('Maximum of 5 images reached');
       return;
     }
@@ -148,8 +148,8 @@ export function ImageGalleryManager({
         ? `/api/admin/studios/${studioId}/images`
         : '/api/user/profile/images';
 
-      logger.log('📤 Uploading cropped image to endpoint:', endpoint);
-      logger.log('📦 FormData contents:', {
+      logger.log('[INFO] Uploading cropped image to endpoint:', endpoint);
+      logger.log('[INFO] FormData contents:', {
         hasFile: formData.has('file'),
         fileSize: croppedFile.size
       });
@@ -159,7 +159,7 @@ export function ImageGalleryManager({
         body: formData,
       });
 
-      logger.log('📥 Upload response:', {
+      logger.log('[INFO] Upload response:', {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok,
@@ -168,7 +168,7 @@ export function ImageGalleryManager({
 
       if (!response.ok) {
         const errorData = await response.json();
-        logger.error('❌ Upload failed - Server error:', {
+        logger.error('[ERROR] Upload failed - Server error:', {
           status: response.status,
           error: errorData.error,
           details: errorData.details,
@@ -178,7 +178,7 @@ export function ImageGalleryManager({
       }
 
       const result = await response.json();
-      logger.log('✅ Upload successful:', result);
+      logger.log('[SUCCESS] Upload successful:', result);
       setImages([...images, result.data]);
       
       // Reset file input
@@ -189,7 +189,7 @@ export function ImageGalleryManager({
       // Reset cropper state
       setFileToCrop(null);
     } catch (err) {
-      logger.error('❌ Upload error caught:', err);
+      logger.error('[ERROR] Upload error caught:', err);
       if (err instanceof Error) {
         logger.error('Error details:', {
           message: err.message,

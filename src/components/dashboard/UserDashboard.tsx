@@ -188,7 +188,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
 
       if (response.ok) {
         setIsProfileVisible(visible);
-        logger.log('✅ Profile visibility updated successfully to:', visible);
+        logger.log('[SUCCESS] Profile visibility updated successfully to:', visible);
       } else {
         const errorData = await response.json().catch(() => ({}));
         logger.error('Failed to update profile visibility:', errorData);

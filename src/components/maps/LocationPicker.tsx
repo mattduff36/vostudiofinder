@@ -132,8 +132,11 @@ export function LocationPicker({
 
       {/* Instructions */}
       <div className="text-sm text-text-secondary bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p className="font-medium text-blue-900 mb-1">📍 How to set your studio location:</p>
-        <ul className="space-y-1 text-blue-800">
+        <div className="flex gap-2 mb-2">
+          <MapPin className="w-4 h-4 text-blue-900 flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <p className="font-medium text-blue-900">How to set your studio location:</p>
+        </div>
+        <ul className="space-y-1 text-blue-800 ml-6">
           <li>• Search for your address in the field above</li>
           <li>• Click "Use Current" to use your current location</li>
           <li>• Click on the map to manually select a location</li>

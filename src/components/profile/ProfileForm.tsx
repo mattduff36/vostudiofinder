@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { updateProfileSchema, type UpdateProfileInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { User, Camera, Save, X, LogOut } from 'lucide-react';
+import { User, Camera, Save, X, LogOut, Check, XCircle } from 'lucide-react';
 
 interface ProfileFormProps {
   initialData?: {
@@ -191,9 +191,15 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                 </label>
                 <p className="text-sm text-text-primary">
                   {session?.user?.email_verified ? (
-                    <span className="text-green-600">✓ Verified</span>
+                    <span className="text-green-600 flex items-center gap-1">
+                      <Check className="w-4 h-4" aria-hidden="true" />
+                      <span>Verified</span>
+                    </span>
                   ) : (
-                    <span className="text-red-600">✗ Not verified</span>
+                    <span className="text-red-600 flex items-center gap-1">
+                      <XCircle className="w-4 h-4" aria-hidden="true" />
+                      <span>Not verified</span>
+                    </span>
                   )}
                 </p>
               </div>
