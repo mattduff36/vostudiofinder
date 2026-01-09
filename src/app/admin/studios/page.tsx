@@ -63,6 +63,9 @@ export default function AdminStudiosPage() {
   // Dynamic column hiding to prevent horizontal scroll
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const stickyScrollbarRef = useRef<HTMLDivElement>(null);
+  const stickyScrollbarContentRef = useRef<HTMLDivElement>(null);
+  const [showStickyScrollbar, setShowStickyScrollbar] = useState(false);
   const HIDE_ORDER = useMemo(() => ['type', 'lastLogin', 'updated', 'owner', 'select'], []);
 
   const computeHiddenColumns = useCallback(() => {
@@ -207,6 +210,66 @@ export default function AdminStudiosPage() {
   useEffect(() => {
     console.log('[STATE-CHANGE] hiddenColumns changed:', hiddenColumns);
   }, [hiddenColumns]);
+
+  // Sync scrolling between table and sticky scrollbar
+  useEffect(() => {
+    const tableContainer = tableContainerRef.current;
+    const stickyScrollbar = stickyScrollbarRef.current;
+    
+    if (!tableContainer || !stickyScrollbar) return;
+
+    const handleTableScroll = () => {
+      if (stickyScrollbar.scrollLeft !== tableContainer.scrollLeft) {
+        stickyScrollbar.scrollLeft = tableContainer.scrollLeft;
+      }
+    };
+
+    const handleStickyScroll = () => {
+      if (tableContainer.scrollLeft !== stickyScrollbar.scrollLeft) {
+        tableContainer.scrollLeft = stickyScrollbar.scrollLeft;
+      }
+    };
+
+    tableContainer.addEventListener('scroll', handleTableScroll);
+    stickyScrollbar.addEventListener('scroll', handleStickyScroll);
+
+    return () => {
+      tableContainer.removeEventListener('scroll', handleTableScroll);
+      stickyScrollbar.removeEventListener('scroll', handleStickyScroll);
+    };
+  }, []);
+
+  // Update sticky scrollbar width and visibility
+  useEffect(() => {
+    const updateStickyScrollbar = () => {
+      const tableContainer = tableContainerRef.current;
+      const stickyScrollbarContent = stickyScrollbarContentRef.current;
+      
+      if (!tableContainer || !stickyScrollbarContent) return;
+
+      const table = tableContainer.querySelector('table');
+      if (!table) return;
+
+      const hasOverflow = table.scrollWidth > tableContainer.clientWidth;
+      setShowStickyScrollbar(hasOverflow);
+
+      if (hasOverflow) {
+        // Set the content width to match the table's scroll width
+        stickyScrollbarContent.style.width = `${table.scrollWidth}px`;
+      }
+    };
+
+    // Initial update
+    const timer = setTimeout(updateStickyScrollbar, 100);
+
+    // Update on window resize
+    window.addEventListener('resize', updateStickyScrollbar);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateStickyScrollbar);
+    };
+  }, [loading, studios.length, hiddenColumns]);
 
   useEffect(() => {
     fetchStudios();
@@ -948,6 +1011,22 @@ export default function AdminStudiosPage() {
       />
         </div>
       </div>
+
+      {/* Sticky Horizontal Scrollbar */}
+      {showStickyScrollbar && (
+        <div
+          ref={stickyScrollbarRef}
+          className="fixed bottom-0 left-0 right-0 h-4 overflow-x-auto overflow-y-hidden bg-gray-100 border-t border-gray-300 z-50"
+          style={{
+            scrollbarWidth: 'thin',
+          }}
+        >
+          <div
+            ref={stickyScrollbarContentRef}
+            className="h-full"
+          />
+        </div>
+      )}
     </>
   );
 }
