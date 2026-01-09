@@ -1,6 +1,7 @@
 /**
  * Calculate profile completion statistics
  * Returns required fields completion and overall percentage
+ * Based on 17 fields (11 required + 6 optional) with weighted calculation
  */
 
 interface ProfileCompletionData {
@@ -8,6 +9,7 @@ interface ProfileCompletionData {
     username: string;
     display_name: string;
     avatar_url?: string | null;
+    email: string;
   };
   profile?: {
     short_about?: string | null;
@@ -23,6 +25,16 @@ interface ProfileCompletionData {
     connection6?: string | null;
     connection7?: string | null;
     connection8?: string | null;
+    rate_tier_1?: number | string | null;
+    equipment_list?: string | null;
+    services_offered?: string | null;
+    facebook_url?: string | null;
+    twitter_url?: string | null;
+    linkedin_url?: string | null;
+    instagram_url?: string | null;
+    youtube_url?: string | null;
+    vimeo_url?: string | null;
+    soundcloud_url?: string | null;
   };
   studio?: {
     name?: string | null;
@@ -34,82 +46,76 @@ interface ProfileCompletionData {
 export interface CompletionStats {
   required: {
     completed: number;
-    total: number;
+    total: number; // Always 11
   };
   overall: {
-    percentage: number;
+    percentage: number; // Weighted calculation from 17 fields
   };
 }
 
 export function calculateCompletionStats(data: ProfileCompletionData): CompletionStats {
+  // Count social media links
+  const socialMediaCount = [
+    data.profile?.facebook_url,
+    data.profile?.twitter_url,
+    data.profile?.linkedin_url,
+    data.profile?.instagram_url,
+    data.profile?.youtube_url,
+    data.profile?.vimeo_url,
+    data.profile?.soundcloud_url,
+  ].filter(url => url && url.trim() !== '').length;
+
   // Check if at least one connection method is selected
   const hasConnectionMethod = !!(
-    data.profile?.connection1 === '1' || 
-    data.profile?.connection2 === '1' || 
-    data.profile?.connection3 === '1' || 
-    data.profile?.connection4 === '1' || 
-    data.profile?.connection5 === '1' || 
-    data.profile?.connection6 === '1' || 
-    data.profile?.connection7 === '1' || 
+    data.profile?.connection1 === '1' ||
+    data.profile?.connection2 === '1' ||
+    data.profile?.connection3 === '1' ||
+    data.profile?.connection4 === '1' ||
+    data.profile?.connection5 === '1' ||
+    data.profile?.connection6 === '1' ||
+    data.profile?.connection7 === '1' ||
     data.profile?.connection8 === '1'
   );
 
-  // Required fields (10 total)
+  // REQUIRED fields (11 fields × 5.92% ≈ 65.12%)
   const requiredFields = [
-    !!(data.user.username && !data.user.username.startsWith('temp_')), // Username
-    !!(data.user.display_name && data.user.display_name.trim()), // Display name
-    !!(data.studio?.name && data.studio.name.trim()), // Studio name
-    !!(data.profile?.short_about && data.profile.short_about.trim()), // Short about
-    !!(data.profile?.about && data.profile.about.trim()), // About
-    !!(data.studio?.studio_types && data.studio.studio_types.length >= 1), // Studio types
-    !!(data.profile?.location && data.profile.location.trim()), // Location
-    hasConnectionMethod, // Connection method
-    !!(data.profile?.website_url && data.profile.website_url.trim()), // Website
-    !!(data.studio?.images && data.studio.images.length >= 1), // Images
+    { completed: !!(data.user.username && !data.user.username.startsWith('temp_')), weight: 5.92 },
+    { completed: !!(data.user.display_name && data.user.display_name.trim()), weight: 5.92 },
+    { completed: !!(data.user.email && data.user.email.trim()), weight: 5.92 },
+    { completed: !!(data.studio?.name && data.studio.name.trim()), weight: 5.92 },
+    { completed: !!(data.profile?.short_about && data.profile.short_about.trim()), weight: 5.92 },
+    { completed: !!(data.profile?.about && data.profile.about.trim()), weight: 5.92 },
+    { completed: !!(data.studio?.studio_types && data.studio.studio_types.length >= 1), weight: 5.92 },
+    { completed: !!(data.profile?.location && data.profile.location.trim()), weight: 5.92 },
+    { completed: hasConnectionMethod, weight: 5.92 },
+    { completed: !!(data.profile?.website_url && data.profile.website_url.trim()), weight: 5.92 },
+    { completed: !!(data.studio?.images && data.studio.images.length >= 1), weight: 5.92 },
   ];
 
-  const requiredCompleted = requiredFields.filter(Boolean).length;
-  const requiredTotal = 10;
+  // OPTIONAL fields (6 fields × 5.88% ≈ 35.28%)
+  const optionalFields = [
+    { completed: !!(data.user.avatar_url && data.user.avatar_url.trim()), weight: 5.88 },
+    { completed: !!(data.profile?.phone && data.profile.phone.trim()), weight: 5.88 },
+    { completed: socialMediaCount >= 2, weight: 5.88 },
+    {
+      completed: !!(data.profile?.rate_tier_1 && (typeof data.profile.rate_tier_1 === 'number' ? data.profile.rate_tier_1 > 0 : parseFloat(data.profile.rate_tier_1 as string) > 0)),
+      weight: 5.88
+    },
+    { completed: !!(data.profile?.equipment_list && data.profile.equipment_list.trim()), weight: 5.88 },
+    { completed: !!(data.profile?.services_offered && data.profile.services_offered.trim()), weight: 5.88 },
+  ];
 
-  // Calculate overall percentage (includes optional fields)
-  // This uses the same logic as calculateProfileCompletion
-  const completionData = {
-    username: data.user.username,
-    display_name: data.user.display_name,
-    email: '', // Not used in calculation
-    avatar_url: data.user.avatar_url,
-    studio_name: data.studio?.name || '',
-    short_about: data.profile?.short_about,
-    about: data.profile?.about,
-    phone: data.profile?.phone,
-    location: data.profile?.location,
-    website_url: data.profile?.website_url,
-    studio_types_count: data.studio?.studio_types?.length || 0,
-    images_count: data.studio?.images?.length || 0,
-    connection1: data.profile?.connection1,
-    connection2: data.profile?.connection2,
-    connection3: data.profile?.connection3,
-    connection4: data.profile?.connection4,
-    connection5: data.profile?.connection5,
-    connection6: data.profile?.connection6,
-    connection7: data.profile?.connection7,
-    connection8: data.profile?.connection8,
-  };
+  // Count required fields completed
+  const requiredCompleted = requiredFields.filter(f => f.completed).length;
+  const requiredTotal = 11;
 
-  // Simple calculation: count all completed fields
-  let completedCount = 0;
-  const totalFields = 16; // 10 required + 6 optional
-
-  // Required fields
-  completedCount += requiredCompleted;
-
-  // Optional fields
-  if (completionData.avatar_url && completionData.avatar_url.trim()) completedCount++;
-  if (completionData.phone && completionData.phone.trim()) completedCount++;
-  // Social media (counted as 1 field if any are present)
-  // Equipment list, services, rate tiers would go here if we had access to them
-
-  const overallPercentage = Math.round((completedCount / totalFields) * 100);
+  // Calculate total completion percentage using weighted calculation
+  const allFields = [...requiredFields, ...optionalFields];
+  const completionPercentage = Math.round(
+    allFields.reduce((total, field) => {
+      return total + (field.completed ? field.weight : 0);
+    }, 0)
+  );
 
   return {
     required: {
@@ -117,7 +123,7 @@ export function calculateCompletionStats(data: ProfileCompletionData): Completio
       total: requiredTotal,
     },
     overall: {
-      percentage: overallPercentage,
+      percentage: Math.min(completionPercentage, 100), // Cap at 100%
     },
   };
 }

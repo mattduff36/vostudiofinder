@@ -183,15 +183,24 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const completionStats: CompletionStats = useMemo(() => {
     if (!profile) {
       return {
-        required: { completed: 0, total: 10 },
+        required: { completed: 0, total: 11 },
         overall: { percentage: 0 },
       };
     }
 
     return calculateCompletionStats({
-      user: profile.user,
+      user: {
+        username: profile.user.username,
+        display_name: profile.user.display_name,
+        avatar_url: profile.user.avatar_url,
+        email: profile.user.email,
+      },
       profile: profile.profile,
-      studio: profile.studio,
+      studio: {
+        name: profile.studio?.name,
+        studio_types: profile.studio_types,
+        images: [], // Images are managed separately
+      },
     });
   }, [profile]);
 

@@ -44,9 +44,18 @@ export function ImageGalleryManager({
   
   // Calculate completion stats
   const completionStats: CompletionStats | null = profileData ? calculateCompletionStats({
-    user: profileData.user,
+    user: {
+      username: profileData.user.username,
+      display_name: profileData.user.display_name,
+      avatar_url: profileData.user.avatar_url,
+      email: profileData.user.email,
+    },
     profile: profileData.profile,
-    studio: profileData.studio,
+    studio: {
+      name: profileData.studio?.name,
+      studio_types: profileData.studio_types,
+      images: profileData.studio?.images || [],
+    },
   }) : null;
 
   useEffect(() => {

@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { PaymentSuccessOnboarding } from '@/components/auth/PaymentSuccessOnboarding';
-import { calculateProfileCompletion } from '@/lib/profile-completion';
+import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
 export const metadata: Metadata = {
   title: 'Payment Successful - Voiceover Studio Finder',
@@ -241,41 +241,47 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     },
   });
 
-  // Calculate profile completion
-  const completionData = {
-    username: user.username,
-    display_name: user.display_name,
-    email: user.email,
-    avatar_url: user.avatar_url ?? undefined,
-    studio_name: studioProfile?.name || '',
-    short_about: studioProfile?.short_about ?? undefined,
-    about: studioProfile?.about ?? undefined,
-    phone: studioProfile?.phone ?? undefined,
-    location: studioProfile?.location ?? undefined,
-    website_url: studioProfile?.website_url ?? undefined,
-    equipment_list: studioProfile?.equipment_list ?? undefined,
-    services_offered: studioProfile?.services_offered ?? undefined,
-    studio_types_count: studioProfile?.studio_studio_types.length || 0,
-    images_count: studioProfile?.studio_images.length || 0,
-    rate_tier_1: studioProfile?.rate_tier_1,
-    facebook_url: studioProfile?.facebook_url ?? undefined,
-    twitter_url: studioProfile?.twitter_url ?? undefined,
-    linkedin_url: studioProfile?.linkedin_url ?? undefined,
-    instagram_url: studioProfile?.instagram_url ?? undefined,
-    youtube_url: studioProfile?.youtube_url ?? undefined,
-    vimeo_url: studioProfile?.vimeo_url ?? undefined,
-    soundcloud_url: studioProfile?.soundcloud_url ?? undefined,
-    connection1: studioProfile?.connection1 ?? undefined,
-    connection2: studioProfile?.connection2 ?? undefined,
-    connection3: studioProfile?.connection3 ?? undefined,
-    connection4: studioProfile?.connection4 ?? undefined,
-    connection5: studioProfile?.connection5 ?? undefined,
-    connection6: studioProfile?.connection6 ?? undefined,
-    connection7: studioProfile?.connection7 ?? undefined,
-    connection8: studioProfile?.connection8 ?? undefined,
-  };
+  // Calculate profile completion using single source of truth
+  const completionStats = calculateCompletionStats({
+    user: {
+      username: user.username,
+      display_name: user.display_name,
+      email: user.email,
+      avatar_url: user.avatar_url,
+    },
+    profile: studioProfile ? {
+      short_about: studioProfile.short_about,
+      about: studioProfile.about,
+      phone: studioProfile.phone,
+      location: studioProfile.location,
+      website_url: studioProfile.website_url,
+      equipment_list: studioProfile.equipment_list,
+      services_offered: studioProfile.services_offered,
+      facebook_url: studioProfile.facebook_url,
+      twitter_url: studioProfile.twitter_url,
+      linkedin_url: studioProfile.linkedin_url,
+      instagram_url: studioProfile.instagram_url,
+      youtube_url: studioProfile.youtube_url,
+      vimeo_url: studioProfile.vimeo_url,
+      soundcloud_url: studioProfile.soundcloud_url,
+      connection1: studioProfile.connection1,
+      connection2: studioProfile.connection2,
+      connection3: studioProfile.connection3,
+      connection4: studioProfile.connection4,
+      connection5: studioProfile.connection5,
+      connection6: studioProfile.connection6,
+      connection7: studioProfile.connection7,
+      connection8: studioProfile.connection8,
+      rate_tier_1: studioProfile.rate_tier_1,
+    } : undefined,
+    studio: {
+      name: studioProfile?.name || undefined,
+      studio_types: studioProfile?.studio_studio_types?.map(st => st.studio_type) || [],
+      images: studioProfile?.studio_images || [],
+    },
+  });
 
-  const completionPercentage = calculateProfileCompletion(completionData as Parameters<typeof calculateProfileCompletion>[0]);
+  const completionPercentage = completionStats.overall.percentage;
 
   // Check if at least one connection method is selected
   const hasConnectionMethod = !!(
