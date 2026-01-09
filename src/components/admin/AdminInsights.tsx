@@ -5,6 +5,9 @@ import {
   Bar, 
   LineChart, 
   Line, 
+  PieChart,
+  Pie,
+  Cell,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -111,32 +114,41 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
             <MapPin className="w-5 h-5 text-blue-600" />
             <div>
               <h3 className="text-lg font-bold text-gray-900">Studio Locations</h3>
-              <p className="text-sm text-gray-600">Geographic distribution</p>
+              <p className="text-sm text-gray-600">Top 4 countries + other</p>
             </div>
           </div>
           {insights.locationStats.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={insights.locationStats}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#6b7280" 
-                  fontSize={11}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis stroke="#6b7280" fontSize={12} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#fff', 
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="flex items-center justify-center">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={insights.locationStats.map(item => ({
+                      name: item.name,
+                      value: item.count,
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {insights.locationStats.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#fff', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                    }}
+                    formatter={(value: number) => [`${value} studios`, 'Count']}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
               No location data available

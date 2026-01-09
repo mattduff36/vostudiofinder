@@ -157,7 +157,7 @@ export default async function AdminPage() {
     }),
   ]);
 
-  // Aggregate location data (top 10 + other)
+  // Aggregate location data (top 4 + other for pie chart)
   const locationMap = new Map<string, number>();
   locationData.forEach(profile => {
     const loc = profile.location?.trim();
@@ -167,9 +167,9 @@ export default async function AdminPage() {
   });
   const sortedLocations = Array.from(locationMap.entries())
     .sort((a, b) => b[1] - a[1]);
-  const top10Locations = sortedLocations.slice(0, 10);
-  const otherLocationsCount = sortedLocations.slice(10).reduce((sum, [, count]) => sum + count, 0);
-  const locationStats = top10Locations.map(([name, count]) => ({ name, count }));
+  const top4Locations = sortedLocations.slice(0, 4);
+  const otherLocationsCount = sortedLocations.slice(4).reduce((sum, [, count]) => sum + count, 0);
+  const locationStats = top4Locations.map(([name, count]) => ({ name, count }));
   if (otherLocationsCount > 0) {
     locationStats.push({ name: 'Other', count: otherLocationsCount });
   }
