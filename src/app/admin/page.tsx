@@ -119,7 +119,7 @@ export default async function AdminPage() {
     totalPaymentAmount,
     recentPaymentAmount,
     pendingReservations,
-    expiredReservations,
+    totalReservations: pendingReservations + expiredReservations,
     totalIssues,
     openIssues,
     totalSuggestions,

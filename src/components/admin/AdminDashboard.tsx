@@ -24,7 +24,7 @@ interface AdminDashboardProps {
     totalPaymentAmount: number;
     recentPaymentAmount: number;
     pendingReservations: number;
-    expiredReservations: number;
+    totalReservations: number;
     totalIssues: number;
     openIssues: number;
     totalSuggestions: number;
@@ -34,16 +34,22 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ stats }: AdminDashboardProps) {
   // Format payment amounts from pence to pounds
-  const formatPaymentAmount = (amountInPence: number): string => {
-    return `£${(amountInPence / 100).toFixed(2)}`;
+  // Round total to nearest full £, remove .00 from recent payments
+  const formatPaymentAmount = (amountInPence: number, isTotal: boolean = false): string => {
+    const pounds = amountInPence / 100;
+    if (isTotal) {
+      return `£${Math.round(pounds)}`;
+    }
+    // Remove .00 for recent payments
+    const formatted = pounds.toFixed(2);
+    return `£${formatted.replace('.00', '')}`;
   };
 
   const statCards = [
     {
       title: 'Total Users',
       value: stats.totalUsers.toLocaleString(),
-      subtitle: `${stats.activeStudios} Active Studios`,
-      details: null,
+      subtitle: `${stats.activeStudios} active studios`,
       icon: Users,
       color: 'bg-blue-500',
     },
@@ -52,8 +58,7 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
       value: stats.verifiedStudios.toLocaleString(),
       subtitle: stats.totalStudios > 0 
         ? `${Math.round((stats.verifiedStudios / stats.totalStudios) * 100)}% of total`
-        : 'Verified accounts',
-      details: `${stats.totalStudios} total studios`,
+        : 'verified accounts',
       icon: CheckCircle,
       color: 'bg-purple-500',
     },
@@ -62,40 +67,35 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
       value: stats.featuredStudios.toLocaleString(),
       subtitle: stats.totalStudios > 0
         ? `${Math.round((stats.featuredStudios / stats.totalStudios) * 100)}% of total`
-        : 'Homepage highlights',
-      details: 'Homepage highlights',
+        : 'homepage highlights',
       icon: Sparkles,
       color: 'bg-yellow-500',
     },
     {
       title: 'Payments',
-      value: formatPaymentAmount(stats.totalPaymentAmount),
-      subtitle: formatPaymentAmount(stats.recentPaymentAmount) + ' Recent Payments (30d)',
-      details: null,
+      value: formatPaymentAmount(stats.totalPaymentAmount, true),
+      subtitle: formatPaymentAmount(stats.recentPaymentAmount) + ' recent payments (30d)',
       icon: CreditCard,
       color: 'bg-green-500',
     },
     {
-      title: 'Reservations',
-      value: (stats.pendingReservations + stats.expiredReservations).toLocaleString(),
-      subtitle: `${stats.pendingReservations} pending`,
-      details: `${stats.expiredReservations} expired`,
+      title: 'Pending Reservations',
+      value: stats.pendingReservations.toLocaleString(),
+      subtitle: `${stats.totalReservations} total`,
       icon: Clock,
       color: 'bg-orange-500',
     },
     {
-      title: 'Issues',
+      title: 'New Issues',
       value: stats.openIssues.toLocaleString(),
       subtitle: `${stats.totalIssues} total`,
-      details: 'Open support issues',
       icon: AlertTriangle,
       color: 'bg-red-500',
     },
     {
-      title: 'Suggestions',
+      title: 'New Suggestions',
       value: stats.openSuggestions.toLocaleString(),
       subtitle: `${stats.totalSuggestions} total`,
-      details: 'Open suggestions',
       icon: Lightbulb,
       color: 'bg-yellow-500',
     },
@@ -104,8 +104,7 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
       value: stats.activeUsers30d.toLocaleString(),
       subtitle: stats.totalUsers > 0
         ? `${Math.round((stats.activeUsers30d / stats.totalUsers) * 100)}% of total`
-        : 'Active in last 30 days',
-      details: null,
+        : 'active in last 30 days',
       icon: Activity,
       color: 'bg-teal-500',
     },
@@ -143,9 +142,6 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
                     <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
                     {stat.subtitle && (
                       <p className="text-sm text-gray-700 mt-2 font-medium">{stat.subtitle}</p>
-                    )}
-                    {stat.details && (
-                      <p className="text-xs text-gray-500 mt-1">{stat.details}</p>
                     )}
                   </div>
                 </div>
