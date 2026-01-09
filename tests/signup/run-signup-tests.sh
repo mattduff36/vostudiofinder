@@ -58,6 +58,7 @@ echo ""
 run_test_suite "tests/signup/integration/register-api.test.ts" "Register API Tests"
 run_test_suite "tests/signup/integration/reserve-username-api.test.ts" "Reserve Username API Tests"
 run_test_suite "tests/signup/integration/check-signup-status-api.test.ts" "Check Signup Status API Tests"
+run_test_suite "tests/signup/integration/back-button-recovery.test.ts" "Back Button Recovery Tests"
 
 # Run security tests
 echo "🔒 Running Security Tests"
@@ -76,12 +77,27 @@ if command -v npx &> /dev/null && npx playwright --version &> /dev/null; then
   echo "----------------------------------------"
   
   if npx playwright test tests/signup/e2e/complete-signup-flow.spec.ts 2>&1 | tee /tmp/e2e_output.log; then
-    echo -e "${GREEN}✅ PASSED: E2E Tests${NC}"
+    echo -e "${GREEN}✅ PASSED: Complete Signup Flow E2E Tests${NC}"
     PASSED_TESTS=$((PASSED_TESTS + 1))
   else
-    echo -e "${YELLOW}⚠️  E2E Tests may have failed (check output above)${NC}"
+    echo -e "${YELLOW}⚠️  Complete Signup Flow E2E Tests may have failed (check output above)${NC}"
     FAILED_TESTS=$((FAILED_TESTS + 1))
     cat /tmp/e2e_output.log
+  fi
+  
+  TOTAL_TESTS=$((TOTAL_TESTS + 1))
+  echo ""
+  
+  echo "📋 Running: Back Button Protection E2E Tests"
+  echo "----------------------------------------"
+  
+  if npx playwright test tests/signup/e2e/back-button-protection.spec.ts 2>&1 | tee /tmp/backbutton_e2e_output.log; then
+    echo -e "${GREEN}✅ PASSED: Back Button Protection E2E Tests${NC}"
+    PASSED_TESTS=$((PASSED_TESTS + 1))
+  else
+    echo -e "${YELLOW}⚠️  Back Button Protection E2E Tests may have failed (check output above)${NC}"
+    FAILED_TESTS=$((FAILED_TESTS + 1))
+    cat /tmp/backbutton_e2e_output.log
   fi
   
   TOTAL_TESTS=$((TOTAL_TESTS + 1))
