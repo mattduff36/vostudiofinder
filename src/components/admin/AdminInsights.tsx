@@ -114,6 +114,95 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
             </div>
           )}
         </div>
+
+        {/* Right Column - Stacked Charts */}
+        <div className="flex flex-col gap-6">
+          {/* Location/Country Distribution - Top Right */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <MapPin className="w-5 h-5 text-blue-600" />
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Studio Locations</h3>
+                <p className="text-sm text-gray-600">Top 4 countries + other</p>
+              </div>
+            </div>
+            {insights.locationStats.length > 0 ? (
+              <div className="flex items-center justify-center px-4 py-2">
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                    <Pie
+                      data={insights.locationStats.map(item => ({
+                        name: item.name,
+                        value: item.count,
+                      }))}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={true}
+                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {insights.locationStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#fff', 
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                      }}
+                      formatter={(value: number) => [`${value} studios`, 'Count']}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
+                No location data available
+              </div>
+            )}
+          </div>
+
+          {/* Custom Connections Chart - Bottom Right */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <LinkIcon className="w-5 h-5 text-indigo-600" />
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Custom Connection Methods</h3>
+                <p className="text-sm text-gray-600">Most popular user-added connections</p>
+              </div>
+            </div>
+            {customConnectionsData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={customConnectionsData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis type="number" stroke="#6b7280" fontSize={12} />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    width={100}
+                    stroke="#6b7280" 
+                    fontSize={11}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#fff', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
+                No custom connections yet
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Trend Charts (Full Width) */}
@@ -189,9 +278,10 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                   }}
-                  formatter={(value: number, name: string) => {
-                    if (name === 'revenue') return [`£${value}`, 'Revenue'];
-                    return [value, 'Payments'];
+                  formatter={(value: number | undefined, name: string) => {
+                    if (name === 'revenue' && value !== undefined) return [`£${value}`, 'Revenue'];
+                    if (value !== undefined) return [value, 'Payments'];
+                    return ['', ''];
                   }}
                 />
                 <Legend />
