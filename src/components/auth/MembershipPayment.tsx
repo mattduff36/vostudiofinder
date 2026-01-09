@@ -73,12 +73,15 @@ export function MembershipPayment() {
               name = recovery.data.display_name;
               username = recovery.data.username || '';
               
-              // Store recovered data
+              // Store recovered data, preserving password from existing signup data
+              const existingSignupData = getSignupData();
               storeSignupData({
                 userId,
                 email,
                 display_name: name,
                 username,
+                password: existingSignupData?.password, // CRITICAL: Preserve password
+                reservation_expires_at: existingSignupData?.reservation_expires_at,
               });
               
               // Update URL
@@ -99,12 +102,15 @@ export function MembershipPayment() {
           }
         }
       } else {
-        // Store params in sessionStorage as backup
+        // Store params in sessionStorage as backup, preserving password from existing data
+        const existingSignupData = getSignupData();
         storeSignupData({
           userId,
           email,
           display_name: name,
           username,
+          password: existingSignupData?.password, // CRITICAL: Preserve password
+          reservation_expires_at: existingSignupData?.reservation_expires_at,
         });
       }
 
