@@ -303,16 +303,21 @@ export function EnhancedImageGallery({
             <button
               onClick={() => setPreviewImage(null)}
               className="absolute -top-12 right-0 text-white hover:text-gray-300"
+              aria-label="Close preview"
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <img
-              src={previewImage}
-              alt="Preview"
-              className="max-w-full max-h-full object-contain rounded-lg"
-            />
+            <div className="relative w-full h-[80vh]">
+              <Image
+                src={previewImage}
+                alt="Preview"
+                fill
+                className="object-contain rounded-lg"
+                unoptimized
+              />
+            </div>
           </div>
         </div>
       )}

@@ -22,12 +22,12 @@ export default async function DashboardPage() {
     // User's studios (if they're a studio owner)
     db.studio_profiles.findMany({
       where: { user_id: session.user.id },
-      include: {
-        studio_services: true,
-        studio_images: {
-          take: 1,
-          orderBy: { sort_order: 'asc' },
-        },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        is_premium: true,
+        created_at: true,
         studio_studio_types: {
           select: {
             studio_type: true,

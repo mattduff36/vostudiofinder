@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -62,13 +62,7 @@ export default function PaymentDetailPage() {
   const [refundError, setRefundError] = useState('');
   const [refundSuccess, setRefundSuccess] = useState(false);
 
-  useEffect(() => {
-    if (session?.user?.role === 'ADMIN') {
-      fetchPaymentDetails();
-    }
-  }, [session, paymentId]);
-
-  const fetchPaymentDetails = async () => {
+  const fetchPaymentDetails = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/payments/${paymentId}`);
       if (!response.ok) throw new Error('Failed to fetch payment details');
@@ -80,7 +74,13 @@ export default function PaymentDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [paymentId]);
+
+  useEffect(() => {
+    if (session?.user?.role === 'ADMIN') {
+      fetchPaymentDetails();
+    }
+  }, [session, fetchPaymentDetails]);
 
   const handleRefund = async () => {
     if (!refundAmount || parseFloat(refundAmount) <= 0) {
