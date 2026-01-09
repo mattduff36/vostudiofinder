@@ -157,18 +157,18 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
         </div>
 
         {/* Studio Types - Combined (Individual + Combinations) */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
           <div className="flex items-center gap-3 mb-6">
             <Building2 className="w-5 h-5 text-purple-600" />
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Studio Types</h3>
-              <p className="text-sm text-gray-600">Recording, Home & Voiceover types + combinations</p>
+              <h3 className="text-lg font-bold text-gray-900">Studio Types (Home, Recording & Podcast)</h3>
+              <p className="text-sm text-gray-600">Individual types and common combinations</p>
             </div>
           </div>
           {insights.studioTypeStats.length > 0 ? (
             <ResponsiveContainer width="100%" height={Math.min(insights.studioTypeStats.length * 40 + 100, 400)}>
               <BarChart data={insights.studioTypeStats.map(item => ({
-                name: item.name.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
+                name: item.name, // Names are already formatted correctly from server
                 count: item.count,
               }))} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -187,7 +187,11 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                     borderRadius: '8px',
                   }}
                 />
-                <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]}>
+                  {insights.studioTypeStats.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (

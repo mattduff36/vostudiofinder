@@ -174,8 +174,19 @@ export default async function AdminPage() {
     locationStats.push({ name: 'Other', count: otherLocationsCount });
   }
 
-  // Studio types data - filter to only RECORDING, HOME, and VOICEOVER
-  const allowedTypes = new Set(['RECORDING', 'HOME', 'VOICEOVER']);
+  // Studio types data - filter to only RECORDING, HOME, and PODCAST (active types)
+  const allowedTypes = new Set(['RECORDING', 'HOME', 'PODCAST']);
+  
+  // Helper function to format studio type enum to display name
+  const formatStudioTypeName = (type: string): string => {
+    const typeMap: Record<string, string> = {
+      'HOME': 'Home',
+      'RECORDING': 'Recording',
+      'PODCAST': 'Podcast',
+    };
+    return typeMap[type] || type;
+  };
+  
   const filteredStudioTypesData = studioTypesData.filter(item => 
     allowedTypes.has(item.studio_type)
   );
@@ -186,10 +197,11 @@ export default async function AdminPage() {
   // Group by studio_id to get combinations (only for allowed types)
   const studiosByType = new Map<string, Set<string>>();
   filteredStudioTypesData.forEach(item => {
-    // Count individual types
-    studioTypeMap.set(item.studio_type, (studioTypeMap.get(item.studio_type) || 0) + 1);
+    // Count individual types (using formatted names)
+    const formattedName = formatStudioTypeName(item.studio_type);
+    studioTypeMap.set(formattedName, (studioTypeMap.get(formattedName) || 0) + 1);
     
-    // Track which studios have which types
+    // Track which studios have which types (keep enum values for sorting)
     if (!studiosByType.has(item.studio_id)) {
       studiosByType.set(item.studio_id, new Set());
     }
@@ -201,8 +213,11 @@ export default async function AdminPage() {
     // Filter to only allowed types
     const filteredTypes = Array.from(types).filter(t => allowedTypes.has(t));
     if (filteredTypes.length > 1) {
-      // Create sorted combination key
-      const combination = filteredTypes.sort().join(' + ');
+      // Sort types in consistent order: HOME, PODCAST, RECORDING
+      const typeOrder: Record<string, number> = { 'HOME': 1, 'PODCAST': 2, 'RECORDING': 3 };
+      const sortedTypes = filteredTypes.sort((a, b) => (typeOrder[a] || 999) - (typeOrder[b] || 999));
+      // Format combination with " & " separator
+      const combination = sortedTypes.map(t => formatStudioTypeName(t)).join(' & ');
       studioTypeCombinations.set(combination, (studioTypeCombinations.get(combination) || 0) + 1);
     }
   });
