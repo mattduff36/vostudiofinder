@@ -118,9 +118,9 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
             </div>
           </div>
           {insights.locationStats.length > 0 ? (
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center px-4 py-2">
               <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
+                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <Pie
                     data={insights.locationStats.map(item => ({
                       name: item.name,
@@ -128,9 +128,9 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                     }))}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
+                    labelLine={true}
                     label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    outerRadius={100}
+                    outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
                   >
