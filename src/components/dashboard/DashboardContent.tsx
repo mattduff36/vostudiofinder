@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardTabs, DashboardTab } from './DashboardTabs';
 import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
@@ -44,32 +45,48 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
   };
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case 'overview':
-        // Hide desktop overview on mobile
-        return (
-          <div className="hidden md:block">
-            <UserDashboard data={dashboardData} />
-          </div>
-        );
-      
-      case 'edit-profile':
-        return <ProfileEditForm userId={dashboardData.user.id} />;
-      
-      case 'images':
-        return <ImageGalleryManager />;
-      
-      case 'settings':
-        return <Settings data={dashboardData} />;
-      
-      default:
-        return <UserDashboard data={dashboardData} />;
-    }
+    const content = (() => {
+      switch (activeTab) {
+        case 'overview':
+          // Hide desktop overview on mobile
+          return (
+            <div className="hidden md:block">
+              <UserDashboard data={dashboardData} />
+            </div>
+          );
+        
+        case 'edit-profile':
+          return <ProfileEditForm userId={dashboardData.user.id} />;
+        
+        case 'images':
+          return <ImageGalleryManager />;
+        
+        case 'settings':
+          return <Settings data={dashboardData} />;
+        
+        default:
+          return <UserDashboard data={dashboardData} />;
+      }
+    })();
+
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+        >
+          {content}
+        </motion.div>
+      </AnimatePresence>
+    );
   };
 
   return (
     <div className="min-h-screen relative bg-gray-50 flex flex-col">
-      {/* Background Image - Fixed */}
+      {/* Background Image - Fixed with enhanced gradient overlay on desktop */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
           src="/background-images/21920-4.jpg"
@@ -78,6 +95,7 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
           className="object-cover opacity-10"
           priority={false}
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/30 to-white/60 hidden md:block" />
       </div>
 
       {/* Tabs with proper z-index (Desktop only) */}

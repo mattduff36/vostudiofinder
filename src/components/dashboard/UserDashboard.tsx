@@ -7,6 +7,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
 import { Toggle } from '@/components/ui/Toggle';
 import { logger } from '@/lib/logger';
@@ -195,8 +196,13 @@ export function UserDashboard({ data }: UserDashboardProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header with Profile Visibility */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+      {/* Header with Profile Visibility - Desktop enhanced */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="bg-white rounded-lg border border-gray-200 shadow-sm md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             {/* Welcome Section */}
@@ -215,7 +221,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
                 />
               )}
               <div>
-                <h1 className="text-3xl font-bold text-text-primary">
+                <h1 className="text-3xl font-bold text-text-primary md:font-extrabold md:tracking-tight">
                   Welcome back, {user.display_name}!
                 </h1>
                 <p className="text-text-secondary">
@@ -263,13 +269,13 @@ export function UserDashboard({ data }: UserDashboardProps) {
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Content */}
       <div>
         <div className="space-y-8">
           {loading ? (
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 flex justify-center">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 flex justify-center md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl">
               <Loader2 className="w-8 h-8 animate-spin text-red-600" />
             </div>
           ) : profileData ? (
@@ -277,7 +283,12 @@ export function UserDashboard({ data }: UserDashboardProps) {
               {/* Profile Completion Progress and Tips - Side by Side */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Profile Completion Progress - Takes 2/3 width on large screens */}
-                <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-6 md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"
+                >
                   <ProfileCompletionProgress 
                     profileData={{
                       display_name: profileData.user?.display_name,
@@ -312,11 +323,16 @@ export function UserDashboard({ data }: UserDashboardProps) {
                       services_offered: profileData.profile?.services_offered,
                     }}
                   />
-                </div>
+                </motion.div>
 
                 {/* Profile Tips - Takes 1/3 width on large screens */}
-                <div className="lg:col-span-1 bg-gray-50 border border-gray-300 shadow-sm rounded-lg p-6 text-center">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Tips</h3>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="lg:col-span-1 bg-gray-50 border border-gray-300 shadow-sm rounded-lg p-6 text-center md:bg-gradient-to-br md:from-red-50 md:to-white md:border-gray-100 md:rounded-2xl md:shadow-2xl"
+                >
+                  <h3 className="text-lg font-medium text-gray-900 mb-2 md:font-extrabold md:tracking-tight">Profile Tips</h3>
                   <ul className="space-y-2 text-sm text-text-secondary inline-block text-left">
                     <li>✅ Complete all required fields to make your profile LIVE!</li>
                     <li>📊 Complete profiles get more views</li>
@@ -331,11 +347,16 @@ export function UserDashboard({ data }: UserDashboardProps) {
                     <li>🎯 Upload a strong featured image – it's the first thing clients see</li>
                     <li>💬 Include a short "intro" that sums up your studio or voice style</li>
                   </ul>
-                </div>
+                </motion.div>
               </div>
             </>
           ) : (
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"
+            >
               <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-medium text-text-primary mb-2">
                 Welcome to Your Dashboard
@@ -343,7 +364,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
               <p className="text-text-secondary max-w-md mx-auto">
                 Complete your profile to see your progress and tips here.
               </p>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

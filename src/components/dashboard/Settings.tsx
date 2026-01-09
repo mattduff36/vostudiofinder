@@ -16,6 +16,7 @@ import {
   ChevronUp,
   AlertTriangle
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { logger } from '@/lib/logger';
@@ -733,25 +734,32 @@ export function Settings({ data }: SettingsProps) {
 
   return (
     <>
-      {/* Desktop Container - unified card matching Edit Profile */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm hidden md:block">
+      {/* Desktop Container - Enhanced with animations and backdrop blur */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="bg-white rounded-lg border border-gray-200 shadow-sm hidden md:block md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"
+      >
         {/* Desktop Header */}
-        <div className="flex border-b border-gray-200 px-6 py-4 items-center">
+        <div className="flex border-b border-gray-100 px-6 py-5 items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-2xl font-bold text-gray-900 md:text-3xl md:font-extrabold md:tracking-tight">Settings</h2>
+            <p className="text-sm text-gray-600 mt-1 md:text-base">
               Manage your account settings and preferences
             </p>
           </div>
         </div>
 
-        {/* Desktop Section Navigation */}
-        <div className="border-b border-gray-200 px-6">
+        {/* Desktop Section Navigation with hover animations */}
+        <div className="border-b border-gray-100 px-6">
           <nav className="flex space-x-4 overflow-x-auto" aria-label="Settings sections">
             {sections.map((section) => (
-              <button
+              <motion.button
                 key={section.id}
                 onClick={() => setActiveDesktopSection(section.id)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
                   activeDesktopSection === section.id
                     ? 'border-red-500 text-red-600'
@@ -759,7 +767,7 @@ export function Settings({ data }: SettingsProps) {
                 }`}
               >
                 {section.label}
-              </button>
+              </motion.button>
             ))}
           </nav>
         </div>
@@ -770,7 +778,7 @@ export function Settings({ data }: SettingsProps) {
             {renderDesktopSectionContent(activeDesktopSection)}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mobile Accordion Sections */}
       <div className="md:hidden space-y-3">
