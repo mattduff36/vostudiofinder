@@ -38,11 +38,12 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
   const formatPaymentAmount = (amountInPence: number, isTotal: boolean = false): string => {
     const pounds = amountInPence / 100;
     if (isTotal) {
+      // Round total to nearest whole £
       return `£${Math.round(pounds)}`;
     }
-    // Remove .00 for recent payments
+    // Remove .00 from recent payments (e.g., £50.00 -> £50, but £50.50 -> £50.50)
     const formatted = pounds.toFixed(2);
-    return `£${formatted.replace('.00', '')}`;
+    return formatted.endsWith('.00') ? `£${Math.round(pounds)}` : `£${formatted}`;
   };
 
   const statCards = [
