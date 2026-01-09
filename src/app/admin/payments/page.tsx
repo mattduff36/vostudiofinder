@@ -32,6 +32,7 @@ interface Payment {
     amount: number;
     currency: string;
     reason: string | null;
+    comment: string | null;
     status: string;
     created_at: string;
     users_refunds_processed_byTousers: {
