@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { Check, Building, Loader2, Sparkles, Upload, Globe } from 'lucide-react';
+import { Check, Building, Loader2, Sparkles, Upload, Globe, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
+import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
+import { getSignupData, storeSignupData, recoverSignupState, updateURLParams, type SignupData } from '@/lib/signup-recovery';
 
 // Initialize Stripe
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -15,28 +17,165 @@ const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export function MembershipPayment() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [recoveryAttempted, setRecoveryAttempted] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
 
   // Get user data from URL params (passed from signup form)
-  const userId = searchParams?.get('userId') || '';
-  const email = searchParams?.get('email') || '';
-  const name = searchParams?.get('name') || '';
-  const username = searchParams?.get('username') || '';
+  let userId = searchParams?.get('userId') || '';
+  let email = searchParams?.get('email') || '';
+  let name = searchParams?.get('name') || '';
+  let username = searchParams?.get('username') || '';
+
+  // Enable back button protection only (not beforeunload)
+  // Note: We disable beforeunload because it interferes with Stripe's redirect after payment
+  // The beforeunload event fires for ALL navigation, including Stripe's redirect to success page
+  // We only want to prevent back button navigation, not forward navigation/redirects
+  usePreventBackNavigation({
+    enabled: true,
+    warningMessage: 'Your payment is in progress. Are you sure you want to go back? You may lose your progress.',
+    disableBeforeUnload: true, // Disable beforeunload to allow Stripe redirect without warning
+    onBackAttempt: () => {
+      console.log('⚠️  User attempted to navigate back from payment page');
+    },
+  });
 
   useEffect(() => {
     console.log('🎯 MembershipPayment mounted with:', { userId, email, name, username });
     
-    if (!stripeKey) {
-      setError('Stripe configuration missing. Please contact support.');
+    const initializeAndCheckPayment = async () => {
+      // If URL params are missing, try to recover from sessionStorage
+      if (!userId || !email) {
+        console.log('⚠️  Missing URL params, attempting recovery from sessionStorage...');
+        const storedData = getSignupData();
+        
+        if (storedData) {
+          console.log('✅ Recovered data from sessionStorage');
+          userId = storedData.userId;
+          email = storedData.email;
+          name = storedData.display_name;
+          username = storedData.username || '';
+          
+          // Update URL params to prevent issues on refresh
+          updateURLParams({ userId, email, name, username });
+        } else {
+          // Try to recover from database using email if available
+          if (email) {
+            setIsRecovering(true);
+            const recovery = await recoverSignupState(email);
+            
+            if (recovery.success && recovery.data) {
+              console.log('✅ Recovered data from database');
+              userId = recovery.data.userId;
+              email = recovery.data.email;
+              name = recovery.data.display_name;
+              username = recovery.data.username || '';
+              
+              // Store recovered data, preserving password from existing signup data
+              const existingSignupData = getSignupData();
+              const signupDataToStore: SignupData = {
+                userId,
+                email,
+                display_name: name,
+                username,
+              };
+              // Only include password if it exists (exactOptionalPropertyTypes: true requires this)
+              if (existingSignupData?.password) {
+                signupDataToStore.password = existingSignupData.password;
+              }
+              // Only include reservation_expires_at if it exists (exactOptionalPropertyTypes: true requires this)
+              if (existingSignupData?.reservation_expires_at !== undefined) {
+                signupDataToStore.reservation_expires_at = existingSignupData.reservation_expires_at;
+              }
+              storeSignupData(signupDataToStore);
+              
+              // Update URL
+              updateURLParams({ userId, email, name, username });
+              setIsRecovering(false);
+            } else {
+              setIsRecovering(false);
+              setError('Session expired. Unable to recover your signup data. Please start over.');
+              setRecoveryAttempted(true);
+              setIsLoading(false);
+              return;
+            }
+          } else {
+            setError('Session expired. Please sign up again.');
+            setRecoveryAttempted(true);
+            setIsLoading(false);
+            return;
+          }
+        }
+      } else {
+        // Store params in sessionStorage as backup, preserving password from existing data
+        const existingSignupData = getSignupData();
+        const signupDataToStore: SignupData = {
+          userId,
+          email,
+          display_name: name,
+          username,
+        };
+        // Only include password if it exists (exactOptionalPropertyTypes: true requires this)
+        if (existingSignupData?.password) {
+          signupDataToStore.password = existingSignupData.password;
+        }
+        // Only include reservation_expires_at if it exists (exactOptionalPropertyTypes: true requires this)
+        if (existingSignupData?.reservation_expires_at !== undefined) {
+          signupDataToStore.reservation_expires_at = existingSignupData.reservation_expires_at;
+        }
+        storeSignupData(signupDataToStore);
+      }
+
+      if (!userId) {
+        setError('Session expired. Please sign up again.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!stripeKey) {
+        setError('Stripe configuration missing. Please contact support.');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Check if payment already exists
+        const response = await fetch('/api/auth/check-payment-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          // If user is ACTIVE (canResume: false), redirect to dashboard
+          if (data.hasPayment && data.paymentStatus === 'succeeded' && data.canResume === false) {
+            console.log('✅ Account already active, redirecting to dashboard');
+            window.location.href = '/dashboard';
+            return; // Don't set loading to false - we're redirecting
+          }
+          
+          // If user is PENDING with payment completed, redirect to profile creation
+          if (data.hasPayment && data.paymentStatus === 'succeeded' && data.sessionId) {
+            console.log('✅ Payment already completed, redirecting to profile creation');
+            window.location.href = `/auth/membership/success?session_id=${data.sessionId}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}`;
+            return; // Don't set loading to false - we're redirecting
+          }
+        }
+      } catch (err) {
+        console.error('Error checking payment status:', err);
+      }
+
+      // Only set loading to false after all checks complete and no redirect occurred
       setIsLoading(false);
-    } else if (!userId) {
-      setError('Session expired. Please sign up again.');
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
-    }
-  }, [userId, email, name, username]);
+    };
+
+    initializeAndCheckPayment();
+    // stripeKey is a constant from process.env, doesn't need to be in dependencies
+  }, [userId, email, name, username, router]);
 
   const fetchClientSecret = useCallback(async () => {
     console.log('🔄 Fetching client secret...');
@@ -199,12 +338,32 @@ export function MembershipPayment() {
 
             {/* RIGHT: Payment Form - Takes 2 columns */}
             <div className="lg:col-span-2 pb-8">
-              {/* Error Display */}
+              {/* Error Display with Recovery Options */}
               {error && (
                 <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-start">
-                    <div className="text-red-600 mr-3 text-xl">⚠️</div>
-                    <p className="text-red-700">{error}</p>
+                  <div className="flex items-start mb-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <p className="text-red-700 flex-1">{error}</p>
+                  </div>
+                  {recoveryAttempted && (
+                    <div className="mt-4 pt-3 border-t border-red-200">
+                      <button
+                        onClick={() => router.push('/auth/signup')}
+                        className="w-full bg-[#d42027] text-white py-2 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-medium"
+                      >
+                        Start Fresh Signup
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Recovery in Progress */}
+              {isRecovering && (
+                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <Loader2 className="w-5 h-5 text-blue-600 mr-3 animate-spin" />
+                    <p className="text-blue-700">Recovering your session...</p>
                   </div>
                 </div>
               )}

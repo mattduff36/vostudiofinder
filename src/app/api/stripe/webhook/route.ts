@@ -160,7 +160,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
           customerName: user_name || customer?.name || user.display_name || 'Valued Member',
           amount: (payment.amount / 100).toFixed(2),
           currency: payment.currency.toUpperCase(),
-          invoiceNumber: session.id,
+          paymentId: payment.id,
           planName: 'Annual Membership',
           nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         }),
@@ -353,7 +353,8 @@ async function handleRefund(refund: Stripe.Refund) {
   }
 
   // Update payment refund amount
-  const newRefundedAmount = payment.refunded_amount + refund.amount;
+  // Safeguard: Ensure refund doesn't exceed payment amount (Stripe should prevent this, but add safety check)
+  const newRefundedAmount = Math.min(payment.refunded_amount + refund.amount, payment.amount);
   const isFullRefund = newRefundedAmount >= payment.amount;
 
   await db.payments.update({
@@ -374,7 +375,21 @@ async function handleRefund(refund: Stripe.Refund) {
     select: { id: true },
   });
   
-  const processedBy = adminUser?.id || payment.user_id;
+  // Use admin if available, otherwise use payment user_id
+  // Safeguard: If payment.user_id is 'PENDING' (legacy case), use admin or log warning
+  let processedBy = adminUser?.id || payment.user_id;
+  
+  if (processedBy === 'PENDING' || !processedBy) {
+    if (adminUser) {
+      processedBy = adminUser.id;
+      logger.log(`⚠️  Payment user_id is PENDING, using admin for processed_by`);
+    } else {
+      logger.log(`⚠️  No admin found and payment.user_id is PENDING, refund may fail FK constraint`);
+      // Will fail FK constraint if invalid - better to fail than corrupt data
+      processedBy = payment.user_id;
+    }
+  }
+  
   logger.log(`📝 Recording refund processed by: ${processedBy === payment.user_id ? 'USER (no admin found)' : 'ADMIN'}`);
 
   // Record refund
@@ -393,7 +408,7 @@ async function handleRefund(refund: Stripe.Refund) {
       created_at: new Date(),
       updated_at: new Date(),
     },
-  })
+  });
 
   // If full refund, end membership immediately
   if (isFullRefund) { // payment.user_id is now always valid

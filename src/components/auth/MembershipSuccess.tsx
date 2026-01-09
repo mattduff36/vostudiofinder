@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +13,8 @@ import { ImageCropperModal } from '@/components/images/ImageCropperModal';
 import { Loader2, Upload, X, AlertCircle } from 'lucide-react';
 import { extractCity } from '@/lib/utils/address';
 import Image from 'next/image';
+import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
+import { getSignupData, storeSignupData, recoverPaymentState, updateURLParams, clearSignupData, type SignupData } from '@/lib/signup-recovery';
 
 const STUDIO_TYPES = [
   { value: 'HOME', label: 'Home', description: 'Personal recording space in a home environment' },
@@ -69,11 +71,33 @@ export function MembershipSuccess() {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [nextStep, setNextStep] = useState<'choose' | 'verify_now' | 'build_now'>('choose');
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [dataRecovered, setDataRecovered] = useState(false);
   
-  const sessionId = searchParams?.get('session_id');
+  // Enable back button protection (especially critical on "choose" step)
+  usePreventBackNavigation({
+    enabled: nextStep === 'choose' || nextStep === 'verify_now',
+    warningMessage: 'Your account setup is incomplete. Going back may cause you to lose progress.',
+    allowBackAfter: () => paymentVerified && nextStep === 'build_now',
+    onBackAttempt: () => {
+      console.log('⚠️  User attempted to navigate back from success page');
+    },
+  });
+  
+  // Extract search params and memoize to prevent infinite loops
+  // useSearchParams() returns a new URLSearchParams instance on every render,
+  // so we need to extract values and memoize them for stable dependencies
+  const sessionId = searchParams?.get('session_id') || null;
   const email = searchParams?.get('email') || '';
   const name = searchParams?.get('name') || '';
   const username = searchParams?.get('username') || '';
+  
+  // Memoize the extracted values to prevent dependency array instability
+  // These stable values are used in useCallback dependencies
+  const stableSessionId = useMemo(() => sessionId || '', [sessionId]);
+  const stableEmail = useMemo(() => email || '', [email]);
+  const stableName = useMemo(() => name || '', [name]);
+  const stableUsername = useMemo(() => username || '', [username]);
 
   const {
     register,
@@ -108,74 +132,172 @@ export function MembershipSuccess() {
   const formEmail = watch('email');
 
   // Verify payment on component mount
-  useEffect(() => {
-    const verifyPayment = async () => {
-      if (!sessionId) {
+  // Memoize verifyPayment to prevent infinite loops from unstable searchParams
+  const verifyPayment = useCallback(async () => {
+    // Use stable memoized values instead of direct searchParams.get() results
+    // This prevents infinite loops caused by new URLSearchParams instances on each render
+    let recoveredEmail = stableEmail;
+    let recoveredName = stableName;
+    let recoveredUsername = stableUsername;
+    let recoveredSessionId = stableSessionId || null;
+
+    // If missing data, try sessionStorage first
+    if (!recoveredEmail || !recoveredName || !recoveredSessionId) {
+      console.log('⚠️  Missing URL params, attempting recovery from sessionStorage...');
+      const signupData = getSignupData();
+      
+      if (signupData) {
+        console.log('✅ Recovered some data from sessionStorage');
+        recoveredEmail = recoveredEmail || signupData.email;
+        recoveredName = recoveredName || signupData.display_name;
+        recoveredUsername = recoveredUsername || signupData.username || '';
+        
+        // SessionStorage doesn't have sessionId, so we'll need to query database
+      }
+    }
+
+    // If still missing critical data, try to recover from database
+    if (!recoveredSessionId && recoveredEmail) {
+      console.log('🔍 Attempting to recover payment data from database...');
+      setIsRecovering(true);
+      
+      const recovery = await recoverPaymentState({ email: recoveredEmail });
+      
+      setIsRecovering(false);
+      
+      if (recovery.success && recovery.data) {
+        console.log('✅ Recovered payment data from database');
+        recoveredSessionId = recovery.data.sessionId;
+        recoveredEmail = recovery.data.email;
+        recoveredUsername = recovery.data.username;
+        recoveredName = recovery.data.display_name;
+        
+        // Preserve existing signup data (especially password) when storing recovered data
+        // Get existing data first to preserve password
+        const existingSignupData = getSignupData();
+        
+        // Store recovered data in sessionStorage, preserving password from existing data
+        const signupDataToStore: SignupData = {
+          userId: recovery.data.userId,
+          email: recoveredEmail,
+          display_name: recoveredName,
+          username: recoveredUsername,
+        };
+        // Only include password if it exists (exactOptionalPropertyTypes: true requires this)
+        if (existingSignupData?.password) {
+          signupDataToStore.password = existingSignupData.password;
+        }
+        // Only include reservation_expires_at if it exists (exactOptionalPropertyTypes: true requires this)
+        if (existingSignupData?.reservation_expires_at !== undefined) {
+          signupDataToStore.reservation_expires_at = existingSignupData.reservation_expires_at;
+        }
+        storeSignupData(signupDataToStore);
+        
+        // Update URL params
+        updateURLParams({
+          session_id: recoveredSessionId,
+          email: recoveredEmail,
+          name: recoveredName,
+          username: recoveredUsername,
+        });
+        
+        // Update form fields
+        setValue('email', recoveredEmail);
+        setValue('display_name', recoveredName);
+        setValue('username', recoveredUsername);
+        
+        setDataRecovered(true);
+        console.log('✅ State recovered successfully');
+      } else {
         setError({
-          message: 'No payment session found. Please start the signup process again.',
-          code: 'NO_SESSION',
+          message: recovery.error || 'Unable to recover your session. Please start the signup process again.',
+          code: 'RECOVERY_FAILED',
           canRetry: false,
         });
         return;
       }
+    }
 
-      try {
-        const params = new URLSearchParams();
-        if (email) params.set('email', email);
-        if (name) params.set('name', name);
-        if (username) params.set('username', username);
+    // If still no session ID, we can't proceed
+    if (!recoveredSessionId) {
+      setError({
+        message: 'Session data missing. Please check your email for a recovery link or start the signup process again.',
+        code: 'NO_SESSION_ID',
+        canRetry: false,
+      });
+      return;
+    }
 
-        const response = await fetch(`/api/stripe/verify-membership-payment?${params.toString()}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId }),
-        });
+    if (!recoveredSessionId) {
+      setError({
+        message: 'No payment session found. Please start the signup process again.',
+        code: 'NO_SESSION',
+        canRetry: false,
+      });
+      return;
+    }
 
-        const result = await response.json();
+    try {
+      const params = new URLSearchParams();
+      if (recoveredEmail) params.set('email', recoveredEmail);
+      if (recoveredName) params.set('name', recoveredName);
+      if (recoveredUsername) params.set('username', recoveredUsername);
 
-        console.log('🔍 Verification result:', result);
+      const response = await fetch(`/api/stripe/verify-membership-payment?${params.toString()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: recoveredSessionId }),
+      });
 
-        if (!response.ok) {
-          throw new Error(result.error || 'Payment verification failed');
-        }
+      const result = await response.json();
 
-        // Populate form fields with customer data from Stripe session metadata
-        if (result.customerData) {
-          console.log('✅ Customer data found:', result.customerData);
-          // Use reset() to properly update disabled fields and trigger re-render
-          reset({
-            username: result.customerData.username || '',
-            display_name: result.customerData.name || '',
-            email: result.customerData.email || '',
-            studio_name: '',
-            short_about: '',
-            about: '',
-            studio_types: [],
-            full_address: '',
-            abbreviated_address: '',
-            city: '',
-            location: '',
-            website_url: '',
-            connections: {},
-            images: [],
-          });
-          console.log('✅ Form reset with customer data');
-        } else {
-          console.error('❌ No customer data in verification response');
-        }
+      console.log('🔍 Verification result:', result);
 
-        setPaymentVerified(true);
-      } catch (err) {
-        setError({
-          message: err instanceof Error ? err.message : 'Payment verification failed. Please refresh the page or contact support.',
-          code: 'PAYMENT_VERIFICATION_ERROR',
-          canRetry: true,
-        });
+      if (!response.ok) {
+        throw new Error(result.error || 'Payment verification failed');
       }
-    };
 
+      // Populate form fields with customer data from Stripe session metadata
+      if (result.customerData) {
+        console.log('✅ Customer data found:', result.customerData);
+        // Use reset() to properly update disabled fields and trigger re-render
+        reset({
+          username: result.customerData.username || recoveredUsername || '',
+          display_name: result.customerData.name || recoveredName || '',
+          email: result.customerData.email || recoveredEmail || '',
+          studio_name: '',
+          short_about: '',
+          about: '',
+          studio_types: [],
+          full_address: '',
+          abbreviated_address: '',
+          city: '',
+          location: '',
+          website_url: '',
+          connections: {},
+          images: [],
+        });
+        console.log('✅ Form reset with customer data');
+      } else {
+        console.error('❌ No customer data in verification response');
+      }
+
+      setPaymentVerified(true);
+    } catch (err) {
+      setError({
+        message: err instanceof Error ? err.message : 'Payment verification failed. Please refresh the page or contact support.',
+        code: 'PAYMENT_VERIFICATION_ERROR',
+        canRetry: true,
+      });
+    }
+    // Use stable memoized values instead of direct searchParams.get() results
+    // This prevents infinite loops caused by new URLSearchParams instances on each render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stableSessionId, stableEmail, stableName, stableUsername]);
+
+  useEffect(() => {
     verifyPayment();
-  }, [sessionId, email, name, username, reset]);
+  }, [verifyPayment]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -305,22 +427,26 @@ export function MembershipSuccess() {
 
     try {
       // Get password from session storage (stored during signup)
-      const signupDataStr = sessionStorage.getItem('signupData');
-      let password = '';
-      if (signupDataStr) {
-        const signupData = JSON.parse(signupDataStr);
-        password = signupData.password;
-      }
-
-      if (!password) {
+      const signupData = getSignupData();
+      
+      if (!signupData || !signupData.password) {
         setError({
-          message: 'Session expired. Please start the signup process again from the beginning.',
-          code: 'SESSION_EXPIRED',
+          message: 'Your session has expired and password data is no longer available. Please start the signup process again.',
+          code: 'PASSWORD_LOST',
           canRetry: false,
         });
         setIsLoading(false);
+        
+        // Offer to clear data and redirect after a delay
+        setTimeout(() => {
+          clearSignupData();
+          router.push('/auth/signup?error=session_expired');
+        }, 3000);
+        
         return;
       }
+
+      const password = signupData.password;
 
       const response = await fetch('/api/auth/create-paid-account', {
         method: 'POST',
@@ -342,8 +468,7 @@ export function MembershipSuccess() {
       }
 
       // Clear signup data from session storage
-      sessionStorage.removeItem('signupData');
-      sessionStorage.removeItem('selectedUsername');
+      clearSignupData();
 
       // Redirect to email verification page with flow=account
       router.push(`/auth/verify-email?flow=account&email=${encodeURIComponent(formEmail)}`);
@@ -406,22 +531,26 @@ export function MembershipSuccess() {
 
     try {
       // Get password from session storage (stored during signup)
-      const signupDataStr = sessionStorage.getItem('signupData');
-      let password = '';
-      if (signupDataStr) {
-        const signupData = JSON.parse(signupDataStr);
-        password = signupData.password;
-      }
-
-      if (!password) {
+      const signupData = getSignupData();
+      
+      if (!signupData || !signupData.password) {
         setError({
-          message: 'Session expired. Please start the signup process again from the beginning.',
-          code: 'SESSION_EXPIRED',
+          message: 'Your session has expired and password data is no longer available. Please start the signup process again.',
+          code: 'PASSWORD_LOST',
           canRetry: false,
         });
         setIsLoading(false);
+        
+        // Offer to clear data and redirect after a delay
+        setTimeout(() => {
+          clearSignupData();
+          router.push('/auth/signup?error=session_expired');
+        }, 3000);
+        
         return;
       }
+
+      const password = signupData.password;
 
       // Auto-add https:// to website URL if not present and validate format
       let websiteUrl = data.website_url.trim();
@@ -645,6 +774,31 @@ export function MembershipSuccess() {
             }
           </p>
         </div>
+
+        {/* Data Recovery Banner */}
+        {dataRecovered && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <AlertCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-blue-800 font-medium">Session recovered</p>
+                <p className="text-blue-700 text-sm mt-1">
+                  We automatically recovered your signup progress. You can continue from where you left off.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Recovery in Progress */}
+        {isRecovering && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <Loader2 className="w-5 h-5 text-blue-600 mr-3 animate-spin" />
+              <p className="text-blue-700">Recovering your session data...</p>
+            </div>
+          </div>
+        )}
 
         {/* Two-Card Chooser UI */}
         {nextStep === 'choose' && (

@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       ],
       mode: 'payment', // One-time annual fee
       ui_mode: 'embedded', // Embedded checkout stays on our site
-      return_url: `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}`,
+      return_url: `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
       metadata: {
         user_id: userId, // CRITICAL: User always exists now (PENDING status)
         user_email: email,

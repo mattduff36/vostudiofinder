@@ -5,6 +5,7 @@ export const registerSchema = z.object({
   email: z
     .string()
     .min(1, 'Email is required')
+    .max(254, 'Email address is too long') // RFC 5321 limit
     .email('Please enter a valid email address'),
   password: z
     .string()

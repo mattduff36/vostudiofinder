@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Button } from '@/components/ui/Button';
 import { Search, RefreshCw, Filter, ChevronDown, ChevronUp, Banknote, AlertCircle, Check } from 'lucide-react';
-import { formatDate } from '@/lib/date-format';
+import { formatDate, formatDateTime } from '@/lib/date-format';
 
 interface Payment {
   id: string;
@@ -35,9 +35,10 @@ interface Payment {
     status: string;
     created_at: string;
     users_refunds_processed_byTousers: {
+      id: string;
       email: string;
       display_name: string;
-    };
+    } | null;
   }>;
 }
 
@@ -51,7 +52,7 @@ export default function AdminPaymentsPage() {
   const [expandedPaymentId, setExpandedPaymentId] = useState<string | null>(null);
   const [refundModalPaymentId, setRefundModalPaymentId] = useState<string | null>(null);
   const [refundAmount, setRefundAmount] = useState('');
-  const [refundReason, setRefundReason] = useState('');
+  const [refundReason, setRefundReason] = useState<'duplicate' | 'fraudulent' | 'requested_by_customer' | '' | null>(null);
   const [refunding, setRefunding] = useState(false);
   const [refundError, setRefundError] = useState('');
   const [refundSuccess, setRefundSuccess] = useState<string | null>(null);
@@ -173,6 +174,11 @@ export default function AdminPaymentsPage() {
       return;
     }
 
+    if (!refundReason) {
+      setRefundError('Please select a reason for the refund');
+      return;
+    }
+
     const amountInCents = Math.round(parseFloat(refundAmount) * 100);
     const maxRefundable = payment.amount - payment.refunded_amount;
 
@@ -202,7 +208,7 @@ export default function AdminPaymentsPage() {
       setRefundSuccess(payment.id);
       setRefundModalPaymentId(null);
       setRefundAmount('');
-      setRefundReason('');
+      setRefundReason(null);
 
       // Refresh payments
       await fetchPayments();
@@ -369,7 +375,7 @@ export default function AdminPaymentsPage() {
                     const isRefundModalOpen = refundModalPaymentId === payment.id;
 
                     return (
-                      <>
+                      <Fragment key={payment.id}>
                         {/* Success Message Row */}
                         {refundSuccess === payment.id && (
                           <tr key={`${payment.id}-success`}>
@@ -438,7 +444,7 @@ export default function AdminPaymentsPage() {
                                     <div>
                                       <p className="text-xs text-gray-500">Created</p>
                                       <p className="text-gray-900 text-xs">
-                                        {new Date(payment.created_at).toLocaleString('en-GB')}
+                                        {formatDateTime(payment.created_at)}
                                       </p>
                                     </div>
                                     {payment.stripe_payment_intent_id && (
@@ -464,7 +470,7 @@ export default function AdminPaymentsPage() {
                                               e.stopPropagation();
                                               // Clear form state when opening modal for a new payment
                                               setRefundAmount('');
-                                              setRefundReason('');
+                                              setRefundReason(null);
                                               setRefundError('');
                                               setRefundModalPaymentId(payment.id);
                                             }}
@@ -476,7 +482,7 @@ export default function AdminPaymentsPage() {
                                           </Button>
                                         </div>
                                       ) : (
-                                        <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                                        <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
                                           <div>
                                             <label className="block text-xs font-medium text-gray-700 mb-1">
                                               Amount ({payment.currency.toUpperCase()})
@@ -489,21 +495,24 @@ export default function AdminPaymentsPage() {
                                               value={refundAmount}
                                               onChange={(e) => setRefundAmount(e.target.value)}
                                               placeholder="0.00"
-                                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                                              className="flex h-10 w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                             />
                                           </div>
 
                                           <div>
                                             <label className="block text-xs font-medium text-gray-700 mb-1">
-                                              Reason (Optional)
+                                              Reason
                                             </label>
-                                            <textarea
-                                              value={refundReason}
-                                              onChange={(e) => setRefundReason(e.target.value)}
-                                              placeholder="Enter reason..."
-                                              rows={2}
-                                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
-                                            />
+                                            <select
+                                              value={refundReason || ''}
+                                              onChange={(e) => setRefundReason(e.target.value ? (e.target.value as 'duplicate' | 'fraudulent' | 'requested_by_customer') : null)}
+                                              className="flex h-10 w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                              <option value="" disabled className="text-gray-400">Select a reason...</option>
+                                              <option value="requested_by_customer">Requested by customer</option>
+                                              <option value="duplicate">Duplicate payment</option>
+                                              <option value="fraudulent">Fraudulent transaction</option>
+                                            </select>
                                           </div>
 
                                           {refundError && (
@@ -527,7 +536,7 @@ export default function AdminPaymentsPage() {
                                               onClick={() => {
                                                 setRefundModalPaymentId(null);
                                                 setRefundAmount('');
-                                                setRefundReason('');
+                                                setRefundReason(null);
                                                 setRefundError('');
                                               }}
                                               variant="outline"
@@ -562,7 +571,7 @@ export default function AdminPaymentsPage() {
                                     <div>
                                       <p className="text-xs text-gray-500">Account Created</p>
                                       <p className="text-gray-900 text-xs">
-                                        {new Date(payment.users.created_at).toLocaleDateString('en-GB')}
+                                        {formatDate(payment.users.created_at)}
                                       </p>
                                     </div>
                                   </div>
@@ -587,8 +596,8 @@ export default function AdminPaymentsPage() {
                                             <p className="text-gray-600 text-xs mb-1">Reason: {refund.reason}</p>
                                           )}
                                           <p className="text-gray-500 text-xs">
-                                            Processed by {refund.users_refunds_processed_byTousers.display_name} on{' '}
-                                            {new Date(refund.created_at).toLocaleString('en-GB')}
+                                            Processed by {refund.users_refunds_processed_byTousers?.display_name || 'System'} on{' '}
+                                            {formatDateTime(refund.created_at)}
                                           </p>
                                         </div>
                                       ))}
@@ -599,7 +608,7 @@ export default function AdminPaymentsPage() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })
                 )}

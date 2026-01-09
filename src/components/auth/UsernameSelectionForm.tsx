@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Check, Loader2 } from 'lucide-react';
+import { SignupProgressIndicator } from './SignupProgressIndicator';
+import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
+import { getSignupData, storeSignupData } from '@/lib/signup-recovery';
 
 interface UsernameSuggestion {
   username: string;
@@ -24,11 +27,79 @@ export function UsernameSelectionForm() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Enable back button protection
+  usePreventBackNavigation({
+    enabled: true,
+    warningMessage: 'Your username selection is in progress. Are you sure you want to leave?',
+    onBackAttempt: () => {
+      console.log('⚠️  User attempted to navigate back from username selection');
+    },
+  });
+
   useEffect(() => {
+    // Check sessionStorage first - if missing, redirect to signup
+    const signupData = getSignupData();
+    
+    if (!signupData) {
+      console.warn('⚠️  No signup data found in sessionStorage');
+      setError('Session expired. Please start the signup process again.');
+      setTimeout(() => {
+        router.push('/auth/signup');
+      }, 2000);
+      return;
+    }
+    
+    // Store/update data as backup
+    if (display_name && signupData) {
+      storeSignupData({
+        ...signupData,
+        display_name: display_name || signupData.display_name,
+      });
+    }
+    
     if (display_name) {
       fetchSuggestions();
     }
-  }, [display_name]);
+    
+    // Check if username already reserved (resume scenario)
+    const checkExistingUsername = async () => {
+      if (!signupData) return;
+
+      try {
+        const userId = signupData.userId;
+
+        if (!userId) return;
+
+        // Check user's current username
+        const response = await fetch('/api/auth/check-signup-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: signupData.email }),
+        });
+
+        if (response.ok) {
+          const statusData = await response.json();
+          if (statusData.canResume && statusData.hasUsername && statusData.user.username) {
+            // Username already reserved - skip to payment
+            console.log(`✅ Username already reserved: @${statusData.user.username}`);
+            
+            const params = new URLSearchParams();
+            params.set('userId', userId);
+            params.set('email', signupData.email);
+            params.set('name', signupData.display_name);
+            params.set('username', statusData.user.username);
+            
+            router.push(`/auth/membership?${params.toString()}`);
+          }
+        }
+      } catch (err) {
+        console.error('Error checking existing username:', err);
+      }
+    };
+
+    checkExistingUsername();
+    // router is stable and doesn't need to be in dependencies
+  }, [display_name, router]);
 
   const fetchSuggestions = async () => {
     try {
@@ -101,19 +172,22 @@ export function UsernameSelectionForm() {
     }
 
     // Get signup data from session storage
-    const signupData = sessionStorage.getItem('signupData');
+    const signupData = getSignupData();
     if (!signupData) {
       setError('Session expired. Please start over.');
-      router.push('/auth/signup');
+      setTimeout(() => {
+        router.push('/auth/signup');
+      }, 2000);
       return;
     }
 
-    const data = JSON.parse(signupData);
-    const userId = data.userId;
+    const userId = signupData.userId;
 
     if (!userId) {
       setError('Session data invalid. Please start over.');
-      router.push('/auth/signup');
+      setTimeout(() => {
+        router.push('/auth/signup');
+      }, 2000);
       return;
     }
 
@@ -137,7 +211,6 @@ export function UsernameSelectionForm() {
         if (response.status === 410) {
           // Reservation expired
           setError('Your reservation has expired. Please sign up again.');
-          sessionStorage.removeItem('signupData');
           setTimeout(() => router.push('/auth/signup'), 2000);
           return;
         }
@@ -154,14 +227,17 @@ export function UsernameSelectionForm() {
 
       console.log(`✅ Username reserved: @${selectedUsername}`);
 
-      // Store user_id for payment flow
-      sessionStorage.setItem('pendingUserId', userId);
+      // Update signup data with username
+      storeSignupData({
+        ...signupData,
+        username: selectedUsername,
+      });
 
       // Navigate to membership payment with user_id
       const params = new URLSearchParams();
       params.set('userId', userId);
-      params.set('email', data.email);
-      params.set('name', data.display_name);
+      params.set('email', signupData.email);
+      params.set('name', signupData.display_name);
       params.set('username', selectedUsername);
 
       router.push(`/auth/membership?${params.toString()}`);
@@ -174,7 +250,9 @@ export function UsernameSelectionForm() {
   };
 
   return (
-    <div className="w-full max-w-md space-y-6">
+    <div className="w-full max-w-2xl space-y-6">
+      <SignupProgressIndicator currentStep="username" />
+      
       <div className="text-center">
         <h1 className="text-3xl font-bold text-text-primary">Choose Your Username</h1>
         <p className="mt-2 text-text-secondary">

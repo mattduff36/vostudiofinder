@@ -58,30 +58,23 @@ export function EnhancedSearchBar({
   const radiusDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get user's current location for distance calculations
+  // Only request when user actually searches (not on page load)
   const [locationRequested, setLocationRequested] = React.useState(false);
   
-  // Request user location on component mount for better search results
-  React.useEffect(() => {
-    // Automatically request location when component mounts
-    setLocationRequested(true);
-  }, []);
-  
-  React.useEffect(() => {
-    // Only fetch location after permission is requested
-    if (!locationRequested) return;
+  // Request location only when needed (when search is performed)
+  const requestUserLocation = async () => {
+    if (locationRequested) return; // Already requested
     
-    const getUserLocation = async () => {
-      try {
-        const location = await getCurrentLocation();
-        setUserLocation(location);
-        logger.log('🌍 User location obtained:', location);
-      } catch (error) {
-        logger.warn('Could not get user location for distance sorting:', error);
-      }
-    };
-
-    getUserLocation();
-  }, [locationRequested]);
+    setLocationRequested(true);
+    try {
+      const location = await getCurrentLocation();
+      setUserLocation(location);
+      logger.log('🌍 User location obtained:', location);
+    } catch (error) {
+      logger.warn('Could not get user location for distance sorting:', error);
+      // Don't show error to user - location is optional for search
+    }
+  };
 
   // Cleanup timeouts on unmount
   React.useEffect(() => {
@@ -490,7 +483,11 @@ export function EnhancedSearchBar({
   };
 
   // Handle search submission
-  const handleSearch = () => {
+  const handleSearch = async () => {
+    // Request location permission when user actually searches (for distance sorting)
+    // This is less intrusive than asking on page load
+    await requestUserLocation();
+    
     if (query.trim()) {
       if (selectedLocation) {
         // Use the selected location (which is the actual address for users)

@@ -7,8 +7,8 @@ import { ToastProvider } from '@/components/providers/ToastProvider';
 import { Navbar } from '@/components/navigation/Navbar';
 import { MobileShell } from '@/components/navigation/MobileShell';
 import { CookieConsentBanner } from '@/components/consent/CookieConsentBanner';
+import { DynamicAnalytics } from '@/components/consent/DynamicAnalytics';
 import { authOptions } from '@/lib/auth';
-import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script';
 import { getBaseUrl, SITE_NAME } from '@/lib/seo/site';
 import './globals.css';
@@ -79,28 +79,12 @@ export default async function RootLayout({
     console.error('Error reading cookie consent:', error);
     consentLevel = undefined;
   }
-  const hasConsent = consentLevel === 'all';
 
   return (
     <html lang='en'>
       <head>
-        {/* Google Analytics - Only load with user consent */}
-        {hasConsent && (
-          <>
-            <Script
-              src="https://www.googletagmanager.com/gtag/js?id=G-JKPCYM50W7"
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', 'G-JKPCYM50W7');
-              `}
-            </Script>
-          </>
-        )}
+        {/* Google Analytics is loaded dynamically by DynamicAnalytics component based on consent */}
+        {/* No server-side GA initialization needed - handled client-side */}
         <meta 
           name="viewport" 
           content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" 
@@ -124,8 +108,8 @@ export default async function RootLayout({
           </main>
           <MobileShell session={session} />
         </SessionProvider>
-        {/* Vercel Analytics - Only load with user consent */}
-        {hasConsent && <Analytics />}
+        {/* Vercel Analytics - Dynamically loads based on consent (no reload needed) */}
+        <DynamicAnalytics />
         {/* Cookie Consent Banner */}
         <CookieConsentBanner initialLevel={consentLevel || null} />
       </body>

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Button } from '@/components/ui/Button';
-import { Search, RefreshCw, Clock, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Search, RefreshCw, Clock, AlertCircle, CheckCircle, XCircle, Trash2, Filter } from 'lucide-react';
 import { formatDate } from '@/lib/date-format';
 
 interface PendingUser {
@@ -36,6 +36,9 @@ export default function AdminReservationsPage() {
     failedPayments: 0,
     expired: 0,
   });
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
 
   // Redirect if not admin
   useEffect(() => {
@@ -79,6 +82,47 @@ export default function AdminReservationsPage() {
 
   const handleSearch = () => {
     fetchUsers();
+  };
+
+  const handleDeleteReservation = async (userId: string, email: string, username: string) => {
+    if (!confirm(`⚠️  PERMANENT DELETION WARNING\n\nAre you sure you want to permanently delete ${email} (@${username})?\n\nThis will:\n✗ Delete the user account completely\n✗ Delete all payment records\n✗ Delete any studio profiles\n✗ Cancel all pending reminder emails\n\n⚠️  THIS ACTION CANNOT BE UNDONE!\n\nType their email to confirm deletion.`)) {
+      return;
+    }
+    
+    // Second confirmation for safety
+    const confirmEmail = prompt(`To confirm deletion, please type the email address:\n${email}`);
+    if (confirmEmail !== email) {
+      setDeleteError('Email confirmation did not match. Deletion cancelled.');
+      setTimeout(() => setDeleteError(null), 3000);
+      return;
+    }
+
+    setDeletingUserId(userId);
+    setDeleteError(null);
+    setDeleteSuccess(null);
+
+    try {
+      const response = await fetch(`/api/admin/reservations/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete reservation');
+      }
+
+      setDeleteSuccess(`User ${email} has been permanently deleted along with all associated data.`);
+      
+      // Refresh the list
+      setTimeout(() => {
+        fetchUsers();
+        setDeleteSuccess(null);
+      }, 2000);
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete reservation');
+    } finally {
+      setDeletingUserId(null);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -152,7 +196,7 @@ export default function AdminReservationsPage() {
       {/* Admin Tabs */}
       <AdminTabs activeTab="reservations" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8" style={{ minWidth: '1024px' }}>
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Username Reservations</h1>
@@ -206,24 +250,29 @@ export default function AdminReservationsPage() {
 
         {/* Filters Card */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-center mb-4">
+            <Filter className="w-5 h-5 text-gray-400 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search by Email or Username
               </label>
-              <div className="flex">
+              <div className="flex h-10">
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="user@example.com or username"
-                  className="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                  className="flex-1 h-10 px-3 rounded-l-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
                 />
                 <Button
                   onClick={handleSearch}
-                  className="rounded-l-none bg-red-600 hover:bg-red-700 px-4"
+                  className="h-10 rounded-l-none bg-red-600 hover:bg-red-700 px-4"
                 >
                   <Search className="w-4 h-4" />
                 </Button>
@@ -238,7 +287,7 @@ export default function AdminReservationsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm"
+                className="w-full h-10 px-3 rounded-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
               >
                 <option value="">All Statuses</option>
                 <option value="PENDING">Pending</option>
@@ -263,89 +312,137 @@ export default function AdminReservationsPage() {
           </div>
         </div>
 
+        {/* Success/Error Messages */}
+        {deleteSuccess && (
+          <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+              <p className="text-sm text-green-800">{deleteSuccess}</p>
+            </div>
+          </div>
+        )}
+
+        {deleteError && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+              <p className="text-sm text-red-800">{deleteError}</p>
+            </div>
+          </div>
+        )}
+
         {/* Users Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="w-full divide-y divide-gray-200" style={{ tableLayout: 'fixed' }}>
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '18%' }}>
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '14%' }}>
                     Username
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '10%' }}>
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Reservation Expires
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '14%' }}>
                     Payment Attempts
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '12%' }}>
                     Created
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '16%' }}>
+                    Reservation Expires
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '8%' }}>
+                    Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                       {searchTerm || statusFilter ? 'No reservations found matching your filters' : 'No reservations found'}
                     </td>
                   </tr>
                 ) : (
-                  users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.display_name}
-                        </div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-mono text-gray-900">
-                          @{user.username}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(user.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {user.reservation_expires_at ? (
-                          <div>
-                            <div className="text-sm text-gray-900">
-                              {formatDate(user.reservation_expires_at)}
-                            </div>
-                            <div className="text-xs">
-                              {getExpiryStatus(user.reservation_expires_at)}
-                            </div>
+                  users.map((user, index) => (
+                    <React.Fragment key={user.id}>
+                      {/* Main data row */}
+                      <tr className={`hover:bg-gray-50 transition-colors ${index > 0 ? 'border-t border-gray-200' : ''}`}>
+                        <td className="px-4 pt-4 pb-1 align-top">
+                          <div className="text-sm font-medium text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
+                            {user.display_name}
                           </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {user.payment_retry_count > 0 ? (
-                            <span className="text-red-600 font-semibold">
-                              {user.payment_retry_count} failed
-                            </span>
-                          ) : user._count.payments > 0 ? (
-                            <span className="text-green-600">
-                              {user._count.payments} attempt{user._count.payments > 1 ? 's' : ''}
-                            </span>
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap align-top">
+                          <div className="text-sm font-mono text-gray-900">
+                            @{user.username}
+                          </div>
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap align-top">
+                          {getStatusBadge(user.status)}
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap align-top">
+                          <div className="text-sm text-gray-900">
+                            {user.payment_retry_count > 0 ? (
+                              <span className="text-red-600 font-semibold">
+                                {user.payment_retry_count} failed
+                              </span>
+                            ) : user._count.payments > 0 ? (
+                              <span className="text-green-600">
+                                {user._count.payments} attempt{user._count.payments > 1 ? 's' : ''}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">No attempts</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap text-sm text-gray-500 align-top">
+                          {formatDate(user.created_at)}
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap align-top">
+                          {user.reservation_expires_at ? (
+                            <div>
+                              <div className="text-sm text-gray-900">
+                                {formatDate(user.reservation_expires_at)}
+                              </div>
+                              <div className="text-xs">
+                                {getExpiryStatus(user.reservation_expires_at)}
+                              </div>
+                            </div>
                           ) : (
-                            <span className="text-gray-400">No attempts</span>
+                            <span className="text-sm text-gray-400">N/A</span>
                           )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(user.created_at)}
-                      </td>
-                    </tr>
+                        </td>
+                        <td className="px-4 pt-4 pb-1 whitespace-nowrap text-sm align-top">
+                          <Button
+                            onClick={() => handleDeleteReservation(user.id, user.email, user.username)}
+                            disabled={deletingUserId === user.id}
+                            variant="outline"
+                            className="border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 disabled:opacity-50"
+                            title="Permanently delete user and all associated data"
+                          >
+                            {deletingUserId === user.id ? (
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </td>
+                      </tr>
+                      {/* Email row - spans first 5 columns */}
+                      <tr className="hover:bg-gray-50 transition-colors">
+                        <td colSpan={5} className="px-4 pt-0 pb-4">
+                          <div className="text-sm text-gray-500 break-words">
+                            {user.email}
+                          </div>
+                        </td>
+                        <td colSpan={2}></td>
+                      </tr>
+                    </React.Fragment>
                   ))
                 )}
               </tbody>

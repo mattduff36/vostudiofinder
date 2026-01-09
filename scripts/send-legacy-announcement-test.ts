@@ -1,6 +1,9 @@
 import * as dotenv from 'dotenv';
 import { Resend } from 'resend';
-import { generateLegacyUserAnnouncementEmail } from '../src/lib/email/templates/legacy-user-announcement';
+import { 
+  generateLegacyUserAnnouncementEmail,
+  generateLegacyUserResetUrl 
+} from '../src/lib/email/templates/legacy-user-announcement';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -15,11 +18,22 @@ async function sendLegacyAnnouncementTest() {
 
   const testEmail = 'matt.mpdee@gmail.com';
   
+  // Generate reset password URL with token
+  console.log('🔐 Generating password reset token...');
+  let resetPasswordUrl: string;
+  try {
+    resetPasswordUrl = await generateLegacyUserResetUrl(testEmail);
+    console.log('✅ Reset token generated\n');
+  } catch (error) {
+    console.error('❌ Error generating reset token:', error instanceof Error ? error.message : error);
+    console.error('💡 Make sure the user exists in the database before sending the email.');
+    process.exit(1);
+  }
+  
   const { subject, previewText, html, text } = generateLegacyUserAnnouncementEmail({
     userEmail: testEmail,
     displayName: 'Matt',
-    signinUrl: 'https://voiceoverstudiofinder.com/auth/signin',
-    forgotPasswordUrl: 'https://voiceoverstudiofinder.com/auth/forgot-password',
+    resetPasswordUrl,
   });
 
   console.log('📤 Sending legacy user announcement email...');

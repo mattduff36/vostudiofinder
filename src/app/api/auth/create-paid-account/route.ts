@@ -6,6 +6,7 @@ import { createUser } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 import { sendVerificationEmail } from '@/lib/email/email-service';
+import { UserStatus } from '@prisma/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
   apiVersion: '2025-10-29.clover',
@@ -14,10 +15,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sessionId, username, ...userData } = body;
-    
-    // Validate input
-    const validatedData = signupSchema.parse(userData);
+    const { sessionId, username, email, ...userData } = body;
     
     // Verify payment session first
     if (!sessionId) {
@@ -26,6 +24,90 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Check if user already exists BEFORE validation (to handle ACTIVE users without password)
+    // Use email from body directly (not validated yet)
+    const existingUser = await db.users.findUnique({
+      where: { email: email?.toLowerCase() },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        display_name: true,
+        status: true,
+        verification_token: true,
+        verification_token_expiry: true,
+      },
+    });
+    
+    // If user exists and is ACTIVE (webhook already processed), generate verification token and send email
+    // Skip password validation for ACTIVE users since they already have an account
+    if (existingUser && existingUser.status === UserStatus.ACTIVE) {
+      console.log('✅ User already ACTIVE (webhook processed), generating verification token');
+      
+      // Generate new verification token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      
+      // Update user with new verification token
+      await db.users.update({
+        where: { id: existingUser.id },
+        data: {
+          verification_token: verificationToken,
+          verification_token_expiry: verificationTokenExpiry,
+        },
+      });
+      
+      // Send verification email
+      const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${verificationToken}`;
+      
+      try {
+        const emailSent = await sendVerificationEmail(
+          existingUser.email,
+          existingUser.display_name,
+          verificationUrl
+        );
+        
+        if (emailSent) {
+          console.log('✅ Verification email sent successfully to:', existingUser.email);
+        } else {
+          console.warn('⚠️ Failed to send verification email to:', existingUser.email);
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending verification email:', emailError);
+        // Don't fail the request, email sending is non-critical
+      }
+      
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Verification email sent. Please check your email to verify your account.',
+          user: {
+            id: existingUser.id,
+            email: existingUser.email,
+            username: existingUser.username,
+            display_name: existingUser.display_name,
+            role: 'USER',
+          },
+        },
+        { status: 200 }
+      );
+    }
+    
+    // If user exists but is not ACTIVE, return error (shouldn't happen in normal flow)
+    if (existingUser && existingUser.status !== UserStatus.ACTIVE) {
+      return NextResponse.json(
+        { 
+          error: 'Account already exists but is not active. Please contact support.',
+          errorCode: 'ACCOUNT_EXISTS_NOT_ACTIVE',
+          canRetry: false,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Now validate input for new user creation (password required)
+    const validatedData = signupSchema.parse({ email, ...userData });
 
     // DEVELOPMENT MODE: Skip Stripe verification for dev sessions
     const isDevMode = process.env.NODE_ENV === 'development' || sessionId.startsWith('cs_dev_');
@@ -36,31 +118,19 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { error: 'Stripe configuration not available' },
           { status: 500 }
-      );
-    }
+        );
+      }
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    
-    if (session.payment_status !== 'paid') {
-      return NextResponse.json(
-        { error: 'Payment not verified' },
-        { status: 400 }
-      );
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      
+      if (session.payment_status !== 'paid') {
+        return NextResponse.json(
+          { error: 'Payment not verified' },
+          { status: 400 }
+        );
       }
     } else {
       console.log('🔧 DEV MODE: Skipping Stripe payment verification for account creation');
-    }
-
-    // Check if user already exists
-    const existingUser = await db.users.findUnique({
-      where: { email: validatedData.email },
-    });
-    
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'User already exists with this email' },
-        { status: 400 }
-      );
     }
 
     // Check if username is already taken (if provided) - case-insensitive

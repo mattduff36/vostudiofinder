@@ -4,25 +4,11 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { z } from 'zod';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Lock, ArrowLeft, CheckCircle } from 'lucide-react';
-
-const resetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/\d/, 'Password must contain at least one number'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
-
-type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/validations/auth';
 
 export function ResetPasswordForm() {
   const router = useRouter();
@@ -73,6 +59,7 @@ export function ResetPasswordForm() {
         body: JSON.stringify({
           token,
           password: data.password,
+          confirmPassword: data.confirmPassword, // Required by resetPasswordSchema
         }),
       });
 
@@ -84,10 +71,36 @@ export function ResetPasswordForm() {
 
       setSuccess(true);
       
-      // Redirect to sign in after 3 seconds
+      // Automatically sign in the user with their new password
+      if (result.email && data.password) {
+        try {
+          const signInResult = await signIn('credentials', {
+            email: result.email,
+            password: data.password,
+            redirect: false,
+          });
+
+          if (signInResult?.ok) {
+            // Sign in successful - redirect to dashboard
+            // Special redirect for admin@mpdee.co.uk
+            if (result.email === 'admin@mpdee.co.uk') {
+              router.push('/admin');
+            } else {
+              router.push('/dashboard');
+            }
+            router.refresh();
+            return; // Don't show the success message since we're redirecting
+          }
+        } catch (signInError) {
+          // If auto sign-in fails, redirect to sign in page
+          console.error('Auto sign-in failed:', signInError);
+        }
+      }
+      
+      // Fallback: Redirect to sign in after 2 seconds if auto sign-in didn't work
       setTimeout(() => {
         router.push('/auth/signin?reset=success');
-      }, 3000);
+      }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

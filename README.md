@@ -608,8 +608,16 @@ CLOUDINARY_API_SECRET="your-api-secret"
 #### **Stripe (Payment Processing):**
 ```env
 STRIPE_SECRET_KEY="your-stripe-secret-key"
-STRIPE_PUBLISHABLE_KEY="your-stripe-publishable-key"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="your-stripe-publishable-key"
+STRIPE_WEBHOOK_SECRET="whsec_your-webhook-secret"
+STRIPE_MEMBERSHIP_PRICE_ID="price_your-membership-price-id"
 ```
+
+**For Preview Deployments (Client Testing):**
+- Use **TEST mode** keys (`sk_test_...` and `pk_test_...`)
+- Create webhook endpoint in Stripe Dashboard pointing to preview URL
+- Set environment variables in Vercel **Preview** environment
+- See `docs/STRIPE_VERCEL_PREVIEW_SETUP.md` for complete setup guide
 
 ### **Pre-Deployment Checklist:**
 - [ ] All environment variables set in Vercel (no quotes around values)
