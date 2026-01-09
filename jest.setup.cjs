@@ -49,8 +49,18 @@ if (typeof globalThis.TextDecoder === 'undefined') {
 
 // Polyfill setImmediate for Node.js environments (needed by Prisma)
 if (typeof globalThis.setImmediate === 'undefined') {
-  globalThis.setImmediate = (fn, ...args) => setTimeout(() => fn(...args), 0)
-  globalThis.clearImmediate = clearTimeout
+  // setImmediate is polyfilled using setTimeout, so we return the timeout ID
+  // clearImmediate must use that same ID to cancel the corresponding timeout
+  globalThis.setImmediate = (fn, ...args) => {
+    return setTimeout(() => fn(...args), 0)
+  }
+  globalThis.clearImmediate = (id) => {
+    // Clear the timeout that corresponds to the setImmediate call
+    // The ID returned by setImmediate is the timeout ID from setTimeout
+    if (id != null) {
+      clearTimeout(id)
+    }
+  }
 }
 
 // Polyfill Request/Response for Next.js API routes in Node.js test environment
@@ -78,13 +88,43 @@ if (typeof globalThis.Request === 'undefined') {
     } catch (e2) {
       // Final fallback: create minimal polyfill
       console.warn('Could not load Request/Response polyfills, creating minimal polyfill:', e2.message)
+      
+      // Define Headers FIRST so Request and Response can use it
+      globalThis.Headers = class Headers {
+        constructor(init) {
+          this._map = new Map()
+          if (init) {
+            if (init instanceof Headers) {
+              // Copy from another Headers instance
+              init._map.forEach((value, key) => this._map.set(key, value))
+            } else if (typeof init === 'object' && !Array.isArray(init)) {
+              // Plain object or Map
+              if (init instanceof Map) {
+                init.forEach((value, key) => this._map.set(key.toLowerCase(), value))
+              } else {
+                Object.entries(init).forEach(([k, v]) => this._map.set(k.toLowerCase(), v))
+              }
+            }
+          }
+        }
+        get(name) { return this._map.get(name.toLowerCase()) }
+        set(name, value) { this._map.set(name.toLowerCase(), value) }
+        has(name) { return this._map.has(name.toLowerCase()) }
+        delete(name) { return this._map.delete(name.toLowerCase()) }
+        entries() { return this._map.entries() }
+        keys() { return this._map.keys() }
+        values() { return this._map.values() }
+        forEach(callback) { this._map.forEach((value, key) => callback(value, key, this)) }
+      }
+      
       globalThis.Request = class Request {
         constructor(input, init = {}) {
           // Use Object.defineProperty to set read-only properties
           const url = typeof input === 'string' ? input : input?.url || ''
           Object.defineProperty(this, 'url', { value: url, writable: false, enumerable: true })
           Object.defineProperty(this, 'method', { value: init.method || 'GET', writable: false, enumerable: true })
-          this.headers = new Map()
+          // Use Headers class instance to match Fetch API contract
+          this.headers = new Headers(init.headers || undefined)
           this.body = init.body
         }
         async json() { return JSON.parse(this.body || '{}') }
@@ -148,15 +188,7 @@ if (typeof globalThis.Request === 'undefined') {
           })
         }
       }
-      globalThis.Headers = class Headers {
-        constructor(init) {
-          this._map = new Map()
-          if (init) Object.entries(init).forEach(([k, v]) => this._map.set(k.toLowerCase(), v))
-        }
-        get(name) { return this._map.get(name.toLowerCase()) }
-        set(name, value) { this._map.set(name.toLowerCase(), value) }
-        has(name) { return this._map.has(name.toLowerCase()) }
-      }
+      // Headers is already defined above, before Request and Response
     }
   }
 }

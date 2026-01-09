@@ -172,12 +172,18 @@ export function MembershipSuccess() {
         recoveredUsername = recovery.data.username;
         recoveredName = recovery.data.display_name;
         
-        // Store recovered data in sessionStorage
+        // Preserve existing signup data (especially password) when storing recovered data
+        // Get existing data first to preserve password
+        const existingSignupData = getSignupData();
+        
+        // Store recovered data in sessionStorage, preserving password from existing data
         storeSignupData({
           userId: recovery.data.userId,
           email: recoveredEmail,
           display_name: recoveredName,
           username: recoveredUsername,
+          password: existingSignupData?.password, // CRITICAL: Preserve password from existing data
+          reservation_expires_at: existingSignupData?.reservation_expires_at,
         });
         
         // Update URL params
