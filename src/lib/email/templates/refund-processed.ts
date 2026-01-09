@@ -4,6 +4,20 @@
  * Purpose: Notify users when a refund has been processed
  */
 
+/**
+ * Escape HTML special characters to prevent XSS attacks
+ */
+function escapeHtml(text: string): string {
+  const map: { [key: string]: string } = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  };
+  return text.replace(/[&<>"']/g, (char) => map[char]);
+}
+
 export interface RefundProcessedProps {
   displayName: string;
   refundAmount: string;
@@ -71,7 +85,7 @@ export function generateRefundProcessedEmail({
                 <tr>
                   <td style="padding: 16px 20px;">
                     <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151; line-height: 1.6;"><strong>Note:</strong></p>
-                    <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.6;">${comment.replace(/\n/g, '<br>')}</p>
+                    <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.6;">${escapeHtml(comment).replace(/\n/g, '<br>')}</p>
                   </td>
                 </tr>
               </table>

@@ -160,8 +160,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
 
     // Send refund notification email to user
-    if (payment.user_id !== 'PENDING' && payment.users.email) {
+    if (payment.user_id !== 'PENDING' && payment.users?.email) {
       try {
+        const user = payment.users; // Store reference for type safety
         const refundAmountFormatted = (amount / 100).toFixed(2);
         const paymentAmountFormatted = (payment.amount / 100).toFixed(2);
         const refundDate = new Date().toLocaleDateString('en-GB', {
@@ -171,7 +172,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         });
 
         const { html, text } = generateRefundProcessedEmail({
-          displayName: payment.users.display_name || payment.users.username,
+          displayName: user.display_name || user.username,
           refundAmount: refundAmountFormatted,
           currency: payment.currency,
           paymentAmount: paymentAmountFormatted,
@@ -181,13 +182,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         });
 
         await sendEmail({
-          to: payment.users.email,
+          to: user.email,
           subject: 'Refund processed - Voiceover Studio Finder',
           html,
           text,
         });
 
-        console.log(`✅ Refund notification email sent to ${payment.users.email}`);
+        console.log(`✅ Refund notification email sent to ${user.email}`);
       } catch (emailError) {
         // Don't fail the refund if email fails
         console.error('Failed to send refund notification email:', emailError);

@@ -690,11 +690,7 @@ export function EnhancedSearchBar({
                   : 'hover:bg-gray-50 text-gray-900'
               }`}
               onClick={() => {
-                handleSelect(suggestion);
-                // After selecting, trigger search automatically
-                setTimeout(() => {
-                  handleSearch();
-                }, 0);
+                handleSelect(suggestion, true);
               }}
             >
               {getSuggestionIcon(suggestion.type)}
