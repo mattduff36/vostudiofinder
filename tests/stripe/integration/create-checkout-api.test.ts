@@ -44,6 +44,8 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.PENDING,
       });
 
@@ -92,6 +94,8 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       const email = 'test+user@example.com'; // Email with special character
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.PENDING,
       });
 
@@ -135,6 +139,8 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.PENDING,
       });
 

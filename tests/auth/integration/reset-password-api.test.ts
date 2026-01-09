@@ -37,6 +37,8 @@ describe('POST /api/auth/reset-password', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.ACTIVE,
       });
 
@@ -73,6 +75,8 @@ describe('POST /api/auth/reset-password', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.ACTIVE,
       });
 
@@ -113,6 +117,8 @@ describe('POST /api/auth/reset-password', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.ACTIVE,
       });
 
@@ -147,6 +153,8 @@ describe('POST /api/auth/reset-password', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.ACTIVE,
       });
 
@@ -201,6 +209,8 @@ describe('POST /api/auth/reset-password', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.ACTIVE,
       });
 

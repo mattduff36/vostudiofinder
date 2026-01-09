@@ -55,6 +55,7 @@ describe('Refund Webhook Handler', () => {
     // Create test user
     testUser = await createTestUserInDb({
       email: generateTestEmail(testEmailPrefix),
+      password: 'TestPassword123!',
       display_name: 'Test User',
       username: `testuser_${Date.now()}`,
     });

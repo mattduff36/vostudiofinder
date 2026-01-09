@@ -35,6 +35,8 @@ describe('Payment Success Page - Race Condition Fix', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.PENDING,
       });
 
@@ -74,6 +76,8 @@ describe('Payment Success Page - Race Condition Fix', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.ACTIVE, // Webhook already processed
       });
 
@@ -113,6 +117,8 @@ describe('Payment Success Page - Race Condition Fix', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.EXPIRED,
       });
 
@@ -152,6 +158,8 @@ describe('Payment Success Page - Race Condition Fix', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.PENDING,
       });
 
@@ -197,6 +205,8 @@ describe('Payment Success Page - Race Condition Fix', () => {
       const email = generateTestEmail(testEmailPrefix);
       const user = await createTestUserInDb({
         email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
         status: UserStatus.PENDING,
       });
 
