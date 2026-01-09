@@ -17,12 +17,19 @@ export function FloatingActionBar({
   totalRequiredFields,
 }: FloatingActionBarProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { scrollY } = useScroll();
   
-  // Show bar after scrolling down 300px
+  // Show bar after scrolling down 300px, expand when near bottom
   useEffect(() => {
     const updateVisibility = () => {
-      setIsVisible(window.scrollY > 300);
+      const scrolled = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      setIsVisible(scrolled > 300);
+      // Expand when within 100px of bottom
+      setIsExpanded(scrolled + windowHeight >= documentHeight - 100);
     };
 
     window.addEventListener('scroll', updateVisibility);
@@ -42,8 +49,48 @@ export function FloatingActionBar({
       className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none"
     >
       <div className="max-w-7xl mx-auto px-4 pb-6">
-        <div className="pointer-events-auto bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border-2 border-gray-200 p-4 md:p-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <motion.div
+          animate={{ 
+            height: isExpanded ? 'auto' : 'auto',
+          }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          className={`pointer-events-auto backdrop-blur-xl rounded-2xl shadow-2xl border-2 p-4 md:p-6 ${
+            isExpanded 
+              ? 'bg-gradient-to-br from-red-600 to-red-500 border-red-700' 
+              : 'bg-white/95 border-gray-200'
+          }`}
+        >
+          {isExpanded ? (
+            // Expanded CTA View
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-center"
+            >
+              <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-3 tracking-tight">
+                Ready to Complete Your Profile?
+              </h2>
+              <p className="text-base md:text-lg text-red-50 mb-6 max-w-2xl mx-auto">
+                Head to your dashboard to fill in your studio details and start receiving inquiries from voice artists worldwide
+              </p>
+              
+              <Button
+                onClick={() => window.location.href = '/dashboard'}
+                className="bg-white text-red-600 hover:bg-gray-50 font-bold text-lg px-8 py-4 min-h-[56px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 inline-flex items-center gap-2 group touch-manipulation"
+                aria-label="Go to your dashboard"
+              >
+                Go to Dashboard
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              
+              <p className="text-sm text-red-100 mt-4">
+                You can always come back to complete this later
+              </p>
+            </motion.div>
+          ) : (
+            // Compact Progress View
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Progress Info */}
             <div className="flex items-center gap-6 flex-1">
               {/* Required Fields */}
@@ -133,7 +180,8 @@ export function FloatingActionBar({
               </Button>
             </div>
           </div>
-        </div>
+          )}
+        </motion.div>
       </div>
     </motion.div>
   );

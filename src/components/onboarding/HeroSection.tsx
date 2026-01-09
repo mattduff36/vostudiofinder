@@ -1,10 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
+import { Button } from '@/components/ui/Button';
 
 interface HeroSectionProps {
   userName: string;
@@ -97,13 +98,10 @@ export function HeroSection({
           className="text-center mb-8 px-4"
         >
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
-            Welcome to Your
-            <span className="block bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
-              Studio Journey
-            </span>
+            Payment Successful!
           </h1>
           <p className="text-lg sm:text-xl md:text-2xl text-gray-600 font-medium">
-            Great to have you here, {userName}!
+            Welcome to Voiceover Studio Finder, {userName}!
           </p>
         </motion.div>
 
@@ -176,15 +174,25 @@ export function HeroSection({
           </div>
         </motion.div>
 
-        {/* Subheading */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.6 }}
-          className="text-center text-gray-600 mt-8 text-lg max-w-2xl mx-auto"
+        {/* CTA Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2, duration: 0.6 }}
+          className="text-center mt-10 pt-8 border-t border-gray-200"
         >
-          Your payment was successful. Let&apos;s complete your profile and get you visible to voice artists worldwide.
-        </motion.p>
+          <p className="text-gray-700 mb-6 text-lg">
+            Ready to get started? Head to your dashboard to complete your profile.
+          </p>
+          <Button
+            onClick={() => window.location.href = '/dashboard'}
+            className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold text-lg px-8 py-4 min-h-[56px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 inline-flex items-center gap-2 group touch-manipulation"
+            aria-label="Go to your dashboard"
+          >
+            Go to Dashboard
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </motion.div>
       </div>
     </motion.div>
   );

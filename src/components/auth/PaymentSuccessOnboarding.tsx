@@ -5,12 +5,9 @@ import { motion } from 'framer-motion';
 import { HeroSection } from '@/components/onboarding/HeroSection';
 import { ProfileVisibilityCard } from '@/components/onboarding/ProfileVisibilityCard';
 import { QuickStartGuide } from '@/components/onboarding/QuickStartGuide';
-import { ProfilePreviewCard } from '@/components/onboarding/ProfilePreviewCard';
 import { AnimatedFieldCard } from '@/components/onboarding/AnimatedFieldCard';
 import { ProfileTipsGrid } from '@/components/onboarding/ProfileTipsGrid';
 import { FloatingActionBar } from '@/components/onboarding/FloatingActionBar';
-import { Button } from '@/components/ui/Button';
-import { ArrowRight } from 'lucide-react';
 
 interface ProfileField {
   name: string;
@@ -37,19 +34,6 @@ export function PaymentSuccessOnboarding({
   const completedRequired = requiredFields.filter(f => f.completed).length;
   const totalRequired = requiredFields.length;
   const allRequiredComplete = completedRequired === totalRequired;
-
-  // Extract profile data for preview
-  const studioNameField = requiredFields.find(f => f.name === 'Studio Name');
-  const shortAboutField = requiredFields.find(f => f.name === 'Short About');
-  const locationField = requiredFields.find(f => f.name === 'Location');
-  const websiteField = requiredFields.find(f => f.name === 'Website URL');
-  const imagesField = requiredFields.find(f => f.name === 'Studio Images');
-
-  const studioName = studioNameField?.completed ? 'Your Studio Name' : '';
-  const shortAbout = shortAboutField?.completed ? 'Your compelling studio description...' : '';
-  const location = locationField?.completed ? 'Your City, Country' : '';
-  const websiteUrl = websiteField?.completed ? 'https://example.com' : '';
-  const hasStudioImage = imagesField?.completed || false;
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -97,18 +81,7 @@ export function PaymentSuccessOnboarding({
           {/* Profile Tips Grid (MOVED UP) */}
           <ProfileTipsGrid />
 
-          {/* Profile Preview */}
-          <ProfilePreviewCard
-            studioName={studioName}
-            shortAbout={shortAbout}
-            location={location}
-            websiteUrl={websiteUrl}
-            hasStudioImage={hasStudioImage}
-            allRequiredComplete={allRequiredComplete}
-            overallCompletionPercentage={completionPercentage}
-          />
-
-          {/* What's Next Section - Field Checklists */}
+          {/* Your Data Usage Section - Field Checklists */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -117,10 +90,10 @@ export function PaymentSuccessOnboarding({
           >
             <div className="text-center mb-10">
               <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-3">
-                What&apos;s Next?
+                Your Data Usage
               </h2>
               <p className="text-lg text-gray-600">
-                Complete your profile fields to get started
+                Learn more about what information we ask you for, why we need it, and where it&apos;s used
               </p>
             </div>
 
@@ -173,36 +146,6 @@ export function PaymentSuccessOnboarding({
                 ))}
               </div>
             </div>
-          </motion.div>
-
-          {/* Enhanced CTA Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.6 }}
-            className="bg-gradient-to-br from-red-600 to-red-500 rounded-2xl shadow-2xl p-8 md:p-12 text-center"
-          >
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight">
-              Ready to Complete Your Profile?
-            </h2>
-            <p className="text-lg md:text-xl text-red-50 mb-8 max-w-2xl mx-auto">
-              Head to your dashboard to fill in your studio details and start receiving inquiries from voice artists worldwide
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                onClick={() => window.location.href = '/dashboard'}
-                className="w-full sm:w-auto bg-white text-red-600 hover:bg-gray-50 font-bold text-lg px-8 py-4 min-h-[56px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 group touch-manipulation"
-                aria-label="Go to your dashboard"
-              >
-                Go to Dashboard
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </div>
-
-            <p className="text-sm text-red-100 mt-6">
-              You can always come back to complete this later
-            </p>
           </motion.div>
 
           {/* Footer Note */}

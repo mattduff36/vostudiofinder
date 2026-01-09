@@ -135,47 +135,6 @@ export function ProfileVisibilityCard({
               </p>
             </div>
           </div>
-
-          {/* Explanation */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-gray-200">
-            <h3 className="font-bold text-gray-900 mb-3 text-lg">
-              {allRequiredComplete ? '✓ What this means:' : 'Why it matters:'}
-            </h3>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <span className={`mt-0.5 ${allRequiredComplete ? 'text-green-600' : 'text-red-600'}`}>
-                  {allRequiredComplete ? '✓' : '•'}
-                </span>
-                <span className="text-gray-700 leading-relaxed">
-                  <strong className="text-gray-900">Profile Visibility toggle</strong> appears in your dashboard once all {totalRequiredFields} required fields are complete
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className={`mt-0.5 ${allRequiredComplete ? 'text-green-600' : 'text-red-600'}`}>
-                  {allRequiredComplete ? '✓' : '•'}
-                </span>
-                <span className="text-gray-700 leading-relaxed">
-                  <strong className="text-gray-900">Overall percentage</strong> includes both required AND optional fields (improves profile quality & ranking)
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className={`mt-0.5 ${allRequiredComplete ? 'text-green-600' : 'text-red-600'}`}>
-                  {allRequiredComplete ? '✓' : '•'}
-                </span>
-                <span className="text-gray-700 leading-relaxed">
-                  {allRequiredComplete ? (
-                    <>
-                      <strong className="text-gray-900">You&apos;re ready!</strong> Head to your dashboard to turn on Profile Visibility
-                    </>
-                  ) : (
-                    <>
-                      <strong className="text-gray-900">Example:</strong> You could have 50% overall completion but still unlock visibility if all required fields are done
-                    </>
-                  )}
-                </span>
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
     </motion.div>

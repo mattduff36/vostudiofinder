@@ -1,7 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Target, CheckSquare, Star, Image as ImageIcon, FileText, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Target, CheckSquare, Star, Image as ImageIcon, FileText, RefreshCw, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 
 const tips = [
   {
@@ -88,6 +89,8 @@ const colorClasses = {
 };
 
 export function ProfileTipsGrid() {
+  const [expandedTip, setExpandedTip] = useState<string | null>(null);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -100,7 +103,7 @@ export function ProfileTipsGrid() {
           Profile Tips for Success
         </h2>
         <p className="text-lg text-gray-600">
-          Follow these best practices to maximize your studio&apos;s visibility and attract more clients
+          Click on each tip to learn more about maximizing your studio&apos;s visibility
         </p>
       </div>
 
@@ -108,6 +111,7 @@ export function ProfileTipsGrid() {
         {tips.map((tip, index) => {
           const Icon = tip.icon;
           const colors = colorClasses[tip.color as keyof typeof colorClasses];
+          const isExpanded = expandedTip === tip.title;
 
           return (
             <motion.div
@@ -116,26 +120,48 @@ export function ProfileTipsGrid() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1 + index * 0.1, duration: 0.5 }}
               whileHover={{ y: -6, transition: { duration: 0.2 } }}
-              className={`bg-gradient-to-br ${colors.bg} rounded-xl p-6 border-2 ${colors.border} ${colors.hover} hover:shadow-xl transition-all duration-300 group`}
+              className={`bg-gradient-to-br ${colors.bg} rounded-xl border-2 ${colors.border} ${colors.hover} hover:shadow-xl transition-all duration-300 group cursor-pointer`}
+              onClick={() => setExpandedTip(isExpanded ? null : tip.title)}
             >
-              <div className="flex items-start gap-4">
-                {/* Icon */}
-                <motion.div
-                  whileHover={{ rotate: [0, -10, 10, -10, 0] }}
-                  transition={{ duration: 0.5 }}
-                  className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br ${colors.icon} shadow-lg flex items-center justify-center group-hover:shadow-xl transition-shadow`}
-                >
-                  <Icon className="w-7 h-7 text-white" strokeWidth={2.5} />
-                </motion.div>
+              <div className="p-6">
+                <div className="flex items-start gap-4">
+                  {/* Icon */}
+                  <motion.div
+                    animate={{ rotate: isExpanded ? [0, -10, 10, -10, 0] : 0 }}
+                    transition={{ duration: 0.5 }}
+                    className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br ${colors.icon} shadow-lg flex items-center justify-center group-hover:shadow-xl transition-shadow`}
+                  >
+                    <Icon className="w-7 h-7 text-white" strokeWidth={2.5} />
+                  </motion.div>
 
-                {/* Content */}
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-gray-800 transition-colors">
-                    {tip.title}
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    {tip.description}
-                  </p>
+                  {/* Content */}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-gray-800 transition-colors">
+                        {tip.title}
+                      </h3>
+                      <motion.div
+                        animate={{ rotate: isExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ChevronDown className={`w-5 h-5 ${colors.iconText}`} />
+                      </motion.div>
+                    </div>
+                    
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.p
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="text-gray-700 leading-relaxed mt-3"
+                        >
+                          {tip.description}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
               </div>
             </motion.div>
