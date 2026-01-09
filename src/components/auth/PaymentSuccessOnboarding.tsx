@@ -1,9 +1,16 @@
 'use client';
 
-import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
-import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { HeroSection } from '@/components/onboarding/HeroSection';
+import { ProfileVisibilityCard } from '@/components/onboarding/ProfileVisibilityCard';
+import { QuickStartGuide } from '@/components/onboarding/QuickStartGuide';
+import { ProfilePreviewCard } from '@/components/onboarding/ProfilePreviewCard';
+import { AnimatedFieldCard } from '@/components/onboarding/AnimatedFieldCard';
+import { ProfileTipsGrid } from '@/components/onboarding/ProfileTipsGrid';
+import { FloatingActionBar } from '@/components/onboarding/FloatingActionBar';
+import { Button } from '@/components/ui/Button';
+import { ArrowRight } from 'lucide-react';
 
 interface ProfileField {
   name: string;
@@ -27,21 +34,27 @@ export function PaymentSuccessOnboarding({
   requiredFields,
   optionalFields,
 }: PaymentSuccessOnboardingProps) {
-  const [expandedField, setExpandedField] = useState<string | null>(null);
-
-  const toggleField = (fieldName: string) => {
-    setExpandedField(expandedField === fieldName ? null : fieldName);
-  };
-
   const completedRequired = requiredFields.filter(f => f.completed).length;
   const totalRequired = requiredFields.length;
-  const completedOptional = optionalFields.filter(f => f.completed).length;
-  const totalOptional = optionalFields.length;
+  const allRequiredComplete = completedRequired === totalRequired;
+
+  // Extract profile data for preview
+  const studioNameField = requiredFields.find(f => f.name === 'Studio Name');
+  const shortAboutField = requiredFields.find(f => f.name === 'Short About');
+  const locationField = requiredFields.find(f => f.name === 'Location');
+  const websiteField = requiredFields.find(f => f.name === 'Website URL');
+  const imagesField = requiredFields.find(f => f.name === 'Studio Images');
+
+  const studioName = studioNameField?.completed ? 'Your Studio Name' : '';
+  const shortAbout = shortAboutField?.completed ? 'Your compelling studio description...' : '';
+  const location = locationField?.completed ? 'Your City, Country' : '';
+  const websiteUrl = websiteField?.completed ? 'https://example.com' : '';
+  const hasStudioImage = imagesField?.completed || false;
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col py-8 px-4">
-      {/* Background Image */}
-      <div className="absolute inset-0">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0 z-0">
         <Image
           src="/background-images/21920-5.jpg"
           alt="Background texture"
@@ -49,236 +62,163 @@ export function PaymentSuccessOnboarding({
           className="object-cover opacity-10"
           priority={false}
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white/80" />
       </div>
 
-      <div className="relative z-10 w-full max-w-4xl mx-auto">
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <Image
-            src="/images/voiceover-studio-finder-header-logo2-black.png"
-            alt="VoiceoverStudioFinder"
-            width={450}
-            height={71}
-            priority
-            className="h-auto max-w-full"
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
+        <div className="space-y-8 md:space-y-12">
+          {/* Hero Section */}
+          <HeroSection
+            userName={userName}
+            requiredFieldsCompleted={completedRequired}
+            totalRequiredFields={totalRequired}
+            overallCompletionPercentage={completionPercentage}
           />
-        </div>
 
-        {/* Success Header */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-8 mb-6">
-          <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <CheckCircle className="w-10 h-10 text-white" />
+          {/* Profile Visibility Section */}
+          <ProfileVisibilityCard
+            requiredFieldsCompleted={completedRequired}
+            totalRequiredFields={totalRequired}
+            overallCompletionPercentage={completionPercentage}
+          />
+
+          {/* Quick Start Guide */}
+          <QuickStartGuide allRequiredComplete={allRequiredComplete} />
+
+          {/* Profile Tips Grid (MOVED UP) */}
+          <ProfileTipsGrid />
+
+          {/* Profile Preview */}
+          <ProfilePreviewCard
+            studioName={studioName}
+            shortAbout={shortAbout}
+            location={location}
+            websiteUrl={websiteUrl}
+            hasStudioImage={hasStudioImage}
+            allRequiredComplete={allRequiredComplete}
+            overallCompletionPercentage={completionPercentage}
+          />
+
+          {/* What's Next Section - Field Checklists */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, duration: 0.6 }}
+            className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 md:p-10 border border-gray-100"
+          >
+            <div className="text-center mb-10">
+              <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-3">
+                What&apos;s Next?
+              </h2>
+              <p className="text-lg text-gray-600">
+                Complete your profile fields to get started
+              </p>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Payment Successful!
-            </h1>
-            <p className="text-lg text-gray-600 mb-4">
-              Welcome to Voiceover Studio Finder, {userName}!
-            </p>
-            
-            {/* Profile Completion Circle */}
-            <div className="flex justify-center items-center my-6">
-              <div className="relative w-32 h-32">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
-                    stroke="#e5e7eb"
-                    strokeWidth="8"
-                    fill="none"
-                  />
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
-                    stroke={completionPercentage >= 85 ? '#10b981' : completionPercentage >= 75 ? '#f59e0b' : '#6b7280'}
-                    strokeWidth="8"
-                    fill="none"
-                    strokeDasharray={`${2 * Math.PI * 56}`}
-                    strokeDashoffset={`${2 * Math.PI * 56 * (1 - completionPercentage / 100)}`}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-bold text-gray-900">{completionPercentage}%</span>
-                  <span className="text-xs text-gray-600">Complete</span>
+
+            {/* Required Fields Section */}
+            <div className="mb-10">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-red-200">
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  Required Fields
+                </h3>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-600">
+                    {completedRequired} of {totalRequired} completed
+                  </span>
+                  <span className={`px-4 py-2 rounded-lg text-sm font-bold ${
+                    allRequiredComplete
+                      ? 'bg-green-600 text-white'
+                      : 'bg-red-600 text-white'
+                  }`}>
+                    {allRequiredComplete ? 'Complete ✓' : 'In Progress'}
+                  </span>
                 </div>
+              </div>
+
+              <div className="grid gap-4">
+                {requiredFields.map((field, index) => (
+                  <AnimatedFieldCard key={field.name} field={field} index={index} />
+                ))}
               </div>
             </div>
 
-            <p className="text-gray-700">
-              Your profile is <span className="font-semibold">{completionPercentage}% complete</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Profile Status Section */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Profile Status</h2>
-          
-          {/* Required Fields */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Required Fields
-              </h3>
-              <span className="text-sm text-gray-600">
-                {completedRequired} of {totalRequired} completed
-              </span>
-            </div>
-            <div className="space-y-2">
-              {requiredFields.map((field) => (
-                <div key={field.name} className="border border-gray-200 rounded-lg">
-                  <button
-                    onClick={() => toggleField(field.name)}
-                    className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      {field.completed ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                      )}
-                      <span className="font-medium text-gray-900">{field.name}</span>
-                      <span className="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded">
-                        Required
-                      </span>
-                    </div>
-                    {expandedField === field.name ? (
-                      <ChevronUp className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    )}
-                  </button>
-                  
-                  {expandedField === field.name && (
-                    <div className="px-4 pb-4 space-y-2 text-sm">
-                      <div>
-                        <span className="font-semibold text-gray-700">Where: </span>
-                        <span className="text-gray-600">{field.where}</span>
-                      </div>
-                      <div>
-                        <span className="font-semibold text-gray-700">How: </span>
-                        <span className="text-gray-600">{field.how}</span>
-                      </div>
-                      <div>
-                        <span className="font-semibold text-gray-700">Why: </span>
-                        <span className="text-gray-600">{field.why}</span>
-                      </div>
-                    </div>
-                  )}
+            {/* Optional Fields Section */}
+            <div>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-200">
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  Optional Fields
+                </h3>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-600">
+                    {optionalFields.filter(f => f.completed).length} of {optionalFields.length} completed
+                  </span>
+                  <span className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold">
+                    Improves Quality
+                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Optional Fields */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Optional Fields
-              </h3>
-              <span className="text-sm text-gray-600">
-                {completedOptional} of {totalOptional} completed
-              </span>
+              <div className="grid gap-4">
+                {optionalFields.map((field, index) => (
+                  <AnimatedFieldCard key={field.name} field={field} index={index} />
+                ))}
+              </div>
             </div>
-            <div className="space-y-2">
-              {optionalFields.map((field) => (
-                <div key={field.name} className="border border-gray-200 rounded-lg">
-                  <button
-                    onClick={() => toggleField(field.name)}
-                    className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      {field.completed ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                      )}
-                      <span className="font-medium text-gray-900">{field.name}</span>
-                      <span className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-600 rounded">
-                        Optional
-                      </span>
-                    </div>
-                    {expandedField === field.name ? (
-                      <ChevronUp className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    )}
-                  </button>
-                  
-                  {expandedField === field.name && (
-                    <div className="px-4 pb-4 space-y-2 text-sm">
-                      <div>
-                        <span className="font-semibold text-gray-700">Where: </span>
-                        <span className="text-gray-600">{field.where}</span>
-                      </div>
-                      <div>
-                        <span className="font-semibold text-gray-700">How: </span>
-                        <span className="text-gray-600">{field.how}</span>
-                      </div>
-                      <div>
-                        <span className="font-semibold text-gray-700">Why: </span>
-                        <span className="text-gray-600">{field.why}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+          </motion.div>
 
-        {/* Profile Tips Section */}
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Profile Tips</h2>
-          <ul className="space-y-3 text-gray-700">
-            <li className="flex items-start">
-              <span className="text-red-600 mr-2">•</span>
-              <span><strong>Complete your profile to 100%</strong> to maximize visibility and attract more clients</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-red-600 mr-2">•</span>
-              <span><strong>Required fields must be completed</strong> before your profile can go live and be searchable</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-red-600 mr-2">•</span>
-              <span><strong>Optional fields improve your profile quality</strong> and help you stand out from other studios</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-red-600 mr-2">•</span>
-              <span><strong>Upload high-quality images</strong> to showcase your studio space and equipment professionally</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-red-600 mr-2">•</span>
-              <span><strong>Keep descriptions detailed but concise</strong> - focus on what makes your studio unique</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-red-600 mr-2">•</span>
-              <span><strong>Update your profile regularly</strong> to keep it fresh and show you're actively managing your listing</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* CTA Section */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ready to Complete Your Profile?</h2>
-          <p className="text-gray-600 mb-6">
-            Head to your dashboard to fill in your studio details and start receiving inquiries
-          </p>
-          <Button
-            onClick={() => window.location.href = '/dashboard'}
-            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-lg px-8 py-3"
+          {/* Enhanced CTA Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
+            className="bg-gradient-to-br from-red-600 to-red-500 rounded-2xl shadow-2xl p-8 md:p-12 text-center"
           >
-            Go to Dashboard
-          </Button>
-          <p className="text-sm text-gray-500 mt-4">
-            Complete your profile to start receiving inquiries from voice artists worldwide
-          </p>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight">
+              Ready to Complete Your Profile?
+            </h2>
+            <p className="text-lg md:text-xl text-red-50 mb-8 max-w-2xl mx-auto">
+              Head to your dashboard to fill in your studio details and start receiving inquiries from voice artists worldwide
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button
+                onClick={() => window.location.href = '/dashboard'}
+                className="w-full sm:w-auto bg-white text-red-600 hover:bg-gray-50 font-bold text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 group"
+              >
+                Go to Dashboard
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
+
+            <p className="text-sm text-red-100 mt-6">
+              You can always come back to complete this later
+            </p>
+          </motion.div>
+
+          {/* Footer Note */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.4, duration: 0.6 }}
+            className="text-center pb-8"
+          >
+            <p className="text-gray-600">
+              Need help?{' '}
+              <a href="/support" className="text-red-600 hover:text-red-700 font-semibold underline">
+                Contact Support
+              </a>
+            </p>
+          </motion.div>
         </div>
       </div>
+
+      {/* Floating Action Bar */}
+      <FloatingActionBar
+        completionPercentage={completionPercentage}
+        requiredFieldsCompleted={completedRequired}
+        totalRequiredFields={totalRequired}
+      />
     </div>
   );
 }
