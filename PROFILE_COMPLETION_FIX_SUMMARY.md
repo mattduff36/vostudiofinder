@@ -115,3 +115,80 @@ All three pages now calculate from the same weighted formula with 11 required fi
 ✅ **Single source of truth established and enforced**
 ✅ **No breaking changes to existing functionality**
 ✅ **TypeScript compilation clean**
+
+## Architecture Diagram
+
+### Before Fix (3 Different Calculations):
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    INCONSISTENT STATE                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Dashboard (/dashboard)                                      │
+│  └─> ProfileCompletionProgress.tsx                          │
+│      └─> ❌ Own calculation (5.88% all fields)              │
+│          Result: 82%                                         │
+│                                                              │
+│  Edit Profile (/dashboard#edit-profile)                     │
+│  └─> ProfileEditForm.tsx                                    │
+│      └─> ❌ lib/utils/profile-completion.ts (old)           │
+│          └─> 10 required fields, simple count               │
+│          Result: 71% (9/11)                                  │
+│                                                              │
+│  Admin Studios (/admin/studios)                             │
+│  └─> /api/admin/studios                                     │
+│      └─> ✅ lib/profile-completion.ts (correct)             │
+│          └─> 11 required @ 5.92%, 6 optional @ 5.88%        │
+│          Result: 83%                                         │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### After Fix (Single Source of Truth):
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     CONSISTENT STATE                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌────────────────────────────────────────────────────┐     │
+│  │      SINGLE SOURCE OF TRUTH                        │     │
+│  │                                                     │     │
+│  │  lib/profile-completion.ts                         │     │
+│  │  lib/utils/profile-completion.ts                   │     │
+│  │                                                     │     │
+│  │  Both use IDENTICAL logic:                         │     │
+│  │  • 11 Required @ 5.92% = 65.12%                    │     │
+│  │  • 6 Optional @ 5.88% = 35.28%                     │     │
+│  │  • Total: 17 fields = 100%                         │     │
+│  └────────────────────────────────────────────────────┘     │
+│                          ▲                                   │
+│                          │                                   │
+│         ┌────────────────┼────────────────┐                 │
+│         │                │                │                 │
+│         │                │                │                 │
+│  Dashboard         Edit Profile     Admin Studios           │
+│  (83%)             (83%)            (83%)                    │
+│                                                              │
+│  ✅ ProfileCompletionProgress.tsx                           │
+│     └─> calculateCompletionStats()                          │
+│                                                              │
+│  ✅ ProfileEditForm.tsx                                     │
+│     └─> calculateCompletionStats()                          │
+│                                                              │
+│  ✅ /api/admin/studios                                      │
+│     └─> calculateProfileCompletion()                        │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Summary
+
+**Problem**: Three different calculations producing three different results (82%, 71%, 83%)
+
+**Solution**: Centralized all calculations to use the same weighted formula
+
+**Result**: All pages now show **83%** for the same profile data
+
+**Key Change**: `ProfileCompletionProgress.tsx` now uses `calculateCompletionStats()` instead of its own duplicate logic
