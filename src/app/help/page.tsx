@@ -61,7 +61,7 @@ export default function HelpPage() {
       {/* Hero Section */}
       <PageHero
         title="Help Center"
-        description="Find answers to your questions and get the most out of VoiceoverStudioFinder"
+        description="Find answers to your questions and get the most out of Voiceover Studio Finder"
         backgroundImage="/background-images/21920-2.jpg"
       />
 
@@ -223,7 +223,7 @@ export default function HelpPage() {
         <div className="mt-16 rounded-lg p-8 text-center" style={{ backgroundColor: `${colors.primary}10` }}>
           <h2 className="text-2xl font-bold mb-4" style={{ color: colors.textPrimary }}>Still Need Help?</h2>
           <p className="text-gray-700 mb-6 text-center" style={{ maxWidth: '768px', margin: '0 auto' }}>
-            Can't find the answer you're looking for? We're here to help you get the most out of VoiceoverStudioFinder.
+            Can't find the answer you're looking for? We're here to help you get the most out of Voiceover Studio Finder.
           </p>
           <div className="flex items-center justify-center space-x-3">
             <Mail className="w-6 h-6" style={{ color: colors.primary }} />

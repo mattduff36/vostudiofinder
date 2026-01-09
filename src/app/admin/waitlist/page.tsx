@@ -6,7 +6,7 @@ import { WaitlistTable } from '@/components/admin/WaitlistTable';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 
 export const metadata: Metadata = {
-  title: 'Waitlist - Admin Dashboard - VoiceoverStudioFinder',
+  title: 'Waitlist - Admin Dashboard - Voiceover Studio Finder',
   description: 'View waitlist entries',
 };
 

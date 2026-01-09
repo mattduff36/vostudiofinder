@@ -83,7 +83,7 @@ export function SigninForm() {
       <div className="text-center">
         <h1 className="text-3xl font-bold text-text-primary">Welcome Back</h1>
         <p className="mt-2 text-text-secondary">
-          Sign in to your VoiceoverStudioFinder account
+          Sign in to your Voiceover Studio Finder account
         </p>
       </div>
 

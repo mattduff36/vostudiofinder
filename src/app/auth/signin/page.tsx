@@ -6,7 +6,7 @@ import { SigninForm } from '@/components/auth/SigninForm';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
-  title: 'Sign In - VoiceoverStudioFinder',
+  title: 'Sign In - Voiceover Studio Finder',
   description: 'Sign in to your account to access professional recording studios',
 };
 

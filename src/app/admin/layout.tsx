@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import AdminGuard from '@/components/admin/AdminGuard';
 
 export const metadata: Metadata = {
-  title: 'Admin Dashboard - VoiceoverStudioFinder',
-  description: 'Administrative interface for VoiceoverStudioFinder',
+  title: 'Admin Dashboard - Voiceover Studio Finder',
+  description: 'Administrative interface for Voiceover Studio Finder',
 };
 
 export default function AdminLayout({

@@ -5,7 +5,7 @@ import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { db } from '@/lib/db';
 
 export const metadata: Metadata = {
-  title: 'Admin Dashboard - VoiceoverStudioFinder',
+  title: 'Admin Dashboard - Voiceover Studio Finder',
   description: 'Manage users, studios, reviews, and platform settings',
 };
 

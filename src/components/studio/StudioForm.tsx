@@ -141,7 +141,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
             {isEditing ? 'Edit Studio Profile' : 'Create Studio Profile'}
           </h2>
           <p className="text-sm text-text-secondary mt-1">
-            {isEditing ? 'Update your studio information' : 'Add your studio to VoiceoverStudioFinder'}
+            {isEditing ? 'Update your studio information' : 'Add your studio to Voiceover Studio Finder'}
           </p>
         </div>
 

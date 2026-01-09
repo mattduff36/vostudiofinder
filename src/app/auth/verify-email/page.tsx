@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import VerifyEmailContent from './VerifyEmailContent';
 
 export const metadata: Metadata = {
-  title: 'Verify Your Email - VoiceoverStudioFinder',
+  title: 'Verify Your Email - Voiceover Studio Finder',
   description: 'Please check your email to verify your account',
 };
 

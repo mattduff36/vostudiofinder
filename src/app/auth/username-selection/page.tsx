@@ -6,7 +6,7 @@ import { UsernameSelectionForm } from '@/components/auth/UsernameSelectionForm';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
-  title: 'Choose Username - VoiceoverStudioFinder',
+  title: 'Choose Username - Voiceover Studio Finder',
   description: 'Select your profile URL username',
 };
 

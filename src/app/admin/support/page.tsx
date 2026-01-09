@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { SupportTickets } from '@/components/admin/SupportTickets';
 
 export const metadata: Metadata = {
-  title: 'Support Tickets - Admin | VoiceoverStudioFinder',
+  title: 'Support Tickets - Admin | Voiceover Studio Finder',
   description: 'Manage user support tickets and feedback',
 };
 

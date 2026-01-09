@@ -7,7 +7,7 @@ import { SignupErrorAlert } from '@/components/auth/SignupErrorAlert';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
-  title: 'Sign Up - VoiceoverStudioFinder',
+  title: 'Sign Up - Voiceover Studio Finder',
   description: 'Create your account to get started',
 };
 

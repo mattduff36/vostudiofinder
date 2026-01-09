@@ -62,7 +62,7 @@ export default function JoinWaitlistPage() {
                 Welcome to the Waitlist!
               </h2>
               <p className="text-lg text-gray-700 mb-8">
-                Thank you for your interest in VoiceoverStudioFinder. We'll notify you as soon as we're ready to welcome new studio owners to our community.
+                Thank you for your interest in Voiceover Studio Finder. We'll notify you as soon as we're ready to welcome new studio owners to our community.
               </p>
               <div className="space-y-4">
                 <Link
@@ -123,7 +123,7 @@ export default function JoinWaitlistPage() {
               We're almost ready to welcome new studios to the platform.
             </p>
             <p className="text-lg text-gray-600">
-              VoiceoverStudioFinder is in its final testing phase. We're fine-tuning every detail to make sure the experience is smooth, reliable, and genuinely useful for both studio owners and voice artists. We'd love to add you and your studio.
+              Voiceover Studio Finder is in its final testing phase. We're fine-tuning every detail to make sure the experience is smooth, reliable, and genuinely useful for both studio owners and voice artists. We'd love to add you and your studio.
             </p>
           </div>
         </div>

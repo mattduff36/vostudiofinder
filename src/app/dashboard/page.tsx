@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 
 
 export const metadata: Metadata = {
-  title: 'Dashboard - VoiceoverStudioFinder',
+  title: 'Dashboard - Voiceover Studio Finder',
   description: 'Manage your profile, studios, and activities',
 };
 

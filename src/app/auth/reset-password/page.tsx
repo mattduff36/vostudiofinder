@@ -6,7 +6,7 @@ import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
-  title: 'Reset Password - VoiceoverStudioFinder',
+  title: 'Reset Password - Voiceover Studio Finder',
   description: 'Set a new password for your account',
 };
 

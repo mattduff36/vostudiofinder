@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Studio Not Found - VoiceoverStudioFinder',
+  title: 'Studio Not Found - Voiceover Studio Finder',
   robots: {
     index: false,
     follow: false,

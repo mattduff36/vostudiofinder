@@ -5,7 +5,7 @@ import { PaymentSuccessOnboarding } from '@/components/auth/PaymentSuccessOnboar
 import { calculateProfileCompletion } from '@/lib/profile-completion';
 
 export const metadata: Metadata = {
-  title: 'Payment Successful - VoiceoverStudioFinder',
+  title: 'Payment Successful - Voiceover Studio Finder',
   description: 'Your payment was successful. Complete your profile to get started.',
 };
 

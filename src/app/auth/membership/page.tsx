@@ -6,7 +6,7 @@ import { requireEmailVerification } from '@/lib/auth-guards';
 import { MembershipPayment } from '@/components/auth/MembershipPayment';
 
 export const metadata: Metadata = {
-  title: 'Studio Membership - VoiceoverStudioFinder',
+  title: 'Studio Membership - Voiceover Studio Finder',
   description: 'Join as a studio owner for £25/year and connect with voice artists worldwide',
 };
 

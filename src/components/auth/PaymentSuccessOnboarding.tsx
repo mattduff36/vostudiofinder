@@ -74,7 +74,7 @@ export function PaymentSuccessOnboarding({
               Payment Successful!
             </h1>
             <p className="text-lg text-gray-600 mb-4">
-              Welcome to VoiceoverStudioFinder, {userName}!
+              Welcome to Voiceover Studio Finder, {userName}!
             </p>
             
             {/* Profile Completion Circle */}

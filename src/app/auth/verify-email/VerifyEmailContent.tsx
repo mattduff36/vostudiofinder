@@ -140,7 +140,7 @@ export default function VerifyEmailContent({ flow, email: emailProp, error }: Ve
 
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {flow === 'profile' ? 'Welcome to VoiceoverStudioFinder!' : 'Check Your Email'}
+                {flow === 'profile' ? 'Welcome to Voiceover Studio Finder!' : 'Check Your Email'}
               </h1>
               {flow === 'profile' ? (
                 <div className="mt-4 space-y-3">
