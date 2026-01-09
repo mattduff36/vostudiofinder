@@ -60,7 +60,6 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
         about: profileData.about || null,
         phone: profileData.phone || null,
         location: profileData.location || null,
-        website_url: profileData.website_url || null,
         connection1: profileData.connection1 || null,
         connection2: profileData.connection2 || null,
         connection3: profileData.connection3 || null,
@@ -84,6 +83,7 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
         name: profileData.studio_name || null,
         studio_types: profileData.studio_types_count ? Array(profileData.studio_types_count).fill('type') : [],
         images: profileData.images_count ? Array(profileData.images_count).fill({}) : [],
+        website_url: profileData.website_url || null,
       },
     });
   }, [profileData]);
