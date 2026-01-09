@@ -76,12 +76,22 @@ export function FloatingActionBar({
     >
       <div className="max-w-7xl mx-auto px-4 pb-6">
         <motion.div 
-          className="pointer-events-auto bg-white/95 backdrop-blur-xl rounded-2xl border-2 border-gray-200 p-4 md:p-6"
+          onClick={() => window.location.href = '/dashboard'}
+          className="pointer-events-auto bg-white/95 backdrop-blur-xl rounded-2xl border-2 border-gray-200 p-4 md:p-6 cursor-pointer"
           style={{
             boxShadow: '0 -8px 24px -4px rgba(0, 0, 0, 0.12), 0 -4px 12px -2px rgba(0, 0, 0, 0.08), 0 8px 32px -8px rgba(0, 0, 0, 0.15)'
           }}
           whileHover={{ scale: 1.01 }}
           transition={{ duration: 0.2 }}
+          role="link"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              window.location.href = '/dashboard';
+            }
+          }}
+          aria-label="Go to dashboard to complete your profile"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Rotating Message Content */}
