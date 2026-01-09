@@ -63,7 +63,9 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
     {
       title: 'Verified Studios',
       value: stats.verifiedStudios.toLocaleString(),
-      subtitle: `${Math.round((stats.verifiedStudios / stats.totalStudios) * 100)}% of total`,
+      subtitle: stats.totalStudios > 0 
+        ? `${Math.round((stats.verifiedStudios / stats.totalStudios) * 100)}% of total`
+        : 'Verified accounts',
       details: `${stats.totalStudios} total studios`,
       icon: CheckCircle,
       color: 'bg-purple-500',
@@ -71,7 +73,9 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
     {
       title: 'Featured Studios',
       value: stats.featuredStudios.toLocaleString(),
-      subtitle: `${Math.round((stats.featuredStudios / stats.totalStudios) * 100)}% of total`,
+      subtitle: stats.totalStudios > 0
+        ? `${Math.round((stats.featuredStudios / stats.totalStudios) * 100)}% of total`
+        : 'Homepage highlights',
       details: 'Homepage highlights',
       icon: Sparkles,
       color: 'bg-yellow-500',
@@ -111,7 +115,9 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
     {
       title: 'Active Users (30d)',
       value: stats.activeUsers30d.toLocaleString(),
-      subtitle: `${Math.round((stats.activeUsers30d / stats.totalUsers) * 100)}% of total`,
+      subtitle: stats.totalUsers > 0
+        ? `${Math.round((stats.activeUsers30d / stats.totalUsers) * 100)}% of total`
+        : 'Active in last 30 days',
       details: null,
       icon: Activity,
       color: 'bg-teal-500',
