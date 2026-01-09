@@ -11,11 +11,10 @@ import {
   Lightbulb,
   Building2,
   Star,
-  TrendingUp,
-  MapPin,
   Link as LinkIcon
 } from 'lucide-react';
 import { AdminTabs } from './AdminTabs';
+import { AdminInsights } from './AdminInsights';
 
 interface RecentActivityData {
   users: Array<{
@@ -84,6 +83,14 @@ interface RecentActivityData {
   customConnectionsStats: Array<[string, number]>;
 }
 
+interface InsightsData {
+  customConnectionsStats: Array<[string, number]>;
+  locationStats: Array<{ name: string; count: number }>;
+  studioTypeStats: Array<{ name: string; count: number }>;
+  signupTrend: Array<{ date: string; count: number }>;
+  paymentTrend: Array<{ date: string; count: number; amount: number }>;
+}
+
 interface AdminDashboardProps {
   stats: {
     totalUsers: number;
@@ -102,10 +109,11 @@ interface AdminDashboardProps {
     totalSuggestions: number;
     openSuggestions: number;
   };
+  insights: InsightsData;
   recentActivity: RecentActivityData;
 }
 
-export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
+export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboardProps) {
   // Format payment amounts from pence to pounds
   // Round total to nearest full £, remove .00 from recent payments
   const formatPaymentAmount = (amountInPence: number, isTotal: boolean = false): string => {
@@ -367,6 +375,9 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
               ))}
             </div>
 
+            {/* Insights Section with Charts */}
+            <AdminInsights insights={insights} />
+
             {/* Recent Activity Section */}
             <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-gray-200">
@@ -423,39 +434,6 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
               </div>
             </div>
 
-            {/* Custom Connections Stats */}
-            {recentActivity.customConnectionsStats.length > 0 && (
-              <div className="bg-white rounded-lg shadow">
-                <div className="p-6 border-b border-gray-200">
-                  <div className="flex items-center gap-3">
-                    <LinkIcon className="w-5 h-5 text-gray-700" />
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900">Custom Connection Methods</h2>
-                      <p className="text-sm text-gray-600 mt-1">Most popular custom connections added by users</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {recentActivity.customConnectionsStats.map(([method, count], index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <span className="text-sm font-medium text-gray-900">{method}</span>
-                        <span className="text-sm text-gray-600">{count} {count === 1 ? 'user' : 'users'}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {recentActivity.customConnections.length > 0 && (
-                    <p className="text-xs text-gray-500 mt-4">
-                      {recentActivity.customConnections.length} total users have added custom connection methods
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

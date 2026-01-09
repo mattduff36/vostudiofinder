@@ -108,6 +108,120 @@ export default async function AdminPage() {
     }),
   ]);
 
+  // Fetch insights data for charts
+  const [
+    locationData,
+    studioTypesData,
+    signupsLast30d,
+    paymentsLast30d,
+  ] = await Promise.all([
+    // Location/country distribution
+    db.studio_profiles.findMany({
+      where: {
+        location: { not: null },
+        status: 'ACTIVE',
+      },
+      select: { location: true },
+    }),
+
+    // Studio types distribution
+    db.studio_studio_types.groupBy({
+      by: ['studio_type'],
+      _count: true,
+    }),
+
+    // Signups in last 30 days (for trend chart)
+    db.users.findMany({
+      where: {
+        created_at: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+      select: { created_at: true },
+    }),
+
+    // Payments in last 30 days (for trend chart)
+    db.payments.findMany({
+      where: {
+        status: 'SUCCEEDED',
+        created_at: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+      select: { 
+        created_at: true,
+        amount: true,
+      },
+    }),
+  ]);
+
+  // Aggregate location data (top 10 + other)
+  const locationMap = new Map<string, number>();
+  locationData.forEach(profile => {
+    const loc = profile.location?.trim();
+    if (loc) {
+      locationMap.set(loc, (locationMap.get(loc) || 0) + 1);
+    }
+  });
+  const sortedLocations = Array.from(locationMap.entries())
+    .sort((a, b) => b[1] - a[1]);
+  const top10Locations = sortedLocations.slice(0, 10);
+  const otherLocationsCount = sortedLocations.slice(10).reduce((sum, [, count]) => sum + count, 0);
+  const locationStats = top10Locations.map(([name, count]) => ({ name, count }));
+  if (otherLocationsCount > 0) {
+    locationStats.push({ name: 'Other', count: otherLocationsCount });
+  }
+
+  // Studio types data (already aggregated by Prisma)
+  const studioTypeStats = studioTypesData.map(item => ({
+    name: item.studio_type,
+    count: item._count,
+  }));
+
+  // Signups per day (last 30 days)
+  const signupsByDay = new Map<string, number>();
+  const now = new Date();
+  // Initialize all 30 days with 0
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateKey = date.toISOString().split('T')[0];
+    signupsByDay.set(dateKey, 0);
+  }
+  // Fill in actual signup counts
+  signupsLast30d.forEach(user => {
+    const dateKey = user.created_at.toISOString().split('T')[0];
+    signupsByDay.set(dateKey, (signupsByDay.get(dateKey) || 0) + 1);
+  });
+  const signupTrend = Array.from(signupsByDay.entries()).map(([date, count]) => ({
+    date,
+    count,
+  }));
+
+  // Payments per day (last 30 days) - both count and amount
+  const paymentsByDay = new Map<string, { count: number; amount: number }>();
+  // Initialize all 30 days with 0
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateKey = date.toISOString().split('T')[0];
+    paymentsByDay.set(dateKey, { count: 0, amount: 0 });
+  }
+  // Fill in actual payment data
+  paymentsLast30d.forEach(payment => {
+    const dateKey = payment.created_at.toISOString().split('T')[0];
+    const current = paymentsByDay.get(dateKey) || { count: 0, amount: 0 };
+    paymentsByDay.set(dateKey, {
+      count: current.count + 1,
+      amount: current.amount + payment.amount,
+    });
+  });
+  const paymentTrend = Array.from(paymentsByDay.entries()).map(([date, data]) => ({
+    date,
+    count: data.count,
+    amount: data.amount,
+  }));
+
   // Fetch recent activity data
   const [
     recentUsers,
@@ -277,6 +391,13 @@ export default async function AdminPage() {
   return (
     <AdminDashboard 
       stats={stats}
+      insights={{
+        customConnectionsStats,
+        locationStats,
+        studioTypeStats,
+        signupTrend,
+        paymentTrend,
+      }}
       recentActivity={{
         users: recentUsers,
         payments: recentPayments,
