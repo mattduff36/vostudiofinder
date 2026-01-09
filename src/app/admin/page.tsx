@@ -174,13 +174,18 @@ export default async function AdminPage() {
     locationStats.push({ name: 'Other', count: otherLocationsCount });
   }
 
-  // Studio types data - calculate individual counts and combinations
+  // Studio types data - filter to only RECORDING, HOME, and VOICEOVER
+  const allowedTypes = new Set(['RECORDING', 'HOME', 'VOICEOVER']);
+  const filteredStudioTypesData = studioTypesData.filter(item => 
+    allowedTypes.has(item.studio_type)
+  );
+  
   const studioTypeMap = new Map<string, number>();
   const studioTypeCombinations = new Map<string, number>();
   
-  // Group by studio_id to get combinations
+  // Group by studio_id to get combinations (only for allowed types)
   const studiosByType = new Map<string, Set<string>>();
-  studioTypesData.forEach(item => {
+  filteredStudioTypesData.forEach(item => {
     // Count individual types
     studioTypeMap.set(item.studio_type, (studioTypeMap.get(item.studio_type) || 0) + 1);
     
@@ -191,25 +196,37 @@ export default async function AdminPage() {
     studiosByType.get(item.studio_id)!.add(item.studio_type);
   });
   
-  // Calculate combinations
+  // Calculate combinations (only for allowed types)
   studiosByType.forEach((types, studioId) => {
-    if (types.size > 1) {
+    // Filter to only allowed types
+    const filteredTypes = Array.from(types).filter(t => allowedTypes.has(t));
+    if (filteredTypes.length > 1) {
       // Create sorted combination key
-      const combination = Array.from(types).sort().join(' + ');
+      const combination = filteredTypes.sort().join(' + ');
       studioTypeCombinations.set(combination, (studioTypeCombinations.get(combination) || 0) + 1);
     }
   });
   
-  // Individual type stats
-  const studioTypeStats = Array.from(studioTypeMap.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+  // Combine individual types and combinations into one array
+  const allStudioTypeData: Array<{ name: string; count: number }> = [];
   
-  // Top combinations (most common)
-  const studioTypeCombinationsStats = Array.from(studioTypeCombinations.entries())
+  // Add individual types
+  Array.from(studioTypeMap.entries())
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 10); // Top 10 combinations
+    .forEach(item => allStudioTypeData.push(item));
+  
+  // Add combinations
+  Array.from(studioTypeCombinations.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .forEach(item => allStudioTypeData.push(item));
+  
+  // Sort all data by count (descending)
+  const studioTypeStats = allStudioTypeData.sort((a, b) => b.count - a.count);
+  
+  // Keep combinations separate for backwards compatibility (but will be empty/ignored)
+  const studioTypeCombinationsStats: Array<{ name: string; count: number }> = [];
 
   // Signups per day (last 30 days)
   const signupsByDay = new Map<string, number>();

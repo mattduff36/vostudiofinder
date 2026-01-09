@@ -144,19 +144,19 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
           )}
         </div>
 
-        {/* Studio Types - Individual Counts */}
+        {/* Studio Types - Combined (Individual + Combinations) */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-3 mb-6">
             <Building2 className="w-5 h-5 text-purple-600" />
             <div>
               <h3 className="text-lg font-bold text-gray-900">Studio Types</h3>
-              <p className="text-sm text-gray-600">Individual type popularity</p>
+              <p className="text-sm text-gray-600">Recording, Home & Voiceover types + combinations</p>
             </div>
           </div>
           {insights.studioTypeStats.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={Math.min(insights.studioTypeStats.length * 40 + 100, 400)}>
               <BarChart data={insights.studioTypeStats.map(item => ({
-                name: item.name.replace('_', ' ').toLowerCase(),
+                name: item.name.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
                 count: item.count,
               }))} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -164,7 +164,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                 <YAxis 
                   type="category" 
                   dataKey="name" 
-                  width={120}
+                  width={180}
                   stroke="#6b7280" 
                   fontSize={11}
                 />
@@ -185,44 +185,6 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
           )}
         </div>
       </div>
-
-      {/* Studio Type Combinations */}
-      {insights.studioTypeCombinationsStats.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Building2 className="w-5 h-5 text-purple-600" />
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Common Studio Type Combinations</h3>
-              <p className="text-sm text-gray-600">Most popular multi-type combinations</p>
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={Math.min(insights.studioTypeCombinationsStats.length * 40 + 100, 400)}>
-            <BarChart data={insights.studioTypeCombinationsStats.map(item => ({
-              name: item.name.replace(/_/g, ' ').toLowerCase(),
-              count: item.count,
-            }))} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis type="number" stroke="#6b7280" fontSize={12} />
-              <YAxis 
-                type="category" 
-                dataKey="name" 
-                width={200}
-                stroke="#6b7280" 
-                fontSize={10}
-                angle={0}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#fff', 
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                }}
-              />
-              <Bar dataKey="count" fill="#a855f7" radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
 
       {/* Trend Charts (Full Width) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
