@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      console.error(`❌ User not found: ${userId}`);
+      console.error(`[ERROR] User not found: ${userId}`);
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -46,14 +46,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user.email_verified) {
-      console.error(`❌ Email not verified for user: ${userId} (${email})`);
+      console.error(`[ERROR] Email not verified for user: ${userId} (${email})`);
       return NextResponse.json(
         { error: 'Email must be verified before payment', verified: false },
         { status: 403 }
       );
     }
 
-    console.log(`✅ Email verified for user: ${userId} (${email})`);
+    console.log(`[SUCCESS] Email verified for user: ${userId} (${email})`);
     console.log(`💳 Creating Stripe checkout for user: ${userId} (${email})`);
 
     // Use real Stripe with one-time payment
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       allow_promotion_codes: true,
     });
 
-    console.log(`✅ Stripe checkout created: ${session.id} for user ${userId}`);
+    console.log(`[SUCCESS] Stripe checkout created: ${session.id} for user ${userId}`);
 
     return NextResponse.json({ clientSecret: session.client_secret });
   } catch (error) {

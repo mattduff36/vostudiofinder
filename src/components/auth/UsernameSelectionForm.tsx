@@ -32,7 +32,7 @@ export function UsernameSelectionForm() {
     enabled: true,
     warningMessage: 'Your username selection is in progress. Are you sure you want to leave?',
     onBackAttempt: () => {
-      console.log('⚠️  User attempted to navigate back from username selection');
+      console.log('[WARNING] User attempted to navigate back from username selection');
     },
   });
 
@@ -41,7 +41,7 @@ export function UsernameSelectionForm() {
     const signupData = getSignupData();
     
     if (!signupData) {
-      console.warn('⚠️  No signup data found in sessionStorage');
+      console.warn('[WARNING] No signup data found in sessionStorage');
       setError('Session expired. Please start the signup process again.');
       setTimeout(() => {
         router.push('/auth/signup');
@@ -81,7 +81,7 @@ export function UsernameSelectionForm() {
           const statusData = await response.json();
           if (statusData.canResume && statusData.hasUsername && statusData.user.username) {
             // Username already reserved - skip to payment
-            console.log(`✅ Username already reserved: @${statusData.user.username}`);
+            console.log(`[SUCCESS] Username already reserved: @${statusData.user.username}`);
             
             const params = new URLSearchParams();
             params.set('userId', userId);
@@ -225,7 +225,7 @@ export function UsernameSelectionForm() {
         return;
       }
 
-      console.log(`✅ Username reserved: @${selectedUsername}`);
+      console.log(`[SUCCESS] Username reserved: @${selectedUsername}`);
 
       // Update signup data with username
       storeSignupData({

@@ -36,7 +36,7 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
 
       // If user is verified, redirect to payment page
       if (user && user.email_verified) {
-        console.log(`✅ User ${email} already verified, redirecting to payment`);
+        console.log(`[SUCCESS] User ${email} already verified, redirecting to payment`);
         
         // Build payment URL with user data
         const paymentParams = new URLSearchParams();

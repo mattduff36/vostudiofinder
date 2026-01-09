@@ -140,7 +140,7 @@ export function SignupForm() {
         return;
       }
 
-      console.log(`✅ Existing PENDING account expired for: ${pendingSignup.user.email}`);
+      console.log(`[SUCCESS] Existing PENDING account expired for: ${pendingSignup.user.email}`);
       
       // Clear UI state - user can now start fresh signup
       setPendingSignup(null);
@@ -190,7 +190,7 @@ export function SignupForm() {
         return;
       }
 
-      console.log(`✅ PENDING user created: ${userId}`);
+      console.log(`[SUCCESS] PENDING user created: ${userId}`);
 
       // Store signup data with userId in session storage (includes timestamp)
       storeSignupData({

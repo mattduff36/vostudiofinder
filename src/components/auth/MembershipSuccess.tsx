@@ -80,7 +80,7 @@ export function MembershipSuccess() {
     warningMessage: 'Your account setup is incomplete. Going back may cause you to lose progress.',
     allowBackAfter: () => paymentVerified && nextStep === 'build_now',
     onBackAttempt: () => {
-      console.log('⚠️  User attempted to navigate back from success page');
+      console.log('[WARNING] User attempted to navigate back from success page');
     },
   });
   
@@ -143,7 +143,7 @@ export function MembershipSuccess() {
 
     // If missing data, try sessionStorage first
     if (!recoveredEmail || !recoveredName || !recoveredSessionId) {
-      console.log('⚠️  Missing URL params, attempting recovery from sessionStorage...');
+      console.log('[WARNING] Missing URL params, attempting recovery from sessionStorage...');
       const signupData = getSignupData();
       
       if (signupData) {

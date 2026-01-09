@@ -150,10 +150,10 @@ export async function requireEmailVerification(userId?: string, email?: string) 
       redirect(`/auth/verify-email?email=${encodeURIComponent(user.email)}&flow=signup`);
     }
 
-    console.log(`✅ Email verification confirmed for user: ${user.email}`);
+    console.log(`[SUCCESS] Email verification confirmed for user: ${user.email}`);
     return user;
   } catch (error) {
-    console.error('❌ Error checking email verification:', error);
+    console.error('[ERROR] Error checking email verification:', error);
     redirect('/auth/signup');
   }
 }

@@ -38,7 +38,7 @@ export function MembershipPayment() {
     warningMessage: 'Your payment is in progress. Are you sure you want to go back? You may lose your progress.',
     disableBeforeUnload: true, // Disable beforeunload to allow Stripe redirect without warning
     onBackAttempt: () => {
-      console.log('⚠️  User attempted to navigate back from payment page');
+      console.log('[WARNING] User attempted to navigate back from payment page');
     },
   });
 
@@ -48,7 +48,7 @@ export function MembershipPayment() {
     const initializeAndCheckPayment = async () => {
       // If URL params are missing, try to recover from sessionStorage
       if (!userId || !email) {
-        console.log('⚠️  Missing URL params, attempting recovery from sessionStorage...');
+        console.log('[WARNING] Missing URL params, attempting recovery from sessionStorage...');
         const storedData = getSignupData();
         
         if (storedData) {

@@ -57,7 +57,7 @@ export function getSignupData(): SignupData | null {
 
     // Validate required fields
     if (!data.userId || !data.email || !data.display_name) {
-      console.warn('⚠️  Signup data missing required fields');
+      console.warn('[WARNING] Signup data missing required fields');
       return null;
     }
 
@@ -65,7 +65,7 @@ export function getSignupData(): SignupData | null {
     if (data.timestamp) {
       const age = Date.now() - data.timestamp;
       if (age > SESSION_TIMEOUT_MS) {
-        console.warn('⚠️  Signup data expired');
+        console.warn('[WARNING] Signup data expired');
         clearSignupData();
         return null;
       }

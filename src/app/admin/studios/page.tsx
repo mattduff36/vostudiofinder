@@ -366,7 +366,7 @@ export default function AdminStudiosPage() {
   };
 
   const handleDeleteStudio = async (studio: Studio) => {
-    if (!confirm(`⚠️ WARNING: This will permanently delete "${studio.name}" AND the associated user account!\n\nThis includes:\n• User account\n• Studio profile\n• All images\n• All reviews\n• All related data\n\nThis action CANNOT be undone. Are you sure?`)) {
+    if (!confirm(`WARNING: This will permanently delete "${studio.name}" AND the associated user account!\n\nThis includes:\n• User account\n• Studio profile\n• All images\n• All reviews\n• All related data\n\nThis action CANNOT be undone. Are you sure?`)) {
       return;
     }
 
@@ -528,7 +528,7 @@ export default function AdminStudiosPage() {
     // Add confirmation for delete action
     if (action === 'delete') {
       const count = studioIds.length;
-      const confirmMessage = `⚠️ WARNING: This will permanently delete ${count} studio${count !== 1 ? 's' : ''} AND their associated user accounts!\n\nThis includes:\n• ${count} user account${count !== 1 ? 's' : ''}\n• ${count} studio profile${count !== 1 ? 's' : ''}\n• All images, reviews, and related data\n\nThis action CANNOT be undone. Are you sure?`;
+      const confirmMessage = `WARNING: This will permanently delete ${count} studio${count !== 1 ? 's' : ''} AND their associated user accounts!\n\nThis includes:\n• ${count} user account${count !== 1 ? 's' : ''}\n• ${count} studio profile${count !== 1 ? 's' : ''}\n• All images, reviews, and related data\n\nThis action CANNOT be undone. Are you sure?`;
       if (!confirm(confirmMessage)) {
         return;
       }

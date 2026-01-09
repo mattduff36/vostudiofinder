@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
         } catch (error: any) {
           // Handle unique constraint violation (race condition with another transaction)
           if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
-            console.error(`⚠️  Race condition: Username ${username} claimed during transaction`);
+            console.error(`[WARNING] Race condition: Username ${username} claimed during transaction`);
             return NextResponse.json(
               { error: 'Username was just claimed by another user. Please select a different username.', available: false },
               { status: 409 }
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
       // Handle unique constraint violation (race condition)
       if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
-        console.error(`⚠️  Race condition: Username ${username} claimed by another request`);
+        console.error(`[WARNING] Race condition: Username ${username} claimed by another request`);
         return NextResponse.json(
           { error: 'Username was just claimed by another user. Please select a different username.', available: false },
           { status: 409 }

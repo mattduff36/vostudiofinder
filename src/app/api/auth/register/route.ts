@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
             status: UserStatus.EXPIRED, // Extra safety: only delete if still EXPIRED
           },
         });
-        console.log(`🗑️ Deleted ${deleteResult.count} EXPIRED user(s) with email: ${normalizedEmail}`);
+        console.log(`[INFO] Deleted ${deleteResult.count} EXPIRED user(s) with email: ${normalizedEmail}`);
       } else if (existingUser.status === UserStatus.PENDING) {
         // User has incomplete signup - check if reservation is still valid
         const now = new Date();
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
               status: UserStatus.EXPIRED, // Extra safety: only delete if still EXPIRED
             },
           });
-          console.log(`🗑️ Deleted ${deleteResult.count} expired PENDING user(s) with email: ${normalizedEmail}`);
+          console.log(`[INFO] Deleted ${deleteResult.count} expired PENDING user(s) with email: ${normalizedEmail}`);
           // Continue to create new user below
         } else {
           // Reservation still valid - check signup progress
@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
       if (emailSent) {
         console.log('✅ Verification email sent successfully to:', user.email);
       } else {
-        console.warn('⚠️ Failed to send verification email to:', user.email);
+        console.warn('[WARNING] Failed to send verification email to:', user.email);
       }
     } catch (emailError) {
       console.error('❌ Error sending verification email:', emailError);

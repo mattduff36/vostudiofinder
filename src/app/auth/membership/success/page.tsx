@@ -30,6 +30,13 @@ const REQUIRED_FIELDS = [
     why: 'Personalizes your experience and builds recognition',
   },
   {
+    name: 'Email',
+    required: true,
+    where: 'Account verification and communications',
+    how: 'Used for important notifications and account security',
+    why: 'Essential for account verification and platform communications',
+  },
+  {
     name: 'Studio Name',
     required: true,
     where: 'Profile header, search results, and listings',
@@ -140,7 +147,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
 
   // Verify payment exists
   if (!params.session_id) {
-    console.error('❌ No session_id provided');
+    console.error('[ERROR] No session_id provided');
     redirect('/auth/signup?error=session_expired');
   }
 
@@ -151,7 +158,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   const retryDelays = [1000, 2000, 4000, 8000, 10000]; // milliseconds
   let payment = null;
 
-  console.log(`🔍 Looking up payment for session: ${params.session_id}`);
+  console.log(`[INFO] Looking up payment for session: ${params.session_id}`);
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     payment = await db.payments.findUnique({
@@ -164,7 +171,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     });
 
     if (payment && payment.status === 'SUCCEEDED') {
-      console.log(`✅ Payment found on attempt ${attempt + 1}: ${payment.id}`);
+      console.log(`[SUCCESS] Payment found on attempt ${attempt + 1}: ${payment.id}`);
       break;
     }
 
@@ -178,7 +185,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
 
   // After all retries, verify we have a successful payment
   if (!payment || payment.status !== 'SUCCEEDED') {
-    console.error(`❌ Payment not found or not succeeded after ${maxRetries} attempts`);
+    console.error(`[ERROR] Payment not found or not succeeded after ${maxRetries} attempts`);
     redirect('/auth/signup?error=payment_not_found');
   }
 
@@ -195,7 +202,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   });
 
   if (!user) {
-    console.error('❌ User not found');
+    console.error('[ERROR] User not found');
     redirect('/auth/signup?error=user_not_found');
   }
 
@@ -278,6 +285,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       name: studioProfile?.name || null,
       studio_types: studioProfile?.studio_studio_types?.map(st => st.studio_type) || [],
       images: studioProfile?.studio_images || [],
+      website_url: studioProfile?.website_url || null,
     },
   });
 
@@ -310,14 +318,15 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   const requiredFieldsWithStatus = [
     { ...REQUIRED_FIELDS[0], completed: !!(user.username && !user.username.startsWith('temp_')) },
     { ...REQUIRED_FIELDS[1], completed: !!(user.display_name && user.display_name.trim()) },
-    { ...REQUIRED_FIELDS[2], completed: !!(studioProfile?.name && studioProfile.name.trim()) },
-    { ...REQUIRED_FIELDS[3], completed: !!(studioProfile?.short_about && studioProfile.short_about.trim()) },
-    { ...REQUIRED_FIELDS[4], completed: !!(studioProfile?.about && studioProfile.about.trim()) },
-    { ...REQUIRED_FIELDS[5], completed: !!(studioProfile?.studio_studio_types && studioProfile.studio_studio_types.length >= 1) },
-    { ...REQUIRED_FIELDS[6], completed: !!(studioProfile?.location && studioProfile.location.trim()) },
-    { ...REQUIRED_FIELDS[7], completed: hasConnectionMethod },
-    { ...REQUIRED_FIELDS[8], completed: !!(studioProfile?.website_url && studioProfile.website_url.trim()) },
-    { ...REQUIRED_FIELDS[9], completed: !!(studioProfile?.studio_images && studioProfile.studio_images.length >= 1) },
+    { ...REQUIRED_FIELDS[2], completed: !!(user.email && user.email.trim()) },
+    { ...REQUIRED_FIELDS[3], completed: !!(studioProfile?.name && studioProfile.name.trim()) },
+    { ...REQUIRED_FIELDS[4], completed: !!(studioProfile?.short_about && studioProfile.short_about.trim()) },
+    { ...REQUIRED_FIELDS[5], completed: !!(studioProfile?.about && studioProfile.about.trim()) },
+    { ...REQUIRED_FIELDS[6], completed: !!(studioProfile?.studio_studio_types && studioProfile.studio_studio_types.length >= 1) },
+    { ...REQUIRED_FIELDS[7], completed: !!(studioProfile?.location && studioProfile.location.trim()) },
+    { ...REQUIRED_FIELDS[8], completed: hasConnectionMethod },
+    { ...REQUIRED_FIELDS[9], completed: !!(studioProfile?.website_url && studioProfile.website_url.trim()) },
+    { ...REQUIRED_FIELDS[10], completed: !!(studioProfile?.studio_images && studioProfile.studio_images.length >= 1) },
   ] as Array<{ name: string; required: boolean; completed: boolean; where: string; how: string; why: string }>;
 
   const optionalFieldsWithStatus = [

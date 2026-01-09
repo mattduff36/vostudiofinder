@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const redirect = searchParams.get('redirect'); // Optional redirect after verification
 
     if (!token) {
-      console.warn('⚠️ No verification token provided');
+      console.warn('[WARNING] No verification token provided');
       return NextResponse.redirect(
         new URL('/auth/verify-email?error=invalid_token', request.url)
       );
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
-      console.warn('⚠️ Invalid verification token:', token);
+      console.warn('[WARNING] Invalid verification token:', token);
       return NextResponse.redirect(
         new URL('/auth/verify-email?error=invalid_token', request.url)
       );
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     // Check if token has expired
     if (user.verification_token_expiry && user.verification_token_expiry < new Date()) {
-      console.warn('⚠️ Verification token expired for user:', user.email);
+      console.warn('[WARNING] Verification token expired for user:', user.email);
       return NextResponse.redirect(
         new URL(`/auth/verify-email?error=token_expired&email=${encodeURIComponent(user.email)}`, request.url)
       );
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
     // Check if already verified
     if (user.email_verified) {
-      console.log('ℹ️ Email already verified for user:', user.email);
+      console.log('[INFO] Email already verified for user:', user.email);
       
       // If redirect param provided, use it; otherwise go to payment
       if (redirect) {
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log('✅ Email verified successfully for user:', user.email);
+    console.log('[SUCCESS] Email verified successfully for user:', user.email);
 
     // If user has a studio profile, automatically set it to visible
     // This applies to Option 2 (complete profile now) flow
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
         where: { id: studioProfile.id },
         data: { is_profile_visible: true },
       });
-      console.log('✅ Studio profile set to visible for user:', user.email);
+      console.log('[SUCCESS] Studio profile set to visible for user:', user.email);
     }
 
     // Determine redirect URL
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
       new URL(redirectUrl, request.url)
     );
   } catch (error) {
-    console.error('❌ Email verification error:', error);
+    console.error('[ERROR] Email verification error:', error);
     handleApiError(error, 'Email verification failed');
     
     return NextResponse.redirect(

@@ -22,7 +22,7 @@ async function ensureEventIdempotency(eventId: string, eventType: string, payloa
     });
 
     if (existing) {
-      logger.log(`⏭️  Event ${eventId} already processed, skipping`);
+      logger.log(`[INFO] Event ${eventId} already processed, skipping`);
       return false; // Already processed
     }
 
@@ -40,7 +40,7 @@ async function ensureEventIdempotency(eventId: string, eventType: string, payloa
 
     return true; // OK to process
   } catch (error) {
-    logger.log(`⚠️  Error checking event idempotency: ${error}`);
+    logger.log(`[WARNING] Error checking event idempotency: ${error}`);
     // If unique constraint violation, event was already recorded by concurrent request
     if (error instanceof Error && error.message.includes('Unique constraint')) {
       return false;
@@ -63,7 +63,7 @@ async function markEventProcessed(eventId: string, success: boolean, error?: str
       },
     });
   } catch (err) {
-    logger.log(`⚠️  Error marking event as processed: ${err}`);
+    logger.log(`[WARNING] Error marking event as processed: ${err}`);
   }
 }
 
@@ -74,7 +74,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   const { user_id, user_email, user_name, purpose } = session.metadata || {};
 
   if (purpose !== 'membership') {
-    logger.log(`⏭️  Session ${session.id} is not a membership payment, skipping`);
+    logger.log(`[INFO] Session ${session.id} is not a membership payment, skipping`);
     return;
   }
 
@@ -122,14 +122,14 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
     throw new Error(`User ${user_id} not found - this should not happen with new flow`);
   }
 
-  logger.log(`✅ Found ${user.status} user: ${user.email}`);
+  logger.log(`[SUCCESS] Found ${user.status} user: ${user.email}`);
 
   // DEFENSIVE CHECK: Verify email is verified before granting membership
   // This should never happen if payment guards are working, but protect against edge cases
   if (!user.email_verified) {
-    logger.log(`⚠️ WARNING: Payment succeeded for unverified email: ${user.email}`);
-    logger.log(`⚠️ This indicates a bypass of payment guards - investigate immediately`);
-    logger.log(`⚠️ Payment will be recorded but membership will NOT be granted`);
+    logger.log(`[WARNING] WARNING: Payment succeeded for unverified email: ${user.email}`);
+    logger.log(`[WARNING] This indicates a bypass of payment guards - investigate immediately`);
+    logger.log(`[WARNING] Payment will be recorded but membership will NOT be granted`);
     
     // Record payment but don't grant membership
     const payment = await db.payments.create({
@@ -153,7 +153,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
       },
     });
     
-    logger.log(`✅ Payment recorded (no membership granted): ${payment.id}`);
+    logger.log(`[SUCCESS] Payment recorded (no membership granted): ${payment.id}`);
     
     // TODO: Send alert email to admin about verification bypass
     // TODO: Send email to user instructing them to verify email before accessing membership
@@ -188,7 +188,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
     },
   });
 
-  logger.log(`✅ Payment recorded: ${payment.id}`);
+  logger.log(`[SUCCESS] Payment recorded: ${payment.id}`);
 
   // Grant membership and update payment tracking in single atomic operation
   await grantMembership(user.id, payment.id, {
@@ -211,9 +211,9 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
           nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         }),
       });
-      logger.log(`📧 Confirmation email sent to ${customer?.email || user_email}`);
+      logger.log(`[EMAIL] Confirmation email sent to ${customer?.email || user_email}`);
     } catch (emailError) {
-      logger.log(`⚠️  Failed to send confirmation email: ${emailError}`);
+      logger.log(`[WARNING] Failed to send confirmation email: ${emailError}`);
     }
   }
 }
@@ -251,7 +251,7 @@ async function grantMembership(
       updated_at: now,
     },
   });
-  logger.log(`✅ User ${userId} status updated: PENDING → ACTIVE`);
+  logger.log(`[SUCCESS] User ${userId} status updated: PENDING → ACTIVE`);
 
   // Create membership record in subscriptions table
   const subscription = await db.subscriptions.create({
@@ -284,7 +284,7 @@ async function grantMembership(
     logger.log(`🔄 Studio status set to ACTIVE for user ${userId}`);
   }
 
-  logger.log(`✅ Membership granted to user ${userId} until ${oneYearFromNow.toISOString()}`);
+  logger.log(`[SUCCESS] Membership granted to user ${userId} until ${oneYearFromNow.toISOString()}`);
   return subscription;
 }
 
@@ -292,7 +292,7 @@ async function grantMembership(
  * Handle failed payment attempts
  */
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
-  logger.log(`❌ Processing failed payment ${paymentIntent.id}`);
+  logger.log(`[ERROR] Processing failed payment ${paymentIntent.id}`);
   
   // Extract user_id from metadata
   const metadata = paymentIntent.metadata || {};
@@ -300,7 +300,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   const user_email = metadata.user_email || metadata.email;
   
   if (!user_id) {
-    logger.log(`⚠️  No user_id in payment intent metadata - cannot process failed payment`);
+    logger.log(`[WARNING] No user_id in payment intent metadata - cannot process failed payment`);
     return;
   }
   
@@ -310,7 +310,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   });
   
   if (!user) {
-    logger.log(`⚠️  User ${user_id} not found - cannot record failed payment`);
+    logger.log(`[WARNING] User ${user_id} not found - cannot record failed payment`);
     return;
   }
   
@@ -366,8 +366,8 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
     },
   });
   
-  logger.log(`✅ Failed payment recorded for user ${user_email}: ${paymentIntent.id}`);
-  logger.log(`📊 Payment retry count: ${user.payment_retry_count + 1}`);
+  logger.log(`[SUCCESS] Failed payment recorded for user ${user_email}: ${paymentIntent.id}`);
+  logger.log(`[ANALYTICS] Payment retry count: ${user.payment_retry_count + 1}`);
   
   // TODO: Send failed payment email with retry link (Phase 4)
 }
@@ -376,7 +376,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
  * Handle refund events
  */
 async function handleRefund(refund: Stripe.Refund) {
-  logger.log(`↩️  Processing refund ${refund.id} for payment ${refund.payment_intent}`);
+  logger.log(`[INFO] Processing refund ${refund.id} for payment ${refund.payment_intent}`);
 
   // IDEMPOTENCY CHECK: Check if this refund was already processed
   const existingRefund = await db.refunds.findUnique({
@@ -384,7 +384,7 @@ async function handleRefund(refund: Stripe.Refund) {
   });
 
   if (existingRefund) {
-    logger.log(`ℹ️  Refund ${refund.id} already processed, skipping`);
+    logger.log(`[INFO] Refund ${refund.id} already processed, skipping`);
     return;
   }
 
@@ -394,7 +394,7 @@ async function handleRefund(refund: Stripe.Refund) {
   });
 
   if (!payment) {
-    logger.log(`⚠️  Payment not found for refund ${refund.id}`);
+    logger.log(`[WARNING] Payment not found for refund ${refund.id}`);
     return;
   }
 
@@ -412,7 +412,7 @@ async function handleRefund(refund: Stripe.Refund) {
     },
   });
 
-  logger.log(`✅ Payment ${payment.id} updated: refunded ${newRefundedAmount}/${payment.amount}`);
+  logger.log(`[SUCCESS] Payment ${payment.id} updated: refunded ${newRefundedAmount}/${payment.amount}`);
 
   // CRITICAL: processed_by requires a valid user ID (FK constraint)
   // For automated webhook refunds, use the first admin user or the user being refunded
@@ -428,15 +428,15 @@ async function handleRefund(refund: Stripe.Refund) {
   if (processedBy === 'PENDING' || !processedBy) {
     if (adminUser) {
       processedBy = adminUser.id;
-      logger.log(`⚠️  Payment user_id is PENDING, using admin for processed_by`);
+      logger.log(`[WARNING] Payment user_id is PENDING, using admin for processed_by`);
     } else {
-      logger.log(`⚠️  No admin found and payment.user_id is PENDING, refund may fail FK constraint`);
+      logger.log(`[WARNING] No admin found and payment.user_id is PENDING, refund may fail FK constraint`);
       // Will fail FK constraint if invalid - better to fail than corrupt data
       processedBy = payment.user_id;
     }
   }
   
-  logger.log(`📝 Recording refund processed by: ${processedBy === payment.user_id ? 'USER (no admin found)' : 'ADMIN'}`);
+  logger.log(`[DEBUG] Recording refund processed by: ${processedBy === payment.user_id ? 'USER (no admin found)' : 'ADMIN'}`);
 
   // Record refund
   await db.refunds.create({
@@ -489,7 +489,7 @@ async function handleRefund(refund: Stripe.Refund) {
         },
       });
 
-      logger.log(`✅ Membership ended for user ${payment.user_id}`);
+      logger.log(`[SUCCESS] Membership ended for user ${payment.user_id}`);
     }
   }
 }
@@ -503,7 +503,7 @@ export async function POST(request: NextRequest) {
     
     // Check if webhook secret is configured
     if (!webhookSecret) {
-      logger.log('❌ Webhook secret not configured');
+      logger.log('[ERROR] Webhook secret not configured');
       return NextResponse.json(
         { error: 'Stripe webhook not configured' },
         { status: 500 }
@@ -515,7 +515,7 @@ export async function POST(request: NextRequest) {
     const signature = headersList.get('stripe-signature');
 
     if (!signature) {
-      logger.log('❌ Missing Stripe signature');
+      logger.log('[ERROR] Missing Stripe signature');
       return NextResponse.json(
         { error: 'Missing Stripe signature' },
         { status: 400 }
@@ -526,9 +526,9 @@ export async function POST(request: NextRequest) {
     let event;
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      logger.log(`✅ Webhook verified: ${event.type} (${event.id})`);
+      logger.log(`[SUCCESS] Webhook verified: ${event.type} (${event.id})`);
     } catch (err) {
-      logger.log(`❌ Webhook signature verification failed: ${err}`);
+      logger.log(`[ERROR] Webhook signature verification failed: ${err}`);
       throw err;
     }
 
@@ -553,7 +553,7 @@ export async function POST(request: NextRequest) {
           if (session.mode === 'payment') {
             await handleMembershipPaymentSuccess(session);
           } else {
-            logger.log(`⏭️  Session ${session.id} is subscription mode, skipping (legacy)`);
+            logger.log(`[INFO] Session ${session.id} is subscription mode, skipping (legacy)`);
           }
           break;
         }
@@ -581,7 +581,7 @@ export async function POST(request: NextRequest) {
 
         case 'payment_intent.succeeded': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          logger.log(`✅ Payment succeeded event received: ${paymentIntent.id}`);
+          logger.log(`[SUCCESS] Payment succeeded event received: ${paymentIntent.id}`);
           // This is handled by checkout.session.completed, but log it
           break;
         }
@@ -603,13 +603,13 @@ export async function POST(request: NextRequest) {
         case 'customer.subscription.deleted':
         case 'invoice.payment_succeeded':
         case 'invoice.payment_failed': {
-          logger.log(`⏭️  Legacy subscription event ${event.type}, keeping existing behavior`);
+          logger.log(`[INFO] Legacy subscription event ${event.type}, keeping existing behavior`);
           // TODO: Could handle these for premium tier in future
           break;
         }
 
         default:
-          logger.log(`ℹ️  Unhandled event type: ${event.type}`);
+          logger.log(`[INFO] Unhandled event type: ${event.type}`);
       }
 
       // Mark event as processed
@@ -617,7 +617,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ received: true });
     } catch (processingError) {
-      logger.log(`❌ Error processing event ${event.id}: ${processingError}`);
+      logger.log(`[ERROR] Error processing event ${event.id}: ${processingError}`);
       await markEventProcessed(event.id, false, String(processingError));
       throw processingError;
     }

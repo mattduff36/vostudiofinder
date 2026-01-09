@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🔍 Checking verification status for:', email);
+    console.log('[INFO] Checking verification status for:', email);
 
     // Find user
     const user = await db.users.findUnique({
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (user.email_verified) {
-      console.log('✅ User verified:', email);
+      console.log('[SUCCESS] User verified:', email);
       return NextResponse.json({
         verified: true,
         userId: user.id,
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       message: 'Email not yet verified',
     });
   } catch (error) {
-    console.error('❌ Check verification status error:', error);
+    console.error('[ERROR] Check verification status error:', error);
     handleApiError(error, 'Check verification status failed');
     
     return NextResponse.json(

@@ -34,7 +34,7 @@ export default async function MembershipPage({ searchParams }: MembershipPagePro
     await requireEmailVerification(params.userId, params.email);
   } else {
     // No user identification provided - redirect to signup
-    console.error('❌ Payment page accessed without user identification');
+    console.error('[ERROR] Payment page accessed without user identification');
     redirect('/auth/signup');
   }
 

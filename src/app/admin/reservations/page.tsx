@@ -85,7 +85,7 @@ export default function AdminReservationsPage() {
   };
 
   const handleDeleteReservation = async (userId: string, email: string, username: string) => {
-    if (!confirm(`⚠️  PERMANENT DELETION WARNING\n\nAre you sure you want to permanently delete ${email} (@${username})?\n\nThis will:\n✗ Delete the user account completely\n✗ Delete all payment records\n✗ Delete any studio profiles\n✗ Cancel all pending reminder emails\n\n⚠️  THIS ACTION CANNOT BE UNDONE!\n\nType their email to confirm deletion.`)) {
+    if (!confirm(`PERMANENT DELETION WARNING\n\nAre you sure you want to permanently delete ${email} (@${username})?\n\nThis will:\n• Delete the user account completely\n• Delete all payment records\n• Delete any studio profiles\n• Cancel all pending reminder emails\n\nTHIS ACTION CANNOT BE UNDONE!\n\nType their email to confirm deletion.`)) {
       return;
     }
     
