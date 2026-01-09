@@ -67,11 +67,11 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
 
   return (
     <div className="space-y-8">
-      {/* Charts Grid - Using 4-column grid to match stat cards (each chart is 2 columns = 2 stat cards wide) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Top Charts Grid - Studio Types and Locations */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {/* Studio Types - 2 stat cards wide, 3 stat cards tall - Vertical Bar Chart */}
-        <div className="bg-white rounded-lg shadow p-6 md:col-span-2 lg:row-span-3 flex flex-col">
+        {/* Studio Types - Same height as Studio Locations */}
+        <div className="bg-white rounded-lg shadow p-6 flex flex-col">
           <div className="flex items-center gap-3 mb-4">
             <Building2 className="w-5 h-5 text-purple-600" />
             <div>
@@ -81,7 +81,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
           </div>
           {insights.studioTypeStats.length > 0 ? (
             <div className="flex-1 min-h-0">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={insights.studioTypeStats.map(item => ({
                   name: item.name,
                   count: item.count,
@@ -118,8 +118,8 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
           )}
         </div>
 
-        {/* Studio Locations - 2 stat cards wide, 2 stat cards tall */}
-        <div className="bg-white rounded-lg shadow p-6 md:col-span-2 lg:row-span-2">
+        {/* Studio Locations - Same height as Studio Types */}
+        <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-3 mb-6">
             <MapPin className="w-5 h-5 text-blue-600" />
             <div>
@@ -165,9 +165,13 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
             </div>
           )}
         </div>
+      </div>
 
-        {/* Custom Connection Methods - 2 stat cards wide, 1 stat card tall */}
-        <div className="bg-white rounded-lg shadow p-6 md:col-span-2 lg:row-span-1">
+      {/* Bottom Charts Grid - All three charts on one line */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Custom Connection Methods */}
+        <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-3 mb-6">
             <LinkIcon className="w-5 h-5 text-indigo-600" />
             <div>
@@ -203,10 +207,6 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Trend Charts (Full Width) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Signups Trend */}
         <div className="bg-white rounded-lg shadow p-6">
