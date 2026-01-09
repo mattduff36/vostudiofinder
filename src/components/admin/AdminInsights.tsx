@@ -67,11 +67,11 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
 
   return (
     <div className="space-y-8">
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Charts Grid - Using 4-column grid to match stat cards (each chart is 2 columns = 2 stat cards wide) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        {/* Studio Types - Combined (Individual + Combinations) - Left side, spans 2 columns */}
-        <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
+        {/* Studio Types - 2 stat cards wide, 3 stat cards tall - Vertical Bar Chart */}
+        <div className="bg-white rounded-lg shadow p-6 md:col-span-2 lg:row-span-3">
           <div className="flex items-center gap-3 mb-6">
             <Building2 className="w-5 h-5 text-purple-600" />
             <div>
@@ -80,17 +80,108 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
             </div>
           </div>
           {insights.studioTypeStats.length > 0 ? (
-            <ResponsiveContainer width="100%" height={Math.min(insights.studioTypeStats.length * 40 + 100, 400)}>
+            <ResponsiveContainer width="100%" height={500}>
               <BarChart data={insights.studioTypeStats.map(item => ({
-                name: item.name, // Names are already formatted correctly from server
+                name: item.name,
                 count: item.count,
-              }))} layout="vertical">
+              }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#6b7280" 
+                  fontSize={11}
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                />
+                <YAxis stroke="#6b7280" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]}>
+                  {insights.studioTypeStats.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[500px] flex items-center justify-center text-gray-500 text-sm">
+              No studio type data available
+            </div>
+          )}
+        </div>
+
+        {/* Studio Locations - 2 stat cards wide, 2 stat cards tall */}
+        <div className="bg-white rounded-lg shadow p-6 md:col-span-2 lg:row-span-2">
+          <div className="flex items-center gap-3 mb-6">
+            <MapPin className="w-5 h-5 text-blue-600" />
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Studio Locations</h3>
+              <p className="text-sm text-gray-600">Top 4 countries + other</p>
+            </div>
+          </div>
+          {insights.locationStats.length > 0 ? (
+            <div className="flex items-center justify-center px-4 py-2">
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <Pie
+                    data={insights.locationStats.map(item => ({
+                      name: item.name,
+                      value: item.count,
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    label={({ name, percent }) => `${name} (${percent ? (percent * 100).toFixed(0) : '0'}%)`}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {insights.locationStats.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#fff', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                    }}
+                    formatter={(value: number | undefined) => value !== undefined ? [`${value} studios`, 'Count'] : ['0 studios', 'Count']}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-[350px] flex items-center justify-center text-gray-500 text-sm">
+              No location data available
+            </div>
+          )}
+        </div>
+
+        {/* Custom Connection Methods - 2 stat cards wide, 1 stat card tall */}
+        <div className="bg-white rounded-lg shadow p-6 md:col-span-2 lg:row-span-1">
+          <div className="flex items-center gap-3 mb-6">
+            <LinkIcon className="w-5 h-5 text-indigo-600" />
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Custom Connection Methods</h3>
+              <p className="text-sm text-gray-600">Most popular user-added connections</p>
+            </div>
+          </div>
+          {customConnectionsData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={customConnectionsData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis type="number" stroke="#6b7280" fontSize={12} />
                 <YAxis 
                   type="category" 
                   dataKey="name" 
-                  width={180}
+                  width={100}
                   stroke="#6b7280" 
                   fontSize={11}
                 />
@@ -101,107 +192,14 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                     borderRadius: '8px',
                   }}
                 />
-                <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]}>
-                  {insights.studioTypeStats.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Bar>
+                <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
-              No studio type data available
+            <div className="h-[200px] flex items-center justify-center text-gray-500 text-sm">
+              No custom connections yet
             </div>
           )}
-        </div>
-
-        {/* Right Column - Stacked Charts */}
-        <div className="flex flex-col gap-6">
-          {/* Location/Country Distribution - Top Right */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <MapPin className="w-5 h-5 text-blue-600" />
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">Studio Locations</h3>
-                <p className="text-sm text-gray-600">Top 4 countries + other</p>
-              </div>
-            </div>
-            {insights.locationStats.length > 0 ? (
-              <div className="flex items-center justify-center px-4 py-2">
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                    <Pie
-                      data={insights.locationStats.map(item => ({
-                        name: item.name,
-                        value: item.count,
-                      }))}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      label={({ name, percent }) => `${name} (${percent ? (percent * 100).toFixed(0) : '0'}%)`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {insights.locationStats.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff', 
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                      }}
-                      formatter={(value: number | undefined) => value !== undefined ? [`${value} studios`, 'Count'] : ['0 studios', 'Count']}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
-                No location data available
-              </div>
-            )}
-          </div>
-
-          {/* Custom Connections Chart - Bottom Right */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <LinkIcon className="w-5 h-5 text-indigo-600" />
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">Custom Connection Methods</h3>
-                <p className="text-sm text-gray-600">Most popular user-added connections</p>
-              </div>
-            </div>
-            {customConnectionsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={customConnectionsData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis type="number" stroke="#6b7280" fontSize={12} />
-                  <YAxis 
-                    type="category" 
-                    dataKey="name" 
-                    width={100}
-                    stroke="#6b7280" 
-                    fontSize={11}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff', 
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
-                No custom connections yet
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
