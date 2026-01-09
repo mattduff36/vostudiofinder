@@ -102,7 +102,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                   }}
                 />
                 <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]}>
-                  {insights.studioTypeStats.map((entry, index) => (
+                  {insights.studioTypeStats.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Bar>
