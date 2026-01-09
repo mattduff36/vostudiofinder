@@ -45,7 +45,7 @@ export function SignupProgressIndicator({ currentStep }: SignupProgressIndicator
                 </div>
                 <span
                   className={`
-                    mt-2 text-xs font-medium
+                    mt-2 text-xs font-medium whitespace-nowrap
                     ${isCurrent ? 'text-red-600' : ''}
                     ${isCompleted ? 'text-green-600' : ''}
                     ${isUpcoming ? 'text-gray-400' : ''}
