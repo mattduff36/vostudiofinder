@@ -76,7 +76,10 @@ export function FloatingActionBar({
     >
       <div className="max-w-7xl mx-auto px-4 pb-6">
         <motion.div 
-          className="pointer-events-auto bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border-2 border-gray-200 p-4 md:p-6"
+          className="pointer-events-auto bg-white/95 backdrop-blur-xl rounded-2xl border-2 border-gray-200 p-4 md:p-6"
+          style={{
+            boxShadow: '0 -8px 24px -4px rgba(0, 0, 0, 0.12), 0 -4px 12px -2px rgba(0, 0, 0, 0.08), 0 8px 32px -8px rgba(0, 0, 0, 0.15)'
+          }}
           whileHover={{ scale: 1.01 }}
           transition={{ duration: 0.2 }}
         >
