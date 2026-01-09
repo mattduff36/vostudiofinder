@@ -42,33 +42,40 @@ async function deleteDummyData() {
     await prisma.$transaction(async (tx) => {
       let deletedCount = 0;
 
-      // 1. Delete refunds
+      // 1. Get payment IDs first (before deleteMany - follows Prisma transaction best practices)
+      const userPayments = await tx.payments.findMany({
+        where: { user_id: { in: userIds } },
+        select: { id: true },
+      });
+      const paymentIds = userPayments.map(p => p.id);
+
+      // 2. Delete refunds
       const refunds = await tx.refunds.deleteMany({
         where: {
           OR: [
             { user_id: { in: userIds } },
-            { payment_id: { in: await tx.payments.findMany({ where: { user_id: { in: userIds } }, select: { id: true } }).then(p => p.map(p => p.id)) } },
+            { payment_id: { in: paymentIds } },
           ],
         },
       });
       deletedCount += refunds.count;
       console.log(`  ✅ Deleted ${refunds.count} refunds`);
 
-      // 2. Delete payments
+      // 3. Delete payments
       const payments = await tx.payments.deleteMany({
         where: { user_id: { in: userIds } },
       });
       deletedCount += payments.count;
       console.log(`  ✅ Deleted ${payments.count} payments`);
 
-      // 3. Delete support tickets
+      // 4. Delete support tickets
       const supportTickets = await tx.support_tickets.deleteMany({
         where: { user_id: { in: userIds } },
       });
       deletedCount += supportTickets.count;
       console.log(`  ✅ Deleted ${supportTickets.count} support tickets`);
 
-      // 4. Delete waitlist entries (by email pattern)
+      // 5. Delete waitlist entries (by email pattern)
       const waitlistEntries = await tx.waitlist.deleteMany({
         where: {
           email: {
@@ -79,14 +86,14 @@ async function deleteDummyData() {
       deletedCount += waitlistEntries.count;
       console.log(`  ✅ Deleted ${waitlistEntries.count} waitlist entries`);
 
-      // 5. Delete review responses
+      // 6. Delete review responses
       const reviewResponses = await tx.review_responses.deleteMany({
         where: { author_id: { in: userIds } },
       });
       deletedCount += reviewResponses.count;
       console.log(`  ✅ Deleted ${reviewResponses.count} review responses`);
 
-      // 6. Delete reviews
+      // 7. Delete reviews
       const reviews = await tx.reviews.deleteMany({
         where: {
           OR: [
@@ -98,7 +105,7 @@ async function deleteDummyData() {
       deletedCount += reviews.count;
       console.log(`  ✅ Deleted ${reviews.count} reviews`);
 
-      // 7. Delete content reports
+      // 8. Delete content reports
       const contentReports = await tx.content_reports.deleteMany({
         where: {
           OR: [
@@ -111,7 +118,7 @@ async function deleteDummyData() {
       deletedCount += contentReports.count;
       console.log(`  ✅ Deleted ${contentReports.count} content reports`);
 
-      // 8. Delete messages
+      // 9. Delete messages
       const messages = await tx.messages.deleteMany({
         where: {
           OR: [
@@ -123,7 +130,7 @@ async function deleteDummyData() {
       deletedCount += messages.count;
       console.log(`  ✅ Deleted ${messages.count} messages`);
 
-      // 9. Delete user connections
+      // 10. Delete user connections
       const userConnections = await tx.user_connections.deleteMany({
         where: {
           OR: [
@@ -135,63 +142,63 @@ async function deleteDummyData() {
       deletedCount += userConnections.count;
       console.log(`  ✅ Deleted ${userConnections.count} user connections`);
 
-      // 10. Delete notifications
+      // 11. Delete notifications
       const notifications = await tx.notifications.deleteMany({
         where: { user_id: { in: userIds } },
       });
       deletedCount += notifications.count;
       console.log(`  ✅ Deleted ${notifications.count} notifications`);
 
-      // 11. Delete subscriptions
+      // 12. Delete subscriptions
       const subscriptions = await tx.subscriptions.deleteMany({
         where: { user_id: { in: userIds } },
       });
       deletedCount += subscriptions.count;
       console.log(`  ✅ Deleted ${subscriptions.count} subscriptions`);
 
-      // 12. Delete pending subscriptions
+      // 13. Delete pending subscriptions
       const pendingSubscriptions = await tx.pending_subscriptions.deleteMany({
         where: { user_id: { in: userIds } },
       });
       deletedCount += pendingSubscriptions.count;
       console.log(`  ✅ Deleted ${pendingSubscriptions.count} pending subscriptions`);
 
-      // 13. Delete saved searches
+      // 14. Delete saved searches
       const savedSearches = await tx.saved_searches.deleteMany({
         where: { user_id: { in: userIds } },
       });
       deletedCount += savedSearches.count;
       console.log(`  ✅ Deleted ${savedSearches.count} saved searches`);
 
-      // 14. Delete accounts
+      // 15. Delete accounts
       const accounts = await tx.accounts.deleteMany({
         where: { user_id: { in: userIds } },
       });
       deletedCount += accounts.count;
       console.log(`  ✅ Deleted ${accounts.count} accounts`);
 
-      // 15. Delete sessions
+      // 16. Delete sessions
       const sessions = await tx.sessions.deleteMany({
         where: { user_id: { in: userIds } },
       });
       deletedCount += sessions.count;
       console.log(`  ✅ Deleted ${sessions.count} sessions`);
 
-      // 16. Delete user metadata
+      // 17. Delete user metadata
       const userMetadata = await tx.user_metadata.deleteMany({
         where: { user_id: { in: userIds } },
       });
       deletedCount += userMetadata.count;
       console.log(`  ✅ Deleted ${userMetadata.count} user metadata entries`);
 
-      // 17. Get studio profiles before deleting
+      // 18. Get studio profiles before deleting
       const studioProfiles = await tx.studio_profiles.findMany({
         where: { user_id: { in: userIds } },
         select: { id: true },
       });
       const studioIds = studioProfiles.map(s => s.id);
 
-      // 18. Delete studio-related data
+      // 19. Delete studio-related data
       if (studioIds.length > 0) {
         const studioServices = await tx.studio_services.deleteMany({
           where: { studio_id: { in: studioIds } },
@@ -218,7 +225,7 @@ async function deleteDummyData() {
         console.log(`  ✅ Deleted ${studios.count} studio profiles`);
       }
 
-      // 19. Finally, delete users
+      // 20. Finally, delete users
       const users = await tx.users.deleteMany({
         where: { id: { in: userIds } },
       });

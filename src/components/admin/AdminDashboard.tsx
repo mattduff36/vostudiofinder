@@ -87,6 +87,7 @@ interface InsightsData {
   customConnectionsStats: Array<[string, number]>;
   locationStats: Array<{ name: string; count: number }>;
   studioTypeStats: Array<{ name: string; count: number }>;
+  studioTypeCombinationsStats: Array<{ name: string; count: number }>;
   signupTrend: Array<{ date: string; count: number }>;
   paymentTrend: Array<{ date: string; count: number; amount: number }>;
 }
@@ -193,7 +194,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
   ];
 
   // Format payment amount
-  const formatPayment = (amountInPence: number, currency: string): string => {
+  const formatPayment = (amountInPence: number): string => {
     const pounds = amountInPence / 100;
     return `£${Math.round(pounds)}`;
   };
@@ -258,7 +259,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       bgColor: 'bg-blue-100',
       title: 'New User Registration',
       description,
-      metadata: hasStudio ? studio.name : undefined,
+      ...(hasStudio && studio ? { metadata: studio.name } : {}),
       timestamp: user.created_at,
     });
   });
@@ -272,7 +273,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       color: 'text-green-600',
       bgColor: 'bg-green-100',
       title: 'Payment Received',
-      description: `${formatPayment(payment.amount, payment.currency)} from @${payment.users.username} (${payment.users.display_name})`,
+      description: `${formatPayment(payment.amount)} from @${payment.users.username} (${payment.users.display_name})`,
       timestamp: payment.created_at,
     });
   });

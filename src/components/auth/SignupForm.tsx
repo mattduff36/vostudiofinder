@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Eye, EyeOff, Mail } from 'lucide-react';
 import { ResumeSignupBanner } from './ResumeSignupBanner';
 import { SignupProgressIndicator } from './SignupProgressIndicator';
+import { storeSignupData } from '@/lib/signup-recovery';
 
 interface PendingSignupData {
   canResume: boolean;
@@ -86,13 +87,13 @@ export function SignupForm() {
   const handleResume = () => {
     if (!pendingSignup) return;
 
-    // Store data in sessionStorage for resume
-    sessionStorage.setItem('signupData', JSON.stringify({
+    // Store data in sessionStorage for resume (includes timestamp)
+    storeSignupData({
       userId: pendingSignup.user.id,
       email: pendingSignup.user.email,
       display_name: pendingSignup.user.display_name,
       reservation_expires_at: pendingSignup.user.reservation_expires_at,
-    }));
+    });
 
     // Navigate to appropriate step
     if (pendingSignup.resumeStep === 'username') {
@@ -191,14 +192,14 @@ export function SignupForm() {
 
       console.log(`✅ PENDING user created: ${userId}`);
 
-      // Store signup data with userId in session storage
-      sessionStorage.setItem('signupData', JSON.stringify({
+      // Store signup data with userId in session storage (includes timestamp)
+      storeSignupData({
         userId,
         email: data.email,
         password: data.password,
         display_name: display_name,
         reservation_expires_at: registerResult.user.reservation_expires_at,
-      }));
+      });
 
       // Check if display name has spaces
       const hasSpaces = /\s/.test(display_name);
@@ -231,7 +232,6 @@ export function SignupForm() {
             // Handle expired reservation
             if (reserveResponse.status === 410) {
               setError('Your reservation has expired. Please sign up again.');
-              sessionStorage.removeItem('signupData');
               return;
             }
             

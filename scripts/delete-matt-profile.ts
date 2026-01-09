@@ -235,6 +235,35 @@ async function deleteMattProfile() {
         });
         console.log(`    ✅ Deleted ${accountsDeleted.count} OAuth account(s)`);
 
+        // Delete review responses
+        const reviewResponsesDeleted = await tx.review_responses.deleteMany({
+          where: { author_id: userId },
+        });
+        console.log(`    ✅ Deleted ${reviewResponsesDeleted.count} review response(s)`);
+
+        // Delete saved searches
+        const savedSearchesDeleted = await tx.saved_searches.deleteMany({
+          where: { user_id: userId },
+        });
+        console.log(`    ✅ Deleted ${savedSearchesDeleted.count} saved search(es)`);
+
+        // Delete support tickets
+        const supportTicketsDeleted = await tx.support_tickets.deleteMany({
+          where: { user_id: userId },
+        });
+        console.log(`    ✅ Deleted ${supportTicketsDeleted.count} support ticket(s)`);
+
+        // Delete waitlist entries (by email)
+        const waitlistEntriesDeleted = await tx.waitlist.deleteMany({
+          where: {
+            email: {
+              equals: user.email,
+              mode: 'insensitive',
+            },
+          },
+        });
+        console.log(`    ✅ Deleted ${waitlistEntriesDeleted.count} waitlist entr(ies)`);
+
         // 3. Finally, delete the user
         await tx.users.delete({
           where: { id: userId },

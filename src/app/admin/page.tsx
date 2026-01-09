@@ -209,7 +209,7 @@ export default async function AdminPage() {
   });
   
   // Calculate combinations (only for allowed types)
-  studiosByType.forEach((types, studioId) => {
+  studiosByType.forEach((types) => {
     // Filter to only allowed types
     const filteredTypes = Array.from(types).filter(t => allowedTypes.has(t));
     if (filteredTypes.length > 1) {
@@ -250,12 +250,12 @@ export default async function AdminPage() {
   for (let i = 29; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
-    const dateKey = date.toISOString().split('T')[0];
+    const dateKey = date.toISOString().split('T')[0]!;
     signupsByDay.set(dateKey, 0);
   }
   // Fill in actual signup counts
   signupsLast30d.forEach(user => {
-    const dateKey = user.created_at.toISOString().split('T')[0];
+    const dateKey = user.created_at.toISOString().split('T')[0]!;
     signupsByDay.set(dateKey, (signupsByDay.get(dateKey) || 0) + 1);
   });
   const signupTrend = Array.from(signupsByDay.entries()).map(([date, count]) => ({
@@ -269,12 +269,12 @@ export default async function AdminPage() {
   for (let i = 29; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
-    const dateKey = date.toISOString().split('T')[0];
+    const dateKey = date.toISOString().split('T')[0]!;
     paymentsByDay.set(dateKey, { count: 0, amount: 0 });
   }
   // Fill in actual payment data
   paymentsLast30d.forEach(payment => {
-    const dateKey = payment.created_at.toISOString().split('T')[0];
+    const dateKey = payment.created_at.toISOString().split('T')[0]!;
     const current = paymentsByDay.get(dateKey) || { count: 0, amount: 0 };
     paymentsByDay.set(dateKey, {
       count: current.count + 1,
@@ -465,7 +465,10 @@ export default async function AdminPage() {
         paymentTrend,
       }}
       recentActivity={{
-        users: recentUsers,
+        users: recentUsers.map(user => ({
+          ...user,
+          studio_profiles: user.studio_profiles ? [user.studio_profiles] : null,
+        })),
         payments: recentPayments,
         studios: recentStudios,
         reviews: recentReviews,

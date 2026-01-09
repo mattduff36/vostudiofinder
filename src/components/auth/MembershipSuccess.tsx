@@ -13,6 +13,8 @@ import { ImageCropperModal } from '@/components/images/ImageCropperModal';
 import { Loader2, Upload, X, AlertCircle } from 'lucide-react';
 import { extractCity } from '@/lib/utils/address';
 import Image from 'next/image';
+import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
+import { getSignupData, storeSignupData, recoverPaymentState, updateURLParams, clearSignupData } from '@/lib/signup-recovery';
 
 const STUDIO_TYPES = [
   { value: 'HOME', label: 'Home', description: 'Personal recording space in a home environment' },
@@ -69,6 +71,18 @@ export function MembershipSuccess() {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [nextStep, setNextStep] = useState<'choose' | 'verify_now' | 'build_now'>('choose');
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [dataRecovered, setDataRecovered] = useState(false);
+  
+  // Enable back button protection (especially critical on "choose" step)
+  usePreventBackNavigation({
+    enabled: nextStep === 'choose' || nextStep === 'verify_now',
+    warningMessage: 'Your account setup is incomplete. Going back may cause you to lose progress.',
+    allowBackAfter: () => paymentVerified && nextStep === 'build_now',
+    onBackAttempt: () => {
+      console.log('⚠️  User attempted to navigate back from success page');
+    },
+  });
   
   // Extract search params and memoize to prevent infinite loops
   // useSearchParams() returns a new URLSearchParams instance on every render,
@@ -127,113 +141,78 @@ export function MembershipSuccess() {
     let recoveredUsername = stableUsername;
     let recoveredSessionId = stableSessionId || null;
 
-    // If missing data, try sessionStorage
-    if (!recoveredEmail || !recoveredName) {
-      const signupDataStr = sessionStorage.getItem('signupData');
-      if (signupDataStr) {
-        try {
-          const signupData = JSON.parse(signupDataStr);
-          recoveredEmail = recoveredEmail || signupData.email;
-          recoveredName = recoveredName || signupData.display_name;
-        } catch (err) {
-          console.error('Error parsing signup data:', err);
-        }
+    // If missing data, try sessionStorage first
+    if (!recoveredEmail || !recoveredName || !recoveredSessionId) {
+      console.log('⚠️  Missing URL params, attempting recovery from sessionStorage...');
+      const signupData = getSignupData();
+      
+      if (signupData) {
+        console.log('✅ Recovered some data from sessionStorage');
+        recoveredEmail = recoveredEmail || signupData.email;
+        recoveredName = recoveredName || signupData.display_name;
+        recoveredUsername = recoveredUsername || signupData.username || '';
+        
+        // SessionStorage doesn't have sessionId, so we'll need to query database
       }
     }
 
-    // If still missing email, try to recover from payment status
-    if (!recoveredEmail && !recoveredSessionId) {
-      setError({
-        message: 'Session data missing. Please check your email for a recovery link or contact support.',
-        code: 'NO_DATA',
-        canRetry: false,
-      });
-      return;
-    }
-
-    // If we have email but no session ID, check payment status
-    if (recoveredEmail && !recoveredSessionId) {
-      // Validate email is not empty before making API call
-      if (!recoveredEmail.trim()) {
+    // If still missing critical data, try to recover from database
+    if (!recoveredSessionId && recoveredEmail) {
+      console.log('🔍 Attempting to recover payment data from database...');
+      setIsRecovering(true);
+      
+      const recovery = await recoverPaymentState({ email: recoveredEmail });
+      
+      setIsRecovering(false);
+      
+      if (recovery.success && recovery.data) {
+        console.log('✅ Recovered payment data from database');
+        recoveredSessionId = recovery.data.sessionId;
+        recoveredEmail = recovery.data.email;
+        recoveredUsername = recovery.data.username;
+        recoveredName = recovery.data.display_name;
+        
+        // Store recovered data in sessionStorage
+        storeSignupData({
+          userId: recovery.data.userId,
+          email: recoveredEmail,
+          display_name: recoveredName,
+          username: recoveredUsername,
+        });
+        
+        // Update URL params
+        updateURLParams({
+          session_id: recoveredSessionId,
+          email: recoveredEmail,
+          name: recoveredName,
+          username: recoveredUsername,
+        });
+        
+        // Update form fields
+        setValue('email', recoveredEmail);
+        setValue('display_name', recoveredName);
+        setValue('username', recoveredUsername);
+        
+        setDataRecovered(true);
+        console.log('✅ State recovered successfully');
+      } else {
         setError({
-          message: 'Invalid email address. Please check your email and try again.',
-          code: 'INVALID_EMAIL',
+          message: recovery.error || 'Unable to recover your session. Please start the signup process again.',
+          code: 'RECOVERY_FAILED',
           canRetry: false,
         });
         return;
       }
+    }
 
-      try {
-        console.log('🔍 Recovering payment status for:', recoveredEmail);
-        const statusResponse = await fetch('/api/auth/check-payment-status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: recoveredEmail }),
-        });
-
-        if (statusResponse.ok) {
-          let statusData;
-          try {
-            statusData = await statusResponse.json();
-          } catch (jsonError) {
-            console.error('Error parsing payment status response:', jsonError);
-            setError({
-              message: 'Invalid response from server. Please try again or contact support.',
-              code: 'INVALID_RESPONSE',
-              canRetry: true,
-            });
-            return;
-          }
-
-          if (statusData.hasPayment && statusData.paymentStatus === 'succeeded') {
-            // Ensure sessionId was actually returned
-            if (!statusData.sessionId) {
-              setError({
-                message: 'Payment found but session ID is missing. Please contact support.',
-                code: 'MISSING_SESSION_ID',
-                canRetry: false,
-              });
-              return;
-            }
-            recoveredSessionId = statusData.sessionId;
-            recoveredUsername = statusData.user?.username;
-            recoveredName = statusData.user?.display_name;
-            console.log('✅ Recovered payment data from database');
-            // Continue to payment verification below
-          } else {
-            setError({
-              message: 'No successful payment found. Please complete your payment first.',
-              code: 'NO_PAYMENT',
-              canRetry: true,
-            });
-            return;
-          }
-        } else {
-          // Handle non-OK response from payment status check
-          let errorData;
-          try {
-            errorData = await statusResponse.json();
-          } catch (jsonError) {
-            // If JSON parsing fails, use status code for error message
-            errorData = { error: `Server error (${statusResponse.status})` };
-          }
-          
-          setError({
-            message: errorData.error || `Failed to check payment status (${statusResponse.status}). Please try again or contact support.`,
-            code: 'PAYMENT_STATUS_CHECK_FAILED',
-            canRetry: true,
-          });
-          return;
-        }
-      } catch (err) {
-        console.error('Error recovering payment status:', err);
-        setError({
-          message: err instanceof Error ? err.message : 'Failed to check payment status. Please try again or contact support.',
-          code: 'PAYMENT_STATUS_CHECK_ERROR',
-          canRetry: true,
-        });
-        return;
-      }
+    // If still no session ID, we can't proceed
+    if (!recoveredSessionId) {
+      setError({
+        message: 'Session data missing. Please check your email for a recovery link or start the signup process again.',
+        code: 'NO_SESSION_ID',
+        canRetry: false,
+      });
+      return;
     }
 
     if (!recoveredSessionId) {
@@ -435,22 +414,26 @@ export function MembershipSuccess() {
 
     try {
       // Get password from session storage (stored during signup)
-      const signupDataStr = sessionStorage.getItem('signupData');
-      let password = '';
-      if (signupDataStr) {
-        const signupData = JSON.parse(signupDataStr);
-        password = signupData.password;
-      }
-
-      if (!password) {
+      const signupData = getSignupData();
+      
+      if (!signupData || !signupData.password) {
         setError({
-          message: 'Session expired. Please start the signup process again from the beginning.',
-          code: 'SESSION_EXPIRED',
+          message: 'Your session has expired and password data is no longer available. Please start the signup process again.',
+          code: 'PASSWORD_LOST',
           canRetry: false,
         });
         setIsLoading(false);
+        
+        // Offer to clear data and redirect after a delay
+        setTimeout(() => {
+          clearSignupData();
+          router.push('/auth/signup?error=session_expired');
+        }, 3000);
+        
         return;
       }
+
+      const password = signupData.password;
 
       const response = await fetch('/api/auth/create-paid-account', {
         method: 'POST',
@@ -472,8 +455,7 @@ export function MembershipSuccess() {
       }
 
       // Clear signup data from session storage
-      sessionStorage.removeItem('signupData');
-      sessionStorage.removeItem('selectedUsername');
+      clearSignupData();
 
       // Redirect to email verification page with flow=account
       router.push(`/auth/verify-email?flow=account&email=${encodeURIComponent(formEmail)}`);
@@ -536,22 +518,26 @@ export function MembershipSuccess() {
 
     try {
       // Get password from session storage (stored during signup)
-      const signupDataStr = sessionStorage.getItem('signupData');
-      let password = '';
-      if (signupDataStr) {
-        const signupData = JSON.parse(signupDataStr);
-        password = signupData.password;
-      }
-
-      if (!password) {
+      const signupData = getSignupData();
+      
+      if (!signupData || !signupData.password) {
         setError({
-          message: 'Session expired. Please start the signup process again from the beginning.',
-          code: 'SESSION_EXPIRED',
+          message: 'Your session has expired and password data is no longer available. Please start the signup process again.',
+          code: 'PASSWORD_LOST',
           canRetry: false,
         });
         setIsLoading(false);
+        
+        // Offer to clear data and redirect after a delay
+        setTimeout(() => {
+          clearSignupData();
+          router.push('/auth/signup?error=session_expired');
+        }, 3000);
+        
         return;
       }
+
+      const password = signupData.password;
 
       // Auto-add https:// to website URL if not present and validate format
       let websiteUrl = data.website_url.trim();
@@ -775,6 +761,31 @@ export function MembershipSuccess() {
             }
           </p>
         </div>
+
+        {/* Data Recovery Banner */}
+        {dataRecovered && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <AlertCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-blue-800 font-medium">Session recovered</p>
+                <p className="text-blue-700 text-sm mt-1">
+                  We automatically recovered your signup progress. You can continue from where you left off.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Recovery in Progress */}
+        {isRecovering && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <Loader2 className="w-5 h-5 text-blue-600 mr-3 animate-spin" />
+              <p className="text-blue-700">Recovering your session data...</p>
+            </div>
+          </div>
+        )}
 
         {/* Two-Card Chooser UI */}
         {nextStep === 'choose' && (

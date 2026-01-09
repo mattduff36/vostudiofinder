@@ -88,14 +88,41 @@ if (typeof globalThis.Request === 'undefined') {
           this.body = body
           this.status = init.status || 200
           this.statusText = init.statusText || 'OK'
-          this.headers = new Headers(init.headers)
+          this.headers = new Headers(init.headers || undefined)
         }
         async json() { return JSON.parse(this.body || '{}') }
         async text() { return this.body || '' }
         static json(data, init = {}) {
+          // Convert Headers instance to plain object if needed, ensuring Content-Type is set
+          let headersObj = { 'Content-Type': 'application/json' }
+          if (init.headers) {
+            // Check if init.headers is a Headers instance (has _map property from our polyfill)
+            if (init.headers._map && init.headers._map instanceof Map) {
+              // Convert our polyfill Headers instance to plain object
+              init.headers._map.forEach((value, key) => {
+                headersObj[key] = value
+              })
+            } else if (typeof init.headers.entries === 'function') {
+              // Standard Headers instance with entries() method (undici, Next.js, etc.)
+              try {
+                for (const [key, value] of init.headers.entries()) {
+                  headersObj[key] = value
+                }
+              } catch (e) {
+                // If entries() fails, fall back to plain object handling
+                if (typeof init.headers === 'object' && !Array.isArray(init.headers) && init.headers !== null) {
+                  headersObj = { ...headersObj, ...init.headers }
+                }
+              }
+            } else if (typeof init.headers === 'object' && !Array.isArray(init.headers) && init.headers !== null) {
+              // Plain object - can spread directly
+              headersObj = { ...headersObj, ...init.headers }
+            }
+            // Invalid types (string, array, null, etc.) are ignored
+          }
           return new Response(JSON.stringify(data), {
             ...init,
-            headers: { 'Content-Type': 'application/json', ...init.headers },
+            headers: headersObj,
           })
         }
       }
@@ -119,7 +146,14 @@ if (!process.env.NEXTAUTH_SECRET) {
 if (!process.env.NEXTAUTH_URL) {
   process.env.NEXTAUTH_URL = 'http://localhost:3000'
 }
-// Don't override DATABASE_URL - use the one from .env.local
+// Set DATABASE_URL fallback for tests if not provided in .env.local
+// This ensures PrismaClient can initialize even if .env.local is missing or incomplete
+if (!process.env.DATABASE_URL) {
+  // Use a test database URL fallback
+  // Tests that actually need database will fail with connection error, but PrismaClient won't crash on init
+  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db'
+  console.warn('⚠️  DATABASE_URL not found in .env.local, using test fallback. Tests requiring database may fail.')
+}
 
 // Mock console methods to reduce noise in tests
 global.console = {

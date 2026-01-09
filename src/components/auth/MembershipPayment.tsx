@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { Check, Building, Loader2, Sparkles, Upload, Globe } from 'lucide-react';
+import { Check, Building, Loader2, Sparkles, Upload, Globe, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
+import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
+import { getSignupData, storeSignupData, recoverSignupState, updateURLParams } from '@/lib/signup-recovery';
 
 // Initialize Stripe
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -15,19 +17,93 @@ const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export function MembershipPayment() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [recoveryAttempted, setRecoveryAttempted] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
 
   // Get user data from URL params (passed from signup form)
-  const userId = searchParams?.get('userId') || '';
-  const email = searchParams?.get('email') || '';
-  const name = searchParams?.get('name') || '';
-  const username = searchParams?.get('username') || '';
+  let userId = searchParams?.get('userId') || '';
+  let email = searchParams?.get('email') || '';
+  let name = searchParams?.get('name') || '';
+  let username = searchParams?.get('username') || '';
+
+  // Enable back button protection
+  usePreventBackNavigation({
+    enabled: true,
+    warningMessage: 'Your payment is in progress. Are you sure you want to leave? You may lose your progress.',
+    onBackAttempt: () => {
+      console.log('⚠️  User attempted to navigate back from payment page');
+    },
+  });
 
   useEffect(() => {
     console.log('🎯 MembershipPayment mounted with:', { userId, email, name, username });
     
-    const checkExistingPayment = async () => {
+    const initializeAndCheckPayment = async () => {
+      // If URL params are missing, try to recover from sessionStorage
+      if (!userId || !email) {
+        console.log('⚠️  Missing URL params, attempting recovery from sessionStorage...');
+        const storedData = getSignupData();
+        
+        if (storedData) {
+          console.log('✅ Recovered data from sessionStorage');
+          userId = storedData.userId;
+          email = storedData.email;
+          name = storedData.display_name;
+          username = storedData.username || '';
+          
+          // Update URL params to prevent issues on refresh
+          updateURLParams({ userId, email, name, username });
+        } else {
+          // Try to recover from database using email if available
+          if (email) {
+            setIsRecovering(true);
+            const recovery = await recoverSignupState(email);
+            
+            if (recovery.success && recovery.data) {
+              console.log('✅ Recovered data from database');
+              userId = recovery.data.userId;
+              email = recovery.data.email;
+              name = recovery.data.display_name;
+              username = recovery.data.username || '';
+              
+              // Store recovered data
+              storeSignupData({
+                userId,
+                email,
+                display_name: name,
+                username,
+              });
+              
+              // Update URL
+              updateURLParams({ userId, email, name, username });
+              setIsRecovering(false);
+            } else {
+              setIsRecovering(false);
+              setError('Session expired. Unable to recover your signup data. Please start over.');
+              setRecoveryAttempted(true);
+              setIsLoading(false);
+              return;
+            }
+          } else {
+            setError('Session expired. Please sign up again.');
+            setRecoveryAttempted(true);
+            setIsLoading(false);
+            return;
+          }
+        }
+      } else {
+        // Store params in sessionStorage as backup
+        storeSignupData({
+          userId,
+          email,
+          display_name: name,
+          username,
+        });
+      }
+
       if (!userId) {
         setError('Session expired. Please sign up again.');
         setIsLoading(false);
@@ -73,9 +149,9 @@ export function MembershipPayment() {
       setIsLoading(false);
     };
 
-    checkExistingPayment();
+    initializeAndCheckPayment();
     // stripeKey is a constant from process.env, doesn't need to be in dependencies
-  }, [userId, email, name, username]);
+  }, [userId, email, name, username, router]);
 
   const fetchClientSecret = useCallback(async () => {
     console.log('🔄 Fetching client secret...');
@@ -238,12 +314,32 @@ export function MembershipPayment() {
 
             {/* RIGHT: Payment Form - Takes 2 columns */}
             <div className="lg:col-span-2 pb-8">
-              {/* Error Display */}
+              {/* Error Display with Recovery Options */}
               {error && (
                 <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-start">
-                    <div className="text-red-600 mr-3 text-xl">⚠️</div>
-                    <p className="text-red-700">{error}</p>
+                  <div className="flex items-start mb-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <p className="text-red-700 flex-1">{error}</p>
+                  </div>
+                  {recoveryAttempted && (
+                    <div className="mt-4 pt-3 border-t border-red-200">
+                      <button
+                        onClick={() => router.push('/auth/signup')}
+                        className="w-full bg-[#d42027] text-white py-2 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-medium"
+                      >
+                        Start Fresh Signup
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Recovery in Progress */}
+              {isRecovering && (
+                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <Loader2 className="w-5 h-5 text-blue-600 mr-3 animate-spin" />
+                    <p className="text-blue-700">Recovering your session...</p>
                   </div>
                 </div>
               )}

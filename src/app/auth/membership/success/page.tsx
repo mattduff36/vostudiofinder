@@ -46,6 +46,47 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     }
   }
 
+  // If not authenticated but have email, try to recover session_id from database
+  if (!session && !params.session_id && params.email) {
+    console.log('⚠️  Missing session_id, attempting recovery for:', params.email);
+    
+    try {
+      // Find user by email
+      const user = await db.users.findUnique({
+        where: { email: params.email.toLowerCase() },
+        select: { 
+          id: true,
+          email: true,
+          status: true,
+        },
+      });
+
+      if (user && user.status === 'PENDING') {
+        // Find most recent successful payment for this user
+        const payment = await db.payments.findFirst({
+          where: { 
+            user_id: user.id,
+            status: 'SUCCEEDED',
+          },
+          orderBy: { created_at: 'desc' },
+          select: {
+            stripe_checkout_session_id: true,
+          },
+        });
+
+        if (payment && payment.stripe_checkout_session_id) {
+          console.log('✅ Recovered session_id from database');
+          // Redirect with recovered session_id
+          const redirectUrl = `/auth/membership/success?session_id=${payment.stripe_checkout_session_id}&email=${encodeURIComponent(params.email)}${params.name ? `&name=${encodeURIComponent(params.name)}` : ''}${params.username ? `&username=${encodeURIComponent(params.username)}` : ''}`;
+          redirect(redirectUrl);
+        }
+      }
+    } catch (error) {
+      console.error('Error recovering session_id:', error);
+      // Continue to normal flow - will redirect to signup
+    }
+  }
+
   // If not authenticated, verify payment via session_id
   if (!session && params.session_id) {
     // Verify payment exists in database with SUCCEEDED status
@@ -137,6 +178,11 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     redirect(`/auth/signin?callbackUrl=${encodedCallbackUrl}&email=${encodedEmail}`);
   }
 
-  // No session and no valid session_id - redirect to signup
+  // No session and no valid session_id - redirect to signup with more specific error
+  if (!session && !params.session_id) {
+    console.error('❌ No session and no session_id - access denied');
+    redirect('/auth/signup?error=session_expired');
+  }
+  
   redirect('/auth/signup?error=access_denied');
 }

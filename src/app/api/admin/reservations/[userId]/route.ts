@@ -9,7 +9,7 @@ import { UserStatus } from '@prisma/client';
  * Delete a username reservation and prevent future reminder emails
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
