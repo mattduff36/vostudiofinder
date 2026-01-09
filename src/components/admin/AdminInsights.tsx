@@ -5,9 +5,6 @@ import {
   Bar, 
   LineChart, 
   Line, 
-  PieChart, 
-  Pie, 
-  Cell,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -64,11 +61,6 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
     revenue: Math.round(item.amount / 100), // Convert pence to pounds
   }));
 
-  // Format studio type names for display
-  const studioTypeChartData = insights.studioTypeStats.map(item => ({
-    name: item.name.replace('_', ' ').toLowerCase(),
-    value: item.count,
-  }));
 
   return (
     <div className="space-y-8">
