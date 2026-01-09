@@ -36,10 +36,17 @@ export default async function AdminPage() {
     featuredStudios,
     activeUsers30d,
     totalPayments,
+    succeededPayments,
+    failedPayments,
     pendingReservations,
     expiredReservations,
     waitlistCount,
+    totalSupportTickets,
     openSupportTickets,
+    totalIssues,
+    openIssues,
+    totalSuggestions,
+    openSuggestions,
     recentUsers,
     recentStudios,
   ] = await Promise.all([
@@ -70,6 +77,12 @@ export default async function AdminPage() {
     // Total payments
     db.payments.count(),
     
+    // Succeeded payments
+    db.payments.count({ where: { status: 'SUCCEEDED' } }),
+    
+    // Failed payments
+    db.payments.count({ where: { status: 'FAILED' } }),
+    
     // Pending reservations
     db.users.count({ where: { status: UserStatus.PENDING } }),
     
@@ -79,9 +92,38 @@ export default async function AdminPage() {
     // Waitlist count
     db.waitlist.count(),
     
+    // Total support tickets
+    db.support_tickets.count(),
+    
     // Open support tickets (OPEN or IN_PROGRESS)
     db.support_tickets.count({
       where: {
+        status: {
+          in: ['OPEN', 'IN_PROGRESS'],
+        },
+      },
+    }),
+    
+    // Total issues
+    db.support_tickets.count({ where: { type: 'ISSUE' } }),
+    
+    // Open issues
+    db.support_tickets.count({
+      where: {
+        type: 'ISSUE',
+        status: {
+          in: ['OPEN', 'IN_PROGRESS'],
+        },
+      },
+    }),
+    
+    // Total suggestions
+    db.support_tickets.count({ where: { type: 'SUGGESTION' } }),
+    
+    // Open suggestions
+    db.support_tickets.count({
+      where: {
+        type: 'SUGGESTION',
         status: {
           in: ['OPEN', 'IN_PROGRESS'],
         },
@@ -122,14 +164,23 @@ export default async function AdminPage() {
 
   const stats = {
     totalUsers,
+    totalStudios,
     activeStudios,
     verifiedStudios,
     featuredStudios,
     activeUsers30d,
     totalPayments,
-    totalReservations: pendingReservations + expiredReservations,
+    succeededPayments,
+    failedPayments,
+    pendingReservations,
+    expiredReservations,
     waitlistCount,
+    totalSupportTickets,
     openSupportTickets,
+    totalIssues,
+    openIssues,
+    totalSuggestions,
+    openSuggestions,
   };
 
   // Create unified activity feed

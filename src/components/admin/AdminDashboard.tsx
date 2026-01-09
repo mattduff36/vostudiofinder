@@ -29,14 +29,23 @@ interface ActivityItem {
 interface AdminDashboardProps {
   stats: {
     totalUsers: number;
+    totalStudios: number;
     activeStudios: number;
     verifiedStudios: number;
     featuredStudios: number;
     activeUsers30d: number;
     totalPayments: number;
-    totalReservations: number;
+    succeededPayments: number;
+    failedPayments: number;
+    pendingReservations: number;
+    expiredReservations: number;
     waitlistCount: number;
+    totalSupportTickets: number;
     openSupportTickets: number;
+    totalIssues: number;
+    openIssues: number;
+    totalSuggestions: number;
+    openSuggestions: number;
   };
   recentActivity: ActivityItem[];
 }
@@ -47,34 +56,39 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
       title: 'Total Users',
       value: stats.totalUsers.toLocaleString(),
       subtitle: `${stats.activeStudios} Active Studios`,
+      details: null,
       icon: Users,
       color: 'bg-blue-500',
     },
     {
       title: 'Verified Studios',
       value: stats.verifiedStudios.toLocaleString(),
-      subtitle: 'Verified accounts',
+      subtitle: `${Math.round((stats.verifiedStudios / stats.totalStudios) * 100)}% of total`,
+      details: `${stats.totalStudios} total studios`,
       icon: CheckCircle,
       color: 'bg-purple-500',
     },
     {
       title: 'Featured Studios',
       value: stats.featuredStudios.toLocaleString(),
-      subtitle: 'Homepage highlights',
+      subtitle: `${Math.round((stats.featuredStudios / stats.totalStudios) * 100)}% of total`,
+      details: 'Homepage highlights',
       icon: Sparkles,
       color: 'bg-yellow-500',
     },
     {
       title: 'Payments',
       value: stats.totalPayments.toLocaleString(),
-      subtitle: 'Total transactions',
+      subtitle: `${stats.succeededPayments} succeeded`,
+      details: `${stats.failedPayments} failed`,
       icon: CreditCard,
       color: 'bg-green-500',
     },
     {
       title: 'Reservations',
-      value: stats.totalReservations.toLocaleString(),
-      subtitle: 'Pending & expired',
+      value: (stats.pendingReservations + stats.expiredReservations).toLocaleString(),
+      subtitle: `${stats.pendingReservations} pending`,
+      details: `${stats.expiredReservations} expired`,
       icon: Clock,
       color: 'bg-orange-500',
     },
@@ -82,13 +96,15 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
       title: 'Waiting List',
       value: stats.waitlistCount.toLocaleString(),
       subtitle: 'Awaiting access',
+      details: null,
       icon: Users,
       color: 'bg-indigo-500',
     },
     {
       title: 'Support',
       value: stats.openSupportTickets.toLocaleString(),
-      subtitle: 'Open tickets',
+      subtitle: `${stats.openIssues} issues, ${stats.openSuggestions} suggestions`,
+      details: `${stats.totalIssues} total issues, ${stats.totalSuggestions} total suggestions`,
       icon: Headphones,
       color: 'bg-red-500',
     },
@@ -96,6 +112,7 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
       title: 'Active Users (30d)',
       value: stats.activeUsers30d.toLocaleString(),
       subtitle: `${Math.round((stats.activeUsers30d / stats.totalUsers) * 100)}% of total`,
+      details: null,
       icon: Activity,
       color: 'bg-teal-500',
     },
@@ -136,7 +153,7 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
 
           <div className="space-y-8">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {statCards.map((stat, index) => (
                 <div
                   key={index}
@@ -151,7 +168,10 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
                     <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                     <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
                     {stat.subtitle && (
-                      <p className="text-sm text-gray-500 mt-2">{stat.subtitle}</p>
+                      <p className="text-sm text-gray-700 mt-2 font-medium">{stat.subtitle}</p>
+                    )}
+                    {stat.details && (
+                      <p className="text-xs text-gray-500 mt-1">{stat.details}</p>
                     )}
                   </div>
                 </div>
