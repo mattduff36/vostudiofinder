@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { 
   Users, 
   CheckCircle,
@@ -11,10 +12,12 @@ import {
   Lightbulb,
   Building2,
   Star,
-  Link as LinkIcon
+  Link as LinkIcon,
+  ChevronDown
 } from 'lucide-react';
 import { AdminTabs } from './AdminTabs';
 import { AdminInsights } from './AdminInsights';
+import { Button } from '@/components/ui/Button';
 
 interface RecentActivityData {
   users: Array<{
@@ -115,6 +118,9 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboardProps) {
+  // State for managing visible activity items
+  const [visibleItems, setVisibleItems] = useState(10);
+
   // Format payment amounts from pence to pounds
   // Round total to nearest full £, remove .00 from recent payments
   const formatPaymentAmount = (amountInPence: number, isTotal: boolean = false): string => {
@@ -126,6 +132,11 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
     // Remove .00 from recent payments (e.g., £50.00 -> £50, but £50.50 -> £50.50)
     const formatted = pounds.toFixed(2);
     return formatted.endsWith('.00') ? `£${Math.round(pounds)}` : `£${formatted}`;
+  };
+
+  // Handler to show more items
+  const handleShowMore = () => {
+    setVisibleItems(prev => prev + 10);
   };
 
   const statCards = [
@@ -333,10 +344,13 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
     }
   });
 
-  // Sort by timestamp and limit to 30 most recent
+  // Sort by timestamp (keep all, we'll slice based on visibleItems)
   const sortedActivities = activities
-    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-    .slice(0, 30);
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  
+  // Get visible activities based on current state
+  const visibleActivities = sortedActivities.slice(0, visibleItems);
+  const hasMoreItems = sortedActivities.length > visibleItems;
 
   return (
     <>
@@ -399,38 +413,54 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
                     No recent activity to display
                   </div>
                 ) : (
-                  sortedActivities.map((activity) => {
-                    const Icon = activity.icon;
-                    return (
-                      <div key={activity.id} className="p-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-3 flex-1">
-                            <div className={`p-2 rounded-lg ${activity.bgColor}`}>
-                              <Icon className={`w-4 h-4 ${activity.color}`} />
+                  <>
+                    {visibleActivities.map((activity) => {
+                      const Icon = activity.icon;
+                      return (
+                        <div key={activity.id} className="p-4 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className={`p-2 rounded-lg ${activity.bgColor}`}>
+                                <Icon className={`w-4 h-4 ${activity.color}`} />
+                              </div>
+                              
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-medium text-gray-900">
+                                    {activity.title}
+                                  </span>
+                                  {activity.metadata && (
+                                    <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-100 text-gray-800">
+                                      {activity.metadata}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                              </div>
                             </div>
                             
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-medium text-gray-900">
-                                  {activity.title}
-                                </span>
-                                {activity.metadata && (
-                                  <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-100 text-gray-800">
-                                    {activity.metadata}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                            </div>
+                            <time className="text-xs text-gray-500 whitespace-nowrap">
+                              {getRelativeTime(activity.timestamp)}
+                            </time>
                           </div>
-                          
-                          <time className="text-xs text-gray-500 whitespace-nowrap">
-                            {getRelativeTime(activity.timestamp)}
-                          </time>
                         </div>
+                      );
+                    })}
+                    
+                    {/* Show More Button */}
+                    {hasMoreItems && (
+                      <div className="p-4 border-t border-gray-200 bg-gray-50">
+                        <Button
+                          onClick={handleShowMore}
+                          variant="outline"
+                          className="w-full flex items-center justify-center gap-2 hover:bg-white transition-colors"
+                        >
+                          <span>Show More</span>
+                          <ChevronDown className="w-4 h-4" />
+                        </Button>
                       </div>
-                    );
-                  })
+                    )}
+                  </>
                 )}
               </div>
             </div>
