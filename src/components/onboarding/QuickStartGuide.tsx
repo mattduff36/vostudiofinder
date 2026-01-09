@@ -13,7 +13,7 @@ export function QuickStartGuide({ allRequiredComplete }: QuickStartGuideProps) {
     {
       number: '01',
       title: 'Complete Required Fields',
-      description: 'Fill in all 10 required fields to unlock Profile Visibility toggle',
+      description: 'Fill in all 11 required fields to unlock Profile Visibility toggle',
       icon: CheckSquare,
       status: allRequiredComplete ? 'complete' : 'active',
       color: 'red',

@@ -30,7 +30,7 @@ const ROTATING_MESSAGES = [
   {
     icon: Zap,
     title: "Quick setup, big impact!",
-    subtitle: "Just 10 required fields to get your studio online"
+    subtitle: "Just 11 required fields to get your studio online"
   }
 ];
 
