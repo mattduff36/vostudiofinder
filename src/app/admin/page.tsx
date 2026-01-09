@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { requireRole } from '@/lib/auth-guards';
-import { Role } from '@prisma/client';
+import { Role, UserStatus } from '@prisma/client';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { db } from '@/lib/db';
 
@@ -34,8 +34,12 @@ export default async function AdminPage() {
     activeStudios,
     verifiedStudios,
     featuredStudios,
-    premiumStudios,
     activeUsers30d,
+    totalPayments,
+    pendingReservations,
+    expiredReservations,
+    waitlistCount,
+    openSupportTickets,
     recentUsers,
     recentStudios,
   ] = await Promise.all([
@@ -54,14 +58,32 @@ export default async function AdminPage() {
     // Featured studios
     db.studio_profiles.count({ where: { is_featured: true } }),
     
-    // Premium studios
-    db.studio_profiles.count({ where: { is_premium: true } }),
-    
     // Active users in last 30 days (based on updated_at)
     db.users.count({
       where: {
         updated_at: {
           gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+    }),
+    
+    // Total payments
+    db.payments.count(),
+    
+    // Pending reservations
+    db.users.count({ where: { status: UserStatus.PENDING } }),
+    
+    // Expired reservations
+    db.users.count({ where: { status: UserStatus.EXPIRED } }),
+    
+    // Waitlist count
+    db.waitlist.count(),
+    
+    // Open support tickets (OPEN or IN_PROGRESS)
+    db.support_tickets.count({
+      where: {
+        status: {
+          in: ['OPEN', 'IN_PROGRESS'],
         },
       },
     }),
@@ -100,13 +122,14 @@ export default async function AdminPage() {
 
   const stats = {
     totalUsers,
-    usersWithStudios: totalStudios, // Same as totalStudios (1:1 relationship)
-    totalStudios,
     activeStudios,
     verifiedStudios,
     featuredStudios,
-    premiumStudios,
     activeUsers30d,
+    totalPayments,
+    totalReservations: pendingReservations + expiredReservations,
+    waitlistCount,
+    openSupportTickets,
   };
 
   // Create unified activity feed

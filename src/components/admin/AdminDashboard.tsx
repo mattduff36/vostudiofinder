@@ -5,9 +5,10 @@ import {
   Building2, 
   CheckCircle,
   Sparkles,
-  Crown,
   Activity,
-  Clock
+  Clock,
+  CreditCard,
+  Headphones
 } from 'lucide-react';
 import { AdminTabs } from './AdminTabs';
 
@@ -28,13 +29,14 @@ interface ActivityItem {
 interface AdminDashboardProps {
   stats: {
     totalUsers: number;
-    usersWithStudios: number;
-    totalStudios: number;
     activeStudios: number;
     verifiedStudios: number;
     featuredStudios: number;
-    premiumStudios: number;
     activeUsers30d: number;
+    totalPayments: number;
+    totalReservations: number;
+    waitlistCount: number;
+    openSupportTickets: number;
   };
   recentActivity: ActivityItem[];
 }
@@ -44,21 +46,14 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
     {
       title: 'Total Users',
       value: stats.totalUsers.toLocaleString(),
-      subtitle: `${stats.usersWithStudios} have studios`,
+      subtitle: `${stats.activeStudios} Active Studios`,
       icon: Users,
       color: 'bg-blue-500',
     },
     {
-      title: 'Active Studios',
-      value: stats.activeStudios.toLocaleString(),
-      subtitle: `${stats.totalStudios} total`,
-      icon: Building2,
-      color: 'bg-green-500',
-    },
-    {
       title: 'Verified Studios',
       value: stats.verifiedStudios.toLocaleString(),
-      subtitle: `${Math.round((stats.verifiedStudios / stats.totalStudios) * 100)}% of total`,
+      subtitle: 'Verified accounts',
       icon: CheckCircle,
       color: 'bg-purple-500',
     },
@@ -70,11 +65,32 @@ export function AdminDashboard({ stats, recentActivity }: AdminDashboardProps) {
       color: 'bg-yellow-500',
     },
     {
-      title: 'Premium Studios',
-      value: stats.premiumStudios.toLocaleString(),
-      subtitle: 'Paid subscriptions',
-      icon: Crown,
-      color: 'bg-amber-500',
+      title: 'Payments',
+      value: stats.totalPayments.toLocaleString(),
+      subtitle: 'Total transactions',
+      icon: CreditCard,
+      color: 'bg-green-500',
+    },
+    {
+      title: 'Reservations',
+      value: stats.totalReservations.toLocaleString(),
+      subtitle: 'Pending & expired',
+      icon: Clock,
+      color: 'bg-orange-500',
+    },
+    {
+      title: 'Waiting List',
+      value: stats.waitlistCount.toLocaleString(),
+      subtitle: 'Awaiting access',
+      icon: Users,
+      color: 'bg-indigo-500',
+    },
+    {
+      title: 'Support',
+      value: stats.openSupportTickets.toLocaleString(),
+      subtitle: 'Open tickets',
+      icon: Headphones,
+      color: 'bg-red-500',
     },
     {
       title: 'Active Users (30d)',
