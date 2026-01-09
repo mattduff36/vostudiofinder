@@ -106,13 +106,16 @@ if (typeof globalThis.Request === 'undefined') {
           if (init) {
             if (init instanceof Headers) {
               // Copy from another Headers instance
-              init._map.forEach((value, key) => this._map.set(key, value))
+              // Use this.set() to ensure consistent key normalization
+              init._map.forEach((value, key) => this.set(key, value))
             } else if (typeof init === 'object' && !Array.isArray(init)) {
               // Plain object or Map
               if (init instanceof Map) {
-                init.forEach((value, key) => this._map.set(key.toLowerCase(), value))
+                // Use this.set() to ensure consistent key normalization
+                init.forEach((value, key) => this.set(key, value))
               } else {
-                Object.entries(init).forEach(([k, v]) => this._map.set(k.toLowerCase(), v))
+                // Use this.set() to ensure consistent key normalization
+                Object.entries(init).forEach(([k, v]) => this.set(k, v))
               }
             }
           }
