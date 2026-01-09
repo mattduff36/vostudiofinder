@@ -25,6 +25,14 @@ export function AnimatedCard({
   const baseClasses = 'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 shadow-2xl';
   const combinedClasses = `${baseClasses} ${className}`.trim();
 
+  const hoverAnimation = hover
+    ? {
+        y: -4,
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        transition: { duration: 0.3 }
+      }
+    : {};
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -34,15 +42,7 @@ export function AnimatedCard({
         delay,
         ease: 'easeOut'
       }}
-      whileHover={
-        hover
-          ? {
-              y: -4,
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              transition: { duration: 0.3 }
-            }
-          : undefined
-      }
+      {...(hover && { whileHover: hoverAnimation })}
       className={combinedClasses}
       {...motionProps}
     >

@@ -192,12 +192,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       user: {
         username: profile.user.username,
         display_name: profile.user.display_name,
-        avatar_url: profile.user.avatar_url,
+        avatar_url: profile.user.avatar_url || null,
         email: profile.user.email,
       },
       profile: profile.profile,
       studio: {
-        name: profile.studio?.name,
+        name: profile.studio?.name || null,
         studio_types: profile.studio_types,
         images: [], // Images are managed separately
       },

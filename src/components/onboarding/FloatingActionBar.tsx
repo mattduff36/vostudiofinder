@@ -34,11 +34,7 @@ const ROTATING_MESSAGES = [
   }
 ];
 
-export function FloatingActionBar({
-  completionPercentage,
-  requiredFieldsCompleted,
-  totalRequiredFields,
-}: FloatingActionBarProps) {
+export function FloatingActionBar({}: FloatingActionBarProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
   const { scrollY } = useScroll();
@@ -63,7 +59,12 @@ export function FloatingActionBar({
   }, []);
 
   const opacity = useTransform(scrollY, [300, 400], [0, 1]);
-  const currentMessage = ROTATING_MESSAGES[messageIndex];
+  const currentMessage = ROTATING_MESSAGES[messageIndex] || ROTATING_MESSAGES[0];
+  
+  if (!currentMessage) {
+    return null;
+  }
+  
   const MessageIcon = currentMessage.icon;
 
   return (

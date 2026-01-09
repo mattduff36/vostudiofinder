@@ -47,12 +47,12 @@ export function ImageGalleryManager({
     user: {
       username: profileData.user.username,
       display_name: profileData.user.display_name,
-      avatar_url: profileData.user.avatar_url,
+      avatar_url: profileData.user.avatar_url || null,
       email: profileData.user.email,
     },
     profile: profileData.profile,
     studio: {
-      name: profileData.studio?.name,
+      name: profileData.studio?.name || null,
       studio_types: profileData.studio_types,
       images: profileData.studio?.images || [],
     },

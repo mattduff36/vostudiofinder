@@ -275,7 +275,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       rate_tier_1: studioProfile.rate_tier_1,
     } : undefined,
     studio: {
-      name: studioProfile?.name || undefined,
+      name: studioProfile?.name || null,
       studio_types: studioProfile?.studio_studio_types?.map(st => st.studio_type) || [],
       images: studioProfile?.studio_images || [],
     },

@@ -8,39 +8,39 @@ interface ProfileCompletionData {
   user: {
     username: string;
     display_name: string;
-    avatar_url?: string | null;
+    avatar_url?: string | null | undefined;
     email: string;
   };
   profile?: {
-    short_about?: string | null;
-    about?: string | null;
-    phone?: string | null;
-    location?: string | null;
-    website_url?: string | null;
-    connection1?: string | null;
-    connection2?: string | null;
-    connection3?: string | null;
-    connection4?: string | null;
-    connection5?: string | null;
-    connection6?: string | null;
-    connection7?: string | null;
-    connection8?: string | null;
-    rate_tier_1?: number | string | null;
-    equipment_list?: string | null;
-    services_offered?: string | null;
-    facebook_url?: string | null;
-    twitter_url?: string | null;
-    linkedin_url?: string | null;
-    instagram_url?: string | null;
-    youtube_url?: string | null;
-    vimeo_url?: string | null;
-    soundcloud_url?: string | null;
-  };
+    short_about?: string | null | undefined;
+    about?: string | null | undefined;
+    phone?: string | null | undefined;
+    location?: string | null | undefined;
+    website_url?: string | null | undefined;
+    connection1?: string | null | undefined;
+    connection2?: string | null | undefined;
+    connection3?: string | null | undefined;
+    connection4?: string | null | undefined;
+    connection5?: string | null | undefined;
+    connection6?: string | null | undefined;
+    connection7?: string | null | undefined;
+    connection8?: string | null | undefined;
+    rate_tier_1?: number | string | null | undefined;
+    equipment_list?: string | null | undefined;
+    services_offered?: string | null | undefined;
+    facebook_url?: string | null | undefined;
+    twitter_url?: string | null | undefined;
+    linkedin_url?: string | null | undefined;
+    instagram_url?: string | null | undefined;
+    youtube_url?: string | null | undefined;
+    vimeo_url?: string | null | undefined;
+    soundcloud_url?: string | null | undefined;
+  } | undefined;
   studio?: {
-    name?: string | null;
-    studio_types?: string[];
-    images?: any[];
-  };
+    name?: string | null | undefined;
+    studio_types?: string[] | undefined;
+    images?: any[] | undefined;
+  } | undefined;
 }
 
 export interface CompletionStats {
