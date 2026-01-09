@@ -39,6 +39,107 @@ describe('POST /api/stripe/create-membership-checkout', () => {
     await disconnectDb();
   });
 
+  describe('Email Verification Check (Critical Security)', () => {
+    it('should reject checkout for unverified email', async () => {
+      const email = generateTestEmail(testEmailPrefix);
+      const user = await createTestUserInDb({
+        email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
+        status: UserStatus.PENDING,
+      });
+
+      // User is not email_verified (default from createTestUserInDb)
+
+      const request = new NextRequest('http://localhost:3000/api/stripe/create-membership-checkout', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: user.id,
+          email: email,
+          name: 'Test User',
+          username: 'testuser',
+        }),
+      });
+
+      process.env.NEXTAUTH_URL = 'http://localhost:3000';
+      process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.error).toContain('Email must be verified');
+      expect(data.verified).toBe(false);
+    });
+
+    it('should allow checkout for verified email', async () => {
+      const email = generateTestEmail(testEmailPrefix);
+      const user = await createTestUserInDb({
+        email,
+        password: 'TestPassword123!',
+        display_name: 'Test User',
+        status: UserStatus.PENDING,
+      });
+
+      // Mark user as verified
+      const { db } = await import('@/lib/db');
+      await db.users.update({
+        where: { id: user.id },
+        data: { email_verified: true },
+      });
+
+      const { stripe } = await import('@/lib/stripe');
+      const mockCreate = stripe.checkout.sessions.create as jest.Mock;
+      
+      mockCreate.mockResolvedValue({
+        id: 'cs_test_123',
+        client_secret: 'cs_test_secret_123',
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/stripe/create-membership-checkout', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: user.id,
+          email: email,
+          name: 'Test User',
+          username: 'testuser',
+        }),
+      });
+
+      process.env.NEXTAUTH_URL = 'http://localhost:3000';
+      process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
+
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockCreate).toHaveBeenCalled();
+    });
+
+    it('should return 404 for non-existent user', async () => {
+      const email = generateTestEmail(testEmailPrefix);
+      const fakeUserId = 'non_existent_user_id';
+
+      const request = new NextRequest('http://localhost:3000/api/stripe/create-membership-checkout', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: fakeUserId,
+          email: email,
+          name: 'Test User',
+          username: 'testuser',
+        }),
+      });
+
+      process.env.NEXTAUTH_URL = 'http://localhost:3000';
+      process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toContain('User not found');
+    });
+  });
+
   describe('Return URL Email Parameter (Critical Bug Fix)', () => {
     it('should include email parameter in return URL', async () => {
       const email = generateTestEmail(testEmailPrefix);
@@ -47,6 +148,13 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         password: 'TestPassword123!',
         display_name: 'Test User',
         status: UserStatus.PENDING,
+      });
+
+      // Mark user as verified
+      const { db } = await import('@/lib/db');
+      await db.users.update({
+        where: { id: user.id },
+        data: { email_verified: true },
       });
 
       const { stripe } = await import('@/lib/stripe');
@@ -99,6 +207,13 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         status: UserStatus.PENDING,
       });
 
+      // Mark user as verified
+      const { db } = await import('@/lib/db');
+      await db.users.update({
+        where: { id: user.id },
+        data: { email_verified: true },
+      });
+
       const { stripe } = await import('@/lib/stripe');
       const mockCreate = stripe.checkout.sessions.create as jest.Mock;
       
@@ -142,6 +257,13 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         password: 'TestPassword123!',
         display_name: 'Test User',
         status: UserStatus.PENDING,
+      });
+
+      // Mark user as verified
+      const { db } = await import('@/lib/db');
+      await db.users.update({
+        where: { id: user.id },
+        data: { email_verified: true },
       });
 
       const { stripe } = await import('@/lib/stripe');

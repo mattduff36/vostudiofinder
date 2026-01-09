@@ -1,227 +1,308 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { MembershipSuccess } from '@/components/auth/MembershipSuccess';
+import { db } from '@/lib/db';
+import { PaymentSuccessOnboarding } from '@/components/auth/PaymentSuccessOnboarding';
+import { calculateProfileCompletion } from '@/lib/profile-completion';
 
 export const metadata: Metadata = {
-  title: 'Membership Complete - VoiceoverStudioFinder',
-  description: 'Your studio membership is now active. Complete your account setup.',
+  title: 'Payment Successful - VoiceoverStudioFinder',
+  description: 'Your payment was successful. Complete your profile to get started.',
 };
 
 interface MembershipSuccessPageProps {
   searchParams: Promise<{ session_id?: string; email?: string; name?: string; username?: string }>;
 }
 
+// Field guidance data
+const REQUIRED_FIELDS = [
+  {
+    name: 'Username',
+    required: true,
+    where: 'Your profile URL (voiceoverstudiofinder.com/username)',
+    how: 'Displayed in search results and used as your unique identifier',
+    why: 'Makes your profile easily shareable and memorable',
+  },
+  {
+    name: 'Display Name',
+    required: true,
+    where: 'Profile header and throughout the site',
+    how: 'How we address you in communications and on your profile',
+    why: 'Personalizes your experience and builds recognition',
+  },
+  {
+    name: 'Studio Name',
+    required: true,
+    where: 'Profile header, search results, and listings',
+    how: 'Your studio\'s public name that appears in all listings',
+    why: 'Helps improve SEO and makes your studio easily identifiable',
+  },
+  {
+    name: 'Short About',
+    required: true,
+    where: 'Search result listings and profile preview',
+    how: 'Brief description shown when users browse studios',
+    why: 'Helps artists quickly understand what your studio offers',
+  },
+  {
+    name: 'About',
+    required: true,
+    where: 'Full profile page',
+    how: 'Detailed description of your studio, services, and expertise',
+    why: 'Builds trust and helps artists learn about your capabilities',
+  },
+  {
+    name: 'Studio Type(s)',
+    required: true,
+    where: 'Search filters and profile badges',
+    how: 'Categories like Home Studio, Recording Studio, Podcast Studio',
+    why: 'Helps artists find the right type of studio for their needs',
+  },
+  {
+    name: 'Location',
+    required: true,
+    where: 'Search filters and map view',
+    how: 'City/region for geographic search filtering',
+    why: 'Helps local artists find you and improves local SEO',
+  },
+  {
+    name: 'Connection Methods',
+    required: true,
+    where: 'Profile page and search filters',
+    how: 'How clients can connect (ISDN, Source Connect, Zoom, etc.)',
+    why: 'Essential for remote sessions - shows your technical capabilities',
+  },
+  {
+    name: 'Website URL',
+    required: true,
+    where: 'Profile page as clickable link',
+    how: 'Link to your studio website for more information',
+    why: 'Builds credibility and provides additional information',
+  },
+  {
+    name: 'Studio Images',
+    required: true,
+    where: 'Profile gallery and search results',
+    how: 'Photos displayed in your gallery showcasing your space',
+    why: 'Visual proof of your studio - significantly increases trust and inquiries',
+  },
+];
+
+const OPTIONAL_FIELDS = [
+  {
+    name: 'Avatar',
+    required: false,
+    where: 'Profile header and messages',
+    how: 'Your profile picture displayed throughout the site',
+    why: 'Adds personality and makes your profile more memorable',
+  },
+  {
+    name: 'Phone',
+    required: false,
+    where: 'Profile page (if you choose to show it)',
+    how: 'Contact phone number for direct inquiries',
+    why: 'Makes it easier for clients to reach you directly',
+  },
+  {
+    name: 'Social Media',
+    required: false,
+    where: 'Profile page as clickable icons',
+    how: 'Links to your social profiles (min 2 recommended)',
+    why: 'Builds trust and showcases your work and presence',
+  },
+  {
+    name: 'Rate Tiers',
+    required: false,
+    where: 'Profile page pricing section',
+    how: 'Your session rates for different service levels',
+    why: 'Helps clients understand pricing upfront and filters inquiries',
+  },
+  {
+    name: 'Equipment List',
+    required: false,
+    where: 'Profile page equipment section',
+    how: 'List of your studio equipment and technology',
+    why: 'Shows technical capabilities and attracts quality clients',
+  },
+  {
+    name: 'Services Offered',
+    required: false,
+    where: 'Profile page services section',
+    how: 'Additional services you provide beyond studio access',
+    why: 'Helps clients understand your full offering and expertise',
+  },
+];
+
 export default async function MembershipSuccessPage({ searchParams }: MembershipSuccessPageProps) {
-  const session = await getServerSession(authOptions);
-  const { db } = await import('@/lib/db');
   const params = await searchParams;
 
-  // If already authenticated, check user status
-  if (session) {
-    try {
-      const user = await db.users.findUnique({
-        where: { email: session.user?.email || '' },
-        select: { status: true, email: true },
-      });
-
-      // If user is PENDING, allow access to complete profile
-      if (user && user.status === 'PENDING') {
-        console.log(`✅ PENDING user accessing profile creation: ${user.email}`);
-        return <MembershipSuccess />;
-      }
-
-      // If user is ACTIVE, redirect to dashboard
-      // Special redirect for admin@mpdee.co.uk
-      if (session.user?.email === 'admin@mpdee.co.uk') {
-        redirect('/admin');
-      } else {
-        redirect('/dashboard');
-      }
-    } catch (error) {
-      console.error('Error checking user status:', error);
-      // On error, allow access (fail open for better UX)
-      return <MembershipSuccess />;
-    }
-  }
-
-  // If not authenticated but have email, try to recover session_id from database
-  if (!session && !params.session_id && params.email) {
-    console.log('⚠️  Missing session_id, attempting recovery for:', params.email);
-    
-    try {
-      // Find user by email
-      const user = await db.users.findUnique({
-        where: { email: params.email.toLowerCase() },
-        select: { 
-          id: true,
-          email: true,
-          status: true,
-        },
-      });
-
-      if (user && user.status === 'PENDING') {
-        // Find most recent successful payment for this user
-        const payment = await db.payments.findFirst({
-          where: { 
-            user_id: user.id,
-            status: 'SUCCEEDED',
-          },
-          orderBy: { created_at: 'desc' },
-          select: {
-            stripe_checkout_session_id: true,
-          },
-        });
-
-        if (payment && payment.stripe_checkout_session_id) {
-          console.log('✅ Recovered session_id from database');
-          // Redirect with recovered session_id
-          const redirectUrl = `/auth/membership/success?session_id=${payment.stripe_checkout_session_id}&email=${encodeURIComponent(params.email)}${params.name ? `&name=${encodeURIComponent(params.name)}` : ''}${params.username ? `&username=${encodeURIComponent(params.username)}` : ''}`;
-          redirect(redirectUrl);
-        }
-      }
-    } catch (error) {
-      console.error('Error recovering session_id:', error);
-      // Continue to normal flow - will redirect to signup
-    }
-  }
-
-  // If not authenticated, verify payment via session_id
-  if (!session && params.session_id) {
-    // Verify payment exists in database with SUCCEEDED status
-    // Note: redirect() throws a special error that should NOT be caught
-    // Moving all redirects outside try-catch to ensure they work properly
-    let payment;
-    try {
-      payment = await db.payments.findUnique({
-        where: { stripe_checkout_session_id: params.session_id },
-        select: {
-          id: true,
-          status: true,
-          user_id: true,
-          metadata: true,
-        },
-      });
-    } catch (error) {
-      console.error('Error fetching payment:', error);
-      redirect('/auth/signup?error=verification_failed');
-    }
-
-    if (!payment) {
-      console.log('⏳ Payment not found yet, waiting for webhook processing...');
-      console.log('💡 This usually means the Stripe webhook hasn\'t been received yet');
-      console.log('💡 Retrying payment lookup (webhook may still be processing)...');
-      
-      // Retry payment lookup up to 5 times with delays
-      // This handles the race condition where Stripe redirects before webhook processes
-      // Increased retries and delays to handle slower webhook processing
-      let retries = 5;
-      let retryDelay = 2000; // Start with 2 seconds (webhooks can take a few seconds)
-      
-      while (retries > 0) {
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-        
-        try {
-          payment = await db.payments.findUnique({
-            where: { stripe_checkout_session_id: params.session_id },
-            select: {
-              id: true,
-              status: true,
-              user_id: true,
-              metadata: true,
-            },
-          });
-          
-          if (payment) {
-            console.log('✅ Payment found after retry');
-            break; // Payment found, exit retry loop
-          }
-        } catch (error) {
-          console.error('Error during payment retry:', error);
-        }
-        
-        retries--;
-        retryDelay *= 1.5; // Exponential backoff: 2s, 3s, 4.5s, 6.75s, 10.125s
-        console.log(`⏳ Retrying payment lookup... (${retries} attempts remaining, next retry in ${Math.round(retryDelay / 1000)}s)`);
-      }
-      
-      if (!payment) {
-        console.error('❌ Payment not found after retries for session_id:', params.session_id);
-        console.error('💡 This usually means:');
-        console.error('   1. Stripe webhook hasn\'t been received yet (check Stripe CLI is running)');
-        console.error('   2. Payment is still processing');
-        console.error('   3. Webhook failed to create payment record');
-        redirect('/auth/signup?error=payment_not_found');
-      }
-    }
-
-    if (payment.status !== 'SUCCEEDED') {
-      console.error('❌ Payment not succeeded:', payment.status);
-      console.error('💡 Payment status:', payment.status);
-      redirect('/auth/signup?error=payment_not_completed');
-    }
-
-    // Verify user exists and is in valid state (PENDING or ACTIVE)
-    // ACTIVE means webhook already processed successfully (race condition - webhook was faster)
-    let user;
-    try {
-      user = await db.users.findUnique({
-        where: { id: payment.user_id },
-        select: { status: true, email: true },
-      });
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      redirect('/auth/signup?error=verification_failed');
-    }
-
-    if (!user) {
-      console.error('❌ User not found for payment:', payment.user_id);
-      redirect('/auth/signup?error=invalid_user_status');
-    }
-
-    // Accept both PENDING and ACTIVE status
-    // - PENDING: Payment succeeded, but webhook hasn't processed yet
-    // - ACTIVE: Webhook processed before page loaded (common due to fast webhooks)
-    if (user.status !== 'PENDING' && user.status !== 'ACTIVE') {
-      console.error('❌ Invalid user status:', user.status, '(expected PENDING or ACTIVE)');
-      redirect('/auth/signup?error=invalid_user_status');
-    }
-
-    console.log(`✅ User verified: ${user.email} (status: ${user.status})`);
-
-    // Security: Verify email parameter matches payment's user email (if provided)
-    // This prevents unauthorized access if someone gets the session_id
-    if (params.email && params.email.toLowerCase() !== user.email.toLowerCase()) {
-      console.error('❌ Email mismatch:', params.email, 'vs', user.email);
-      redirect('/auth/signup?error=email_mismatch');
-    }
-
-    // If email is provided and matches, allow access (user is verifying their own payment)
-    // Otherwise, redirect to sign-in to authenticate before accessing profile creation
-    if (params.email && params.email.toLowerCase() === user.email.toLowerCase()) {
-      console.log(`✅ Payment verified for unauthenticated user: ${user.email} (email verified)`);
-      return <MembershipSuccess />;
-    }
-
-    // No email provided - require authentication for security
-    // Build callback URL WITHOUT pre-encoding to avoid double-encoding
-    // We'll encode the entire callbackUrl once when putting it in the signin redirect
-    const callbackUrl = `/auth/membership/success?session_id=${params.session_id || ''}&email=${user.email}`;
-    
-    // Build signin redirect URL manually
-    // encodeURIComponent will encode the entire callbackUrl (including @ -> %40) once
-    // This avoids double-encoding that would occur if callbackUrl was already encoded
-    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
-    const encodedEmail = encodeURIComponent(user.email);
-    redirect(`/auth/signin?callbackUrl=${encodedCallbackUrl}&email=${encodedEmail}`);
-  }
-
-  // No session and no valid session_id - redirect to signup with more specific error
-  if (!session && !params.session_id) {
-    console.error('❌ No session and no session_id - access denied');
+  // Verify payment exists
+  if (!params.session_id) {
+    console.error('❌ No session_id provided');
     redirect('/auth/signup?error=session_expired');
   }
-  
-  redirect('/auth/signup?error=access_denied');
+
+  // Verify payment in database
+  const payment = await db.payments.findUnique({
+    where: { stripe_checkout_session_id: params.session_id },
+    select: {
+      id: true,
+      status: true,
+      user_id: true,
+    },
+  });
+
+  if (!payment || payment.status !== 'SUCCEEDED') {
+    console.error('❌ Payment not found or not succeeded');
+    redirect('/auth/signup?error=payment_not_found');
+  }
+
+  // Fetch user and studio profile data (same as dashboard)
+  const user = await db.users.findUnique({
+    where: { id: payment.user_id },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      display_name: true,
+      avatar_url: true,
+    },
+  });
+
+  if (!user) {
+    console.error('❌ User not found');
+    redirect('/auth/signup?error=user_not_found');
+  }
+
+  // Fetch studio profile if exists
+  const studioProfile = await db.studio_profiles.findUnique({
+    where: { user_id: user.id },
+    select: {
+      id: true,
+      name: true,
+      short_about: true,
+      about: true,
+      phone: true,
+      location: true,
+      website_url: true,
+      equipment_list: true,
+      services_offered: true,
+      facebook_url: true,
+      twitter_url: true,
+      linkedin_url: true,
+      instagram_url: true,
+      youtube_url: true,
+      vimeo_url: true,
+      soundcloud_url: true,
+      connection1: true,
+      connection2: true,
+      connection3: true,
+      connection4: true,
+      connection5: true,
+      connection6: true,
+      connection7: true,
+      connection8: true,
+      rate_tier_1: true,
+      studio_studio_types: {
+        select: {
+          studio_type: true,
+        },
+      },
+      studio_images: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  // Calculate profile completion
+  const completionData = {
+    username: user.username,
+    display_name: user.display_name,
+    email: user.email,
+    avatar_url: user.avatar_url ?? undefined,
+    studio_name: studioProfile?.name || '',
+    short_about: studioProfile?.short_about ?? undefined,
+    about: studioProfile?.about ?? undefined,
+    phone: studioProfile?.phone ?? undefined,
+    location: studioProfile?.location ?? undefined,
+    website_url: studioProfile?.website_url ?? undefined,
+    equipment_list: studioProfile?.equipment_list ?? undefined,
+    services_offered: studioProfile?.services_offered ?? undefined,
+    studio_types_count: studioProfile?.studio_studio_types.length || 0,
+    images_count: studioProfile?.studio_images.length || 0,
+    rate_tier_1: studioProfile?.rate_tier_1,
+    facebook_url: studioProfile?.facebook_url ?? undefined,
+    twitter_url: studioProfile?.twitter_url ?? undefined,
+    linkedin_url: studioProfile?.linkedin_url ?? undefined,
+    instagram_url: studioProfile?.instagram_url ?? undefined,
+    youtube_url: studioProfile?.youtube_url ?? undefined,
+    vimeo_url: studioProfile?.vimeo_url ?? undefined,
+    soundcloud_url: studioProfile?.soundcloud_url ?? undefined,
+    connection1: studioProfile?.connection1 ?? undefined,
+    connection2: studioProfile?.connection2 ?? undefined,
+    connection3: studioProfile?.connection3 ?? undefined,
+    connection4: studioProfile?.connection4 ?? undefined,
+    connection5: studioProfile?.connection5 ?? undefined,
+    connection6: studioProfile?.connection6 ?? undefined,
+    connection7: studioProfile?.connection7 ?? undefined,
+    connection8: studioProfile?.connection8 ?? undefined,
+  };
+
+  const completionPercentage = calculateProfileCompletion(completionData as Parameters<typeof calculateProfileCompletion>[0]);
+
+  // Check if at least one connection method is selected
+  const hasConnectionMethod = !!(
+    studioProfile?.connection1 === '1' || 
+    studioProfile?.connection2 === '1' || 
+    studioProfile?.connection3 === '1' || 
+    studioProfile?.connection4 === '1' || 
+    studioProfile?.connection5 === '1' || 
+    studioProfile?.connection6 === '1' || 
+    studioProfile?.connection7 === '1' || 
+    studioProfile?.connection8 === '1'
+  );
+
+  // Count social media links
+  const socialMediaCount = [
+    studioProfile?.facebook_url,
+    studioProfile?.twitter_url,
+    studioProfile?.linkedin_url,
+    studioProfile?.instagram_url,
+    studioProfile?.youtube_url,
+    studioProfile?.vimeo_url,
+    studioProfile?.soundcloud_url,
+  ].filter(url => url && url.trim() !== '').length;
+
+  // Map fields to completion status
+  const requiredFieldsWithStatus = [
+    { ...REQUIRED_FIELDS[0], completed: !!(user.username && !user.username.startsWith('temp_')) },
+    { ...REQUIRED_FIELDS[1], completed: !!(user.display_name && user.display_name.trim()) },
+    { ...REQUIRED_FIELDS[2], completed: !!(studioProfile?.name && studioProfile.name.trim()) },
+    { ...REQUIRED_FIELDS[3], completed: !!(studioProfile?.short_about && studioProfile.short_about.trim()) },
+    { ...REQUIRED_FIELDS[4], completed: !!(studioProfile?.about && studioProfile.about.trim()) },
+    { ...REQUIRED_FIELDS[5], completed: !!(studioProfile?.studio_studio_types && studioProfile.studio_studio_types.length >= 1) },
+    { ...REQUIRED_FIELDS[6], completed: !!(studioProfile?.location && studioProfile.location.trim()) },
+    { ...REQUIRED_FIELDS[7], completed: hasConnectionMethod },
+    { ...REQUIRED_FIELDS[8], completed: !!(studioProfile?.website_url && studioProfile.website_url.trim()) },
+    { ...REQUIRED_FIELDS[9], completed: !!(studioProfile?.studio_images && studioProfile.studio_images.length >= 1) },
+  ] as Array<{ name: string; required: boolean; completed: boolean; where: string; how: string; why: string }>;
+
+  const optionalFieldsWithStatus = [
+    { ...OPTIONAL_FIELDS[0], completed: !!(user.avatar_url && user.avatar_url.trim()) },
+    { ...OPTIONAL_FIELDS[1], completed: !!(studioProfile?.phone && studioProfile.phone.trim()) },
+    { ...OPTIONAL_FIELDS[2], completed: socialMediaCount >= 2 },
+    { ...OPTIONAL_FIELDS[3], completed: !!(studioProfile?.rate_tier_1 && (typeof studioProfile.rate_tier_1 === 'number' ? studioProfile.rate_tier_1 > 0 : parseFloat(studioProfile.rate_tier_1) > 0)) },
+    { ...OPTIONAL_FIELDS[4], completed: !!(studioProfile?.equipment_list && studioProfile.equipment_list.trim()) },
+    { ...OPTIONAL_FIELDS[5], completed: !!(studioProfile?.services_offered && studioProfile.services_offered.trim()) },
+  ] as Array<{ name: string; required: boolean; completed: boolean; where: string; how: string; why: string }>;
+
+  return (
+    <PaymentSuccessOnboarding
+      userName={user.display_name}
+      completionPercentage={completionPercentage}
+      requiredFields={requiredFieldsWithStatus}
+      optionalFields={optionalFieldsWithStatus}
+    />
+  );
 }

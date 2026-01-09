@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from './auth';
+import { db } from './db';
 import { Role } from '@prisma/client';
 
 /**
@@ -111,6 +112,50 @@ export async function requireApiResourceOwnership(resourceOwnerId: string) {
   }
   
   return session;
+}
+
+/**
+ * Server-side email verification guard
+ * Ensures user has verified their email before accessing protected routes
+ */
+export async function requireEmailVerification(userId?: string, email?: string) {
+  // If userId provided, look up user by ID
+  // If email provided, look up user by email
+  // This allows flexibility for different contexts
+  
+  if (!userId && !email) {
+    console.error('❌ requireEmailVerification called without userId or email');
+    redirect('/auth/signup');
+  }
+
+  try {
+    const user = await db.users.findUnique({
+      where: userId ? { id: userId } : { email: email!.toLowerCase() },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        display_name: true,
+        email_verified: true,
+      },
+    });
+
+    if (!user) {
+      console.error('❌ User not found for verification check');
+      redirect('/auth/signup');
+    }
+
+    if (!user.email_verified) {
+      console.warn(`⚠️ User ${user.email} attempted to access protected route without verification`);
+      redirect(`/auth/verify-email?email=${encodeURIComponent(user.email)}&flow=signup`);
+    }
+
+    console.log(`✅ Email verification confirmed for user: ${user.email}`);
+    return user;
+  } catch (error) {
+    console.error('❌ Error checking email verification:', error);
+    redirect('/auth/signup');
+  }
 }
 
 /**

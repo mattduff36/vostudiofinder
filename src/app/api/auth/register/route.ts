@@ -3,6 +3,7 @@ import { registerSchema } from '@/lib/validations/auth';
 import { hashPassword } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
+import { sendVerificationEmail } from '@/lib/email/email-service';
 import { UserStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { ZodError } from 'zod';
@@ -171,6 +172,10 @@ export async function POST(request: NextRequest) {
     // Replace hyphens with underscores to comply with username validation regex
     const tempUsername = `temp_${userId.substring(0, 8).replace(/-/g, '_')}`;
     
+    // Generate verification token
+    const verificationToken = randomBytes(32).toString('hex');
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    
     const user = await db.users.create({
       data: {
         id: userId,
@@ -181,15 +186,37 @@ export async function POST(request: NextRequest) {
         status: UserStatus.PENDING,
         reservation_expires_at: reservationExpires,
         email_verified: false,
+        verification_token: verificationToken,
+        verification_token_expiry: verificationTokenExpiry,
         updated_at: new Date(),
       },
     });
     
     console.log(`✅ Created PENDING user: ${user.email} (ID: ${user.id}), reservation expires: ${reservationExpires.toISOString()}`);
     
+    // Send verification email immediately
+    const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${verificationToken}`;
+    
+    try {
+      const emailSent = await sendVerificationEmail(
+        user.email,
+        user.display_name,
+        verificationUrl
+      );
+      
+      if (emailSent) {
+        console.log('✅ Verification email sent successfully to:', user.email);
+      } else {
+        console.warn('⚠️ Failed to send verification email to:', user.email);
+      }
+    } catch (emailError) {
+      console.error('❌ Error sending verification email:', emailError);
+      // Don't fail the request, email sending is non-critical for account creation
+    }
+    
     return NextResponse.json(
       {
-        message: 'Account created. Please select your username.',
+        message: 'Account created. Please verify your email to continue.',
         user: {
           id: user.id,
           email: user.email,
@@ -197,7 +224,9 @@ export async function POST(request: NextRequest) {
           display_name: user.display_name,
           status: user.status,
           reservation_expires_at: user.reservation_expires_at,
+          email_verified: false,
         },
+        verificationEmailSent: true,
       },
       { status: 201 }
     );

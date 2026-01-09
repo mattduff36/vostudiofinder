@@ -201,11 +201,11 @@ export function SignupForm() {
         reservation_expires_at: registerResult.user.reservation_expires_at,
       });
 
-      // Check if display name has spaces
+      // Check if display name has spaces - determines if username selection is needed
       const hasSpaces = /\s/.test(display_name);
       
       if (hasSpaces) {
-        // Redirect to username selection page
+        // Redirect to username selection page (will redirect to verify-email after)
         router.push(`/auth/username-selection?display_name=${encodeURIComponent(display_name)}`);
       } else {
         // No spaces - check if username is available
@@ -240,14 +240,8 @@ export function SignupForm() {
             return;
           }
 
-          // Username reserved - proceed directly to membership
-          const params = new URLSearchParams();
-          params.set('userId', userId);
-          params.set('email', data.email);
-          params.set('name', display_name);
-          params.set('username', display_name);
-          
-          router.push(`/auth/membership?${params.toString()}`);
+          // Username reserved - proceed to email verification
+          router.push(`/auth/verify-email?email=${encodeURIComponent(data.email)}&flow=signup`);
         } else {
           // Username taken - go to username selection
           router.push(`/auth/username-selection?display_name=${encodeURIComponent(display_name)}`);

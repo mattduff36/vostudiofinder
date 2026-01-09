@@ -107,6 +107,15 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   // Find user by ID (they should already exist as PENDING)
   const user = await db.users.findUnique({
     where: { id: user_id },
+    select: {
+      id: true,
+      email: true,
+      email_verified: true,
+      status: true,
+      display_name: true,
+      payment_attempted_at: true,
+      payment_retry_count: true,
+    },
   });
 
   if (!user) {
@@ -114,6 +123,43 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   }
 
   logger.log(`✅ Found ${user.status} user: ${user.email}`);
+
+  // DEFENSIVE CHECK: Verify email is verified before granting membership
+  // This should never happen if payment guards are working, but protect against edge cases
+  if (!user.email_verified) {
+    logger.log(`⚠️ WARNING: Payment succeeded for unverified email: ${user.email}`);
+    logger.log(`⚠️ This indicates a bypass of payment guards - investigate immediately`);
+    logger.log(`⚠️ Payment will be recorded but membership will NOT be granted`);
+    
+    // Record payment but don't grant membership
+    const payment = await db.payments.create({
+      data: {
+        id: randomBytes(12).toString('base64url'),
+        user_id: user.id,
+        stripe_checkout_session_id: session.id,
+        stripe_payment_intent_id: paymentIntent.id,
+        stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
+        amount: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        status: 'SUCCEEDED',
+        refunded_amount: 0,
+        metadata: {
+          ...session.metadata,
+          verification_bypass_detected: true,
+          warning: 'Payment succeeded for unverified email',
+        },
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+    });
+    
+    logger.log(`✅ Payment recorded (no membership granted): ${payment.id}`);
+    
+    // TODO: Send alert email to admin about verification bypass
+    // TODO: Send email to user instructing them to verify email before accessing membership
+    
+    return; // Exit without granting membership
+  }
 
   // Record payment (idempotent on checkout_session_id)
   const existingPayment = await db.payments.findUnique({

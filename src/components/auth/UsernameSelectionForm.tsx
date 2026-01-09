@@ -233,14 +233,8 @@ export function UsernameSelectionForm() {
         username: selectedUsername,
       });
 
-      // Navigate to membership payment with user_id
-      const params = new URLSearchParams();
-      params.set('userId', userId);
-      params.set('email', signupData.email);
-      params.set('name', signupData.display_name);
-      params.set('username', selectedUsername);
-
-      router.push(`/auth/membership?${params.toString()}`);
+      // Navigate to email verification before payment
+      router.push(`/auth/verify-email?email=${encodeURIComponent(signupData.email)}&flow=signup`);
     } catch (err) {
       console.error('Username reservation error:', err);
       setError('Failed to reserve username. Please try again.');

@@ -338,3 +338,11 @@ if (typeof window !== 'undefined') {
 // Note: In jsdom, window.location is a special object that cannot be fully mocked
 // Individual methods need to be spied on in tests using jest.spyOn(window.location, 'assign')
 // The default jsdom location object will be used, which is sufficient for most tests
+
+// Mock email service to prevent actual emails in tests
+jest.mock('@/lib/email/email-service', () => ({
+  sendEmail: jest.fn().mockResolvedValue(true),
+  sendVerificationEmail: jest.fn().mockResolvedValue(true),
+  sendPasswordResetEmail: jest.fn().mockResolvedValue(true),
+  sendResendVerificationEmail: jest.fn().mockResolvedValue(true),
+}))

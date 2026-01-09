@@ -8,30 +8,20 @@ import Image from 'next/image';
 interface VerifyEmailContentProps {
   flow: 'account' | 'profile';
   email?: string;
+  error?: string;
 }
 
-export default function VerifyEmailContent({ flow, email: emailProp }: VerifyEmailContentProps) {
+export default function VerifyEmailContent({ flow, email: emailProp, error }: VerifyEmailContentProps) {
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
   const handleResendEmail = async () => {
-    // Prefer email from query param, fallback to sessionStorage
-    let email = emailProp;
-    
-    if (!email) {
-      const signupDataStr = sessionStorage.getItem('signupData');
-      if (signupDataStr) {
-        try {
-          const signupData = JSON.parse(signupDataStr);
-          email = signupData.email;
-        } catch (e) {
-          console.error('Failed to parse signup data:', e);
-        }
-      }
-    }
+    // Use email from props (passed via URL param)
+    const email = emailProp;
 
     if (!email) {
-      setResendMessage({ type: 'error', text: 'Unable to determine email address. Please sign in and request a new verification email.' });
+      setResendMessage({ type: 'error', text: 'Unable to determine email address. Please return to signup and try again.' });
       return;
     }
 
@@ -58,6 +48,54 @@ export default function VerifyEmailContent({ flow, email: emailProp }: VerifyEma
       setIsResending(false);
     }
   };
+
+  const handleCheckStatus = async () => {
+    const email = emailProp;
+    
+    if (!email) {
+      setResendMessage({ type: 'error', text: 'Unable to check verification status. Please refresh the page.' });
+      return;
+    }
+
+    setIsCheckingStatus(true);
+    setResendMessage(null);
+
+    try {
+      // Check verification status by attempting to fetch user data
+      const response = await fetch('/api/auth/check-verification-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.verified) {
+        // User is verified, redirect to payment
+        setResendMessage({ type: 'success', text: 'Email verified! Redirecting to payment...' });
+        
+        // Build payment URL
+        const paymentParams = new URLSearchParams();
+        paymentParams.set('userId', result.userId);
+        paymentParams.set('email', email);
+        paymentParams.set('name', result.displayName);
+        if (result.username) {
+          paymentParams.set('username', result.username);
+        }
+        
+        setTimeout(() => {
+          window.location.href = `/auth/membership?${paymentParams.toString()}`;
+        }, 1000);
+      } else {
+        setResendMessage({ type: 'error', text: 'Email not yet verified. Please check your inbox and click the verification link.' });
+      }
+    } catch (error) {
+      setResendMessage({ type: 'error', text: 'Failed to check verification status. Please try again.' });
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col justify-start sm:justify-center py-8 sm:py-12 sm:px-6 lg:px-8">
       {/* Background Image */}
@@ -131,19 +169,38 @@ export default function VerifyEmailContent({ flow, email: emailProp }: VerifyEma
               )}
             </div>
 
-            <div className="bg-green-50 border border-green-200 rounded-md p-4">
-              <div className="flex items-start">
-                <svg className="w-5 h-5 text-green-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <div className="text-sm text-green-800 text-left">
-                  <p className="font-medium">Verification email sent successfully!</p>
-                  <p className="mt-1">
-                    If you don't see the email in your inbox within a few minutes, please check your spam or junk folder.
-                  </p>
+            {error ? (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-red-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <div className="text-sm text-red-800 text-left">
+                    <p className="font-medium">Verification Error</p>
+                    <p className="mt-1">
+                      {error === 'invalid_token' && 'Invalid verification link. Please request a new verification email.'}
+                      {error === 'token_expired' && 'Verification link has expired. Please request a new verification email.'}
+                      {error === 'verification_failed' && 'Verification failed. Please try again or contact support.'}
+                      {!['invalid_token', 'token_expired', 'verification_failed'].includes(error) && 'An error occurred during verification.'}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-green-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <div className="text-sm text-green-800 text-left">
+                    <p className="font-medium">Verification email sent successfully!</p>
+                    <p className="mt-1">
+                      If you don't see the email in your inbox within a few minutes, please check your spam or junk folder.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
               <div className="text-sm text-red-900 text-left space-y-2">
@@ -179,6 +236,14 @@ export default function VerifyEmailContent({ flow, email: emailProp }: VerifyEma
 
             <div className="space-y-4">
               <Button
+                onClick={handleCheckStatus}
+                className="w-full bg-red-600 hover:bg-red-700"
+                disabled={isCheckingStatus}
+              >
+                {isCheckingStatus ? 'Checking...' : 'I\'ve Verified My Email - Continue to Payment'}
+              </Button>
+
+              <Button
                 onClick={handleResendEmail}
                 variant="outline"
                 className="w-full"
@@ -189,7 +254,8 @@ export default function VerifyEmailContent({ flow, email: emailProp }: VerifyEma
               
               <Button
                 onClick={() => window.location.href = '/auth/signin'}
-                className="w-full bg-red-600 hover:bg-red-700"
+                variant="outline"
+                className="w-full"
               >
                 Go to Sign In
               </Button>

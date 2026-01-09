@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
+    const redirect = searchParams.get('redirect'); // Optional redirect after verification
 
     if (!token) {
       console.warn('⚠️ No verification token provided');
@@ -21,6 +22,14 @@ export async function GET(request: NextRequest) {
       where: {
         verification_token: token,
       },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        display_name: true,
+        email_verified: true,
+        verification_token_expiry: true,
+      },
     });
 
     if (!user) {
@@ -34,15 +43,30 @@ export async function GET(request: NextRequest) {
     if (user.verification_token_expiry && user.verification_token_expiry < new Date()) {
       console.warn('⚠️ Verification token expired for user:', user.email);
       return NextResponse.redirect(
-        new URL('/auth/verify-email?error=token_expired', request.url)
+        new URL(`/auth/verify-email?error=token_expired&email=${encodeURIComponent(user.email)}`, request.url)
       );
     }
 
     // Check if already verified
     if (user.email_verified) {
       console.log('ℹ️ Email already verified for user:', user.email);
+      
+      // If redirect param provided, use it; otherwise go to payment
+      if (redirect) {
+        return NextResponse.redirect(new URL(redirect, request.url));
+      }
+      
+      // Build payment URL with user data
+      const paymentParams = new URLSearchParams();
+      paymentParams.set('userId', user.id);
+      paymentParams.set('email', user.email);
+      paymentParams.set('name', user.display_name);
+      if (user.username && !user.username.startsWith('temp_')) {
+        paymentParams.set('username', user.username);
+      }
+      
       return NextResponse.redirect(
-        new URL('/auth/signin?verified=true&already=true', request.url)
+        new URL(`/auth/membership?${paymentParams.toString()}&already_verified=true`, request.url)
       );
     }
 
@@ -72,9 +96,28 @@ export async function GET(request: NextRequest) {
       console.log('✅ Studio profile set to visible for user:', user.email);
     }
 
-    // Redirect to signin with success message
+    // Determine redirect URL
+    let redirectUrl: string;
+    
+    if (redirect) {
+      // Use custom redirect if provided
+      redirectUrl = redirect;
+    } else {
+      // Default: redirect to payment page with user data
+      const paymentParams = new URLSearchParams();
+      paymentParams.set('userId', user.id);
+      paymentParams.set('email', user.email);
+      paymentParams.set('name', user.display_name);
+      if (user.username && !user.username.startsWith('temp_')) {
+        paymentParams.set('username', user.username);
+      }
+      paymentParams.set('verified', 'true');
+      
+      redirectUrl = `/auth/membership?${paymentParams.toString()}`;
+    }
+
     return NextResponse.redirect(
-      new URL('/auth/signin?verified=true', request.url)
+      new URL(redirectUrl, request.url)
     );
   } catch (error) {
     console.error('❌ Email verification error:', error);

@@ -1,4 +1,6 @@
 import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { db } from '@/lib/db';
 import VerifyEmailContent from './VerifyEmailContent';
 
 export const metadata: Metadata = {
@@ -7,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 interface VerifyEmailPageProps {
-  searchParams: Promise<{ new?: string; flow?: string; email?: string }>;
+  searchParams: Promise<{ new?: string; flow?: string; email?: string; error?: string }>;
 }
 
 export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageProps) {
@@ -17,6 +19,41 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
   // Support both 'new=true' (legacy) and 'flow=profile' for backward compatibility
   const flow = params?.flow || (params?.new === 'true' ? 'profile' : 'account');
   const email = params?.email;
+  const error = params?.error;
 
-  return <VerifyEmailContent flow={flow as 'account' | 'profile'} {...(email ? { email } : {})} />;
+  // If email is provided, check if user is already verified
+  if (email && !error) {
+    try {
+      const user = await db.users.findUnique({
+        where: { email: email.toLowerCase() },
+        select: { 
+          id: true, 
+          email_verified: true,
+          username: true,
+          display_name: true,
+        },
+      });
+
+      // If user is verified, redirect to payment page
+      if (user && user.email_verified) {
+        console.log(`✅ User ${email} already verified, redirecting to payment`);
+        
+        // Build payment URL with user data
+        const paymentParams = new URLSearchParams();
+        paymentParams.set('userId', user.id);
+        paymentParams.set('email', email);
+        paymentParams.set('name', user.display_name);
+        if (user.username && !user.username.startsWith('temp_')) {
+          paymentParams.set('username', user.username);
+        }
+        
+        redirect(`/auth/membership?${paymentParams.toString()}`);
+      }
+    } catch (dbError) {
+      console.error('Error checking verification status:', dbError);
+      // Continue to render verification page on error
+    }
+  }
+
+  return <VerifyEmailContent flow={flow as 'account' | 'profile'} {...(email ? { email } : {})} {...(error ? { error } : {})} />;
 }

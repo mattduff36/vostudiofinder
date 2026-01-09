@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
@@ -24,6 +25,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // CRITICAL: Verify email before creating checkout session
+    console.log(`🔐 Verifying email for user: ${userId} (${email})`);
+    
+    const user = await db.users.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        email_verified: true,
+      },
+    });
+
+    if (!user) {
+      console.error(`❌ User not found: ${userId}`);
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    if (!user.email_verified) {
+      console.error(`❌ Email not verified for user: ${userId} (${email})`);
+      return NextResponse.json(
+        { error: 'Email must be verified before payment', verified: false },
+        { status: 403 }
+      );
+    }
+
+    console.log(`✅ Email verified for user: ${userId} (${email})`);
     console.log(`💳 Creating Stripe checkout for user: ${userId} (${email})`);
 
     // Use real Stripe with one-time payment

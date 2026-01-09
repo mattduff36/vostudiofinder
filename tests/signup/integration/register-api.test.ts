@@ -119,6 +119,110 @@ describe('POST /api/auth/register', () => {
 
       expect(data.user.username).toMatch(/^temp_/);
     });
+
+    it('should generate verification token and expiry', async () => {
+      const email = generateTestEmail(testEmailPrefix);
+      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password: 'Test1234!@#$',
+          display_name: 'Test User',
+        }),
+      });
+
+      const response = await POST(request);
+      expect(response.status).toBe(201);
+
+      // Check user in database has verification token
+      const user = await getUserByEmail(email);
+      expect(user?.verification_token).toBeTruthy();
+      expect(user?.verification_token_expiry).toBeTruthy();
+      
+      // Token should be 64 characters hex string (32 bytes)
+      expect(user?.verification_token).toMatch(/^[a-f0-9]{64}$/);
+      
+      // Expiry should be ~24 hours from now
+      if (user?.verification_token_expiry) {
+        const expiryTime = user.verification_token_expiry.getTime();
+        const now = Date.now();
+        const expectedExpiry = now + 24 * 60 * 60 * 1000;
+        
+        // Allow 2 seconds variance
+        expect(expiryTime).toBeGreaterThan(expectedExpiry - 2000);
+        expect(expiryTime).toBeLessThan(expectedExpiry + 2000);
+      }
+    });
+
+    it('should send verification email on registration', async () => {
+      const email = generateTestEmail(testEmailPrefix);
+      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password: 'Test1234!@#$',
+          display_name: 'Test User',
+        }),
+      });
+
+      // Get mock function
+      const mockSendVerificationEmail = jest.requireMock('@/lib/email/email-service').sendVerificationEmail;
+      mockSendVerificationEmail.mockClear();
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.verificationEmailSent).toBe(true);
+
+      // Verify email service was called
+      expect(mockSendVerificationEmail).toHaveBeenCalledTimes(1);
+      expect(mockSendVerificationEmail).toHaveBeenCalledWith(
+        email.toLowerCase(),
+        'Test User',
+        expect.stringContaining('/api/auth/verify-email?token=')
+      );
+    });
+
+    it('should set email_verified to false on registration', async () => {
+      const email = generateTestEmail(testEmailPrefix);
+      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password: 'Test1234!@#$',
+          display_name: 'Test User',
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.user.email_verified).toBe(false);
+
+      // Verify in database
+      const user = await getUserByEmail(email);
+      expect(user?.email_verified).toBe(false);
+    });
+
+    it('should update message to mention email verification', async () => {
+      const email = generateTestEmail(testEmailPrefix);
+      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password: 'Test1234!@#$',
+          display_name: 'Test User',
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.message).toContain('verify your email');
+    });
   });
 
   describe('Validation', () => {
