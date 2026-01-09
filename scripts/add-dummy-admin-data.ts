@@ -1,5 +1,9 @@
+import * as dotenv from 'dotenv';
 import { PrismaClient, SupportTicketType, SupportTicketStatus, SupportPriority, PaymentStatus, UserStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
+
+// Load environment variables
+dotenv.config({ path: '.env.local' });
 
 const prisma = new PrismaClient();
 
