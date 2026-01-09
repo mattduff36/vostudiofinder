@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { stripe } from '@/lib/stripe';
 import { randomBytes } from 'crypto';
+import { generateRefundProcessedEmail } from '@/lib/email/templates/refund-processed';
+import { sendEmail } from '@/lib/email/email-service';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -24,7 +26,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const { id: paymentId } = await params;
     const body = await request.json();
-    const { amount, reason } = body;
+    const { amount, reason, comment } = body;
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -42,6 +44,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             id: true,
             email: true,
             username: true,
+            display_name: true,
           },
         },
       },
@@ -103,6 +106,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         amount,
         currency: payment.currency,
         reason: reason || null,
+        comment: comment || null,
         status: refund.status === 'succeeded' ? 'SUCCEEDED' : 'PENDING',
         processed_by: session.user.id,
         user_id: payment.user_id === 'PENDING' ? null : payment.user_id,
@@ -154,6 +158,41 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       `✅ Refund issued by ${session.user.email}: ${amount / 100} ${payment.currency.toUpperCase()} ` +
       `for payment ${paymentId} (${isFullRefund ? 'FULL' : 'PARTIAL'} refund)`
     );
+
+    // Send refund notification email to user
+    if (payment.user_id !== 'PENDING' && payment.users.email) {
+      try {
+        const refundAmountFormatted = (amount / 100).toFixed(2);
+        const paymentAmountFormatted = (payment.amount / 100).toFixed(2);
+        const refundDate = new Date().toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        });
+
+        const { html, text } = generateRefundProcessedEmail({
+          displayName: payment.users.display_name || payment.users.username,
+          refundAmount: refundAmountFormatted,
+          currency: payment.currency,
+          paymentAmount: paymentAmountFormatted,
+          isFullRefund,
+          comment: comment || null,
+          refundDate,
+        });
+
+        await sendEmail({
+          to: payment.users.email,
+          subject: 'Refund processed - Voiceover Studio Finder',
+          html,
+          text,
+        });
+
+        console.log(`✅ Refund notification email sent to ${payment.users.email}`);
+      } catch (emailError) {
+        // Don't fail the refund if email fails
+        console.error('Failed to send refund notification email:', emailError);
+      }
+    }
 
     return NextResponse.json({
       success: true,

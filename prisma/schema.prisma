@@ -122,6 +122,7 @@ model refunds {
   amount                   Int
   currency                 String
   reason                   String?
+  comment                  String?      // Admin comment/note for the refund
   status                   RefundStatus
   processed_by             String
   user_id                  String?      // User being refunded (optional for backward compat)

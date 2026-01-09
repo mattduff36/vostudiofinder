@@ -424,10 +424,19 @@ export function EnhancedSearchBar({
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen || suggestions.length === 0) {
-      if (e.key === 'Enter') {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (isOpen && suggestions.length > 0 && selectedIndex >= 0 && suggestions[selectedIndex]) {
+        // If dropdown is open and a suggestion is selected, select it and search
+        handleSelect(suggestions[selectedIndex], true);
+      } else {
+        // Otherwise, perform search with current query
         handleSearch();
       }
+      return;
+    }
+
+    if (!isOpen || suggestions.length === 0) {
       return;
     }
 
@@ -440,15 +449,8 @@ export function EnhancedSearchBar({
         e.preventDefault();
         setSelectedIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
         break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && suggestions[selectedIndex]) {
-          handleSelect(suggestions[selectedIndex]);
-        } else {
-          handleSearch();
-        }
-        break;
       case 'Escape':
+        e.preventDefault();
         setIsOpen(false);
         setSelectedIndex(-1);
         inputRef.current?.blur();
@@ -457,7 +459,7 @@ export function EnhancedSearchBar({
   };
 
   // Handle suggestion selection
-  const handleSelect = (suggestion: SearchSuggestion) => {
+  const handleSelect = (suggestion: SearchSuggestion, shouldSearch: boolean = false) => {
     if (suggestion.type === 'location') {
       // For locations, use the full address (now stored in suggestion.text)
       const fullAddress = suggestion.metadata?.full_address || suggestion.text;
@@ -466,7 +468,6 @@ export function EnhancedSearchBar({
         ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
       });
       setQuery(fullAddress); // Put full address in input box
-      // Don't perform search immediately - wait for Enter key or search button click
     } else if (suggestion.type === 'user') {
       // For users, use their actual location address from metadata, not the formatted text
       const actualLocation = suggestion.metadata?.full_location || suggestion.text;
@@ -475,26 +476,38 @@ export function EnhancedSearchBar({
         ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
       });
       setQuery(suggestion.text); // Keep the formatted username in the search box for display
-      // Don't perform search immediately - wait for Enter key or search button click
     }
     
     setIsOpen(false);
     setSelectedIndex(-1);
+    
+    // If shouldSearch is true, perform the search immediately
+    if (shouldSearch) {
+      // Use setTimeout to ensure state updates are applied before searching
+      setTimeout(() => {
+        handleSearch();
+      }, 0);
+    }
   };
 
   // Handle search submission
   const handleSearch = async () => {
+    // Close dropdown if open
+    setIsOpen(false);
+    setSelectedIndex(-1);
+    
     // Request location permission when user actually searches (for distance sorting)
     // This is less intrusive than asking on page load
     await requestUserLocation();
     
-    if (query.trim()) {
+    const searchQuery = query.trim();
+    if (searchQuery) {
       if (selectedLocation) {
         // Use the selected location (which is the actual address for users)
         performLocationSearch(selectedLocation.name, selectedLocation.coordinates);
       } else {
         // Try to geocode the query
-        performLocationSearch(query);
+        performLocationSearch(searchQuery);
       }
     }
   };
@@ -629,6 +642,7 @@ export function EnhancedSearchBar({
           
           {/* Search Button */}
           <button
+            type="button"
             className="h-10 px-3 sm:px-4 font-semibold rounded-lg transition-all duration-300 hover:shadow-lg flex-shrink-0 whitespace-nowrap"
             style={{ 
               backgroundColor: colors.primary, 
@@ -638,7 +652,10 @@ export function EnhancedSearchBar({
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryHover}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
-            onClick={handleSearch}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSearch();
+            }}
           >
             Search
           </button>
@@ -672,7 +689,13 @@ export function EnhancedSearchBar({
                   ? 'bg-blue-50 text-blue-900'
                   : 'hover:bg-gray-50 text-gray-900'
               }`}
-              onClick={() => handleSelect(suggestion)}
+              onClick={() => {
+                handleSelect(suggestion);
+                // After selecting, trigger search automatically
+                setTimeout(() => {
+                  handleSearch();
+                }, 0);
+              }}
             >
               {getSuggestionIcon(suggestion.type)}
               <div className="flex-1">

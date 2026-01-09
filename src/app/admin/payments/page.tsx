@@ -53,6 +53,7 @@ export default function AdminPaymentsPage() {
   const [refundModalPaymentId, setRefundModalPaymentId] = useState<string | null>(null);
   const [refundAmount, setRefundAmount] = useState('');
   const [refundReason, setRefundReason] = useState<'duplicate' | 'fraudulent' | 'requested_by_customer' | '' | null>(null);
+  const [refundComment, setRefundComment] = useState('');
   const [refunding, setRefunding] = useState(false);
   const [refundError, setRefundError] = useState('');
   const [refundSuccess, setRefundSuccess] = useState<string | null>(null);
@@ -197,6 +198,7 @@ export default function AdminPaymentsPage() {
         body: JSON.stringify({
           amount: amountInCents,
           reason: refundReason || null,
+          comment: refundComment.trim() || null,
         }),
       });
 
@@ -209,6 +211,7 @@ export default function AdminPaymentsPage() {
       setRefundModalPaymentId(null);
       setRefundAmount('');
       setRefundReason(null);
+      setRefundComment('');
 
       // Refresh payments
       await fetchPayments();
@@ -465,12 +468,13 @@ export default function AdminPaymentsPage() {
                                           <p className="text-xs text-gray-600 mb-2">
                                             Available to refund: <span className="font-semibold">{formatAmount(maxRefundable, payment.currency)}</span>
                                           </p>
-                                          <Button
+                                            <Button
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               // Clear form state when opening modal for a new payment
                                               setRefundAmount('');
                                               setRefundReason(null);
+                                              setRefundComment('');
                                               setRefundError('');
                                               setRefundModalPaymentId(payment.id);
                                             }}
@@ -515,6 +519,19 @@ export default function AdminPaymentsPage() {
                                             </select>
                                           </div>
 
+                                          <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                              Comment (Optional)
+                                            </label>
+                                            <textarea
+                                              value={refundComment}
+                                              onChange={(e) => setRefundComment(e.target.value)}
+                                              placeholder="Add a note or comment about this refund..."
+                                              rows={3}
+                                              className="flex w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                                            />
+                                          </div>
+
                                           {refundError && (
                                             <div className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-start">
                                               <AlertCircle className="w-4 h-4 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
@@ -537,6 +554,7 @@ export default function AdminPaymentsPage() {
                                                 setRefundModalPaymentId(null);
                                                 setRefundAmount('');
                                                 setRefundReason(null);
+                                                setRefundComment('');
                                                 setRefundError('');
                                               }}
                                               variant="outline"
@@ -594,6 +612,9 @@ export default function AdminPaymentsPage() {
                                           </div>
                                           {refund.reason && (
                                             <p className="text-gray-600 text-xs mb-1">Reason: {refund.reason}</p>
+                                          )}
+                                          {refund.comment && (
+                                            <p className="text-gray-600 text-xs mb-1">Comment: {refund.comment}</p>
                                           )}
                                           <p className="text-gray-500 text-xs">
                                             Processed by {refund.users_refunds_processed_byTousers?.display_name || 'System'} on{' '}
