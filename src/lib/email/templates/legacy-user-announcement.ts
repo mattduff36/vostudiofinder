@@ -85,23 +85,23 @@ export function generateLegacyUserAnnouncementEmail({
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="center" style="padding: 0;">
-                    <!-- Hero Image (hidden in Outlook, shown in all other clients) -->
-                    <!--[if !mso]><!-->
+                    <!-- Hero Image (shown by default, alt text appears if image is blocked) -->
                     <img src="https://voiceoverstudiofinder.com/images/its-back-voiceover-studio-finder-email-header.png" alt="It's back... Voiceover Studio Finder - Professional Voiceover, Podcast & Broadcast Studios Worldwide. Verified locations. No commission. Direct studio contact." width="600" height="auto" style="max-width: 600px; width: 100%; height: auto; display: block; margin: 0; border: 0; outline: none; text-decoration: none;" />
+                    <!-- Text Fallback (hidden by default, shown only when images are blocked) -->
+                    <!--[if !mso]><!-->
+                    <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #1a1a1a;">
+                        <tr>
+                          <td align="center" style="padding: 60px 40px 50px 40px;">
+                            <p style="margin: 0 0 12px 0; font-size: 18px; font-weight: 400; color: #ffffff; line-height: 1.3; text-align: center;">It's back...</p>
+                            <h1 style="margin: 0 0 16px 0; font-size: 42px; font-weight: 700; color: #d42027; line-height: 1.2; text-align: center; letter-spacing: -0.5px;">Voiceover Studio Finder</h1>
+                            <p style="margin: 0 0 12px 0; font-size: 18px; font-weight: 500; color: #ffffff; line-height: 1.4; text-align: center;">Professional Voiceover, Podcast & Broadcast Studios Worldwide</p>
+                            <p style="margin: 16px 0 0 0; font-size: 16px; color: #e0e0e0; line-height: 1.5; text-align: center;">Verified locations. No commission. Direct studio contact.</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
                     <!--<![endif]-->
-                    <!-- Outlook Text Fallback (shown ONLY in Outlook, replaces image) -->
-                    <!--[if mso]>
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #1a1a1a;">
-                      <tr>
-                        <td align="center" style="padding: 60px 40px 50px 40px;">
-                          <p style="margin: 0 0 12px 0; font-size: 18px; font-weight: 400; color: #ffffff; line-height: 1.3; text-align: center;">It's back...</p>
-                          <h1 style="margin: 0 0 16px 0; font-size: 42px; font-weight: 700; color: #d42027; line-height: 1.2; text-align: center; letter-spacing: -0.5px;">Voiceover Studio Finder</h1>
-                          <p style="margin: 0 0 12px 0; font-size: 18px; font-weight: 500; color: #ffffff; line-height: 1.4; text-align: center;">Professional Voiceover, Podcast & Broadcast Studios Worldwide</p>
-                          <p style="margin: 16px 0 0 0; font-size: 16px; color: #e0e0e0; line-height: 1.5; text-align: center;">Verified locations. No commission. Direct studio contact.</p>
-                        </td>
-                      </tr>
-                    </table>
-                    <![endif]-->
                   </td>
                 </tr>
               </table>
