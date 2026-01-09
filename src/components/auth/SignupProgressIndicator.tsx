@@ -18,14 +18,14 @@ export function SignupProgressIndicator({ currentStep }: SignupProgressIndicator
 
   return (
     <div className="w-full max-w-2xl mx-auto mb-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-center gap-4">
         {STEPS.map((step, index) => {
           const isCompleted = index < currentStepIndex;
           const isCurrent = index === currentStepIndex;
           const isUpcoming = index > currentStepIndex;
 
           return (
-            <div key={step.id} className="flex items-center flex-1">
+            <div key={step.id} className="flex items-center">
               {/* Step Circle */}
               <div className="flex flex-col items-center">
                 <div
@@ -59,7 +59,7 @@ export function SignupProgressIndicator({ currentStep }: SignupProgressIndicator
               {index < STEPS.length - 1 && (
                 <div
                   className={`
-                    flex-1 h-1 mx-2 transition-all duration-300
+                    w-12 h-1 transition-all duration-300
                     ${isCompleted ? 'bg-green-600' : 'bg-gray-200'}
                   `}
                 />
