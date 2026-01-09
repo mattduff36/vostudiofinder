@@ -53,8 +53,16 @@ export function PaymentSuccessOnboarding({
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Skip to content link for accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-red-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+
       {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0" aria-hidden="true">
         <Image
           src="/background-images/21920-5.jpg"
           alt="Background texture"
@@ -66,7 +74,7 @@ export function PaymentSuccessOnboarding({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
+      <main id="main-content" className="relative z-10 w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="space-y-8 md:space-y-12">
           {/* Hero Section */}
           <HeroSection

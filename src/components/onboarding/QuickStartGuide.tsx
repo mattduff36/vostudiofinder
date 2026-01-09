@@ -56,7 +56,6 @@ export function QuickStartGuide({ allRequiredComplete }: QuickStartGuideProps) {
           const Icon = step.icon;
           const isComplete = step.status === 'complete';
           const isActive = step.status === 'active';
-          const isPending = step.status === 'pending';
 
           return (
             <motion.div

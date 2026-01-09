@@ -30,6 +30,8 @@ export function AnimatedFieldCard({ field, index }: AnimatedFieldCardProps) {
       className="relative"
     >
       <div
+        role="article"
+        aria-label={`${field.name} field`}
         className={`p-5 rounded-xl border-2 transition-all duration-300 ${
           field.completed
             ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300 hover:border-green-400 hover:shadow-lg hover:shadow-green-100'
