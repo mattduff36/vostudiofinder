@@ -31,13 +31,23 @@ jest.mock('next-auth/react', () => ({
 }))
 
 // Load .env.local if it exists (for other env vars)
-// CRITICAL: Always exclude DATABASE_URL from .env.local to prevent tests from connecting to production
+// CRITICAL: Always exclude DATABASE_URL to prevent tests from connecting to production
+// Store any existing DATABASE_URL before loading .env.local to detect all sources
+const databaseUrlBeforeDotenv = process.env.DATABASE_URL
 const dotenvResult = require('dotenv').config({ path: '.env.local' })
-// Remove DATABASE_URL if it was loaded from .env.local (regardless of value)
-// This ensures tests always use the safe test fallback defined below
-if (dotenvResult.parsed && dotenvResult.parsed.DATABASE_URL) {
+// ALWAYS remove DATABASE_URL if it exists, regardless of source (system env, .env.local, CI/CD, etc.)
+// This ensures tests NEVER accidentally connect to production databases
+if (process.env.DATABASE_URL) {
+  // Detect source before deletion
+  const wasInSystemEnv = databaseUrlBeforeDotenv && databaseUrlBeforeDotenv === process.env.DATABASE_URL
+  const wasInDotenv = dotenvResult.parsed?.DATABASE_URL && dotenvResult.parsed.DATABASE_URL === process.env.DATABASE_URL
+  const source = wasInSystemEnv && wasInDotenv ? 'system environment and .env.local'
+    : wasInSystemEnv ? 'system environment'
+    : wasInDotenv ? '.env.local'
+    : 'unknown source'
+  
   delete process.env.DATABASE_URL
-  console.warn('⚠️  DATABASE_URL excluded from .env.local to prevent production connection in tests')
+  console.warn(`⚠️  DATABASE_URL excluded (source: ${source}) to prevent production connection in tests`)
 }
 
 // Polyfill TextDecoder/TextEncoder for Node.js < 18 (if needed)
@@ -200,13 +210,13 @@ if (!process.env.NEXTAUTH_SECRET) {
 if (!process.env.NEXTAUTH_URL) {
   process.env.NEXTAUTH_URL = 'http://localhost:3000'
 }
-// Set DATABASE_URL fallback for tests if not provided in .env.local
-// This ensures PrismaClient can initialize even if .env.local is missing or incomplete
+// Set DATABASE_URL fallback for tests (always safe test database)
+// CRITICAL: DATABASE_URL was explicitly deleted above to prevent production connections
+// This ensures PrismaClient can initialize, but tests requiring database will fail safely
+// Tests that need database should set TEST_DATABASE_URL explicitly or use test fixtures
 if (!process.env.DATABASE_URL) {
-  // Use a test database URL fallback
-  // Tests that actually need database will fail with connection error, but PrismaClient won't crash on init
   process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db'
-  console.warn('⚠️  DATABASE_URL not found in .env.local, using test fallback. Tests requiring database may fail.')
+  console.warn('⚠️  Using safe test database fallback. Tests requiring database may fail.')
 }
 
 // Mock console methods to reduce noise in tests

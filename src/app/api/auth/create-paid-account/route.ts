@@ -15,10 +15,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sessionId, username, ...userData } = body;
-    
-    // Validate input
-    const validatedData = signupSchema.parse(userData);
+    const { sessionId, username, email, ...userData } = body;
     
     // Verify payment session first
     if (!sessionId) {
@@ -28,33 +25,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // DEVELOPMENT MODE: Skip Stripe verification for dev sessions
-    const isDevMode = process.env.NODE_ENV === 'development' || sessionId.startsWith('cs_dev_');
-    
-    if (!isDevMode) {
-      // PRODUCTION MODE: Verify with Stripe
-      if (!process.env.STRIPE_SECRET_KEY) {
-        return NextResponse.json(
-          { error: 'Stripe configuration not available' },
-          { status: 500 }
-      );
-    }
-
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    
-    if (session.payment_status !== 'paid') {
-      return NextResponse.json(
-        { error: 'Payment not verified' },
-        { status: 400 }
-      );
-      }
-    } else {
-      console.log('🔧 DEV MODE: Skipping Stripe payment verification for account creation');
-    }
-
-    // Check if user already exists
+    // Check if user already exists BEFORE validation (to handle ACTIVE users without password)
+    // Use email from body directly (not validated yet)
     const existingUser = await db.users.findUnique({
-      where: { email: validatedData.email },
+      where: { email: email?.toLowerCase() },
       select: {
         id: true,
         email: true,
@@ -67,6 +41,7 @@ export async function POST(request: NextRequest) {
     });
     
     // If user exists and is ACTIVE (webhook already processed), generate verification token and send email
+    // Skip password validation for ACTIVE users since they already have an account
     if (existingUser && existingUser.status === UserStatus.ACTIVE) {
       console.log('✅ User already ACTIVE (webhook processed), generating verification token');
       
@@ -129,6 +104,33 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
+    }
+
+    // Now validate input for new user creation (password required)
+    const validatedData = signupSchema.parse({ email, ...userData });
+
+    // DEVELOPMENT MODE: Skip Stripe verification for dev sessions
+    const isDevMode = process.env.NODE_ENV === 'development' || sessionId.startsWith('cs_dev_');
+    
+    if (!isDevMode) {
+      // PRODUCTION MODE: Verify with Stripe
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return NextResponse.json(
+          { error: 'Stripe configuration not available' },
+          { status: 500 }
+        );
+      }
+
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      
+      if (session.payment_status !== 'paid') {
+        return NextResponse.json(
+          { error: 'Payment not verified' },
+          { status: 400 }
+        );
+      }
+    } else {
+      console.log('🔧 DEV MODE: Skipping Stripe payment verification for account creation');
     }
 
     // Check if username is already taken (if provided) - case-insensitive
