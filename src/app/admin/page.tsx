@@ -9,20 +9,6 @@ export const metadata: Metadata = {
   description: 'Manage users, studios, reviews, and platform settings',
 };
 
-interface ActivityItem {
-  id: string;
-  type: 'user' | 'studio';
-  action: string;
-  description: string;
-  timestamp: Date;
-  metadata?: {
-    username?: string;
-    studioName?: string;
-    status?: string;
-    isVerified?: boolean;
-  };
-}
-
 export default async function AdminPage() {
   // Ensure user has admin permissions
   await requireRole(Role.ADMIN);
@@ -36,19 +22,14 @@ export default async function AdminPage() {
     featuredStudios,
     activeUsers30d,
     totalPayments,
-    succeededPayments,
-    failedPayments,
+    totalPaymentAmount,
+    recentPaymentAmount,
     pendingReservations,
     expiredReservations,
-    waitlistCount,
-    totalSupportTickets,
-    openSupportTickets,
     totalIssues,
     openIssues,
     totalSuggestions,
     openSuggestions,
-    recentUsers,
-    recentStudios,
   ] = await Promise.all([
     // Total registered users
     db.users.count(),
@@ -74,35 +55,31 @@ export default async function AdminPage() {
       },
     }),
     
-    // Total payments
+    // Total payments count
     db.payments.count(),
     
-    // Succeeded payments
-    db.payments.count({ where: { status: 'SUCCEEDED' } }),
+    // Total payment amount (sum of all succeeded payments in pence)
+    db.payments.aggregate({
+      where: { status: 'SUCCEEDED' },
+      _sum: { amount: true },
+    }).then(result => result._sum.amount || 0),
     
-    // Failed payments
-    db.payments.count({ where: { status: 'FAILED' } }),
+    // Recent payment amount (last 30 days, succeeded payments in pence)
+    db.payments.aggregate({
+      where: {
+        status: 'SUCCEEDED',
+        created_at: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+      _sum: { amount: true },
+    }).then(result => result._sum.amount || 0),
     
     // Pending reservations
     db.users.count({ where: { status: UserStatus.PENDING } }),
     
     // Expired reservations
     db.users.count({ where: { status: UserStatus.EXPIRED } }),
-    
-    // Waitlist count
-    db.waitlist.count(),
-    
-    // Total support tickets
-    db.support_tickets.count(),
-    
-    // Open support tickets (OPEN or IN_PROGRESS)
-    db.support_tickets.count({
-      where: {
-        status: {
-          in: ['OPEN', 'IN_PROGRESS'],
-        },
-      },
-    }),
     
     // Total issues
     db.support_tickets.count({ where: { type: 'ISSUE' } }),
@@ -129,37 +106,6 @@ export default async function AdminPage() {
         },
       },
     }),
-    
-    // Recent users (last 20)
-    db.users.findMany({
-      take: 20,
-      orderBy: { created_at: 'desc' },
-      select: {
-        id: true,
-        display_name: true,
-        username: true,
-        role: true,
-        created_at: true,
-      },
-    }),
-    
-    // Recent studios (last 20)
-    db.studio_profiles.findMany({
-      take: 20,
-      orderBy: { created_at: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        status: true,
-        is_verified: true,
-        created_at: true,
-        users: {
-          select: {
-            display_name: true,
-          },
-        },
-      },
-    }),
   ]);
 
   const stats = {
@@ -170,61 +116,19 @@ export default async function AdminPage() {
     featuredStudios,
     activeUsers30d,
     totalPayments,
-    succeededPayments,
-    failedPayments,
+    totalPaymentAmount,
+    recentPaymentAmount,
     pendingReservations,
     expiredReservations,
-    waitlistCount,
-    totalSupportTickets,
-    openSupportTickets,
     totalIssues,
     openIssues,
     totalSuggestions,
     openSuggestions,
   };
 
-  // Create unified activity feed
-  const activities: ActivityItem[] = [];
-
-  // Add user activities
-  recentUsers.forEach(user => {
-    activities.push({
-      id: `user-${user.id}`,
-      type: 'user',
-      action: 'New User Registration',
-      description: `${user.display_name} (@${user.username}) joined the platform`,
-      timestamp: user.created_at,
-      metadata: {
-        username: user.username,
-      },
-    });
-  });
-
-  // Add studio activities
-  recentStudios.forEach(studio => {
-    activities.push({
-      id: `studio-${studio.id}`,
-      type: 'studio',
-      action: 'Studio Created',
-      description: `${studio.name} by ${studio.users.display_name}`,
-      timestamp: studio.created_at,
-      metadata: {
-        studioName: studio.name,
-        status: studio.status,
-        isVerified: studio.is_verified,
-      },
-    });
-  });
-
-  // Sort by timestamp (most recent first) and limit to 30
-  const recentActivity = activities
-    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-    .slice(0, 30);
-
   return (
     <AdminDashboard 
       stats={stats}
-      recentActivity={recentActivity}
     />
   );
 }
