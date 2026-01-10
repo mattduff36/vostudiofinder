@@ -22,6 +22,40 @@ const prisma = new PrismaClient();
  */
 export async function cleanupTestUsers(emailPattern: string = 'test_') {
   try {
+    // First, find all test users
+    const testUsers = await prisma.users.findMany({
+      where: {
+        email: {
+          contains: emailPattern,
+        },
+      },
+      select: { id: true },
+    });
+
+    const userIds = testUsers.map(u => u.id);
+
+    if (userIds.length === 0) {
+      console.log(`🧹 Cleaned up 0 test users`);
+      return 0;
+    }
+
+    // Delete related records first (foreign key constraints)
+    // 1. Delete subscriptions
+    await prisma.subscriptions.deleteMany({
+      where: { user_id: { in: userIds } },
+    });
+
+    // 2. Delete studio profiles
+    await prisma.studio_profiles.deleteMany({
+      where: { user_id: { in: userIds } },
+    });
+
+    // 3. Delete payments
+    await prisma.payments.deleteMany({
+      where: { user_id: { in: userIds } },
+    });
+
+    // Finally, delete users
     const result = await prisma.users.deleteMany({
       where: {
         email: {

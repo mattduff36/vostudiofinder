@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { HeroSection } from '@/components/onboarding/HeroSection';
-import { ProfileVisibilityCard } from '@/components/onboarding/ProfileVisibilityCard';
 import { QuickStartGuide } from '@/components/onboarding/QuickStartGuide';
 import { AnimatedFieldCard } from '@/components/onboarding/AnimatedFieldCard';
 import { ProfileTipsGrid } from '@/components/onboarding/ProfileTipsGrid';
@@ -68,13 +67,6 @@ export function PaymentSuccessOnboarding({
             overallCompletionPercentage={completionPercentage}
           />
 
-          {/* Profile Visibility Section */}
-          <ProfileVisibilityCard
-            requiredFieldsCompleted={completedRequired}
-            totalRequiredFields={totalRequired}
-            overallCompletionPercentage={completionPercentage}
-          />
-
           {/* Quick Start Guide */}
           <QuickStartGuide allRequiredComplete={allRequiredComplete} />
 
@@ -117,7 +109,7 @@ export function PaymentSuccessOnboarding({
                 </div>
               </div>
 
-              <div className="grid gap-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 {requiredFields.map((field, index) => (
                   <AnimatedFieldCard key={field.name} field={field} index={index} />
                 ))}
@@ -140,7 +132,7 @@ export function PaymentSuccessOnboarding({
                 </div>
               </div>
 
-              <div className="grid gap-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 {optionalFields.map((field, index) => (
                   <AnimatedFieldCard key={field.name} field={field} index={index} />
                 ))}

@@ -2,7 +2,10 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { PaymentSuccessOnboarding } from '@/components/auth/PaymentSuccessOnboarding';
+import { AutoLoginAfterPayment } from '@/components/auth/AutoLoginAfterPayment';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
+import { stripe } from '@/lib/stripe';
+import { randomBytes } from 'crypto';
 
 export const metadata: Metadata = {
   title: 'Payment Successful - Voiceover Studio Finder',
@@ -143,11 +146,21 @@ const OPTIONAL_FIELDS = [
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export default async function MembershipSuccessPage({ searchParams }: MembershipSuccessPageProps) {
+  const pageTimestamp = new Date().toISOString();
+  console.log(`[DEBUG ${pageTimestamp}] ========== SUCCESS PAGE LOAD START ==========`);
+  
   const params = await searchParams;
+  console.log(`[DEBUG ${pageTimestamp}] Search params received:`, {
+    session_id: params.session_id || 'MISSING',
+    email: params.email || 'MISSING',
+    name: params.name || 'MISSING',
+    username: params.username || 'MISSING',
+  });
 
   // Verify payment exists
   if (!params.session_id) {
-    console.error('[ERROR] No session_id provided');
+    console.error(`[DEBUG ${pageTimestamp}] ❌ ERROR: No session_id provided in URL params`);
+    console.error(`[DEBUG ${pageTimestamp}] Full params:`, JSON.stringify(params, null, 2));
     redirect('/auth/signup?error=session_expired');
   }
 
@@ -158,38 +171,201 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   const retryDelays = [1000, 2000, 4000, 8000, 10000]; // milliseconds
   let payment = null;
 
-  console.log(`[INFO] Looking up payment for session: ${params.session_id}`);
+  console.log(`[DEBUG ${pageTimestamp}] Looking up payment for session: ${params.session_id}`);
+  console.log(`[DEBUG ${pageTimestamp}] Will retry up to ${maxRetries} times with delays: ${retryDelays.join(', ')}ms`);
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const attemptTimestamp = new Date().toISOString();
+    console.log(`[DEBUG ${attemptTimestamp}] ========== PAYMENT LOOKUP ATTEMPT ${attempt + 1}/${maxRetries} ==========`);
+    
     payment = await db.payments.findUnique({
       where: { stripe_checkout_session_id: params.session_id },
       select: {
         id: true,
         status: true,
         user_id: true,
+        stripe_payment_intent_id: true,
+        amount: true,
+        currency: true,
+        created_at: true,
+        updated_at: true,
       },
     });
 
+    console.log(`[DEBUG ${attemptTimestamp}] Database query result:`, payment ? {
+      id: payment.id,
+      status: payment.status,
+      user_id: payment.user_id,
+      payment_intent_id: payment.stripe_payment_intent_id,
+      amount: payment.amount,
+      currency: payment.currency,
+      created_at: payment.created_at?.toISOString(),
+      updated_at: payment.updated_at?.toISOString(),
+    } : 'NULL (not found)');
+
     if (payment && payment.status === 'SUCCEEDED') {
-      console.log(`[SUCCESS] Payment found on attempt ${attempt + 1}: ${payment.id}`);
+      console.log(`[DEBUG ${attemptTimestamp}] ✅ SUCCESS: Payment found on attempt ${attempt + 1}: ${payment.id}`);
+      console.log(`[DEBUG ${attemptTimestamp}] Payment details:`, {
+        id: payment.id,
+        status: payment.status,
+        user_id: payment.user_id,
+        amount: payment.amount,
+        currency: payment.currency,
+      });
       break;
     }
 
     // If not found or not succeeded yet, wait before retrying
     if (attempt < maxRetries - 1) {
       const delay = retryDelays[attempt] || 2000; // fallback to 2s if undefined
-      console.log(`⏳ Payment not ready, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+      console.log(`[DEBUG ${attemptTimestamp}] ⏳ Payment not ready (status: ${payment?.status || 'NOT_FOUND'}), retrying in ${delay}ms`);
       await sleep(delay);
+    } else {
+      console.log(`[DEBUG ${attemptTimestamp}] ⚠️ Final attempt completed, payment status: ${payment?.status || 'NOT_FOUND'}`);
     }
   }
 
   // After all retries, verify we have a successful payment
   if (!payment || payment.status !== 'SUCCEEDED') {
-    console.error(`[ERROR] Payment not found or not succeeded after ${maxRetries} attempts`);
+    const errorTimestamp = new Date().toISOString();
+    console.error(`[DEBUG ${errorTimestamp}] ❌ ERROR: Payment not found or not succeeded after ${maxRetries} attempts`);
+    console.error(`[DEBUG ${errorTimestamp}] Final payment state:`, payment ? {
+      id: payment.id,
+      status: payment.status,
+      user_id: payment.user_id,
+    } : 'NULL');
+    console.error(`[DEBUG ${errorTimestamp}] Session ID searched: ${params.session_id}`);
+    
+    // Additional diagnostic: Check if ANY payment exists with this session ID
+    const anyPayment = await db.payments.findUnique({
+      where: { stripe_checkout_session_id: params.session_id },
+    });
+    console.error(`[DEBUG ${errorTimestamp}] Diagnostic - Any payment with this session_id:`, anyPayment ? {
+      id: anyPayment.id,
+      status: anyPayment.status,
+    } : 'NONE');
+    
+    // FALLBACK: If webhook hasn't processed (common in preview builds), verify directly with Stripe
+    console.log(`[DEBUG ${errorTimestamp}] 🔄 FALLBACK: Checking Stripe directly for session ${params.session_id}...`);
+    try {
+      const stripeSession = await stripe.checkout.sessions.retrieve(params.session_id, {
+        expand: ['payment_intent'],
+      });
+      
+      console.log(`[DEBUG ${errorTimestamp}] Stripe session retrieved:`, {
+        id: stripeSession.id,
+        payment_status: stripeSession.payment_status,
+        mode: stripeSession.mode,
+        customer: stripeSession.customer || 'NONE',
+        customer_email: stripeSession.customer_email || 'NONE',
+      });
+      
+      if (stripeSession.payment_status === 'paid' && stripeSession.mode === 'payment') {
+        console.log(`[DEBUG ${errorTimestamp}] ✅ Stripe confirms payment is PAID - webhook likely not configured for preview`);
+        
+        const paymentIntent = stripeSession.payment_intent as any;
+        const userId = stripeSession.metadata?.user_id;
+        
+        if (!userId) {
+          console.error(`[DEBUG ${errorTimestamp}] ❌ ERROR: No user_id in Stripe session metadata`);
+          redirect('/auth/signup?error=payment_not_found');
+        }
+        
+        // Create payment record manually (webhook fallback)
+        console.log(`[DEBUG ${errorTimestamp}] Creating payment record manually...`);
+        const newPayment = await db.payments.create({
+          data: {
+            id: randomBytes(12).toString('base64url'),
+            user_id: userId,
+            stripe_checkout_session_id: stripeSession.id,
+            stripe_payment_intent_id: paymentIntent?.id || null,
+            stripe_charge_id: paymentIntent?.latest_charge || null,
+            amount: paymentIntent?.amount || stripeSession.amount_total || 0,
+            currency: paymentIntent?.currency || stripeSession.currency || 'gbp',
+            status: 'SUCCEEDED',
+            refunded_amount: 0,
+            metadata: stripeSession.metadata || {},
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+        });
+        
+        console.log(`[DEBUG ${errorTimestamp}] ✅ Payment record created: ${newPayment.id}`);
+        
+        // Grant membership if user exists and is verified
+        const user = await db.users.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email_verified: true,
+            status: true,
+          },
+        });
+        
+        if (user && user.email_verified && user.status !== 'ACTIVE') {
+          console.log(`[DEBUG ${errorTimestamp}] Granting membership to user ${userId}...`);
+          await db.users.update({
+            where: { id: userId },
+            data: {
+              status: 'ACTIVE',
+              updated_at: new Date(),
+            },
+          });
+          
+          // Create subscription record
+          const oneYearFromNow = new Date();
+          oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+          
+          await db.subscriptions.create({
+            data: {
+              id: randomBytes(12).toString('base64url'),
+              user_id: userId,
+              status: 'ACTIVE',
+              payment_method: 'STRIPE',
+              current_period_start: new Date(),
+              current_period_end: oneYearFromNow,
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          });
+          
+          console.log(`[DEBUG ${errorTimestamp}] ✅ Membership granted`);
+        }
+        
+        // Use the newly created payment
+        payment = {
+          id: newPayment.id,
+          status: 'SUCCEEDED' as const,
+          user_id: userId,
+          stripe_payment_intent_id: newPayment.stripe_payment_intent_id,
+          amount: newPayment.amount,
+          currency: newPayment.currency,
+          created_at: newPayment.created_at,
+          updated_at: newPayment.updated_at,
+        };
+      } else {
+        console.error(`[DEBUG ${errorTimestamp}] ❌ Stripe session not paid or wrong mode:`, {
+          payment_status: stripeSession.payment_status,
+          mode: stripeSession.mode,
+        });
+        redirect('/auth/signup?error=payment_not_found');
+      }
+    } catch (stripeError) {
+      console.error(`[DEBUG ${errorTimestamp}] ❌ ERROR: Failed to verify with Stripe:`, stripeError);
+      redirect('/auth/signup?error=payment_not_found');
+    }
+  }
+  
+  // Final check - ensure we have a payment
+  if (!payment || payment.status !== 'SUCCEEDED') {
+    console.error(`[DEBUG ${pageTimestamp}] ❌ ERROR: Still no valid payment after fallback`);
     redirect('/auth/signup?error=payment_not_found');
   }
 
+  console.log(`[DEBUG ${pageTimestamp}] ✅ Payment verified successfully, proceeding to load user data...`);
+
   // Fetch user and studio profile data (same as dashboard)
+  console.log(`[DEBUG ${pageTimestamp}] Fetching user data for user_id: ${payment.user_id}`);
   const user = await db.users.findUnique({
     where: { id: payment.user_id },
     select: {
@@ -198,17 +374,129 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       username: true,
       display_name: true,
       avatar_url: true,
+      status: true,
+      email_verified: true,
     },
   });
 
   if (!user) {
-    console.error('[ERROR] User not found');
+    console.error(`[DEBUG ${pageTimestamp}] ❌ ERROR: User not found for user_id: ${payment.user_id}`);
     redirect('/auth/signup?error=user_not_found');
   }
 
+  console.log(`[DEBUG ${pageTimestamp}] ✅ User found:`, {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    display_name: user.display_name,
+    status: user.status,
+    email_verified: user.email_verified,
+  });
+
+  // CRITICAL: Idempotently ensure user is ACTIVE and all membership records exist
+  // This is the authoritative backstop - if payment succeeded and user reached here,
+  // they MUST be ACTIVE regardless of webhook timing
+  const activationTimestamp = new Date().toISOString();
+  console.log(`[DEBUG ${activationTimestamp}] ========== ACTIVATION CHECK START ==========`);
+  console.log(`[DEBUG ${activationTimestamp}] Current user status: ${user.status}`);
+  console.log(`[DEBUG ${activationTimestamp}] Email verified: ${user.email_verified}`);
+
+  // Only activate if user is verified (safety check)
+  if (user.email_verified) {
+    if (user.status !== 'ACTIVE') {
+      console.log(`[DEBUG ${activationTimestamp}] User is not ACTIVE, updating status...`);
+      await db.users.update({
+        where: { id: user.id },
+        data: {
+          status: 'ACTIVE',
+          updated_at: new Date(),
+        },
+      });
+      console.log(`[DEBUG ${activationTimestamp}] ✅ User status updated to ACTIVE`);
+    } else {
+      console.log(`[DEBUG ${activationTimestamp}] ✅ User already ACTIVE, no update needed`);
+    }
+
+    // Ensure subscription record exists (idempotent)
+    console.log(`[DEBUG ${activationTimestamp}] Checking for existing subscription...`);
+    const existingSubscription = await db.subscriptions.findFirst({
+      where: { 
+        user_id: user.id,
+        status: 'ACTIVE',
+      },
+    });
+
+    if (!existingSubscription) {
+      console.log(`[DEBUG ${activationTimestamp}] No active subscription found, creating one...`);
+      const now = new Date();
+      const oneYearFromNow = new Date(now);
+      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+      const subscription = await db.subscriptions.create({
+        data: {
+          id: randomBytes(12).toString('base64url'),
+          user_id: user.id,
+          status: 'ACTIVE',
+          payment_method: 'STRIPE',
+          current_period_start: now,
+          current_period_end: oneYearFromNow,
+          created_at: now,
+          updated_at: now,
+        },
+      });
+      console.log(`[DEBUG ${activationTimestamp}] ✅ Subscription created: ${subscription.id}, valid until ${oneYearFromNow.toISOString()}`);
+    } else {
+      console.log(`[DEBUG ${activationTimestamp}] ✅ Active subscription already exists: ${existingSubscription.id}`);
+    }
+
+    // Ensure studio profile is ACTIVE if exists (idempotent)
+    console.log(`[DEBUG ${activationTimestamp}] Checking studio profile...`);
+    const studioProfile = await db.studio_profiles.findUnique({
+      where: { user_id: user.id },
+      select: { id: true, status: true },
+    });
+
+    if (studioProfile && studioProfile.status !== 'ACTIVE') {
+      console.log(`[DEBUG ${activationTimestamp}] Studio profile exists but not ACTIVE, updating...`);
+      await db.studio_profiles.update({
+        where: { user_id: user.id },
+        data: {
+          status: 'ACTIVE',
+          updated_at: new Date(),
+        },
+      });
+      console.log(`[DEBUG ${activationTimestamp}] ✅ Studio profile status updated to ACTIVE`);
+    } else if (studioProfile) {
+      console.log(`[DEBUG ${activationTimestamp}] ✅ Studio profile already ACTIVE`);
+    } else {
+      console.log(`[DEBUG ${activationTimestamp}] No studio profile exists yet (will be created on form submission)`);
+    }
+
+    console.log(`[DEBUG ${activationTimestamp}] ========== ACTIVATION CHECK COMPLETE ==========`);
+  } else {
+    console.warn(`[DEBUG ${activationTimestamp}] ⚠️ WARNING: User email not verified, skipping activation`);
+    console.warn(`[DEBUG ${activationTimestamp}] This should not happen - payment guards should prevent this`);
+  }
+
+  // Refresh user data to get updated status
+  const updatedUser = await db.users.findUnique({
+    where: { id: payment.user_id },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      display_name: true,
+      avatar_url: true,
+      status: true,
+    },
+  });
+
+  const finalUser = updatedUser || user;
+  console.log(`[DEBUG ${pageTimestamp}] Final user status for UI: ${finalUser.status}`);
+
   // Fetch studio profile if exists
   const studioProfile = await db.studio_profiles.findUnique({
-    where: { user_id: user.id },
+    where: { user_id: finalUser.id },
     select: {
       id: true,
       name: true,
@@ -251,10 +539,10 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   // Calculate profile completion using single source of truth
   const completionStats = calculateCompletionStats({
     user: {
-      username: user.username,
-      display_name: user.display_name,
-      email: user.email,
-      avatar_url: user.avatar_url,
+      username: finalUser.username,
+      display_name: finalUser.display_name,
+      email: finalUser.email,
+      avatar_url: finalUser.avatar_url,
     },
     profile: studioProfile ? {
       short_about: studioProfile.short_about,
@@ -316,9 +604,9 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
 
   // Map fields to completion status
   const requiredFieldsWithStatus = [
-    { name: REQUIRED_FIELDS[0]!.name, required: true, completed: !!(user.username && !user.username.startsWith('temp_')), where: REQUIRED_FIELDS[0]!.where, how: REQUIRED_FIELDS[0]!.how, why: REQUIRED_FIELDS[0]!.why },
-    { name: REQUIRED_FIELDS[1]!.name, required: true, completed: !!(user.display_name && user.display_name.trim()), where: REQUIRED_FIELDS[1]!.where, how: REQUIRED_FIELDS[1]!.how, why: REQUIRED_FIELDS[1]!.why },
-    { name: REQUIRED_FIELDS[2]!.name, required: true, completed: !!(user.email && user.email.trim()), where: REQUIRED_FIELDS[2]!.where, how: REQUIRED_FIELDS[2]!.how, why: REQUIRED_FIELDS[2]!.why },
+    { name: REQUIRED_FIELDS[0]!.name, required: true, completed: !!(finalUser.username && !finalUser.username.startsWith('temp_')), where: REQUIRED_FIELDS[0]!.where, how: REQUIRED_FIELDS[0]!.how, why: REQUIRED_FIELDS[0]!.why },
+    { name: REQUIRED_FIELDS[1]!.name, required: true, completed: !!(finalUser.display_name && finalUser.display_name.trim()), where: REQUIRED_FIELDS[1]!.where, how: REQUIRED_FIELDS[1]!.how, why: REQUIRED_FIELDS[1]!.why },
+    { name: REQUIRED_FIELDS[2]!.name, required: true, completed: !!(finalUser.email && finalUser.email.trim()), where: REQUIRED_FIELDS[2]!.where, how: REQUIRED_FIELDS[2]!.how, why: REQUIRED_FIELDS[2]!.why },
     { name: REQUIRED_FIELDS[3]!.name, required: true, completed: !!(studioProfile?.name && studioProfile.name.trim()), where: REQUIRED_FIELDS[3]!.where, how: REQUIRED_FIELDS[3]!.how, why: REQUIRED_FIELDS[3]!.why },
     { name: REQUIRED_FIELDS[4]!.name, required: true, completed: !!(studioProfile?.short_about && studioProfile.short_about.trim()), where: REQUIRED_FIELDS[4]!.where, how: REQUIRED_FIELDS[4]!.how, why: REQUIRED_FIELDS[4]!.why },
     { name: REQUIRED_FIELDS[5]!.name, required: true, completed: !!(studioProfile?.about && studioProfile.about.trim()), where: REQUIRED_FIELDS[5]!.where, how: REQUIRED_FIELDS[5]!.how, why: REQUIRED_FIELDS[5]!.why },
@@ -330,7 +618,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   ];
 
   const optionalFieldsWithStatus = [
-    { name: OPTIONAL_FIELDS[0]!.name, required: false, completed: !!(user.avatar_url && user.avatar_url.trim()), where: OPTIONAL_FIELDS[0]!.where, how: OPTIONAL_FIELDS[0]!.how, why: OPTIONAL_FIELDS[0]!.why },
+    { name: OPTIONAL_FIELDS[0]!.name, required: false, completed: !!(finalUser.avatar_url && finalUser.avatar_url.trim()), where: OPTIONAL_FIELDS[0]!.where, how: OPTIONAL_FIELDS[0]!.how, why: OPTIONAL_FIELDS[0]!.why },
     { name: OPTIONAL_FIELDS[1]!.name, required: false, completed: !!(studioProfile?.phone && studioProfile.phone.trim()), where: OPTIONAL_FIELDS[1]!.where, how: OPTIONAL_FIELDS[1]!.how, why: OPTIONAL_FIELDS[1]!.why },
     { name: OPTIONAL_FIELDS[2]!.name, required: false, completed: socialMediaCount >= 2, where: OPTIONAL_FIELDS[2]!.where, how: OPTIONAL_FIELDS[2]!.how, why: OPTIONAL_FIELDS[2]!.why },
     { name: OPTIONAL_FIELDS[3]!.name, required: false, completed: !!(studioProfile?.rate_tier_1 && (typeof studioProfile.rate_tier_1 === 'number' ? studioProfile.rate_tier_1 > 0 : parseFloat(studioProfile.rate_tier_1) > 0)), where: OPTIONAL_FIELDS[3]!.where, how: OPTIONAL_FIELDS[3]!.how, why: OPTIONAL_FIELDS[3]!.why },
@@ -339,11 +627,13 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   ];
 
   return (
-    <PaymentSuccessOnboarding
-      userName={user.display_name}
-      completionPercentage={completionPercentage}
-      requiredFields={requiredFieldsWithStatus}
-      optionalFields={optionalFieldsWithStatus}
-    />
+    <AutoLoginAfterPayment>
+      <PaymentSuccessOnboarding
+        userName={finalUser.display_name}
+        completionPercentage={completionPercentage}
+        requiredFields={requiredFieldsWithStatus}
+        optionalFields={optionalFieldsWithStatus}
+      />
+    </AutoLoginAfterPayment>
   );
 }

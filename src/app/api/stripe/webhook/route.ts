@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/logger';
 import { stripe } from '@/lib/stripe';
 import { db } from '@/lib/db';
 import { headers } from 'next/headers';
@@ -22,7 +21,7 @@ async function ensureEventIdempotency(eventId: string, eventType: string, payloa
     });
 
     if (existing) {
-      logger.log(`[INFO] Event ${eventId} already processed, skipping`);
+      console.log(`[INFO] Event ${eventId} already processed, skipping`);
       return false; // Already processed
     }
 
@@ -40,7 +39,7 @@ async function ensureEventIdempotency(eventId: string, eventType: string, payloa
 
     return true; // OK to process
   } catch (error) {
-    logger.log(`[WARNING] Error checking event idempotency: ${error}`);
+    console.warn(`[WARNING] Error checking event idempotency: ${error}`);
     // If unique constraint violation, event was already recorded by concurrent request
     if (error instanceof Error && error.message.includes('Unique constraint')) {
       return false;
@@ -63,7 +62,7 @@ async function markEventProcessed(eventId: string, success: boolean, error?: str
       },
     });
   } catch (err) {
-    logger.log(`[WARNING] Error marking event as processed: ${err}`);
+    console.warn(`[WARNING] Error marking event as processed: ${err}`);
   }
 }
 
@@ -71,40 +70,68 @@ async function markEventProcessed(eventId: string, success: boolean, error?: str
  * Handle one-time membership payment completion
  */
 async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) {
+  const timestamp = new Date().toISOString();
+  console.log(`[DEBUG ${timestamp}] ========== WEBHOOK: handleMembershipPaymentSuccess START ==========`);
+  console.log(`[DEBUG ${timestamp}] Session ID: ${session.id}`);
+  console.log(`[DEBUG ${timestamp}] Session mode: ${session.mode}`);
+  console.log(`[DEBUG ${timestamp}] Payment status: ${session.payment_status}`);
+  console.log(`[DEBUG ${timestamp}] Session metadata:`, JSON.stringify(session.metadata || {}, null, 2));
+  
   const { user_id, user_email, user_name, purpose } = session.metadata || {};
 
+  console.log(`[DEBUG ${timestamp}] Extracted metadata - user_id: ${user_id}, user_email: ${user_email}, purpose: ${purpose}`);
+
   if (purpose !== 'membership') {
-    logger.log(`[INFO] Session ${session.id} is not a membership payment, skipping`);
+    console.log(`[DEBUG ${timestamp}] ❌ Session ${session.id} is not a membership payment (purpose: ${purpose}), skipping`);
+    console.log(`[INFO] Session ${session.id} is not a membership payment, skipping`);
     return;
   }
 
   if (!user_id) {
+    console.error(`[DEBUG ${timestamp}] ❌ ERROR: Missing user_id in session metadata`);
+    console.error(`[DEBUG ${timestamp}] Full metadata:`, JSON.stringify(session.metadata || {}, null, 2));
     throw new Error('Missing user_id in session metadata - user should exist before payment');
   }
 
   if (!user_email) {
+    console.error(`[DEBUG ${timestamp}] ❌ ERROR: Missing user_email in session metadata`);
+    console.error(`[DEBUG ${timestamp}] Full metadata:`, JSON.stringify(session.metadata || {}, null, 2));
     throw new Error('Missing user_email in session metadata');
   }
 
-  logger.log(`💳 Processing membership payment for user ${user_id} (${user_email})`);
+  console.log(`[DEBUG ${timestamp}] ✅ Metadata validation passed`);
+  console.log(`💳 Processing membership payment for user ${user_id} (${user_email})`);
 
   // Expand session to get payment_intent
+  console.log(`[DEBUG ${timestamp}] Retrieving expanded session from Stripe...`);
   const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
     expand: ['payment_intent'],
   });
+  console.log(`[DEBUG ${timestamp}] Expanded session retrieved. Payment intent: ${expandedSession.payment_intent ? 'EXISTS' : 'MISSING'}`);
 
   const paymentIntent = expandedSession.payment_intent as Stripe.PaymentIntent | null;
   if (!paymentIntent) {
+    console.error(`[DEBUG ${timestamp}] ❌ ERROR: No payment_intent found for session ${session.id}`);
+    console.error(`[DEBUG ${timestamp}] Expanded session data:`, JSON.stringify(expandedSession, null, 2));
     throw new Error('No payment_intent found for session');
   }
+
+  console.log(`[DEBUG ${timestamp}] ✅ Payment intent found: ${paymentIntent.id}`);
+  console.log(`[DEBUG ${timestamp}] Payment intent status: ${paymentIntent.status}`);
+  console.log(`[DEBUG ${timestamp}] Payment intent amount: ${paymentIntent.amount} ${paymentIntent.currency}`);
 
   // Find or create customer
   let customer: Stripe.Customer | null = null;
   if (session.customer) {
+    console.log(`[DEBUG ${timestamp}] Retrieving customer: ${session.customer}`);
     customer = await stripe.customers.retrieve(session.customer as string) as Stripe.Customer;
+    console.log(`[DEBUG ${timestamp}] Customer retrieved: ${customer.email || 'NO EMAIL'}`);
+  } else {
+    console.log(`[DEBUG ${timestamp}] No customer ID in session`);
   }
 
   // Find user by ID (they should already exist as PENDING)
+  console.log(`[DEBUG ${timestamp}] Looking up user in database: ${user_id}`);
   const user = await db.users.findUnique({
     where: { id: user_id },
     select: {
@@ -119,17 +146,23 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   });
 
   if (!user) {
+    console.error(`[DEBUG ${timestamp}] ❌ ERROR: User ${user_id} not found in database`);
     throw new Error(`User ${user_id} not found - this should not happen with new flow`);
   }
 
-  logger.log(`[SUCCESS] Found ${user.status} user: ${user.email}`);
+  console.log(`[DEBUG ${timestamp}] ✅ User found in database:`);
+  console.log(`[DEBUG ${timestamp}]   - ID: ${user.id}`);
+  console.log(`[DEBUG ${timestamp}]   - Email: ${user.email}`);
+  console.log(`[DEBUG ${timestamp}]   - Status: ${user.status}`);
+  console.log(`[DEBUG ${timestamp}]   - Email verified: ${user.email_verified}`);
+  console.log(`[SUCCESS] Found ${user.status} user: ${user.email}`);
 
   // DEFENSIVE CHECK: Verify email is verified before granting membership
   // This should never happen if payment guards are working, but protect against edge cases
   if (!user.email_verified) {
-    logger.log(`[WARNING] WARNING: Payment succeeded for unverified email: ${user.email}`);
-    logger.log(`[WARNING] This indicates a bypass of payment guards - investigate immediately`);
-    logger.log(`[WARNING] Payment will be recorded but membership will NOT be granted`);
+    console.warn(`[WARNING] WARNING: Payment succeeded for unverified email: ${user.email}`);
+    console.warn(`[WARNING] This indicates a bypass of payment guards - investigate immediately`);
+    console.warn(`[WARNING] Payment will be recorded but membership will NOT be granted`);
     
     // Record payment but don't grant membership
     const payment = await db.payments.create({
@@ -153,7 +186,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
       },
     });
     
-    logger.log(`[SUCCESS] Payment recorded (no membership granted): ${payment.id}`);
+    console.log(`[SUCCESS] Payment recorded (no membership granted): ${payment.id}`);
     
     // TODO: Send alert email to admin about verification bypass
     // TODO: Send email to user instructing them to verify email before accessing membership
@@ -162,22 +195,41 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   }
 
   // Record payment (idempotent on checkout_session_id)
+  console.log(`[DEBUG ${timestamp}] Checking for existing payment with session_id: ${session.id}`);
   const existingPayment = await db.payments.findUnique({
     where: { stripe_checkout_session_id: session.id },
   });
 
   if (existingPayment) {
-    logger.log(`💳 Payment record already exists for session ${session.id}`);
+    console.log(`[DEBUG ${timestamp}] ⚠️ Payment record already exists:`);
+    console.log(`[DEBUG ${timestamp}]   - Payment ID: ${existingPayment.id}`);
+    console.log(`[DEBUG ${timestamp}]   - Status: ${existingPayment.status}`);
+    console.log(`[DEBUG ${timestamp}]   - User ID: ${existingPayment.user_id}`);
+    console.log(`[DEBUG ${timestamp}]   - Amount: ${existingPayment.amount} ${existingPayment.currency}`);
+    console.log(`💳 Payment record already exists for session ${session.id}`);
     return; // Already processed
   }
 
+  console.log(`[DEBUG ${timestamp}] No existing payment found, creating new payment record...`);
+  const paymentId = randomBytes(12).toString('base64url');
+  const chargeId = (paymentIntent as any).latest_charge as string || null;
+  
+  console.log(`[DEBUG ${timestamp}] Payment data to create:`);
+  console.log(`[DEBUG ${timestamp}]   - Payment ID: ${paymentId}`);
+  console.log(`[DEBUG ${timestamp}]   - User ID: ${user.id}`);
+  console.log(`[DEBUG ${timestamp}]   - Session ID: ${session.id}`);
+  console.log(`[DEBUG ${timestamp}]   - Payment Intent ID: ${paymentIntent.id}`);
+  console.log(`[DEBUG ${timestamp}]   - Charge ID: ${chargeId || 'NULL'}`);
+  console.log(`[DEBUG ${timestamp}]   - Amount: ${paymentIntent.amount} ${paymentIntent.currency}`);
+  console.log(`[DEBUG ${timestamp}]   - Status: SUCCEEDED`);
+
   const payment = await db.payments.create({
     data: {
-      id: randomBytes(12).toString('base64url'),
+      id: paymentId,
       user_id: user.id,
       stripe_checkout_session_id: session.id,
       stripe_payment_intent_id: paymentIntent.id,
-      stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
+      stripe_charge_id: chargeId,
       amount: paymentIntent.amount,
       currency: paymentIntent.currency,
       status: 'SUCCEEDED',
@@ -188,13 +240,18 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
     },
   });
 
-  logger.log(`[SUCCESS] Payment recorded: ${payment.id}`);
+  console.log(`[DEBUG ${timestamp}] ✅ Payment record created successfully:`);
+  console.log(`[DEBUG ${timestamp}]   - Payment ID: ${payment.id}`);
+  console.log(`[DEBUG ${timestamp}]   - Status: ${payment.status}`);
+  console.log(`[SUCCESS] Payment recorded: ${payment.id}`);
 
   // Grant membership and update payment tracking in single atomic operation
+  console.log(`[DEBUG ${timestamp}] Granting membership to user ${user.id}...`);
   await grantMembership(user.id, payment.id, {
     payment_attempted_at: user.payment_attempted_at || new Date(),
     payment_retry_count: 0,
   });
+  console.log(`[DEBUG ${timestamp}] ✅ Membership granted successfully`);
 
   // Send confirmation email
   if (customer?.email || user_email) {
@@ -211,9 +268,9 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
           nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         }),
       });
-      logger.log(`[EMAIL] Confirmation email sent to ${customer?.email || user_email}`);
+      console.log(`[EMAIL] Confirmation email sent to ${customer?.email || user_email}`);
     } catch (emailError) {
-      logger.log(`[WARNING] Failed to send confirmation email: ${emailError}`);
+      console.warn(`[WARNING] Failed to send confirmation email: ${emailError}`);
     }
   }
 }
@@ -251,7 +308,7 @@ async function grantMembership(
       updated_at: now,
     },
   });
-  logger.log(`[SUCCESS] User ${userId} status updated: PENDING → ACTIVE`);
+  console.log(`[SUCCESS] User ${userId} status updated: PENDING → ACTIVE`);
 
   // Create membership record in subscriptions table
   const subscription = await db.subscriptions.create({
@@ -281,10 +338,10 @@ async function grantMembership(
         updated_at: now,
       },
     });
-    logger.log(`🔄 Studio status set to ACTIVE for user ${userId}`);
+    console.log(`🔄 Studio status set to ACTIVE for user ${userId}`);
   }
 
-  logger.log(`[SUCCESS] Membership granted to user ${userId} until ${oneYearFromNow.toISOString()}`);
+  console.log(`[SUCCESS] Membership granted to user ${userId} until ${oneYearFromNow.toISOString()}`);
   return subscription;
 }
 
@@ -292,7 +349,7 @@ async function grantMembership(
  * Handle failed payment attempts
  */
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
-  logger.log(`[ERROR] Processing failed payment ${paymentIntent.id}`);
+  console.error(`[ERROR] Processing failed payment ${paymentIntent.id}`);
   
   // Extract user_id from metadata
   const metadata = paymentIntent.metadata || {};
@@ -300,7 +357,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   const user_email = metadata.user_email || metadata.email;
   
   if (!user_id) {
-    logger.log(`[WARNING] No user_id in payment intent metadata - cannot process failed payment`);
+    console.warn(`[WARNING] No user_id in payment intent metadata - cannot process failed payment`);
     return;
   }
   
@@ -310,11 +367,11 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   });
   
   if (!user) {
-    logger.log(`[WARNING] User ${user_id} not found - cannot record failed payment`);
+    console.warn(`[WARNING] User ${user_id} not found - cannot record failed payment`);
     return;
   }
   
-  logger.log(`Processing failed payment for ${user.status} user: ${user.email}`);
+  console.log(`Processing failed payment for ${user.status} user: ${user.email}`);
   
   // Check if payment already recorded
   const existingPayment = await db.payments.findUnique({
@@ -322,7 +379,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   });
   
   if (existingPayment) {
-    logger.log(`Payment ${paymentIntent.id} already recorded, updating status to FAILED`);
+    console.log(`Payment ${paymentIntent.id} already recorded, updating status to FAILED`);
     await db.payments.update({
       where: { id: existingPayment.id },
       data: {
@@ -366,8 +423,8 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
     },
   });
   
-  logger.log(`[SUCCESS] Failed payment recorded for user ${user_email}: ${paymentIntent.id}`);
-  logger.log(`[ANALYTICS] Payment retry count: ${user.payment_retry_count + 1}`);
+  console.log(`[SUCCESS] Failed payment recorded for user ${user_email}: ${paymentIntent.id}`);
+  console.log(`[ANALYTICS] Payment retry count: ${user.payment_retry_count + 1}`);
   
   // TODO: Send failed payment email with retry link (Phase 4)
 }
@@ -376,7 +433,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
  * Handle refund events
  */
 async function handleRefund(refund: Stripe.Refund) {
-  logger.log(`[INFO] Processing refund ${refund.id} for payment ${refund.payment_intent}`);
+  console.log(`[INFO] Processing refund ${refund.id} for payment ${refund.payment_intent}`);
 
   // IDEMPOTENCY CHECK: Check if this refund was already processed
   const existingRefund = await db.refunds.findUnique({
@@ -384,7 +441,7 @@ async function handleRefund(refund: Stripe.Refund) {
   });
 
   if (existingRefund) {
-    logger.log(`[INFO] Refund ${refund.id} already processed, skipping`);
+    console.log(`[INFO] Refund ${refund.id} already processed, skipping`);
     return;
   }
 
@@ -394,7 +451,7 @@ async function handleRefund(refund: Stripe.Refund) {
   });
 
   if (!payment) {
-    logger.log(`[WARNING] Payment not found for refund ${refund.id}`);
+    console.warn(`[WARNING] Payment not found for refund ${refund.id}`);
     return;
   }
 
@@ -412,7 +469,7 @@ async function handleRefund(refund: Stripe.Refund) {
     },
   });
 
-  logger.log(`[SUCCESS] Payment ${payment.id} updated: refunded ${newRefundedAmount}/${payment.amount}`);
+  console.log(`[SUCCESS] Payment ${payment.id} updated: refunded ${newRefundedAmount}/${payment.amount}`);
 
   // CRITICAL: processed_by requires a valid user ID (FK constraint)
   // For automated webhook refunds, use the first admin user or the user being refunded
@@ -428,15 +485,15 @@ async function handleRefund(refund: Stripe.Refund) {
   if (processedBy === 'PENDING' || !processedBy) {
     if (adminUser) {
       processedBy = adminUser.id;
-      logger.log(`[WARNING] Payment user_id is PENDING, using admin for processed_by`);
+      console.warn(`[WARNING] Payment user_id is PENDING, using admin for processed_by`);
     } else {
-      logger.log(`[WARNING] No admin found and payment.user_id is PENDING, refund may fail FK constraint`);
+      console.warn(`[WARNING] No admin found and payment.user_id is PENDING, refund may fail FK constraint`);
       // Will fail FK constraint if invalid - better to fail than corrupt data
       processedBy = payment.user_id;
     }
   }
   
-  logger.log(`[DEBUG] Recording refund processed by: ${processedBy === payment.user_id ? 'USER (no admin found)' : 'ADMIN'}`);
+  console.log(`[DEBUG] Recording refund processed by: ${processedBy === payment.user_id ? 'USER (no admin found)' : 'ADMIN'}`);
 
   // Record refund
   await db.refunds.create({
@@ -458,7 +515,7 @@ async function handleRefund(refund: Stripe.Refund) {
 
   // If full refund, end membership immediately
   if (isFullRefund) { // payment.user_id is now always valid
-    logger.log(`🚫 Full refund detected, ending membership for user ${payment.user_id}`);
+    console.log(`🚫 Full refund detected, ending membership for user ${payment.user_id}`);
     
     // Find active subscription
     const activeSubscription = await db.subscriptions.findFirst({
@@ -489,7 +546,7 @@ async function handleRefund(refund: Stripe.Refund) {
         },
       });
 
-      logger.log(`[SUCCESS] Membership ended for user ${payment.user_id}`);
+      console.log(`[SUCCESS] Membership ended for user ${payment.user_id}`);
     }
   }
 }
@@ -498,24 +555,35 @@ async function handleRefund(refund: Stripe.Refund) {
  * Main webhook handler
  */
 export async function POST(request: NextRequest) {
+  const requestTimestamp = new Date().toISOString();
+  console.log(`[DEBUG ${requestTimestamp}] ========== WEBHOOK REQUEST RECEIVED ==========`);
+  
   try {
-    logger.log('🎣 Webhook received');
+    console.log('🎣 Webhook received');
     
     // Check if webhook secret is configured
     if (!webhookSecret) {
-      logger.log('[ERROR] Webhook secret not configured');
+      console.error(`[DEBUG ${requestTimestamp}] ❌ ERROR: Webhook secret not configured`);
+      console.error('[ERROR] Webhook secret not configured');
       return NextResponse.json(
         { error: 'Stripe webhook not configured' },
         { status: 500 }
       );
     }
 
+    console.log(`[DEBUG ${requestTimestamp}] ✅ Webhook secret configured`);
     const body = await request.text();
     const headersList = await headers();
     const signature = headersList.get('stripe-signature');
 
+    console.log(`[DEBUG ${requestTimestamp}] Request headers:`, {
+      'stripe-signature': signature ? 'PRESENT' : 'MISSING',
+      'content-type': headersList.get('content-type'),
+    });
+
     if (!signature) {
-      logger.log('[ERROR] Missing Stripe signature');
+      console.error(`[DEBUG ${requestTimestamp}] ❌ ERROR: Missing Stripe signature`);
+      console.error('[ERROR] Missing Stripe signature');
       return NextResponse.json(
         { error: 'Missing Stripe signature' },
         { status: 400 }
@@ -525,14 +593,21 @@ export async function POST(request: NextRequest) {
     // Construct and verify webhook event
     let event;
     try {
+      console.log(`[DEBUG ${requestTimestamp}] Constructing webhook event...`);
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      logger.log(`[SUCCESS] Webhook verified: ${event.type} (${event.id})`);
+      console.log(`[DEBUG ${requestTimestamp}] ✅ Webhook verified:`);
+      console.log(`[DEBUG ${requestTimestamp}]   - Event ID: ${event.id}`);
+      console.log(`[DEBUG ${requestTimestamp}]   - Event type: ${event.type}`);
+      console.log(`[DEBUG ${requestTimestamp}]   - Created: ${new Date(event.created * 1000).toISOString()}`);
+      console.log(`[SUCCESS] Webhook verified: ${event.type} (${event.id})`);
     } catch (err) {
-      logger.log(`[ERROR] Webhook signature verification failed: ${err}`);
+      console.error(`[DEBUG ${requestTimestamp}] ❌ ERROR: Webhook signature verification failed:`, err);
+      console.error(`[ERROR] Webhook signature verification failed: ${err}`);
       throw err;
     }
 
     // Ensure idempotency
+    console.log(`[DEBUG ${requestTimestamp}] Checking event idempotency for event ${event.id}...`);
     const shouldProcess = await ensureEventIdempotency(
       event.id,
       event.type,
@@ -540,20 +615,34 @@ export async function POST(request: NextRequest) {
     );
 
     if (!shouldProcess) {
+      console.log(`[DEBUG ${requestTimestamp}] ⚠️ Event ${event.id} already processed, skipping`);
       return NextResponse.json({ received: true, skipped: true });
     }
+
+    console.log(`[DEBUG ${requestTimestamp}] ✅ Event ${event.id} is new, proceeding with processing`);
 
     // Process event
     try {
       switch (event.type) {
         case 'checkout.session.completed': {
           const session = event.data.object as Stripe.Checkout.Session;
+          const eventTimestamp = new Date().toISOString();
+          console.log(`[DEBUG ${eventTimestamp}] ========== WEBHOOK EVENT: checkout.session.completed ==========`);
+          console.log(`[DEBUG ${eventTimestamp}] Session ID: ${session.id}`);
+          console.log(`[DEBUG ${eventTimestamp}] Session mode: ${session.mode}`);
+          console.log(`[DEBUG ${eventTimestamp}] Payment status: ${session.payment_status}`);
+          console.log(`[DEBUG ${eventTimestamp}] Customer: ${session.customer || 'NONE'}`);
+          console.log(`[DEBUG ${eventTimestamp}] Customer email: ${session.customer_email || 'NONE'}`);
+          console.log(`[DEBUG ${eventTimestamp}] Metadata:`, JSON.stringify(session.metadata || {}, null, 2));
           
           // Only handle payment mode sessions (not subscription mode)
           if (session.mode === 'payment') {
+            console.log(`[DEBUG ${eventTimestamp}] ✅ Session is payment mode, processing...`);
             await handleMembershipPaymentSuccess(session);
+            console.log(`[DEBUG ${eventTimestamp}] ✅ Payment processing completed`);
           } else {
-            logger.log(`[INFO] Session ${session.id} is subscription mode, skipping (legacy)`);
+            console.log(`[DEBUG ${eventTimestamp}] ⚠️ Session ${session.id} is subscription mode (${session.mode}), skipping`);
+            console.log(`[INFO] Session ${session.id} is subscription mode, skipping (legacy)`);
           }
           break;
         }
@@ -574,21 +663,21 @@ export async function POST(request: NextRequest) {
 
         case 'payment_intent.payment_failed': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          logger.log(`💥 Payment failed event received: ${paymentIntent.id}`);
+          console.error(`💥 Payment failed event received: ${paymentIntent.id}`);
           await handlePaymentFailed(paymentIntent);
           break;
         }
 
         case 'payment_intent.succeeded': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          logger.log(`[SUCCESS] Payment succeeded event received: ${paymentIntent.id}`);
+          console.log(`[SUCCESS] Payment succeeded event received: ${paymentIntent.id}`);
           // This is handled by checkout.session.completed, but log it
           break;
         }
 
         case 'charge.failed': {
           const charge = event.data.object as Stripe.Charge;
-          logger.log(`💥 Charge failed event received: ${charge.id}`);
+          console.error(`💥 Charge failed event received: ${charge.id}`);
           // Extract payment intent and handle
           if (charge.payment_intent) {
             const paymentIntent = await stripe.paymentIntents.retrieve(charge.payment_intent as string);
@@ -603,13 +692,13 @@ export async function POST(request: NextRequest) {
         case 'customer.subscription.deleted':
         case 'invoice.payment_succeeded':
         case 'invoice.payment_failed': {
-          logger.log(`[INFO] Legacy subscription event ${event.type}, keeping existing behavior`);
+          console.log(`[INFO] Legacy subscription event ${event.type}, keeping existing behavior`);
           // TODO: Could handle these for premium tier in future
           break;
         }
 
         default:
-          logger.log(`[INFO] Unhandled event type: ${event.type}`);
+          console.log(`[INFO] Unhandled event type: ${event.type}`);
       }
 
       // Mark event as processed
@@ -617,7 +706,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ received: true });
     } catch (processingError) {
-      logger.log(`[ERROR] Error processing event ${event.id}: ${processingError}`);
+      console.error(`[ERROR] Error processing event ${event.id}: ${processingError}`);
       await markEventProcessed(event.id, false, String(processingError));
       throw processingError;
     }

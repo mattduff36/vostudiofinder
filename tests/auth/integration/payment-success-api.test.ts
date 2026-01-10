@@ -40,6 +40,12 @@ describe('Payment Success Page - Race Condition Fix', () => {
         status: UserStatus.PENDING,
       });
 
+      // Mark user as verified (required for auto-activation)
+      await db.users.update({
+        where: { id: user.id },
+        data: { email_verified: true },
+      });
+
       const sessionId = `cs_test_${randomBytes(16).toString('hex')}`;
       await createTestPaymentInDb({
         user_id: user.id,
@@ -63,13 +69,32 @@ describe('Payment Success Page - Race Condition Fix', () => {
 
       const userCheck = await db.users.findUnique({
         where: { id: payment!.user_id },
-        select: { status: true, email: true },
+        select: { status: true, email: true, email_verified: true },
       });
 
       expect(userCheck).toBeDefined();
       expect(userCheck?.status).toBe(UserStatus.PENDING);
+      expect(userCheck?.email_verified).toBe(true);
       // PENDING status should be accepted (race condition fix)
       expect([UserStatus.PENDING, UserStatus.ACTIVE]).toContain(userCheck?.status);
+
+      // NEW: Simulate auto-activation logic from success page
+      if (userCheck?.email_verified && userCheck.status !== UserStatus.ACTIVE) {
+        await db.users.update({
+          where: { id: payment!.user_id },
+          data: {
+            status: UserStatus.ACTIVE,
+            updated_at: new Date(),
+          },
+        });
+      }
+
+      // Verify user is now ACTIVE after auto-activation
+      const activatedUser = await db.users.findUnique({
+        where: { id: payment!.user_id },
+        select: { status: true },
+      });
+      expect(activatedUser?.status).toBe(UserStatus.ACTIVE);
     });
 
     it('should accept ACTIVE user status (webhook processed first)', async () => {

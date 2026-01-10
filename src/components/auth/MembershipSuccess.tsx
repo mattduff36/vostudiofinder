@@ -134,6 +134,9 @@ export function MembershipSuccess() {
   // Verify payment on component mount
   // Memoize verifyPayment to prevent infinite loops from unstable searchParams
   const verifyPayment = useCallback(async () => {
+    const componentTimestamp = new Date().toISOString();
+    console.log(`[DEBUG ${componentTimestamp}] ========== CLIENT: verifyPayment START ==========`);
+    
     // Use stable memoized values instead of direct searchParams.get() results
     // This prevents infinite loops caused by new URLSearchParams instances on each render
     let recoveredEmail = stableEmail;
@@ -141,32 +144,57 @@ export function MembershipSuccess() {
     let recoveredUsername = stableUsername;
     let recoveredSessionId = stableSessionId || null;
 
+    console.log(`[DEBUG ${componentTimestamp}] Initial values from URL/searchParams:`, {
+      email: recoveredEmail || 'MISSING',
+      name: recoveredName || 'MISSING',
+      username: recoveredUsername || 'MISSING',
+      sessionId: recoveredSessionId || 'MISSING',
+    });
+
     // If missing data, try sessionStorage first
     if (!recoveredEmail || !recoveredName || !recoveredSessionId) {
-      console.log('[WARNING] Missing URL params, attempting recovery from sessionStorage...');
+      console.log(`[DEBUG ${componentTimestamp}] ⚠️ Missing URL params, attempting recovery from sessionStorage...`);
       const signupData = getSignupData();
       
       if (signupData) {
-        console.log('✅ Recovered some data from sessionStorage');
+        console.log(`[DEBUG ${componentTimestamp}] ✅ Recovered data from sessionStorage:`, {
+          email: signupData.email || 'MISSING',
+          display_name: signupData.display_name || 'MISSING',
+          username: signupData.username || 'MISSING',
+        });
         recoveredEmail = recoveredEmail || signupData.email;
         recoveredName = recoveredName || signupData.display_name;
         recoveredUsername = recoveredUsername || signupData.username || '';
         
         // SessionStorage doesn't have sessionId, so we'll need to query database
+      } else {
+        console.log(`[DEBUG ${componentTimestamp}] ❌ No data found in sessionStorage`);
       }
     }
 
     // If still missing critical data, try to recover from database
     if (!recoveredSessionId && recoveredEmail) {
-      console.log('🔍 Attempting to recover payment data from database...');
+      console.log(`[DEBUG ${componentTimestamp}] 🔍 Attempting to recover payment data from database for email: ${recoveredEmail}`);
       setIsRecovering(true);
       
       const recovery = await recoverPaymentState({ email: recoveredEmail });
       
       setIsRecovering(false);
       
+      console.log(`[DEBUG ${componentTimestamp}] Recovery result:`, {
+        success: recovery.success,
+        hasData: !!recovery.data,
+        error: recovery.error || 'NONE',
+      });
+      
       if (recovery.success && recovery.data) {
-        console.log('✅ Recovered payment data from database');
+        console.log(`[DEBUG ${componentTimestamp}] ✅ Recovered payment data from database:`, {
+          sessionId: recovery.data.sessionId || 'MISSING',
+          email: recovery.data.email || 'MISSING',
+          username: recovery.data.username || 'MISSING',
+          display_name: recovery.data.display_name || 'MISSING',
+          userId: recovery.data.userId || 'MISSING',
+        });
         recoveredSessionId = recovery.data.sessionId;
         recoveredEmail = recovery.data.email;
         recoveredUsername = recovery.data.username;
@@ -207,8 +235,9 @@ export function MembershipSuccess() {
         setValue('username', recoveredUsername);
         
         setDataRecovered(true);
-        console.log('✅ State recovered successfully');
+        console.log(`[DEBUG ${componentTimestamp}] ✅ State recovered successfully`);
       } else {
+        console.error(`[DEBUG ${componentTimestamp}] ❌ Recovery failed:`, recovery.error);
         setError({
           message: recovery.error || 'Unable to recover your session. Please start the signup process again.',
           code: 'RECOVERY_FAILED',
@@ -220,6 +249,7 @@ export function MembershipSuccess() {
 
     // If still no session ID, we can't proceed
     if (!recoveredSessionId) {
+      console.error(`[DEBUG ${componentTimestamp}] ❌ ERROR: No session ID found after all recovery attempts`);
       setError({
         message: 'Session data missing. Please check your email for a recovery link or start the signup process again.',
         code: 'NO_SESSION_ID',
@@ -228,14 +258,8 @@ export function MembershipSuccess() {
       return;
     }
 
-    if (!recoveredSessionId) {
-      setError({
-        message: 'No payment session found. Please start the signup process again.',
-        code: 'NO_SESSION',
-        canRetry: false,
-      });
-      return;
-    }
+    console.log(`[DEBUG ${componentTimestamp}] ✅ Session ID found: ${recoveredSessionId}`);
+    console.log(`[DEBUG ${componentTimestamp}] Calling payment verification API...`);
 
     try {
       const params = new URLSearchParams();
@@ -243,23 +267,39 @@ export function MembershipSuccess() {
       if (recoveredName) params.set('name', recoveredName);
       if (recoveredUsername) params.set('username', recoveredUsername);
 
-      const response = await fetch(`/api/stripe/verify-membership-payment?${params.toString()}`, {
+      const apiUrl = `/api/stripe/verify-membership-payment?${params.toString()}`;
+      const requestBody = { sessionId: recoveredSessionId };
+      
+      console.log(`[DEBUG ${componentTimestamp}] API Request:`, {
+        url: apiUrl,
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: recoveredSessionId }),
+        body: requestBody,
       });
 
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log(`[DEBUG ${componentTimestamp}] API Response status: ${response.status} ${response.statusText}`);
+      
       const result = await response.json();
 
-      console.log('🔍 Verification result:', result);
+      console.log(`[DEBUG ${componentTimestamp}] 🔍 Verification result:`, JSON.stringify(result, null, 2));
 
       if (!response.ok) {
+        console.error(`[DEBUG ${componentTimestamp}] ❌ ERROR: API returned error status:`, {
+          status: response.status,
+          statusText: response.statusText,
+          error: result.error,
+        });
         throw new Error(result.error || 'Payment verification failed');
       }
 
       // Populate form fields with customer data from Stripe session metadata
       if (result.customerData) {
-        console.log('✅ Customer data found:', result.customerData);
+        console.log(`[DEBUG ${componentTimestamp}] ✅ Customer data found:`, result.customerData);
         // Use reset() to properly update disabled fields and trigger re-render
         reset({
           username: result.customerData.username || recoveredUsername || '',
@@ -277,13 +317,20 @@ export function MembershipSuccess() {
           connections: {},
           images: [],
         });
-        console.log('✅ Form reset with customer data');
+        console.log(`[DEBUG ${componentTimestamp}] ✅ Form reset with customer data`);
       } else {
-        console.error('❌ No customer data in verification response');
+        console.error(`[DEBUG ${componentTimestamp}] ❌ No customer data in verification response`);
       }
 
+      console.log(`[DEBUG ${componentTimestamp}] ✅ Payment verification successful, setting paymentVerified=true`);
       setPaymentVerified(true);
     } catch (err) {
+      const errorTimestamp = new Date().toISOString();
+      console.error(`[DEBUG ${errorTimestamp}] ❌ ERROR: Payment verification exception:`, err);
+      console.error(`[DEBUG ${errorTimestamp}] Error details:`, {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+      });
       setError({
         message: err instanceof Error ? err.message : 'Payment verification failed. Please refresh the page or contact support.',
         code: 'PAYMENT_VERIFICATION_ERROR',
