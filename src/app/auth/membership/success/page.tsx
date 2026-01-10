@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { PaymentSuccessOnboarding } from '@/components/auth/PaymentSuccessOnboarding';
+import { AutoLoginAfterPayment } from '@/components/auth/AutoLoginAfterPayment';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { stripe } from '@/lib/stripe';
 import { randomBytes } from 'crypto';
@@ -374,6 +375,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       display_name: true,
       avatar_url: true,
       status: true,
+      email_verified: true,
     },
   });
 
@@ -388,11 +390,113 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     username: user.username,
     display_name: user.display_name,
     status: user.status,
+    email_verified: user.email_verified,
   });
+
+  // CRITICAL: Idempotently ensure user is ACTIVE and all membership records exist
+  // This is the authoritative backstop - if payment succeeded and user reached here,
+  // they MUST be ACTIVE regardless of webhook timing
+  const activationTimestamp = new Date().toISOString();
+  console.log(`[DEBUG ${activationTimestamp}] ========== ACTIVATION CHECK START ==========`);
+  console.log(`[DEBUG ${activationTimestamp}] Current user status: ${user.status}`);
+  console.log(`[DEBUG ${activationTimestamp}] Email verified: ${user.email_verified}`);
+
+  // Only activate if user is verified (safety check)
+  if (user.email_verified) {
+    if (user.status !== 'ACTIVE') {
+      console.log(`[DEBUG ${activationTimestamp}] User is not ACTIVE, updating status...`);
+      await db.users.update({
+        where: { id: user.id },
+        data: {
+          status: 'ACTIVE',
+          updated_at: new Date(),
+        },
+      });
+      console.log(`[DEBUG ${activationTimestamp}] ✅ User status updated to ACTIVE`);
+    } else {
+      console.log(`[DEBUG ${activationTimestamp}] ✅ User already ACTIVE, no update needed`);
+    }
+
+    // Ensure subscription record exists (idempotent)
+    console.log(`[DEBUG ${activationTimestamp}] Checking for existing subscription...`);
+    const existingSubscription = await db.subscriptions.findFirst({
+      where: { 
+        user_id: user.id,
+        status: 'ACTIVE',
+      },
+    });
+
+    if (!existingSubscription) {
+      console.log(`[DEBUG ${activationTimestamp}] No active subscription found, creating one...`);
+      const now = new Date();
+      const oneYearFromNow = new Date(now);
+      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+      const subscription = await db.subscriptions.create({
+        data: {
+          id: randomBytes(12).toString('base64url'),
+          user_id: user.id,
+          status: 'ACTIVE',
+          payment_method: 'STRIPE',
+          current_period_start: now,
+          current_period_end: oneYearFromNow,
+          created_at: now,
+          updated_at: now,
+        },
+      });
+      console.log(`[DEBUG ${activationTimestamp}] ✅ Subscription created: ${subscription.id}, valid until ${oneYearFromNow.toISOString()}`);
+    } else {
+      console.log(`[DEBUG ${activationTimestamp}] ✅ Active subscription already exists: ${existingSubscription.id}`);
+    }
+
+    // Ensure studio profile is ACTIVE if exists (idempotent)
+    console.log(`[DEBUG ${activationTimestamp}] Checking studio profile...`);
+    const studioProfile = await db.studio_profiles.findUnique({
+      where: { user_id: user.id },
+      select: { id: true, status: true },
+    });
+
+    if (studioProfile && studioProfile.status !== 'ACTIVE') {
+      console.log(`[DEBUG ${activationTimestamp}] Studio profile exists but not ACTIVE, updating...`);
+      await db.studio_profiles.update({
+        where: { user_id: user.id },
+        data: {
+          status: 'ACTIVE',
+          updated_at: new Date(),
+        },
+      });
+      console.log(`[DEBUG ${activationTimestamp}] ✅ Studio profile status updated to ACTIVE`);
+    } else if (studioProfile) {
+      console.log(`[DEBUG ${activationTimestamp}] ✅ Studio profile already ACTIVE`);
+    } else {
+      console.log(`[DEBUG ${activationTimestamp}] No studio profile exists yet (will be created on form submission)`);
+    }
+
+    console.log(`[DEBUG ${activationTimestamp}] ========== ACTIVATION CHECK COMPLETE ==========`);
+  } else {
+    console.warn(`[DEBUG ${activationTimestamp}] ⚠️ WARNING: User email not verified, skipping activation`);
+    console.warn(`[DEBUG ${activationTimestamp}] This should not happen - payment guards should prevent this`);
+  }
+
+  // Refresh user data to get updated status
+  const updatedUser = await db.users.findUnique({
+    where: { id: payment.user_id },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      display_name: true,
+      avatar_url: true,
+      status: true,
+    },
+  });
+
+  const finalUser = updatedUser || user;
+  console.log(`[DEBUG ${pageTimestamp}] Final user status for UI: ${finalUser.status}`);
 
   // Fetch studio profile if exists
   const studioProfile = await db.studio_profiles.findUnique({
-    where: { user_id: user.id },
+    where: { user_id: finalUser.id },
     select: {
       id: true,
       name: true,
@@ -435,10 +539,10 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   // Calculate profile completion using single source of truth
   const completionStats = calculateCompletionStats({
     user: {
-      username: user.username,
-      display_name: user.display_name,
-      email: user.email,
-      avatar_url: user.avatar_url,
+      username: finalUser.username,
+      display_name: finalUser.display_name,
+      email: finalUser.email,
+      avatar_url: finalUser.avatar_url,
     },
     profile: studioProfile ? {
       short_about: studioProfile.short_about,
@@ -500,9 +604,9 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
 
   // Map fields to completion status
   const requiredFieldsWithStatus = [
-    { name: REQUIRED_FIELDS[0]!.name, required: true, completed: !!(user.username && !user.username.startsWith('temp_')), where: REQUIRED_FIELDS[0]!.where, how: REQUIRED_FIELDS[0]!.how, why: REQUIRED_FIELDS[0]!.why },
-    { name: REQUIRED_FIELDS[1]!.name, required: true, completed: !!(user.display_name && user.display_name.trim()), where: REQUIRED_FIELDS[1]!.where, how: REQUIRED_FIELDS[1]!.how, why: REQUIRED_FIELDS[1]!.why },
-    { name: REQUIRED_FIELDS[2]!.name, required: true, completed: !!(user.email && user.email.trim()), where: REQUIRED_FIELDS[2]!.where, how: REQUIRED_FIELDS[2]!.how, why: REQUIRED_FIELDS[2]!.why },
+    { name: REQUIRED_FIELDS[0]!.name, required: true, completed: !!(finalUser.username && !finalUser.username.startsWith('temp_')), where: REQUIRED_FIELDS[0]!.where, how: REQUIRED_FIELDS[0]!.how, why: REQUIRED_FIELDS[0]!.why },
+    { name: REQUIRED_FIELDS[1]!.name, required: true, completed: !!(finalUser.display_name && finalUser.display_name.trim()), where: REQUIRED_FIELDS[1]!.where, how: REQUIRED_FIELDS[1]!.how, why: REQUIRED_FIELDS[1]!.why },
+    { name: REQUIRED_FIELDS[2]!.name, required: true, completed: !!(finalUser.email && finalUser.email.trim()), where: REQUIRED_FIELDS[2]!.where, how: REQUIRED_FIELDS[2]!.how, why: REQUIRED_FIELDS[2]!.why },
     { name: REQUIRED_FIELDS[3]!.name, required: true, completed: !!(studioProfile?.name && studioProfile.name.trim()), where: REQUIRED_FIELDS[3]!.where, how: REQUIRED_FIELDS[3]!.how, why: REQUIRED_FIELDS[3]!.why },
     { name: REQUIRED_FIELDS[4]!.name, required: true, completed: !!(studioProfile?.short_about && studioProfile.short_about.trim()), where: REQUIRED_FIELDS[4]!.where, how: REQUIRED_FIELDS[4]!.how, why: REQUIRED_FIELDS[4]!.why },
     { name: REQUIRED_FIELDS[5]!.name, required: true, completed: !!(studioProfile?.about && studioProfile.about.trim()), where: REQUIRED_FIELDS[5]!.where, how: REQUIRED_FIELDS[5]!.how, why: REQUIRED_FIELDS[5]!.why },
@@ -514,7 +618,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   ];
 
   const optionalFieldsWithStatus = [
-    { name: OPTIONAL_FIELDS[0]!.name, required: false, completed: !!(user.avatar_url && user.avatar_url.trim()), where: OPTIONAL_FIELDS[0]!.where, how: OPTIONAL_FIELDS[0]!.how, why: OPTIONAL_FIELDS[0]!.why },
+    { name: OPTIONAL_FIELDS[0]!.name, required: false, completed: !!(finalUser.avatar_url && finalUser.avatar_url.trim()), where: OPTIONAL_FIELDS[0]!.where, how: OPTIONAL_FIELDS[0]!.how, why: OPTIONAL_FIELDS[0]!.why },
     { name: OPTIONAL_FIELDS[1]!.name, required: false, completed: !!(studioProfile?.phone && studioProfile.phone.trim()), where: OPTIONAL_FIELDS[1]!.where, how: OPTIONAL_FIELDS[1]!.how, why: OPTIONAL_FIELDS[1]!.why },
     { name: OPTIONAL_FIELDS[2]!.name, required: false, completed: socialMediaCount >= 2, where: OPTIONAL_FIELDS[2]!.where, how: OPTIONAL_FIELDS[2]!.how, why: OPTIONAL_FIELDS[2]!.why },
     { name: OPTIONAL_FIELDS[3]!.name, required: false, completed: !!(studioProfile?.rate_tier_1 && (typeof studioProfile.rate_tier_1 === 'number' ? studioProfile.rate_tier_1 > 0 : parseFloat(studioProfile.rate_tier_1) > 0)), where: OPTIONAL_FIELDS[3]!.where, how: OPTIONAL_FIELDS[3]!.how, why: OPTIONAL_FIELDS[3]!.why },
@@ -523,11 +627,13 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   ];
 
   return (
-    <PaymentSuccessOnboarding
-      userName={user.display_name}
-      completionPercentage={completionPercentage}
-      requiredFields={requiredFieldsWithStatus}
-      optionalFields={optionalFieldsWithStatus}
-    />
+    <AutoLoginAfterPayment>
+      <PaymentSuccessOnboarding
+        userName={finalUser.display_name}
+        completionPercentage={completionPercentage}
+        requiredFields={requiredFieldsWithStatus}
+        optionalFields={optionalFieldsWithStatus}
+      />
+    </AutoLoginAfterPayment>
   );
 }
