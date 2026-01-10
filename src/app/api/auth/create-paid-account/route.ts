@@ -60,7 +60,22 @@ export async function POST(request: NextRequest) {
       });
       
       // Send verification email
-      const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${verificationToken}`;
+      const baseUrl = getBaseUrl(request);
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
+      
+      // DEBUG: Log URL generation details
+      console.log('🔍 URL Generation Debug (existing user path):', {
+        baseUrl,
+        verificationUrl,
+        headers: {
+          host: request.headers.get('host'),
+          'x-forwarded-proto': request.headers.get('x-forwarded-proto'),
+        },
+        env: {
+          VERCEL_URL: process.env.VERCEL_URL || 'NOT SET',
+          NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || 'NOT SET',
+        },
+      });
       
       try {
         const emailSent = await sendVerificationEmail(
@@ -210,7 +225,22 @@ export async function POST(request: NextRequest) {
       }
       
       // Send verification email
-      const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${result.verificationToken}`;
+      const baseUrl = getBaseUrl(request);
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${result.verificationToken}`;
+      
+      // DEBUG: Log URL generation details
+      console.log('🔍 URL Generation Debug (new user path):', {
+        baseUrl,
+        verificationUrl,
+        headers: {
+          host: request.headers.get('host'),
+          'x-forwarded-proto': request.headers.get('x-forwarded-proto'),
+        },
+        env: {
+          VERCEL_URL: process.env.VERCEL_URL || 'NOT SET',
+          NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || 'NOT SET',
+        },
+      });
       
       try {
         const emailSent = await sendVerificationEmail(
