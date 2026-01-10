@@ -624,49 +624,120 @@ export async function DELETE(
     }
 
     const id = (await params).id;
-    let userId: string;
+    console.log('[Admin Delete] Attempting to delete studio/user with ID:', id);
 
     // Try to find the studio profile first
     const studio = await prisma.studio_profiles.findUnique({
       where: { id },
-      select: { user_id: true }
+      select: { user_id: true, name: true }
     });
+
+    let userId: string;
 
     if (studio) {
       // Studio profile exists, use its user_id
       userId = studio.user_id;
+      console.log('[Admin Delete] Found studio profile:', studio.name, 'User ID:', userId);
     } else {
       // No studio profile found, treat id as user_id directly
       // This handles users who haven't created their studio profile yet
+      console.log('[Admin Delete] No studio profile found, treating ID as user_id');
       const user = await prisma.users.findUnique({
         where: { id },
-        select: { id: true }
+        select: { id: true, email: true }
       });
 
       if (!user) {
+        console.log('[Admin Delete] User not found with ID:', id);
         return NextResponse.json(
-          { error: 'User not found' },
+          { error: 'User or studio not found' },
           { status: 404 }
         );
       }
 
       userId = user.id;
+      console.log('[Admin Delete] Found user:', user.email);
     }
 
-    // Delete the entire user account (studio and all related data will cascade delete)
-    // CASCADE is set up in the schema: studio_profiles has onDelete: Cascade on user_id
-    await prisma.users.delete({
-      where: { id: userId },
+    console.log('[Admin Delete] Deleting user account:', userId);
+
+    // Delete all related records that don't have CASCADE delete
+    // We need to do this in a transaction to ensure data consistency
+    await prisma.$transaction(async (tx) => {
+      // Delete reviews where user is owner or reviewer (no CASCADE)
+      await tx.reviews.deleteMany({
+        where: {
+          OR: [
+            { owner_id: userId },
+            { reviewer_id: userId }
+          ]
+        }
+      });
+
+      // Delete user connections (no CASCADE)
+      await tx.user_connections.deleteMany({
+        where: {
+          OR: [
+            { user_id: userId },
+            { connected_user_id: userId }
+          ]
+        }
+      });
+
+      // Delete content reports (no CASCADE on some relations)
+      await tx.content_reports.deleteMany({
+        where: {
+          OR: [
+            { reporter_id: userId },
+            { reported_user_id: userId },
+            { reviewed_by_id: userId }
+          ]
+        }
+      });
+
+      // Delete messages (no CASCADE)
+      await tx.messages.deleteMany({
+        where: {
+          OR: [
+            { sender_id: userId },
+            { receiver_id: userId }
+          ]
+        }
+      });
+
+      // Delete subscriptions (no CASCADE)
+      await tx.subscriptions.deleteMany({
+        where: { user_id: userId }
+      });
+
+      // Handle refunds where user is the processor (no CASCADE)
+      // We can't delete these, so we'll set processed_by to null if possible
+      // But since processed_by is required, we'll just leave them
+      // They reference the admin who processed them, not the user being deleted
+
+      // Now delete the user account
+      // This will CASCADE delete: accounts, sessions, notifications, payments,
+      // pending_subscriptions, saved_searches, studio_profiles, user_metadata, support_tickets
+      await tx.users.delete({
+        where: { id: userId },
+      });
     });
+
+    console.log('[Admin Delete] Successfully deleted user and all related data');
 
     return NextResponse.json({
       success: true,
       message: 'Studio and user account deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting studio:', error);
+    console.error('[Admin Delete] Error deleting studio:', error);
+    // Return detailed error for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to delete studio' },
+      { 
+        error: 'Failed to delete studio and user account',
+        details: errorMessage 
+      },
       { status: 500 }
     );
   }
