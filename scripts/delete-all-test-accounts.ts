@@ -54,7 +54,6 @@ async function deleteAllTestAccounts() {
         _count: {
           select: {
             payments: true,
-            studio_profiles: true,
           },
         },
       },
@@ -79,8 +78,8 @@ async function deleteAllTestAccounts() {
     console.log('─'.repeat(100));
     
     // Group by type
-    const withStudios = testAccounts.filter(u => u._count.studio_profiles > 0);
-    const withoutStudios = testAccounts.filter(u => u._count.studio_profiles === 0);
+    const withStudios = testAccounts.filter(u => u.studio_profiles !== null);
+    const withoutStudios = testAccounts.filter(u => u.studio_profiles === null);
     
     console.log(`\n📊 Breakdown:`);
     console.log(`   Total test accounts: ${testAccounts.length}`);
@@ -94,7 +93,7 @@ async function deleteAllTestAccounts() {
       console.log(`   Username: @${user.username}`);
       console.log(`   Status: ${user.status}`);
       console.log(`   Created: ${user.created_at.toLocaleDateString()}`);
-      console.log(`   Has Studio: ${user._count.studio_profiles > 0 ? 'Yes' : 'No'}`);
+      console.log(`   Has Studio: ${user.studio_profiles !== null ? 'Yes' : 'No'}`);
       console.log(`   Payments: ${user._count.payments}`);
       console.log('─'.repeat(100));
     });
