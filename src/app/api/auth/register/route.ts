@@ -46,35 +46,10 @@ export async function POST(request: NextRequest) {
       .replace(/on\w+\s*=/gi, '') // Remove event handlers
       .trim();
     
-    // DEBUG: Log database connection and query
-    const dbUrl = process.env.DATABASE_URL || 'NOT_SET';
-    const dbHost = dbUrl.match(/@([^/]+)\//)?.[1] || 'UNKNOWN';
-    console.log('=====================================');
-    console.log('DEBUG: REGISTER API - USER EXISTS CHECK');
-    console.log('=====================================');
-    console.log('Input email:', validatedData.email);
-    console.log('Normalized email:', normalizedEmail);
-    console.log('Database host:', dbHost);
-    console.log('Executing query: db.users.findUnique({ where: { email: normalizedEmail } })');
-    
     // Check if user already exists
     const existingUser = await db.users.findUnique({
       where: { email: normalizedEmail },
     });
-    
-    console.log('Query result:', existingUser ? 'USER FOUND' : 'NULL');
-    if (existingUser) {
-      console.log('User details:');
-      console.log('  ID:', existingUser.id);
-      console.log('  Email:', existingUser.email);
-      console.log('  Username:', existingUser.username);
-      console.log('  Display Name:', existingUser.display_name);
-      console.log('  Status:', existingUser.status);
-      console.log('  Email Verified:', existingUser.email_verified);
-      console.log('  Created:', existingUser.created_at.toISOString());
-      console.log('  Updated:', existingUser.updated_at.toISOString());
-    }
-    console.log('=====================================');
     
     if (existingUser) {
       // If user is EXPIRED, allow them to re-register with a new account
@@ -181,20 +156,8 @@ export async function POST(request: NextRequest) {
         }
       } else {
         // User is ACTIVE - cannot re-register
-        console.log('ERROR PATH: Returning "User already exists" for ACTIVE user');
-        console.log('User ID:', existingUser.id);
-        console.log('User Status:', existingUser.status);
         return NextResponse.json(
-          { 
-            error: 'User already exists with this email',
-            debug: {
-              userId: existingUser.id,
-              status: existingUser.status,
-              username: existingUser.username,
-              dbHost: dbHost,
-              emailChecked: normalizedEmail,
-            }
-          },
+          { error: 'User already exists with this email' },
           { status: 400 }
         );
       }
