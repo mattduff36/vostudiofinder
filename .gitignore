@@ -60,9 +60,6 @@ backup/
 # Project Archive
 project-archive/
 
-# Documentation folder (may contain sensitive info)
-docs/
-
 # Private scripts folder (contains maintenance scripts with personal data)
 scripts-private/
 
