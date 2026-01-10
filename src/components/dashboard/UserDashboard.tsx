@@ -356,51 +356,51 @@ export function UserDashboard({ data }: UserDashboardProps) {
                   <h3 className="text-lg font-medium text-gray-900 mb-2 md:font-extrabold md:tracking-tight">Profile Tips</h3>
                   <ul className="space-y-2 text-sm text-text-secondary inline-block text-left">
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <CheckCircle2 className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Complete all required fields to make your profile LIVE!</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <BarChart3 className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <BarChart3 className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Complete profiles get more views</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Camera className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <Camera className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Add a professional photo to build trust</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <PenTool className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <PenTool className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Fill in your About sections to stand out</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Link className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <Link className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Add connection methods so clients can reach you easily</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Megaphone className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <Megaphone className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Link your social media to showcase your work</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Brain className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <Brain className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>A good description helps with your SEO</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Trophy className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <Trophy className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Reach 85% completion to become eligible for Verified status</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Star className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <Star className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Only profiles which are 100% complete can be shown on the home page as a Featured Studio</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Globe className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <Globe className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Add your location and website for better visibility in search results</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Target className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <Target className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Upload a strong featured image – it's the first thing clients see</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <MessageSquare className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <MessageSquare className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>Include a short "intro" that sums up your studio or voice style</span>
                     </li>
                   </ul>
