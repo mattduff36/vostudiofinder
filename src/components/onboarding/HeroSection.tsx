@@ -18,11 +18,11 @@ export function HeroSection({
   userName,
   requiredFieldsCompleted,
   totalRequiredFields,
+  overallCompletionPercentage,
 }: HeroSectionProps) {
   const [showConfetti, setShowConfetti] = useState(true);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
-  const requiredPercentage = Math.round((requiredFieldsCompleted / totalRequiredFields) * 100);
   const allRequiredComplete = requiredFieldsCompleted === totalRequiredFields;
 
   useEffect(() => {
@@ -113,9 +113,9 @@ export function HeroSection({
         >
           <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 border-2 border-red-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Overall Profile</h3>
+              <h3 className="text-lg font-bold text-gray-900">Overall Profile Completion</h3>
               <span className="text-2xl font-extrabold text-red-600">
-                {requiredFieldsCompleted}/{totalRequiredFields}
+                {overallCompletionPercentage}%
               </span>
             </div>
             
@@ -128,23 +128,28 @@ export function HeroSection({
                     : 'bg-gradient-to-r from-red-600 to-red-500'
                 }`}
                 initial={{ width: 0 }}
-                animate={{ width: `${requiredPercentage}%` }}
+                animate={{ width: `${overallCompletionPercentage}%` }}
                 transition={{ delay: 0.8, duration: 1, ease: 'easeOut' }}
               />
             </div>
 
-            <p className="text-sm text-gray-700 font-medium">
-              {allRequiredComplete ? (
-                <span className="text-green-700 font-semibold">
-                  ✓ Complete! Profile Visibility unlocked
-                </span>
-              ) : (
-                <>
-                  Complete all Required Fields to unlock{' '}
-                  <span className="font-semibold text-red-700">Profile Visibility</span>
-                </>
-              )}
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-700 font-semibold">
+                Required Fields {requiredFieldsCompleted}/{totalRequiredFields}
+              </p>
+              <p className="text-sm text-gray-700 font-medium">
+                {allRequiredComplete ? (
+                  <span className="text-green-700 font-semibold">
+                    ✓ Complete! Profile Visibility unlocked
+                  </span>
+                ) : (
+                  <>
+                    Complete all Required Fields to unlock{' '}
+                    <span className="font-semibold text-red-700">Profile Visibility</span>
+                  </>
+                )}
+              </p>
+            </div>
           </div>
         </motion.div>
 
