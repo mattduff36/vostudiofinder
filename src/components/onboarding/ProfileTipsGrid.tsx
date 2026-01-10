@@ -43,15 +43,15 @@ const tips = [
   },
   {
     icon: Shield,
-    title: 'Security',
-    description: 'We take the security of your data seriously. You only need to share information with us that you feel comfortable doing so. Your privacy is our priority, and we\'ll never share your personal details without your permission.',
-    color: 'blue',
+    title: 'Your Data Security',
+    description: 'We take the security of your data seriously. Only share information you feel comfortable sharing—your privacy is our priority, and we\'ll never share your personal details without explicit permission.',
+    color: 'red',
   },
   {
     icon: Search,
     title: 'SEO (Search Engine Optimisation)',
-    description: 'We\'ve invested countless hours into making Voiceover Studio Finder one of the most searchable sites on the internet. Our SEO is so effective that we sometimes rank higher than studios\' own websites in search results, giving your profile maximum visibility.',
-    color: 'green',
+    description: 'We\'ve invested countless hours optimising Voiceover Studio Finder for search engines. Our SEO is so effective that studio listings often rank higher than studios\' own websites, giving your profile maximum visibility to potential clients.',
+    color: 'red',
   },
 ];
 

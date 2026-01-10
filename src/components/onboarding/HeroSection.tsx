@@ -161,7 +161,7 @@ export function HeroSection({
           className="text-center mt-10 pt-8 border-t border-gray-200"
         >
           <p className="text-gray-700 mb-6 text-lg">
-            Ready to get started? Head to your dashboard to complete your profile.
+            Head to your dashboard to complete your profile.
           </p>
           <Button
             onClick={() => window.location.href = '/dashboard'}

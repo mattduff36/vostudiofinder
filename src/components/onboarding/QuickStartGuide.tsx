@@ -54,7 +54,7 @@ export function QuickStartGuide({ allRequiredComplete }: QuickStartGuideProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
         {/* Arrow animations between cards on desktop */}
-        <div className="hidden md:block absolute top-1/2 left-1/3 -translate-y-1/2 -translate-x-1/2 z-0">
+        <div className="hidden md:block absolute top-1/2 left-[32.5%] -translate-y-1/2 -translate-x-1/2 z-0">
           <motion.div
             animate={{ x: [0, 10, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
