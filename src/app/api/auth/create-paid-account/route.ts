@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
       }
       
       // Send verification email
-      const verificationUrl = `${getBaseUrl()}/api/auth/verify-email?token=${result.verificationToken}`;
+      const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${result.verificationToken}`;
       
       try {
         const emailSent = await sendVerificationEmail(
