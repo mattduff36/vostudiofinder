@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, CheckSquare, Star, Image as ImageIcon, FileText, RefreshCw, Shield, Search, ChevronDown } from 'lucide-react';
+import { Target, CheckSquare, Star, Image as ImageIcon, FileText, RefreshCw, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 const tips = [
@@ -40,18 +40,6 @@ const tips = [
     title: 'Update Regularly',
     description: 'Keep your profile fresh and show you\'re actively managing your listing',
     color: 'purple',
-  },
-  {
-    icon: Shield,
-    title: 'Your Data Security',
-    description: 'We take the security of your data seriously. Only share information you feel comfortable sharing—your privacy is our priority, and we\'ll never share your personal details without explicit permission.',
-    color: 'red',
-  },
-  {
-    icon: Search,
-    title: 'SEO (Search Engine Optimisation)',
-    description: 'We\'ve invested countless hours optimising Voiceover Studio Finder for search engines. Our SEO is so effective that studio listings often rank higher than studios\' own websites, giving your profile maximum visibility to potential clients.',
-    color: 'red',
   },
 ];
 

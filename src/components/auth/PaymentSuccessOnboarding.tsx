@@ -6,6 +6,7 @@ import { HeroSection } from '@/components/onboarding/HeroSection';
 import { QuickStartGuide } from '@/components/onboarding/QuickStartGuide';
 import { AnimatedFieldCard } from '@/components/onboarding/AnimatedFieldCard';
 import { ProfileTipsGrid } from '@/components/onboarding/ProfileTipsGrid';
+import { SecurityPrivacySection } from '@/components/onboarding/SecurityPrivacySection';
 import { FloatingActionBar } from '@/components/onboarding/FloatingActionBar';
 
 interface ProfileField {
@@ -70,14 +71,17 @@ export function PaymentSuccessOnboarding({
           {/* Quick Start Guide */}
           <QuickStartGuide allRequiredComplete={allRequiredComplete} />
 
-          {/* Profile Tips Grid (MOVED UP) */}
+          {/* Profile Tips Grid */}
           <ProfileTipsGrid />
+
+          {/* Security & Privacy Section */}
+          <SecurityPrivacySection />
 
           {/* Your Data Usage Section - Field Checklists */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.6 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
             className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 md:p-10 border border-gray-100"
           >
             <div className="text-center mb-10">
