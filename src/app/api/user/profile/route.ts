@@ -17,6 +17,10 @@ export async function GET() {
   try {
     // Verify authentication
     const session = await getServerSession(authOptions);
+
+    // #region agent log (debug-session)
+    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'H1',location:'src/app/api/user/profile/route.ts:GET:auth',message:'/api/user/profile GET session check',data:{hasSession:!!session,hasSessionUserId:!!session?.user?.id},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion agent log (debug-session)
     
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -80,6 +84,10 @@ export async function GET() {
 
     // Get studio profile
     let studioProfile = user.studio_profiles || null;
+
+    // #region agent log (debug-session)
+    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'H1',location:'src/app/api/user/profile/route.ts:GET:after-query',message:'/api/user/profile loaded user + studio_profiles',data:{hasUser:true,userRole:user.role,userStatus:user.status,hasStudioProfile:!!studioProfile,studioStatus:studioProfile?.status??null,hasSubscription:(user.subscriptions?.length??0)>0},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion agent log (debug-session)
 
     // Lazy enforcement: update studio status based on membership expiry (skip for admin accounts)
     const isAdminAccount = user.role === 'ADMIN';
@@ -285,6 +293,10 @@ export async function GET() {
         membership: membershipInfo,
       },
     };
+
+    // #region agent log (debug-session)
+    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'H1',location:'src/app/api/user/profile/route.ts:GET:response-shape',message:'/api/user/profile response shape',data:{hasStudio:!!response.data.studio,hasProfile:!!response.data.profile,membershipState:response.data.membership?.state??null},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion agent log (debug-session)
 
     return NextResponse.json(response);
   } catch (error) {
