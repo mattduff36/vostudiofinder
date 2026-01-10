@@ -2,11 +2,14 @@
 
 ## Problem Identified
 
-Stripe webhooks were failing with **401 Authentication Required** errors in preview builds because Vercel deployment protection was blocking webhook requests.
+Stripe webhooks were failing in preview builds:
+1. **401 Authentication Required** - Vercel deployment protection blocking requests
+2. **307 Temporary Redirect** - Next.js redirecting webhook requests, losing POST body
 
 ## Root Cause
 
-Vercel's deployment protection requires authentication for all requests to preview builds. Stripe webhooks cannot provide this authentication, causing all webhook deliveries to fail with 401 errors.
+1. **401 Errors**: Vercel's deployment protection requires authentication for all requests to preview builds. Stripe webhooks cannot provide this authentication.
+2. **307 Redirects**: Next.js API route handling was redirecting webhook requests when using the Vercel bypass token, causing the POST body to be lost.
 
 ## Solutions Implemented
 
@@ -26,7 +29,23 @@ https://vostudiofinder-git-payment-tweaks-dev-mpdees-projects.vercel.app/api/str
 
 **Documentation**: See [`VERCEL_WEBHOOK_PROTECTION_FIX.md`](./VERCEL_WEBHOOK_PROTECTION_FIX.md)
 
-### 2. ✅ Logger Visibility Fix (Code Improvement)
+### 2. ✅ Fix 307 Redirect Issue (Critical Fix)
+
+**Problem**: Next.js was redirecting webhook requests with 307 status, causing POST body and headers to be lost.
+
+**Fix**: Added route configuration exports to prevent automatic redirects:
+```typescript
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const preferredRegion = 'auto';
+```
+
+**Files Changed**:
+- `src/app/api/stripe/webhook/route.ts` - Added route config exports
+
+**Benefit**: Webhook requests are processed directly without redirects.
+
+### 3. ✅ Logger Visibility Fix (Code Improvement)
 
 **Problem**: `logger.log()` only logs in development mode, causing silent failures in production/preview environments.
 
@@ -37,7 +56,7 @@ https://vostudiofinder-git-payment-tweaks-dev-mpdees-projects.vercel.app/api/str
 
 **Benefit**: Debug logs now visible in Vercel function logs for troubleshooting.
 
-### 3. ✅ Fallback Mechanism (Already Implemented)
+### 4. ✅ Fallback Mechanism (Already Implemented)
 
 The codebase already includes a robust fallback:
 - Success page checks Stripe directly if payment not in database
@@ -48,7 +67,7 @@ The codebase already includes a robust fallback:
 - `src/app/auth/membership/success/page.tsx` - Stripe fallback verification
 - `src/components/auth/MembershipSuccess.tsx` - Client-side verification
 
-### 4. ✅ Comprehensive Documentation
+### 5. ✅ Comprehensive Documentation
 
 Created detailed guides:
 - [`VERCEL_WEBHOOK_PROTECTION_FIX.md`](./VERCEL_WEBHOOK_PROTECTION_FIX.md) - Webhook configuration
@@ -119,14 +138,16 @@ Created detailed guides:
 
 1. `d184872` - Replace logger.log() with console.log() in webhook handler
 2. `1f9fdfd` - Complete codebase audit and documentation
+3. `b94bc66` - Add route configuration to prevent 307 redirects
 
 ## Next Steps
 
-1. ✅ **Update Stripe webhook URL** with bypass token (USER ACTION REQUIRED)
-2. ✅ Test payment on preview build
-3. ✅ Verify 200 responses in Stripe dashboard
-4. ✅ Check Vercel logs for debug output
-5. Ready to push to GitHub when confirmed working
+1. ✅ **Push changes to GitHub** (triggers Vercel redeploy)
+2. ⏳ **Wait for Vercel deployment** to complete (~2 minutes)
+3. ⏳ **Test payment** on preview build
+4. ⏳ **Verify webhook delivery** in Stripe dashboard (should show 200 OK)
+5. ⏳ **Check Vercel logs** for debug output
+6. Ready for production deployment when confirmed working
 
 ## Summary
 
