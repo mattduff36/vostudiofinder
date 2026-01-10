@@ -63,6 +63,9 @@ project-archive/
 # Private scripts folder (contains maintenance scripts with personal data)
 scripts-private/
 
+# Private documentation folder (contains docs with passwords/API keys/personal data)
+docs-private/
+
 # Temporary files
 *.tmp
 *.temp
