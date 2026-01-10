@@ -109,18 +109,10 @@ export function UserDashboard({ data }: UserDashboardProps) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        // #region agent log (debug-session)
-        fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'H1',location:'src/components/dashboard/UserDashboard.tsx:fetchProfile:start',message:'Dashboard fetchProfile start',data:{hasExistingProfileData:!!profileData},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion agent log (debug-session)
-
         const response = await fetch('/api/user/profile');
         if (response.ok) {
           const result = await response.json();
           setProfileData(result.data);
-
-          // #region agent log (debug-session)
-          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'H1',location:'src/components/dashboard/UserDashboard.tsx:fetchProfile:response',message:'Dashboard received /api/user/profile',data:{ok:true,hasData:!!result?.data,hasStudio:!!result?.data?.studio,hasProfile:!!result?.data?.profile,userRole:result?.data?.user?.role??null,membershipState:result?.data?.membership?.state??null},timestamp:Date.now()})}).catch(()=>{});
-          // #endregion agent log (debug-session)
           
           // Set initial visibility state from studio data
           if (result.data.studio) {
@@ -131,10 +123,6 @@ export function UserDashboard({ data }: UserDashboardProps) {
             // No studio yet - default to hidden
             setIsProfileVisible(false);
             logger.log('[Dashboard] No studio yet - visibility defaulting to hidden');
-
-            // #region agent log (debug-session)
-            fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'H1',location:'src/components/dashboard/UserDashboard.tsx:fetchProfile:no-studio',message:'Dashboard: API returned no studio',data:{setIsProfileVisible:false},timestamp:Date.now()})}).catch(()=>{});
-            // #endregion agent log (debug-session)
           }
         }
       } catch (err) {
