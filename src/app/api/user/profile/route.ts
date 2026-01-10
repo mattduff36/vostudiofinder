@@ -541,7 +541,7 @@ export async function PUT(request: NextRequest) {
           const { randomBytes } = await import('crypto');
           await db.studio_profiles.create({
             data: {
-              id: randomBytes(12).toString('hex'),
+              id: randomBytes(12).toString('base64url'),
               user_id: userId,
               name: updates.name || 'My Studio', // Required field
               city: updates.city || '', // Required field with default
@@ -569,7 +569,7 @@ export async function PUT(request: NextRequest) {
               const { randomBytes } = await import('crypto');
               await db.studio_studio_types.createMany({
                 data: body.studio_types.map((type: string) => ({
-                  id: randomBytes(12).toString('hex'),
+                  id: randomBytes(12).toString('base64url'),
                   studio_id: profile.id,
                   studio_type: type,
                 })),
@@ -595,7 +595,7 @@ export async function PUT(request: NextRequest) {
               const { randomBytes } = await import('crypto');
               await db.studio_services.createMany({
                 data: body.services.map((service: string) => ({
-                  id: randomBytes(12).toString('hex'),
+                  id: randomBytes(12).toString('base64url'),
                   studio_id: profile.id,
                   service: service,
                 })),
