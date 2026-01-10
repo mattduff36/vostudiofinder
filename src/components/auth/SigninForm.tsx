@@ -141,6 +141,7 @@ export function SigninForm() {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-9 h-5 w-5 text-text-secondary hover:text-text-primary"
+            tabIndex={-1}
           >
             {showPassword ? <EyeOff /> : <Eye />}
           </button>
