@@ -63,8 +63,8 @@ project-archive/
 # Documentation folder (may contain sensitive info)
 docs/
 
-# Scripts folder (contains maintenance scripts with personal data)
-scripts/
+# Private scripts folder (contains maintenance scripts with personal data)
+scripts-private/
 
 # Temporary files
 *.tmp

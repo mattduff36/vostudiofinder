@@ -65,6 +65,7 @@
     "build",
     "coverage",
     "scripts",
+    "scripts-private",
     "backups",
     "src/lib/migration",
     "project-archive",
