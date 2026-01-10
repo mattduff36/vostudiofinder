@@ -143,11 +143,21 @@ const OPTIONAL_FIELDS = [
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export default async function MembershipSuccessPage({ searchParams }: MembershipSuccessPageProps) {
+  const pageTimestamp = new Date().toISOString();
+  console.log(`[DEBUG ${pageTimestamp}] ========== SUCCESS PAGE LOAD START ==========`);
+  
   const params = await searchParams;
+  console.log(`[DEBUG ${pageTimestamp}] Search params received:`, {
+    session_id: params.session_id || 'MISSING',
+    email: params.email || 'MISSING',
+    name: params.name || 'MISSING',
+    username: params.username || 'MISSING',
+  });
 
   // Verify payment exists
   if (!params.session_id) {
-    console.error('[ERROR] No session_id provided');
+    console.error(`[DEBUG ${pageTimestamp}] ❌ ERROR: No session_id provided in URL params`);
+    console.error(`[DEBUG ${pageTimestamp}] Full params:`, JSON.stringify(params, null, 2));
     redirect('/auth/signup?error=session_expired');
   }
 
@@ -158,38 +168,87 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   const retryDelays = [1000, 2000, 4000, 8000, 10000]; // milliseconds
   let payment = null;
 
-  console.log(`[INFO] Looking up payment for session: ${params.session_id}`);
+  console.log(`[DEBUG ${pageTimestamp}] Looking up payment for session: ${params.session_id}`);
+  console.log(`[DEBUG ${pageTimestamp}] Will retry up to ${maxRetries} times with delays: ${retryDelays.join(', ')}ms`);
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const attemptTimestamp = new Date().toISOString();
+    console.log(`[DEBUG ${attemptTimestamp}] ========== PAYMENT LOOKUP ATTEMPT ${attempt + 1}/${maxRetries} ==========`);
+    
     payment = await db.payments.findUnique({
       where: { stripe_checkout_session_id: params.session_id },
       select: {
         id: true,
         status: true,
         user_id: true,
+        stripe_payment_intent_id: true,
+        amount: true,
+        currency: true,
+        created_at: true,
+        updated_at: true,
       },
     });
 
+    console.log(`[DEBUG ${attemptTimestamp}] Database query result:`, payment ? {
+      id: payment.id,
+      status: payment.status,
+      user_id: payment.user_id,
+      payment_intent_id: payment.stripe_payment_intent_id,
+      amount: payment.amount,
+      currency: payment.currency,
+      created_at: payment.created_at?.toISOString(),
+      updated_at: payment.updated_at?.toISOString(),
+    } : 'NULL (not found)');
+
     if (payment && payment.status === 'SUCCEEDED') {
-      console.log(`[SUCCESS] Payment found on attempt ${attempt + 1}: ${payment.id}`);
+      console.log(`[DEBUG ${attemptTimestamp}] ✅ SUCCESS: Payment found on attempt ${attempt + 1}: ${payment.id}`);
+      console.log(`[DEBUG ${attemptTimestamp}] Payment details:`, {
+        id: payment.id,
+        status: payment.status,
+        user_id: payment.user_id,
+        amount: payment.amount,
+        currency: payment.currency,
+      });
       break;
     }
 
     // If not found or not succeeded yet, wait before retrying
     if (attempt < maxRetries - 1) {
       const delay = retryDelays[attempt] || 2000; // fallback to 2s if undefined
-      console.log(`⏳ Payment not ready, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+      console.log(`[DEBUG ${attemptTimestamp}] ⏳ Payment not ready (status: ${payment?.status || 'NOT_FOUND'}), retrying in ${delay}ms`);
       await sleep(delay);
+    } else {
+      console.log(`[DEBUG ${attemptTimestamp}] ⚠️ Final attempt completed, payment status: ${payment?.status || 'NOT_FOUND'}`);
     }
   }
 
   // After all retries, verify we have a successful payment
   if (!payment || payment.status !== 'SUCCEEDED') {
-    console.error(`[ERROR] Payment not found or not succeeded after ${maxRetries} attempts`);
+    const errorTimestamp = new Date().toISOString();
+    console.error(`[DEBUG ${errorTimestamp}] ❌ ERROR: Payment not found or not succeeded after ${maxRetries} attempts`);
+    console.error(`[DEBUG ${errorTimestamp}] Final payment state:`, payment ? {
+      id: payment.id,
+      status: payment.status,
+      user_id: payment.user_id,
+    } : 'NULL');
+    console.error(`[DEBUG ${errorTimestamp}] Session ID searched: ${params.session_id}`);
+    
+    // Additional diagnostic: Check if ANY payment exists with this session ID
+    const anyPayment = await db.payments.findUnique({
+      where: { stripe_checkout_session_id: params.session_id },
+    });
+    console.error(`[DEBUG ${errorTimestamp}] Diagnostic - Any payment with this session_id:`, anyPayment ? {
+      id: anyPayment.id,
+      status: anyPayment.status,
+    } : 'NONE');
+    
     redirect('/auth/signup?error=payment_not_found');
   }
 
+  console.log(`[DEBUG ${pageTimestamp}] ✅ Payment verified successfully, proceeding to load user data...`);
+
   // Fetch user and studio profile data (same as dashboard)
+  console.log(`[DEBUG ${pageTimestamp}] Fetching user data for user_id: ${payment.user_id}`);
   const user = await db.users.findUnique({
     where: { id: payment.user_id },
     select: {
@@ -198,13 +257,22 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       username: true,
       display_name: true,
       avatar_url: true,
+      status: true,
     },
   });
 
   if (!user) {
-    console.error('[ERROR] User not found');
+    console.error(`[DEBUG ${pageTimestamp}] ❌ ERROR: User not found for user_id: ${payment.user_id}`);
     redirect('/auth/signup?error=user_not_found');
   }
+
+  console.log(`[DEBUG ${pageTimestamp}] ✅ User found:`, {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    display_name: user.display_name,
+    status: user.status,
+  });
 
   // Fetch studio profile if exists
   const studioProfile = await db.studio_profiles.findUnique({
