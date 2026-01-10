@@ -180,7 +180,23 @@ export function SignupForm() {
       }
 
       if (!registerResponse.ok) {
-        setError(registerResult.error || 'Failed to create account');
+        // DEBUG: Log full error response
+        console.error('=== REGISTER API ERROR ===');
+        console.error('Status:', registerResponse.status);
+        console.error('Response:', registerResult);
+        if (registerResult.debug) {
+          console.error('Debug info:', registerResult.debug);
+        }
+        console.error('==========================');
+        
+        let errorMessage = registerResult.error || 'Failed to create account';
+        
+        // DEBUG: Add debug info to error message if available
+        if (registerResult.debug) {
+          errorMessage += ` [DEBUG: User ${registerResult.debug.userId} (${registerResult.debug.status}) found in DB ${registerResult.debug.dbHost}]`;
+        }
+        
+        setError(errorMessage);
         return;
       }
 
