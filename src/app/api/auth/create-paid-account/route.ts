@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       });
       
       // Send verification email
-      const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${verificationToken}`;
+      const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${verificationToken}`;
       
       try {
         const emailSent = await sendVerificationEmail(

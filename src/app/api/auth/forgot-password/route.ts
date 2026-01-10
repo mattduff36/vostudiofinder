@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
 import { sendEmail } from '@/lib/email/email-service';
 import { generatePasswordResetEmail } from '@/lib/email/templates/password-reset';
+import { getBaseUrl } from '@/lib/seo/site';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,8 +45,7 @@ export async function POST(request: NextRequest) {
     });
     
     // Build reset URL
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const resetUrl = `${baseUrl}/auth/reset-password?token=${resetToken}`;
+    const resetUrl = `${getBaseUrl(request)}/auth/reset-password?token=${resetToken}`;
     
     // Generate and send password reset email
     const { html, text } = generatePasswordResetEmail({
