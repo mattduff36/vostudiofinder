@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "description": "Modern platform for finding and connecting voiceover professionals with recording studios",
+  "overrides": {
+    "tmp": "^0.2.4",
+    "tough-cookie": "^4.1.3"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:full": "bash scripts/dev-full.sh",
