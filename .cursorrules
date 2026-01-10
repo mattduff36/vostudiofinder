@@ -2,7 +2,7 @@
 ⚠️ CRITICAL GIT RULES - READ FIRST - NEVER VIOLATE THESE RULES ⚠️
 ⚠️ ════════════════════════════════════════════════════════════════════
 
-🚨 NEVER RUN GIT PUSH UNLESS USER SAYS EXACTLY: "push to GitHub"
+🚨 NEVER RUN GIT PUSH UNLESS USER SAYS EXACTLY: "push to GitHub". (Not case sensative. "push to github" is also fine.)
 
 After ANY coding task, you MUST:
 1. ✅ Commit changes locally

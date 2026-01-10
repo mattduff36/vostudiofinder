@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { PaymentSuccessOnboarding } from '@/components/auth/PaymentSuccessOnboarding';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
+import { stripe } from '@/lib/stripe';
+import { randomBytes } from 'crypto';
 
 export const metadata: Metadata = {
   title: 'Payment Successful - Voiceover Studio Finder',
@@ -242,6 +244,120 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       status: anyPayment.status,
     } : 'NONE');
     
+    // FALLBACK: If webhook hasn't processed (common in preview builds), verify directly with Stripe
+    console.log(`[DEBUG ${errorTimestamp}] 🔄 FALLBACK: Checking Stripe directly for session ${params.session_id}...`);
+    try {
+      const stripeSession = await stripe.checkout.sessions.retrieve(params.session_id, {
+        expand: ['payment_intent'],
+      });
+      
+      console.log(`[DEBUG ${errorTimestamp}] Stripe session retrieved:`, {
+        id: stripeSession.id,
+        payment_status: stripeSession.payment_status,
+        mode: stripeSession.mode,
+        customer: stripeSession.customer || 'NONE',
+        customer_email: stripeSession.customer_email || 'NONE',
+      });
+      
+      if (stripeSession.payment_status === 'paid' && stripeSession.mode === 'payment') {
+        console.log(`[DEBUG ${errorTimestamp}] ✅ Stripe confirms payment is PAID - webhook likely not configured for preview`);
+        
+        const paymentIntent = stripeSession.payment_intent as any;
+        const userId = stripeSession.metadata?.user_id;
+        
+        if (!userId) {
+          console.error(`[DEBUG ${errorTimestamp}] ❌ ERROR: No user_id in Stripe session metadata`);
+          redirect('/auth/signup?error=payment_not_found');
+        }
+        
+        // Create payment record manually (webhook fallback)
+        console.log(`[DEBUG ${errorTimestamp}] Creating payment record manually...`);
+        const newPayment = await db.payments.create({
+          data: {
+            id: randomBytes(12).toString('base64url'),
+            user_id: userId,
+            stripe_checkout_session_id: stripeSession.id,
+            stripe_payment_intent_id: paymentIntent?.id || null,
+            stripe_charge_id: paymentIntent?.latest_charge || null,
+            amount: paymentIntent?.amount || stripeSession.amount_total || 0,
+            currency: paymentIntent?.currency || stripeSession.currency || 'gbp',
+            status: 'SUCCEEDED',
+            refunded_amount: 0,
+            metadata: stripeSession.metadata || {},
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+        });
+        
+        console.log(`[DEBUG ${errorTimestamp}] ✅ Payment record created: ${newPayment.id}`);
+        
+        // Grant membership if user exists and is verified
+        const user = await db.users.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email_verified: true,
+            status: true,
+          },
+        });
+        
+        if (user && user.email_verified && user.status !== 'ACTIVE') {
+          console.log(`[DEBUG ${errorTimestamp}] Granting membership to user ${userId}...`);
+          await db.users.update({
+            where: { id: userId },
+            data: {
+              status: 'ACTIVE',
+              updated_at: new Date(),
+            },
+          });
+          
+          // Create subscription record
+          const oneYearFromNow = new Date();
+          oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+          
+          await db.subscriptions.create({
+            data: {
+              id: randomBytes(12).toString('base64url'),
+              user_id: userId,
+              status: 'ACTIVE',
+              payment_method: 'STRIPE',
+              current_period_start: new Date(),
+              current_period_end: oneYearFromNow,
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          });
+          
+          console.log(`[DEBUG ${errorTimestamp}] ✅ Membership granted`);
+        }
+        
+        // Use the newly created payment
+        payment = {
+          id: newPayment.id,
+          status: 'SUCCEEDED' as const,
+          user_id: userId,
+          stripe_payment_intent_id: newPayment.stripe_payment_intent_id,
+          amount: newPayment.amount,
+          currency: newPayment.currency,
+          created_at: newPayment.created_at,
+          updated_at: newPayment.updated_at,
+        };
+      } else {
+        console.error(`[DEBUG ${errorTimestamp}] ❌ Stripe session not paid or wrong mode:`, {
+          payment_status: stripeSession.payment_status,
+          mode: stripeSession.mode,
+        });
+        redirect('/auth/signup?error=payment_not_found');
+      }
+    } catch (stripeError) {
+      console.error(`[DEBUG ${errorTimestamp}] ❌ ERROR: Failed to verify with Stripe:`, stripeError);
+      redirect('/auth/signup?error=payment_not_found');
+    }
+  }
+  
+  // Final check - ensure we have a payment
+  if (!payment || payment.status !== 'SUCCEEDED') {
+    console.error(`[DEBUG ${pageTimestamp}] ❌ ERROR: Still no valid payment after fallback`);
     redirect('/auth/signup?error=payment_not_found');
   }
 
