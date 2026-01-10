@@ -108,8 +108,80 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
     expand: ['payment_intent'],
   });
   console.log(`[DEBUG ${timestamp}] Expanded session retrieved. Payment intent: ${expandedSession.payment_intent ? 'EXISTS' : 'MISSING'}`);
+  console.log(`[DEBUG ${timestamp}] Session amount_total: ${expandedSession.amount_total}`);
+  console.log(`[DEBUG ${timestamp}] Session payment_status: ${expandedSession.payment_status}`);
 
   const paymentIntent = expandedSession.payment_intent as Stripe.PaymentIntent | null;
+  
+  // Handle 100% discount (no payment_intent created by Stripe)
+  if (!paymentIntent && expandedSession.amount_total === 0) {
+    console.log(`[DEBUG ${timestamp}] 💰 Zero-amount checkout (100% discount applied) - no payment_intent created`);
+    
+    // Still activate the membership, but create a special payment record
+    const zeroPaymentId = randomBytes(12).toString('base64url');
+    await db.payments.create({
+      data: {
+        id: zeroPaymentId,
+        user_id: user_id,
+        stripe_checkout_session_id: session.id,
+        stripe_payment_intent_id: null, // No payment intent for zero-amount
+        stripe_charge_id: null,
+        amount: 0,
+        currency: expandedSession.currency || 'gbp',
+        status: 'SUCCEEDED',
+        refunded_amount: 0,
+        metadata: session.metadata || {},
+        created_at: new Date(session.created * 1000),
+        updated_at: new Date(),
+      },
+    });
+    console.log(`[DEBUG ${timestamp}] ✅ Created zero-amount payment record: ${zeroPaymentId}`);
+    
+    // Grant membership immediately (bypass payment intent processing)
+    const user = await db.users.findUnique({
+      where: { id: user_id },
+      select: { id: true, email: true, status: true },
+    });
+
+    if (!user) {
+      throw new Error(`User ${user_id} not found`);
+    }
+
+    // Activate user and grant 12-month membership
+    const now = new Date();
+    const oneYearFromNow = new Date(now);
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+    await db.users.update({
+      where: { id: user_id },
+      data: {
+        status: 'ACTIVE',
+        email_verified: true,
+        updated_at: now,
+      },
+    });
+
+    const subscriptionId = randomBytes(12).toString('base64url');
+    await db.subscriptions.create({
+      data: {
+        id: subscriptionId,
+        user_id: user_id,
+        stripe_subscription_id: null,
+        stripe_customer_id: session.customer as string || null,
+        payment_method: 'STRIPE',
+        status: 'ACTIVE',
+        current_period_start: now,
+        current_period_end: oneYearFromNow,
+        created_at: now,
+        updated_at: now,
+      },
+    });
+
+    console.log(`[DEBUG ${timestamp}] ✅ User ${user_id} activated with 12-month membership (zero-amount)`);
+    console.log(`[DEBUG ${timestamp}] ========== WEBHOOK: handleMembershipPaymentSuccess END (zero-amount) ==========`);
+    return; // Exit early, membership granted
+  }
+  
   if (!paymentIntent) {
     console.error(`[DEBUG ${timestamp}] ❌ ERROR: No payment_intent found for session ${session.id}`);
     console.error(`[DEBUG ${timestamp}] Expanded session data:`, JSON.stringify(expandedSession, null, 2));
