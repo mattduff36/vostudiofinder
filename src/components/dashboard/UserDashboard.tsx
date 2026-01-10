@@ -119,6 +119,10 @@ export function UserDashboard({ data }: UserDashboardProps) {
             const visible = result.data.studio.is_profile_visible !== false;
             setIsProfileVisible(visible);
             logger.log('[Dashboard] Profile visibility loaded:', visible);
+          } else {
+            // No studio yet - default to hidden
+            setIsProfileVisible(false);
+            logger.log('[Dashboard] No studio yet - visibility defaulting to hidden');
           }
         }
       } catch (err) {
@@ -245,8 +249,8 @@ export function UserDashboard({ data }: UserDashboardProps) {
               </div>
             </div>
 
-            {/* Profile Visibility Toggle */}
-            {!loading && profileData?.studio && (
+            {/* Profile Visibility Toggle - Always visible, disabled when requirements not met */}
+            {!loading && (
               <div className="flex items-center justify-between lg:justify-end gap-4 pl-0 lg:pl-6 border-t lg:border-t-0 lg:border-l border-gray-200 pt-4 lg:pt-0">
                 <div className="flex items-center space-x-3">
                   {isProfileVisible ? (
