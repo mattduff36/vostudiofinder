@@ -83,46 +83,84 @@ export async function GET() {
 
     // If the user is ACTIVE but has no studio profile row, create one lazily.
     // This aligns with the product assumption: 1 account == 1 studio profile.
+    // Use try-catch to handle race condition: if two concurrent requests try to create,
+    // one will succeed and the other will get a unique constraint error - just re-fetch in that case.
     if (!studioProfile && user.status === 'ACTIVE') {
       const now = new Date();
       const { randomBytes } = await import('crypto');
       const newStudioId = randomBytes(12).toString('base64url');
 
-      studioProfile = await db.studio_profiles.create({
-        data: {
-          id: newStudioId,
-          user_id: user.id,
-          // Keep required fields effectively "incomplete" (empty strings), but ensure the row exists.
-          name: '',
-          city: '',
-          is_profile_visible: false,
-          created_at: now,
-          updated_at: now,
-        },
-        include: {
-          studio_studio_types: {
-            select: {
-              id: true,
-              studio_type: true,
+      try {
+        studioProfile = await db.studio_profiles.create({
+          data: {
+            id: newStudioId,
+            user_id: user.id,
+            // Keep required fields effectively "incomplete" (empty strings), but ensure the row exists.
+            name: '',
+            city: '',
+            is_profile_visible: false,
+            created_at: now,
+            updated_at: now,
+          },
+          include: {
+            studio_studio_types: {
+              select: {
+                id: true,
+                studio_type: true,
+              },
+            },
+            studio_services: {
+              select: {
+                id: true,
+                service: true,
+              },
+            },
+            studio_images: {
+              orderBy: { sort_order: 'asc' },
+              select: {
+                id: true,
+                image_url: true,
+                alt_text: true,
+                sort_order: true,
+              },
             },
           },
-          studio_services: {
-            select: {
-              id: true,
-              service: true,
+        });
+      } catch (error: unknown) {
+        // Handle race condition: if unique constraint failed, another request created it first
+        // Re-fetch the studio profile that was created by the concurrent request
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+          studioProfile = await db.studio_profiles.findUnique({
+            where: { user_id: user.id },
+            include: {
+              studio_studio_types: {
+                select: {
+                  id: true,
+                  studio_type: true,
+                },
+              },
+              studio_services: {
+                select: {
+                  id: true,
+                  service: true,
+                },
+              },
+              studio_images: {
+                orderBy: { sort_order: 'asc' },
+                select: {
+                  id: true,
+                  image_url: true,
+                  alt_text: true,
+                  sort_order: true,
+                },
+              },
             },
-          },
-          studio_images: {
-            orderBy: { sort_order: 'asc' },
-            select: {
-              id: true,
-              image_url: true,
-              alt_text: true,
-              sort_order: true,
-            },
-          },
-        },
-      });
+          });
+        } else {
+          // Re-throw if it's not a unique constraint error
+          throw error;
+        }
+      }
     }
 
     // Lazy enforcement: update studio status based on membership expiry (skip for admin accounts)

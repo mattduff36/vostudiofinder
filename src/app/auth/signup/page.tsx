@@ -30,7 +30,15 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
     }
   }
 
-  // Show the signup form
+  // Only redirect to join-waitlist in production (not preview deployments)
+  // VERCEL_ENV is set by Vercel: 'development' | 'preview' | 'production'
+  // NODE_ENV is 'production' for both preview and production deployments
+  // If VERCEL_ENV is undefined (local dev), show signup form
+  if (process.env.VERCEL_ENV === 'production') {
+    redirect('/join-waitlist');
+  }
+
+  // In development/preview, show the signup form
   return (
     <>
       {/* Render error modal separately - portal to body level */}
