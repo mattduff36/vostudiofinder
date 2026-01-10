@@ -321,6 +321,8 @@ export function SignupForm() {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-9 h-5 w-5 text-text-secondary hover:text-text-primary"
+            tabIndex={100}
+            aria-label="Toggle password visibility"
           >
             {showPassword ? <EyeOff /> : <Eye />}
           </button>
@@ -338,6 +340,8 @@ export function SignupForm() {
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             className="absolute right-3 top-9 h-5 w-5 text-text-secondary hover:text-text-primary"
+            tabIndex={101}
+            aria-label="Toggle confirm password visibility"
           >
             {showConfirmPassword ? <EyeOff /> : <Eye />}
           </button>
