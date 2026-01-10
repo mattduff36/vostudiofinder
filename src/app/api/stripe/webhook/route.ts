@@ -11,6 +11,11 @@ import { UserStatus } from '@prisma/client';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
+// Route configuration to prevent redirects
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const preferredRegion = 'auto';
+
 /**
  * Ensure webhook event idempotency by recording processed events
  */
