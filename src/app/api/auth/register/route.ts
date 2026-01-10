@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
     console.log(`✅ Created PENDING user: ${user.email} (ID: ${user.id}), reservation expires: ${reservationExpires.toISOString()}`);
     
     // Send verification email immediately
-    const verificationUrl = `${getBaseUrl()}/api/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${verificationToken}`;
     
     try {
       const emailSent = await sendVerificationEmail(

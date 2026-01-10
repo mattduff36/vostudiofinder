@@ -6,9 +6,32 @@
 /**
  * Get the canonical base URL for the site
  * Uses environment variable with fallback to production domain
+ * 
+ * @param request - Optional NextRequest to extract URL from headers (for API routes)
+ * @returns The base URL for the current deployment
  */
-export function getBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_BASE_URL || 'https://voiceoverstudiofinder.com';
+export function getBaseUrl(request?: Request): string {
+  // 1. If request is provided, extract URL from headers (most accurate for preview deployments)
+  if (request) {
+    const host = request.headers.get('host');
+    const protocol = request.headers.get('x-forwarded-proto') || 'https';
+    if (host) {
+      return `${protocol}://${host}`;
+    }
+  }
+
+  // 2. Check for explicit NEXT_PUBLIC_BASE_URL (user-configured)
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL;
+  }
+
+  // 3. Check for Vercel URL (automatically provided by Vercel for all deployments)
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // 4. Fallback to production domain
+  return 'https://voiceoverstudiofinder.com';
 }
 
 /**
