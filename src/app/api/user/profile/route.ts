@@ -89,6 +89,58 @@ export async function GET() {
     fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'H1',location:'src/app/api/user/profile/route.ts:GET:after-query',message:'/api/user/profile loaded user + studio_profiles',data:{hasUser:true,userRole:user.role,userStatus:user.status,hasStudioProfile:!!studioProfile,studioStatus:studioProfile?.status??null,hasSubscription:(user.subscriptions?.length??0)>0},timestamp:Date.now()})}).catch(()=>{});
     // #endregion agent log (debug-session)
 
+    // If the user is ACTIVE but has no studio profile row, create one lazily.
+    // This aligns with the product assumption: 1 account == 1 studio profile.
+    if (!studioProfile && user.status === 'ACTIVE') {
+      const now = new Date();
+      const { randomBytes } = await import('crypto');
+      const newStudioId = randomBytes(12).toString('base64url');
+
+      // #region agent log (debug-session)
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'post-fix',hypothesisId:'H2',location:'src/app/api/user/profile/route.ts:GET:auto-create',message:'Auto-creating missing studio profile for ACTIVE user',data:{willCreate:true,userRole:user.role,hasSubscription:(user.subscriptions?.length??0)>0},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log (debug-session)
+
+      studioProfile = await db.studio_profiles.create({
+        data: {
+          id: newStudioId,
+          user_id: user.id,
+          // Keep required fields effectively "incomplete" (empty strings), but ensure the row exists.
+          name: '',
+          city: '',
+          is_profile_visible: false,
+          created_at: now,
+          updated_at: now,
+        },
+        include: {
+          studio_studio_types: {
+            select: {
+              id: true,
+              studio_type: true,
+            },
+          },
+          studio_services: {
+            select: {
+              id: true,
+              service: true,
+            },
+          },
+          studio_images: {
+            orderBy: { sort_order: 'asc' },
+            select: {
+              id: true,
+              image_url: true,
+              alt_text: true,
+              sort_order: true,
+            },
+          },
+        },
+      });
+
+      // #region agent log (debug-session)
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'post-fix',hypothesisId:'H2',location:'src/app/api/user/profile/route.ts:GET:auto-create:done',message:'Auto-created studio profile',data:{created:true,hasStudioProfile:!!studioProfile,isProfileVisible:studioProfile.is_profile_visible===true},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log (debug-session)
+    }
+
     // Lazy enforcement: update studio status based on membership expiry (skip for admin accounts)
     const isAdminAccount = user.role === 'ADMIN';
     const latestSubscription = user.subscriptions[0];
