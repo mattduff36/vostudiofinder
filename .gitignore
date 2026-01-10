@@ -60,6 +60,9 @@ backup/
 # Project Archive
 project-archive/
 
+# Documentation folder (may contain sensitive info)
+docs/
+
 # Temporary files
 *.tmp
 *.temp
