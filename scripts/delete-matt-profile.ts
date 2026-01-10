@@ -12,12 +12,67 @@ async function deleteMattProfile() {
   console.log(`Database: ${process.env.DATABASE_URL?.replace(/(postgresql:\/\/[^:]+:)([^@]+)(@.+)/, '$1****$3')}\n`);
 
   try {
-    // Find all users with this email (case-insensitive)
-    const users = await prisma.users.findMany({
+    // First, check for waitlist entries
+    console.log('🔍 Checking waitlist entries...\n');
+    const waitlistEntries = await prisma.waitlist.findMany({
       where: {
         email: {
           equals: email,
           mode: 'insensitive',
+        },
+      },
+    });
+    
+    if (waitlistEntries.length > 0) {
+      console.log(`⚠️  Found ${waitlistEntries.length} waitlist entr(ies) with email ${email}:`);
+      waitlistEntries.forEach((entry, index) => {
+        console.log(`  ${index + 1}. Name: ${entry.name}, Email: ${entry.email}, Created: ${entry.created_at.toISOString()}`);
+      });
+      console.log();
+    } else {
+      console.log('✅ No waitlist entries found.\n');
+    }
+
+    // Find all users with this email using raw SQL for case-insensitive matching
+    console.log('🔍 Searching for users with case-insensitive email matching...\n');
+    const usersRaw = await prisma.$queryRaw<Array<{
+      id: string;
+      email: string;
+      username: string;
+      display_name: string;
+      status: string;
+    }>>`
+      SELECT id, email, username, display_name, status
+      FROM users
+      WHERE LOWER(email) = LOWER(${email})
+    `;
+
+    if (usersRaw.length === 0) {
+      console.log('⚠️  No users found with exact email (case-insensitive).\n');
+      
+      // Delete waitlist entries if found
+      if (waitlistEntries.length > 0) {
+        console.log('🗑️  Deleting waitlist entries...\n');
+        const deletedWaitlist = await prisma.waitlist.deleteMany({
+          where: {
+            email: {
+              equals: email,
+              mode: 'insensitive',
+            },
+          },
+        });
+        console.log(`✅ Deleted ${deletedWaitlist.count} waitlist entr(ies)\n`);
+      }
+      
+      console.log('✅ No users found with that email address.\n');
+      return;
+    }
+
+    // Now fetch full user data with relations
+    const users = await prisma.users.findMany({
+      where: {
+        id: {
+          in: usersRaw.map(u => u.id),
         },
       },
       include: {
@@ -34,35 +89,6 @@ async function deleteMattProfile() {
         sessions: true,
       },
     });
-
-    if (users.length === 0) {
-      console.log('⚠️  No users found with exact email. Checking for similar emails...\n');
-      
-      // Try case-insensitive search with raw SQL
-      const similarUsers = await prisma.$queryRaw<Array<{
-        id: string;
-        email: string;
-        username: string;
-        display_name: string;
-        status: string;
-      }>>`
-        SELECT id, email, username, display_name, status
-        FROM users
-        WHERE LOWER(email) LIKE LOWER(${'%' + email.split('@')[0] + '%'})
-        LIMIT 10
-      `;
-      
-      if (similarUsers.length > 0) {
-        console.log(`Found ${similarUsers.length} user(s) with similar email:\n`);
-        similarUsers.forEach((u, index) => {
-          console.log(`${index + 1}. Email: ${u.email}, Username: ${u.username}, ID: ${u.id}, Status: ${u.status}`);
-        });
-        console.log('\n⚠️  Please verify the exact email address.\n');
-      } else {
-        console.log('✅ No users found with that email address.\n');
-      }
-      return;
-    }
 
     console.log(`⚠️  Found ${users.length} user account(s) with email ${email}:\n`);
 
@@ -253,11 +279,11 @@ async function deleteMattProfile() {
         });
         console.log(`    ✅ Deleted ${supportTicketsDeleted.count} support ticket(s)`);
 
-        // Delete waitlist entries (by email)
+        // Delete waitlist entries (by email) - use the original email variable
         const waitlistEntriesDeleted = await tx.waitlist.deleteMany({
           where: {
             email: {
-              equals: user.email,
+              equals: email,
               mode: 'insensitive',
             },
           },
@@ -272,6 +298,54 @@ async function deleteMattProfile() {
       });
 
       console.log(`\n✅ Successfully deleted all data for: ${user.email}\n`);
+    }
+
+    // Final check: Delete any remaining waitlist entries (in case they weren't deleted above)
+    const remainingWaitlist = await prisma.waitlist.findMany({
+      where: {
+        email: {
+          equals: email,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    if (remainingWaitlist.length > 0) {
+      console.log(`🗑️  Found ${remainingWaitlist.length} remaining waitlist entr(ies), deleting...\n`);
+      const deletedRemaining = await prisma.waitlist.deleteMany({
+        where: {
+          email: {
+            equals: email,
+            mode: 'insensitive',
+          },
+        },
+      });
+      console.log(`✅ Deleted ${deletedRemaining.count} remaining waitlist entr(ies)\n`);
+    }
+
+    // Final verification: Check if anything remains
+    console.log('🔍 Final verification...\n');
+    const finalUsers = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*) as count
+      FROM users
+      WHERE LOWER(email) = LOWER(${email})
+    `;
+    
+    const finalWaitlist = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*) as count
+      FROM waitlist
+      WHERE LOWER(email) = LOWER(${email})
+    `;
+
+    const userCount = Number(finalUsers[0]?.count || 0);
+    const waitlistCount = Number(finalWaitlist[0]?.count || 0);
+
+    if (userCount === 0 && waitlistCount === 0) {
+      console.log('✅ Verification passed: No remaining records found.\n');
+    } else {
+      console.log(`⚠️  Verification found remaining records:`);
+      console.log(`  - Users: ${userCount}`);
+      console.log(`  - Waitlist entries: ${waitlistCount}\n`);
     }
 
     console.log('✨ Deletion complete! All profile and user data has been removed.\n');
