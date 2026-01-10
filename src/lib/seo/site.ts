@@ -20,14 +20,14 @@ export function getBaseUrl(request?: Request): string {
     }
   }
 
-  // 2. Check for explicit NEXT_PUBLIC_BASE_URL (user-configured)
-  if (process.env.NEXT_PUBLIC_BASE_URL) {
-    return process.env.NEXT_PUBLIC_BASE_URL;
-  }
-
-  // 3. Check for Vercel URL (automatically provided by Vercel for all deployments)
+  // 2. Check for Vercel URL (automatically provided by Vercel for all deployments)
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // 3. Check for explicit NEXT_PUBLIC_BASE_URL (user-configured override)
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL;
   }
 
   // 4. Fallback to production domain
