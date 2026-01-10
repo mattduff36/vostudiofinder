@@ -18,7 +18,6 @@ export function HeroSection({
   userName,
   requiredFieldsCompleted,
   totalRequiredFields,
-  overallCompletionPercentage,
 }: HeroSectionProps) {
   const [showConfetti, setShowConfetti] = useState(true);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
@@ -105,17 +104,16 @@ export function HeroSection({
           </p>
         </motion.div>
 
-        {/* Dual Progress Indicators */}
+        {/* Overall Profile Progress */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
-          className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto"
+          className="max-w-2xl mx-auto"
         >
-          {/* Required Fields Progress */}
           <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 border-2 border-red-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Required Fields</h3>
+              <h3 className="text-lg font-bold text-gray-900">Overall Profile</h3>
               <span className="text-2xl font-extrabold text-red-600">
                 {requiredFieldsCompleted}/{totalRequiredFields}
               </span>
@@ -142,34 +140,10 @@ export function HeroSection({
                 </span>
               ) : (
                 <>
-                  Complete all to unlock{' '}
+                  Complete all Required Fields to unlock{' '}
                   <span className="font-semibold text-red-700">Profile Visibility</span>
                 </>
               )}
-            </p>
-          </div>
-
-          {/* Overall Profile Completion */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border-2 border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Overall Profile</h3>
-              <span className="text-2xl font-extrabold text-gray-700">
-                {overallCompletionPercentage}%
-              </span>
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden mb-3">
-              <motion.div
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-gray-600 to-gray-500 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${overallCompletionPercentage}%` }}
-                transition={{ delay: 0.8, duration: 1, ease: 'easeOut' }}
-              />
-            </div>
-
-            <p className="text-sm text-gray-700 font-medium">
-              Includes required + optional fields
             </p>
           </div>
         </motion.div>
