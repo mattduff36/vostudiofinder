@@ -6,6 +6,7 @@ import { createCheckoutSession, SubscriptionPlan } from '@/lib/stripe';
 import { db } from '@/lib/db';
 // import { VATService } from '@/lib/vat';
 import { handleApiError } from '@/lib/sentry';
+import { getBaseUrl } from '@/lib/seo/site';
 
 const checkoutSchema = z.object({
   plan: z.enum(['PREMIUM_YEARLY']),
@@ -59,12 +60,13 @@ export async function POST(request: NextRequest) {
     }
     
     // Create Stripe checkout session
+    const baseUrl = getBaseUrl(request);
     const checkoutSession = await createCheckoutSession({
       plan: plan as SubscriptionPlan,
       user_id: session.user.id,
       studio_id,
-      successUrl: `${process.env.NEXTAUTH_URL}/${studio.users.username}?payment=success`,
-      cancelUrl: `${process.env.NEXTAUTH_URL}/${studio.users.username}?payment=cancelled`,
+      successUrl: `${baseUrl}/${studio.users.username}?payment=success`,
+      cancelUrl: `${baseUrl}/${studio.users.username}?payment=cancelled`,
     });
     
     return NextResponse.json({

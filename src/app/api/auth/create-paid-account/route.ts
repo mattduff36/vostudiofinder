@@ -60,7 +60,8 @@ export async function POST(request: NextRequest) {
       });
       
       // Send verification email
-      const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${verificationToken}`;
+      const baseUrl = getBaseUrl(request);
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
       
       try {
         const emailSent = await sendVerificationEmail(
@@ -210,7 +211,8 @@ export async function POST(request: NextRequest) {
       }
       
       // Send verification email
-      const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${result.verificationToken}`;
+      const baseUrl = getBaseUrl(request);
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${result.verificationToken}`;
       
       try {
         const emailSent = await sendVerificationEmail(

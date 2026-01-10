@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { UserStatus } from '@prisma/client';
 import { sendEmail } from '@/lib/email/email-service';
 import { reservationExpiredTemplate } from '@/lib/email/templates/username-reservation';
+import { getBaseUrl } from '@/lib/seo/site';
 
 /**
  * Cron Job: Expire Username Reservations
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
 
     console.log('🕐 [CRON] Starting reservation expiry job...');
 
+    const baseUrl = getBaseUrl(request);
     const now = new Date();
 
     // Find all PENDING users with expired reservations
@@ -93,7 +95,7 @@ export async function GET(request: NextRequest) {
             html: reservationExpiredTemplate({
               displayName: user.display_name,
               username: user.username,
-              signupUrl: `${process.env.NEXTAUTH_URL}/auth/signup`,
+              signupUrl: `${baseUrl}/auth/signup`,
             }),
           });
 

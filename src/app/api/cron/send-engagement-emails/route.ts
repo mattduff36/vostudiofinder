@@ -7,6 +7,7 @@ import {
   reservationUrgencyDay5Template,
   paymentFailedReservationTemplate
 } from '@/lib/email/templates/username-reservation';
+import { getBaseUrl } from '@/lib/seo/site';
 
 /**
  * Cron Job: Send Re-engagement Emails
@@ -53,6 +54,7 @@ export async function GET(request: NextRequest) {
 
     console.log('📧 [CRON] Starting re-engagement email job...');
 
+    const baseUrl = getBaseUrl(request);
     const now = new Date();
     let totalSent = 0;
     let totalErrors = 0;
@@ -123,7 +125,7 @@ export async function GET(request: NextRequest) {
               year: 'numeric'
             }),
             daysRemaining,
-            signupUrl: `${process.env.NEXTAUTH_URL}/api/auth/retry-payment?userId=${user.id}`,
+            signupUrl: `${baseUrl}/api/auth/retry-payment?userId=${user.id}`,
           }),
         });
 
@@ -191,7 +193,7 @@ export async function GET(request: NextRequest) {
               year: 'numeric'
             }),
             daysRemaining,
-            signupUrl: `${process.env.NEXTAUTH_URL}/api/auth/retry-payment?userId=${user.id}`,
+            signupUrl: `${baseUrl}/api/auth/retry-payment?userId=${user.id}`,
           }),
         });
 
@@ -280,7 +282,7 @@ export async function GET(request: NextRequest) {
               month: 'long',
               year: 'numeric'
             }),
-            retryUrl: `${process.env.NEXTAUTH_URL}/api/auth/retry-payment?userId=${user.id}`,
+            retryUrl: `${baseUrl}/api/auth/retry-payment?userId=${user.id}`,
           }),
         });
 

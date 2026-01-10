@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
+import { getBaseUrl } from '@/lib/seo/site';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
   apiVersion: '2025-10-29.clover',
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Stripe checkout session for one-time payment (embedded mode)
+    const baseUrl = getBaseUrl(request);
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
       payment_method_types: ['card'],
@@ -80,7 +82,7 @@ export async function POST(request: NextRequest) {
       ],
       mode: 'payment', // One-time annual fee
       ui_mode: 'embedded', // Embedded checkout stays on our site
-      return_url: `${process.env.NEXTAUTH_URL}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
+      return_url: `${baseUrl}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
       metadata: {
         user_id: userId, // CRITICAL: User always exists now (PENDING status)
         user_email: email,
