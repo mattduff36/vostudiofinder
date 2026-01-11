@@ -36,9 +36,14 @@ export function QuickActions({
 
   // Fetch profile data for completion stats
   useEffect(() => {
-    const fetchProfile = async () => {
+    interface FetchProfileOptions {
+      showLoading: boolean;
+    }
+
+    const fetchProfile = async ({ showLoading }: FetchProfileOptions) => {
       try {
-        setLoading(true);
+        if (showLoading) setLoading(true);
+
         const response = await fetch('/api/user/profile');
         if (response.ok) {
           const result = await response.json();
@@ -58,14 +63,15 @@ export function QuickActions({
       } catch (err) {
         console.error('Failed to fetch profile:', err);
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     };
-    fetchProfile();
+    fetchProfile({ showLoading: true });
 
     // Refetch when window regains focus (in case admin changed it)
     const handleFocus = () => {
-      fetchProfile();
+      // Silent refresh: don't flip `loading` or collapse/hide the accordion UI
+      fetchProfile({ showLoading: false });
     };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
