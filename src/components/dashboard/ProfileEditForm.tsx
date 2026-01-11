@@ -949,7 +949,19 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         </div>
 
         {/* Desktop Content (scrollable) */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
+        <div 
+          ref={(el) => {
+            // #region agent log
+            if (el) {
+              setTimeout(() => {
+                const styles = window.getComputedStyle(el);
+                const rect = el.getBoundingClientRect();
+                fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProfileEditForm.tsx:scrollable-content',message:'Scrollable content area',data:{display:styles.display,flex:styles.flex,minHeight:styles.minHeight,overflow:styles.overflow,overflowY:styles.overflowY,rectHeight:rect.height,scrollHeight:el.scrollHeight,hasVerticalScrollbar:el.scrollHeight>rect.height,clientHeight:el.clientHeight},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix-2',hypothesisId:'H6'})}).catch(()=>{});
+              }, 100);
+            }
+            // #endregion
+          }}
+          className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
           <div className="w-full max-w-5xl mx-auto">
             {renderSectionContent(activeSection)}
           </div>
