@@ -645,6 +645,9 @@ async function handleRefund(refund: Stripe.Refund) {
 export async function POST(request: NextRequest) {
   const requestTimestamp = new Date().toISOString();
   console.log(`[DEBUG ${requestTimestamp}] ========== WEBHOOK REQUEST RECEIVED ==========`);
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E',location:'src/app/api/stripe/webhook/route.ts:POST:entry',message:'stripe webhook endpoint hit',data:{hasWebhookSecret:!!webhookSecret},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion agent log
   
   try {
     console.log('🎣 Webhook received');
@@ -653,6 +656,9 @@ export async function POST(request: NextRequest) {
     if (!webhookSecret) {
       console.error(`[DEBUG ${requestTimestamp}] ❌ ERROR: Webhook secret not configured`);
       console.error('[ERROR] Webhook secret not configured');
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E',location:'src/app/api/stripe/webhook/route.ts:POST:no_secret',message:'stripe webhook rejected: missing STRIPE_WEBHOOK_SECRET',data:{},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log
       return NextResponse.json(
         { error: 'Stripe webhook not configured' },
         { status: 500 }
@@ -672,6 +678,9 @@ export async function POST(request: NextRequest) {
     if (!signature) {
       console.error(`[DEBUG ${requestTimestamp}] ❌ ERROR: Missing Stripe signature`);
       console.error('[ERROR] Missing Stripe signature');
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E',location:'src/app/api/stripe/webhook/route.ts:POST:no_signature',message:'stripe webhook rejected: missing stripe-signature header',data:{},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log
       return NextResponse.json(
         { error: 'Missing Stripe signature' },
         { status: 400 }
@@ -688,9 +697,15 @@ export async function POST(request: NextRequest) {
       console.log(`[DEBUG ${requestTimestamp}]   - Event type: ${event.type}`);
       console.log(`[DEBUG ${requestTimestamp}]   - Created: ${new Date(event.created * 1000).toISOString()}`);
       console.log(`[SUCCESS] Webhook verified: ${event.type} (${event.id})`);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E',location:'src/app/api/stripe/webhook/route.ts:POST:verified',message:'stripe webhook verified',data:{eventType:event.type,eventIdSuffix:typeof event.id==='string'?event.id.slice(-8):null},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log
     } catch (err) {
       console.error(`[DEBUG ${requestTimestamp}] ❌ ERROR: Webhook signature verification failed:`, err);
       console.error(`[ERROR] Webhook signature verification failed: ${err}`);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E',location:'src/app/api/stripe/webhook/route.ts:POST:verify_failed',message:'stripe webhook signature verification failed',data:{errorType:err instanceof Error?err.name:typeof err},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log
       throw err;
     }
 
