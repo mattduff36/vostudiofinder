@@ -122,22 +122,6 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
   const [saving, setSaving] = useState(false);
   const hasLoggedLoadingRef = useRef(false);
 
-  useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'no-flash-post',hypothesisId:'NF1',location:'UserDashboard.tsx:mount',message:'mount_state',data:{hasInitialProfileData:!!initialProfileData,initialLoading:!initialProfileData,href:typeof window!=='undefined'?window.location.href:'(no-window)'},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-  }, [initialProfileData]);
-
-  useEffect(() => {
-    if (!loading) return;
-    if (hasLoggedLoadingRef.current) return;
-    hasLoggedLoadingRef.current = true;
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'no-flash-post',hypothesisId:'NF2',location:'UserDashboard.tsx:loadingEffect',message:'loading_true',data:{hasInitialProfileData:!!initialProfileData,href:window.location.href},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-  }, [loading, initialProfileData]);
-
   // Fetch profile data for completion progress
   useEffect(() => {
     let didCancel = false;
