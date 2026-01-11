@@ -485,7 +485,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             full_address: studio.full_address || '',
             abbreviated_address: studio.abbreviated_address || '',
             studio_studio_types: studio.studio_studio_types && studio.studio_studio_types.length > 0 
-              ? studio.studio_studio_types.map(st => st.studio_type) 
+              ? studio.studio_studio_types.map((st: { studio_type: string }) => st.studio_type) 
               : [],
             owner: {
               ...studio.users,
@@ -540,13 +540,13 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             ...(studio.phone ? { phone: studio.phone } : {}),
             ...(studio.latitude ? { latitude: Number(studio.latitude) } : {}),
             ...(studio.longitude ? { longitude: Number(studio.longitude) } : {}),
-            studio_images: studio.studio_images.map(img => ({
+            studio_images: studio.studio_images.map((img: { id: string; image_url: string; sort_order: number | null; alt_text: string | null }) => ({
               id: img.id,
               image_url: img.image_url,
               sort_order: img.sort_order,
               alt_text: img.alt_text,
             })),
-            reviews: studio.reviews.map(review => ({
+            reviews: studio.reviews.map((review: { id: string; rating: number; content: string | null; created_at: Date; users_reviews_reviewer_idTousers: { display_name: string } }) => ({
               id: review.id,
               rating: review.rating,
               content: review.content || '',
