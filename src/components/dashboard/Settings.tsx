@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Shield,
   ExternalLink,
@@ -19,6 +19,8 @@ import {
 import { motion } from 'framer-motion';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
+import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
+import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
 
@@ -91,6 +93,32 @@ export function Settings({ data }: SettingsProps) {
     };
     fetchProfile();
   }, []);
+
+  // Calculate completion stats
+  const completionStats = useMemo(() => {
+    if (!profileData) {
+      return {
+        required: { completed: 0, total: 11 },
+        overall: { percentage: 0 },
+      };
+    }
+
+    return calculateCompletionStats({
+      user: {
+        username: profileData.user?.username || '',
+        display_name: profileData.user?.display_name || '',
+        email: profileData.user?.email || '',
+        avatar_url: profileData.user?.avatar_url || null,
+      },
+      profile: profileData.profile || {},
+      studio: {
+        name: profileData.studio?.name || null,
+        studio_types: profileData.studio?.studio_types || [],
+        images: profileData.studio?.images || [],
+        website_url: profileData.studio?.website_url || null,
+      },
+    });
+  }, [profileData]);
 
   // Scroll to expanded card on mobile
   useEffect(() => {
@@ -745,12 +773,22 @@ export function Settings({ data }: SettingsProps) {
         }}
       >
         {/* Desktop Header */}
-        <div className="flex border-b border-gray-100 px-6 py-5 items-center">
+        <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 md:text-3xl md:font-extrabold md:tracking-tight">Settings</h2>
             <p className="text-sm text-gray-600 mt-1 md:text-base">
               Manage your account settings and preferences
             </p>
+          </div>
+
+          {/* Progress Indicators */}
+          <div className="flex-shrink-0">
+            <ProgressIndicators
+              requiredFieldsCompleted={completionStats.required.completed}
+              totalRequiredFields={completionStats.required.total}
+              overallCompletionPercentage={completionStats.overall.percentage}
+              variant="compact"
+            />
           </div>
         </div>
 
@@ -785,6 +823,18 @@ export function Settings({ data }: SettingsProps) {
 
       {/* Mobile Accordion Sections */}
       <div className="md:hidden space-y-3">
+        {/* Progress Indicators - Mobile */}
+        <div className="mb-2 pb-2">
+          <div className="flex justify-center">
+            <ProgressIndicators
+              requiredFieldsCompleted={completionStats.required.completed}
+              totalRequiredFields={completionStats.required.total}
+              overallCompletionPercentage={completionStats.overall.percentage}
+              variant="minimal"
+            />
+          </div>
+        </div>
+
         {sections.map((section) => {
           const Icon = section.icon;
           const isExpanded = expandedMobileSection === section.id;

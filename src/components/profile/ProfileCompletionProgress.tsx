@@ -37,6 +37,9 @@ interface ProfileCompletionProgressProps {
     equipment_list?: string | undefined;
     services_offered?: string | undefined;
   };
+  showLists?: boolean;
+  showTitle?: boolean;
+  mobileVariant?: boolean;
 }
 
 interface ProfileField {
@@ -45,7 +48,12 @@ interface ProfileField {
   required: boolean;
 }
 
-export function ProfileCompletionProgress({ profileData }: ProfileCompletionProgressProps) {
+export function ProfileCompletionProgress({ 
+  profileData, 
+  showLists = true,
+  showTitle = true,
+  mobileVariant = false
+}: ProfileCompletionProgressProps) {
   // Use the single source of truth for calculation
   const completionStats = useMemo(() => {
     return calculateCompletionStats({
@@ -149,8 +157,10 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
   // Count completed optional fields
   const completedOptionalCount = optionalFields.filter(field => field.completed).length;
 
-  // Circle SVG parameters
-  const radius = 70;
+  // Circle SVG parameters - adjust for mobile variant
+  const svgSize = mobileVariant ? 100 : 180;
+  const radius = mobileVariant ? 40 : 70;
+  const strokeWidth = mobileVariant ? 8 : 12;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (completionPercentage / 100) * circumference;
 
@@ -169,28 +179,120 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-6 text-gray-900">Profile Completion</h2>
+      {showTitle && (
+        <h2 className={`${mobileVariant ? 'text-lg' : 'text-2xl'} font-semibold ${mobileVariant ? 'mb-4' : 'mb-6'} text-gray-900`}>
+          Profile Completion
+        </h2>
+      )}
       
-      <div className="flex flex-col md:flex-row gap-8 items-start">
+      {mobileVariant ? (
+        // Mobile 2-column layout
+        <div className="space-y-4">
+          {/* Chart and Required Fields in 2 columns */}
+          <div className="grid grid-cols-[100px_1fr] gap-4 items-start">
+            {/* Circular Progress - Left Column */}
+            <div className="relative flex items-center justify-center flex-shrink-0">
+              <svg width={svgSize} height={svgSize} className="transform -rotate-90">
+                {/* Background circle */}
+                <circle
+                  cx={svgSize / 2}
+                  cy={svgSize / 2}
+                  r={radius}
+                  stroke="#e5e7eb"
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                />
+                {/* Progress circle */}
+                <circle
+                  cx={svgSize / 2}
+                  cy={svgSize / 2}
+                  r={radius}
+                  stroke={getStrokeColor(completionPercentage)}
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                  className="transition-all duration-1000 ease-out"
+                />
+              </svg>
+              {/* Percentage text */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className={`text-lg font-bold ${getColor(completionPercentage)}`}>
+                  {completionPercentage}%
+                </span>
+              </div>
+            </div>
+
+            {/* Required Fields - Right Column */}
+            {showLists && (
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                  Required
+                </h3>
+                <div className="space-y-1.5">
+                  {requiredFields.map((field, index) => (
+                    <div key={index} className="flex items-center gap-1.5">
+                      {field.completed ? (
+                        <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                      ) : (
+                        <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      )}
+                      <span className={`text-xs ${field.completed ? 'text-gray-700' : 'text-gray-500'}`}>
+                        {field.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Optional Fields - Full Width Below */}
+          {showLists && (
+            <div className="border-t border-gray-200 pt-3">
+              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                Optional ({completedOptionalCount}/{optionalFields.length} completed)
+              </h3>
+              <div className="space-y-1.5">
+                {optionalFields.map((field, index) => (
+                  <div key={index} className="flex items-center gap-1.5">
+                    {field.completed ? (
+                      <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    )}
+                    <span className={`text-xs ${field.completed ? 'text-gray-700' : 'text-gray-400'}`}>
+                      {field.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        // Desktop layout
+        <div className="flex flex-col md:flex-row gap-8 items-start">
         {/* Circular Progress */}
-        <div className="relative flex items-center justify-center flex-shrink-0">
-          <svg width="180" height="180" className="transform -rotate-90">
+        <div className="relative flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
+          <svg width={svgSize} height={svgSize} className="transform -rotate-90">
             {/* Background circle */}
             <circle
-              cx="90"
-              cy="90"
+              cx={svgSize / 2}
+              cy={svgSize / 2}
               r={radius}
               stroke="#e5e7eb"
-              strokeWidth="12"
+              strokeWidth={strokeWidth}
               fill="none"
             />
             {/* Progress circle */}
             <circle
-              cx="90"
-              cy="90"
+              cx={svgSize / 2}
+              cy={svgSize / 2}
               r={radius}
               stroke={getStrokeColor(completionPercentage)}
-              strokeWidth="12"
+              strokeWidth={strokeWidth}
               fill="none"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -200,15 +302,18 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
           </svg>
           {/* Percentage text */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-4xl font-bold ${getColor(completionPercentage)}`}>
+            <span className={`${mobileVariant ? 'text-base' : 'text-4xl'} font-bold ${getColor(completionPercentage)}`}>
               {completionPercentage}%
             </span>
-            <span className="text-sm text-gray-600">Complete</span>
+            {!mobileVariant && (
+              <span className="text-sm text-gray-600">Complete</span>
+            )}
           </div>
         </div>
 
         {/* Completion checklist */}
-        <div className="flex-1">
+        {showLists && (
+          <div className="flex-1">
           {/* REQUIRED SECTION */}
           <div className="mb-4">
             <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">
@@ -254,7 +359,9 @@ export function ProfileCompletionProgress({ profileData }: ProfileCompletionProg
             </div>
           </div>
         </div>
-      </div>
+        )}
+        </div>
+      )}
     </div>
   );
 }

@@ -7,7 +7,7 @@ interface ProgressIndicatorsProps {
   requiredFieldsCompleted: number;
   totalRequiredFields: number;
   overallCompletionPercentage: number;
-  variant?: 'compact' | 'full';
+  variant?: 'compact' | 'full' | 'minimal';
 }
 
 export function ProgressIndicators({
@@ -18,6 +18,40 @@ export function ProgressIndicators({
 }: ProgressIndicatorsProps) {
   const requiredPercentage = (requiredFieldsCompleted / totalRequiredFields) * 100;
   const allRequiredComplete = requiredFieldsCompleted === totalRequiredFields;
+
+  if (variant === 'minimal') {
+    return (
+      <div className="flex items-center gap-4 md:gap-6 flex-wrap">
+        {/* Required Fields Indicator */}
+        <div className="flex items-center gap-2">
+          <CheckCircle2 
+            className={`w-4 h-4 flex-shrink-0 ${allRequiredComplete ? 'text-green-600' : 'text-gray-400'}`}
+            aria-hidden="true"
+          />
+          <span className="text-xs md:text-sm font-semibold text-gray-700">
+            Required:
+          </span>
+          <span className={`text-sm md:text-base font-bold ${allRequiredComplete ? 'text-green-600' : 'text-red-600'}`}>
+            {requiredFieldsCompleted}/{totalRequiredFields}
+          </span>
+        </div>
+
+        {/* Overall Completion Indicator */}
+        <div className="flex items-center gap-2">
+          <TrendingUp 
+            className="w-4 h-4 flex-shrink-0 text-blue-600"
+            aria-hidden="true"
+          />
+          <span className="text-xs md:text-sm font-semibold text-gray-700">
+            Overall:
+          </span>
+          <span className="text-sm md:text-base font-bold text-blue-600">
+            {overallCompletionPercentage}%
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (variant === 'compact') {
     return (

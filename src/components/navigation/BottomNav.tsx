@@ -31,6 +31,11 @@ export function BottomNav({ onMenuClick, session }: BottomNavProps) {
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
 
+  // Hide bottom nav on payment success page (has floating CTA bar instead)
+  if (pathname === '/auth/membership/success') {
+    return null;
+  }
+
   // Monitor fullscreen state for hiding nav on mobile
   useEffect(() => {
     const checkFullscreen = () => {

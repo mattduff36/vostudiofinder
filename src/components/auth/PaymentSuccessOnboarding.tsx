@@ -95,11 +95,11 @@ export function PaymentSuccessOnboarding({
 
             {/* Required Fields Section */}
             <div className="mb-10">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-red-200">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 pb-4 border-b-2 border-red-200">
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
                   Required Fields
                 </h3>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium text-gray-600">
                     {completedRequired} of {totalRequired} completed
                   </span>
@@ -122,11 +122,11 @@ export function PaymentSuccessOnboarding({
 
             {/* Optional Fields Section */}
             <div>
-              <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-200">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 pb-4 border-b-2 border-gray-200">
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
                   Optional Fields
                 </h3>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium text-gray-600">
                     {optionalFields.filter(f => f.completed).length} of {optionalFields.length} completed
                   </span>

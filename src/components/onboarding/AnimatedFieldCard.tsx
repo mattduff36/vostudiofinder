@@ -60,8 +60,8 @@ export function AnimatedFieldCard({ field, index }: AnimatedFieldCardProps) {
               )}
             </motion.div>
 
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <h4 className="font-bold text-gray-900 text-lg">{field.name}</h4>
                 {field.required && (
                   <span className="px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded">
@@ -78,16 +78,16 @@ export function AnimatedFieldCard({ field, index }: AnimatedFieldCardProps) {
               {/* Details (always visible for better UX) */}
               <div className="space-y-2 text-sm">
                 <div className="flex items-start gap-2">
-                  <span className="font-semibold text-gray-700 min-w-[60px]">Where:</span>
-                  <span className="text-gray-600">{field.where}</span>
+                  <span className="font-semibold text-gray-700 min-w-[60px] flex-shrink-0">Where:</span>
+                  <span className="text-gray-600 break-words">{field.where}</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="font-semibold text-gray-700 min-w-[60px]">How:</span>
-                  <span className="text-gray-600">{field.how}</span>
+                  <span className="font-semibold text-gray-700 min-w-[60px] flex-shrink-0">How:</span>
+                  <span className="text-gray-600 break-words">{field.how}</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="font-semibold text-gray-700 min-w-[60px]">Why:</span>
-                  <span className="text-gray-600">{field.why}</span>
+                  <span className="font-semibold text-gray-700 min-w-[60px] flex-shrink-0">Why:</span>
+                  <span className="text-gray-600 break-words">{field.why}</span>
                 </div>
               </div>
             </div>

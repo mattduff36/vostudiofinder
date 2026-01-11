@@ -356,26 +356,44 @@ export function ImageGalleryManager({
     >
       {/* Header - Hidden in admin mode */}
       {!isAdminMode && (
-        <div className="border-b border-gray-200 px-4 md:px-6 py-4 md:py-5 md:border-gray-100 md:flex md:items-center md:justify-between md:gap-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 md:text-3xl md:font-extrabold md:tracking-tight">Manage Images</h2>
-            <p className="text-sm text-gray-600 mt-1 md:text-base">
-              Upload and organise your studio images ({images.length}/5)
-            </p>
+        <>
+          <div className="border-b border-gray-200 px-4 md:px-6 py-4 md:py-5 md:border-gray-100 md:flex md:items-center md:justify-between md:gap-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 md:text-3xl md:font-extrabold md:tracking-tight">Manage Images</h2>
+              <p className="text-sm text-gray-600 mt-1 md:text-base">
+                Upload and organise your studio images ({images.length}/5)
+              </p>
+            </div>
+
+            {/* Progress Indicators - Desktop */}
+            {completionStats && (
+              <div className="hidden md:flex flex-shrink-0">
+                <ProgressIndicators
+                  requiredFieldsCompleted={completionStats.required.completed}
+                  totalRequiredFields={completionStats.required.total}
+                  overallCompletionPercentage={completionStats.overall.percentage}
+                  variant="compact"
+                />
+              </div>
+            )}
           </div>
 
-          {/* Progress Indicators */}
+          {/* Progress Indicators - Mobile */}
           {completionStats && (
-            <div className="hidden md:flex flex-shrink-0">
-              <ProgressIndicators
-                requiredFieldsCompleted={completionStats.required.completed}
-                totalRequiredFields={completionStats.required.total}
-                overallCompletionPercentage={completionStats.overall.percentage}
-                variant="compact"
-              />
+            <div className="md:hidden px-4 pt-4">
+              <div className="mb-2 pb-2">
+                <div className="flex justify-center">
+                  <ProgressIndicators
+                    requiredFieldsCompleted={completionStats.required.completed}
+                    totalRequiredFields={completionStats.required.total}
+                    overallCompletionPercentage={completionStats.overall.percentage}
+                    variant="minimal"
+                  />
+                </div>
+              </div>
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* Error Message */}

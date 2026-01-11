@@ -863,7 +863,19 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
       {/* Mobile Accordion Sections */}
       <div className="md:hidden space-y-3">
-          {sections.map((section) => {
+        {/* Progress Indicators - Mobile */}
+        <div className="mb-2 pb-2">
+          <div className="flex justify-center">
+            <ProgressIndicators
+              requiredFieldsCompleted={completionStats.required.completed}
+              totalRequiredFields={completionStats.required.total}
+              overallCompletionPercentage={completionStats.overall.percentage}
+              variant="minimal"
+            />
+          </div>
+        </div>
+
+        {sections.map((section) => {
             const Icon = section.icon;
             const isExpanded = expandedMobileSection === section.id;
 
