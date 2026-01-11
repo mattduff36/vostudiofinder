@@ -355,6 +355,20 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     });
   }, []);
 
+  // #region agent log
+  useEffect(() => {
+    if (!loading && profile) {
+      const body = document.body;
+      const html = document.documentElement;
+      const main = document.querySelector('main');
+      const bodyStyles = window.getComputedStyle(body);
+      const htmlStyles = window.getComputedStyle(html);
+      const mainStyles = main ? window.getComputedStyle(main) : null;
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProfileEditForm.tsx:global-styles',message:'Global CSS check',data:{bodyOverflow:bodyStyles.overflow,bodyOverflowY:bodyStyles.overflowY,bodyMinHeight:bodyStyles.minHeight,htmlOverflow:htmlStyles.overflow,htmlOverflowY:htmlStyles.overflowY,htmlMinHeight:htmlStyles.minHeight,mainOverflow:mainStyles?.overflow,mainOverflowY:mainStyles?.overflowY,mainMinHeight:mainStyles?.minHeight,documentScrollHeight:document.documentElement.scrollHeight,windowInnerHeight:window.innerHeight},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'H3,H4'})}).catch(()=>{});
+    }
+  }, [loading, profile]);
+  // #endregion
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -856,6 +870,20 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     <>
       {/* Desktop Container - Full height with scrollable content */}
       <div
+        ref={(el) => {
+          // #region agent log
+          if (el) {
+            setTimeout(() => {
+              const styles = window.getComputedStyle(el);
+              const rect = el.getBoundingClientRect();
+              const parent = el.parentElement;
+              const parentStyles = parent ? window.getComputedStyle(parent) : null;
+              const parentRect = parent ? parent.getBoundingClientRect() : null;
+              fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProfileEditForm.tsx:container',message:'ProfileEditForm container dimensions',data:{display:styles.display,flexDirection:styles.flexDirection,height:styles.height,overflow:styles.overflow,rectHeight:rect.height,parentDisplay:parentStyles?.display,parentHeight:parentStyles?.height,parentRectHeight:parentRect?.height,parentOverflow:parentStyles?.overflow,viewportHeight:window.innerHeight,documentScrollHeight:document.documentElement.scrollHeight},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'H2,H5'})}).catch(()=>{});
+            }, 100);
+          }
+          // #endregion
+        }}
         data-edit-profile-container
         className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:flex md:flex-col md:h-full md:overflow-hidden"
         style={{
