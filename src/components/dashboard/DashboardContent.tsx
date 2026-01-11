@@ -106,7 +106,7 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
         // #endregion
       }}
       className={`relative bg-gray-50 flex flex-col ${
-        activeTab === 'edit-profile' ? 'h-screen overflow-hidden' : 'min-h-screen'
+        activeTab === 'edit-profile' ? 'h-[calc(100vh-5rem)] overflow-hidden' : 'min-h-screen'
       }`}>
       {/* Background Image - Fixed with enhanced gradient overlay on desktop */}
       <div className="fixed inset-0 z-0 pointer-events-none">
