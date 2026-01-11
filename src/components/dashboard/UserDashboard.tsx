@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Activity,
   Eye,
@@ -120,7 +120,6 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
     return false;
   });
   const [saving, setSaving] = useState(false);
-  const hasLoggedLoadingRef = useRef(false);
 
   // Fetch profile data for completion progress
   useEffect(() => {
@@ -171,7 +170,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
       }
 
       // Only show the placeholder if we don't already have content to render
-      if (!profileData) setLoading(true);
+      if (!initialProfileData && !cachedProfileData) setLoading(true);
 
       // De-dupe in-flight fetches (StrictMode/dev + quick tab switches)
       if (!inFlightProfileFetch) {
@@ -203,7 +202,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
       didCancel = true;
       window.removeEventListener('focus', handleFocus);
     };
-  }, [initialProfileData, profileData]);
+  }, [initialProfileData]);
 
   // Compute if all required fields are complete (recalculates whenever profileData changes)
   const allRequiredComplete = useMemo((): boolean => {
