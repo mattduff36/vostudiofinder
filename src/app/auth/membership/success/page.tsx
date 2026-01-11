@@ -508,11 +508,12 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       equipment_list: true,
       services_offered: true,
       facebook_url: true,
-      twitter_url: true,
+      x_url: true,
       linkedin_url: true,
       instagram_url: true,
       youtube_url: true,
-      vimeo_url: true,
+      tiktok_url: true,
+      threads_url: true,
       soundcloud_url: true,
       connection1: true,
       connection2: true,
@@ -522,6 +523,10 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       connection6: true,
       connection7: true,
       connection8: true,
+      connection9: true,
+      connection10: true,
+      connection11: true,
+      connection12: true,
       rate_tier_1: true,
       studio_studio_types: {
         select: {
@@ -553,11 +558,12 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       equipment_list: studioProfile.equipment_list,
       services_offered: studioProfile.services_offered,
       facebook_url: studioProfile.facebook_url,
-      twitter_url: studioProfile.twitter_url,
+      x_url: studioProfile.x_url,
       linkedin_url: studioProfile.linkedin_url,
       instagram_url: studioProfile.instagram_url,
       youtube_url: studioProfile.youtube_url,
-      vimeo_url: studioProfile.vimeo_url,
+      tiktok_url: studioProfile.tiktok_url,
+      threads_url: studioProfile.threads_url,
       soundcloud_url: studioProfile.soundcloud_url,
       connection1: studioProfile.connection1,
       connection2: studioProfile.connection2,
@@ -567,6 +573,10 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       connection6: studioProfile.connection6,
       connection7: studioProfile.connection7,
       connection8: studioProfile.connection8,
+      connection9: studioProfile.connection9,
+      connection10: studioProfile.connection10,
+      connection11: studioProfile.connection11,
+      connection12: studioProfile.connection12,
       rate_tier_1: studioProfile.rate_tier_1,
     } : undefined,
     studio: {
@@ -588,17 +598,22 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     studioProfile?.connection5 === '1' || 
     studioProfile?.connection6 === '1' || 
     studioProfile?.connection7 === '1' || 
-    studioProfile?.connection8 === '1'
+    studioProfile?.connection8 === '1' ||
+    studioProfile?.connection9 === '1' ||
+    studioProfile?.connection10 === '1' ||
+    studioProfile?.connection11 === '1' ||
+    studioProfile?.connection12 === '1'
   );
 
   // Count social media links
   const socialMediaCount = [
     studioProfile?.facebook_url,
-    studioProfile?.twitter_url,
+    studioProfile?.x_url,
     studioProfile?.linkedin_url,
     studioProfile?.instagram_url,
     studioProfile?.youtube_url,
-    studioProfile?.vimeo_url,
+    studioProfile?.tiktok_url,
+    studioProfile?.threads_url,
     studioProfile?.soundcloud_url,
   ].filter(url => url && url.trim() !== '').length;
 

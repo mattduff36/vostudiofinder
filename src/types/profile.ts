@@ -44,6 +44,10 @@ export interface UserProfile {
   connection6?: string;
   connection7?: string;
   connection8?: string;
+  connection9?: string;
+  connection10?: string;
+  connection11?: string;
+  connection12?: string;
   equipment_list?: string;
   services_offered?: string;
   is_featured?: boolean;
