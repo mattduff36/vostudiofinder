@@ -5,7 +5,8 @@ import crypto from 'crypto';
 import { createUser } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/sentry';
-import { sendVerificationEmail } from '@/lib/email/email-service';
+import { sendVerificationEmail, sendEmail } from '@/lib/email/email-service';
+import { paymentSuccessTemplate } from '@/lib/email/templates/payment-success';
 import { getBaseUrl } from '@/lib/seo/site';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
@@ -402,6 +403,26 @@ export async function POST(request: NextRequest) {
               
               console.log(`✅ Deferred payment processed: ${paymentId}`);
               console.log(`✅ Membership granted to ${email} until ${oneYearFromNow.toISOString()}`);
+              
+              // Send membership confirmation email
+              try {
+                await sendEmail({
+                  to: email,
+                  subject: 'Membership Confirmed - VoiceoverStudioFinder',
+                  html: paymentSuccessTemplate({
+                    customerName: display_name || 'Valued Member',
+                    amount: (paymentIntent.amount / 100).toFixed(2),
+                    currency: paymentIntent.currency.toUpperCase(),
+                    paymentId: paymentId,
+                    planName: 'Annual Membership',
+                    nextBillingDate: oneYearFromNow.toLocaleDateString(),
+                  }),
+                });
+                console.log(`✅ Membership confirmation email sent to ${email}`);
+              } catch (emailError) {
+                console.warn(`⚠️ Failed to send membership confirmation email: ${emailError}`);
+                // Don't fail the request, email sending is non-critical
+              }
             }
           } else if (eventType === 'payment_intent.payment_failed') {
             const paymentIntentData = eventPayload.data?.object || eventPayload;
