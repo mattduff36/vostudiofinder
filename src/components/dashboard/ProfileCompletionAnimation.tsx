@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MousePointer2 } from 'lucide-react';
+import { MousePointer2, Edit3 } from 'lucide-react';
 
 interface ProfileCompletionAnimationProps {
   children: ReactNode;
@@ -118,15 +118,15 @@ export function ProfileCompletionAnimation({
         >
           {children}
         </a>
-        {/* Pulsing "Edit Profile" text */}
+        {/* Pulsing "Edit Profile" text with icon */}
         <motion.div
-          className="text-center w-full"
+          className="w-full flex justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <motion.p
-            className="text-sm font-medium text-primary-600"
+          <motion.div
+            className="flex items-center gap-2 text-sm font-medium text-primary-600"
             animate={{
               opacity: [0.6, 1, 0.6],
             }}
@@ -136,8 +136,9 @@ export function ProfileCompletionAnimation({
               ease: 'easeInOut',
             }}
           >
-            Edit Profile
-          </motion.p>
+            <Edit3 className="w-4 h-4" aria-hidden="true" />
+            <span>Edit Profile</span>
+          </motion.div>
         </motion.div>
       </div>
     );
