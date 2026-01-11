@@ -354,16 +354,16 @@ export function QuickActions({
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               {!allRequiredComplete ? (
-                <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                  <EyeOff className="w-5 h-5 text-[#d42027]" />
+                <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <EyeOff className="w-5 h-5 text-gray-600" />
                 </div>
               ) : isProfileVisible ? (
                 <div className="flex-shrink-0 w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
                   <Eye className="w-5 h-5 text-green-600" />
                 </div>
               ) : (
-                <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <EyeOff className="w-5 h-5 text-gray-600" />
+                <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                  <EyeOff className="w-5 h-5 text-[#d42027]" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
