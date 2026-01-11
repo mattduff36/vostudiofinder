@@ -135,7 +135,9 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
       )}
 
       {/* Content */}
-      <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 ${
+      <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
+        activeTab === 'edit-profile' ? 'md:flex md:flex-col md:h-[calc(100vh-8rem)] md:overflow-hidden flex-1' : 'flex-1'
+      } ${
         // Note: `src/app/layout.tsx` already applies `pt-16` (64px) to <main> to clear the fixed Navbar.
         // This additional `pt-20` is intentional spacing + clearance for the fixed mobile back button.
         activeTab === 'overview' ? 'py-0 md:py-8' : 'pt-20 pb-8 md:py-8'

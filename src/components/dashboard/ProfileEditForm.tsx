@@ -854,16 +854,16 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
   return (
     <>
-      {/* Desktop Container - Fixed height with scrollable content */}
+      {/* Desktop Container - Full height with scrollable content */}
       <div
         data-edit-profile-container
-        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:flex md:flex-col md:overflow-hidden md:h-[calc(100vh-9rem)]"
+        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:flex md:flex-col md:h-full md:overflow-hidden"
         style={{
           boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
         }}
       >
         {/* Header Container - Avatar, Title, Progress, and Tabs (stays fixed) */}
-        <div className="shrink-0 bg-white/95 backdrop-blur-md rounded-t-2xl">
+        <div className="flex-shrink-0 bg-white/95 backdrop-blur-md rounded-t-2xl">
           {/* Desktop Header with Progress Indicators */}
           <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
             <div className="flex items-center gap-4 flex-1">
