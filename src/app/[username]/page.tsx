@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { ModernStudioProfileV3 } from '@/components/studio/profile/ModernStudioProfileV3';
 import { EnhancedUserProfile } from '@/components/profile/EnhancedUserProfile';
@@ -39,12 +39,14 @@ export async function generateStaticParams() {
 export const revalidate = 3600;
 
 export async function generateMetadata({ params }: UsernamePageProps): Promise<Metadata> {
-  const { username } = await params;
+  const { username: rawUsername } = await params;
+  const username = rawUsername.trim();
   
   // Find user by username and get their studio profile data
-  const user = await db.users.findUnique({
-    where: { username },
+  const user = await db.users.findFirst({
+    where: { username: { equals: username, mode: 'insensitive' } },
     select: {
+      username: true,
       display_name: true,
       studio_profiles: {
         where: { status: 'ACTIVE' },
@@ -93,7 +95,8 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
 
   // Construct the full page URL
   const baseUrl = getBaseUrl();
-  const pageUrl = `${baseUrl}/${username}`;
+  const canonicalUsername = user.username ?? username;
+  const pageUrl = `${baseUrl}/${canonicalUsername}`;
 
   // Use short_about if available, otherwise fall back to description
   const description = studio?.short_about || studio.description?.substring(0, 160) || `${studio.name} recording studio`;
@@ -167,11 +170,12 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
 }
 
 export default async function UsernamePage({ params }: UsernamePageProps) {
-  const { username } = await params;
+  const { username: rawUsername } = await params;
+  const username = rawUsername.trim();
 
   // Find user by username and get their studio profile with metadata
-  const user = await db.users.findUnique({
-    where: { username },
+  const user = await db.users.findFirst({
+    where: { username: { equals: username, mode: 'insensitive' } },
     include: {
       studio_profiles: {
         where: { status: 'ACTIVE' },
@@ -232,6 +236,9 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     notFound();
   }
 
+  // Canonicalize casing/whitespace to the stored username to avoid duplicates and "not found" on mixed casing.
+  if (username !== user.username) redirect(`/${user.username}`);
+
   // If user has a studio profile, show it
   const studioProfile = user.studio_profiles;
   
@@ -272,7 +279,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
 
     // Get base URL from environment or use default
     const baseUrl = getBaseUrl();
-    const pageUrl = `${baseUrl}/${username}`;
+    const pageUrl = `${baseUrl}/${user.username}`;
 
     // Get description from studio profile with fallback and content safeguard
     let businessDescription = studio.about || 

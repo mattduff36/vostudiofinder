@@ -11,10 +11,11 @@ export async function GET(
     await requireRole('ADMIN');
 
     const { username } = await params;
+    const normalizedUsername = username.trim();
 
     // Find user by username
-    const user = await db.users.findUnique({
-      where: { username },
+    const user = await db.users.findFirst({
+      where: { username: { equals: normalizedUsername, mode: 'insensitive' } },
       select: {
         id: true,
         email: true,
