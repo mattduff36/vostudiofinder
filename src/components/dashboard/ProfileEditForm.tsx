@@ -211,6 +211,70 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   }, []);
 
   useEffect(() => {
+    // This component renders a loading spinner first; only log once the sticky header can exist.
+    if (loading) return;
+    if (!profile) return;
+    const el = stickyHeaderRef.current;
+    if (!el) {
+      postDebugLog({
+        hypothesisId: 'H6',
+        location: 'ProfileEditForm.tsx:sticky-after-load',
+        message: 'Sticky ref still null after loading=false',
+        data: {
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+        },
+      });
+      return;
+    }
+
+    const navEls = Array.from(document.querySelectorAll('nav'));
+    const navRect = navEls[0]?.getBoundingClientRect();
+
+    const blockers: Array<Record<string, unknown>> = [];
+    let node: HTMLElement | null = el.parentElement;
+    let hasTransformAncestor = false;
+    let hasOverflowAncestor = false;
+    for (let i = 0; node && i < 12; i += 1) {
+      const cs = window.getComputedStyle(node);
+      const transform = cs.transform;
+      const overflow = `${cs.overflow}/${cs.overflowX}/${cs.overflowY}`;
+      const filter = cs.filter;
+      const backdropFilter = (cs as any).backdropFilter ?? '';
+      if (transform && transform !== 'none') hasTransformAncestor = true;
+      if (!overflow.startsWith('visible/visible/visible')) hasOverflowAncestor = true;
+      blockers.push({
+        tag: node.tagName,
+        className: node.className,
+        transform,
+        overflow,
+        filter,
+        backdropFilter,
+        position: cs.position,
+      });
+      node = node.parentElement;
+    }
+
+    postDebugLog({
+      hypothesisId: 'H6',
+      location: 'ProfileEditForm.tsx:sticky-after-load',
+      message: 'Sticky diagnostics after load',
+      data: {
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        navCount: navEls.length,
+        navBottom: navRect?.bottom ?? null,
+        navHeight: navRect?.height ?? null,
+        stickyComputedPosition: window.getComputedStyle(el).position,
+        stickyComputedTop: window.getComputedStyle(el).top,
+        hasTransformAncestor,
+        hasOverflowAncestor,
+        blockers,
+      },
+    });
+  }, [loading, profile]);
+
+  useEffect(() => {
     const el = stickyHeaderRef.current;
     if (!el) return undefined;
 
