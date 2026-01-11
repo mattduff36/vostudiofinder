@@ -154,9 +154,9 @@ export function AvatarUpload({
                   </div>
                 </div>
               ) : (
-                // Transparent overlay for empty state - text only, no background
-                <div className="hidden md:flex absolute inset-0 bg-transparent transition-opacity items-center justify-center z-10">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-2">
+                // Empty state - always visible on desktop with subtle background
+                <div className="hidden md:flex absolute inset-0 bg-gray-50/50 items-center justify-center z-10">
+                  <div className="flex flex-col items-center gap-2 transition-transform group-hover:scale-110">
                     <Upload className={`w-6 h-6 ${variant === 'admin' ? 'text-gray-900' : 'text-[#d42027]'}`} />
                     <span className={`text-xs font-medium ${variant === 'admin' ? 'text-gray-900' : 'text-[#d42027]'}`}>
                       Upload Avatar
