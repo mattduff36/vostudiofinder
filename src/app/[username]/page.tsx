@@ -379,7 +379,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         bestRating: 5,
         worstRating: 1,
       } : undefined,
-      review: studio.reviews.slice(0, 5).map((review) => ({
+      review: studio.reviews.slice(0, 5).map((review: { rating: number; content: string | null; created_at: Date; users_reviews_reviewer_idTousers: { display_name: string } }) => ({
         '@type': 'Review',
         reviewRating: {
           '@type': 'Rating',
