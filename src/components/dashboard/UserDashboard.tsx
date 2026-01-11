@@ -154,7 +154,11 @@ export function UserDashboard({ data }: UserDashboardProps) {
       profileData.profile?.connection5 === '1' || 
       profileData.profile?.connection6 === '1' || 
       profileData.profile?.connection7 === '1' || 
-      profileData.profile?.connection8 === '1'
+      profileData.profile?.connection8 === '1' ||
+      profileData.profile?.connection9 === '1' ||
+      profileData.profile?.connection10 === '1' ||
+      profileData.profile?.connection11 === '1' ||
+      profileData.profile?.connection12 === '1'
     );
 
     // Check all 11 required fields
@@ -322,11 +326,12 @@ export function UserDashboard({ data }: UserDashboardProps) {
                       location: profileData.profile?.location,
                       studio_name: profileData.studio?.name,
                       facebook_url: profileData.profile?.facebook_url,
-                      twitter_url: profileData.profile?.twitter_url,
+                      x_url: profileData.profile?.x_url,
                       linkedin_url: profileData.profile?.linkedin_url,
                       instagram_url: profileData.profile?.instagram_url,
                       youtube_url: profileData.profile?.youtube_url,
-                      vimeo_url: profileData.profile?.vimeo_url,
+                      tiktok_url: profileData.profile?.tiktok_url,
+                      threads_url: profileData.profile?.threads_url,
                       soundcloud_url: profileData.profile?.soundcloud_url,
                       connection1: profileData.profile?.connection1,
                       connection2: profileData.profile?.connection2,
@@ -336,6 +341,10 @@ export function UserDashboard({ data }: UserDashboardProps) {
                       connection6: profileData.profile?.connection6,
                       connection7: profileData.profile?.connection7,
                       connection8: profileData.profile?.connection8,
+                      connection9: profileData.profile?.connection9,
+                      connection10: profileData.profile?.connection10,
+                      connection11: profileData.profile?.connection11,
+                      connection12: profileData.profile?.connection12,
                       rate_tier_1: profileData.profile?.rate_tier_1,
                       website_url: profileData.studio?.website_url,
                       images_count: profileData.studio?.images?.length || 0,

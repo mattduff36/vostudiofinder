@@ -15,11 +15,12 @@ interface ProfileCompletionProgressProps {
     location?: string | undefined;
     studio_name?: string | undefined;
     facebook_url?: string | undefined;
-    twitter_url?: string | undefined;
+    x_url?: string | undefined;
     linkedin_url?: string | undefined;
     instagram_url?: string | undefined;
     youtube_url?: string | undefined;
-    vimeo_url?: string | undefined;
+    tiktok_url?: string | undefined;
+    threads_url?: string | undefined;
     soundcloud_url?: string | undefined;
     connection1?: string | undefined;
     connection2?: string | undefined;
@@ -29,6 +30,10 @@ interface ProfileCompletionProgressProps {
     connection6?: string | undefined;
     connection7?: string | undefined;
     connection8?: string | undefined;
+    connection9?: string | undefined;
+    connection10?: string | undefined;
+    connection11?: string | undefined;
+    connection12?: string | undefined;
     rate_tier_1?: number | string | null | undefined;
     website_url?: string | undefined;
     images_count?: number | undefined;
@@ -76,15 +81,20 @@ export function ProfileCompletionProgress({
         connection6: profileData.connection6 || null,
         connection7: profileData.connection7 || null,
         connection8: profileData.connection8 || null,
+        connection9: profileData.connection9 || null,
+        connection10: profileData.connection10 || null,
+        connection11: profileData.connection11 || null,
+        connection12: profileData.connection12 || null,
         rate_tier_1: profileData.rate_tier_1 || null,
         equipment_list: profileData.equipment_list || null,
         services_offered: profileData.services_offered || null,
         facebook_url: profileData.facebook_url || null,
-        twitter_url: profileData.twitter_url || null,
+        x_url: profileData.x_url || null,
         linkedin_url: profileData.linkedin_url || null,
         instagram_url: profileData.instagram_url || null,
         youtube_url: profileData.youtube_url || null,
-        vimeo_url: profileData.vimeo_url || null,
+        tiktok_url: profileData.tiktok_url || null,
+        threads_url: profileData.threads_url || null,
         soundcloud_url: profileData.soundcloud_url || null,
       },
       studio: {
@@ -101,19 +111,21 @@ export function ProfileCompletionProgress({
   // Count social media links (need at least 2) - memoized to prevent recalculation on every render
   const socialMediaCount = useMemo(() => [
     profileData.facebook_url,
-    profileData.twitter_url,
+    profileData.x_url,
     profileData.linkedin_url,
     profileData.instagram_url,
     profileData.youtube_url,
-    profileData.vimeo_url,
+    profileData.tiktok_url,
+    profileData.threads_url,
     profileData.soundcloud_url,
   ].filter(url => url && url.trim() !== '').length, [
     profileData.facebook_url,
-    profileData.twitter_url,
+    profileData.x_url,
     profileData.linkedin_url,
     profileData.instagram_url,
     profileData.youtube_url,
-    profileData.vimeo_url,
+    profileData.tiktok_url,
+    profileData.threads_url,
     profileData.soundcloud_url,
   ]);
 
@@ -126,7 +138,11 @@ export function ProfileCompletionProgress({
     profileData.connection5 === '1' || 
     profileData.connection6 === '1' || 
     profileData.connection7 === '1' || 
-    profileData.connection8 === '1'
+    profileData.connection8 === '1' ||
+    profileData.connection9 === '1' ||
+    profileData.connection10 === '1' ||
+    profileData.connection11 === '1' ||
+    profileData.connection12 === '1'
   );
 
   // REQUIRED fields - must complete all 11 to publish profile - memoized

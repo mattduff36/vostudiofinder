@@ -237,7 +237,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       profile.studio?.website_url?.trim()
     );
 
-    // Connections section: at least one connection1-8 === '1'
+    // Connections section: at least one connection1-12 === '1'
     const isConnectionsComplete = !!(
       profile.profile.connection1 === '1' ||
       profile.profile.connection2 === '1' ||
@@ -246,7 +246,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       profile.profile.connection5 === '1' ||
       profile.profile.connection6 === '1' ||
       profile.profile.connection7 === '1' ||
-      profile.profile.connection8 === '1'
+      profile.profile.connection8 === '1' ||
+      profile.profile.connection9 === '1' ||
+      profile.profile.connection10 === '1' ||
+      profile.profile.connection11 === '1' ||
+      profile.profile.connection12 === '1'
     );
 
     // Rates section: rate_tier_1 > 0

@@ -25,15 +25,20 @@ interface ProfileCompletionData {
     connection6?: string | null | undefined;
     connection7?: string | null | undefined;
     connection8?: string | null | undefined;
+    connection9?: string | null | undefined;
+    connection10?: string | null | undefined;
+    connection11?: string | null | undefined;
+    connection12?: string | null | undefined;
     rate_tier_1?: number | string | null | undefined;
     equipment_list?: string | null | undefined;
     services_offered?: string | null | undefined;
     facebook_url?: string | null | undefined;
-    twitter_url?: string | null | undefined;
+    x_url?: string | null | undefined;
     linkedin_url?: string | null | undefined;
     instagram_url?: string | null | undefined;
     youtube_url?: string | null | undefined;
-    vimeo_url?: string | null | undefined;
+    tiktok_url?: string | null | undefined;
+    threads_url?: string | null | undefined;
     soundcloud_url?: string | null | undefined;
   } | undefined;
   studio?: {
@@ -58,11 +63,12 @@ export function calculateCompletionStats(data: ProfileCompletionData): Completio
   // Count social media links
   const socialMediaCount = [
     data.profile?.facebook_url,
-    data.profile?.twitter_url,
+    data.profile?.x_url,
     data.profile?.linkedin_url,
     data.profile?.instagram_url,
     data.profile?.youtube_url,
-    data.profile?.vimeo_url,
+    data.profile?.tiktok_url,
+    data.profile?.threads_url,
     data.profile?.soundcloud_url,
   ].filter(url => url && url.trim() !== '').length;
 
@@ -75,7 +81,11 @@ export function calculateCompletionStats(data: ProfileCompletionData): Completio
     data.profile?.connection5 === '1' ||
     data.profile?.connection6 === '1' ||
     data.profile?.connection7 === '1' ||
-    data.profile?.connection8 === '1'
+    data.profile?.connection8 === '1' ||
+    data.profile?.connection9 === '1' ||
+    data.profile?.connection10 === '1' ||
+    data.profile?.connection11 === '1' ||
+    data.profile?.connection12 === '1'
   );
 
   // REQUIRED fields (11 fields × 5.92% ≈ 65.12%)
