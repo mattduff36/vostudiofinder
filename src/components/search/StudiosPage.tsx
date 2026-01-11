@@ -13,6 +13,7 @@ import { StudioMarkerModal } from '@/components/maps/StudioMarkerModal';
 import { logger } from '@/lib/logger';
 import { Footer } from '@/components/home/Footer';
 import { SelectedStudioDetails } from './SelectedStudioDetails';
+import { Button } from '@/components/ui/Button';
 
 interface Studio {
   id: string;
@@ -441,6 +442,13 @@ export function StudiosPage() {
 
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
 
+  // Auto-clear map-area filtering when returning to Map tab on mobile
+  useEffect(() => {
+    if (mobileView === 'map' && isFilteringByMapArea) {
+      setIsFilteringByMapArea(false);
+    }
+  }, [mobileView, isFilteringByMapArea]);
+
   // Allow document scroll on mobile to enable iOS toolbar auto-hide
   // The map view is now properly constrained without blocking document scroll
 
@@ -734,7 +742,7 @@ export function StudiosPage() {
               !searchParams.get('services') &&
               (!searchParams.get('radius') || searchParams.get('radius') === '10');
             
-            const canFilterByVisibleStudios = !!mapBounds && visibleMarkerCount <= 30;
+            const canFilterByVisibleStudios = !loading && !!mapBounds && visibleMarkerCount <= 30;
             
             const showFilterByVisibleStudios = 
               mobileView === 'map' && 
@@ -753,33 +761,40 @@ export function StudiosPage() {
               }
             };
             
-            return (
-              <button
-                onClick={handleClick}
-                className="flex items-center justify-center flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-gray-300 rounded-lg font-medium text-sm sm:text-base text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 relative"
-                aria-label={showFilterByVisibleStudios 
-                  ? 'Filter by visible studios' 
-                  : `Open filters${getActiveFilterCount() > 0 ? ` (${getActiveFilterCount()} active)` : ''}`}
-              >
-                {showFilterByVisibleStudios ? (
-                  <>
+            if (showFilterByVisibleStudios) {
+              // Use Button component with outline variant for red styling to match desktop
+              return (
+                <div className="flex-1">
+                  <Button
+                    onClick={handleClick}
+                    variant="outline"
+                    className="w-full py-2.5 sm:py-3 text-sm sm:text-base"
+                    aria-label="Filter by visible studios"
+                  >
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                     </svg>
                     Filter by Visible Studios
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
-                    </svg>
-                    Filters
-                    {getActiveFilterCount() > 0 && (
-                      <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center">
-                        {getActiveFilterCount()}
-                      </span>
-                    )}
-                  </>
+                  </Button>
+                </div>
+              );
+            }
+            
+            // Normal filters button
+            return (
+              <button
+                onClick={handleClick}
+                className="flex items-center justify-center flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-gray-300 rounded-lg font-medium text-sm sm:text-base text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 relative"
+                aria-label={`Open filters${getActiveFilterCount() > 0 ? ` (${getActiveFilterCount()} active)` : ''}`}
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+                </svg>
+                Filters
+                {getActiveFilterCount() > 0 && (
+                  <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center">
+                    {getActiveFilterCount()}
+                  </span>
                 )}
               </button>
             );
@@ -831,7 +846,7 @@ export function StudiosPage() {
         isFilteringByMapArea={isFilteringByMapArea}
         visibleMarkerCount={visibleMarkerCount}
         filterByMapAreaMaxMarkers={30}
-        isMapReady={!!mapBounds}
+        isMapReady={!loading && !!mapBounds}
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8">
@@ -865,7 +880,7 @@ export function StudiosPage() {
               isFilteringByMapArea={isFilteringByMapArea}
               visibleMarkerCount={visibleMarkerCount}
               filterByMapAreaMaxMarkers={30}
-              isMapReady={!!mapBounds}
+              isMapReady={!loading && !!mapBounds}
             />
 
               {/* Selected Studio Card - Shows when a map marker is clicked */}
