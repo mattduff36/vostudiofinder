@@ -839,6 +839,31 @@ export function Settings({ data }: SettingsProps) {
           const Icon = section.icon;
           const isExpanded = expandedMobileSection === section.id;
 
+          // Determine icon colors based on section type and membership status
+          let iconBgClass = 'bg-gray-50';
+          let iconColorClass = 'text-gray-500';
+
+          if (section.id === 'membership' && profileData) {
+            const membership = profileData.membership;
+            const isExpired = membership?.state === 'EXPIRED';
+            const daysUntilExpiry = membership?.daysUntilExpiry;
+            
+            if (isExpired || (daysUntilExpiry !== null && daysUntilExpiry !== undefined && daysUntilExpiry < 0)) {
+              // Expired - red
+              iconBgClass = 'bg-red-50';
+              iconColorClass = 'text-[#d42027]';
+            } else if (daysUntilExpiry !== null && daysUntilExpiry !== undefined && daysUntilExpiry <= 30) {
+              // Expiring soon (≤30 days) - yellow/amber
+              iconBgClass = 'bg-amber-50';
+              iconColorClass = 'text-amber-600';
+            } else {
+              // Active - green
+              iconBgClass = 'bg-green-50';
+              iconColorClass = 'text-green-600';
+            }
+          }
+          // privacy and support remain grey (default)
+
           return (
             <div
               key={section.id}
@@ -852,8 +877,8 @@ export function Settings({ data }: SettingsProps) {
                 className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors active:bg-gray-100"
               >
                 <div className="flex items-center space-x-3 flex-1">
-                  <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-[#d42027]" />
+                  <div className={`flex-shrink-0 w-10 h-10 ${iconBgClass} rounded-lg flex items-center justify-center`}>
+                    <Icon className={`w-5 h-5 ${iconColorClass}`} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 text-base">
