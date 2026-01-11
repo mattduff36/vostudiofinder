@@ -312,20 +312,14 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                   Welcome back, {user.display_name}!
                 </h1>
                 <p className="text-text-secondary">
-                  {user.role === 'ADMIN' ? (
-                    <>
-                      @{user.username} • {user.role.toLowerCase().replace('_', ' ')}
-                    </>
-                  ) : (
-                    <a
-                      href={`${getBaseUrl()}/${user.username}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary-600 hover:text-primary-700 hover:underline transition-colors"
-                    >
-                      {getBaseUrl()}/{user.username}
-                    </a>
-                  )}
+                  <a
+                    href={`${getBaseUrl()}/${user.username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-600 hover:text-primary-700 hover:underline transition-colors"
+                  >
+                    {getBaseUrl()}/{user.username}
+                  </a>
                 </p>
               </div>
             </div>
