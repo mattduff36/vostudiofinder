@@ -20,11 +20,14 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
+import { ProfileCompletionAnimation } from '@/components/dashboard/ProfileCompletionAnimation';
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
 import { Toggle } from '@/components/ui/Toggle';
 import { logger } from '@/lib/logger';
 import { showError } from '@/lib/toast';
 import { getBaseUrl } from '@/lib/seo/site';
+import { useProfileAnimation } from '@/hooks/useProfileAnimation';
+import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import type { ProfileData } from '@/types/profile';
 
 // Simple in-module cache to avoid re-fetch/judder when returning to the Overview tab
@@ -121,6 +124,9 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
     return false;
   });
   const [saving, setSaving] = useState(false);
+
+  // Animation hook for profile completion widget (desktop only)
+  const { shouldAnimate, isDesktop, markAnimationComplete } = useProfileAnimation();
 
   // Fetch profile data for completion progress
   useEffect(() => {
@@ -399,45 +405,95 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                     boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
                   }}
                 >
-                  <ProfileCompletionProgress 
-                    profileData={{
-                      display_name: profileData.user?.display_name,
-                      username: profileData.user?.username,
-                      email: profileData.user?.email,
-                      about: profileData.profile?.about,
-                      short_about: profileData.profile?.short_about,
-                      phone: profileData.profile?.phone,
-                      location: profileData.profile?.location,
-                      studio_name: profileData.studio?.name,
-                      facebook_url: profileData.profile?.facebook_url,
-                      x_url: profileData.profile?.x_url,
-                      linkedin_url: profileData.profile?.linkedin_url,
-                      instagram_url: profileData.profile?.instagram_url,
-                      youtube_url: profileData.profile?.youtube_url,
-                      tiktok_url: profileData.profile?.tiktok_url,
-                      threads_url: profileData.profile?.threads_url,
-                      soundcloud_url: profileData.profile?.soundcloud_url,
-                      connection1: profileData.profile?.connection1,
-                      connection2: profileData.profile?.connection2,
-                      connection3: profileData.profile?.connection3,
-                      connection4: profileData.profile?.connection4,
-                      connection5: profileData.profile?.connection5,
-                      connection6: profileData.profile?.connection6,
-                      connection7: profileData.profile?.connection7,
-                      connection8: profileData.profile?.connection8,
-                      connection9: profileData.profile?.connection9,
-                      connection10: profileData.profile?.connection10,
-                      connection11: profileData.profile?.connection11,
-                      connection12: profileData.profile?.connection12,
-                      rate_tier_1: profileData.profile?.rate_tier_1,
-                      website_url: profileData.studio?.website_url,
-                      images_count: profileData.studio?.images?.length || 0,
-                      studio_types_count: profileData.studio?.studio_types?.length || 0,
-                      avatar_url: profileData.user?.avatar_url,
-                      equipment_list: profileData.profile?.equipment_list,
-                      services_offered: profileData.profile?.services_offered,
-                    }}
-                  />
+                  <ProfileCompletionAnimation
+                    shouldAnimate={shouldAnimate && isDesktop}
+                    onAnimationComplete={markAnimationComplete}
+                    completionPercentage={
+                      calculateCompletionStats({
+                        user: {
+                          username: profileData.user?.username || '',
+                          display_name: profileData.user?.display_name || '',
+                          email: profileData.user?.email || '',
+                          avatar_url: profileData.user?.avatar_url || null,
+                        },
+                        profile: {
+                          short_about: profileData.profile?.short_about || null,
+                          about: profileData.profile?.about || null,
+                          phone: profileData.profile?.phone || null,
+                          location: profileData.profile?.location || null,
+                          connection1: profileData.profile?.connection1 || null,
+                          connection2: profileData.profile?.connection2 || null,
+                          connection3: profileData.profile?.connection3 || null,
+                          connection4: profileData.profile?.connection4 || null,
+                          connection5: profileData.profile?.connection5 || null,
+                          connection6: profileData.profile?.connection6 || null,
+                          connection7: profileData.profile?.connection7 || null,
+                          connection8: profileData.profile?.connection8 || null,
+                          connection9: profileData.profile?.connection9 || null,
+                          connection10: profileData.profile?.connection10 || null,
+                          connection11: profileData.profile?.connection11 || null,
+                          connection12: profileData.profile?.connection12 || null,
+                          rate_tier_1: profileData.profile?.rate_tier_1 || null,
+                          equipment_list: profileData.profile?.equipment_list || null,
+                          services_offered: profileData.profile?.services_offered || null,
+                          facebook_url: profileData.profile?.facebook_url || null,
+                          x_url: profileData.profile?.x_url || null,
+                          linkedin_url: profileData.profile?.linkedin_url || null,
+                          instagram_url: profileData.profile?.instagram_url || null,
+                          youtube_url: profileData.profile?.youtube_url || null,
+                          tiktok_url: profileData.profile?.tiktok_url || null,
+                          threads_url: profileData.profile?.threads_url || null,
+                          soundcloud_url: profileData.profile?.soundcloud_url || null,
+                        },
+                        studio: {
+                          name: profileData.studio?.name || null,
+                          studio_types: profileData.studio?.studio_types?.map(st => st.name) || [],
+                          images: profileData.studio?.images || [],
+                          website_url: profileData.studio?.website_url || null,
+                        },
+                      }).overall.percentage
+                    }
+                  >
+                    <ProfileCompletionProgress 
+                      profileData={{
+                        display_name: profileData.user?.display_name,
+                        username: profileData.user?.username,
+                        email: profileData.user?.email,
+                        about: profileData.profile?.about,
+                        short_about: profileData.profile?.short_about,
+                        phone: profileData.profile?.phone,
+                        location: profileData.profile?.location,
+                        studio_name: profileData.studio?.name,
+                        facebook_url: profileData.profile?.facebook_url,
+                        x_url: profileData.profile?.x_url,
+                        linkedin_url: profileData.profile?.linkedin_url,
+                        instagram_url: profileData.profile?.instagram_url,
+                        youtube_url: profileData.profile?.youtube_url,
+                        tiktok_url: profileData.profile?.tiktok_url,
+                        threads_url: profileData.profile?.threads_url,
+                        soundcloud_url: profileData.profile?.soundcloud_url,
+                        connection1: profileData.profile?.connection1,
+                        connection2: profileData.profile?.connection2,
+                        connection3: profileData.profile?.connection3,
+                        connection4: profileData.profile?.connection4,
+                        connection5: profileData.profile?.connection5,
+                        connection6: profileData.profile?.connection6,
+                        connection7: profileData.profile?.connection7,
+                        connection8: profileData.profile?.connection8,
+                        connection9: profileData.profile?.connection9,
+                        connection10: profileData.profile?.connection10,
+                        connection11: profileData.profile?.connection11,
+                        connection12: profileData.profile?.connection12,
+                        rate_tier_1: profileData.profile?.rate_tier_1,
+                        website_url: profileData.studio?.website_url,
+                        images_count: profileData.studio?.images?.length || 0,
+                        studio_types_count: profileData.studio?.studio_types?.length || 0,
+                        avatar_url: profileData.user?.avatar_url,
+                        equipment_list: profileData.profile?.equipment_list,
+                        services_offered: profileData.profile?.services_offered,
+                      }}
+                    />
+                  </ProfileCompletionAnimation>
                 </motion.div>
 
                 {/* Profile Tips - Takes 1/3 width on large screens */}
