@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ChevronDown, Home, Edit, Image, Settings, User } from 'lucide-react';
+import { Menu, Home, Edit, Image, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface DashboardDropdownMenuProps {
@@ -153,13 +153,13 @@ export function DashboardDropdownMenu({
           isScrolled || !isHomePage 
             ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white' 
             : 'text-white border-white hover:bg-white hover:text-primary-800'
-        } flex items-center gap-1`}
+        } flex items-center justify-center p-2`}
         aria-haspopup="menu"
         aria-expanded={isOpen}
+        aria-label="Dashboard menu"
       >
-        Dashboard
-        <ChevronDown 
-          className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+        <Menu 
+          className="w-5 h-5"
           aria-hidden="true"
         />
       </Button>
