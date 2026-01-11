@@ -302,10 +302,10 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     if (descriptionWordCount < 50) {
       const locationContext = studio.city ? ` located in ${studio.city}` : '';
       const servicesContext = studio.studio_services?.length > 0 
-        ? ` Offering ${studio.studio_services.map(s => s.service.toLowerCase()).join(', ')}`
+        ? ` Offering ${studio.studio_services.map((s: { service: string }) => s.service.toLowerCase()).join(', ')}`
         : '';
       const typesContext = studio.studio_studio_types?.length > 0
-        ? `. This ${studio.studio_studio_types.map(t => t.studio_type.toLowerCase()).join(' and ')} is ideal for voiceover professionals`
+        ? `. This ${studio.studio_studio_types.map((t: { studio_type: string }) => t.studio_type.toLowerCase()).join(' and ')} is ideal for voiceover professionals`
         : '';
       
       const supplementalContent = `Professional voiceover recording studio${locationContext}.${servicesContext}${typesContext}. Equipped for high-quality audio production and voice recording sessions. Contact us to discuss your project requirements and book a session.`;
