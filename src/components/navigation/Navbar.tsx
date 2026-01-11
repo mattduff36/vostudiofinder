@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { Button } from '@/components/ui/Button';
 import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
