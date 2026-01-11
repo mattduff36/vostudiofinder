@@ -81,7 +81,10 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     };
   }
 
-  const studio = user.studio_profiles;
+  // Extract first element since studio_profiles is a relation array (even with @unique constraint)
+  const studio = Array.isArray(user.studio_profiles)
+    ? user.studio_profiles[0]
+    : user.studio_profiles;
   
   if (!studio) {
     return {
@@ -237,10 +240,16 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
   }
 
   // Canonicalize casing/whitespace to the stored username to avoid duplicates and "not found" on mixed casing.
-  if (username !== user.username) redirect(`/${user.username}`);
+  // Use case-insensitive comparison since the query uses case-insensitive search
+  if (user.username && username.toLowerCase() !== user.username.toLowerCase()) {
+    redirect(`/${user.username}`);
+  }
 
   // If user has a studio profile, show it
-  const studioProfile = user.studio_profiles;
+  // Extract first element since studio_profiles is a relation array (even with @unique constraint)
+  const studioProfile = Array.isArray(user.studio_profiles)
+    ? user.studio_profiles[0]
+    : user.studio_profiles;
   
   if (studioProfile) {
     const studio = studioProfile;

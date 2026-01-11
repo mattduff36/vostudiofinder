@@ -44,7 +44,10 @@ export default async function DashboardPage() {
 
     if (!userWithProfile) return null;
 
-    const studioProfile = userWithProfile.studio_profiles;
+    // Extract first element since studio_profiles is a relation array (even with @unique constraint)
+    const studioProfile = Array.isArray(userWithProfile.studio_profiles)
+      ? userWithProfile.studio_profiles[0]
+      : userWithProfile.studio_profiles;
 
     const studioTypes: StudioType[] =
       studioProfile?.studio_studio_types?.map((st) => ({
