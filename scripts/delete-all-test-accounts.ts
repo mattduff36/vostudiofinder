@@ -135,13 +135,17 @@ async function deleteAllTestAccounts() {
 
           await db.$transaction(async (tx) => {
             // Delete studio-related data if exists
-            if (user.studio_profiles) {
-              const studioId = user.studio_profiles.id;
-              await tx.studio_studio_types.deleteMany({ where: { studio_id: studioId } });
-              await tx.studio_images.deleteMany({ where: { studio_id: studioId } });
-              await tx.studio_services.deleteMany({ where: { studio_id: studioId } });
-              await tx.reviews.deleteMany({ where: { studio_id: studioId } });
-              await tx.studio_profiles.delete({ where: { id: studioId } });
+            // Note: studio_profiles is a relation array, not a single object
+            if (user.studio_profiles && user.studio_profiles.length > 0) {
+              // Handle all studio profiles (users typically have 0 or 1, but handle multiple)
+              for (const studioProfile of user.studio_profiles) {
+                const studioId = studioProfile.id;
+                await tx.studio_studio_types.deleteMany({ where: { studio_id: studioId } });
+                await tx.studio_images.deleteMany({ where: { studio_id: studioId } });
+                await tx.studio_services.deleteMany({ where: { studio_id: studioId } });
+                await tx.reviews.deleteMany({ where: { studio_id: studioId } });
+                await tx.studio_profiles.delete({ where: { id: studioId } });
+              }
             }
 
             // Get payment IDs for refund deletion
@@ -259,8 +263,9 @@ async function deleteAllTestAccounts() {
     console.log('─'.repeat(100));
     
     // Group by type
-    const withStudios = testAccounts.filter(u => u.studio_profiles !== null);
-    const withoutStudios = testAccounts.filter(u => u.studio_profiles === null);
+    // Note: studio_profiles is a relation array, never null (empty array if none)
+    const withStudios = testAccounts.filter(u => u.studio_profiles && u.studio_profiles.length > 0);
+    const withoutStudios = testAccounts.filter(u => !u.studio_profiles || u.studio_profiles.length === 0);
     
     console.log(`\n📊 Breakdown:`);
     console.log(`   Total test accounts: ${testAccounts.length}`);
@@ -274,7 +279,7 @@ async function deleteAllTestAccounts() {
       console.log(`   Username: @${user.username}`);
       console.log(`   Status: ${user.status}`);
       console.log(`   Created: ${user.created_at.toLocaleDateString()}`);
-      console.log(`   Has Studio: ${user.studio_profiles !== null ? 'Yes' : 'No'}`);
+      console.log(`   Has Studio: ${user.studio_profiles && user.studio_profiles.length > 0 ? 'Yes' : 'No'}`);
       console.log(`   Payments: ${user._count.payments}`);
       console.log('─'.repeat(100));
     });
@@ -312,33 +317,37 @@ async function deleteAllTestAccounts() {
       try {
         await db.$transaction(async (tx) => {
           // 1. Delete studio-related data if exists
-          if (user.studio_profiles) {
-            const studioId = user.studio_profiles.id;
-            
-            // Delete studio types
-            await tx.studio_studio_types.deleteMany({
-              where: { studio_id: studioId },
-            });
+          // Note: studio_profiles is a relation array, not a single object
+          if (user.studio_profiles && user.studio_profiles.length > 0) {
+            // Handle all studio profiles (users typically have 0 or 1, but handle multiple)
+            for (const studioProfile of user.studio_profiles) {
+              const studioId = studioProfile.id;
+              
+              // Delete studio types
+              await tx.studio_studio_types.deleteMany({
+                where: { studio_id: studioId },
+              });
 
-            // Delete studio images
-            await tx.studio_images.deleteMany({
-              where: { studio_id: studioId },
-            });
+              // Delete studio images
+              await tx.studio_images.deleteMany({
+                where: { studio_id: studioId },
+              });
 
-            // Delete studio services
-            await tx.studio_services.deleteMany({
-              where: { studio_id: studioId },
-            });
+              // Delete studio services
+              await tx.studio_services.deleteMany({
+                where: { studio_id: studioId },
+              });
 
-            // Delete reviews for this studio
-            await tx.reviews.deleteMany({
-              where: { studio_id: studioId },
-            });
+              // Delete reviews for this studio
+              await tx.reviews.deleteMany({
+                where: { studio_id: studioId },
+              });
 
-            // Delete studio profile
-            await tx.studio_profiles.delete({
-              where: { id: studioId },
-            });
+              // Delete studio profile
+              await tx.studio_profiles.delete({
+                where: { id: studioId },
+              });
+            }
           }
 
           // 2. Get payment IDs for refund deletion
