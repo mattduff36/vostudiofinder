@@ -105,24 +105,26 @@ export default async function DashboardPage() {
             connection12: studioProfile.connection12 ?? '',
           }
         : {},
-      studio: studioProfile
+      ...(studioProfile
         ? {
-            id: studioProfile.id,
-            name: studioProfile.name ?? '',
-            user_id: studioProfile.user_id,
-            description: studioProfile.description ?? undefined,
-            website_url: studioProfile.website_url ?? undefined,
-            full_address: studioProfile.full_address ?? undefined,
-            city: studioProfile.city ?? undefined,
-            latitude: studioProfile.latitude ? Number(studioProfile.latitude) : null,
-            longitude: studioProfile.longitude ? Number(studioProfile.longitude) : null,
-            status: studioProfile.status ?? 'ACTIVE',
-            is_premium: !!studioProfile.is_premium,
-            is_profile_visible: studioProfile.is_profile_visible ?? undefined,
-            images: studioImages,
-            studio_types: studioTypes,
+            studio: {
+              id: studioProfile.id,
+              name: studioProfile.name ?? '',
+              user_id: studioProfile.user_id,
+              ...(studioProfile.description && { description: studioProfile.description }),
+              ...(studioProfile.website_url && { website_url: studioProfile.website_url }),
+              ...(studioProfile.full_address && { full_address: studioProfile.full_address }),
+              ...(studioProfile.city && { city: studioProfile.city }),
+              latitude: studioProfile.latitude ? Number(studioProfile.latitude) : null,
+              longitude: studioProfile.longitude ? Number(studioProfile.longitude) : null,
+              status: studioProfile.status ?? 'ACTIVE',
+              is_premium: !!studioProfile.is_premium,
+              ...(studioProfile.is_profile_visible !== null && studioProfile.is_profile_visible !== undefined && { is_profile_visible: studioProfile.is_profile_visible }),
+              images: studioImages,
+              studio_types: studioTypes,
+            },
           }
-        : undefined,
+        : {}),
       studio_types: studioTypes,
     };
   })();
