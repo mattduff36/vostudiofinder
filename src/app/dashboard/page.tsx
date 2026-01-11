@@ -70,7 +70,7 @@ export default async function DashboardPage() {
         display_name: userWithProfile.display_name,
         username: userWithProfile.username ?? '',
         email: userWithProfile.email ?? '',
-        avatar_url: userWithProfile.avatar_url ?? undefined,
+        ...(userWithProfile.avatar_url && { avatar_url: userWithProfile.avatar_url }),
         role: userWithProfile.role as string,
       },
       profile: studioProfile
