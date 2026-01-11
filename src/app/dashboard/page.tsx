@@ -50,13 +50,13 @@ export default async function DashboardPage() {
       : userWithProfile.studio_profiles;
 
     const studioTypes: StudioType[] =
-      studioProfile?.studio_studio_types?.map((st) => ({
+      studioProfile?.studio_studio_types?.map((st: { studio_type: string }) => ({
         id: `${studioProfile.id}-${st.studio_type}`,
         name: st.studio_type,
       })) ?? [];
 
     const studioImages: StudioImage[] =
-      studioProfile?.studio_images?.map((img) => ({
+      studioProfile?.studio_images?.map((img: { id: string; image_url: string; alt_text: string | null; sort_order: number | null }) => ({
         id: img.id,
         studio_id: studioProfile.id,
         image_url: img.image_url,
