@@ -232,7 +232,7 @@ export function ProfileCompletionAnimation({
                     color: 'white',
                     fill: 'white',
                     stroke: '#dc2626',
-                    strokeWidth: '2'
+                    strokeWidth: '1'
                   }}
                 />
               </motion.div>
