@@ -124,6 +124,83 @@ export function QuickActions({
     return requiredFieldsComplete;
   }, [profileData]);
 
+  // Compute tile-specific completion statuses for icon colors
+  const tileCompletionStatus = useMemo(() => {
+    if (!profileData) {
+      return {
+        editProfile: false,
+        images: false,
+      };
+    }
+
+    // Check if images are uploaded (1+ images)
+    const isImagesComplete = (profileData.studio?.images?.length || 0) >= 1;
+
+    // Edit Profile tile: all Edit Profile sections complete (basic, contact, connections, rates, social)
+    // Basic: username, display_name, email, studio.name, studio_types>=1, short_about, about
+    const isBasicComplete = !!(
+      profileData.user?.username &&
+      !profileData.user.username.startsWith('temp_') &&
+      profileData.user?.display_name?.trim() &&
+      profileData.user?.email?.trim() &&
+      profileData.studio?.name?.trim() &&
+      (profileData.studio?.studio_types?.length || 0) >= 1 &&
+      profileData.profile?.short_about?.trim() &&
+      profileData.profile?.about?.trim()
+    );
+
+    // Contact: location, website_url
+    const isContactComplete = !!(
+      profileData.profile?.location?.trim() &&
+      profileData.studio?.website_url?.trim()
+    );
+
+    // Connections: at least one connection1-8 === '1'
+    const isConnectionsComplete = !!(
+      profileData.profile?.connection1 === '1' ||
+      profileData.profile?.connection2 === '1' ||
+      profileData.profile?.connection3 === '1' ||
+      profileData.profile?.connection4 === '1' ||
+      profileData.profile?.connection5 === '1' ||
+      profileData.profile?.connection6 === '1' ||
+      profileData.profile?.connection7 === '1' ||
+      profileData.profile?.connection8 === '1'
+    );
+
+    // Rates: rate_tier_1 > 0
+    const isRatesComplete = !!(
+      profileData.profile?.rate_tier_1 &&
+      (typeof profileData.profile.rate_tier_1 === 'number'
+        ? profileData.profile.rate_tier_1 > 0
+        : parseFloat(profileData.profile.rate_tier_1 as any) > 0)
+    );
+
+    // Social: at least 2 social links
+    const socialLinks = [
+      profileData.profile?.facebook_url,
+      profileData.profile?.x_url,
+      profileData.profile?.youtube_url,
+      profileData.profile?.instagram_url,
+      profileData.profile?.soundcloud_url,
+      profileData.profile?.tiktok_url,
+      profileData.profile?.linkedin_url,
+      profileData.profile?.threads_url,
+    ].filter((url) => url && url.trim() !== '');
+    const isSocialComplete = socialLinks.length >= 2;
+
+    const isEditProfileComplete =
+      isBasicComplete &&
+      isContactComplete &&
+      isConnectionsComplete &&
+      isRatesComplete &&
+      isSocialComplete;
+
+    return {
+      editProfile: isEditProfileComplete,
+      images: isImagesComplete,
+    };
+  }, [profileData]);
+
   // Handle profile visibility toggle
   const handleVisibilityToggle = async (visible: boolean) => {
     setSaving(true);
@@ -315,6 +392,21 @@ export function QuickActions({
       {actions.map((action) => {
         const Icon = action.icon;
 
+        // Determine icon colors based on tile completion status
+        let iconBgClass = 'bg-red-50';
+        let iconColorClass = 'text-[#d42027]';
+
+        if (action.id === 'edit-profile') {
+          iconBgClass = tileCompletionStatus.editProfile ? 'bg-green-50' : 'bg-red-50';
+          iconColorClass = tileCompletionStatus.editProfile ? 'text-green-600' : 'text-[#d42027]';
+        } else if (action.id === 'images') {
+          iconBgClass = tileCompletionStatus.images ? 'bg-green-50' : 'bg-red-50';
+          iconColorClass = tileCompletionStatus.images ? 'text-green-600' : 'text-[#d42027]';
+        } else if (action.id === 'settings') {
+          iconBgClass = 'bg-gray-50';
+          iconColorClass = 'text-gray-500';
+        }
+
         return (
           <div
             key={action.id}
@@ -325,8 +417,8 @@ export function QuickActions({
               onClick={() => onActionClick(action.id)}
               className="w-full flex items-center space-x-3 p-4 text-left hover:bg-gray-50 transition-colors active:bg-gray-100"
             >
-              <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                <Icon className="w-5 h-5 text-[#d42027]" />
+              <div className={`flex-shrink-0 w-10 h-10 ${iconBgClass} rounded-lg flex items-center justify-center`}>
+                <Icon className={`w-5 h-5 ${iconColorClass}`} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900 text-base">

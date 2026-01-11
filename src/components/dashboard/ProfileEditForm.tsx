@@ -206,6 +206,80 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     });
   }, [profile]);
 
+  // Calculate per-section completion status for mobile accordion icons
+  const sectionStatusById = useMemo(() => {
+    if (!profile) {
+      return {
+        basic: 'incomplete',
+        contact: 'incomplete',
+        connections: 'incomplete',
+        rates: 'incomplete',
+        social: 'incomplete',
+        privacy: 'neutral',
+      };
+    }
+
+    // Basic section: username, display_name, email, studio.name, studio_types>=1, short_about, about
+    const isBasicComplete = !!(
+      profile.user.username &&
+      !profile.user.username.startsWith('temp_') &&
+      profile.user.display_name?.trim() &&
+      profile.user.email?.trim() &&
+      profile.studio?.name?.trim() &&
+      (profile.studio_types?.length || 0) >= 1 &&
+      profile.profile.short_about?.trim() &&
+      profile.profile.about?.trim()
+    );
+
+    // Contact section: location, website_url
+    const isContactComplete = !!(
+      profile.profile.location?.trim() &&
+      profile.studio?.website_url?.trim()
+    );
+
+    // Connections section: at least one connection1-8 === '1'
+    const isConnectionsComplete = !!(
+      profile.profile.connection1 === '1' ||
+      profile.profile.connection2 === '1' ||
+      profile.profile.connection3 === '1' ||
+      profile.profile.connection4 === '1' ||
+      profile.profile.connection5 === '1' ||
+      profile.profile.connection6 === '1' ||
+      profile.profile.connection7 === '1' ||
+      profile.profile.connection8 === '1'
+    );
+
+    // Rates section: rate_tier_1 > 0
+    const isRatesComplete = !!(
+      profile.profile.rate_tier_1 &&
+      (typeof profile.profile.rate_tier_1 === 'number'
+        ? profile.profile.rate_tier_1 > 0
+        : parseFloat(profile.profile.rate_tier_1 as any) > 0)
+    );
+
+    // Social section: at least 2 social links
+    const socialLinks = [
+      profile.profile.facebook_url,
+      profile.profile.x_url,
+      profile.profile.youtube_url,
+      profile.profile.instagram_url,
+      profile.profile.soundcloud_url,
+      profile.profile.tiktok_url,
+      profile.profile.linkedin_url,
+      profile.profile.threads_url,
+    ].filter((url) => url && url.trim() !== '');
+    const isSocialComplete = socialLinks.length >= 2;
+
+    return {
+      basic: isBasicComplete ? 'complete' : 'incomplete',
+      contact: isContactComplete ? 'complete' : 'incomplete',
+      connections: isConnectionsComplete ? 'complete' : 'incomplete',
+      rates: isRatesComplete ? 'complete' : 'incomplete',
+      social: isSocialComplete ? 'complete' : 'incomplete',
+      privacy: 'neutral',
+    };
+  }, [profile]);
+
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -878,6 +952,18 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         {sections.map((section) => {
             const Icon = section.icon;
             const isExpanded = expandedMobileSection === section.id;
+            const status = sectionStatusById[section.id as keyof typeof sectionStatusById];
+
+            // Determine icon colors based on completion status
+            const iconBgClass = 
+              status === 'complete' ? 'bg-green-50' :
+              status === 'neutral' ? 'bg-gray-50' :
+              'bg-red-50';
+            
+            const iconColorClass = 
+              status === 'complete' ? 'text-green-600' :
+              status === 'neutral' ? 'text-gray-500' :
+              'text-[#d42027]';
 
             return (
               <div
@@ -892,8 +978,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors active:bg-gray-100"
                 >
                   <div className="flex items-center space-x-3 flex-1">
-                    <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-[#d42027]" />
+                    <div className={`flex-shrink-0 w-10 h-10 ${iconBgClass} rounded-lg flex items-center justify-center`}>
+                      <Icon className={`w-5 h-5 ${iconColorClass}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-gray-900 text-base">
