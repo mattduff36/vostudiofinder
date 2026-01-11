@@ -3,14 +3,12 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pencil, MousePointer2 } from 'lucide-react';
-import Link from 'next/link';
+import { MousePointer2 } from 'lucide-react';
 
 interface ProfileCompletionAnimationProps {
   children: ReactNode;
   shouldAnimate: boolean;
   onAnimationComplete: () => void;
-  completionPercentage?: number; // Optional - used for potential future enhancements
 }
 
 /**
@@ -20,7 +18,7 @@ interface ProfileCompletionAnimationProps {
  * 1. Fade in at screen center (2x size) - 0.6s
  * 2. Pause with pulse glow and hints - 1.2s
  * 3. Move and shrink to final position - 0.8s
- * 4. Settle with hover effects
+ * 4. Settle with link and pulsing text
  */
 export function ProfileCompletionAnimation({
   children,
@@ -84,27 +82,63 @@ export function ProfileCompletionAnimation({
     };
   }, [shouldAnimate, mounted, onAnimationComplete]);
 
+  // Handle link click
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    // Scroll to the edit-profile section
+    const editSection = document.getElementById('edit-profile');
+    if (editSection) {
+      editSection.scrollIntoView({ behavior: 'smooth' });
+      // Update URL hash without triggering reload
+      window.history.pushState(null, '', '/dashboard#edit-profile');
+    } else {
+      // Fallback: just update the hash
+      window.location.hash = 'edit-profile';
+    }
+  };
+
   // Don't render anything during SSR
   if (!mounted) {
-    return <div ref={containerRef}>{children}</div>;
+    return (
+      <div ref={containerRef} className="relative flex items-center justify-center flex-shrink-0">
+        {children}
+      </div>
+    );
   }
 
-  // If not animating, render normally with Link wrapper
+  // If not animating, render normally with Link wrapper and pulsing text
   if (!shouldAnimate || animationPhase === 'complete') {
     return (
-      <div ref={containerRef} className="hidden md:block">
-        <Link
+      <div ref={containerRef} className="hidden md:flex md:flex-col md:items-start md:gap-3">
+        <a
           href="/dashboard#edit-profile"
+          onClick={handleClick}
+          className="group relative flex items-center justify-center transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
           aria-label="Edit your profile"
-          className="group relative flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-opacity hover:opacity-80"
-          title="Edit profile"
         >
           {children}
-          {/* Pencil icon badge - top right */}
-          <div className="absolute -top-2 -right-2 bg-primary-600 text-white rounded-full p-2 shadow-md group-hover:bg-primary-700 transition-colors">
-            <Pencil className="w-4 h-4" aria-hidden="true" />
-          </div>
-        </Link>
+        </a>
+        {/* Pulsing "Edit Profile" text */}
+        <motion.div
+          className="text-center w-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <motion.p
+            className="text-sm font-medium text-primary-600"
+            animate={{
+              opacity: [0.6, 1, 0.6],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            Edit Profile
+          </motion.p>
+        </motion.div>
       </div>
     );
   }
@@ -173,11 +207,6 @@ export function ProfileCompletionAnimation({
             {/* The actual widget */}
             <div className="relative">
               {children}
-
-              {/* Pencil icon badge - always visible during animation */}
-              <div className="absolute -top-4 -right-4 bg-primary-600 text-white rounded-full p-3 shadow-lg">
-                <Pencil className="w-6 h-6" aria-hidden="true" />
-              </div>
             </div>
 
             {/* Hand cursor icon - appears during pause */}

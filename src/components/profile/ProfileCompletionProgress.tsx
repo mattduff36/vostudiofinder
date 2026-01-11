@@ -45,6 +45,7 @@ interface ProfileCompletionProgressProps {
   showLists?: boolean;
   showTitle?: boolean;
   mobileVariant?: boolean;
+  renderWidget?: (widget: React.ReactNode) => React.ReactNode;
 }
 
 interface ProfileField {
@@ -57,7 +58,8 @@ export function ProfileCompletionProgress({
   profileData, 
   showLists = true,
   showTitle = true,
-  mobileVariant = false
+  mobileVariant = false,
+  renderWidget
 }: ProfileCompletionProgressProps) {
   // Use the single source of truth for calculation
   const completionStats = useMemo(() => {
@@ -291,41 +293,79 @@ export function ProfileCompletionProgress({
         // Desktop layout
         <div className="flex flex-col md:flex-row gap-8 items-start">
         {/* Circular Progress */}
-        <div className="relative flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
-          <svg width={svgSize} height={svgSize} className="transform -rotate-90">
-            {/* Background circle */}
-            <circle
-              cx={svgSize / 2}
-              cy={svgSize / 2}
-              r={radius}
-              stroke="#e5e7eb"
-              strokeWidth={strokeWidth}
-              fill="none"
-            />
-            {/* Progress circle */}
-            <circle
-              cx={svgSize / 2}
-              cy={svgSize / 2}
-              r={radius}
-              stroke={getStrokeColor(completionPercentage)}
-              strokeWidth={strokeWidth}
-              fill="none"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              className="transition-all duration-1000 ease-out"
-            />
-          </svg>
-          {/* Percentage text */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`${mobileVariant ? 'text-base' : 'text-4xl'} font-bold ${getColor(completionPercentage)}`}>
-              {completionPercentage}%
-            </span>
-            {!mobileVariant && (
-              <span className="text-sm text-gray-600">Complete</span>
-            )}
+        {renderWidget ? renderWidget(
+          <div className="relative flex items-center justify-center flex-shrink-0">
+            <svg width={svgSize} height={svgSize} className="transform -rotate-90">
+              {/* Background circle */}
+              <circle
+                cx={svgSize / 2}
+                cy={svgSize / 2}
+                r={radius}
+                stroke="#e5e7eb"
+                strokeWidth={strokeWidth}
+                fill="none"
+              />
+              {/* Progress circle */}
+              <circle
+                cx={svgSize / 2}
+                cy={svgSize / 2}
+                r={radius}
+                stroke={getStrokeColor(completionPercentage)}
+                strokeWidth={strokeWidth}
+                fill="none"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                className="transition-all duration-1000 ease-out"
+              />
+            </svg>
+            {/* Percentage text */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className={`${mobileVariant ? 'text-base' : 'text-4xl'} font-bold ${getColor(completionPercentage)}`}>
+                {completionPercentage}%
+              </span>
+              {!mobileVariant && (
+                <span className="text-sm text-gray-600">Complete</span>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="relative flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
+            <svg width={svgSize} height={svgSize} className="transform -rotate-90">
+              {/* Background circle */}
+              <circle
+                cx={svgSize / 2}
+                cy={svgSize / 2}
+                r={radius}
+                stroke="#e5e7eb"
+                strokeWidth={strokeWidth}
+                fill="none"
+              />
+              {/* Progress circle */}
+              <circle
+                cx={svgSize / 2}
+                cy={svgSize / 2}
+                r={radius}
+                stroke={getStrokeColor(completionPercentage)}
+                strokeWidth={strokeWidth}
+                fill="none"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                className="transition-all duration-1000 ease-out"
+              />
+            </svg>
+            {/* Percentage text */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className={`${mobileVariant ? 'text-base' : 'text-4xl'} font-bold ${getColor(completionPercentage)}`}>
+                {completionPercentage}%
+              </span>
+              {!mobileVariant && (
+                <span className="text-sm text-gray-600">Complete</span>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Completion checklist */}
         {showLists && (
