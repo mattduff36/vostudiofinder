@@ -273,22 +273,22 @@ export function QuickActions({
 
       {/* Profile Visibility Card */}
       {!loading && (
-        <div className="!bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center space-x-3">
+        <div className="!bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center space-x-3 flex-1 min-w-0">
               {isProfileVisible ? (
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <Eye className="w-5 h-5 text-green-600" />
                 </div>
               ) : (
-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                   <EyeOff className="w-5 h-5 text-gray-600" />
                 </div>
               )}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900">Profile Visibility</h3>
-                <p className="text-xs text-gray-600">
-                  {isProfileVisible ? 'Visible' : 'Hidden'}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-gray-900 text-base">Profile Visibility</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {isProfileVisible ? 'Visible to public' : 'Hidden from public'}
                 </p>
                 {!allRequiredComplete && (
                   <p className="text-xs text-amber-600 mt-0.5">
@@ -299,7 +299,7 @@ export function QuickActions({
             </div>
             <div 
               title={!allRequiredComplete ? 'Complete all required profile fields before making your profile visible' : ''}
-              className="relative"
+              className="flex-shrink-0 ml-3"
             >
               <Toggle
                 checked={isProfileVisible}
