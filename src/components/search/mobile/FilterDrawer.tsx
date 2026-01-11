@@ -28,6 +28,8 @@ interface FilterDrawerProps {
   onFilterByMapArea?: (() => void) | undefined;
   isFilteringByMapArea?: boolean | undefined;
   visibleMarkerCount?: number | undefined;
+  filterByMapAreaMaxMarkers?: number;
+  isMapReady?: boolean;
 }
 
 export function FilterDrawer({
@@ -38,6 +40,8 @@ export function FilterDrawer({
   onFilterByMapArea,
   isFilteringByMapArea,
   visibleMarkerCount,
+  filterByMapAreaMaxMarkers,
+  isMapReady,
 }: FilterDrawerProps) {
   const filtersRef = useRef<SearchFiltersRef>(null);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
@@ -120,6 +124,8 @@ export function FilterDrawer({
           {...(onFilterByMapArea ? { onFilterByMapArea } : {})}
           {...(isFilteringByMapArea !== undefined ? { isFilteringByMapArea } : {})}
           {...(visibleMarkerCount !== undefined ? { visibleMarkerCount } : {})}
+          {...(filterByMapAreaMaxMarkers !== undefined ? { filterByMapAreaMaxMarkers } : {})}
+          {...(isMapReady !== undefined ? { isMapReady } : {})}
         />
 
         {/* Arrow pointing up to Filters button */}

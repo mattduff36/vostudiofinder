@@ -23,13 +23,15 @@ interface SearchFiltersProps {
   onFilterByMapArea?: () => void;
   isFilteringByMapArea?: boolean;
   visibleMarkerCount?: number;
+  filterByMapAreaMaxMarkers?: number;
+  isMapReady?: boolean;
 }
 
 export interface SearchFiltersRef {
   applyFilters: () => void;
 }
 
-export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount }, ref) {
+export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount, filterByMapAreaMaxMarkers = 30, isMapReady = true }, ref) {
   // Studio types are unchecked by default - users must select what they want
   const filtersWithDefaults = {
     ...initialFilters,
@@ -393,17 +395,36 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
         </div>
       </div>
 
-      {/* Filter by Map Area - Only show on desktop when 30 or fewer markers visible */}
+      {/* Filter by Map Area - Always show on desktop but disable when unusable */}
       {onFilterByMapArea && (
         <div className="hidden lg:block">
-          <Button
-            onClick={onFilterByMapArea}
-            variant={isFilteringByMapArea ? "primary" : "outline"}
-            className="w-full"
-            size="sm"
-          >
-            {isFilteringByMapArea ? '✓ Filtering by Map Area' : 'Filter by Map Area'}
-          </Button>
+          {(() => {
+            const isOverLimit = (visibleMarkerCount ?? 0) > filterByMapAreaMaxMarkers;
+            const isDisabled = !isFilteringByMapArea && (!isMapReady || isOverLimit);
+            
+            let tooltipText = '';
+            if (isDisabled) {
+              if (!isMapReady) {
+                tooltipText = 'Wait for the map to finish loading to enable.';
+              } else if (isOverLimit) {
+                tooltipText = `Refine your search to ${filterByMapAreaMaxMarkers} studios or less to enable.`;
+              }
+            }
+            
+            return (
+              <span title={tooltipText} className="block">
+                <Button
+                  onClick={onFilterByMapArea}
+                  variant={isFilteringByMapArea ? "primary" : "outline"}
+                  className="w-full"
+                  size="sm"
+                  disabled={isDisabled}
+                >
+                  {isFilteringByMapArea ? '✓ Filtering by Map Area' : 'Filter by Map Area'}
+                </Button>
+              </span>
+            );
+          })()}
           {isFilteringByMapArea && (
             <p className="text-xs text-gray-500 mt-2 text-center">
               Showing {visibleMarkerCount || 0} studios visible on map
