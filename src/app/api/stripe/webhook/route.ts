@@ -79,6 +79,10 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   
   const { user_id, user_email, user_name, purpose } = session.metadata || {};
 
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'C',location:'src/app/api/stripe/webhook/route.ts:handleMembershipPaymentSuccess:entry',message:'Webhook membership handler entered',data:{purpose:purpose||null,hasUserId:!!user_id,hasUserEmail:!!user_email,sessionIdSuffix:typeof session.id==='string'?session.id.slice(-8):null},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion agent log
+
   console.log(`[DEBUG ${timestamp}] Extracted metadata - user_id: ${user_id}, user_email: ${user_email}, purpose: ${purpose}`);
 
   if (purpose !== 'membership') {
@@ -328,7 +332,11 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   // Send confirmation email
   if (customer?.email || user_email) {
     try {
-      await sendEmail({
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'C',location:'src/app/api/stripe/webhook/route.ts:handleMembershipPaymentSuccess:before_send_email',message:'About to send Membership Confirmed email from webhook',data:{toSource:customer?.email?'stripe_customer_email':'metadata_user_email',hasCustomerEmail:!!customer?.email,hasMetadataEmail:!!user_email},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log
+
+      const emailOk = await sendEmail({
         to: customer?.email || user_email,
         subject: 'Membership Confirmed - VoiceoverStudioFinder',
         html: paymentSuccessTemplate({
@@ -340,9 +348,17 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
           nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         }),
       });
-      console.log(`[EMAIL] Confirmation email sent to ${customer?.email || user_email}`);
+
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'C',location:'src/app/api/stripe/webhook/route.ts:handleMembershipPaymentSuccess:after_send_email',message:'sendEmail returned from webhook Membership Confirmed',data:{emailOk:!!emailOk},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log
+
+      console.log(`[EMAIL] Confirmation email attempted (ok=${emailOk})`);
     } catch (emailError) {
       console.warn(`[WARNING] Failed to send confirmation email: ${emailError}`);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'C',location:'src/app/api/stripe/webhook/route.ts:handleMembershipPaymentSuccess:send_email_throw',message:'Webhook sendEmail threw error',data:{errorType:emailError instanceof Error?emailError.name:typeof emailError},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log
     }
   }
 }
