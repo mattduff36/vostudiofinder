@@ -126,7 +126,7 @@ export function ProfileCompletionAnimation({
           transition={{ delay: 0.3, duration: 0.5 }}
         >
           <motion.div
-            className="flex items-center gap-2 text-sm font-medium text-primary-600"
+            className="flex items-center gap-2 text-sm font-medium"
             animate={{
               opacity: [0.6, 1, 0.6],
             }}
@@ -136,8 +136,8 @@ export function ProfileCompletionAnimation({
               ease: 'easeInOut',
             }}
           >
-            <Edit3 className="w-4 h-4" aria-hidden="true" />
-            <span>Edit Profile</span>
+            <Edit3 className="w-4 h-4 text-red-600" aria-hidden="true" />
+            <span className="text-gray-900">Edit Profile</span>
           </motion.div>
         </motion.div>
       </div>
@@ -226,7 +226,7 @@ export function ProfileCompletionAnimation({
                   ease: 'easeInOut',
                 }}
               >
-                <MousePointer2 className="w-12 h-12 text-primary-600" />
+                <MousePointer2 className="w-12 h-12 text-red-600" />
               </motion.div>
             )}
 
