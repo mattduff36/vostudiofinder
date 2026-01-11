@@ -118,9 +118,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
 
   const stickyHeaderRef = useRef<HTMLDivElement | null>(null);
+  const contentScrollRef = useRef<HTMLDivElement | null>(null);
   const hasLoggedStickyMountRef = useRef(false);
   const hasLoggedStickyScrollRef = useRef(false);
   const hasLoggedStickyFailRef = useRef(false);
+  const hasLoggedContentScrollRef = useRef(false);
 
   function postDebugLog(payload: {
     hypothesisId: string;
@@ -134,7 +136,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sessionId: 'debug-session',
-        runId: 'pre-fix',
+        runId: 'post-fix',
         hypothesisId: payload.hypothesisId,
         location: payload.location,
         message: payload.message,
@@ -321,6 +323,29 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    const el = contentScrollRef.current;
+    if (!el) return undefined;
+
+    function onInnerScroll() {
+      if (hasLoggedContentScrollRef.current) return;
+      hasLoggedContentScrollRef.current = true;
+      postDebugLog({
+        hypothesisId: 'H7',
+        location: 'ProfileEditForm.tsx:content-scroll',
+        message: 'Inner content scrolled (expected after fix)',
+        data: {
+          scrollTop: el.scrollTop,
+          scrollHeight: el.scrollHeight,
+          clientHeight: el.clientHeight,
+        },
+      });
+    }
+
+    el.addEventListener('scroll', onInnerScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onInnerScroll);
   }, []);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -1062,16 +1087,16 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     <>
       {/* Desktop Container - Enhanced with animations and backdrop blur */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:block"
+        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:flex md:flex-col md:overflow-hidden md:h-[calc(100vh-9rem)]"
         style={{
           boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
         }}
       >
         {/* Sticky Header Container - Avatar, Title, Progress, and Tabs */}
-        <div ref={stickyHeaderRef} className="sticky top-[72px] z-40 bg-white/95 backdrop-blur-md rounded-t-2xl">
+        <div ref={stickyHeaderRef} className="shrink-0 bg-white/95 backdrop-blur-md rounded-t-2xl">
           {/* Desktop Header with Progress Indicators */}
           <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
             <div className="flex items-center gap-4 flex-1">
@@ -1129,7 +1154,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         </div>
 
         {/* Desktop Content */}
-        <div className="px-6 py-6 min-h-[400px]">
+        <div ref={contentScrollRef} className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
           <div className="w-full max-w-5xl mx-auto">
             {renderSectionContent(activeSection)}
           </div>
