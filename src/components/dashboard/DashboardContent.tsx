@@ -135,10 +135,9 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
 
       {/* Content */}
       <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 ${
-        // On mobile sub-pages, the back button bar is `fixed top-16` (64px) and its box is ~48px tall
-        // (`py-3` = 24px + one line of content ~24px), so we need ~112px top padding to avoid overlap.
-        // Using `pt-28` (112px) prevents hidden content without adding excessive whitespace.
-        activeTab === 'overview' ? 'py-0 md:py-8' : 'pt-28 pb-8 md:py-8'
+        // Note: `src/app/layout.tsx` already applies `pt-16` (64px) to <main> to clear the fixed Navbar.
+        // This additional `pt-20` is intentional spacing + clearance for the fixed mobile back button.
+        activeTab === 'overview' ? 'py-0 md:py-8' : 'pt-20 pb-8 md:py-8'
       } ${activeTab === 'settings' ? 'space-y-6' : ''}`}>
         {activeTab === 'overview' ? (
           // Overview: Show quick actions on mobile, regular content on desktop
