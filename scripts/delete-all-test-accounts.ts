@@ -15,7 +15,7 @@ function question(query: string): Promise<string> {
 
 interface ScriptOptions {
   envFile: string;
-  mode: 'preview' | 'delete';
+  mode: 'preview' | 'delete' | 'delete-matt';
 }
 
 function maskDbUrl(url: string | undefined): string {
@@ -34,7 +34,7 @@ function parseScriptOptions(argv: string[]): Partial<ScriptOptions> {
     const value = rest.join('=').trim();
 
     if (key === 'env-file' && value) options.envFile = value;
-    if (key === 'mode' && (value === 'preview' || value === 'delete')) options.mode = value;
+    if (key === 'mode' && (value === 'preview' || value === 'delete' || value === 'delete-matt')) options.mode = value;
   }
 
   return options;
@@ -60,9 +60,12 @@ async function promptOptions(parsed: Partial<ScriptOptions>): Promise<ScriptOpti
     console.log('\nSelect action:');
     console.log('  1) Preview only (no changes)');
     console.log('  2) Delete all test accounts (DANGEROUS)');
+    console.log('  3) Delete all \'Matt\' test accounts');
 
-    const choice = (await question('\nChoose 1/2: ')).trim();
-    return choice === '2' ? 'delete' : 'preview';
+    const choice = (await question('\nChoose 1/2/3: ')).trim();
+    if (choice === '2') return 'delete';
+    if (choice === '3') return 'delete-matt';
+    return 'preview';
   })());
 
   return { envFile, mode };
@@ -94,9 +97,126 @@ async function deleteAllTestAccounts() {
 
   try {
     console.log('\n🧹 Delete test accounts script\n');
-    console.log(`Mode: ${options.mode === 'delete' ? 'DELETE' : 'PREVIEW'}`);
+    console.log(`Mode: ${options.mode === 'delete' ? 'DELETE' : options.mode === 'delete-matt' ? 'DELETE MATT ACCOUNTS' : 'PREVIEW'}`);
     console.log(`Env file: ${options.envFile}`);
     console.log(`Database: ${maskDbUrl(process.env.DATABASE_URL)}\n`);
+
+    // Handle delete-matt mode: delete specific Matt email addresses immediately
+    if (options.mode === 'delete-matt') {
+      const mattEmails = ['matt.mpdee@gmail.com', 'mattduff36@hotmail.com'];
+      console.log('🗑️  Deleting Matt test accounts...\n');
+
+      for (const email of mattEmails) {
+        const users = await db.users.findMany({
+          where: {
+            email: {
+              equals: email,
+              mode: 'insensitive',
+            },
+          },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            display_name: true,
+            studio_profiles: {
+              select: { id: true },
+            },
+          },
+        });
+
+        if (users.length === 0) {
+          console.log(`  ⚠️  No user found with email: ${email}`);
+          continue;
+        }
+
+        for (const user of users) {
+          console.log(`  Deleting: ${user.email} (@${user.username})...`);
+
+          await db.$transaction(async (tx) => {
+            // Delete studio-related data if exists
+            if (user.studio_profiles) {
+              const studioId = user.studio_profiles.id;
+              await tx.studio_studio_types.deleteMany({ where: { studio_id: studioId } });
+              await tx.studio_images.deleteMany({ where: { studio_id: studioId } });
+              await tx.studio_services.deleteMany({ where: { studio_id: studioId } });
+              await tx.reviews.deleteMany({ where: { studio_id: studioId } });
+              await tx.studio_profiles.delete({ where: { id: studioId } });
+            }
+
+            // Get payment IDs for refund deletion
+            const userPayments = await tx.payments.findMany({
+              where: { user_id: user.id },
+              select: { id: true },
+            });
+            const paymentIds = userPayments.map(p => p.id);
+
+            // Delete all related data
+            if (paymentIds.length > 0) {
+              await tx.refunds.deleteMany({
+                where: {
+                  OR: [
+                    { user_id: user.id },
+                    { payment_id: { in: paymentIds } },
+                  ],
+                },
+              });
+            }
+            await tx.payments.deleteMany({ where: { user_id: user.id } });
+            await tx.subscriptions.deleteMany({ where: { user_id: user.id } });
+            await tx.pending_subscriptions.deleteMany({ where: { user_id: user.id } });
+            await tx.sessions.deleteMany({ where: { user_id: user.id } });
+            await tx.accounts.deleteMany({ where: { user_id: user.id } });
+            await tx.messages.deleteMany({
+              where: {
+                OR: [
+                  { sender_id: user.id },
+                  { receiver_id: user.id },
+                ],
+              },
+            });
+            await tx.user_connections.deleteMany({
+              where: {
+                OR: [
+                  { user_id: user.id },
+                  { connected_user_id: user.id },
+                ],
+              },
+            });
+            await tx.user_metadata.deleteMany({ where: { user_id: user.id } });
+            await tx.notifications.deleteMany({ where: { user_id: user.id } });
+            await tx.content_reports.deleteMany({
+              where: {
+                OR: [
+                  { reporter_id: user.id },
+                  { reported_user_id: user.id },
+                  { reviewed_by_id: user.id },
+                ],
+              },
+            });
+            await tx.review_responses.deleteMany({ where: { author_id: user.id } });
+            await tx.saved_searches.deleteMany({ where: { user_id: user.id } });
+            await tx.support_tickets.deleteMany({ where: { user_id: user.id } });
+            await tx.waitlist.deleteMany({
+              where: {
+                email: {
+                  equals: email,
+                  mode: 'insensitive',
+                },
+              },
+            });
+
+            // Finally delete user
+            await tx.users.delete({ where: { id: user.id } });
+          });
+
+          console.log(`  ✅ Deleted: ${user.email}\n`);
+        }
+      }
+
+      console.log('✅ Matt test accounts deletion complete.\n');
+      return;
+    }
 
     console.log('🔍 Finding all test accounts...\n');
 
