@@ -153,7 +153,7 @@ export function DashboardDropdownMenu({
           isScrolled || !isHomePage 
             ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white' 
             : 'text-white border-white hover:bg-white hover:text-primary-800'
-        } flex items-center justify-center p-2`}
+        } flex items-center justify-center p-2 aspect-square w-10 h-10`}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label="Dashboard menu"
