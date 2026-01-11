@@ -12,10 +12,6 @@ export async function POST(request: NextRequest) {
   try {
     const { email, name, username, userId } = await request.json();
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B',location:'src/app/api/stripe/create-membership-checkout/route.ts:POST:entry',message:'create-membership-checkout called',data:{hasUserId:!!userId,userIdSuffix:typeof userId==='string'?userId.slice(-6):null,hasEmail:!!email,hasName:!!name,hasUsername:!!username},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion agent log
-
     if (!email || !name) {
       return NextResponse.json(
         { error: 'Email and name are required' },
@@ -53,10 +49,6 @@ export async function POST(request: NextRequest) {
     if (!user.email_verified) {
       console.error(`[ERROR] Email not verified for user: ${userId} (${email})`);
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B',location:'src/app/api/stripe/create-membership-checkout/route.ts:POST:email_not_verified',message:'Checkout blocked: email not verified',data:{userIdSuffix:typeof userId==='string'?userId.slice(-6):null},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion agent log
-
       return NextResponse.json(
         { error: 'Email must be verified before payment', verified: false },
         { status: 403 }
@@ -64,10 +56,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[SUCCESS] Email verified for user: ${userId} (${email})`);
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B',location:'src/app/api/stripe/create-membership-checkout/route.ts:POST:email_verified_ok',message:'Checkout allowed: email verified',data:{userIdSuffix:typeof userId==='string'?userId.slice(-6):null},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion agent log
     console.log(`💳 Creating Stripe checkout for user: ${userId} (${email})`);
 
     // Use real Stripe with one-time payment

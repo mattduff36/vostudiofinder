@@ -150,7 +150,6 @@ Enhanced dummy Stripe payments:
 #### Files Updated:
 - `src/app/api/stripe/create-membership-checkout/route.ts`
 - `src/app/api/stripe/verify-membership-payment/route.ts`
-- `src/app/api/auth/create-paid-account/route.ts` (existing)
 
 #### Features:
 - ✅ Auto-detects development environment
@@ -169,25 +168,12 @@ Enhanced dummy Stripe payments:
 2. User fills signup form (display name, email, password)
 3. System checks username availability
 4. User selects username (if needed) at `/auth/username-selection`
-5. User proceeds to `/auth/membership` payment page
-6. **DEV:** Clicking "Complete Membership Purchase" bypasses Stripe
-7. User lands on `/auth/membership/success` with profile form
-8. User fills out comprehensive studio profile:
-   - Studio info
-   - Location
-   - Connection methods
-   - Upload 1-5 images
-9. User clicks "Create My Profile!"
-10. System creates:
-    - User account
-    - Studio profile
-    - Studio types
-    - Studio images
-11. User redirected to `/auth/verify-email?new=true`
-12. **DEV:** Email verification can be done via API route
-13. User clicks verification link → redirects to `/auth/signin?verified=true`
-14. User sees success message and signs in
-15. User lands on dashboard with complete profile!
+5. System sends **verification email immediately** and user verifies email
+6. User proceeds to `/auth/membership` payment page (**email must be verified**)
+7. **DEV:** Clicking "Complete Membership Purchase" bypasses Stripe
+8. User lands on `/auth/membership/success`
+9. Stripe webhook grants membership and sends **Membership Confirmed** email
+10. User signs in and completes their studio profile from the dashboard as needed
 
 ---
 

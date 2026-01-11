@@ -82,8 +82,8 @@ export async function GET(request: NextRequest) {
 
     console.log('[SUCCESS] Email verified successfully for user:', user.email);
 
-    // If user has a studio profile, automatically set it to visible
-    // This applies to Option 2 (complete profile now) flow
+    // If user already has a studio profile, automatically set it to visible
+    // (Some flows create a studio profile before verification; others do not.)
     const studioProfile = await db.studio_profiles.findUnique({
       where: { user_id: user.id },
     });

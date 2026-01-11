@@ -79,10 +79,6 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   
   const { user_id, user_email, user_name, purpose } = session.metadata || {};
 
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'C',location:'src/app/api/stripe/webhook/route.ts:handleMembershipPaymentSuccess:entry',message:'Webhook membership handler entered',data:{purpose:purpose||null,hasUserId:!!user_id,hasUserEmail:!!user_email,sessionIdSuffix:typeof session.id==='string'?session.id.slice(-8):null},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion agent log
-
   console.log(`[DEBUG ${timestamp}] Extracted metadata - user_id: ${user_id}, user_email: ${user_email}, purpose: ${purpose}`);
 
   if (purpose !== 'membership') {
@@ -332,11 +328,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   // Send confirmation email
   if (customer?.email || user_email) {
     try {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'C',location:'src/app/api/stripe/webhook/route.ts:handleMembershipPaymentSuccess:before_send_email',message:'About to send Membership Confirmed email from webhook',data:{toSource:customer?.email?'stripe_customer_email':'metadata_user_email',hasCustomerEmail:!!customer?.email,hasMetadataEmail:!!user_email},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion agent log
-
-      const emailOk = await sendEmail({
+      await sendEmail({
         to: customer?.email || user_email,
         subject: 'Membership Confirmed - VoiceoverStudioFinder',
         html: paymentSuccessTemplate({
@@ -348,17 +340,9 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
           nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         }),
       });
-
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'C',location:'src/app/api/stripe/webhook/route.ts:handleMembershipPaymentSuccess:after_send_email',message:'sendEmail returned from webhook Membership Confirmed',data:{emailOk:!!emailOk},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion agent log
-
-      console.log(`[EMAIL] Confirmation email attempted (ok=${emailOk})`);
+      console.log(`[EMAIL] Confirmation email sent to ${customer?.email || user_email}`);
     } catch (emailError) {
       console.warn(`[WARNING] Failed to send confirmation email: ${emailError}`);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'C',location:'src/app/api/stripe/webhook/route.ts:handleMembershipPaymentSuccess:send_email_throw',message:'Webhook sendEmail threw error',data:{errorType:emailError instanceof Error?emailError.name:typeof emailError},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion agent log
     }
   }
 }
@@ -645,9 +629,6 @@ async function handleRefund(refund: Stripe.Refund) {
 export async function POST(request: NextRequest) {
   const requestTimestamp = new Date().toISOString();
   console.log(`[DEBUG ${requestTimestamp}] ========== WEBHOOK REQUEST RECEIVED ==========`);
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E',location:'src/app/api/stripe/webhook/route.ts:POST:entry',message:'stripe webhook endpoint hit',data:{hasWebhookSecret:!!webhookSecret},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion agent log
   
   try {
     console.log('🎣 Webhook received');
@@ -656,9 +637,6 @@ export async function POST(request: NextRequest) {
     if (!webhookSecret) {
       console.error(`[DEBUG ${requestTimestamp}] ❌ ERROR: Webhook secret not configured`);
       console.error('[ERROR] Webhook secret not configured');
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E',location:'src/app/api/stripe/webhook/route.ts:POST:no_secret',message:'stripe webhook rejected: missing STRIPE_WEBHOOK_SECRET',data:{},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion agent log
       return NextResponse.json(
         { error: 'Stripe webhook not configured' },
         { status: 500 }
@@ -678,9 +656,6 @@ export async function POST(request: NextRequest) {
     if (!signature) {
       console.error(`[DEBUG ${requestTimestamp}] ❌ ERROR: Missing Stripe signature`);
       console.error('[ERROR] Missing Stripe signature');
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E',location:'src/app/api/stripe/webhook/route.ts:POST:no_signature',message:'stripe webhook rejected: missing stripe-signature header',data:{},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion agent log
       return NextResponse.json(
         { error: 'Missing Stripe signature' },
         { status: 400 }
@@ -697,15 +672,9 @@ export async function POST(request: NextRequest) {
       console.log(`[DEBUG ${requestTimestamp}]   - Event type: ${event.type}`);
       console.log(`[DEBUG ${requestTimestamp}]   - Created: ${new Date(event.created * 1000).toISOString()}`);
       console.log(`[SUCCESS] Webhook verified: ${event.type} (${event.id})`);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E',location:'src/app/api/stripe/webhook/route.ts:POST:verified',message:'stripe webhook verified',data:{eventType:event.type,eventIdSuffix:typeof event.id==='string'?event.id.slice(-8):null},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion agent log
     } catch (err) {
       console.error(`[DEBUG ${requestTimestamp}] ❌ ERROR: Webhook signature verification failed:`, err);
       console.error(`[ERROR] Webhook signature verification failed: ${err}`);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E',location:'src/app/api/stripe/webhook/route.ts:POST:verify_failed',message:'stripe webhook signature verification failed',data:{errorType:err instanceof Error?err.name:typeof err},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion agent log
       throw err;
     }
 

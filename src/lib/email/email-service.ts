@@ -16,12 +16,6 @@ export interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    const isMembershipConfirmedEmail = options.subject.includes('Membership Confirmed');
-
-    // #region agent log
-    if (isMembershipConfirmedEmail) fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'D',location:'src/lib/email/email-service.ts:sendEmail:entry',message:'sendEmail called for Membership Confirmed',data:{hasResendApiKey:!!process.env.RESEND_API_KEY,isPlaceholderKey:process.env.RESEND_API_KEY==='re_placeholder_key',hasFromEnv:!!process.env.RESEND_FROM_EMAIL},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion agent log
-
     // Validate required environment variable
     if (!process.env.RESEND_API_KEY) {
       console.error('❌ RESEND_API_KEY environment variable is not set');
@@ -74,23 +68,13 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 
     if (result.error) {
       console.error('❌ Failed to send email via Resend:', result.error);
-      // #region agent log
-      if (isMembershipConfirmedEmail) fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'D',location:'src/lib/email/email-service.ts:sendEmail:resend_error',message:'Resend returned error for Membership Confirmed',data:{hasError:true},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion agent log
       return false;
     }
 
     console.log('✅ Email sent successfully via Resend:', result.data?.id);
-    // #region agent log
-    if (isMembershipConfirmedEmail) fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'D',location:'src/lib/email/email-service.ts:sendEmail:success',message:'Resend sent Membership Confirmed',data:{hasDataId:!!result.data?.id},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion agent log
     return true;
   } catch (error) {
     console.error('❌ Failed to send email:', error);
-    // #region agent log
-    // Avoid logging error details (may include provider info); only log that it threw.
-    if (options.subject.includes('Membership Confirmed')) fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'D',location:'src/lib/email/email-service.ts:sendEmail:throw',message:'sendEmail threw for Membership Confirmed',data:{threw:true,errorType:error instanceof Error?error.name:typeof error},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion agent log
     return false;
   }
 }

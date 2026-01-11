@@ -15,25 +15,26 @@
    - Terms acceptance checkbox
    - Creates PENDING user account
 
-2. **Username Selection** (`/auth/username-selection`) - Conditional
+2. **Email Verification**
+   - Verification email is sent immediately after signup
+   - User clicks verification link
+   - `email_verified` is set to true
+
+3. **Username Selection** (`/auth/username-selection`) - Conditional
    - Only if display name has spaces OR username unavailable
    - Shows suggestions based on display name
    - Allows custom username entry
    - Reserves username
 
-3. **Membership Payment** (`/auth/membership`)
+4. **Membership Payment** (`/auth/membership`)
    - Stripe checkout integration
    - £25 annual membership
    - Creates checkout session with user_id in metadata
+   - **Blocked unless email is verified**
 
-4. **Payment Success** (`/auth/membership/success`)
-   - Comprehensive studio profile form
-   - Studio info, location, connections, images
-   - Creates full studio profile
-
-5. **Email Verification** (`/auth/verify-email`)
-   - Email verification required
-   - Redirects to signin after verification
+5. **Payment Success** (`/auth/membership/success`)
+   - Post-payment onboarding/progress UI
+   - Membership confirmation email sent via Stripe webhook
 
 6. **Sign In** (`/auth/signin`)
    - User can finally access dashboard
