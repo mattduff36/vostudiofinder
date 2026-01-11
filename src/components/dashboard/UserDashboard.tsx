@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
   Activity,
-  Loader2,
   Eye,
   EyeOff,
   CheckCircle2,
@@ -21,10 +20,22 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
+import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
 import { Toggle } from '@/components/ui/Toggle';
 import { logger } from '@/lib/logger';
 import { showError } from '@/lib/toast';
 import type { ProfileData } from '@/types/profile';
+
+// Simple in-module cache to avoid re-fetch/judder when returning to the Overview tab
+// (and to reduce duplicate fetches in React StrictMode during dev).
+let cachedProfileData: ProfileData | null = null;
+let cachedProfileFetchedAt = 0;
+let inFlightProfileFetch: Promise<ProfileData | null> | null = null;
+
+function getCachedProfileAgeMs(): number {
+  if (!cachedProfileFetchedAt) return Number.POSITIVE_INFINITY;
+  return Date.now() - cachedProfileFetchedAt;
+}
 
 interface UserDashboardProps {
   data: {
@@ -107,38 +118,79 @@ export function UserDashboard({ data }: UserDashboardProps) {
 
   // Fetch profile data for completion progress
   useEffect(() => {
-    const fetchProfile = async () => {
+    let didCancel = false;
+
+    const applyProfileData = (nextProfileData: ProfileData) => {
+      if (didCancel) return;
+      setProfileData(nextProfileData);
+
+      // Set initial visibility state from studio data
+      if (nextProfileData.studio) {
+        const visible = nextProfileData.studio.is_profile_visible !== false;
+        setIsProfileVisible(visible);
+      } else {
+        // No studio yet - default to hidden
+        setIsProfileVisible(false);
+      }
+
+      setLoading(false);
+    };
+
+    const fetchProfile = async (): Promise<ProfileData | null> => {
       try {
         const response = await fetch('/api/user/profile');
         if (response.ok) {
           const result = await response.json();
-          setProfileData(result.data);
-          
-          // Set initial visibility state from studio data
-          if (result.data.studio) {
-            const visible = result.data.studio.is_profile_visible !== false;
-            setIsProfileVisible(visible);
-            logger.log('[Dashboard] Profile visibility loaded:', visible);
-          } else {
-            // No studio yet - default to hidden
-            setIsProfileVisible(false);
-            logger.log('[Dashboard] No studio yet - visibility defaulting to hidden');
-          }
+          return result.data as ProfileData;
         }
       } catch (err) {
         logger.error('Failed to fetch profile:', err);
-      } finally {
-        setLoading(false);
       }
+
+      return null;
     };
-    fetchProfile();
+
+    const loadProfile = async () => {
+      const cacheAgeMs = getCachedProfileAgeMs();
+      const isCacheFresh = !!cachedProfileData && cacheAgeMs < 5 * 60 * 1000; // 5 minutes
+
+      if (isCacheFresh && cachedProfileData) {
+        applyProfileData(cachedProfileData);
+        return;
+      }
+
+      setLoading(true);
+
+      // De-dupe in-flight fetches (StrictMode/dev + quick tab switches)
+      if (!inFlightProfileFetch) {
+        inFlightProfileFetch = (async () => {
+          const next = await fetchProfile();
+          if (next) {
+            cachedProfileData = next;
+            cachedProfileFetchedAt = Date.now();
+          }
+          return next;
+        })().finally(() => {
+          inFlightProfileFetch = null;
+        });
+      }
+
+      const nextProfileData = await inFlightProfileFetch;
+      if (nextProfileData) applyProfileData(nextProfileData);
+      else if (!didCancel) setLoading(false);
+    };
+
+    loadProfile();
 
     // Refetch when window regains focus (in case admin changed it)
     const handleFocus = () => {
-      fetchProfile();
+      void loadProfile();
     };
     window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    return () => {
+      didCancel = true;
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   // Compute if all required fields are complete (recalculates whenever profileData changes)
@@ -298,8 +350,21 @@ export function UserDashboard({ data }: UserDashboardProps) {
       <div>
         <div className="space-y-8">
           {loading ? (
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 flex justify-center md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl">
-              <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-4">
+                  <Skeleton className="h-6 w-1/3" />
+                  <SkeletonText lines={5} />
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <Skeleton className="h-24 w-full rounded-xl" />
+                    <Skeleton className="h-24 w-full rounded-xl" />
+                  </div>
+                </div>
+                <div className="lg:col-span-1 space-y-4">
+                  <Skeleton className="h-6 w-1/2 mx-auto" />
+                  <SkeletonText lines={6} />
+                </div>
+              </div>
             </div>
           ) : profileData ? (
             <>

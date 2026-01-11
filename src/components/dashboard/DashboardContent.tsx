@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserDashboard } from './UserDashboard';
@@ -23,16 +23,18 @@ interface DashboardContentProps {
 export function DashboardContent({ dashboardData }: DashboardContentProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
+  const hasMountedRef = useRef(false);
 
   // Listen to URL hash changes
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1); // Remove '#'
-      if (hash && ['edit-profile', 'images', 'settings'].includes(hash)) {
-        setActiveTab(hash as DashboardTab);
-      } else {
-        setActiveTab('overview');
-      }
+      const nextTab: DashboardTab =
+        hash && ['edit-profile', 'images', 'settings'].includes(hash)
+          ? (hash as DashboardTab)
+          : 'overview';
+
+      setActiveTab(nextTab);
     };
 
     // Set initial tab from hash
@@ -41,6 +43,10 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
     // Listen for hash changes
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    hasMountedRef.current = true;
   }, []);
 
   const handleQuickAction = (action: QuickAction) => {
@@ -74,10 +80,10 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
     })();
 
     return (
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, y: 10 }}
+          initial={hasMountedRef.current ? { opacity: 0, y: 10 } : false}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.3 }}
