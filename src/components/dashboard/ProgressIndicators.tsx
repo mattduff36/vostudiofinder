@@ -18,6 +18,12 @@ export function ProgressIndicators({
 }: ProgressIndicatorsProps) {
   const requiredPercentage = (requiredFieldsCompleted / totalRequiredFields) * 100;
   const allRequiredComplete = requiredFieldsCompleted === totalRequiredFields;
+  const isFullyComplete = overallCompletionPercentage === 100 && allRequiredComplete;
+
+  // Tooltip text for incomplete profiles
+  const tooltipText = !isFullyComplete
+    ? 'Visit the overview page to see which fields still need to be completed'
+    : '';
 
   // Color based on completion (grey until 75%, amber 75-85%, green >85%)
   const getOverallColor = (percentage: number) => {
@@ -36,7 +42,10 @@ export function ProgressIndicators({
     return (
       <div className="flex items-center gap-4 md:gap-6 flex-wrap">
         {/* Required Fields Indicator */}
-        <div className="flex items-center gap-2">
+        <div 
+          className="flex items-center gap-2"
+          title={tooltipText}
+        >
           <CheckCircle2 
             className={`w-4 h-4 flex-shrink-0 ${allRequiredComplete ? 'text-green-600' : 'text-gray-400'}`}
             aria-hidden="true"
@@ -50,7 +59,10 @@ export function ProgressIndicators({
         </div>
 
         {/* Overall Completion Indicator */}
-        <div className="flex items-center gap-2">
+        <div 
+          className="flex items-center gap-2"
+          title={tooltipText}
+        >
           <TrendingUp 
             className={`w-4 h-4 flex-shrink-0 ${getOverallColor(overallCompletionPercentage)}`}
             aria-hidden="true"
@@ -70,7 +82,10 @@ export function ProgressIndicators({
     return (
       <div className="flex items-center gap-4 md:gap-6">
         {/* Required Fields Indicator */}
-        <div className="flex items-center gap-2">
+        <div 
+          className="flex items-center gap-2"
+          title={tooltipText}
+        >
           <div className="flex items-center gap-1.5">
             <CheckCircle2 
               className={`w-4 h-4 ${allRequiredComplete ? 'text-green-600' : 'text-gray-400'}`}
@@ -95,7 +110,10 @@ export function ProgressIndicators({
         </div>
 
         {/* Overall Completion Indicator */}
-        <div className="flex items-center gap-2">
+        <div 
+          className="flex items-center gap-2"
+          title={tooltipText}
+        >
           <div className="flex items-center gap-1.5">
             <TrendingUp 
               className={`w-4 h-4 ${getOverallColor(overallCompletionPercentage)}`}
@@ -126,7 +144,10 @@ export function ProgressIndicators({
   return (
     <div className="space-y-4">
       {/* Required Fields */}
-      <div className="space-y-2">
+      <div 
+        className="space-y-2"
+        title={tooltipText}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 
@@ -153,7 +174,10 @@ export function ProgressIndicators({
       </div>
 
       {/* Overall Completion */}
-      <div className="space-y-2">
+      <div 
+        className="space-y-2"
+        title={tooltipText}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <TrendingUp 

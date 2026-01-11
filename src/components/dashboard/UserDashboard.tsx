@@ -24,6 +24,7 @@ import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
 import { Toggle } from '@/components/ui/Toggle';
 import { logger } from '@/lib/logger';
 import { showError } from '@/lib/toast';
+import { getBaseUrl } from '@/lib/seo/site';
 import type { ProfileData } from '@/types/profile';
 
 // Simple in-module cache to avoid re-fetch/judder when returning to the Overview tab
@@ -311,7 +312,20 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                   Welcome back, {user.display_name}!
                 </h1>
                 <p className="text-text-secondary">
-                  @{user.username} • {user.role.toLowerCase().replace('_', ' ')}
+                  {user.role === 'ADMIN' ? (
+                    <>
+                      @{user.username} • {user.role.toLowerCase().replace('_', ' ')}
+                    </>
+                  ) : (
+                    <a
+                      href={`${getBaseUrl()}/${user.username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:text-primary-700 hover:underline transition-colors"
+                    >
+                      {getBaseUrl()}/{user.username}
+                    </a>
+                  )}
                 </p>
               </div>
             </div>
