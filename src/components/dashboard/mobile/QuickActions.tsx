@@ -98,30 +98,53 @@ export function QuickActions({
   }, [profileData]);
 
   // Compute if all required fields are complete
+  // Must match the 11 required fields defined in profile-completion.ts
   const allRequiredComplete = useMemo(() => {
     if (!profileData) return false;
 
+    // Check if at least one connection method is selected (required field #9)
+    const hasConnectionMethod = !!(
+      profileData.profile?.connection1 === '1' ||
+      profileData.profile?.connection2 === '1' ||
+      profileData.profile?.connection3 === '1' ||
+      profileData.profile?.connection4 === '1' ||
+      profileData.profile?.connection5 === '1' ||
+      profileData.profile?.connection6 === '1' ||
+      profileData.profile?.connection7 === '1' ||
+      profileData.profile?.connection8 === '1' ||
+      profileData.profile?.connection9 === '1' ||
+      profileData.profile?.connection10 === '1' ||
+      profileData.profile?.connection11 === '1' ||
+      profileData.profile?.connection12 === '1'
+    );
+
+    // Required fields matching profile-completion.ts (11 fields):
+    // 1. username (not starting with temp_)
+    // 2. display_name
+    // 3. email
+    // 4. studio.name
+    // 5. short_about
+    // 6. about
+    // 7. studio_types.length >= 1
+    // 8. location
+    // 9. hasConnectionMethod (at least one connection1-12 === '1')
+    // 10. website_url
+    // 11. images.length >= 1
     const requiredFields = [
-      profileData.user?.username,
-      profileData.user?.display_name,
-      profileData.user?.email,
-      profileData.profile?.about,
-      profileData.profile?.short_about,
-      profileData.profile?.phone,
-      profileData.profile?.location,
-      profileData.studio?.name,
-      profileData.studio?.studio_types?.length > 0,
-      profileData.studio?.images?.length > 0,
-      profileData.studio?.website_url,
+      !!(profileData.user?.username && !profileData.user.username.startsWith('temp_')),
+      !!(profileData.user?.display_name && profileData.user.display_name.trim()),
+      !!(profileData.user?.email && profileData.user.email.trim()),
+      !!(profileData.studio?.name && profileData.studio.name.trim()),
+      !!(profileData.profile?.short_about && profileData.profile.short_about.trim()),
+      !!(profileData.profile?.about && profileData.profile.about.trim()),
+      !!(profileData.studio?.studio_types && profileData.studio.studio_types.length >= 1),
+      !!(profileData.profile?.location && profileData.profile.location.trim()),
+      hasConnectionMethod,
+      !!(profileData.studio?.website_url && profileData.studio.website_url.trim()),
+      !!(profileData.studio?.images && profileData.studio.images.length >= 1),
     ];
 
-    const requiredFieldsComplete = requiredFields.every((field) => {
-      if (typeof field === 'boolean') return field;
-      if (typeof field === 'string') return field.trim().length > 0;
-      return false;
-    });
-
-    return requiredFieldsComplete;
+    return requiredFields.every(field => field === true);
   }, [profileData]);
 
   // Compute tile-specific completion statuses for icon colors
