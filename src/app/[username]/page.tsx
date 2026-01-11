@@ -322,7 +322,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
 
     // Parse address for structured data
     const fullAddress = studio.full_address || '';
-    const addressParts = fullAddress.split(',').map(part => part.trim()).filter(part => part.length > 0);
+    const addressParts = fullAddress.split(',').map((part: string) => part.trim()).filter((part: string) => part.length > 0);
     
     // Extract city and postal code if available
     const cityName = studio.city || (addressParts.length > 1 ? addressParts[addressParts.length - 2] : '');
