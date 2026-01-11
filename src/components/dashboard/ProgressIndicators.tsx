@@ -19,6 +19,19 @@ export function ProgressIndicators({
   const requiredPercentage = (requiredFieldsCompleted / totalRequiredFields) * 100;
   const allRequiredComplete = requiredFieldsCompleted === totalRequiredFields;
 
+  // Color based on completion (grey until 75%, amber 75-85%, green >85%)
+  const getOverallColor = (percentage: number) => {
+    if (percentage > 85) return 'text-green-600';
+    if (percentage >= 75) return 'text-amber-600';
+    return 'text-gray-600';
+  };
+
+  const getOverallBgColor = (percentage: number) => {
+    if (percentage > 85) return 'bg-green-600';
+    if (percentage >= 75) return 'bg-amber-600';
+    return 'bg-gray-600';
+  };
+
   if (variant === 'minimal') {
     return (
       <div className="flex items-center gap-4 md:gap-6 flex-wrap">
@@ -39,13 +52,13 @@ export function ProgressIndicators({
         {/* Overall Completion Indicator */}
         <div className="flex items-center gap-2">
           <TrendingUp 
-            className="w-4 h-4 flex-shrink-0 text-blue-600"
+            className={`w-4 h-4 flex-shrink-0 ${getOverallColor(overallCompletionPercentage)}`}
             aria-hidden="true"
           />
           <span className="text-xs md:text-sm font-semibold text-gray-700">
             Overall:
           </span>
-          <span className="text-sm md:text-base font-bold text-blue-600">
+          <span className={`text-sm md:text-base font-bold ${getOverallColor(overallCompletionPercentage)}`}>
             {overallCompletionPercentage}%
           </span>
         </div>
@@ -85,19 +98,19 @@ export function ProgressIndicators({
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <TrendingUp 
-              className="w-4 h-4 text-blue-600"
+              className={`w-4 h-4 ${getOverallColor(overallCompletionPercentage)}`}
               aria-hidden="true"
             />
             <span className="text-xs md:text-sm font-semibold text-gray-700">
               Overall:
             </span>
           </div>
-          <span className="text-sm md:text-base font-bold text-blue-600">
+          <span className={`text-sm md:text-base font-bold ${getOverallColor(overallCompletionPercentage)}`}>
             {overallCompletionPercentage}%
           </span>
           <div className="w-16 md:w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-blue-600 rounded-full"
+              className={`h-full ${getOverallBgColor(overallCompletionPercentage)} rounded-full`}
               initial={{ width: 0 }}
               animate={{ width: `${overallCompletionPercentage}%` }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
@@ -144,20 +157,20 @@ export function ProgressIndicators({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <TrendingUp 
-              className="w-5 h-5 text-blue-600"
+              className={`w-5 h-5 ${getOverallColor(overallCompletionPercentage)}`}
               aria-hidden="true"
             />
             <span className="text-sm font-semibold text-gray-700">
               Overall Profile
             </span>
           </div>
-          <span className="text-lg font-bold text-blue-600">
+          <span className={`text-lg font-bold ${getOverallColor(overallCompletionPercentage)}`}>
             {overallCompletionPercentage}%
           </span>
         </div>
         <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-blue-600 rounded-full"
+            className={`h-full ${getOverallBgColor(overallCompletionPercentage)} rounded-full`}
             initial={{ width: 0 }}
             animate={{ width: `${overallCompletionPercentage}%` }}
             transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
