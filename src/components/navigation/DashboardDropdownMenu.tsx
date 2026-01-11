@@ -170,7 +170,7 @@ export function DashboardDropdownMenu({
           role="menu"
           aria-orientation="vertical"
         >
-          {menuItems.map((item, index) => {
+          {menuItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
