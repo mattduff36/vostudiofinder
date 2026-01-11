@@ -116,302 +116,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [activeSection, setActiveSection] = useState('basic');
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
-
-  const stickyHeaderRef = useRef<HTMLDivElement | null>(null);
-  const contentScrollRef = useRef<HTMLDivElement | null>(null);
-  const hasLoggedStickyMountRef = useRef(false);
-  const hasLoggedStickyScrollRef = useRef(false);
-  const hasLoggedStickyFailRef = useRef(false);
-  const hasLoggedContentScrollRef = useRef(false);
-  const hasLoggedLayoutRef = useRef(false);
-  const hasLoggedWindowScrollRef = useRef(false);
-
-  function postDebugLog(payload: {
-    hypothesisId: string;
-    location: string;
-    message: string;
-    data?: Record<string, unknown>;
-  }) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: 'debug-session',
-        runId: 'post-fix',
-        hypothesisId: payload.hypothesisId,
-        location: payload.location,
-        message: payload.message,
-        data: payload.data ?? {},
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-  }
-
-  useEffect(() => {
-    if (hasLoggedStickyMountRef.current) return;
-    hasLoggedStickyMountRef.current = true;
-
-    const el = stickyHeaderRef.current;
-    const navEls = Array.from(document.querySelectorAll('nav'));
-    const navRect = navEls[0]?.getBoundingClientRect();
-
-    // Hypothesis H1/H2: Sticky is blocked by an ancestor with transform/overflow/filter.
-    const blockers: Array<Record<string, unknown>> = [];
-    let node: HTMLElement | null = el?.parentElement ?? null;
-    let hasTransformAncestor = false;
-    let hasOverflowAncestor = false;
-    for (let i = 0; node && i < 12; i += 1) {
-      const cs = window.getComputedStyle(node);
-      const transform = cs.transform;
-      const overflow = `${cs.overflow}/${cs.overflowX}/${cs.overflowY}`;
-      const filter = cs.filter;
-      const backdropFilter = (cs as any).backdropFilter ?? '';
-      if (transform && transform !== 'none') hasTransformAncestor = true;
-      if (!overflow.startsWith('visible/visible/visible')) hasOverflowAncestor = true;
-      blockers.push({
-        tag: node.tagName,
-        className: node.className,
-        transform,
-        overflow,
-        filter,
-        backdropFilter,
-        position: cs.position,
-      });
-      node = node.parentElement;
-    }
-
-    postDebugLog({
-      hypothesisId: 'H1',
-      location: 'ProfileEditForm.tsx:sticky-mount',
-      message: 'Sticky mount diagnostics',
-      data: {
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
-        navCount: navEls.length,
-        navBottom: navRect?.bottom ?? null,
-        navHeight: navRect?.height ?? null,
-        stickyExists: !!el,
-        stickyComputedPosition: el ? window.getComputedStyle(el).position : null,
-        stickyComputedTop: el ? window.getComputedStyle(el).top : null,
-        hasTransformAncestor,
-        hasOverflowAncestor,
-        blockers,
-      },
-    });
-
-    // Hypothesis H3: Wrong top offset (nav height mismatch).
-    postDebugLog({
-      hypothesisId: 'H3',
-      location: 'ProfileEditForm.tsx:sticky-mount',
-      message: 'Nav vs sticky top offset',
-      data: {
-        navBottom: navRect?.bottom ?? null,
-        stickyTopCss: el ? window.getComputedStyle(el).top : null,
-        expectedTopPx: 72,
-      },
-    });
-  }, []);
-
-  useEffect(() => {
-    // This component renders a loading spinner first; only log once the sticky header can exist.
-    if (loading) return;
-    if (!profile) return;
-    const el = stickyHeaderRef.current;
-    if (!el) {
-      postDebugLog({
-        hypothesisId: 'H6',
-        location: 'ProfileEditForm.tsx:sticky-after-load',
-        message: 'Sticky ref still null after loading=false',
-        data: {
-          viewportWidth: window.innerWidth,
-          viewportHeight: window.innerHeight,
-        },
-      });
-      return;
-    }
-
-    const navEls = Array.from(document.querySelectorAll('nav'));
-    const navRect = navEls[0]?.getBoundingClientRect();
-
-    const blockers: Array<Record<string, unknown>> = [];
-    let node: HTMLElement | null = el.parentElement;
-    let hasTransformAncestor = false;
-    let hasOverflowAncestor = false;
-    for (let i = 0; node && i < 12; i += 1) {
-      const cs = window.getComputedStyle(node);
-      const transform = cs.transform;
-      const overflow = `${cs.overflow}/${cs.overflowX}/${cs.overflowY}`;
-      const filter = cs.filter;
-      const backdropFilter = (cs as any).backdropFilter ?? '';
-      if (transform && transform !== 'none') hasTransformAncestor = true;
-      if (!overflow.startsWith('visible/visible/visible')) hasOverflowAncestor = true;
-      blockers.push({
-        tag: node.tagName,
-        className: node.className,
-        transform,
-        overflow,
-        filter,
-        backdropFilter,
-        position: cs.position,
-      });
-      node = node.parentElement;
-    }
-
-    postDebugLog({
-      hypothesisId: 'H6',
-      location: 'ProfileEditForm.tsx:sticky-after-load',
-      message: 'Sticky diagnostics after load',
-      data: {
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
-        navCount: navEls.length,
-        navBottom: navRect?.bottom ?? null,
-        navHeight: navRect?.height ?? null,
-        stickyComputedPosition: window.getComputedStyle(el).position,
-        stickyComputedTop: window.getComputedStyle(el).top,
-        hasTransformAncestor,
-        hasOverflowAncestor,
-        blockers,
-      },
-    });
-
-    // Hypothesis H8: The inner scroll container isn't actually constrained, so the window still scrolls.
-    if (hasLoggedLayoutRef.current) return;
-    hasLoggedLayoutRef.current = true;
-    const contentEl = contentScrollRef.current;
-    const containerEl = contentEl?.closest('[data-edit-profile-container]') as HTMLElement | null;
-    const bodyOverflow = window.getComputedStyle(document.body).overflow;
-    const htmlOverflow = window.getComputedStyle(document.documentElement).overflow;
-    const contentStyles = contentEl ? window.getComputedStyle(contentEl) : null;
-    const containerStyles = containerEl ? window.getComputedStyle(containerEl) : null;
-
-    postDebugLog({
-      hypothesisId: 'H8',
-      location: 'ProfileEditForm.tsx:layout-after-load',
-      message: 'Layout metrics after load',
-      data: {
-        viewportH: window.innerHeight,
-        scrollY: window.scrollY,
-        htmlOverflow,
-        bodyOverflow,
-        container: containerEl
-          ? {
-              display: containerStyles?.display ?? null,
-              height: containerStyles?.height ?? null,
-              overflow: containerStyles
-                ? `${containerStyles.overflow}/${containerStyles.overflowX}/${containerStyles.overflowY}`
-                : null,
-              transform: containerStyles?.transform ?? null,
-            }
-          : null,
-        content: contentEl
-          ? {
-              overflowY: contentStyles?.overflowY ?? null,
-              height: contentStyles?.height ?? null,
-              clientHeight: contentEl.clientHeight,
-              scrollHeight: contentEl.scrollHeight,
-              scrollTop: contentEl.scrollTop,
-              isScrollable: contentEl.scrollHeight > contentEl.clientHeight + 1,
-            }
-          : null,
-      },
-    });
-  }, [loading, profile]);
-
-  useEffect(() => {
-    const el = stickyHeaderRef.current;
-    if (!el) return undefined;
-
-    function onScroll() {
-      const navEl = document.querySelector('nav');
-      const navRect = navEl?.getBoundingClientRect();
-      const stickyRect = el.getBoundingClientRect();
-
-      if (!hasLoggedStickyScrollRef.current) {
-        hasLoggedStickyScrollRef.current = true;
-        postDebugLog({
-          hypothesisId: 'H5',
-          location: 'ProfileEditForm.tsx:sticky-scroll',
-          message: 'First scroll sticky geometry',
-          data: {
-            scrollY: window.scrollY,
-            navBottom: navRect?.bottom ?? null,
-            stickyTop: stickyRect.top,
-            stickyBottom: stickyRect.bottom,
-          },
-        });
-      }
-
-      // Hypothesis H4: Sticky never engages (top keeps decreasing past nav bottom).
-      const navBottom = navRect?.bottom ?? 0;
-      const isPastNav = window.scrollY > 200;
-      const isNotSticking = stickyRect.top < navBottom - 8;
-      if (isPastNav && isNotSticking && !hasLoggedStickyFailRef.current) {
-        hasLoggedStickyFailRef.current = true;
-        postDebugLog({
-          hypothesisId: 'H4',
-          location: 'ProfileEditForm.tsx:sticky-scroll',
-          message: 'Sticky appears not engaged (sticky top passed above nav bottom)',
-          data: {
-            scrollY: window.scrollY,
-            navBottom,
-            stickyTop: stickyRect.top,
-            stickyComputedPosition: window.getComputedStyle(el).position,
-            stickyComputedTop: window.getComputedStyle(el).top,
-          },
-        });
-      }
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    const el = contentScrollRef.current;
-    if (!el) return undefined;
-
-    function onInnerScroll() {
-      if (hasLoggedContentScrollRef.current) return;
-      hasLoggedContentScrollRef.current = true;
-      postDebugLog({
-        hypothesisId: 'H7',
-        location: 'ProfileEditForm.tsx:content-scroll',
-        message: 'Inner content scrolled (expected after fix)',
-        data: {
-          scrollTop: el.scrollTop,
-          scrollHeight: el.scrollHeight,
-          clientHeight: el.clientHeight,
-        },
-      });
-    }
-
-    el.addEventListener('scroll', onInnerScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onInnerScroll);
-  }, []);
-
-  useEffect(() => {
-    // Hypothesis H9: The window is still scrolling (meaning we haven't successfully limited scrolling to the inner area).
-    function onWindowScroll() {
-      if (hasLoggedWindowScrollRef.current) return;
-      hasLoggedWindowScrollRef.current = true;
-      const contentEl = contentScrollRef.current;
-      postDebugLog({
-        hypothesisId: 'H9',
-        location: 'ProfileEditForm.tsx:window-scroll',
-        message: 'Window scrolled (should not, if only inner area scrolls)',
-        data: {
-          scrollY: window.scrollY,
-          contentScrollTop: contentEl?.scrollTop ?? null,
-        },
-      });
-    }
-
-    window.addEventListener('scroll', onWindowScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onWindowScroll);
-  }, []);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Fetch profile data
@@ -1150,19 +854,16 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
   return (
     <>
-      {/* Desktop Container - Enhanced with animations and backdrop blur */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+      {/* Desktop Container - Fixed height with scrollable content */}
+      <div
         data-edit-profile-container
         className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:flex md:flex-col md:overflow-hidden md:h-[calc(100vh-9rem)]"
         style={{
           boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
         }}
       >
-        {/* Sticky Header Container - Avatar, Title, Progress, and Tabs */}
-        <div ref={stickyHeaderRef} className="shrink-0 bg-white/95 backdrop-blur-md rounded-t-2xl">
+        {/* Header Container - Avatar, Title, Progress, and Tabs (stays fixed) */}
+        <div className="shrink-0 bg-white/95 backdrop-blur-md rounded-t-2xl">
           {/* Desktop Header with Progress Indicators */}
           <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
             <div className="flex items-center gap-4 flex-1">
@@ -1219,8 +920,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           </div>
         </div>
 
-        {/* Desktop Content */}
-        <div ref={contentScrollRef} className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
+        {/* Desktop Content (scrollable) */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
           <div className="w-full max-w-5xl mx-auto">
             {renderSectionContent(activeSection)}
           </div>
@@ -1255,7 +956,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             </Button>
           </motion.div>
         )}
-      </motion.div>
+      </div>
 
       {/* Mobile Accordion Sections */}
       <div className="md:hidden space-y-3">
