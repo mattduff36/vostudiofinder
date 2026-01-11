@@ -226,7 +226,15 @@ export function ProfileCompletionAnimation({
                   ease: 'easeInOut',
                 }}
               >
-                <MousePointer2 className="w-12 h-12 text-white stroke-red-600 stroke-2 drop-shadow-lg" />
+                <MousePointer2 
+                  className="w-12 h-12 drop-shadow-lg" 
+                  style={{ 
+                    color: 'white',
+                    fill: 'white',
+                    stroke: '#dc2626',
+                    strokeWidth: '2'
+                  }}
+                />
               </motion.div>
             )}
 
