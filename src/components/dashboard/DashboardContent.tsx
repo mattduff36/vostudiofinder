@@ -5,13 +5,14 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
+import { ImageGalleryManager } from './ImageGalleryManager';
 import { Settings } from './Settings';
 import { Footer } from '@/components/home/Footer';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import type { ProfileData } from '@/types/profile';
 
 // Dashboard tab type for navigation
-export type DashboardTab = 'overview' | 'edit-profile' | 'settings';
+export type DashboardTab = 'overview' | 'edit-profile' | 'images' | 'settings';
 
 // Phase 4: Mobile dashboard components
 import { QuickActions, QuickAction } from './mobile/QuickActions';
@@ -31,7 +32,7 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1); // Remove '#'
       const nextTab: DashboardTab =
-        hash && ['edit-profile', 'settings'].includes(hash)
+        hash && ['edit-profile', 'images', 'settings'].includes(hash)
           ? (hash as DashboardTab)
           : 'overview';
 
@@ -68,6 +69,9 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
         
         case 'edit-profile':
           return <ProfileEditForm userId={dashboardData.user.id} />;
+        
+        case 'images':
+          return <ImageGalleryManager />;
         
         case 'settings':
           return <Settings data={dashboardData} />;
