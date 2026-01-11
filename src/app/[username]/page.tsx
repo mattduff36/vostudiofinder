@@ -283,7 +283,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
 
     // Calculate average rating
     const averageRating = studio.reviews.length > 0
-      ? studio.reviews.reduce((sum: number, review) => sum + review.rating, 0) / studio.reviews.length
+      ? studio.reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / studio.reviews.length
       : 0;
 
     // Get base URL from environment or use default
