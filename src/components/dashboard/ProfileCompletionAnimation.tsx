@@ -106,40 +106,34 @@ export function ProfileCompletionAnimation({
     );
   }
 
-  // If not animating, render normally with Link wrapper and pulsing text
+  // If not animating, render normally with Link wrapper and hover text
   if (!shouldAnimate || animationPhase === 'complete') {
     return (
-      <div ref={containerRef} className="hidden md:flex md:flex-col md:items-start md:gap-3">
+      <div ref={containerRef} className="hidden md:flex md:flex-col md:items-start md:gap-3 group">
         <a
           href="/dashboard#edit-profile"
           onClick={handleClick}
-          className="group relative flex items-center justify-center transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
+          className="relative flex items-center justify-center transition-all duration-300 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
           aria-label="Edit your profile"
+          style={{
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.filter = 'drop-shadow(0 0 20px rgba(220, 38, 38, 0.4))';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.filter = 'none';
+          }}
         >
           {children}
         </a>
-        {/* Pulsing "Edit Profile" text with icon */}
-        <motion.div
-          className="w-full flex justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-        >
-          <motion.div
-            className="flex items-center gap-2 text-sm font-medium"
-            animate={{
-              opacity: [0.6, 1, 0.6],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          >
+        {/* "Edit Profile" text with icon - shows on hover */}
+        <div className="w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <div className="flex items-center gap-2 text-sm font-medium">
             <Edit3 className="w-4 h-4 text-red-600" aria-hidden="true" />
             <span className="text-gray-900">Edit Profile</span>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     );
   }
