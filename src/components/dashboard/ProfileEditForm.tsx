@@ -116,6 +116,148 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [activeSection, setActiveSection] = useState('basic');
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
+
+  const stickyHeaderRef = useRef<HTMLDivElement | null>(null);
+  const hasLoggedStickyMountRef = useRef(false);
+  const hasLoggedStickyScrollRef = useRef(false);
+  const hasLoggedStickyFailRef = useRef(false);
+
+  function postDebugLog(payload: {
+    hypothesisId: string;
+    location: string;
+    message: string;
+    data?: Record<string, unknown>;
+  }) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: 'debug-session',
+        runId: 'pre-fix',
+        hypothesisId: payload.hypothesisId,
+        location: payload.location,
+        message: payload.message,
+        data: payload.data ?? {},
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+  }
+
+  useEffect(() => {
+    if (hasLoggedStickyMountRef.current) return;
+    hasLoggedStickyMountRef.current = true;
+
+    const el = stickyHeaderRef.current;
+    const navEls = Array.from(document.querySelectorAll('nav'));
+    const navRect = navEls[0]?.getBoundingClientRect();
+
+    // Hypothesis H1/H2: Sticky is blocked by an ancestor with transform/overflow/filter.
+    const blockers: Array<Record<string, unknown>> = [];
+    let node: HTMLElement | null = el?.parentElement ?? null;
+    let hasTransformAncestor = false;
+    let hasOverflowAncestor = false;
+    for (let i = 0; node && i < 12; i += 1) {
+      const cs = window.getComputedStyle(node);
+      const transform = cs.transform;
+      const overflow = `${cs.overflow}/${cs.overflowX}/${cs.overflowY}`;
+      const filter = cs.filter;
+      const backdropFilter = (cs as any).backdropFilter ?? '';
+      if (transform && transform !== 'none') hasTransformAncestor = true;
+      if (!overflow.startsWith('visible/visible/visible')) hasOverflowAncestor = true;
+      blockers.push({
+        tag: node.tagName,
+        className: node.className,
+        transform,
+        overflow,
+        filter,
+        backdropFilter,
+        position: cs.position,
+      });
+      node = node.parentElement;
+    }
+
+    postDebugLog({
+      hypothesisId: 'H1',
+      location: 'ProfileEditForm.tsx:sticky-mount',
+      message: 'Sticky mount diagnostics',
+      data: {
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        navCount: navEls.length,
+        navBottom: navRect?.bottom ?? null,
+        navHeight: navRect?.height ?? null,
+        stickyExists: !!el,
+        stickyComputedPosition: el ? window.getComputedStyle(el).position : null,
+        stickyComputedTop: el ? window.getComputedStyle(el).top : null,
+        hasTransformAncestor,
+        hasOverflowAncestor,
+        blockers,
+      },
+    });
+
+    // Hypothesis H3: Wrong top offset (nav height mismatch).
+    postDebugLog({
+      hypothesisId: 'H3',
+      location: 'ProfileEditForm.tsx:sticky-mount',
+      message: 'Nav vs sticky top offset',
+      data: {
+        navBottom: navRect?.bottom ?? null,
+        stickyTopCss: el ? window.getComputedStyle(el).top : null,
+        expectedTopPx: 72,
+      },
+    });
+  }, []);
+
+  useEffect(() => {
+    const el = stickyHeaderRef.current;
+    if (!el) return undefined;
+
+    function onScroll() {
+      const navEl = document.querySelector('nav');
+      const navRect = navEl?.getBoundingClientRect();
+      const stickyRect = el.getBoundingClientRect();
+
+      if (!hasLoggedStickyScrollRef.current) {
+        hasLoggedStickyScrollRef.current = true;
+        postDebugLog({
+          hypothesisId: 'H5',
+          location: 'ProfileEditForm.tsx:sticky-scroll',
+          message: 'First scroll sticky geometry',
+          data: {
+            scrollY: window.scrollY,
+            navBottom: navRect?.bottom ?? null,
+            stickyTop: stickyRect.top,
+            stickyBottom: stickyRect.bottom,
+          },
+        });
+      }
+
+      // Hypothesis H4: Sticky never engages (top keeps decreasing past nav bottom).
+      const navBottom = navRect?.bottom ?? 0;
+      const isPastNav = window.scrollY > 200;
+      const isNotSticking = stickyRect.top < navBottom - 8;
+      if (isPastNav && isNotSticking && !hasLoggedStickyFailRef.current) {
+        hasLoggedStickyFailRef.current = true;
+        postDebugLog({
+          hypothesisId: 'H4',
+          location: 'ProfileEditForm.tsx:sticky-scroll',
+          message: 'Sticky appears not engaged (sticky top passed above nav bottom)',
+          data: {
+            scrollY: window.scrollY,
+            navBottom,
+            stickyTop: stickyRect.top,
+            stickyComputedPosition: window.getComputedStyle(el).position,
+            stickyComputedTop: window.getComputedStyle(el).top,
+          },
+        });
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Fetch profile data
@@ -865,7 +1007,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         }}
       >
         {/* Sticky Header Container - Avatar, Title, Progress, and Tabs */}
-        <div className="sticky top-[72px] z-40 bg-white/95 backdrop-blur-md rounded-t-2xl">
+        <div ref={stickyHeaderRef} className="sticky top-[72px] z-40 bg-white/95 backdrop-blur-md rounded-t-2xl">
           {/* Desktop Header with Progress Indicators */}
           <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
             <div className="flex items-center gap-4 flex-1">
