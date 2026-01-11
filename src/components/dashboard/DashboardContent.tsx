@@ -100,7 +100,9 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
           setTimeout(() => {
             const styles = window.getComputedStyle(el);
             const rect = el.getBoundingClientRect();
-            fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DashboardContent.tsx:root-wrapper',message:'Root wrapper dimensions',data:{minHeight:styles.minHeight,height:styles.height,overflow:styles.overflow,rectHeight:rect.height,viewportHeight:window.innerHeight,hasMinHeightScreen:styles.minHeight.includes('100vh')},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'H1'})}).catch(()=>{});
+            const footer = document.querySelector('.hidden.md\\:block.relative.z-10');
+            const footerRect = footer ? footer.getBoundingClientRect() : null;
+            fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DashboardContent.tsx:root-wrapper',message:'Root wrapper dimensions',data:{minHeight:styles.minHeight,height:styles.height,overflow:styles.overflow,rectHeight:rect.height,rectBottom:rect.bottom,viewportHeight:window.innerHeight,hasMinHeightScreen:styles.minHeight.includes('100vh'),footerTop:footerRect?.top,footerHeight:footerRect?.height,footerVisible:!!footer},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix-2',hypothesisId:'H1'})}).catch(()=>{});
           }, 100);
         }
         // #endregion
