@@ -2,11 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import * as dotenv from 'dotenv';
 import * as readline from 'readline';
 
-// Load environment variables
-dotenv.config({ path: '.env.local' });
-
-const db = new PrismaClient();
-
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -16,6 +11,61 @@ function question(query: string): Promise<string> {
   return new Promise((resolve) => {
     rl.question(query, resolve);
   });
+}
+
+interface ScriptOptions {
+  envFile: string;
+  mode: 'preview' | 'delete';
+}
+
+function maskDbUrl(url: string | undefined): string {
+  if (!url) return '(not set)';
+  return url.replace(/(postgresql:\/\/[^:]+:)([^@]+)(@.+)/, '$1****$3');
+}
+
+function parseScriptOptions(argv: string[]): Partial<ScriptOptions> {
+  const options: Partial<ScriptOptions> = {};
+
+  for (const rawArg of argv) {
+    if (!rawArg.startsWith('--')) continue;
+
+    const [rawKey, ...rest] = rawArg.slice(2).split('=');
+    const key = rawKey.trim();
+    const value = rest.join('=').trim();
+
+    if (key === 'env-file' && value) options.envFile = value;
+    if (key === 'mode' && (value === 'preview' || value === 'delete')) options.mode = value;
+  }
+
+  return options;
+}
+
+async function promptOptions(parsed: Partial<ScriptOptions>): Promise<ScriptOptions> {
+  const envFile = parsed.envFile || (await (async () => {
+    console.log('\nSelect environment:');
+    console.log('  1) Dev (.env.local)');
+    console.log('  2) Production (.env.production)');
+    console.log('  3) Custom path');
+
+    const choice = (await question('\nChoose 1/2/3: ')).trim();
+    if (choice === '2') return '.env.production';
+    if (choice === '3') {
+      const custom = (await question('Enter env file path (e.g. .env.staging): ')).trim();
+      return custom || '.env.local';
+    }
+    return '.env.local';
+  })());
+
+  const mode = parsed.mode || (await (async () => {
+    console.log('\nSelect action:');
+    console.log('  1) Preview only (no changes)');
+    console.log('  2) Delete all test accounts (DANGEROUS)');
+
+    const choice = (await question('\nChoose 1/2: ')).trim();
+    return choice === '2' ? 'delete' : 'preview';
+  })());
+
+  return { envFile, mode };
 }
 
 /**
@@ -36,8 +86,19 @@ function isTestAccount(email: string, username: string): boolean {
 }
 
 async function deleteAllTestAccounts() {
+  const parsed = parseScriptOptions(process.argv.slice(2));
+  const options = await promptOptions(parsed);
+
+  dotenv.config({ path: options.envFile });
+  const db = new PrismaClient();
+
   try {
-    console.log('\n🔍 Finding all test accounts...\n');
+    console.log('\n🧹 Delete test accounts script\n');
+    console.log(`Mode: ${options.mode === 'delete' ? 'DELETE' : 'PREVIEW'}`);
+    console.log(`Env file: ${options.envFile}`);
+    console.log(`Database: ${maskDbUrl(process.env.DATABASE_URL)}\n`);
+
+    console.log('🔍 Finding all test accounts...\n');
 
     // Find all users
     const allUsers = await db.users.findMany({
@@ -111,17 +172,15 @@ async function deleteAllTestAccounts() {
     console.log('   - Studio types');
     console.log('   - All related data\n');
 
-    // Check for --confirm flag
-    const hasConfirmFlag = process.argv.includes('--confirm');
+    if (options.mode !== 'delete') {
+      console.log('✅ Preview complete. Re-run and choose "Delete" to actually remove these accounts.\n');
+      return;
+    }
 
-    if (!hasConfirmFlag) {
-      const answer = await question('Type "DELETE ALL TEST ACCOUNTS" to confirm: ');
-      if (answer !== 'DELETE ALL TEST ACCOUNTS') {
-        console.log('\n❌ Deletion cancelled.');
-        rl.close();
-        await db.$disconnect();
-        return;
-      }
+    const answer = await question('Type "DELETE ALL TEST ACCOUNTS" to confirm: ');
+    if (answer !== 'DELETE ALL TEST ACCOUNTS') {
+      console.log('\n❌ Deletion cancelled.');
+      return;
     }
 
     console.log('\n🗑️  Deleting test accounts...\n');
@@ -252,7 +311,11 @@ async function deleteAllTestAccounts() {
     console.error('❌ Fatal error:', error);
   } finally {
     rl.close();
-    await db.$disconnect();
+    try {
+      await db.$disconnect();
+    } catch {
+      // ignore
+    }
   }
 }
 

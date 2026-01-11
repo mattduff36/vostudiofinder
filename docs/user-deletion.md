@@ -31,3 +31,24 @@ npm run user:delete -- --email=someone@example.com --env-file=.env.production --
 - `--username=...` + `--include-username-match`: also match on username
 - `--no-waitlist-delete`: do not delete `waitlist` entries by email
 
+---
+
+# Convenience command: `deletetestaccounts`
+
+If you want to run an interactive “delete test accounts” menu by typing a simple command in Git Bash:
+
+## One-time setup
+
+From the repo root:
+
+```bash
+bash scripts/install-bash-commands.sh
+```
+
+Then restart Git Bash (or run `source ~/.bashrc`).
+
+## Run
+
+```bash
+deletetestaccounts
+```
