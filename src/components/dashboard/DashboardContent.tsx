@@ -5,13 +5,14 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
+import { ImageGalleryManager } from './ImageGalleryManager';
 import { Settings } from './Settings';
 import { Footer } from '@/components/home/Footer';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import type { ProfileData } from '@/types/profile';
 
 // Dashboard tab type for navigation
-export type DashboardTab = 'overview' | 'edit-profile' | 'settings';
+export type DashboardTab = 'overview' | 'edit-profile' | 'images' | 'settings';
 
 // Phase 4: Mobile dashboard components
 import { QuickActions, QuickAction } from './mobile/QuickActions';
@@ -31,7 +32,7 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1); // Remove '#'
       const nextTab: DashboardTab =
-        hash && ['edit-profile', 'settings'].includes(hash)
+        hash && ['edit-profile', 'images', 'settings'].includes(hash)
           ? (hash as DashboardTab)
           : 'overview';
 
@@ -69,6 +70,9 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
         case 'edit-profile':
           return <ProfileEditForm userId={dashboardData.user.id} />;
         
+        case 'images':
+          return <ImageGalleryManager />;
+        
         case 'settings':
           return <Settings data={dashboardData} />;
         
@@ -93,21 +97,7 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
   };
 
   return (
-    <div 
-      ref={(el) => {
-        // #region agent log
-        if (el && activeTab === 'edit-profile') {
-          setTimeout(() => {
-            const styles = window.getComputedStyle(el);
-            const rect = el.getBoundingClientRect();
-            fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DashboardContent.tsx:root-wrapper',message:'Root wrapper dimensions',data:{minHeight:styles.minHeight,height:styles.height,overflow:styles.overflow,rectHeight:rect.height,viewportHeight:window.innerHeight,hasMinHeightScreen:styles.minHeight.includes('100vh')},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'H1'})}).catch(()=>{});
-          }, 100);
-        }
-        // #endregion
-      }}
-      className={`relative bg-gray-50 flex flex-col ${
-        activeTab === 'edit-profile' ? 'h-[calc(100vh-5rem)] overflow-hidden' : 'min-h-screen'
-      }`}>
+    <div className="min-h-screen relative bg-gray-50 flex flex-col">
       {/* Background Image - Fixed with enhanced gradient overlay on desktop */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
@@ -149,24 +139,10 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
       )}
 
       {/* Content */}
-      <div 
-        ref={(el) => {
-          // #region agent log
-          if (el && activeTab === 'edit-profile') {
-            setTimeout(() => {
-              const styles = window.getComputedStyle(el);
-              const rect = el.getBoundingClientRect();
-              fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DashboardContent.tsx:content-wrapper',message:'Content wrapper dimensions',data:{display:styles.display,flexDirection:styles.flexDirection,height:styles.height,overflow:styles.overflow,paddingTop:styles.paddingTop,paddingBottom:styles.paddingBottom,rectHeight:rect.height,viewportHeight:window.innerHeight,hasOverflowHidden:styles.overflow==='hidden'},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix-2',hypothesisId:'H1,H2'})}).catch(()=>{});
-            }, 100);
-          }
-          // #endregion
-        }}
-        className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
-        activeTab === 'edit-profile' ? 'md:flex md:flex-col md:h-full md:overflow-hidden flex-1' : 'flex-1'
-      } ${
+      <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 ${
         // Note: `src/app/layout.tsx` already applies `pt-16` (64px) to <main> to clear the fixed Navbar.
         // This additional `pt-20` is intentional spacing + clearance for the fixed mobile back button.
-        activeTab === 'overview' ? 'py-0 md:py-8' : activeTab === 'edit-profile' ? 'pt-20 md:pt-8 md:pb-0' : 'pt-20 pb-8 md:py-8'
+        activeTab === 'overview' ? 'py-0 md:py-8' : 'pt-20 pb-8 md:py-8'
       } ${activeTab === 'settings' ? 'space-y-6' : ''}`}>
         {activeTab === 'overview' ? (
           // Overview: Show quick actions on mobile, regular content on desktop
