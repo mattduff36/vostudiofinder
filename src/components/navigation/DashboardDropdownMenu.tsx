@@ -23,19 +23,24 @@ export function DashboardDropdownMenu({
   const router = useRouter();
   const pathname = usePathname();
 
-  // Track hash changes
+  // Track hash changes (only when on dashboard page)
   useEffect(() => {
     const updateHash = () => {
-      setCurrentHash(window.location.hash);
+      // Only track hash if we're on the dashboard page
+      if (pathname === '/dashboard') {
+        setCurrentHash(window.location.hash);
+      } else {
+        setCurrentHash('');
+      }
     };
     
-    // Set initial hash
+    // Set initial hash based on current pathname
     updateHash();
     
     // Listen for hash changes
     window.addEventListener('hashchange', updateHash);
     return () => window.removeEventListener('hashchange', updateHash);
-  }, []);
+  }, [pathname]);
 
   // Close on outside click
   useEffect(() => {
