@@ -20,11 +20,15 @@ interface StudioImage {
 interface ImageGalleryManagerProps {
   studioId?: string; // Optional: for admin mode
   isAdminMode?: boolean; // Optional: to use admin API endpoints
+  embedded?: boolean; // Optional: hide header/progress when embedded in edit profile
+  onImagesChanged?: () => void; // Optional: callback when images change (for parent to refresh)
 }
 
 export function ImageGalleryManager({ 
   studioId, 
-  isAdminMode = false
+  isAdminMode = false,
+  embedded = false,
+  onImagesChanged
 }: ImageGalleryManagerProps = {}) {
   const [images, setImages] = useState<StudioImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,6 +192,11 @@ export function ImageGalleryManager({
       
       // Reset cropper state
       setFileToCrop(null);
+      
+      // Notify parent component if embedded
+      if (onImagesChanged) {
+        onImagesChanged();
+      }
     } catch (err) {
       logger.error('[ERROR] Upload error caught:', err);
       if (err instanceof Error) {
@@ -256,6 +265,11 @@ export function ImageGalleryManager({
       });
 
       if (!response.ok) throw new Error('Failed to reorder images');
+      
+      // Notify parent component if embedded
+      if (onImagesChanged) {
+        onImagesChanged();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reorder images');
       // Revert on error
@@ -321,6 +335,11 @@ export function ImageGalleryManager({
       if (!response.ok) throw new Error('Failed to delete image');
 
       setImages(images.filter(img => img.id !== imageId));
+      
+      // Notify parent component if embedded
+      if (onImagesChanged) {
+        onImagesChanged();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete image');
     }
@@ -352,10 +371,10 @@ export function ImageGalleryManager({
   return (
     <Container 
       {...containerProps}
-      className={isAdminMode ? "" : "bg-white rounded-lg border border-gray-200 shadow-sm md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"}
+      className={isAdminMode || embedded ? "" : "bg-white rounded-lg border border-gray-200 shadow-sm md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"}
     >
-      {/* Header - Hidden in admin mode */}
-      {!isAdminMode && (
+      {/* Header - Hidden in admin mode and embedded mode */}
+      {!isAdminMode && !embedded && (
         <>
           <div className="border-b border-gray-200 px-4 md:px-6 py-4 md:py-5 md:border-gray-100 md:flex md:items-center md:justify-between md:gap-6">
             <div>
@@ -398,13 +417,13 @@ export function ImageGalleryManager({
 
       {/* Error Message */}
       {error && (
-        <div className={`bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 ${isAdminMode ? 'mb-4' : 'mx-4 md:mx-6 mt-4'}`}>
+        <div className={`bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 ${isAdminMode || embedded ? 'mb-4' : 'mx-4 md:mx-6 mt-4'}`}>
           {error}
         </div>
       )}
 
       {/* Upload Zone */}
-      <div className={isAdminMode ? "mb-4" : "p-4 md:p-6"}>
+      <div className={isAdminMode || embedded ? "mb-4" : "p-4 md:p-6"}>
         {images.length >= 5 ? (
           <div className={`border-2 border-gray-300 rounded-lg text-center bg-gray-50 ${
             isAdminMode ? 'p-4' : 'p-6 md:p-8'
@@ -458,7 +477,7 @@ export function ImageGalleryManager({
 
       {/* Image Grid - Desktop: Grid with drag-and-drop, Mobile: Card list with buttons */}
       {images.length > 0 ? (
-        <div className={isAdminMode ? "" : "px-4 md:px-6 pb-6"}>
+        <div className={isAdminMode || embedded ? "" : "px-4 md:px-6 pb-6"}>
           {/* Desktop Grid */}
           <div className={`hidden md:grid gap-3 ${isAdminMode ? 'grid-cols-3 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
             {images.map((image, index) => (
@@ -623,8 +642,8 @@ export function ImageGalleryManager({
           </div>
         </div>
       ) : (
-        <div className={`text-center ${isAdminMode ? '' : 'px-4 md:px-6 pb-6'}`}>
-          <ImageIcon className={`text-gray-300 mx-auto mb-3 ${isAdminMode ? 'w-12 h-12' : 'w-14 md:w-16 h-14 md:h-16'}`} />
+        <div className={`text-center ${isAdminMode || embedded ? '' : 'px-4 md:px-6 pb-6'}`}>
+          <ImageIcon className={`text-gray-300 mx-auto mb-3 ${isAdminMode || embedded ? 'w-12 h-12' : 'w-14 md:w-16 h-14 md:h-16'}`} />
           <p className="text-gray-500">No images uploaded yet</p>
           <p className="text-sm text-gray-400 mt-1">Upload your first image to get started</p>
         </div>

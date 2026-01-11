@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Menu, Home, Edit, Image, Settings, User } from 'lucide-react';
+import { Menu, Home, Edit, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface DashboardDropdownMenuProps {
@@ -126,12 +126,6 @@ export function DashboardDropdownMenu({
       label: 'Edit Profile', 
       path: '/dashboard#edit-profile',
       active: currentHash === '#edit-profile'
-    },
-    { 
-      icon: Image, 
-      label: 'Images', 
-      path: '/dashboard#images',
-      active: currentHash === '#images'
     },
     { 
       icon: Settings, 

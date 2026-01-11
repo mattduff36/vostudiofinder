@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { User, Image as ImageIcon, Settings, Loader2, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
+import { User, Settings, Loader2, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
@@ -17,7 +17,7 @@ import { Toggle } from '@/components/ui/Toggle';
 import { logger } from '@/lib/logger';
 import { showError } from '@/lib/toast';
 
-export type QuickAction = 'edit-profile' | 'images' | 'settings';
+export type QuickAction = 'edit-profile' | 'settings';
 
 interface QuickActionsProps {
   onActionClick: (action: QuickAction) => void;
@@ -158,14 +158,10 @@ export function QuickActions({
     if (!profileData) {
       return {
         editProfile: false,
-        images: false,
       };
     }
 
-    // Check if images are uploaded (1+ images)
-    const isImagesComplete = (profileData.studio?.images?.length || 0) >= 1;
-
-    // Edit Profile tile: all Edit Profile sections complete (basic, contact, connections, rates, social)
+    // Edit Profile tile: all Edit Profile sections complete (basic, contact, connections, rates, social, images)
     // Basic: username, display_name, email, studio.name, studio_types>=1, short_about, about
     const isBasicComplete = !!(
       profileData.user?.username &&
@@ -221,16 +217,19 @@ export function QuickActions({
     ].filter((url) => url && url.trim() !== '');
     const isSocialComplete = socialLinks.length >= 2;
 
+    // Images: at least 1 image
+    const isImagesComplete = (profileData.studio?.images?.length || 0) >= 1;
+
     const isEditProfileComplete =
       isBasicComplete &&
       isContactComplete &&
       isConnectionsComplete &&
       isRatesComplete &&
-      isSocialComplete;
+      isSocialComplete &&
+      isImagesComplete;
 
     return {
       editProfile: isEditProfileComplete,
-      images: isImagesComplete,
     };
   }, [profileData]);
 
@@ -274,12 +273,6 @@ export function QuickActions({
       label: 'Edit Profile',
       description: 'Update your personal information',
       icon: User,
-    },
-    {
-      id: 'images' as QuickAction,
-      label: 'Manage Images',
-      description: 'Upload and organise studio photos',
-      icon: ImageIcon,
     },
     {
       id: 'settings' as QuickAction,
@@ -441,9 +434,6 @@ export function QuickActions({
         if (action.id === 'edit-profile') {
           iconBgClass = tileCompletionStatus.editProfile ? 'bg-green-50' : 'bg-red-50';
           iconColorClass = tileCompletionStatus.editProfile ? 'text-green-600' : 'text-[#d42027]';
-        } else if (action.id === 'images') {
-          iconBgClass = tileCompletionStatus.images ? 'bg-green-50' : 'bg-red-50';
-          iconColorClass = tileCompletionStatus.images ? 'text-green-600' : 'text-[#d42027]';
         } else if (action.id === 'settings') {
           iconBgClass = 'bg-gray-50';
           iconColorClass = 'text-gray-500';
