@@ -9,6 +9,7 @@ import { ImageGalleryManager } from './ImageGalleryManager';
 import { Settings } from './Settings';
 import { Footer } from '@/components/home/Footer';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
+import type { ProfileData } from '@/types/profile';
 
 // Dashboard tab type for navigation
 export type DashboardTab = 'overview' | 'edit-profile' | 'images' | 'settings';
@@ -18,9 +19,10 @@ import { QuickActions, QuickAction } from './mobile/QuickActions';
 
 interface DashboardContentProps {
   dashboardData: any;
+  initialProfileData: ProfileData | null;
 }
 
-export function DashboardContent({ dashboardData }: DashboardContentProps) {
+export function DashboardContent({ dashboardData, initialProfileData }: DashboardContentProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const hasMountedRef = useRef(false);
@@ -61,7 +63,7 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
           // Hide desktop overview on mobile
           return (
             <div className="hidden md:block">
-              <UserDashboard data={dashboardData} />
+              <UserDashboard data={dashboardData} initialProfileData={initialProfileData} />
             </div>
           );
         
@@ -75,7 +77,7 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
           return <Settings data={dashboardData} />;
         
         default:
-          return <UserDashboard data={dashboardData} />;
+          return <UserDashboard data={dashboardData} initialProfileData={initialProfileData} />;
       }
     })();
 

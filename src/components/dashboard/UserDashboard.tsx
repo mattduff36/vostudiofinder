@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Activity,
   Eye,
@@ -107,18 +107,45 @@ interface UserDashboardProps {
       };
     }>;
   };
+  initialProfileData?: ProfileData | null;
 }
 
-export function UserDashboard({ data }: UserDashboardProps) {
+export function UserDashboard({ data, initialProfileData }: UserDashboardProps) {
   const { user } = data;
-  const [profileData, setProfileData] = useState<ProfileData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isProfileVisible, setIsProfileVisible] = useState(true);
+  const [profileData, setProfileData] = useState<ProfileData | null>(() => initialProfileData ?? null);
+  const [loading, setLoading] = useState<boolean>(() => !initialProfileData);
+  const [isProfileVisible, setIsProfileVisible] = useState<boolean>(() => {
+    if (!initialProfileData) return true;
+    if (initialProfileData.studio) return initialProfileData.studio.is_profile_visible !== false;
+    return false;
+  });
   const [saving, setSaving] = useState(false);
+  const hasLoggedLoadingRef = useRef(false);
+
+  useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'no-flash-post',hypothesisId:'NF1',location:'UserDashboard.tsx:mount',message:'mount_state',data:{hasInitialProfileData:!!initialProfileData,initialLoading:!initialProfileData,href:typeof window!=='undefined'?window.location.href:'(no-window)'},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+  }, [initialProfileData]);
+
+  useEffect(() => {
+    if (!loading) return;
+    if (hasLoggedLoadingRef.current) return;
+    hasLoggedLoadingRef.current = true;
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'no-flash-post',hypothesisId:'NF2',location:'UserDashboard.tsx:loadingEffect',message:'loading_true',data:{hasInitialProfileData:!!initialProfileData,href:window.location.href},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+  }, [loading, initialProfileData]);
 
   // Fetch profile data for completion progress
   useEffect(() => {
     let didCancel = false;
+
+    if (initialProfileData) {
+      cachedProfileData = initialProfileData;
+      cachedProfileFetchedAt = Date.now();
+    }
 
     const applyProfileData = (nextProfileData: ProfileData) => {
       if (didCancel) return;
@@ -159,7 +186,8 @@ export function UserDashboard({ data }: UserDashboardProps) {
         return;
       }
 
-      setLoading(true);
+      // Only show the placeholder if we don't already have content to render
+      if (!profileData) setLoading(true);
 
       // De-dupe in-flight fetches (StrictMode/dev + quick tab switches)
       if (!inFlightProfileFetch) {
@@ -191,7 +219,7 @@ export function UserDashboard({ data }: UserDashboardProps) {
       didCancel = true;
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [initialProfileData, profileData]);
 
   // Compute if all required fields are complete (recalculates whenever profileData changes)
   const allRequiredComplete = useMemo((): boolean => {

@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { requireAuth } from '@/lib/auth-guards';
 import { DashboardContent } from '@/components/dashboard/DashboardContent';
 import { db } from '@/lib/db';
+import type { ProfileData, StudioImage, StudioType } from '@/types/profile';
 
 
 export const metadata: Metadata = {
@@ -11,6 +12,117 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const session = await requireAuth();
+
+  const initialProfileData: ProfileData | null = await (async () => {
+    const userWithProfile = await db.users.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        display_name: true,
+        username: true,
+        email: true,
+        avatar_url: true,
+        role: true,
+        studio_profiles: {
+          include: {
+            studio_studio_types: {
+              select: { studio_type: true },
+            },
+            studio_images: {
+              orderBy: { sort_order: 'asc' },
+              select: {
+                id: true,
+                image_url: true,
+                alt_text: true,
+                sort_order: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!userWithProfile) return null;
+
+    const studioProfile = userWithProfile.studio_profiles;
+
+    const studioTypes: StudioType[] =
+      studioProfile?.studio_studio_types?.map((st) => ({
+        id: `${studioProfile.id}-${st.studio_type}`,
+        name: st.studio_type,
+      })) ?? [];
+
+    const studioImages: StudioImage[] =
+      studioProfile?.studio_images?.map((img) => ({
+        id: img.id,
+        studio_id: studioProfile.id,
+        image_url: img.image_url,
+        alt_text: img.alt_text ?? undefined,
+        display_order: img.sort_order ?? 0,
+      })) ?? [];
+
+    return {
+      user: {
+        id: userWithProfile.id,
+        display_name: userWithProfile.display_name,
+        username: userWithProfile.username ?? '',
+        email: userWithProfile.email ?? '',
+        avatar_url: userWithProfile.avatar_url ?? undefined,
+        role: userWithProfile.role as string,
+      },
+      profile: studioProfile
+        ? {
+            about: studioProfile.about ?? '',
+            short_about: studioProfile.short_about ?? '',
+            phone: studioProfile.phone ?? '',
+            location: studioProfile.location ?? '',
+            studio_name: studioProfile.name ?? '',
+            rate_tier_1: studioProfile.rate_tier_1 ?? null,
+            equipment_list: studioProfile.equipment_list ?? '',
+            services_offered: studioProfile.services_offered ?? '',
+            facebook_url: studioProfile.facebook_url ?? '',
+            x_url: studioProfile.x_url ?? '',
+            linkedin_url: studioProfile.linkedin_url ?? '',
+            instagram_url: studioProfile.instagram_url ?? '',
+            youtube_url: studioProfile.youtube_url ?? '',
+            soundcloud_url: studioProfile.soundcloud_url ?? '',
+            tiktok_url: studioProfile.tiktok_url ?? '',
+            threads_url: studioProfile.threads_url ?? '',
+            connection1: studioProfile.connection1 ?? '',
+            connection2: studioProfile.connection2 ?? '',
+            connection3: studioProfile.connection3 ?? '',
+            connection4: studioProfile.connection4 ?? '',
+            connection5: studioProfile.connection5 ?? '',
+            connection6: studioProfile.connection6 ?? '',
+            connection7: studioProfile.connection7 ?? '',
+            connection8: studioProfile.connection8 ?? '',
+            connection9: studioProfile.connection9 ?? '',
+            connection10: studioProfile.connection10 ?? '',
+            connection11: studioProfile.connection11 ?? '',
+            connection12: studioProfile.connection12 ?? '',
+          }
+        : {},
+      studio: studioProfile
+        ? {
+            id: studioProfile.id,
+            name: studioProfile.name ?? '',
+            user_id: studioProfile.user_id,
+            description: studioProfile.description ?? undefined,
+            website_url: studioProfile.website_url ?? undefined,
+            full_address: studioProfile.full_address ?? undefined,
+            city: studioProfile.city ?? undefined,
+            latitude: studioProfile.latitude ? Number(studioProfile.latitude) : null,
+            longitude: studioProfile.longitude ? Number(studioProfile.longitude) : null,
+            status: studioProfile.status ?? 'ACTIVE',
+            is_premium: !!studioProfile.is_premium,
+            is_profile_visible: studioProfile.is_profile_visible ?? undefined,
+            images: studioImages,
+            studio_types: studioTypes,
+          }
+        : undefined,
+      studio_types: studioTypes,
+    };
+  })();
 
   // Fetch user's data and activities
   const [
@@ -181,5 +293,5 @@ export default async function DashboardPage() {
     })),
   };
 
-  return <DashboardContent dashboardData={dashboardData} />;
+  return <DashboardContent dashboardData={dashboardData} initialProfileData={initialProfileData} />;
 }
