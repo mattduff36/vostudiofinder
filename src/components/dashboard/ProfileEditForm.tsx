@@ -123,6 +123,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const hasLoggedStickyScrollRef = useRef(false);
   const hasLoggedStickyFailRef = useRef(false);
   const hasLoggedContentScrollRef = useRef(false);
+  const hasLoggedLayoutRef = useRef(false);
+  const hasLoggedWindowScrollRef = useRef(false);
 
   function postDebugLog(payload: {
     hypothesisId: string;
@@ -274,6 +276,48 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         blockers,
       },
     });
+
+    // Hypothesis H8: The inner scroll container isn't actually constrained, so the window still scrolls.
+    if (hasLoggedLayoutRef.current) return;
+    hasLoggedLayoutRef.current = true;
+    const contentEl = contentScrollRef.current;
+    const containerEl = contentEl?.closest('[data-edit-profile-container]') as HTMLElement | null;
+    const bodyOverflow = window.getComputedStyle(document.body).overflow;
+    const htmlOverflow = window.getComputedStyle(document.documentElement).overflow;
+    const contentStyles = contentEl ? window.getComputedStyle(contentEl) : null;
+    const containerStyles = containerEl ? window.getComputedStyle(containerEl) : null;
+
+    postDebugLog({
+      hypothesisId: 'H8',
+      location: 'ProfileEditForm.tsx:layout-after-load',
+      message: 'Layout metrics after load',
+      data: {
+        viewportH: window.innerHeight,
+        scrollY: window.scrollY,
+        htmlOverflow,
+        bodyOverflow,
+        container: containerEl
+          ? {
+              display: containerStyles?.display ?? null,
+              height: containerStyles?.height ?? null,
+              overflow: containerStyles
+                ? `${containerStyles.overflow}/${containerStyles.overflowX}/${containerStyles.overflowY}`
+                : null,
+              transform: containerStyles?.transform ?? null,
+            }
+          : null,
+        content: contentEl
+          ? {
+              overflowY: contentStyles?.overflowY ?? null,
+              height: contentStyles?.height ?? null,
+              clientHeight: contentEl.clientHeight,
+              scrollHeight: contentEl.scrollHeight,
+              scrollTop: contentEl.scrollTop,
+              isScrollable: contentEl.scrollHeight > contentEl.clientHeight + 1,
+            }
+          : null,
+      },
+    });
   }, [loading, profile]);
 
   useEffect(() => {
@@ -346,6 +390,27 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
     el.addEventListener('scroll', onInnerScroll, { passive: true });
     return () => el.removeEventListener('scroll', onInnerScroll);
+  }, []);
+
+  useEffect(() => {
+    // Hypothesis H9: The window is still scrolling (meaning we haven't successfully limited scrolling to the inner area).
+    function onWindowScroll() {
+      if (hasLoggedWindowScrollRef.current) return;
+      hasLoggedWindowScrollRef.current = true;
+      const contentEl = contentScrollRef.current;
+      postDebugLog({
+        hypothesisId: 'H9',
+        location: 'ProfileEditForm.tsx:window-scroll',
+        message: 'Window scrolled (should not, if only inner area scrolls)',
+        data: {
+          scrollY: window.scrollY,
+          contentScrollTop: contentEl?.scrollTop ?? null,
+        },
+      });
+    }
+
+    window.addEventListener('scroll', onWindowScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onWindowScroll);
   }, []);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -1090,6 +1155,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
+        data-edit-profile-container
         className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:flex md:flex-col md:overflow-hidden md:h-[calc(100vh-9rem)]"
         style={{
           boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
