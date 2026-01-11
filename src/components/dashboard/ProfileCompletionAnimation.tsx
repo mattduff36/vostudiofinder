@@ -119,10 +119,10 @@ export function ProfileCompletionAnimation({
             transition: 'all 0.3s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.filter = 'drop-shadow(0 0 20px rgba(220, 38, 38, 0.4))';
+            e.currentTarget.style.boxShadow = '0 0 30px 10px rgba(220, 38, 38, 0.3)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.filter = 'none';
+            e.currentTarget.style.boxShadow = 'none';
           }}
         >
           {children}
