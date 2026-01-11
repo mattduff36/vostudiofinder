@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DashboardTabs, DashboardTab } from './DashboardTabs';
 import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
 import { ImageGalleryManager } from './ImageGalleryManager';
 import { Settings } from './Settings';
 import { Footer } from '@/components/home/Footer';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
+
+// Dashboard tab type for navigation
+export type DashboardTab = 'overview' | 'edit-profile' | 'images' | 'settings';
 
 // Phase 4: Mobile dashboard components
 import { QuickActions, QuickAction } from './mobile/QuickActions';
@@ -98,11 +100,6 @@ export function DashboardContent({ dashboardData }: DashboardContentProps) {
           priority={false}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/30 to-white/60 hidden md:block" />
-      </div>
-
-      {/* Tabs with proper z-index (Desktop only) */}
-      <div className="relative z-20 hidden md:block">
-        <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
       {/* Mobile Back Button - Only for sub-pages - Sticky with show/hide on scroll */}

@@ -10,6 +10,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
 import { SITE_NAME } from '@/lib/seo/site';
+import { DashboardDropdownMenu } from './DashboardDropdownMenu';
 
 interface NavbarProps {
   session: Session | null;
@@ -165,24 +166,6 @@ export function Navbar({ session }: NavbarProps) {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {/* Profile - Only for logged in users */}
-            {session?.user?.username && (
-              <Link 
-                href={`/${session.user.username}`}
-                className={`transition-colors ${pathname === `/${session.user.username}` ? 'font-semibold' : ''}`}
-                style={{ 
-                  color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-                }}
-              >
-                Profile
-              </Link>
-            )}
             <Link 
               href="/studios" 
               className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
@@ -240,17 +223,11 @@ export function Navbar({ session }: NavbarProps) {
                 }`}>
                   Welcome, {session.user.display_name}
                 </span>
-                <Button
-                  onClick={() => router.push('/dashboard')}
-                  variant={isScrolled || !isHomePage ? 'outline' : 'outline'}
-                  className={
-                    isScrolled || !isHomePage 
-                      ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white' 
-                      : 'text-white border-white hover:bg-white hover:text-primary-800'
-                  }
-                >
-                  Dashboard
-                </Button>
+                <DashboardDropdownMenu
+                  username={session.user.username || ''}
+                  isScrolled={isScrolled}
+                  isHomePage={isHomePage}
+                />
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className={`p-2 rounded-lg transition-all duration-300 ${
