@@ -200,10 +200,10 @@ export function AddressPreviewMap({
       } else {
         // Create circle for approximate location
         const circle = new googleMaps.Circle({
-          strokeColor: '#3B82F6',
+          strokeColor: '#DC2626',
           strokeOpacity: 0.8,
           strokeWeight: 2,
-          fillColor: '#3B82F6',
+          fillColor: '#DC2626',
           fillOpacity: 0.25,
           map: map,
           center: { lat: currentLat, lng: currentLng },
@@ -367,10 +367,10 @@ export function AddressPreviewMap({
       }
       if (!circleRef.current) {
         const circle = new googleMaps.Circle({
-          strokeColor: '#3B82F6',
+          strokeColor: '#DC2626',
           strokeOpacity: 0.8,
           strokeWeight: 2,
-          fillColor: '#3B82F6',
+          fillColor: '#DC2626',
           fillOpacity: 0.25,
           map: mapInstanceRef.current,
           center: { lat: currentLat, lng: currentLng },
@@ -495,8 +495,8 @@ export function AddressPreviewMap({
       {/* Instructions - plain text like other helper text */}
       <p className="text-xs text-gray-500 mt-2">
         {showExactLocation 
-          ? `Drag the pin or click the map to fine-tune your exact location. Limited to ${MAX_DISTANCE_KM}km from the address you entered.`
-          : `Drag the circle or click the map to adjust the center of your approximate ${AREA_RADIUS_M}m area. Limited to ${MAX_DISTANCE_KM}km from the address you entered.`
+          ? `Drag the pin or click the map to fine-tune your exact location. Limited to ${MAX_DISTANCE_KM}km from the address you entered. Toggle "Show exact location" below to display an approximate area instead (ideal for home studios).`
+          : `Showing approximate ${AREA_RADIUS_M}m area for privacy. Drag the circle or click the map to adjust the center. Limited to ${MAX_DISTANCE_KM}km from the address. Toggle "Show exact location" below to display a precise pin instead.`
         }
       </p>
     </div>

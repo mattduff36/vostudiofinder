@@ -167,10 +167,10 @@ export function SimpleStudioMap({
     } else {
       // Show approximate area circle
       new googleMaps.Circle({
-        strokeColor: '#3B82F6',
+        strokeColor: '#DC2626',
         strokeOpacity: 0.8,
         strokeWeight: 2,
-        fillColor: '#3B82F6',
+        fillColor: '#DC2626',
         fillOpacity: 0.25,
         map: map,
         center: { lat: finalLat, lng: finalLng },

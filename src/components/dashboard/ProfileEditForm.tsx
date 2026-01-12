@@ -596,15 +596,15 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 </div>
                 
                 {/* Location privacy toggle - desktop only */}
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between pt-3">
                   <div className="flex-1 mr-4">
-                    <label className="text-sm font-medium text-gray-900 cursor-pointer" htmlFor="show-exact-location">
+                    <label className="text-sm font-medium text-gray-700 cursor-pointer flex items-center" htmlFor="show-exact-location">
                       Show exact location
                     </label>
-                    <p className="text-xs text-gray-600 mt-0.5">
+                    <p className="text-xs text-gray-500 mt-1">
                       {profile.studio?.show_exact_location ?? true 
-                        ? 'Public visitors will see your exact pin location on the map'
-                        : 'Public visitors will see an approximate 100m area instead of your exact address'
+                        ? 'Public visitors will see a precise pin on your map. Turn off to show an approximate 100m area instead (ideal for home studios).'
+                        : 'Public visitors will see an approximate 100m area instead of a precise pin. This helps protect your privacy while still showing your general location.'
                       }
                     </p>
                   </div>
