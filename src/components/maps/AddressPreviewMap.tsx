@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MapPin, AlertCircle } from 'lucide-react';
 import { calculateDistance } from '@/lib/utils/address';
 

@@ -559,8 +559,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </label>
               <AddressPreviewMap
                 address={profile.studio?.full_address || ''}
-                initialLat={profile.studio?.latitude}
-                initialLng={profile.studio?.longitude}
+                initialLat={profile.studio?.latitude ?? null}
+                initialLng={profile.studio?.longitude ?? null}
                 onCoordinatesChange={(lat, lng) => {
                   updateStudio('latitude', lat);
                   updateStudio('longitude', lng);

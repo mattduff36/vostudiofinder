@@ -338,10 +338,9 @@ export async function PUT(
             // Auto-populate city and location (country) if not explicitly being changed
             if (body._meta?.city === undefined && geocodeResult.city) {
               studioUpdateData.city = geocodeResult.city;
-              profileUpdateData.city = geocodeResult.city;
             }
             if (body._meta?.location === undefined && geocodeResult.country) {
-              profileUpdateData.location = geocodeResult.country;
+              studioUpdateData.location = geocodeResult.country;
             }
           } else {
             logger.log(`[Geocoding] Failed to geocode address: ${body._meta.full_address} - clearing coordinates`);
@@ -364,10 +363,9 @@ export async function PUT(
           // Auto-populate city and location (country) if not explicitly being changed
           if (body._meta?.city === undefined && geocodeResult.city) {
             studioUpdateData.city = geocodeResult.city;
-            profileUpdateData.city = geocodeResult.city;
           }
           if (body._meta?.location === undefined && geocodeResult.country) {
-            profileUpdateData.location = geocodeResult.country;
+            studioUpdateData.location = geocodeResult.country;
           }
         } else {
           logger.log(`[Geocoding] Failed to geocode address: ${body._meta.full_address}`);

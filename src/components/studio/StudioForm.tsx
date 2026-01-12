@@ -42,7 +42,6 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
       studio_studio_types: initialData?.studio_studio_types || [studio_type.RECORDING],
       address: initialData?.address || '', // Legacy field
       full_address: initialData?.full_address || '',
-      abbreviated_address: initialData?.abbreviated_address || '',
       website_url: initialData?.website_url || '',
       phone: initialData?.phone || '',
       studio_services: initialData?.studio_services || [],
@@ -221,22 +220,13 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
                   value={watch('full_address') || ''}
                   onChange={(value) => {
                     setValue('full_address', value);
-                    // Always auto-populate abbreviated address when full address changes
-                    setValue('abbreviated_address', value);
                     // Auto-populate city from full address
                     setValue('city', extractCity(value));
                   }}
-                  placeholder="Start typing your full address..."
-                  helperText="Complete address used for geocoding and map coordinates"
+                  placeholder="Start typing your address..."
+                  helperText="Address used for map location"
                 />
               </div>
-              <Input
-                label="Abbreviated Address"
-                placeholder="Enter abbreviated address for display..."
-                error={errors.abbreviated_address?.message || ''}
-                helperText="This address will be shown on your public profile. You can abbreviate or customize it."
-                {...register('abbreviated_address')}
-              />
               <Input
                 label="City"
                 placeholder="Enter city name..."

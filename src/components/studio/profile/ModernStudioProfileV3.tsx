@@ -43,6 +43,7 @@ interface ModernStudioProfileV3Props {
     studio_studio_types: string[];
     address?: string; // Legacy field
     full_address?: string;
+    city?: string;
     website_url?: string;
     phone?: string;
     is_premium: boolean;

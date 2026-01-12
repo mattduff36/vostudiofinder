@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { abbreviateAddress } from '@/lib/utils/address';
 
 export async function GET(request: NextRequest) {
   try {
