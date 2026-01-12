@@ -287,7 +287,7 @@ export function ProfileCompletionAnimation({
           (e.currentTarget as HTMLElement).style.boxShadow = 'none';
           setIsHovered(false);
         }}
-        style={isAnimating ? { opacity: 0, pointerEvents: 'none' } : undefined}
+        {...(isAnimating && { style: { opacity: 0, pointerEvents: 'none' as const } })}
       >
         {/* Widget - always visible */}
         <div className="relative">
