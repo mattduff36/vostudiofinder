@@ -836,84 +836,88 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
   return (
     <>
-      {/* Desktop Container - Enhanced with animations and backdrop blur */}
+      {/* Desktop Container - Enhanced with animations and backdrop blur - Fixed height with internal scroll */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:block"
+        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:flex flex-col overflow-hidden"
         style={{
-          boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
+          boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)',
+          maxHeight: 'calc(100vh - 8rem)' // Leave space for padding
         }}
       >
-        {/* Desktop Header with Progress Indicators */}
-        <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
-          <div className="flex items-center gap-4 flex-1">
-            {/* Avatar */}
-            <AvatarUpload
-              currentAvatar={profile.user.avatar_url}
-              onAvatarChange={(url) => updateUser('avatar_url', url)}
-              size="medium"
-              editable={true}
-              userName={profile.user.display_name || profile.user.username}
-              variant="user"
-            />
-            
-            {/* Title and description */}
-            <div>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Edit Profile</h2>
-              <p className="text-sm md:text-base text-gray-600 mt-1">
-                Update your studio information and settings
-              </p>
+        {/* Sticky Header + Tabs Container */}
+        <div className="flex-shrink-0 bg-white/95 backdrop-blur-md rounded-t-2xl">
+          {/* Desktop Header with Progress Indicators */}
+          <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
+            <div className="flex items-center gap-4 flex-1">
+              {/* Avatar */}
+              <AvatarUpload
+                currentAvatar={profile.user.avatar_url}
+                onAvatarChange={(url) => updateUser('avatar_url', url)}
+                size="medium"
+                editable={true}
+                userName={profile.user.display_name || profile.user.username}
+                variant="user"
+              />
+              
+              {/* Title and description */}
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Edit Profile</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Update your studio information and settings
+                </p>
+              </div>
+            </div>
+
+            {/* Progress Indicators */}
+            <div className="flex-shrink-0">
+              <ProgressIndicators
+                requiredFieldsCompleted={completionStats.required.completed}
+                totalRequiredFields={completionStats.required.total}
+                overallCompletionPercentage={completionStats.overall.percentage}
+                variant="compact"
+              />
             </div>
           </div>
 
-          {/* Progress Indicators */}
-          <div className="flex-shrink-0">
-            <ProgressIndicators
-              requiredFieldsCompleted={completionStats.required.completed}
-              totalRequiredFields={completionStats.required.total}
-              overallCompletionPercentage={completionStats.overall.percentage}
-              variant="compact"
-            />
+          {/* Desktop Section Navigation with hover animations */}
+          <div className="border-b border-gray-100 px-6 py-1">
+            <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
+              {sections.map((section) => (
+                <motion.button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  data-section={section.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                    activeSection === section.id
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {section.label}
+                </motion.button>
+              ))}
+            </nav>
           </div>
         </div>
 
-        {/* Desktop Section Navigation with hover animations */}
-        <div className="border-b border-gray-100 px-6">
-          <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
-            {sections.map((section) => (
-              <motion.button
-                key={section.id}
-                onClick={() => setActiveSection(section.id)}
-                data-section={section.id}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
-                  activeSection === section.id
-                    ? 'border-red-500 text-red-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {section.label}
-              </motion.button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Desktop Content */}
-        <div className="px-6 py-6 min-h-[400px]">
+        {/* Desktop Content - Scrollable area */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 min-h-0">
           <div className="w-full max-w-5xl mx-auto">
             {renderSectionContent(activeSection)}
           </div>
         </div>
 
-        {/* Desktop Footer Actions */}
+        {/* Desktop Footer Actions - Fixed at bottom */}
         {hasChanges && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-white items-center justify-between"
+            className="flex-shrink-0 flex border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-white items-center justify-between"
           >
             <Button
               onClick={handlePreview}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useCallback, useMemo, useState, useEffect, type ReactNode } from 'react';
 import { 
   Activity,
   Eye,
@@ -20,11 +20,14 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
+import { ProfileCompletionAnimation } from '@/components/dashboard/ProfileCompletionAnimation';
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
 import { Toggle } from '@/components/ui/Toggle';
 import { logger } from '@/lib/logger';
 import { showError } from '@/lib/toast';
 import { getBaseUrl } from '@/lib/seo/site';
+import { useProfileAnimation } from '@/hooks/useProfileAnimation';
+import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import type { ProfileData } from '@/types/profile';
 
 // Simple in-module cache to avoid re-fetch/judder when returning to the Overview tab
@@ -121,6 +124,70 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
     return false;
   });
   const [saving, setSaving] = useState(false);
+
+  // Animation hook for profile completion widget (desktop only)
+  const { shouldAnimate, isDesktop, markAnimationComplete } = useProfileAnimation();
+
+  const completionPercentage = useMemo((): number => {
+    if (!profileData) return 0;
+
+    return calculateCompletionStats({
+      user: {
+        username: profileData.user?.username || '',
+        display_name: profileData.user?.display_name || '',
+        email: profileData.user?.email || '',
+        avatar_url: profileData.user?.avatar_url || null,
+      },
+      profile: {
+        short_about: profileData.profile?.short_about || null,
+        about: profileData.profile?.about || null,
+        phone: profileData.profile?.phone || null,
+        location: profileData.profile?.location || null,
+        connection1: profileData.profile?.connection1 || null,
+        connection2: profileData.profile?.connection2 || null,
+        connection3: profileData.profile?.connection3 || null,
+        connection4: profileData.profile?.connection4 || null,
+        connection5: profileData.profile?.connection5 || null,
+        connection6: profileData.profile?.connection6 || null,
+        connection7: profileData.profile?.connection7 || null,
+        connection8: profileData.profile?.connection8 || null,
+        connection9: profileData.profile?.connection9 || null,
+        connection10: profileData.profile?.connection10 || null,
+        connection11: profileData.profile?.connection11 || null,
+        connection12: profileData.profile?.connection12 || null,
+        rate_tier_1: profileData.profile?.rate_tier_1 || null,
+        equipment_list: profileData.profile?.equipment_list || null,
+        services_offered: profileData.profile?.services_offered || null,
+        facebook_url: profileData.profile?.facebook_url || null,
+        x_url: profileData.profile?.x_url || null,
+        linkedin_url: profileData.profile?.linkedin_url || null,
+        instagram_url: profileData.profile?.instagram_url || null,
+        youtube_url: profileData.profile?.youtube_url || null,
+        tiktok_url: profileData.profile?.tiktok_url || null,
+        threads_url: profileData.profile?.threads_url || null,
+        soundcloud_url: profileData.profile?.soundcloud_url || null,
+      },
+      studio: {
+        name: profileData.studio?.name || null,
+        studio_types: profileData.studio?.studio_types?.map((st) => st.name) || [],
+        images: profileData.studio?.images || [],
+        website_url: profileData.studio?.website_url || null,
+      },
+    }).overall.percentage;
+  }, [profileData]);
+
+  const renderCompletionWidget = useCallback(
+    (widget: ReactNode) => (
+      <ProfileCompletionAnimation
+        shouldAnimate={shouldAnimate && isDesktop}
+        onAnimationComplete={markAnimationComplete}
+        completionPercentage={completionPercentage}
+      >
+        {widget}
+      </ProfileCompletionAnimation>
+    ),
+    [shouldAnimate, isDesktop, markAnimationComplete, completionPercentage]
+  );
 
   // Fetch profile data for completion progress
   useEffect(() => {
@@ -437,6 +504,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                       equipment_list: profileData.profile?.equipment_list,
                       services_offered: profileData.profile?.services_offered,
                     }}
+                    renderWidget={renderCompletionWidget}
                   />
                 </motion.div>
 
