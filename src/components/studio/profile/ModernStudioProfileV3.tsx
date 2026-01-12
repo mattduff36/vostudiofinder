@@ -516,8 +516,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
           <ServicesListCompact services={studio.studio_services} />
           
-          {/* Mobile Map Section */}
-          {studio.latitude && studio.longitude && (
+          {/* Mobile Map Section - Hidden when show_directions is off */}
+          {studio.latitude && studio.longitude && profile?.show_directions !== false && (
             <div className="bg-white border-b border-gray-200 md:hidden">
               <div className="px-4 py-4">
                 <p className="text-xs text-gray-500 mb-3">Location</p>
@@ -528,17 +528,14 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   fullAddress={studio.full_address || studio.address || ''}
                   showExactLocation={studio.show_exact_location ?? true}
                 />
-                {/* Button under map - Hidden when show_directions is off */}
-                {profile?.show_directions !== false && (
-                  <button
-                    onClick={handleGetDirections}
-                    disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
-                    className="mt-3 w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ExternalLink className="w-5 h-5" aria-hidden="true" />
-                    <span className="font-medium">Get directions</span>
-                  </button>
-                )}
+                <button
+                  onClick={handleGetDirections}
+                  disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
+                  className="mt-3 w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ExternalLink className="w-5 h-5" aria-hidden="true" />
+                  <span className="font-medium">Get directions</span>
+                </button>
               </div>
             </div>
           )}
@@ -803,32 +800,32 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           {/* Right Sidebar - Sticky on Desktop */}
           <div className="lg:col-span-1 w-full">
             <div className="sticky top-8 space-y-6">
-              {/* Map Card - Integrated Design - Total height matches main image + gap + thumbnails (492px) */}
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden" style={{ height: '492px' }}>
-                {/* Map section */}
-                <div className="h-[384px]">
-                  <SimpleStudioMap
-                    latitude={studio.latitude}
-                    longitude={studio.longitude}
-                    address={studio.address || ''}
-                    fullAddress={studio.full_address || ''}
-                    useCoordinates={studio.owner?.profile?.use_coordinates_for_map === true}
-                    showExactLocation={studio.show_exact_location ?? true}
-                    height="384px"
-                  />
-                </div>
-                {/* Gap - matches the gap between main image and thumbnails */}
-                <div className="h-4"></div>
-                {/* Directions section - fills remaining space (492 - 384 - 16 = 92px) */}
-                <div className="flex-1 flex flex-col justify-center px-6">
-                  {/* Only show address if show_address is not explicitly false */}
-                  {(profile?.show_address !== false) && (studio.city || studio.full_address || studio.address) && (
-                    <div className="flex items-center space-x-2 mb-2">
-                      <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <p className="text-xs text-gray-600 line-clamp-1">{studio.city || studio.full_address || studio.address}</p>
-                    </div>
-                  )}
-                  {profile?.show_directions !== false && (
+              {/* Map Card - Hidden when show_directions is off */}
+              {profile?.show_directions !== false && (
+                <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden" style={{ height: '492px' }}>
+                  {/* Map section */}
+                  <div className="h-[384px]">
+                    <SimpleStudioMap
+                      latitude={studio.latitude}
+                      longitude={studio.longitude}
+                      address={studio.address || ''}
+                      fullAddress={studio.full_address || ''}
+                      useCoordinates={studio.owner?.profile?.use_coordinates_for_map === true}
+                      showExactLocation={studio.show_exact_location ?? true}
+                      height="384px"
+                    />
+                  </div>
+                  {/* Gap - matches the gap between main image and thumbnails */}
+                  <div className="h-4"></div>
+                  {/* Directions section - fills remaining space (492 - 384 - 16 = 92px) */}
+                  <div className="flex-1 flex flex-col justify-center px-6">
+                    {/* Only show address if show_address is not explicitly false */}
+                    {(profile?.show_address !== false) && (studio.city || studio.full_address || studio.address) && (
+                      <div className="flex items-center space-x-2 mb-2">
+                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <p className="text-xs text-gray-600 line-clamp-1">{studio.city || studio.full_address || studio.address}</p>
+                      </div>
+                    )}
                     <Button
                       size="sm"
                       className="w-full"
@@ -838,9 +835,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                       <ExternalLink className="w-3 h-3 mr-2" />
                       Get directions
                     </Button>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Studio Details Card - Compact */}
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3">
