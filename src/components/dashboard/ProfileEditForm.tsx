@@ -122,6 +122,10 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  // Refs for synchronized auto-growing textareas
+  const shortAboutRef = useRef<HTMLTextAreaElement>(null);
+  const fullAboutRef = useRef<HTMLTextAreaElement>(null);
 
   // Fetch profile data
   useEffect(() => {
@@ -157,6 +161,31 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       }, 100); // Small delay to ensure expansion has started
     }
   }, [expandedMobileSection]);
+
+  // Synchronized auto-resize for About textareas (desktop only)
+  useEffect(() => {
+    const syncTextareaHeights = () => {
+      if (!shortAboutRef.current || !fullAboutRef.current) return;
+      
+      // Reset heights to auto to get accurate scrollHeight
+      shortAboutRef.current.style.height = 'auto';
+      fullAboutRef.current.style.height = 'auto';
+      
+      // Get the scroll heights (content height)
+      const shortHeight = shortAboutRef.current.scrollHeight;
+      const fullHeight = fullAboutRef.current.scrollHeight;
+      
+      // Use the maximum height for both textareas
+      const maxHeight = Math.max(shortHeight, fullHeight);
+      
+      // Set both to the same height to keep them synchronized
+      shortAboutRef.current.style.height = `${maxHeight}px`;
+      fullAboutRef.current.style.height = `${maxHeight}px`;
+    };
+    
+    // Run on mount and whenever content changes
+    syncTextareaHeights();
+  }, [profile?.profile?.short_about, profile?.profile?.about]);
 
   const fetchProfile = async () => {
     try {
@@ -561,11 +590,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
                 <div>
                   <Textarea
+                    ref={shortAboutRef}
                     label="Short About"
                     value={profile.profile.short_about || ''}
                     onChange={(e) => updateProfile('short_about', e.target.value)}
-                    rows={6}
                     maxLength={150}
+                    className="min-h-[150px] resize-none overflow-hidden"
                   />
                   <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
                     <span>Brief description for Studios page</span>
@@ -577,11 +607,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               {/* Right Column: Full About (reduced height) */}
               <div>
                 <Textarea
+                  ref={fullAboutRef}
                   label="Full About"
                   value={profile.profile.about || ''}
                   onChange={(e) => updateProfile('about', e.target.value)}
-                  rows={10}
                   maxLength={1500}
+                  className="min-h-[250px] resize-none overflow-hidden"
                 />
                 <div className="flex justify-between items-center text-xs mt-1">
                   <span className="text-gray-500">Detailed description for your profile page</span>
