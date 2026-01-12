@@ -756,15 +756,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           {/* Right Sidebar - Sticky on Desktop */}
           <div className="lg:col-span-1 w-full">
             <div className="sticky top-8 space-y-6">
-              {/* Map Card - Adjust height based on show_directions and show_address */}
-              <div 
-                className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden" 
-                style={{ 
-                  height: profile?.show_directions !== false 
-                    ? (profile?.show_address !== false ? '505px' : '422px') // 384px (map) + 121px (address 83px + button 36px + padding) or + 38px (button 36px + padding)
-                    : '384px'
-                }}
-              >
+              {/* Map Card - Height adjusts automatically based on content */}
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                 {/* Map section */}
                 <div className="h-[384px]">
                   <SimpleStudioMap
