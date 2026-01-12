@@ -154,7 +154,13 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       const isValid = validDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
       
       if (!isValid) {
-        const platformName = platform.replace('_url', '').replace('x_', 'X ').replace(/_/g, ' ');
+        // Special case for x_url which becomes just 'x' after stripping '_url'
+        let platformName = platform.replace('_url', '');
+        if (platformName === 'x') {
+          platformName = 'X';
+        } else {
+          platformName = platformName.replace(/_/g, ' ');
+        }
         return `Please enter a valid ${platformName} URL`;
       }
       
