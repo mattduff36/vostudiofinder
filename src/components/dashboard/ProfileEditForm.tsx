@@ -836,18 +836,19 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
   return (
     <>
-      {/* Desktop Container - Enhanced with animations and backdrop blur */}
+      {/* Desktop Container - Enhanced with animations and backdrop blur - Fixed height with internal scroll */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:block"
+        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:block flex flex-col overflow-hidden"
         style={{
-          boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
+          boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)',
+          maxHeight: 'calc(100vh - 8rem)' // Leave space for padding
         }}
       >
         {/* Sticky Header + Tabs Container */}
-        <div className="sticky top-20 z-[110] bg-white/95 backdrop-blur-md rounded-t-2xl">
+        <div className="flex-shrink-0 bg-white/95 backdrop-blur-md rounded-t-2xl">
           {/* Desktop Header with Progress Indicators */}
           <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
             <div className="flex items-center gap-4 flex-1">
@@ -904,19 +905,19 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           </div>
         </div>
 
-        {/* Desktop Content */}
-        <div className="px-6 py-6 min-h-[400px]">
+        {/* Desktop Content - Scrollable area */}
+        <div className="flex-1 overflow-y-auto px-6 py-6">
           <div className="w-full max-w-5xl mx-auto">
             {renderSectionContent(activeSection)}
           </div>
         </div>
 
-        {/* Desktop Footer Actions */}
+        {/* Desktop Footer Actions - Fixed at bottom */}
         {hasChanges && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-white items-center justify-between"
+            className="flex-shrink-0 flex border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-white items-center justify-between"
           >
             <Button
               onClick={handlePreview}
