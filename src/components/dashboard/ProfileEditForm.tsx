@@ -846,59 +846,62 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
         }}
       >
-        {/* Desktop Header with Progress Indicators */}
-        <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
-          <div className="flex items-center gap-4 flex-1">
-            {/* Avatar */}
-            <AvatarUpload
-              currentAvatar={profile.user.avatar_url}
-              onAvatarChange={(url) => updateUser('avatar_url', url)}
-              size="medium"
-              editable={true}
-              userName={profile.user.display_name || profile.user.username}
-              variant="user"
-            />
-            
-            {/* Title and description */}
-            <div>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Edit Profile</h2>
-              <p className="text-sm md:text-base text-gray-600 mt-1">
-                Update your studio information and settings
-              </p>
+        {/* Sticky Header + Tabs Container */}
+        <div className="sticky top-16 z-30 bg-white/95 backdrop-blur-md rounded-t-2xl">
+          {/* Desktop Header with Progress Indicators */}
+          <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
+            <div className="flex items-center gap-4 flex-1">
+              {/* Avatar */}
+              <AvatarUpload
+                currentAvatar={profile.user.avatar_url}
+                onAvatarChange={(url) => updateUser('avatar_url', url)}
+                size="medium"
+                editable={true}
+                userName={profile.user.display_name || profile.user.username}
+                variant="user"
+              />
+              
+              {/* Title and description */}
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Edit Profile</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Update your studio information and settings
+                </p>
+              </div>
+            </div>
+
+            {/* Progress Indicators */}
+            <div className="flex-shrink-0">
+              <ProgressIndicators
+                requiredFieldsCompleted={completionStats.required.completed}
+                totalRequiredFields={completionStats.required.total}
+                overallCompletionPercentage={completionStats.overall.percentage}
+                variant="compact"
+              />
             </div>
           </div>
 
-          {/* Progress Indicators */}
-          <div className="flex-shrink-0">
-            <ProgressIndicators
-              requiredFieldsCompleted={completionStats.required.completed}
-              totalRequiredFields={completionStats.required.total}
-              overallCompletionPercentage={completionStats.overall.percentage}
-              variant="compact"
-            />
+          {/* Desktop Section Navigation with hover animations */}
+          <div className="border-b border-gray-100 px-6">
+            <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
+              {sections.map((section) => (
+                <motion.button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  data-section={section.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                    activeSection === section.id
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {section.label}
+                </motion.button>
+              ))}
+            </nav>
           </div>
-        </div>
-
-        {/* Desktop Section Navigation with hover animations */}
-        <div className="border-b border-gray-100 px-6">
-          <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
-            {sections.map((section) => (
-              <motion.button
-                key={section.id}
-                onClick={() => setActiveSection(section.id)}
-                data-section={section.id}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
-                  activeSection === section.id
-                    ? 'border-red-500 text-red-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {section.label}
-              </motion.button>
-            ))}
-          </nav>
         </div>
 
         {/* Desktop Content */}
