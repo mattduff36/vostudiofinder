@@ -28,7 +28,6 @@ export async function GET(
             name: true,
             description: true,
             full_address: true,
-            abbreviated_address: true,
             website_url: true,
             phone: true,
             status: true,
@@ -75,7 +74,6 @@ export async function GET(
       is_verified: studio.is_verified,
       is_premium: studio.is_premium,
       full_address: studio.full_address,
-      abbreviated_address: studio.abbreviated_address,
       website_url: studio.website_url,
       phone: studio.phone,
       users: {

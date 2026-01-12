@@ -62,7 +62,6 @@ export async function PUT(request: NextRequest) {
     if (updateData.description !== undefined) updateFields.description = updateData.description;
     if (updateData.address !== undefined) updateFields.address = updateData.address; // Legacy field
     if (updateData.full_address !== undefined) updateFields.full_address = updateData.full_address;
-    if (updateData.abbreviated_address !== undefined) updateFields.abbreviated_address = updateData.abbreviated_address;
     if (updateData.website_url !== undefined) updateFields.website_url = updateData.website_url;
     if (updateData.phone !== undefined) updateFields.phone = updateData.phone;
     if (updateData.latitude !== undefined) updateFields.latitude = updateData.latitude;
@@ -74,8 +73,19 @@ export async function PUT(request: NextRequest) {
       const { geocodeAddress } = await import('@/lib/maps');
       const geocodeResult = await geocodeAddress(updateData.full_address);
       if (geocodeResult) {
+        // On success: set coordinates and derive city/country
         updateFields.latitude = geocodeResult.lat;
         updateFields.longitude = geocodeResult.lng;
+        // Auto-populate city if not explicitly provided
+        if (updateData.city === undefined && geocodeResult.city) {
+          updateFields.city = geocodeResult.city;
+        }
+        // Note: location (country) is stored in studio_profiles for this route
+        // We don't have access to it here as it's not in the studio schema for this route
+      } else {
+        // On failure: clear coordinates
+        updateFields.latitude = null;
+        updateFields.longitude = null;
       }
     }
 

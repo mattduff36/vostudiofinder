@@ -422,7 +422,6 @@ export async function GET(request: NextRequest) {
         name: true,
         short_about: true,
         description: true,
-        abbreviated_address: true,  // PRIVACY: Use abbreviated_address instead of full_address
         city: true,
         location: true,
         latitude: true,
@@ -511,7 +510,7 @@ export async function GET(request: NextRequest) {
     const serializedStudios = studios.map(studio => ({
       ...studio,
       description: studio.short_about || '', // short_about is now directly on studio_profiles
-      address: studio.abbreviated_address || '', // PRIVACY: Use abbreviated_address for public display
+      address: studio.city || '', // Use city (region) for public display
       latitude: studio.latitude ? Number(studio.latitude) : null,
       longitude: studio.longitude ? Number(studio.longitude) : null,
       owner: studio.users, // Map users to owner for backward compatibility with studio cards

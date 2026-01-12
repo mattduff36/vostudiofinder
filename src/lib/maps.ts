@@ -52,19 +52,27 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
       const result = data.results[0];
       const location = result.geometry.location;
       
-      // Extract city and country from address components
+      // Extract city/region and country from address components
+      // Priority for city/region: locality > postal_town > administrative_area_level_2 > administrative_area_level_1
       const addressComponents = result.address_components;
       let city = '';
       let country = '';
       
-      addressComponents.forEach((component: any) => {
-        if (component.types.includes('locality')) {
-          city = component.long_name;
-        }
-        if (component.types.includes('country')) {
-          country = component.long_name;
-        }
-      });
+      // Find city/region with priority order
+      const cityComponent = addressComponents.find((c: any) => c.types.includes('locality')) ||
+                           addressComponents.find((c: any) => c.types.includes('postal_town')) ||
+                           addressComponents.find((c: any) => c.types.includes('administrative_area_level_2')) ||
+                           addressComponents.find((c: any) => c.types.includes('administrative_area_level_1'));
+      
+      if (cityComponent) {
+        city = cityComponent.long_name;
+      }
+      
+      // Find country
+      const countryComponent = addressComponents.find((c: any) => c.types.includes('country'));
+      if (countryComponent) {
+        country = countryComponent.long_name;
+      }
       
       return {
         lat: location.lat,

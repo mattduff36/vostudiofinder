@@ -92,7 +92,6 @@ export async function GET(
       last_name: decodeHtmlEntities(studio.last_name || ''),
       location: studio.location || '',
       full_address: studio.full_address || '',
-      abbreviated_address: studio.abbreviated_address || '',
       city: studio.city || '',
       phone: studio.phone || '',
       url: studio.website_url || '',
@@ -157,7 +156,6 @@ export async function GET(
         last_name: studioData.last_name,
         location: studioData.location,
         full_address: studioData.full_address,
-        abbreviated_address: studioData.abbreviated_address,
         city: studioData.city,
         phone: studioData.phone,
         url: studioData.url,
@@ -286,7 +284,6 @@ export async function PUT(
     if (body._meta?.studio_name !== undefined) studioUpdateData.name = body._meta.studio_name; // Studio name field
     if (body._meta?.address !== undefined) studioUpdateData.address = body._meta.address; // Legacy field
     if (body._meta?.full_address !== undefined) studioUpdateData.full_address = body._meta.full_address;
-    if (body._meta?.abbreviated_address !== undefined) studioUpdateData.abbreviated_address = body._meta.abbreviated_address;
     if (body._meta?.city !== undefined) studioUpdateData.city = body._meta.city;
     if (body._meta?.phone !== undefined) studioUpdateData.phone = body._meta.phone;
     if (body._meta?.url !== undefined) studioUpdateData.website_url = body._meta.url;
@@ -328,11 +325,23 @@ export async function PUT(
           const { geocodeAddress } = await import('@/lib/maps');
           const geocodeResult = await geocodeAddress(body._meta.full_address);
           if (geocodeResult) {
-            logger.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}`);
+            logger.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}, city=${geocodeResult.city}, country=${geocodeResult.country}`);
+            // Set coordinates
             studioUpdateData.latitude = geocodeResult.lat;
             studioUpdateData.longitude = geocodeResult.lng;
+            // Auto-populate city and location (country) if not explicitly being changed
+            if (body._meta?.city === undefined && geocodeResult.city) {
+              studioUpdateData.city = geocodeResult.city;
+              profileUpdateData.city = geocodeResult.city;
+            }
+            if (body._meta?.location === undefined && geocodeResult.country) {
+              profileUpdateData.location = geocodeResult.country;
+            }
           } else {
-            logger.log(`[Geocoding] Failed to geocode address: ${body._meta.full_address}`);
+            logger.log(`[Geocoding] Failed to geocode address: ${body._meta.full_address} - clearing coordinates`);
+            // Clear coordinates on geocode failure
+            studioUpdateData.latitude = null;
+            studioUpdateData.longitude = null;
           }
         } else {
           logger.log(`[Geocoding] Skipped - coordinates manually changed`);
@@ -343,9 +352,22 @@ export async function PUT(
         const { geocodeAddress } = await import('@/lib/maps');
         const geocodeResult = await geocodeAddress(body._meta.full_address);
         if (geocodeResult) {
-          logger.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}`);
+          logger.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}, city=${geocodeResult.city}, country=${geocodeResult.country}`);
           studioUpdateData.latitude = geocodeResult.lat;
           studioUpdateData.longitude = geocodeResult.lng;
+          // Auto-populate city and location (country) if not explicitly being changed
+          if (body._meta?.city === undefined && geocodeResult.city) {
+            studioUpdateData.city = geocodeResult.city;
+            profileUpdateData.city = geocodeResult.city;
+          }
+          if (body._meta?.location === undefined && geocodeResult.country) {
+            profileUpdateData.location = geocodeResult.country;
+          }
+        } else {
+          logger.log(`[Geocoding] Failed to geocode address: ${body._meta.full_address}`);
+          // Clear coordinates on failure
+          studioUpdateData.latitude = null;
+          studioUpdateData.longitude = null;
         }
       }
     }
@@ -564,7 +586,6 @@ export async function PUT(
         latitude: true,
         longitude: true,
         full_address: true,
-        abbreviated_address: true,
         city: true,
       },
     });
@@ -577,7 +598,6 @@ export async function PUT(
         longitude: updatedStudio?.longitude ? parseFloat(updatedStudio.longitude.toString()) : null,
       },
       full_address: updatedStudio?.full_address || null,
-      abbreviated_address: updatedStudio?.abbreviated_address || null,
       city: updatedStudio?.city || null,
     });
 

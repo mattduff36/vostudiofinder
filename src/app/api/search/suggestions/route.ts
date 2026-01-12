@@ -86,17 +86,17 @@ export async function GET(request: NextRequest) {
           ],
         },
         select: {
-          abbreviated_address: true,
+          city: true,
           latitude: true,
           longitude: true,
         },
-        distinct: ['abbreviated_address'],
+        distinct: ['city'],
         take: 8,
       });
 
       suggestions.push(...locations.map((location, index) => ({
         id: `location-${index}`,
-        text: location.abbreviated_address,
+        text: location.city,
         type: 'location' as const,
         metadata: {
           coordinates: location.latitude && location.longitude ? {
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           name: true,
-          abbreviated_address: true,
+          city: true,
         },
         take: 8,
       });
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
         type: 'studio' as const,
         metadata: {
           studio_id: studio.id,
-          abbreviated_address: studio.abbreviated_address
+          city: studio.city
         }
       })));
     } else if (searchType === 'service' || searchType === 'equipment') {
@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            abbreviated_address: true,
+            city: true,
           },
           take: 3,
         }),
@@ -179,11 +179,11 @@ export async function GET(request: NextRequest) {
             ],
           },
           select: {
-            abbreviated_address: true,
+            city: true,
             latitude: true,
             longitude: true,
           },
-          distinct: ['abbreviated_address'],
+          distinct: ['city'],
           take: 3,
         }),
         Promise.resolve(['ISDN', 'SOURCE_CONNECT', 'SOURCE_CONNECT_NOW', 'CLEANFEED', 'SESSION_LINK_PRO', 'ZOOM', 'SKYPE', 'TEAMS']
@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
           type: 'studio' as const,
           metadata: {
             studio_id: studio.id,
-            abbreviated_address: studio.abbreviated_address
+            city: studio.city
           }
         })),
         ...locations.map((location, index) => {
@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
 
           return {
             id: `location-${index}`,
-            text: location.abbreviated_address,
+            text: location.city,
             type: 'location' as const,
             distance,
             metadata: {

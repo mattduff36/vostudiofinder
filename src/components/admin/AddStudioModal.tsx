@@ -56,7 +56,6 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
   const [about, setAbout] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [fullAddress, setFullAddress] = useState('');
-  const [abbreviatedAddress, setAbbreviatedAddress] = useState('');
   const [city, setCity] = useState('');
   const [location, setLocation] = useState('');
   const [selectedStudioTypes, setSelectedStudioTypes] = useState<string[]>([]);
@@ -201,7 +200,6 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
           about: about.trim(),
           studio_types: selectedStudioTypes,
           full_address: fullAddress || null,
-          abbreviated_address: abbreviatedAddress || null,
           city: city || '',
           location: location.trim(),
           website_url: websiteUrl.trim(),
@@ -228,7 +226,6 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
       setAbout('');
       setWebsiteUrl('');
       setFullAddress('');
-      setAbbreviatedAddress('');
       setCity('');
       setLocation('');
       setSelectedStudioTypes([]);
@@ -402,7 +399,6 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
                 value={fullAddress}
                 onChange={(address) => {
                   setFullAddress(address);
-                  setAbbreviatedAddress(address);
                   const extractedCity = extractCity(address);
                   if (extractedCity) {
                     setCity(extractedCity);

@@ -341,7 +341,6 @@ export async function GET() {
           name: studioProfile.name,
           description: studioProfile.description,
           full_address: studioProfile.full_address,
-          abbreviated_address: studioProfile.abbreviated_address,
           city: studioProfile.city,
           latitude: studioProfile.latitude ? Number(studioProfile.latitude) : null,
           longitude: studioProfile.longitude ? Number(studioProfile.longitude) : null,
@@ -446,9 +445,10 @@ export async function PUT(request: NextRequest) {
       
       // Location
       if (updates.full_address !== undefined) profileUpdates.full_address = updates.full_address;
-      if (updates.abbreviated_address !== undefined) profileUpdates.abbreviated_address = updates.abbreviated_address;
       if (updates.city !== undefined) profileUpdates.city = updates.city;
       if (updates.location !== undefined) profileUpdates.location = updates.location;
+      if (updates.latitude !== undefined) profileUpdates.latitude = updates.latitude;
+      if (updates.longitude !== undefined) profileUpdates.longitude = updates.longitude;
       
       // Contact
       if (updates.phone !== undefined) profileUpdates.phone = updates.phone;
@@ -517,8 +517,20 @@ export async function PUT(request: NextRequest) {
         const { geocodeAddress } = await import('@/lib/maps');
         const geocodeResult = await geocodeAddress(updates.full_address);
         if (geocodeResult) {
+          // On success: set coordinates and derive city/country
           profileUpdates.latitude = geocodeResult.lat;
           profileUpdates.longitude = geocodeResult.lng;
+          // Auto-populate city and location (country) if not explicitly provided
+          if (updates.city === undefined && geocodeResult.city) {
+            profileUpdates.city = geocodeResult.city;
+          }
+          if (updates.location === undefined && geocodeResult.country) {
+            profileUpdates.location = geocodeResult.country;
+          }
+        } else {
+          // On failure: clear coordinates
+          profileUpdates.latitude = null;
+          profileUpdates.longitude = null;
         }
       }
 
@@ -526,9 +538,18 @@ export async function PUT(request: NextRequest) {
         // Check if studio profile exists
         const existingProfile = await db.studio_profiles.findUnique({
           where: { user_id: userId },
+          select: {
+            id: true,
+            full_address: true,
+            abbreviated_address: true,
+          },
         });
 
         if (existingProfile) {
+          // Backfill: if full_address is empty but abbreviated_address has a value, copy it
+          if (!existingProfile.full_address && existingProfile.abbreviated_address && !updates.full_address) {
+            profileUpdates.full_address = existingProfile.abbreviated_address;
+          }
           await db.studio_profiles.update({
             where: { user_id: userId },
             data: {
