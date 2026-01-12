@@ -344,6 +344,7 @@ export async function GET() {
           city: studioProfile.city,
           latitude: studioProfile.latitude ? Number(studioProfile.latitude) : null,
           longitude: studioProfile.longitude ? Number(studioProfile.longitude) : null,
+          show_exact_location: studioProfile.show_exact_location,
           website_url: studioProfile.website_url,
           phone: studioProfile.phone,
           status: studioProfile.status,
