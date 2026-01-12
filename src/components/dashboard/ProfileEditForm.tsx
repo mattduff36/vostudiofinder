@@ -794,70 +794,72 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             <p className="text-sm text-gray-600 mb-4">
               Add links to your social media profiles
             </p>
-            <Input
-              label="Facebook"
-              type="url"
-              value={profile.profile.facebook_url || ''}
-              onChange={(e) => updateProfile('facebook_url', e.target.value)}
-              placeholder="https://facebook.com/your-page"
-              helperText="Your Facebook page or profile"
-            />
-            <Input
-              label="X (formerly Twitter)"
-              type="url"
-              value={profile.profile.x_url || ''}
-              onChange={(e) => updateProfile('x_url', e.target.value)}
-              placeholder="https://x.com/yourhandle"
-              helperText="Your X (Twitter) profile"
-            />
-            <Input
-              label="YouTube"
-              type="url"
-              value={profile.profile.youtube_url || ''}
-              onChange={(e) => updateProfile('youtube_url', e.target.value)}
-              placeholder="https://youtube.com/@yourchannel"
-              helperText="Your YouTube channel"
-            />
-            <Input
-              label="Instagram"
-              type="url"
-              value={profile.profile.instagram_url || ''}
-              onChange={(e) => updateProfile('instagram_url', e.target.value)}
-              placeholder="https://instagram.com/yourhandle"
-              helperText="Your Instagram profile"
-            />
-            <Input
-              label="SoundCloud"
-              type="url"
-              value={profile.profile.soundcloud_url || ''}
-              onChange={(e) => updateProfile('soundcloud_url', e.target.value)}
-              placeholder="https://soundcloud.com/yourprofile"
-              helperText="Your SoundCloud profile"
-            />
-            <Input
-              label="TikTok"
-              type="url"
-              value={profile.profile.tiktok_url || ''}
-              onChange={(e) => updateProfile('tiktok_url', e.target.value)}
-              placeholder="https://www.tiktok.com/@yourhandle"
-              helperText="Your TikTok profile"
-            />
-            <Input
-              label="LinkedIn"
-              type="url"
-              value={profile.profile.linkedin_url || ''}
-              onChange={(e) => updateProfile('linkedin_url', e.target.value)}
-              placeholder="https://linkedin.com/in/yourprofile"
-              helperText="Your LinkedIn profile"
-            />
-            <Input
-              label="Threads"
-              type="url"
-              value={profile.profile.threads_url || ''}
-              onChange={(e) => updateProfile('threads_url', e.target.value)}
-              placeholder="https://www.threads.net/@yourhandle"
-              helperText="Your Threads profile"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Facebook"
+                type="url"
+                value={profile.profile.facebook_url || ''}
+                onChange={(e) => updateProfile('facebook_url', e.target.value)}
+                placeholder="https://facebook.com/your-page"
+                helperText="Your Facebook page or profile"
+              />
+              <Input
+                label="X (formerly Twitter)"
+                type="url"
+                value={profile.profile.x_url || ''}
+                onChange={(e) => updateProfile('x_url', e.target.value)}
+                placeholder="https://x.com/yourhandle"
+                helperText="Your X (Twitter) profile"
+              />
+              <Input
+                label="YouTube"
+                type="url"
+                value={profile.profile.youtube_url || ''}
+                onChange={(e) => updateProfile('youtube_url', e.target.value)}
+                placeholder="https://youtube.com/@yourchannel"
+                helperText="Your YouTube channel"
+              />
+              <Input
+                label="Instagram"
+                type="url"
+                value={profile.profile.instagram_url || ''}
+                onChange={(e) => updateProfile('instagram_url', e.target.value)}
+                placeholder="https://instagram.com/yourhandle"
+                helperText="Your Instagram profile"
+              />
+              <Input
+                label="SoundCloud"
+                type="url"
+                value={profile.profile.soundcloud_url || ''}
+                onChange={(e) => updateProfile('soundcloud_url', e.target.value)}
+                placeholder="https://soundcloud.com/yourprofile"
+                helperText="Your SoundCloud profile"
+              />
+              <Input
+                label="TikTok"
+                type="url"
+                value={profile.profile.tiktok_url || ''}
+                onChange={(e) => updateProfile('tiktok_url', e.target.value)}
+                placeholder="https://www.tiktok.com/@yourhandle"
+                helperText="Your TikTok profile"
+              />
+              <Input
+                label="LinkedIn"
+                type="url"
+                value={profile.profile.linkedin_url || ''}
+                onChange={(e) => updateProfile('linkedin_url', e.target.value)}
+                placeholder="https://linkedin.com/in/yourprofile"
+                helperText="Your LinkedIn profile"
+              />
+              <Input
+                label="Threads"
+                type="url"
+                value={profile.profile.threads_url || ''}
+                onChange={(e) => updateProfile('threads_url', e.target.value)}
+                placeholder="https://www.threads.net/@yourhandle"
+                helperText="Your Threads profile"
+              />
+            </div>
           </div>
         );
 
