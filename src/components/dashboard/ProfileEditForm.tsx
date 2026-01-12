@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, ArrowLeft, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -412,7 +412,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   }
 
   const sections = [
-    { id: 'overview', label: 'Overview', icon: ArrowLeft, description: 'Back to dashboard', isBackLink: true },
     { id: 'basic', label: 'Basic Info', icon: User, description: 'Display name, username, studio info' },
     { id: 'contact', label: 'Contact & Location', icon: MapPin, description: 'Phone, email, address details' },
     { id: 'rates', label: 'Rates & Pricing', icon: DollarSign, description: 'Pricing and rate tiers' },
@@ -1047,58 +1046,58 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
             </div>
 
-            {/* Progress Indicators */}
-            <div className="flex-shrink-0">
+            {/* Progress Indicators and Action Buttons */}
+            <div className="flex-shrink-0 flex flex-col items-end gap-3">
               <ProgressIndicators
                 requiredFieldsCompleted={completionStats.required.completed}
                 totalRequiredFields={completionStats.required.total}
                 overallCompletionPercentage={completionStats.overall.percentage}
                 variant="compact"
               />
+              
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                <motion.button
+                  onClick={() => router.push('/dashboard')}
+                  whileHover={{ x: -3 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                  className="py-2 px-3 border border-gray-300 rounded-md font-medium text-sm whitespace-nowrap flex items-center gap-1.5 text-gray-700 hover:text-red-600 hover:border-red-300 transition-colors group bg-white"
+                >
+                  <ArrowLeft className="w-4 h-4 text-gray-500 group-hover:text-red-600 transition-colors" />
+                  Overview
+                </motion.button>
+                
+                <Button
+                  onClick={handlePreview}
+                  variant="secondary"
+                  className="flex items-center gap-1.5 py-2 px-3 text-sm"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  View My Profile
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Desktop Section Navigation with hover animations */}
           <div className="border-b border-gray-100 px-6 py-1 overflow-hidden">
             <nav className="flex space-x-4" aria-label="Profile sections">
-              {sections.map((section) => {
-                if (section.isBackLink) {
-                  // Overview back link - special styling
-                  return (
-                    <button
-                      key={section.id}
-                      onClick={() => router.push('/dashboard')}
-                      className="py-3 px-1 border-b-2 border-transparent font-medium text-sm whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-red-600 transition-colors group"
-                    >
-                      <motion.div
-                        whileHover={{ x: -3 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                      >
-                        <section.icon className="w-4 h-4 text-gray-500 group-hover:text-red-600 transition-colors" />
-                      </motion.div>
-                      {section.label}
-                    </button>
-                  );
-                }
-                
-                // Regular tabs - keep existing animation
-                return (
-                  <motion.button
-                    key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    data-section={section.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                      activeSection === section.id
-                        ? 'border-red-500 text-red-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    {section.label}
-                  </motion.button>
-                );
-              })}
+              {sections.map((section) => (
+                <motion.button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  data-section={section.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                    activeSection === section.id
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {section.label}
+                </motion.button>
+              ))}
             </nav>
           </div>
         </div>
@@ -1111,34 +1110,20 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         </div>
 
         {/* Desktop Footer Actions - Fixed at bottom */}
-        {hasChanges && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex-shrink-0 flex border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-white items-center justify-between"
+        <div className="flex-shrink-0 flex border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-white items-center justify-end">
+          <Button
+            onClick={handleSave}
+            disabled={saving || !hasChanges}
+            className="flex items-center gap-2"
           >
-            <Button
-              onClick={handlePreview}
-              variant="secondary"
-              className="flex items-center gap-2"
-            >
-              <Eye className="w-4 h-4" />
-              View Profile
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </motion.div>
-        )}
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </motion.div>
 
       {/* Mobile Accordion Sections */}
@@ -1155,7 +1140,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           </div>
         </div>
 
-        {sections.filter(section => !section.isBackLink).map((section) => {
+        {sections.map((section) => {
             const Icon = section.icon;
             const isExpanded = expandedMobileSection === section.id;
             const status = sectionStatusById[section.id as keyof typeof sectionStatusById];

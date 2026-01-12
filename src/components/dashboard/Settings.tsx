@@ -15,7 +15,8 @@ import {
   ChevronDown,
   ChevronUp,
   AlertTriangle,
-  ArrowLeft
+  ArrowLeft,
+  Eye
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -25,6 +26,7 @@ import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
+import { Button } from '@/components/ui/Button';
 
 interface SettingsProps {
   data: any; // dashboardData
@@ -145,7 +147,6 @@ export function Settings({ data }: SettingsProps) {
   }, [expandedMobileSection]);
 
   const sections = [
-    { id: 'overview', label: 'Overview', icon: ArrowLeft, description: 'Back to dashboard', isBackLink: true },
     { id: 'membership', label: 'Membership', icon: CreditCard, description: 'Subscription and billing' },
     { id: 'privacy', label: 'Privacy & Security', icon: Shield, description: 'Privacy settings, security, and data' },
     { id: 'support', label: 'Support', icon: MessageCircle, description: 'Report issues, make suggestions' },
@@ -785,57 +786,62 @@ export function Settings({ data }: SettingsProps) {
             </p>
           </div>
 
-          {/* Progress Indicators */}
-          <div className="flex-shrink-0">
+          {/* Progress Indicators and Action Buttons */}
+          <div className="flex-shrink-0 flex flex-col items-end gap-3">
             <ProgressIndicators
               requiredFieldsCompleted={completionStats.required.completed}
               totalRequiredFields={completionStats.required.total}
               overallCompletionPercentage={completionStats.overall.percentage}
               variant="compact"
             />
+            
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              <motion.button
+                onClick={() => router.push('/dashboard')}
+                whileHover={{ x: -3 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                className="py-2 px-3 border border-gray-300 rounded-md font-medium text-sm whitespace-nowrap flex items-center gap-1.5 text-gray-700 hover:text-red-600 hover:border-red-300 transition-colors group bg-white"
+              >
+                <ArrowLeft className="w-4 h-4 text-gray-500 group-hover:text-red-600 transition-colors" />
+                Overview
+              </motion.button>
+              
+              <Button
+                onClick={() => {
+                  if (profileData?.user?.username) {
+                    window.open(`/${profileData.user.username}`, '_blank');
+                  }
+                }}
+                variant="secondary"
+                className="flex items-center gap-1.5 py-2 px-3 text-sm"
+                disabled={!profileData?.user?.username}
+              >
+                <ExternalLink className="w-4 h-4" />
+                View My Profile
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Desktop Section Navigation with hover animations */}
         <div className="border-b border-gray-100 px-6 overflow-hidden">
           <nav className="flex space-x-4" aria-label="Settings sections">
-            {sections.map((section) => {
-              if (section.isBackLink) {
-                // Overview back link - special styling
-                return (
-                  <button
-                    key={section.id}
-                    onClick={() => router.push('/dashboard')}
-                    className="py-3 px-1 border-b-2 border-transparent font-medium text-sm whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-red-600 transition-colors group"
-                  >
-                    <motion.div
-                      whileHover={{ x: -3 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                    >
-                      <section.icon className="w-4 h-4 text-gray-500 group-hover:text-red-600 transition-colors" />
-                    </motion.div>
-                    {section.label}
-                  </button>
-                );
-              }
-              
-              // Regular tabs - keep existing animation
-              return (
-                <motion.button
-                  key={section.id}
-                  onClick={() => setActiveDesktopSection(section.id)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                    activeDesktopSection === section.id
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {section.label}
-                </motion.button>
-              );
-            })}
+            {sections.map((section) => (
+              <motion.button
+                key={section.id}
+                onClick={() => setActiveDesktopSection(section.id)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                  activeDesktopSection === section.id
+                    ? 'border-red-500 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {section.label}
+              </motion.button>
+            ))}
           </nav>
         </div>
 
@@ -861,7 +867,7 @@ export function Settings({ data }: SettingsProps) {
           </div>
         </div>
 
-        {sections.filter(section => !section.isBackLink).map((section) => {
+        {sections.map((section) => {
           const Icon = section.icon;
           const isExpanded = expandedMobileSection === section.id;
 
