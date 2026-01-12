@@ -972,7 +972,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 }}
                 placeholder="https://www.threads.net/@yourhandle"
                 helperText="Your Threads profile"
-                error={socialMediaErrors.threads_url}
+                {...(socialMediaErrors.threads_url && { error: socialMediaErrors.threads_url })}
               />
             </div>
           </div>
