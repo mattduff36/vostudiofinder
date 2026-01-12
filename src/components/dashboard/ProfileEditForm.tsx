@@ -532,8 +532,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             {/* Desktop: Two column layout */}
             <div className="hidden md:grid md:grid-cols-2 gap-4">
               {/* Left Column: Studio Types + Short About */}
-              <div className="space-y-4">
-                <div>
+              <div className="flex flex-col space-y-4">
+                <div className="flex-shrink-0">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Studio Types
                   </label>
@@ -559,12 +559,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   </div>
                 </div>
 
-                <div>
+                <div className="flex-1 flex flex-col">
                   <Textarea
                     label="Short About"
                     value={profile.profile.short_about || ''}
                     onChange={(e) => updateProfile('short_about', e.target.value)}
-                    rows={8}
+                    className="flex-1"
                     maxLength={150}
                   />
                   <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
@@ -574,13 +574,13 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 </div>
               </div>
 
-              {/* Right Column: Full About (matching height) */}
+              {/* Right Column: Full About (reduced height) */}
               <div>
                 <Textarea
                   label="Full About"
                   value={profile.profile.about || ''}
                   onChange={(e) => updateProfile('about', e.target.value)}
-                  rows={16}
+                  rows={10}
                   maxLength={1500}
                 />
                 <div className="flex justify-between items-center text-xs mt-1">
