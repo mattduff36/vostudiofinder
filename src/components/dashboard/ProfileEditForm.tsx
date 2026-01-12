@@ -77,6 +77,7 @@ interface ProfileData {
     city?: string;
     latitude?: number | null;
     longitude?: number | null;
+    show_exact_location?: boolean;
     website_url?: string;
     phone?: string;
     images?: any[];
@@ -586,10 +587,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                       </p>
                     </div>
                     <Toggle
-                      id="show-exact-location"
                       checked={profile.studio?.show_exact_location ?? true}
                       onChange={(checked) => updateStudio('show_exact_location', checked)}
-                      aria-label="Toggle exact location display"
                     />
                   </div>
                 </div>
