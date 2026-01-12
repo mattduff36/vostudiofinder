@@ -158,7 +158,7 @@ export function GoogleMap({
         // Show exact pin location
         marker = new googleMaps.Marker({
           position: { lat: data.position.lat, lng: data.position.lng },
-          title: data.title,
+          // No title for privacy protection
           icon: {
             url: '/images/marker.png',
             scaledSize: new googleMaps.Size(32, 32),
@@ -182,9 +182,9 @@ export function GoogleMap({
         });
         
         // Create an invisible marker at the center for clustering purposes
+        // NO TITLE - user specifically chose to hide exact location for privacy
         marker = new googleMaps.Marker({
           position: { lat: data.position.lat, lng: data.position.lng },
-          title: data.title,
           map: mapInstance,
           opacity: 0, // Invisible marker
           optimized: false,

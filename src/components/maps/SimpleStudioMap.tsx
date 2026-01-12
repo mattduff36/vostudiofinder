@@ -162,7 +162,7 @@ export function SimpleStudioMap({
       new googleMaps.Marker({
         position: { lat: finalLat, lng: finalLng },
         map: map,
-        title: addressToUse || address,
+        // No title to protect privacy
       });
     } else {
       // Show approximate area circle
@@ -179,9 +179,9 @@ export function SimpleStudioMap({
       });
       
       // Add custom marker at center (same as /studios page)
+      // NO TITLE for privacy - user specifically chose to hide exact location
       new googleMaps.Marker({
         position: { lat: finalLat, lng: finalLng },
-        title: addressToUse || address,
         icon: {
           url: '/images/marker.png',
           scaledSize: new googleMaps.Size(32, 32),
