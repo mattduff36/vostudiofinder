@@ -252,46 +252,37 @@ export function ProfileCompletionAnimation({
         onClick={handleClick}
         className="group relative flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
         aria-label="Edit your profile"
-        onMouseEnter={() => {
+        animate={
+          isPulsing && !isHovered
+            ? {
+                boxShadow: [
+                  '0 0 0 0 rgba(220, 38, 38, 0)',
+                  '0 0 30px 10px rgba(220, 38, 38, 0.3)',
+                  '0 0 0 0 rgba(220, 38, 38, 0)',
+                ],
+              }
+            : {}
+        }
+        transition={
+          isPulsing && !isHovered
+            ? {
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }
+            : {}
+        }
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px 10px rgba(220, 38, 38, 0.3)';
           setIsHovered(true);
           setHasBeenHovered(true);
         }}
-        onMouseLeave={() => {
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLElement).style.boxShadow = 'none';
           setIsHovered(false);
         }}
         {...(isAnimating && { style: { opacity: 0, pointerEvents: 'none' as const } })}
       >
-        {/* Safari-safe pulsing glow ring - positioned behind widget */}
-        {isPulsing && !isHovered && (
-          <motion.div
-            className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle, rgba(220, 38, 38, 0.3) 0%, rgba(220, 38, 38, 0) 70%)',
-              filter: 'blur(15px)',
-            }}
-            animate={{
-              scale: [1, 1.4, 1],
-              opacity: [0, 0.6, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        )}
-
-        {/* Hover glow effect */}
-        {isHovered && (
-          <div
-            className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle, rgba(220, 38, 38, 0.3) 0%, rgba(220, 38, 38, 0) 70%)',
-              filter: 'blur(15px)',
-            }}
-          />
-        )}
-
         {/* Widget - always visible */}
         <div className="relative">
           {children}
