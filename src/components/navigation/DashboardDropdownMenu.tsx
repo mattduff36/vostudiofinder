@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Menu, Home, Edit, Settings, User } from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import { Menu, Home, Edit, Settings, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface DashboardDropdownMenuProps {
@@ -200,6 +201,20 @@ export function DashboardDropdownMenu({
           >
             <User className="w-4 h-4" aria-hidden="true" />
             My Profile
+          </button>
+
+          {/* Logout */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(false);
+              signOut({ callbackUrl: '/' });
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors text-gray-700 hover:bg-gray-50"
+            role="menuitem"
+          >
+            <LogOut className="w-4 h-4" aria-hidden="true" />
+            Logout
           </button>
         </div>
       )}

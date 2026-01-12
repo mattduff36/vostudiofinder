@@ -10,6 +10,7 @@ interface ProfileCompletionAnimationProps {
   shouldAnimate: boolean;
   onAnimationComplete: () => void;
   completionPercentage: number;
+  allRequiredComplete: boolean;
 }
 
 /**
@@ -26,6 +27,7 @@ export function ProfileCompletionAnimation({
   shouldAnimate,
   onAnimationComplete,
   completionPercentage,
+  allRequiredComplete,
 }: ProfileCompletionAnimationProps) {
   const [animationPhase, setAnimationPhase] = useState<'initial' | 'center' | 'pause' | 'transition' | 'complete'>('initial');
   const [mounted, setMounted] = useState(false);
@@ -35,8 +37,9 @@ export function ProfileCompletionAnimation({
   const [isPulsing, setIsPulsing] = useState(false);
   const [hasBeenHovered, setHasBeenHovered] = useState(false);
 
-  // Match the color logic from ProfileCompletionProgress
+  // Match the color logic from ProfileCompletionProgress - GATED by required completion
   const getColor = (percentage: number) => {
+    if (!allRequiredComplete) return 'text-gray-600'; // Grey until all required complete
     if (percentage > 85) return 'text-green-600';
     if (percentage >= 75) return 'text-amber-600';
     return 'text-gray-600';
@@ -94,21 +97,13 @@ export function ProfileCompletionAnimation({
     };
   }, [shouldAnimate, mounted, onAnimationComplete]);
 
-  // Start pulsing shadow after main animation completes
+  // Start pulsing shadow after main animation completes - continues until hover
   useEffect(() => {
     if (animationPhase === 'complete' && shouldAnimate && !hasBeenHovered) {
       setIsPulsing(true);
-      
-      // Stop pulsing after 8 seconds
-      const pulseTimer = setTimeout(() => {
-        setIsPulsing(false);
-      }, 8000);
-
-      return () => {
-        clearTimeout(pulseTimer);
-      };
+    } else {
+      setIsPulsing(false);
     }
-    return undefined;
   }, [animationPhase, shouldAnimate, hasBeenHovered]);
 
   // Handle link click
@@ -257,38 +252,46 @@ export function ProfileCompletionAnimation({
         onClick={handleClick}
         className="group relative flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
         aria-label="Edit your profile"
-        animate={
-          isPulsing && !isHovered
-            ? {
-                boxShadow: [
-                  '0 0 0 0 rgba(220, 38, 38, 0)',
-                  '0 0 30px 10px rgba(220, 38, 38, 0.3)',
-                  '0 0 0 0 rgba(220, 38, 38, 0)',
-                ],
-              }
-            : {}
-        }
-        transition={
-          isPulsing && !isHovered
-            ? {
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }
-            : {}
-        }
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px 10px rgba(220, 38, 38, 0.3)';
+        onMouseEnter={() => {
           setIsHovered(true);
           setHasBeenHovered(true);
-          setIsPulsing(false);
         }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+        onMouseLeave={() => {
           setIsHovered(false);
         }}
         {...(isAnimating && { style: { opacity: 0, pointerEvents: 'none' as const } })}
       >
+        {/* Safari-safe pulsing glow ring - positioned behind widget */}
+        {isPulsing && !isHovered && (
+          <motion.div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(220, 38, 38, 0.3) 0%, rgba(220, 38, 38, 0) 70%)',
+              filter: 'blur(15px)',
+            }}
+            animate={{
+              scale: [1, 1.4, 1],
+              opacity: [0, 0.6, 0],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        )}
+
+        {/* Hover glow effect */}
+        {isHovered && (
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(220, 38, 38, 0.3) 0%, rgba(220, 38, 38, 0) 70%)',
+              filter: 'blur(15px)',
+            }}
+          />
+        )}
+
         {/* Widget - always visible */}
         <div className="relative">
           {children}

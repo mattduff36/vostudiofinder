@@ -227,18 +227,6 @@ export function Navbar({ session }: NavbarProps) {
                   isScrolled={isScrolled}
                   isHomePage={isHomePage}
                 />
-                <button
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className={`p-2 rounded-lg transition-all duration-300 ${
-                    isScrolled || !isHomePage 
-                      ? 'text-gray-600 hover:bg-gray-100' 
-                      : 'text-white hover:bg-white/20'
-                  }`}
-                  aria-label="Logout"
-                  title="Logout"
-                >
-                  <LogOut size={20} />
-                </button>
               </>
             ) : (
               <>

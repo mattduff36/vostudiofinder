@@ -25,14 +25,16 @@ export function ProgressIndicators({
     ? 'Visit the overview page to see which fields still need to be completed'
     : '';
 
-  // Color based on completion (grey until 75%, amber 75-85%, green >85%)
+  // Color based on completion - GATED: grey until all required complete, then amber 75-85%, green >85%
   const getOverallColor = (percentage: number) => {
+    if (!allRequiredComplete) return 'text-gray-600'; // Grey until all required complete
     if (percentage > 85) return 'text-green-600';
     if (percentage >= 75) return 'text-amber-600';
     return 'text-gray-600';
   };
 
   const getOverallBgColor = (percentage: number) => {
+    if (!allRequiredComplete) return 'bg-gray-600'; // Grey until all required complete
     if (percentage > 85) return 'bg-green-600';
     if (percentage >= 75) return 'bg-amber-600';
     return 'bg-gray-600';

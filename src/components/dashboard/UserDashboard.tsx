@@ -128,10 +128,10 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
   // Animation hook for profile completion widget (desktop only)
   const { shouldAnimate, isDesktop, markAnimationComplete } = useProfileAnimation();
 
-  const completionPercentage = useMemo((): number => {
-    if (!profileData) return 0;
+  const completionStats = useMemo(() => {
+    if (!profileData) return { percentage: 0, allRequiredComplete: false };
 
-    return calculateCompletionStats({
+    const stats = calculateCompletionStats({
       user: {
         username: profileData.user?.username || '',
         display_name: profileData.user?.display_name || '',
@@ -173,8 +173,15 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
         images: profileData.studio?.images || [],
         website_url: profileData.studio?.website_url || null,
       },
-    }).overall.percentage;
+    });
+
+    return {
+      percentage: stats.overall.percentage,
+      allRequiredComplete: stats.required.completed === stats.required.total,
+    };
   }, [profileData]);
+
+  const completionPercentage = completionStats.percentage;
 
   const renderCompletionWidget = useCallback(
     (widget: ReactNode) => (
@@ -182,11 +189,12 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
         shouldAnimate={shouldAnimate && isDesktop}
         onAnimationComplete={markAnimationComplete}
         completionPercentage={completionPercentage}
+        allRequiredComplete={completionStats.allRequiredComplete}
       >
         {widget}
       </ProfileCompletionAnimation>
     ),
-    [shouldAnimate, isDesktop, markAnimationComplete, completionPercentage]
+    [shouldAnimate, isDesktop, markAnimationComplete, completionPercentage, completionStats.allRequiredComplete]
   );
 
   // Fetch profile data for completion progress
