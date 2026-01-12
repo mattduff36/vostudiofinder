@@ -24,22 +24,40 @@
 
 ## 🚨 CRITICAL: Configure Sentry Webhook
 
-### Step 1: Enable `event.created` Webhook (MOST IMPORTANT)
+### Step 1: Create/Configure Internal Integration
 
-This is the **key** to capturing ALL errors. Without this, you'll only get issue-level events, not individual error events.
+**Important:** Sentry uses **Internal Integrations** for webhooks, not standalone webhook settings.
 
 1. Go to **Sentry Dashboard** → **Settings** → **Developer Settings** → **Internal Integrations**
-2. Find your existing integration (or create a new one)
-3. Go to **Webhooks** section
-4. **Enable these events:**
-   - ✅ `issue.created` (already enabled)
-   - ⚠️ **`event.created`** ← **ENABLE THIS NOW** (CRITICAL)
-   - ✅ `issue.resolved` (enable this)
-   - ✅ `issue.ignored` (enable this)
-   - ✅ `issue.reopened` (enable this)
+2. **Create a new integration** (or edit existing one):
+   - **Name:** "Error Log Integration" (or your preferred name)
+   - **Webhook URL:** `https://yourdomain.com/api/webhooks/sentry`
+   - **Permissions:** Ensure you have at least:
+     - `event:read` - To read error events
+     - `project:read` - To read project information
+3. **Save** the integration to generate authentication credentials
+4. **Copy the Client Secret** - This becomes your `SENTRY_WEBHOOK_SECRET`
 
-5. **Webhook URL:** `https://yourdomain.com/api/webhooks/sentry`
-6. **Custom Header:** `Authorization: Bearer YOUR_SENTRY_WEBHOOK_SECRET`
+### Step 2: Enable Webhook Events (MOST IMPORTANT)
+
+After creating the integration, configure which events to receive:
+
+1. In your Internal Integration settings, find the **"Webhooks"** or **"Events"** section
+2. **Enable these events:**
+   - ✅ `issue.created` - When a new issue is first seen
+   - ⚠️ **`event.created`** ← **ENABLE THIS NOW** (CRITICAL - captures ALL individual error events)
+   - ✅ `issue.resolved` - When an issue is marked as resolved
+   - ✅ `issue.ignored` - When an issue is ignored
+   - ✅ `issue.reopened` - When a resolved issue reoccurs
+
+**Note:** `event.created` is the key event that fires for EVERY error event, not just when issues are created. This ensures you capture all errors, even those that don't create new issues.
+
+### Step 3: Configure Authentication
+
+1. **Set Custom Header** (if supported by your integration):
+   - Header Name: `Authorization`
+   - Header Value: `Bearer YOUR_SENTRY_WEBHOOK_SECRET`
+2. **Alternative:** Sentry may use signature verification via `sentry-hook-signature` header (already implemented in your code)
 
 ### Step 2: Verify Webhook Secret
 
