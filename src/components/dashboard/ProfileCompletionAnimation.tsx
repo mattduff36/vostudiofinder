@@ -29,6 +29,7 @@ export function ProfileCompletionAnimation({
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [finalPosition, setFinalPosition] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -105,9 +106,6 @@ export function ProfileCompletionAnimation({
       </div>
     );
   }
-
-  // State for hover
-  const [isHovered, setIsHovered] = useState(false);
 
   // If not animating, render normally with Link wrapper and content that changes on hover
   if (!shouldAnimate || animationPhase === 'complete') {
