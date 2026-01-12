@@ -1088,7 +1088,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               <div className="space-y-3">
                 <Toggle
                   label="Show Email"
-                  description="Display email on public profile"
+                  description="Display 'Message Studio' button on public profile"
                   checked={profile.profile.show_email || false}
                   onChange={(checked) => updateProfile('show_email', checked)}
                 />
@@ -1100,13 +1100,13 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 />
                 <Toggle
                   label="Show Address"
-                  description="Display full address on public profile"
+                  description="Display address on public profile page"
                   checked={profile.profile.show_address || false}
                   onChange={(checked) => updateProfile('show_address', checked)}
                 />
                 <Toggle
                   label="Show Directions"
-                  description="Display directions link on public profile"
+                  description="Display 'Get Directions' button on public profile"
                   checked={profile.profile.show_directions !== false}
                   onChange={(checked) => updateProfile('show_directions', checked)}
                 />

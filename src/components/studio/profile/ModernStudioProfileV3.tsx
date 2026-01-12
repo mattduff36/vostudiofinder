@@ -546,7 +546,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     className="mt-3 w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ExternalLink className="w-5 h-5" aria-hidden="true" />
-                    <span className="font-medium">Get directions</span>
+                    <span className="font-medium">Get Directions</span>
                   </button>
                 )}
               </div>
@@ -781,10 +781,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     {/* Directions section - fills remaining space (492 - 384 - 16 = 92px) */}
                     <div className="flex-1 flex flex-col justify-center px-6">
                       {/* Only show address if show_address is not explicitly false */}
-                      {(profile?.show_address !== false) && (studio.city || studio.full_address || studio.address) && (
+                      {(profile?.show_address !== false) && (studio.full_address || studio.address || studio.city) && (
                         <div className="flex items-center space-x-2 mb-2">
                           <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <p className="text-xs text-gray-600 line-clamp-1">{studio.city || studio.full_address || studio.address}</p>
+                          <p className="text-xs text-gray-600 line-clamp-1">{studio.full_address || studio.address || studio.city}</p>
                         </div>
                       )}
                       <Button
@@ -794,7 +794,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                         disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
                       >
                         <ExternalLink className="w-3 h-3 mr-2" />
-                        Get directions
+                        Get Directions
                       </Button>
                     </div>
                   </>
