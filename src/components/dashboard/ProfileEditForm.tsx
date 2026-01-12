@@ -562,7 +562,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                     label="Short About"
                     value={profile.profile.short_about || ''}
                     onChange={(e) => updateProfile('short_about', e.target.value)}
-                    rows={4}
+                    rows={10}
                     maxLength={150}
                   />
                   <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
@@ -578,7 +578,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   label="Full About"
                   value={profile.profile.about || ''}
                   onChange={(e) => updateProfile('about', e.target.value)}
-                  rows={21}
+                  rows={13}
                   maxLength={1500}
                 />
                 <div className="flex justify-between items-center text-xs mt-1">
