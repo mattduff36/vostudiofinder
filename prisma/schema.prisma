@@ -476,6 +476,29 @@ model support_tickets {
   @@index([created_at])
 }
 
+model error_log_groups {
+  id                String         @id
+  sentry_issue_id   String         @unique
+  title             String
+  level             String         // error, fatal, warning, info
+  status            ErrorLogStatus @default(OPEN)
+  first_seen_at     DateTime
+  last_seen_at      DateTime
+  event_count       Int            @default(1)
+  environment       String?
+  release           String?
+  last_event_id     String?
+  sample_event_json Json?
+  created_at        DateTime       @default(now())
+  updated_at        DateTime
+
+  @@index([last_seen_at])
+  @@index([status])
+  @@index([level])
+  @@index([event_count])
+  @@index([created_at])
+}
+
 enum ContentType {
   REVIEW
   MESSAGE
@@ -607,4 +630,10 @@ enum UserStatus {
   PENDING
   ACTIVE
   EXPIRED
+}
+
+enum ErrorLogStatus {
+  OPEN
+  RESOLVED
+  IGNORED
 }

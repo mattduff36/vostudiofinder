@@ -10,10 +10,11 @@ import {
   Users,
   Headphones,
   CreditCard,
-  Clock
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support' | 'payments' | 'reservations';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support' | 'payments' | 'reservations' | 'error_log';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -34,6 +35,7 @@ const tabs: TabConfig[] = [
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'waitlist', label: 'Waiting List', icon: Users, href: '/admin/waitlist' },
   { id: 'support', label: 'Support', icon: Headphones, href: '/admin/support' },
+  { id: 'error_log', label: 'Error Log', icon: AlertTriangle, href: '/admin/error-log' },
   { id: 'faq', label: 'FAQ', icon: MessageSquare, href: '/admin/faq' },
 ];
 
