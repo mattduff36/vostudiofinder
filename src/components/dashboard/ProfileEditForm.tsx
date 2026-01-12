@@ -633,6 +633,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Studio Types
                   </label>
+                  <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
                   <div className="space-y-3">
                     {/* Compact 2-column grid for desktop */}
                     <div className="grid grid-cols-2 gap-3">
@@ -652,7 +653,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                       ))}
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-3">Select all that apply to your studio</p>
                 </div>
 
                 {/* Short About */}
@@ -773,7 +773,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   value={profile.studio?.city || ''}
                   onChange={(e) => updateStudio('city', e.target.value)}
                   placeholder="Enter town or city name..."
-                  helperText="Region will be auto-populated from the Address above and shown on the Studios page. You can edit it if needed."
+                  helperText="Region shown on the Studios page."
                 />
 
                 <CountryAutocomplete
