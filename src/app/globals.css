@@ -211,10 +211,15 @@ h6,
   }
 }
 
-/* Homepage hero h2 subtitle - mobile-specific adjustment */
+/* Homepage hero h2 subtitle */
+.hp2 {
+  font-size: 18px;
+}
+
+/* Mobile-specific adjustment for homepage hero h2 */
 @media (max-width: 640px) {
   .hp2 {
-    font-size: 20px;
+    font-size: 16px;
   }
 }
 
