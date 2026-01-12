@@ -558,6 +558,17 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                       updateStudio('full_address', value);
                       updateStudio('city', extractCity(value));
                     }}
+                    onPlaceSelected={(place) => {
+                      // Extract country from address components
+                      if (place.address_components) {
+                        const countryComponent = place.address_components.find(
+                          (component: any) => component.types.includes('country')
+                        );
+                        if (countryComponent) {
+                          updateProfile('location', countryComponent.long_name);
+                        }
+                      }
+                    }}
                     placeholder="Start typing your address..."
                   />
                   

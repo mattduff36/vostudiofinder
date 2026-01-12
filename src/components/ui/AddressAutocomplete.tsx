@@ -7,6 +7,7 @@ interface AddressAutocompleteProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  onPlaceSelected?: (place: any) => void; // Callback for when a place is selected from autocomplete
   placeholder?: string;
   helperText?: string;
   error?: string;
@@ -17,6 +18,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   label,
   value,
   onChange,
+  onPlaceSelected,
   placeholder,
   helperText,
   error,
@@ -25,15 +27,17 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any | null>(null);
   const onChangeRef = useRef(onChange); // Store onChange in ref to avoid stale closures
+  const onPlaceSelectedRef = useRef(onPlaceSelected); // Store onPlaceSelected in ref
   const [isLoaded, setIsLoaded] = useState(false);
   const [inputValue, setInputValue] = useState(value || '');
   const [isUpdatingFromAutocomplete, setIsUpdatingFromAutocomplete] = useState(false);
   const inputId = id || `address-autocomplete-${label.toLowerCase().replace(/\s/g, '-')}`;
 
-  // Update ref when onChange changes
+  // Update refs when callbacks change
   useEffect(() => {
     onChangeRef.current = onChange;
-  }, [onChange]);
+    onPlaceSelectedRef.current = onPlaceSelected;
+  }, [onChange, onPlaceSelected]);
 
   // Sync with prop value ONLY when not actively using autocomplete
   // This allows parent updates (like after save) while preventing race conditions
@@ -98,6 +102,10 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
             setIsUpdatingFromAutocomplete(true);
             setInputValue(address);
             onChangeRef.current(address); // Use ref instead of prop
+            // Call onPlaceSelected callback if provided
+            if (onPlaceSelectedRef.current) {
+              onPlaceSelectedRef.current(place);
+            }
             // Clear flag after onChange completes
             setTimeout(() => setIsUpdatingFromAutocomplete(false), 100);
           }
