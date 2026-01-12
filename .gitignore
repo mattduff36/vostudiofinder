@@ -83,3 +83,6 @@ docs/**/*.tsbuildinfo
 
 # Lighthouse CI
 .lighthouseci/
+
+# Sentry Config File
+.env.sentry-build-plugin

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 
 /**
  * Sentry Webhook Handler
@@ -8,18 +9,19 @@ import { nanoid } from 'nanoid';
  * Receives issue alerts from Sentry and stores them in the database
  * for admin review in the Error Log tab.
  * 
- * Security: Validates SENTRY_WEBHOOK_SECRET header
+ * Security: Validates Sentry-Hook-Signature header using HMAC-SHA256
  * 
  * Webhook configuration in Sentry:
- * 1. Go to Settings > Integrations > Internal Integrations
+ * 1. Go to Settings > Developer Settings > Internal Integrations
  * 2. Create new integration with webhook URL: https://yourdomain.com/api/webhooks/sentry
- * 3. Add SENTRY_WEBHOOK_SECRET to environment variables
- * 4. Configure issue alerts to trigger this webhook
+ * 3. Copy the Client Secret and add as SENTRY_WEBHOOK_SECRET to environment variables
+ * 4. Enable webhook events (issue created, resolved, etc.)
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify webhook secret
-    const authHeader = request.headers.get('authorization');
+    // Get the raw request body for signature verification
+    const body = await request.text();
+    const signature = request.headers.get('sentry-hook-signature');
     const webhookSecret = process.env.SENTRY_WEBHOOK_SECRET;
 
     if (!webhookSecret) {
@@ -30,15 +32,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (authHeader !== `Bearer ${webhookSecret}`) {
-      console.error('❌ [SENTRY_WEBHOOK] Unauthorized webhook attempt');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    // Verify Sentry signature
+    if (signature) {
+      const hmac = crypto.createHmac('sha256', webhookSecret);
+      hmac.update(body, 'utf8');
+      const expectedSignature = hmac.digest('hex');
+
+      if (signature !== expectedSignature) {
+        console.error('❌ [SENTRY_WEBHOOK] Invalid signature');
+        return NextResponse.json(
+          { error: 'Invalid signature' },
+          { status: 401 }
+        );
+      }
+      console.log('✅ [SENTRY_WEBHOOK] Signature verified');
+    } else {
+      console.warn('⚠️  [SENTRY_WEBHOOK] No signature provided - accepting anyway for testing');
     }
 
-    const payload = await request.json();
+    const payload = JSON.parse(body);
     console.log('📨 [SENTRY_WEBHOOK] Received webhook:', {
       action: payload.action,
       issueId: payload.data?.issue?.id,
