@@ -28,13 +28,13 @@ import {
   ExternalLink,
   MessageCircle,
   Facebook,
-  Twitter,
   Linkedin,
   Instagram,
   Youtube,
   Music,
   Video
 } from 'lucide-react';
+import { XLogo } from '@/components/icons/XLogo';
 
 interface ModernStudioProfileV3Props {
   studio: {
@@ -177,9 +177,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       color: 'text-blue-600 hover:text-blue-800' 
     },
     { 
-      platform: 'X', 
+      platform: 'X (formerly Twitter)', 
       url: profile?.x_url || profile?.twitter_url, 
-      icon: Twitter, 
+      icon: XLogo, 
       color: 'text-sky-500 hover:text-sky-700' 
     },
     { 
