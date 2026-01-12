@@ -27,6 +27,16 @@ interface EnhancedUserProfileProps {
     studio_profiles?: { 
       status: string; 
       is_profile_visible?: boolean;
+      studio_name?: string | null;
+      last_name?: string | null;
+      about?: string | null;
+      short_about?: string | null;
+      location?: string | null;
+      equipment_list?: string | null;
+      show_rates?: boolean;
+      rate_tier_1?: string | null;
+      rate_tier_2?: string | null;
+      rate_tier_3?: string | null;
       facebook_url?: string | null;
       twitter_url?: string | null;
       x_url?: string | null;
