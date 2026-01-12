@@ -773,7 +773,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   value={profile.studio?.city || ''}
                   onChange={(e) => updateStudio('city', e.target.value)}
                   placeholder="Enter town or city name..."
-                  helperText="Your region is shown on the studios cards. (Studios page)"
+                  helperText="Your region is shown on the studios cards."
                 />
 
                 <CountryAutocomplete
