@@ -796,30 +796,29 @@ export function Settings({ data }: SettingsProps) {
             />
             
             {/* Action Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <motion.button
                 onClick={() => router.push('/dashboard')}
                 whileHover={{ x: -3 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                className="py-2 px-3 border border-gray-300 rounded-md font-medium text-sm whitespace-nowrap flex items-center gap-1.5 text-gray-700 hover:text-red-600 hover:border-red-300 transition-colors group bg-white"
+                className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group"
               >
-                <ArrowLeft className="w-4 h-4 text-gray-500 group-hover:text-red-600 transition-colors" />
+                <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
                 Overview
               </motion.button>
               
-              <Button
+              <button
                 onClick={() => {
                   if (profileData?.user?.username) {
                     window.open(`/${profileData.user.username}`, '_blank');
                   }
                 }}
-                variant="secondary"
-                className="flex items-center gap-1.5 py-2 px-3 text-sm"
                 disabled={!profileData?.user?.username}
+                className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ExternalLink className="w-4 h-4" />
+                <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
                 View My Profile
-              </Button>
+              </button>
             </div>
           </div>
         </div>
