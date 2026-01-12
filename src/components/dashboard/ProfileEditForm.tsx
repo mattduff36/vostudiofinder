@@ -578,7 +578,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   label="Full About"
                   value={profile.profile.about || ''}
                   onChange={(e) => updateProfile('about', e.target.value)}
-                  rows={17}
+                  rows={21}
                   maxLength={1500}
                 />
                 <div className="flex justify-between items-center text-xs mt-1">
