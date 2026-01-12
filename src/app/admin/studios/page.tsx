@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb, Check, X } from 'lucide-react';
 import EditStudioModal from '@/components/admin/EditStudioModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
@@ -853,14 +853,18 @@ export default function AdminStudiosPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
                           onClick={() => handleToggleStatus(studio, studio.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
-                          className={`relative inline-flex h-8 w-24 items-center justify-center rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                          className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                             studio.status === 'ACTIVE' 
                               ? 'bg-green-600 text-white focus:ring-green-500' 
                               : 'bg-red-600 text-white focus:ring-red-500'
                           }`}
                           title={`Click to toggle status (currently ${studio.status})`}
                         >
-                          {studio.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE'}
+                          {studio.status === 'ACTIVE' ? (
+                            <Check className="w-4 h-4" />
+                          ) : (
+                            <X className="w-4 h-4" />
+                          )}
                         </button>
                         {studio.is_spotlight && (
                           <span 
@@ -891,7 +895,7 @@ export default function AdminStudiosPage() {
                       {/* Profile Completion */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
-                          <div className="flex-1 bg-gray-200 rounded-full h-2 w-24">
+                          <div className="bg-gray-200 rounded-full h-2 w-16">
                             <div
                               className={`h-2 rounded-full transition-all ${getCompletionBgColor(studio.profile_completion || 0)}`}
                               style={{ width: `${studio.profile_completion || 0}%` }}
