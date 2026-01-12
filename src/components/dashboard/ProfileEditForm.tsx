@@ -547,7 +547,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Studio Types
                 </label>
-                <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
                 <div className="space-y-3">
                   {/* Top row - Active types */}
                   <div className="grid grid-cols-3 gap-3">
@@ -584,6 +583,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                     ))}
                   </div>
                 </div>
+                <p className="text-xs text-gray-500 mt-3">Select all that apply to your studio</p>
               </div>
 
               <div>
@@ -633,7 +633,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Studio Types
                   </label>
-                  <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
                   <div className="space-y-3">
                     {/* Compact 2-column grid for desktop */}
                     <div className="grid grid-cols-2 gap-3">
@@ -653,6 +652,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                       ))}
                     </div>
                   </div>
+                  <p className="text-xs text-gray-500 mt-3">Select all that apply to your studio</p>
                 </div>
 
                 {/* Short About */}
