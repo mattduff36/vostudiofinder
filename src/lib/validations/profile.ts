@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { stripHtmlTags } from '@/lib/utils/sanitize';
 
 /**
  * Username validation schema
@@ -93,9 +94,9 @@ export const userProfileUpdateSchema = z.object({
   phone: phoneSchema,
   location: z.string().max(255).optional(),
   
-  // About sections
-  about: z.string().max(1500, 'About section must be less than 1500 characters').optional(),
-  short_about: z.string().max(140, 'Short about must be less than 140 characters').optional(),
+  // About sections (with HTML sanitization)
+  about: z.string().max(1500, 'About section must be less than 1500 characters').transform(stripHtmlTags).optional(),
+  short_about: z.string().max(140, 'Short about must be less than 140 characters').transform(stripHtmlTags).optional(),
   
   // Rates
   rate_tier_1: rateSchema,
@@ -139,8 +140,8 @@ export const userProfileUpdateSchema = z.object({
     .min(2, 'Studio name must be at least 2 characters')
     .max(35, 'Studio name must be less than 35 characters')
     .optional(),
-  equipment_list: z.string().max(1000).optional(),
-  services_offered: z.string().max(1000).optional(),
+  equipment_list: z.string().max(1000).transform(stripHtmlTags).optional(),
+  services_offered: z.string().max(1000).transform(stripHtmlTags).optional(),
   home_studio_description: z.string().max(1000).optional(),
 });
 

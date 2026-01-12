@@ -5,8 +5,11 @@
 export function cleanDescription(description: string | null | undefined): string {
   if (!description) return '';
   
-  // First decode HTML entities using our comprehensive decoder
-  let cleaned = decodeHtmlEntities(description);
+  // First strip any HTML tags for security
+  let cleaned = description.replace(/<[^>]*>/g, '');
+  
+  // Then decode HTML entities using our comprehensive decoder
+  cleaned = decodeHtmlEntities(cleaned);
   
   // Clean up escaped characters and normalize whitespace
   cleaned = cleaned

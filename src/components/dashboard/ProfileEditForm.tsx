@@ -20,6 +20,7 @@ import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { showSuccess, showError } from '@/lib/toast';
+import { stripHtmlTags } from '@/lib/utils/sanitize';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -420,9 +421,15 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   }, []);
 
   const updateProfile = useCallback((field: string, value: any) => {
+    // Sanitize text fields to strip HTML tags
+    const textFieldsToSanitize = ['about', 'short_about', 'equipment_list', 'services_offered'];
+    const sanitizedValue = textFieldsToSanitize.includes(field) && typeof value === 'string'
+      ? stripHtmlTags(value)
+      : value;
+
     setProfile(prev => prev ? {
       ...prev,
-      profile: { ...prev.profile, [field]: value },
+      profile: { ...prev.profile, [field]: sanitizedValue },
     } : null);
   }, []);
 
