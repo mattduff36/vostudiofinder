@@ -770,8 +770,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     height="384px"
                   />
                 </div>
-                {/* Directions section - hidden when show_directions is off */}
-                {profile?.show_directions !== false && (
+                {/* Info section - shown when either address or directions is enabled */}
+                {((profile?.show_address !== false && (studio.full_address || studio.address || studio.city)) || profile?.show_directions !== false) && (
                   <div className="flex-1 flex flex-col px-6 py-3">
                     {/* Only show address if show_address is not explicitly false */}
                     {(profile?.show_address !== false) && (studio.full_address || studio.address || studio.city) && (
@@ -780,15 +780,18 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                         <p className="text-xs text-gray-600 leading-relaxed">{studio.full_address || studio.address || studio.city}</p>
                       </div>
                     )}
-                    <Button
-                      size="sm"
-                      className="w-full mt-auto"
-                      onClick={handleGetDirections}
-                      disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      Get Directions
-                    </Button>
+                    {/* Only show button if show_directions is not explicitly false */}
+                    {profile?.show_directions !== false && (
+                      <Button
+                        size="sm"
+                        className="w-full mt-auto"
+                        onClick={handleGetDirections}
+                        disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
+                      >
+                        <ExternalLink className="w-3 h-3 mr-2" />
+                        Get Directions
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
