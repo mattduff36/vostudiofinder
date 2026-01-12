@@ -798,7 +798,7 @@ export function Settings({ data }: SettingsProps) {
             
             {/* Action Buttons */}
             <div className="flex items-center gap-3">
-              <motion.button
+              <button
                 onClick={() => {
                   // Dashboard routes are hash-driven by DashboardContent.
                   // Using Next's router.push with a hash doesn't reliably fire `hashchange`, so we set `window.location.hash` explicitly.
@@ -808,13 +808,11 @@ export function Settings({ data }: SettingsProps) {
                   }
                   router.push('/dashboard');
                 }}
-                whileHover={{ x: -3 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 10 }}
                 className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group"
               >
                 <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
                 Overview
-              </motion.button>
+              </button>
               
               <button
                 onClick={() => {
