@@ -347,6 +347,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     } : null);
   }, []);
 
+  const handleCoordinatesChange = useCallback((lat: number, lng: number) => {
+    updateStudio('latitude', lat);
+    updateStudio('longitude', lng);
+  }, [updateStudio]);
+
   const toggleStudioType = useCallback((type: string) => {
     setProfile(prev => {
       if (!prev) return null;
@@ -583,10 +588,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   address={profile.studio?.full_address || ''}
                   initialLat={profile.studio?.latitude ?? null}
                   initialLng={profile.studio?.longitude ?? null}
-                  onCoordinatesChange={(lat, lng) => {
-                    updateStudio('latitude', lat);
-                    updateStudio('longitude', lng);
-                  }}
+                  onCoordinatesChange={handleCoordinatesChange}
                   className="h-full"
                 />
               </div>

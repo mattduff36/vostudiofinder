@@ -33,6 +33,7 @@ export function AddressPreviewMap({
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showDistanceWarning, setShowDistanceWarning] = useState(false);
+  const lastGeocodedAddressRef = useRef<string>('');
 
   // Load Google Maps script
   useEffect(() => {
@@ -92,7 +93,15 @@ export function AddressPreviewMap({
 
   // Geocode address when it changes
   useEffect(() => {
-    if (!isLoaded || !address || address.trim() === '') return;
+    if (!isLoaded || !address || address.trim() === '') {
+      lastGeocodedAddressRef.current = '';
+      return;
+    }
+
+    // Only geocode if the address has actually changed
+    if (lastGeocodedAddressRef.current === address) {
+      return;
+    }
 
     const googleMaps = window.google.maps as any;
     
@@ -115,6 +124,9 @@ export function AddressPreviewMap({
           
           console.log('Geocoded address:', address, 'to coordinates:', lat, lng);
           
+          // Mark this address as geocoded
+          lastGeocodedAddressRef.current = address;
+          
           setGeocodedLat(lat);
           setGeocodedLng(lng);
           
@@ -129,6 +141,7 @@ export function AddressPreviewMap({
           setCurrentLng(null);
           setGeocodedLat(null);
           setGeocodedLng(null);
+          lastGeocodedAddressRef.current = '';
         }
       }
     );
