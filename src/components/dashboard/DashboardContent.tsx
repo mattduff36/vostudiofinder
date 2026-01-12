@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
 import { Settings } from './Settings';
@@ -23,6 +24,7 @@ interface DashboardContentProps {
 
 export function DashboardContent({ dashboardData, initialProfileData }: DashboardContentProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
+  const [isFooterExpanded, setIsFooterExpanded] = useState(false);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const hasMountedRef = useRef(false);
 
@@ -152,9 +154,57 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
         {renderTabContent()}
       </div>
 
-      {/* Footer - Desktop only */}
-      <div className="hidden md:block relative z-10">
-        <Footer />
+      {/* Collapsible Footer Card - Desktop only */}
+      <div className="hidden md:block relative z-10 mt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={false}
+            animate={{ 
+              height: isFooterExpanded ? 'auto' : '60px',
+            }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
+          >
+            {/* Header - Always visible */}
+            <button
+              onClick={() => setIsFooterExpanded(!isFooterExpanded)}
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">VS</span>
+                </div>
+                <div className="text-left">
+                  <h3 className="text-sm font-semibold text-gray-900">Site Information</h3>
+                  <p className="text-xs text-gray-500">Links, policies, and support</p>
+                </div>
+              </div>
+              <motion.div
+                animate={{ rotate: isFooterExpanded ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              </motion.div>
+            </button>
+
+            {/* Expandable Content */}
+            <AnimatePresence>
+              {isFooterExpanded && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="border-t border-gray-100"
+                >
+                  <div className="p-4">
+                    <Footer />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
