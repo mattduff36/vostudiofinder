@@ -655,7 +655,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             </div>
 
             {/* Two-column layout for desktop, stacked for mobile */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:items-stretch">
               {/* Left column: Address fields */}
               <div className="space-y-4">
                 <div>
@@ -719,8 +719,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
 
               {/* Right column: Map preview (desktop), below fields (mobile) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex flex-col">
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex-shrink-0">
                   Map Preview
                 </label>
                 <AddressPreviewMap
@@ -729,7 +729,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   initialLng={profile.studio?.longitude ?? null}
                   showExactLocation={profile.studio?.show_exact_location ?? true}
                   onCoordinatesChange={handleCoordinatesChange}
-                  className="h-full"
+                  className="flex-1 flex flex-col min-h-0"
                 />
               </div>
             </div>

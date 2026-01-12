@@ -478,12 +478,12 @@ export function AddressPreviewMap({
   }
 
   return (
-    <div className={className}>
+    <div className={`${className} overflow-hidden`}>
       {/* Map */}
-      <div className="relative">
+      <div className="relative flex-1 min-h-0 overflow-hidden">
         <div 
           ref={mapRef} 
-          className="rounded-lg border border-gray-300 w-full h-[250px] md:h-[300px]"
+          className="rounded-lg border border-gray-300 w-full h-full min-h-[250px] md:min-h-[300px]"
         />
         
         {/* Coordinates overlay */}
