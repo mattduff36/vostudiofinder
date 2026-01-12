@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 
 const STORAGE_KEY = 'dashboard_widget_animation_shown';
 const DESKTOP_BREAKPOINT = 768; // md breakpoint in Tailwind
@@ -76,14 +76,14 @@ export function useProfileAnimation(): UseProfileAnimationReturn {
     };
   }, []);
 
-  const markAnimationComplete = () => {
+  const markAnimationComplete = useCallback(() => {
     try {
       sessionStorage.setItem(STORAGE_KEY, 'true');
       setHasAnimated(true);
     } catch (error) {
       console.warn('Could not save animation state:', error);
     }
-  };
+  }, []);
 
   // Animation should only run if:
   // 1. We're on desktop (≥768px)

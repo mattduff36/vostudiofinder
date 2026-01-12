@@ -43,16 +43,17 @@ export async function GET(request: NextRequest) {
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
-    // Delete old error log groups
+    // Delete old OPEN error log groups (keep RESOLVED/IGNORED for separate retention policy below)
     const deletedGroups = await db.error_log_groups.deleteMany({
       where: {
+        status: 'OPEN',
         last_seen_at: {
           lt: ninetyDaysAgo,
         },
       },
     });
 
-    console.log(`✅ [ERROR_LOG_CLEANUP] Deleted ${deletedGroups.count} old error log groups (90+ days)`);
+    console.log(`✅ [ERROR_LOG_CLEANUP] Deleted ${deletedGroups.count} old OPEN error log groups (90+ days)`);
 
     // Also clean up resolved/ignored issues older than 30 days
     const thirtyDaysAgo = new Date();

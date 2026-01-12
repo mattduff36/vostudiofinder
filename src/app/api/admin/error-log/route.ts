@@ -28,8 +28,33 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search'); // Search in title
     const dateFrom = searchParams.get('dateFrom'); // ISO date string
     const dateTo = searchParams.get('dateTo'); // ISO date string
-    const sortBy = searchParams.get('sortBy') || 'last_seen_at'; // last_seen_at, event_count, first_seen_at
-    const sortOrder = searchParams.get('sortOrder') || 'desc'; // asc or desc
+    const sortByParam = searchParams.get('sortBy');
+    const sortOrderParam = searchParams.get('sortOrder');
+
+    // Validate sortBy against allowlist to avoid unexpected keys (e.g. "__proto__")
+    const allowedSortBy = new Set(['last_seen_at', 'event_count', 'first_seen_at']);
+    const sortBy = sortByParam || 'last_seen_at';
+    if (!allowedSortBy.has(sortBy)) {
+      return NextResponse.json(
+        {
+          error: 'Invalid sortBy parameter',
+          allowed: Array.from(allowedSortBy),
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate sortOrder
+    const sortOrder = sortOrderParam || 'desc';
+    if (sortOrder !== 'asc' && sortOrder !== 'desc') {
+      return NextResponse.json(
+        {
+          error: 'Invalid sortOrder parameter',
+          allowed: ['asc', 'desc'],
+        },
+        { status: 400 }
+      );
+    }
 
     // Build where clause
     const where: any = {};
