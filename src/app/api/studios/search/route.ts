@@ -426,6 +426,7 @@ export async function GET(request: NextRequest) {
         location: true,
         latitude: true,
         longitude: true,
+        show_exact_location: true,
         phone: true,
         website_url: true,
         is_premium: true,

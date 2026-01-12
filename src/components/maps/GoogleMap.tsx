@@ -19,6 +19,7 @@ interface GoogleMapProps {
     title: string;
     studio_type?: string;
     is_verified?: boolean;
+    show_exact_location?: boolean;
     onClick?: (event: { clientX: number; clientY: number }) => void;
     studio?: {
       id: string;
@@ -144,19 +145,72 @@ export function GoogleMap({
     
     const googleMaps = window.google.maps as any;
     
-    // Create new markers with custom marker image
+    const AREA_RADIUS_M = 150; // Radius for privacy circles
+    
+    // Create new markers with custom marker image OR circles for privacy
     const newMarkers = markerData.map(data => {
-      const marker = new googleMaps.Marker({
-        position: { lat: data.position.lat, lng: data.position.lng },
-        title: data.title,
-        icon: {
-          url: '/images/marker.png',
-          scaledSize: new googleMaps.Size(32, 32), // Adjust size as needed
-          anchor: new googleMaps.Point(16, 32), // Anchor point (center bottom)
-        },
-        map: mapInstance,
-        optimized: false, // Ensure markers render immediately
-      });
+      // Check if studio has privacy enabled (show_exact_location === false)
+      const showExactLocation = data.show_exact_location ?? true;
+      
+      let marker;
+      
+      if (showExactLocation) {
+        // Show exact pin location
+        marker = new googleMaps.Marker({
+          position: { lat: data.position.lat, lng: data.position.lng },
+          title: data.title,
+          icon: {
+            url: '/images/marker.png',
+            scaledSize: new googleMaps.Size(32, 32),
+            anchor: new googleMaps.Point(16, 32),
+          },
+          map: mapInstance,
+          optimized: false,
+        });
+      } else {
+        // Show approximate area circle
+        const circle = new googleMaps.Circle({
+          strokeColor: '#DC2626',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#DC2626',
+          fillOpacity: 0.25,
+          map: mapInstance,
+          center: { lat: data.position.lat, lng: data.position.lng },
+          radius: AREA_RADIUS_M,
+          clickable: true,
+        });
+        
+        // Create an invisible marker at the center for clustering purposes
+        marker = new googleMaps.Marker({
+          position: { lat: data.position.lat, lng: data.position.lng },
+          title: data.title,
+          map: mapInstance,
+          opacity: 0, // Invisible marker
+          optimized: false,
+        });
+        
+        // Store circle reference on marker for later cleanup
+        (marker as any).privacyCircle = circle;
+        
+        // Add click listener to circle for the same interactions as marker
+        if (data.onClick) {
+          circle.addListener('click', (e: any) => {
+            if (e.stop) {
+              e.stop();
+            }
+            if (!hasUserInteractedRef.current) {
+              logger.log('👤 User clicked privacy circle - disabling auto-zoom');
+              hasUserInteractedRef.current = true;
+            }
+            const clickEvent = {
+              clientX: e.domEvent?.clientX || window.innerWidth / 2,
+              clientY: e.domEvent?.clientY || window.innerHeight / 2,
+            };
+            data.onClick!(clickEvent);
+          });
+        }
+      }
 
       // Add click listener for card selection
       if (data.onClick) {
@@ -184,14 +238,16 @@ export function GoogleMap({
       // Add click listener for info window (only if no onClick handler is provided)
       // This prevents conflict between modal and info window
       if (data.studio && !data.onClick) {
-        marker.addListener('click', () => {
+        const infoWindowClickHandler = () => {
           // Close existing info window
           if (activeInfoWindowRef.current) {
             activeInfoWindowRef.current.close();
           }
 
           // Create new info window
-          const infoWindow = new googleMaps.InfoWindow();
+          const infoWindow = new googleMaps.InfoWindow({
+            position: { lat: data.position.lat, lng: data.position.lng }
+          });
           
           // Create container for React component
           const container = document.createElement('div');
@@ -211,7 +267,7 @@ export function GoogleMap({
           );
           
           infoWindow.setContent(container);
-          infoWindow.open(mapInstance, marker);
+          infoWindow.open(mapInstance);
           
           // Update active info window ref
           activeInfoWindowRef.current = infoWindow;
@@ -220,7 +276,14 @@ export function GoogleMap({
           infoWindow.addListener('closeclick', () => {
             activeInfoWindowRef.current = null;
           });
-        });
+        };
+        
+        marker.addListener('click', infoWindowClickHandler);
+        
+        // Also add to circle if privacy is enabled
+        if (!showExactLocation && (marker as any).privacyCircle) {
+          (marker as any).privacyCircle.addListener('click', infoWindowClickHandler);
+        }
       }
 
       return marker;
@@ -743,7 +806,13 @@ export function GoogleMap({
               markerClustererRef.current.clearMarkers();
               markerClustererRef.current = null;
             }
-            markersRef.current.forEach(marker => marker.setMap(null));
+            markersRef.current.forEach(marker => {
+              // Clean up privacy circle if it exists
+              if ((marker as any).privacyCircle) {
+                (marker as any).privacyCircle.setMap(null);
+              }
+              marker.setMap(null);
+            });
             markersRef.current = [];
             
             createStudioMarkers(mapInstanceRef.current, markers);
@@ -764,7 +833,13 @@ export function GoogleMap({
       markerClustererRef.current.clearMarkers();
       markerClustererRef.current = null;
     }
-    markersRef.current.forEach(marker => marker.setMap(null));
+    markersRef.current.forEach(marker => {
+      // Clean up privacy circle if it exists
+      if ((marker as any).privacyCircle) {
+        (marker as any).privacyCircle.setMap(null);
+      }
+      marker.setMap(null);
+    });
     markersRef.current = [];
     
     // Reset markers ready state when clearing

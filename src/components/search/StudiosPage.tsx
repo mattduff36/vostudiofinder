@@ -284,6 +284,7 @@ export function StudiosPage() {
         title: studio.name,
         studio_type: studio.studio_studio_types && studio.studio_studio_types.length > 0 && studio.studio_studio_types[0] ? studio.studio_studio_types[0].studio_type : 'VOICEOVER',
         is_verified: studio.is_verified,
+        show_exact_location: (studio as any).show_exact_location ?? true,
         onClick: (event: any) => {
           const studioData: any = studio;
           // mapMarkers use 'users', studios use 'owner'
