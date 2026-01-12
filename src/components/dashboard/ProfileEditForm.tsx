@@ -883,7 +883,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           </div>
 
           {/* Desktop Section Navigation with hover animations */}
-          <div className="border-b border-gray-100 px-6">
+          <div className="border-b border-gray-100 px-6 py-1">
             <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
               {sections.map((section) => (
                 <motion.button
