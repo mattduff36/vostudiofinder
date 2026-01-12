@@ -729,7 +729,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               <p className="text-sm text-gray-600 mb-4">
                 Set up to three rate tiers for your services
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Input
                   label={`15 minutes (${getCurrencySymbol(profile.profile.location)})`}
                   type="number"
@@ -757,15 +757,16 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   helperText="60 minute session rate"
                   placeholder="0.00"
                 />
+                <div className="flex items-start pt-6">
+                  <Toggle
+                    label="Show Rates on Profile"
+                    description="Display your pricing information publicly"
+                    checked={profile.profile.show_rates || false}
+                    onChange={(checked) => updateProfile('show_rates', checked)}
+                  />
+                </div>
               </div>
             </div>
-
-            <Toggle
-              label="Show Rates on Profile"
-              description="Display your pricing information publicly"
-              checked={profile.profile.show_rates || false}
-              onChange={(checked) => updateProfile('show_rates', checked)}
-            />
 
             <Textarea
               label="Equipment List"
