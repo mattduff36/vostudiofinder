@@ -24,13 +24,27 @@ interface EnhancedUserProfileProps {
   user: User & {
     profile?: UserProfile | null;
     metadata?: UserMetadata[];
-    studio_profiles?: { status: string; is_profile_visible?: boolean } | null;
+    studio_profiles?: { 
+      status: string; 
+      is_profile_visible?: boolean;
+      facebook_url?: string | null;
+      twitter_url?: string | null;
+      x_url?: string | null;
+      linkedin_url?: string | null;
+      instagram_url?: string | null;
+      tiktok_url?: string | null;
+      threads_url?: string | null;
+      youtube_url?: string | null;
+      vimeo_url?: string | null;
+      soundcloud_url?: string | null;
+    } | null;
   };
   isHidden?: boolean;
 }
 
 export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProfileProps) {
-  const profile = user.profile;
+  // Prefer studio_profiles data (current schema) over legacy profile data
+  const profile = user.studio_profiles || user.profile;
   const metadata = user.metadata || [];
   const hasInactiveStudio = !isHidden && user.studio_profiles && user.studio_profiles.status === 'INACTIVE';
   
