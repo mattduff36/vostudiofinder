@@ -121,11 +121,56 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
   const [activeSection, setActiveSection] = useState('basic');
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
+  const [socialMediaErrors, setSocialMediaErrors] = useState<{ [key: string]: string }>({});
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   
   // Ref for auto-growing Full About textarea
   const fullAboutRef = useRef<HTMLTextAreaElement>(null);
+
+  // Social media URL validation functions
+  const validateSocialMediaUrl = (url: string, platform: string): string => {
+    if (!url || url.trim() === '') return '';
+    
+    try {
+      const urlObj = new URL(url);
+      const hostname = urlObj.hostname.toLowerCase().replace('www.', '');
+      
+      const platformPatterns: { [key: string]: string[] } = {
+        facebook_url: ['facebook.com', 'm.facebook.com', 'fb.com'],
+        x_url: ['x.com', 'twitter.com'],
+        youtube_url: ['youtube.com', 'youtu.be', 'm.youtube.com'],
+        instagram_url: ['instagram.com'],
+        soundcloud_url: ['soundcloud.com'],
+        tiktok_url: ['tiktok.com', 'vm.tiktok.com'],
+        linkedin_url: ['linkedin.com'],
+        threads_url: ['threads.net'],
+      };
+
+      const validDomains = platformPatterns[platform];
+      if (!validDomains) return '';
+
+      const isValid = validDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
+      
+      if (!isValid) {
+        const platformName = platform.replace('_url', '').replace('x_', 'X ').replace(/_/g, ' ');
+        return `Please enter a valid ${platformName} URL`;
+      }
+      
+      return '';
+    } catch {
+      return 'Please enter a valid URL';
+    }
+  };
+
+  const handleSocialMediaChange = (field: string, value: string) => {
+    updateProfile(field, value);
+    const error = validateSocialMediaUrl(value, field);
+    setSocialMediaErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
+  };
 
   // Fetch profile data
   useEffect(() => {
@@ -799,65 +844,105 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 label="Facebook"
                 type="url"
                 value={profile.profile.facebook_url || ''}
-                onChange={(e) => updateProfile('facebook_url', e.target.value)}
+                onChange={(e) => handleSocialMediaChange('facebook_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'facebook_url');
+                  setSocialMediaErrors(prev => ({ ...prev, facebook_url: error }));
+                }}
                 placeholder="https://facebook.com/your-page"
                 helperText="Your Facebook page or profile"
+                error={socialMediaErrors.facebook_url}
               />
               <Input
                 label="X (formerly Twitter)"
                 type="url"
                 value={profile.profile.x_url || ''}
-                onChange={(e) => updateProfile('x_url', e.target.value)}
+                onChange={(e) => handleSocialMediaChange('x_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'x_url');
+                  setSocialMediaErrors(prev => ({ ...prev, x_url: error }));
+                }}
                 placeholder="https://x.com/yourhandle"
                 helperText="Your X (Twitter) profile"
+                error={socialMediaErrors.x_url}
               />
               <Input
                 label="YouTube"
                 type="url"
                 value={profile.profile.youtube_url || ''}
-                onChange={(e) => updateProfile('youtube_url', e.target.value)}
+                onChange={(e) => handleSocialMediaChange('youtube_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'youtube_url');
+                  setSocialMediaErrors(prev => ({ ...prev, youtube_url: error }));
+                }}
                 placeholder="https://youtube.com/@yourchannel"
                 helperText="Your YouTube channel"
+                error={socialMediaErrors.youtube_url}
               />
               <Input
                 label="Instagram"
                 type="url"
                 value={profile.profile.instagram_url || ''}
-                onChange={(e) => updateProfile('instagram_url', e.target.value)}
+                onChange={(e) => handleSocialMediaChange('instagram_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'instagram_url');
+                  setSocialMediaErrors(prev => ({ ...prev, instagram_url: error }));
+                }}
                 placeholder="https://instagram.com/yourhandle"
                 helperText="Your Instagram profile"
+                error={socialMediaErrors.instagram_url}
               />
               <Input
                 label="SoundCloud"
                 type="url"
                 value={profile.profile.soundcloud_url || ''}
-                onChange={(e) => updateProfile('soundcloud_url', e.target.value)}
+                onChange={(e) => handleSocialMediaChange('soundcloud_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'soundcloud_url');
+                  setSocialMediaErrors(prev => ({ ...prev, soundcloud_url: error }));
+                }}
                 placeholder="https://soundcloud.com/yourprofile"
                 helperText="Your SoundCloud profile"
+                error={socialMediaErrors.soundcloud_url}
               />
               <Input
                 label="TikTok"
                 type="url"
                 value={profile.profile.tiktok_url || ''}
-                onChange={(e) => updateProfile('tiktok_url', e.target.value)}
+                onChange={(e) => handleSocialMediaChange('tiktok_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'tiktok_url');
+                  setSocialMediaErrors(prev => ({ ...prev, tiktok_url: error }));
+                }}
                 placeholder="https://www.tiktok.com/@yourhandle"
                 helperText="Your TikTok profile"
+                error={socialMediaErrors.tiktok_url}
               />
               <Input
                 label="LinkedIn"
                 type="url"
                 value={profile.profile.linkedin_url || ''}
-                onChange={(e) => updateProfile('linkedin_url', e.target.value)}
+                onChange={(e) => handleSocialMediaChange('linkedin_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'linkedin_url');
+                  setSocialMediaErrors(prev => ({ ...prev, linkedin_url: error }));
+                }}
                 placeholder="https://linkedin.com/in/yourprofile"
                 helperText="Your LinkedIn profile"
+                error={socialMediaErrors.linkedin_url}
               />
               <Input
                 label="Threads"
                 type="url"
                 value={profile.profile.threads_url || ''}
-                onChange={(e) => updateProfile('threads_url', e.target.value)}
+                onChange={(e) => handleSocialMediaChange('threads_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'threads_url');
+                  setSocialMediaErrors(prev => ({ ...prev, threads_url: error }));
+                }}
                 placeholder="https://www.threads.net/@yourhandle"
                 helperText="Your Threads profile"
+                error={socialMediaErrors.threads_url}
               />
             </div>
           </div>
