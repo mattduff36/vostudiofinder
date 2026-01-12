@@ -14,7 +14,7 @@ interface AddressPreviewMapProps {
 }
 
 const MAX_DISTANCE_KM = 10; // Maximum distance user can drag pin from geocoded point
-const AREA_RADIUS_M = 100; // Radius in meters for approximate location circle
+const AREA_RADIUS_M = 150; // Radius in meters for approximate location circle
 
 export function AddressPreviewMap({
   address,
@@ -469,8 +469,7 @@ export function AddressPreviewMap({
       <div className="relative">
         <div 
           ref={mapRef} 
-          className="rounded-lg border border-gray-300"
-          style={{ height: '100%', width: '100%', minHeight: '250px' }}
+          className="rounded-lg border border-gray-300 w-full h-[250px] md:h-[300px]"
         />
         
         {/* Coordinates overlay */}

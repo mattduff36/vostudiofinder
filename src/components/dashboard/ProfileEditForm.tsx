@@ -546,73 +546,72 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               />
             </div>
 
-            {/* Two-column layout for address fields and map preview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left column: Address fields */}
-              <div className="space-y-4">
-                <div>
-                  <AddressAutocomplete
-                    label="Address"
-                    value={profile.studio?.full_address || ''}
-                    onChange={(value) => {
-                      updateStudio('full_address', value);
-                      updateStudio('city', extractCity(value));
-                    }}
-                    placeholder="Start typing your address..."
-                  />
-                  
-                  {/* Location privacy toggle */}
-                  <div className="flex items-center justify-between pt-3 pb-2">
-                    <div className="flex-1 mr-4">
-                      <label className="text-sm font-medium text-gray-700 cursor-pointer flex items-center" htmlFor="show-exact-location">
-                        Show exact location
-                      </label>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {profile.studio?.show_exact_location ?? true 
-                          ? 'Public visitors will see a precise pin on your map. Turn off to show an approximate 100m area instead (ideal for home studios).'
-                          : 'Public visitors will see an approximate 100m area instead of a precise pin. This helps protect your privacy while still showing your general location.'
-                        }
-                      </p>
-                    </div>
-                    <Toggle
-                      id="show-exact-location"
-                      checked={profile.studio?.show_exact_location ?? true}
-                      onChange={(checked) => updateStudio('show_exact_location', checked)}
-                      aria-label="Toggle exact location display"
-                    />
+            {/* Address fields */}
+            <div className="space-y-4">
+              <div>
+                <AddressAutocomplete
+                  label="Address"
+                  value={profile.studio?.full_address || ''}
+                  onChange={(value) => {
+                    updateStudio('full_address', value);
+                    updateStudio('city', extractCity(value));
+                  }}
+                  placeholder="Start typing your address..."
+                />
+                
+                {/* Location privacy toggle */}
+                <div className="flex items-center justify-between pt-3 pb-2">
+                  <div className="flex-1 mr-4">
+                    <label className="text-sm font-medium text-gray-700 cursor-pointer flex items-center" htmlFor="show-exact-location">
+                      Show exact location
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {profile.studio?.show_exact_location ?? true 
+                        ? 'Public visitors will see a precise pin on your map. Turn off to show an approximate 150m area instead (ideal for home studios).'
+                        : 'Public visitors will see an approximate 150m area instead of a precise pin. This helps protect your privacy while still showing your general location.'
+                      }
+                    </p>
                   </div>
+                  <Toggle
+                    id="show-exact-location"
+                    checked={profile.studio?.show_exact_location ?? true}
+                    onChange={(checked) => updateStudio('show_exact_location', checked)}
+                    aria-label="Toggle exact location display"
+                  />
                 </div>
-
-                <Input
-                  label="Region (Town / City)"
-                  type="text"
-                  value={profile.studio?.city || ''}
-                  onChange={(e) => updateStudio('city', e.target.value)}
-                  placeholder="Enter town or city name..."
-                  helperText="Region will be auto-populated from the Address above and shown on the Studios page. You can edit it if needed."
-                />
-
-                <CountryAutocomplete
-                  label="Country"
-                  value={profile.profile.location || ''}
-                  onChange={(value) => updateProfile('location', value)}
-                  placeholder="e.g. United Kingdom"
-                  helperText="Your primary country of operation"
-                />
               </div>
 
-              {/* Right column: Map preview (desktop only) */}
-              <div className="hidden md:block">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Map Preview
-                </label>
+              <Input
+                label="Region (Town / City)"
+                type="text"
+                value={profile.studio?.city || ''}
+                onChange={(e) => updateStudio('city', e.target.value)}
+                placeholder="Enter town or city name..."
+                helperText="Region will be auto-populated from the Address above and shown on the Studios page. You can edit it if needed."
+              />
+
+              <CountryAutocomplete
+                label="Country"
+                value={profile.profile.location || ''}
+                onChange={(value) => updateProfile('location', value)}
+                placeholder="e.g. United Kingdom"
+                helperText="Your primary country of operation"
+              />
+            </div>
+
+            {/* Map preview - visible on all screen sizes */}
+            <div className="pt-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Map Preview
+              </label>
+              <div className="w-full">
                 <AddressPreviewMap
                   address={profile.studio?.full_address || ''}
                   initialLat={profile.studio?.latitude ?? null}
                   initialLng={profile.studio?.longitude ?? null}
                   showExactLocation={profile.studio?.show_exact_location ?? true}
                   onCoordinatesChange={handleCoordinatesChange}
-                  className="h-full"
+                  className="w-full"
                 />
               </div>
             </div>

@@ -15,7 +15,7 @@ interface SimpleStudioMapProps {
   className?: string;
 }
 
-const AREA_RADIUS_M = 100; // Radius in meters for approximate location circle
+const AREA_RADIUS_M = 150; // Radius in meters for approximate location circle
 
 export function SimpleStudioMap({
   latitude,
