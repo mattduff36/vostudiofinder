@@ -97,6 +97,8 @@ export async function GET(
       url: studio.website_url || '',
       instagram: studio.instagram_url || '',
       youtubepage: studio.youtube_url || '',
+      tiktok: studio.tiktok_url || '',
+      threads: studio.threads_url || '',
       about: decodeHtmlEntities(studio.about || ''),
       latitude: studio.latitude ? parseFloat(studio.latitude.toString()) : null,
       longitude: studio.longitude ? parseFloat(studio.longitude.toString()) : null,
@@ -104,6 +106,7 @@ export async function GET(
       category: '', // Not in new schema
       facebook: studio.facebook_url || '',
       twitter: studio.twitter_url || '',
+      x: studio.x_url || '',
       linkedin: studio.linkedin_url || '',
       soundcloud: studio.soundcloud_url || '',
       vimeo: studio.vimeo_url || '',
@@ -161,6 +164,8 @@ export async function GET(
         url: studioData.url,
         instagram: studioData.instagram,
         youtubepage: studioData.youtubepage,
+        tiktok: studioData.tiktok,
+        threads: studioData.threads,
         about: studioData.about,
         latitude: studioData.latitude,
         longitude: studioData.longitude,
@@ -168,6 +173,7 @@ export async function GET(
         category: studioData.category,
         facebook: studioData.facebook,
         twitter: studioData.twitter,
+        x: studioData.x,
         linkedin: studioData.linkedin,
         soundcloud: studioData.soundcloud,
         vimeo: studioData.vimeo,
@@ -386,9 +392,12 @@ export async function PUT(
     if (body._meta?.shortabout !== undefined) profileUpdateData.short_about = body._meta.shortabout; // Legacy support
     if (body._meta?.facebook !== undefined) profileUpdateData.facebook_url = body._meta.facebook;
     if (body._meta?.twitter !== undefined) profileUpdateData.twitter_url = body._meta.twitter;
+    if (body._meta?.x !== undefined) profileUpdateData.x_url = body._meta.x;
     if (body._meta?.linkedin !== undefined) profileUpdateData.linkedin_url = body._meta.linkedin;
     if (body._meta?.instagram !== undefined) profileUpdateData.instagram_url = body._meta.instagram;
     if (body._meta?.youtubepage !== undefined) profileUpdateData.youtube_url = body._meta.youtubepage;
+    if (body._meta?.tiktok !== undefined) profileUpdateData.tiktok_url = body._meta.tiktok;
+    if (body._meta?.threads !== undefined) profileUpdateData.threads_url = body._meta.threads;
     if (body._meta?.soundcloud !== undefined) profileUpdateData.soundcloud_url = body._meta.soundcloud;
     if (body._meta?.vimeo !== undefined) profileUpdateData.vimeo_url = body._meta.vimeo;
     
