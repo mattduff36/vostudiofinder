@@ -32,7 +32,8 @@ import {
   Linkedin,
   Instagram,
   Youtube,
-  Music
+  Music,
+  Video
 } from 'lucide-react';
 
 interface ModernStudioProfileV3Props {
@@ -176,8 +177,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       color: 'text-blue-600 hover:text-blue-800' 
     },
     { 
-      platform: 'Twitter', 
-      url: profile?.twitter_url, 
+      platform: 'X', 
+      url: profile?.x_url || profile?.twitter_url, 
       icon: Twitter, 
       color: 'text-sky-500 hover:text-sky-700' 
     },
@@ -194,16 +195,22 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       color: 'text-pink-600 hover:text-pink-800' 
     },
     { 
+      platform: 'TikTok', 
+      url: profile?.tiktok_url, 
+      icon: Video, 
+      color: 'text-gray-900 hover:text-black' 
+    },
+    { 
+      platform: 'Threads', 
+      url: profile?.threads_url, 
+      icon: MessageCircle, 
+      color: 'text-gray-900 hover:text-black' 
+    },
+    { 
       platform: 'YouTube', 
       url: profile?.youtube_url, 
       icon: Youtube, 
       color: 'text-red-600 hover:text-red-800' 
-    },
-    { 
-      platform: 'Vimeo', 
-      url: profile?.vimeo_url, 
-      icon: Globe, 
-      color: 'text-green-600 hover:text-green-800' 
     },
     { 
       platform: 'SoundCloud', 
