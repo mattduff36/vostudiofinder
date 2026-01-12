@@ -13,10 +13,12 @@ import {
   Building2,
   Star,
   Link as LinkIcon,
-  ChevronDown
+  ChevronDown,
+  StickyNote
 } from 'lucide-react';
 import { AdminTabs } from './AdminTabs';
 import { AdminInsights } from './AdminInsights';
+import { AdminStickyNotes } from './AdminStickyNotes';
 import { Button } from '@/components/ui/Button';
 
 interface RecentActivityData {
@@ -120,6 +122,8 @@ interface AdminDashboardProps {
 export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboardProps) {
   // State for managing visible activity items
   const [visibleItems, setVisibleItems] = useState(10);
+  // State for sticky notes modal
+  const [isStickyNotesOpen, setIsStickyNotesOpen] = useState(false);
 
   // Format payment amounts from pence to pounds
   // Round total to nearest full £, remove .00 from recent payments
@@ -359,11 +363,23 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       <div className="p-8 min-h-screen">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-2">
-              Overview of platform statistics and recent activity
-            </p>
+          <div className="mb-8 flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-2">
+                Overview of platform statistics and recent activity
+              </p>
+            </div>
+            
+            {/* Sticky Notes Button */}
+            <button
+              onClick={() => setIsStickyNotesOpen(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+              aria-label="Open sticky notes"
+            >
+              <StickyNote className="w-5 h-5 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">Notes</span>
+            </button>
           </div>
 
           <div className="space-y-8">
@@ -468,6 +484,12 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
           </div>
         </div>
       </div>
+
+      {/* Sticky Notes Modal */}
+      <AdminStickyNotes
+        isOpen={isStickyNotesOpen}
+        onClose={() => setIsStickyNotesOpen(false)}
+      />
     </>
   );
 }
