@@ -5,30 +5,35 @@
  * - Description (full text)
  * - Studio types
  * - Equipment list (collapsible)
+ * - Services offered (collapsible)
  * 
  * Only visible on mobile (< 768px), feature-gated by Phase 3.
  */
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Wrench } from 'lucide-react';
+import { ChevronDown, ChevronUp, Wrench, Briefcase } from 'lucide-react';
 import { cleanDescription } from '@/lib/utils/text';
 
 interface AboutCollapsibleProps {
   about?: string | undefined;
   equipmentList?: string | null | undefined;
+  servicesOffered?: string | null | undefined;
   studioTypes: string[];
 }
 
 export function AboutCollapsible({
   about,
   equipmentList,
+  servicesOffered,
   studioTypes,
 }: AboutCollapsibleProps) {
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false);
+  const [isServicesExpanded, setIsServicesExpanded] = useState(false);
   
   // Clean equipment list and check if it has valid content after cleaning
   const cleanedEquipment = equipmentList ? cleanDescription(equipmentList) : '';
+  const cleanedServices = servicesOffered ? cleanDescription(servicesOffered) : '';
 
   // Phase 3 feature gate
 
@@ -83,6 +88,32 @@ export function AboutCollapsible({
           {isEquipmentExpanded && (
             <div className="mt-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
               {cleanedEquipment}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Services Offered */}
+      {cleanedServices && (
+        <div className="px-4 py-4 border-b border-gray-100">
+          <button
+            onClick={() => setIsServicesExpanded(!isServicesExpanded)}
+            className="flex items-center justify-between w-full text-left"
+            aria-expanded={isServicesExpanded}
+          >
+            <div className="flex items-center space-x-2">
+              <Briefcase className="w-4 h-4 text-gray-500" aria-hidden="true" />
+              <p className="text-xs text-gray-500">Services Offered</p>
+            </div>
+            {isServicesExpanded ? (
+              <ChevronUp className="w-4 h-4 text-gray-400" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-400" aria-hidden="true" />
+            )}
+          </button>
+          {isServicesExpanded && (
+            <div className="mt-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
+              {cleanedServices}
             </div>
           )}
         </div>

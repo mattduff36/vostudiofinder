@@ -627,6 +627,14 @@ enum SupportPriority {
   URGENT
 }
 
+model admin_sticky_notes {
+  id         String   @id
+  key        String   @unique
+  content    String   @db.Text
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
 enum UserStatus {
   PENDING
   ACTIVE

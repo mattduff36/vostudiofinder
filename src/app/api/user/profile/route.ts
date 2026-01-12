@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { stripHtmlTags } from '@/lib/utils/sanitize';
 
 /**
  * GET /api/user/profile
@@ -441,8 +442,8 @@ export async function PUT(request: NextRequest) {
       // Studio identity
       if (updates.name !== undefined) profileUpdates.name = updates.name;
       if (updates.description !== undefined) profileUpdates.description = updates.description;
-      if (updates.short_about !== undefined) profileUpdates.short_about = updates.short_about;
-      if (updates.about !== undefined) profileUpdates.about = updates.about;
+      if (updates.short_about !== undefined) profileUpdates.short_about = stripHtmlTags(updates.short_about);
+      if (updates.about !== undefined) profileUpdates.about = stripHtmlTags(updates.about);
       
       // Location
       if (updates.full_address !== undefined) profileUpdates.full_address = updates.full_address;
@@ -461,8 +462,8 @@ export async function PUT(request: NextRequest) {
       if (updates.show_directions !== undefined) profileUpdates.show_directions = updates.show_directions;
       
       // Professional
-      if (updates.equipment_list !== undefined) profileUpdates.equipment_list = updates.equipment_list;
-      if (updates.services_offered !== undefined) profileUpdates.services_offered = updates.services_offered;
+      if (updates.equipment_list !== undefined) profileUpdates.equipment_list = stripHtmlTags(updates.equipment_list);
+      if (updates.services_offered !== undefined) profileUpdates.services_offered = stripHtmlTags(updates.services_offered);
       if (updates.home_studio_description !== undefined) profileUpdates.home_studio_description = updates.home_studio_description;
       if (updates.last_name !== undefined) profileUpdates.last_name = updates.last_name;
       

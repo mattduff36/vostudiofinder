@@ -14,7 +14,6 @@ import { generateStudioImageAlt } from '@/lib/utils/image-alt';
 // Phase 3: Mobile profile components
 import { CompactHero } from './mobile/CompactHero';
 import { AboutCollapsible } from './mobile/AboutCollapsible';
-import { ServicesListCompact } from './mobile/ServicesListCompact';
 import { MapFullscreen } from './mobile/MapFullscreen';
 
 // Force rebuild: Updated types for connection9-12 and custom_connection_methods
@@ -28,12 +27,13 @@ import {
   ExternalLink,
   MessageCircle,
   Facebook,
-  Twitter,
   Linkedin,
   Instagram,
   Youtube,
-  Music
+  Music,
+  Video
 } from 'lucide-react';
+import { XLogo } from '@/components/icons/XLogo';
 
 interface ModernStudioProfileV3Props {
   studio: {
@@ -89,11 +89,14 @@ interface ModernStudioProfileV3Props {
         show_rates?: boolean | null;
         facebook_url?: string | null;
         twitter_url?: string | null;
+        x_url?: string | null;
         linkedin_url?: string | null;
         instagram_url?: string | null;
         youtube_url?: string | null;
         vimeo_url?: string | null;
         soundcloud_url?: string | null;
+        tiktok_url?: string | null;
+        threads_url?: string | null;
         is_crb_checked?: boolean | null;
         is_featured?: boolean | null;
         is_spotlight?: boolean | null;
@@ -176,9 +179,9 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       color: 'text-blue-600 hover:text-blue-800' 
     },
     { 
-      platform: 'Twitter', 
-      url: profile?.twitter_url, 
-      icon: Twitter, 
+      platform: 'X (formerly Twitter)', 
+      url: profile?.x_url || profile?.twitter_url, 
+      icon: XLogo, 
       color: 'text-sky-500 hover:text-sky-700' 
     },
     { 
@@ -194,16 +197,22 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       color: 'text-pink-600 hover:text-pink-800' 
     },
     { 
+      platform: 'TikTok', 
+      url: profile?.tiktok_url, 
+      icon: Video, 
+      color: 'text-gray-900 hover:text-black' 
+    },
+    { 
+      platform: 'Threads', 
+      url: profile?.threads_url, 
+      icon: MessageCircle, 
+      color: 'text-gray-900 hover:text-black' 
+    },
+    { 
       platform: 'YouTube', 
       url: profile?.youtube_url, 
       icon: Youtube, 
       color: 'text-red-600 hover:text-red-800' 
-    },
-    { 
-      platform: 'Vimeo', 
-      url: profile?.vimeo_url, 
-      icon: Globe, 
-      color: 'text-green-600 hover:text-green-800' 
     },
     { 
       platform: 'SoundCloud', 
@@ -424,6 +433,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           <AboutCollapsible
             about={profile?.about || profile?.short_about || studio.description}
             equipmentList={profile?.equipment_list}
+            servicesOffered={profile?.services_offered}
             studioTypes={studio.studio_studio_types}
           />
 
@@ -444,15 +454,24 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
           {/* Connections Section */}
           {(() => {
+            // Type-safe access to connection fields with fallback
+            const getConnection = (field: string) => {
+              return (profile as any)?.[field] || null;
+            };
+
             const standardConnections = [
-              { id: 'connection1', value: profile?.connection1, label: 'Zoom or Teams' },
-              { id: 'connection2', value: profile?.connection2, label: 'Google Hangouts' },
-              { id: 'connection3', value: profile?.connection3, label: 'Skype' },
-              { id: 'connection4', value: profile?.connection4, label: 'FaceTime' },
-              { id: 'connection5', value: profile?.connection5, label: 'Discord' },
-              { id: 'connection6', value: profile?.connection6, label: 'WhatsApp' },
-              { id: 'connection7', value: profile?.connection7, label: 'Slack' },
-              { id: 'connection8', value: profile?.connection8, label: 'Source Connect' },
+              { id: 'connection1', value: profile?.connection1, label: 'Source Connect' },
+              { id: 'connection2', value: profile?.connection2, label: 'Source Connect Now' },
+              { id: 'connection3', value: profile?.connection3, label: 'Phone Patch' },
+              { id: 'connection4', value: profile?.connection4, label: 'Session Link Pro' },
+              { id: 'connection5', value: profile?.connection5, label: 'Zoom or Teams' },
+              { id: 'connection6', value: profile?.connection6, label: 'Cleanfeed' },
+              { id: 'connection7', value: profile?.connection7, label: 'Riverside' },
+              { id: 'connection8', value: profile?.connection8, label: 'Google Hangouts' },
+              { id: 'connection9', value: getConnection('connection9'), label: 'ipDTL' },
+              { id: 'connection10', value: getConnection('connection10'), label: 'SquadCast' },
+              { id: 'connection11', value: getConnection('connection11'), label: 'Zencastr' },
+              { id: 'connection12', value: getConnection('connection12'), label: 'Other (See profile)' },
             ].filter(conn => conn.value === '1');
 
             const customConnections = (profile?.custom_connection_methods || []).map((method, index) => ({
@@ -506,8 +525,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               </div>
             </div>
           )}
-
-          <ServicesListCompact services={studio.studio_services} />
           
           {/* Mobile Map Section */}
           {studio.latitude && studio.longitude && (
@@ -521,29 +538,17 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   fullAddress={studio.full_address || studio.address || ''}
                   showExactLocation={studio.show_exact_location ?? true}
                 />
-                {/* Button under map - Same logic as desktop */}
-                {profile?.show_directions !== false ? (
+                {/* Button - hidden when show_directions is off */}
+                {profile?.show_directions !== false && (
                   <button
                     onClick={handleGetDirections}
                     disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
                     className="mt-3 w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ExternalLink className="w-5 h-5" aria-hidden="true" />
-                    <span className="font-medium">Get directions</span>
+                    <span className="font-medium">Get Directions</span>
                   </button>
-                ) : studio.website_url ? (
-                  <a
-                    href={studio.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full mt-3"
-                  >
-                    <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors">
-                      <ExternalLink className="w-5 h-5" aria-hidden="true" />
-                      <span className="font-medium">Visit Website</span>
-                    </button>
-                  </a>
-                ) : null}
+                )}
               </div>
             </div>
           )}
@@ -657,97 +662,40 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             <div className="mb-6 w-full">
               <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3 w-full">
                 <div className="prose prose-gray max-w-none w-full">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words w-full">
-                    {cleanDescription(profile?.about || profile?.short_about || studio.description)}
-                  </p>
                   {(() => {
+                    const cleanedAbout = cleanDescription(profile?.about || profile?.short_about || studio.description);
                     const cleanedEquipment = profile?.equipment_list ? cleanDescription(profile.equipment_list) : '';
-                    return cleanedEquipment ? (
-                      <div className="mt-4">
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Equipment</h3>
-                        <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
-                          {cleanedEquipment}
-                        </p>
-                      </div>
-                    ) : null;
+                    const cleanedServices = profile?.services_offered ? cleanDescription(profile.services_offered) : '';
+                    
+                    return (
+                      <>
+                        {cleanedAbout && (
+                          <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words w-full">
+                            {cleanedAbout}
+                          </p>
+                        )}
+                        {cleanedEquipment && (
+                          <div className={`${cleanedAbout ? 'pt-4 border-t border-gray-200' : ''}`}>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">Equipment</h3>
+                            <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
+                              {cleanedEquipment}
+                            </p>
+                          </div>
+                        )}
+                        {cleanedServices && (
+                          <div className={`${(cleanedAbout || cleanedEquipment) ? 'pt-4 border-t border-gray-200' : ''}`}>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">Services Offered</h3>
+                            <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
+                              {cleanedServices}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    );
                   })()}
                 </div>
               </div>
             </div>
-
-            {/* Connections Section */}
-            {(() => {
-              // Type-safe access to connection fields with fallback
-              const getConnection = (field: string) => {
-                return (profile as any)?.[field] || null;
-              };
-
-              const standardConnections = [
-                { id: 'connection1', label: 'Source Connect', value: profile?.connection1 },
-                { id: 'connection2', label: 'Source Connect Now', value: profile?.connection2 },
-                { id: 'connection3', label: 'Phone Patch', value: profile?.connection3 },
-                { id: 'connection4', label: 'Session Link Pro', value: profile?.connection4 },
-                { id: 'connection5', label: 'Zoom or Teams', value: profile?.connection5 },
-                { id: 'connection6', label: 'Cleanfeed', value: profile?.connection6 },
-                { id: 'connection7', label: 'Riverside', value: profile?.connection7 },
-                { id: 'connection8', label: 'Google Hangouts', value: profile?.connection8 },
-                { id: 'connection9', label: 'ipDTL', value: getConnection('connection9') },
-                { id: 'connection10', label: 'SquadCast', value: getConnection('connection10') },
-                { id: 'connection11', label: 'Zencastr', value: getConnection('connection11') },
-                { id: 'connection12', label: 'Other (See profile)', value: getConnection('connection12') },
-              ].filter(conn => conn.value === '1');
-
-              // Add custom connections
-              const customMethods = ((profile as any)?.custom_connection_methods || []).filter((method: string) => method && method.trim());
-              const customConnections = customMethods.map((method: string, index: number) => ({
-                id: `custom_${index}`,
-                label: method,
-              }));
-
-              const allConnections = [...standardConnections, ...customConnections];
-
-              return allConnections.length > 0 ? (
-                <div className="mb-6 w-full">
-                  <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-6 w-full">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Connections</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      {allConnections.map((connection) => (
-                        <li key={connection.id} className="text-sm text-gray-700">
-                          {connection.label}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ) : null;
-            })()}
-
-            {/* Social Media Links */}
-            {socialLinks.length > 0 && (
-              <div className="mb-6 w-full">
-                <div className="flex flex-wrap gap-3">
-                  {socialLinks.map((link, index) => {
-                    const Icon = link.icon;
-                    return (
-                      <a
-                        key={index}
-                        href={link.url || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={clsx(
-                          'flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors',
-                          link.color,
-                          'hover:bg-gray-50'
-                        )}
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span className="text-sm font-medium">{link.platform}</span>
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {/* Reviews Section */}
             {studio.reviews.length > 0 && (
@@ -808,8 +756,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           {/* Right Sidebar - Sticky on Desktop */}
           <div className="lg:col-span-1 w-full">
             <div className="sticky top-8 space-y-6">
-              {/* Map Card - Integrated Design - Total height matches main image + gap + thumbnails (492px) */}
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden" style={{ height: '492px' }}>
+              {/* Map Card - Height adjusts automatically based on content */}
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                 {/* Map section */}
                 <div className="h-[384px]">
                   <SimpleStudioMap
@@ -822,38 +770,30 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     height="384px"
                   />
                 </div>
-                {/* Gap - matches the gap between main image and thumbnails */}
-                <div className="h-4"></div>
-                {/* Directions section - fills remaining space (492 - 384 - 16 = 92px) */}
-                <div className="flex-1 flex flex-col justify-center px-6">
-                  {/* Only show address if show_address is not explicitly false */}
-                  {(profile?.show_address !== false) && (studio.city || studio.full_address || studio.address) && (
-                    <div className="flex items-center space-x-2 mb-2">
-                      <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <p className="text-xs text-gray-600 line-clamp-1">{studio.city || studio.full_address || studio.address}</p>
-                    </div>
-                  )}
-                  {profile?.show_directions !== false ? (
-                    <Button
-                      size="sm"
-                      className="w-full"
-                      onClick={handleGetDirections}
-                      disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      Get directions
-                    </Button>
-                  ) : studio.website_url ? (
-                    <Button
-                      size="sm"
-                      className="w-full"
-                      onClick={() => window.open(studio.website_url, '_blank')}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      Visit Website
-                    </Button>
-                  ) : null}
-                </div>
+                {/* Info section - shown when either address or directions is enabled */}
+                {((profile?.show_address !== false && (studio.full_address || studio.address || studio.city)) || profile?.show_directions !== false) && (
+                  <div className="flex-1 flex flex-col px-6 py-3">
+                    {/* Only show address if show_address is not explicitly false */}
+                    {(profile?.show_address !== false) && (studio.full_address || studio.address || studio.city) && (
+                      <div className="flex items-start space-x-2 mb-3 flex-1">
+                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-gray-600 leading-relaxed">{studio.full_address || studio.address || studio.city}</p>
+                      </div>
+                    )}
+                    {/* Only show button if show_directions is not explicitly false */}
+                    {profile?.show_directions !== false && (
+                      <Button
+                        size="sm"
+                        className="w-full mt-auto"
+                        onClick={handleGetDirections}
+                        disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
+                      >
+                        <ExternalLink className="w-3 h-3 mr-2" />
+                        Get Directions
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Studio Details Card - Compact */}
@@ -973,6 +913,76 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Connections Card */}
+              {(() => {
+                // Type-safe access to connection fields with fallback
+                const getConnection = (field: string) => {
+                  return (profile as any)?.[field] || null;
+                };
+
+                const standardConnections = [
+                  { id: 'connection1', label: 'Source Connect', value: profile?.connection1 },
+                  { id: 'connection2', label: 'Source Connect Now', value: profile?.connection2 },
+                  { id: 'connection3', label: 'Phone Patch', value: profile?.connection3 },
+                  { id: 'connection4', label: 'Session Link Pro', value: profile?.connection4 },
+                  { id: 'connection5', label: 'Zoom or Teams', value: profile?.connection5 },
+                  { id: 'connection6', label: 'Cleanfeed', value: profile?.connection6 },
+                  { id: 'connection7', label: 'Riverside', value: profile?.connection7 },
+                  { id: 'connection8', label: 'Google Hangouts', value: profile?.connection8 },
+                  { id: 'connection9', label: 'ipDTL', value: getConnection('connection9') },
+                  { id: 'connection10', label: 'SquadCast', value: getConnection('connection10') },
+                  { id: 'connection11', label: 'Zencastr', value: getConnection('connection11') },
+                  { id: 'connection12', label: 'Other (See profile)', value: getConnection('connection12') },
+                ].filter(conn => conn.value === '1');
+
+                // Add custom connections
+                const customMethods = ((profile as any)?.custom_connection_methods || []).filter((method: string) => method && method.trim());
+                const customConnections = customMethods.map((method: string, index: number) => ({
+                  id: `custom_${index}`,
+                  label: method,
+                }));
+
+                const allConnections = [...standardConnections, ...customConnections];
+
+                return allConnections.length > 0 ? (
+                  <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Connections</h3>
+                    <ul className="list-disc list-inside space-y-1">
+                      {allConnections.map((connection) => (
+                        <li key={connection.id} className="text-sm text-gray-700">
+                          {connection.label}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null;
+              })()}
+
+              {/* Social Media Links */}
+              {socialLinks.length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {socialLinks.map((link, index) => {
+                    const Icon = link.icon;
+                    return (
+                      <a
+                        key={index}
+                        href={link.url || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={clsx(
+                          'flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors',
+                          link.color,
+                          'hover:bg-gray-50'
+                        )}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="text-sm font-medium">{link.platform}</span>
+                      </a>
+                    );
+                  })}
                 </div>
               )}
 

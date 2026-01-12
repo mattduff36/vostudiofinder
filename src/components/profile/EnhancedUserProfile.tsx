@@ -10,7 +10,6 @@ import {
   CheckCircle,
   ExternalLink,
   Facebook,
-  Twitter,
   Linkedin,
   Instagram,
   Youtube,
@@ -19,6 +18,7 @@ import {
   Video,
   MessageCircle
 } from 'lucide-react';
+import { XLogo } from '@/components/icons/XLogo';
 
 interface EnhancedUserProfileProps {
   user: User & {
@@ -72,9 +72,9 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
       color: 'hover:bg-blue-50 hover:text-blue-600 border-blue-200' 
     },
     { 
-      platform: 'X', 
+      platform: 'X (formerly Twitter)', 
       url: profile?.x_url || profile?.twitter_url, 
-      icon: Twitter, 
+      icon: XLogo, 
       color: 'hover:bg-blue-50 hover:text-blue-400 border-blue-200' 
     },
     { 

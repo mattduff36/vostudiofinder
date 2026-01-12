@@ -478,12 +478,12 @@ export function AddressPreviewMap({
   }
 
   return (
-    <div className={className}>
+    <div className={`${className} overflow-hidden flex flex-col`}>
       {/* Map */}
-      <div className="relative">
+      <div className="relative flex-1 min-h-0 overflow-hidden">
         <div 
           ref={mapRef} 
-          className="rounded-lg border border-gray-300 w-full h-[250px] md:h-[300px]"
+          className="rounded-lg border border-gray-300 w-full h-full min-h-[250px] md:min-h-[329px]"
         />
         
         {/* Coordinates overlay */}
@@ -506,7 +506,7 @@ export function AddressPreviewMap({
       </div>
 
       {/* Instructions - plain text like other helper text */}
-      <p className="text-xs text-gray-500 mt-2">
+      <p className="text-xs text-gray-500 mt-2 flex-shrink-0">
         {showExactLocation 
           ? `Drag the pin or click the map to fine-tune your exact location. Limited to ${MAX_DISTANCE_KM}km from the address you entered.`
           : `Showing approximate ${AREA_RADIUS_M}m area for privacy. Drag the circle or click the map to adjust the center. Limited to ${MAX_DISTANCE_KM}km from the address.`

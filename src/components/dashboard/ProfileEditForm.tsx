@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, ArrowLeft, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -20,6 +20,7 @@ import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { showSuccess, showError } from '@/lib/toast';
+import { stripHtmlTags } from '@/lib/utils/sanitize';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -87,13 +88,13 @@ interface ProfileData {
 }
 
 const STUDIO_TYPES = [
-  // Top row - Active types (indices 0-2)
+  // Top row
   { value: 'HOME', label: 'Home', description: 'Personal recording space in a home environment', disabled: false },
-  { value: 'RECORDING', label: 'Recording', description: 'Full, professional recording facility', disabled: false },
-  { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
-  // Bottom row - Future additions (indices 3-5, disabled)
   { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services', disabled: true },
+  { value: 'RECORDING', label: 'Recording', description: 'Full, professional recording facility', disabled: false },
+  // Bottom row
   { value: 'VO_COACH', label: 'VO-Coach', description: 'Voiceover coaching and training services', disabled: true },
+  { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
   { value: 'EDITING', label: 'Editing', description: 'Post-production and editing services', disabled: true },
 ];
 
@@ -114,14 +115,69 @@ const CONNECTION_TYPES = [
 
 export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
   const [activeSection, setActiveSection] = useState('basic');
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
+  const [socialMediaErrors, setSocialMediaErrors] = useState<{ [key: string]: string }>({});
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  // Ref for auto-growing Full About textarea
+  const fullAboutRef = useRef<HTMLTextAreaElement>(null);
+
+  // Social media URL validation functions
+  const validateSocialMediaUrl = (url: string, platform: string): string => {
+    if (!url || url.trim() === '') return '';
+    
+    try {
+      const urlObj = new URL(url);
+      const hostname = urlObj.hostname.toLowerCase().replace('www.', '');
+      
+      const platformPatterns: { [key: string]: string[] } = {
+        facebook_url: ['facebook.com', 'm.facebook.com', 'fb.com'],
+        x_url: ['x.com', 'twitter.com'],
+        youtube_url: ['youtube.com', 'youtu.be', 'm.youtube.com'],
+        instagram_url: ['instagram.com'],
+        soundcloud_url: ['soundcloud.com'],
+        tiktok_url: ['tiktok.com', 'vm.tiktok.com'],
+        linkedin_url: ['linkedin.com'],
+        threads_url: ['threads.net'],
+      };
+
+      const validDomains = platformPatterns[platform];
+      if (!validDomains) return '';
+
+      const isValid = validDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
+      
+      if (!isValid) {
+        // Special case for x_url which becomes just 'x' after stripping '_url'
+        let platformName = platform.replace('_url', '');
+        if (platformName === 'x') {
+          platformName = 'X';
+        } else {
+          platformName = platformName.replace(/_/g, ' ');
+        }
+        return `Please enter a valid ${platformName} URL`;
+      }
+      
+      return '';
+    } catch {
+      return 'Please enter a valid URL';
+    }
+  };
+
+  const handleSocialMediaChange = (field: string, value: string) => {
+    updateProfile(field, value);
+    const error = validateSocialMediaUrl(value, field);
+    setSocialMediaErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
+  };
 
   // Fetch profile data
   useEffect(() => {
@@ -157,6 +213,17 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       }, 100); // Small delay to ensure expansion has started
     }
   }, [expandedMobileSection]);
+
+  // Auto-resize Full About textarea (desktop only)
+  useEffect(() => {
+    if (!fullAboutRef.current) return;
+    
+    // Reset height to auto to get accurate scrollHeight
+    fullAboutRef.current.style.height = 'auto';
+    
+    // Set height to match content
+    fullAboutRef.current.style.height = `${fullAboutRef.current.scrollHeight}px`;
+  }, [profile?.profile?.about]);
 
   const fetchProfile = async () => {
     try {
@@ -299,6 +366,29 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
   const handleSave = async () => {
     try {
+      // Validate all social media URLs before saving
+      const socialMediaFields = [
+        'facebook_url', 'x_url', 'youtube_url', 'instagram_url',
+        'soundcloud_url', 'tiktok_url', 'linkedin_url', 'threads_url'
+      ];
+      
+      const errors: { [key: string]: string } = {};
+      socialMediaFields.forEach(field => {
+        const url = profile?.profile[field as keyof typeof profile.profile] as string;
+        if (url) {
+          const error = validateSocialMediaUrl(url, field);
+          if (error) {
+            errors[field] = error;
+          }
+        }
+      });
+
+      if (Object.keys(errors).length > 0) {
+        setSocialMediaErrors(errors);
+        showError('Please fix the invalid social media URLs before saving');
+        return;
+      }
+
       setSaving(true);
 
       const response = await fetch('/api/user/profile', {
@@ -337,9 +427,15 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   }, []);
 
   const updateProfile = useCallback((field: string, value: any) => {
+    // Sanitize text fields to strip HTML tags
+    const textFieldsToSanitize = ['about', 'short_about', 'equipment_list', 'services_offered'];
+    const sanitizedValue = textFieldsToSanitize.includes(field) && typeof value === 'string'
+      ? stripHtmlTags(value)
+      : value;
+
     setProfile(prev => prev ? {
       ...prev,
-      profile: { ...prev.profile, [field]: value },
+      profile: { ...prev.profile, [field]: sanitizedValue },
     } : null);
   }, []);
 
@@ -383,7 +479,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   }
 
   const sections = [
-    { id: 'overview', label: 'Overview', icon: ArrowLeft, description: 'Back to dashboard', isBackLink: true },
     { id: 'basic', label: 'Basic Info', icon: User, description: 'Display name, username, studio info' },
     { id: 'contact', label: 'Contact & Location', icon: MapPin, description: 'Phone, email, address details' },
     { id: 'rates', label: 'Rates & Pricing', icon: DollarSign, description: 'Pricing and rate tiers' },
@@ -421,7 +516,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 label="Display Name"
                 value={profile.user.display_name || ''}
                 onChange={(e) => updateUser('display_name', e.target.value)}
-                helperText="Your public display name"
+                helperText="Your dashboard display name"
                 required
               />
               <div>
@@ -529,10 +624,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
             </div>
 
-            {/* Desktop: Two column layout */}
-            <div className="hidden md:grid md:grid-cols-2 gap-4">
-              {/* Left Column: Studio Types + Short About */}
-              <div className="space-y-4">
+            {/* Desktop: Reorganized layout */}
+            <div className="hidden md:block space-y-4">
+              {/* Top Row: Studio Types (left) + Short About (right) */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Studio Types */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Studio Types
@@ -559,29 +655,31 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   </div>
                 </div>
 
+                {/* Short About */}
                 <div>
                   <Textarea
                     label="Short About"
                     value={profile.profile.short_about || ''}
                     onChange={(e) => updateProfile('short_about', e.target.value)}
-                    rows={8}
+                    rows={4}
                     maxLength={150}
                   />
                   <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                    <span>Brief description for Studios page</span>
+                    <span>Brief description for the Studios page</span>
                     <span>{(profile.profile.short_about || '').length}/150 characters</span>
                   </div>
                 </div>
               </div>
 
-              {/* Right Column: Full About (matching height) */}
+              {/* Bottom Row: Full About (spanning both columns) */}
               <div>
                 <Textarea
+                  ref={fullAboutRef}
                   label="Full About"
                   value={profile.profile.about || ''}
                   onChange={(e) => updateProfile('about', e.target.value)}
-                  rows={16}
                   maxLength={1500}
+                  className="min-h-[150px] resize-none overflow-hidden"
                 />
                 <div className="flex justify-between items-center text-xs mt-1">
                   <span className="text-gray-500">Detailed description for your profile page</span>
@@ -624,7 +722,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             </div>
 
             {/* Two-column layout for desktop, stacked for mobile */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:items-stretch">
               {/* Left column: Address fields */}
               <div className="space-y-4">
                 <div>
@@ -675,7 +773,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   value={profile.studio?.city || ''}
                   onChange={(e) => updateStudio('city', e.target.value)}
                   placeholder="Enter town or city name..."
-                  helperText="Region will be auto-populated from the Address above and shown on the Studios page. You can edit it if needed."
+                  helperText="Your region is shown on the studios cards."
                 />
 
                 <CountryAutocomplete
@@ -688,8 +786,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
 
               {/* Right column: Map preview (desktop), below fields (mobile) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex flex-col h-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex-shrink-0">
                   Map Preview
                 </label>
                 <AddressPreviewMap
@@ -698,7 +796,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   initialLng={profile.studio?.longitude ?? null}
                   showExactLocation={profile.studio?.show_exact_location ?? true}
                   onCoordinatesChange={handleCoordinatesChange}
-                  className="h-full"
+                  className="flex-1 min-h-0 max-h-full"
                 />
               </div>
             </div>
@@ -712,7 +810,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               <p className="text-sm text-gray-600 mb-4">
                 Set up to three rate tiers for your services
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Input
                   label={`15 minutes (${getCurrencySymbol(profile.profile.location)})`}
                   type="number"
@@ -740,15 +838,16 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   helperText="60 minute session rate"
                   placeholder="0.00"
                 />
+                <div className="flex items-start pt-6">
+                  <Toggle
+                    label="Show Rates on Profile"
+                    description="Display your pricing information publicly"
+                    checked={profile.profile.show_rates || false}
+                    onChange={(checked) => updateProfile('show_rates', checked)}
+                  />
+                </div>
               </div>
             </div>
-
-            <Toggle
-              label="Show Rates on Profile"
-              description="Display your pricing information publicly"
-              checked={profile.profile.show_rates || false}
-              onChange={(checked) => updateProfile('show_rates', checked)}
-            />
 
             <Textarea
               label="Equipment List"
@@ -776,70 +875,112 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             <p className="text-sm text-gray-600 mb-4">
               Add links to your social media profiles
             </p>
-            <Input
-              label="Facebook"
-              type="url"
-              value={profile.profile.facebook_url || ''}
-              onChange={(e) => updateProfile('facebook_url', e.target.value)}
-              placeholder="https://facebook.com/your-page"
-              helperText="Your Facebook page or profile"
-            />
-            <Input
-              label="X (formerly Twitter)"
-              type="url"
-              value={profile.profile.x_url || ''}
-              onChange={(e) => updateProfile('x_url', e.target.value)}
-              placeholder="https://x.com/yourhandle"
-              helperText="Your X (Twitter) profile"
-            />
-            <Input
-              label="YouTube"
-              type="url"
-              value={profile.profile.youtube_url || ''}
-              onChange={(e) => updateProfile('youtube_url', e.target.value)}
-              placeholder="https://youtube.com/@yourchannel"
-              helperText="Your YouTube channel"
-            />
-            <Input
-              label="Instagram"
-              type="url"
-              value={profile.profile.instagram_url || ''}
-              onChange={(e) => updateProfile('instagram_url', e.target.value)}
-              placeholder="https://instagram.com/yourhandle"
-              helperText="Your Instagram profile"
-            />
-            <Input
-              label="SoundCloud"
-              type="url"
-              value={profile.profile.soundcloud_url || ''}
-              onChange={(e) => updateProfile('soundcloud_url', e.target.value)}
-              placeholder="https://soundcloud.com/yourprofile"
-              helperText="Your SoundCloud profile"
-            />
-            <Input
-              label="TikTok"
-              type="url"
-              value={profile.profile.tiktok_url || ''}
-              onChange={(e) => updateProfile('tiktok_url', e.target.value)}
-              placeholder="https://www.tiktok.com/@yourhandle"
-              helperText="Your TikTok profile"
-            />
-            <Input
-              label="LinkedIn"
-              type="url"
-              value={profile.profile.linkedin_url || ''}
-              onChange={(e) => updateProfile('linkedin_url', e.target.value)}
-              placeholder="https://linkedin.com/in/yourprofile"
-              helperText="Your LinkedIn profile"
-            />
-            <Input
-              label="Threads"
-              type="url"
-              value={profile.profile.threads_url || ''}
-              onChange={(e) => updateProfile('threads_url', e.target.value)}
-              placeholder="https://www.threads.net/@yourhandle"
-              helperText="Your Threads profile"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Facebook"
+                type="url"
+                value={profile.profile.facebook_url || ''}
+                onChange={(e) => handleSocialMediaChange('facebook_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'facebook_url');
+                  setSocialMediaErrors(prev => ({ ...prev, facebook_url: error }));
+                }}
+                placeholder="https://facebook.com/your-page"
+                helperText="Your Facebook page or profile"
+                {...(socialMediaErrors.facebook_url && { error: socialMediaErrors.facebook_url })}
+              />
+              <Input
+                label="X (formerly Twitter)"
+                type="url"
+                value={profile.profile.x_url || ''}
+                onChange={(e) => handleSocialMediaChange('x_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'x_url');
+                  setSocialMediaErrors(prev => ({ ...prev, x_url: error }));
+                }}
+                placeholder="https://x.com/yourhandle"
+                helperText="Your X (Twitter) profile"
+                {...(socialMediaErrors.x_url && { error: socialMediaErrors.x_url })}
+              />
+              <Input
+                label="YouTube"
+                type="url"
+                value={profile.profile.youtube_url || ''}
+                onChange={(e) => handleSocialMediaChange('youtube_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'youtube_url');
+                  setSocialMediaErrors(prev => ({ ...prev, youtube_url: error }));
+                }}
+                placeholder="https://youtube.com/@yourchannel"
+                helperText="Your YouTube channel"
+                {...(socialMediaErrors.youtube_url && { error: socialMediaErrors.youtube_url })}
+              />
+              <Input
+                label="Instagram"
+                type="url"
+                value={profile.profile.instagram_url || ''}
+                onChange={(e) => handleSocialMediaChange('instagram_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'instagram_url');
+                  setSocialMediaErrors(prev => ({ ...prev, instagram_url: error }));
+                }}
+                placeholder="https://instagram.com/yourhandle"
+                helperText="Your Instagram profile"
+                {...(socialMediaErrors.instagram_url && { error: socialMediaErrors.instagram_url })}
+              />
+              <Input
+                label="SoundCloud"
+                type="url"
+                value={profile.profile.soundcloud_url || ''}
+                onChange={(e) => handleSocialMediaChange('soundcloud_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'soundcloud_url');
+                  setSocialMediaErrors(prev => ({ ...prev, soundcloud_url: error }));
+                }}
+                placeholder="https://soundcloud.com/yourprofile"
+                helperText="Your SoundCloud profile"
+                {...(socialMediaErrors.soundcloud_url && { error: socialMediaErrors.soundcloud_url })}
+              />
+              <Input
+                label="TikTok"
+                type="url"
+                value={profile.profile.tiktok_url || ''}
+                onChange={(e) => handleSocialMediaChange('tiktok_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'tiktok_url');
+                  setSocialMediaErrors(prev => ({ ...prev, tiktok_url: error }));
+                }}
+                placeholder="https://www.tiktok.com/@yourhandle"
+                helperText="Your TikTok profile"
+                {...(socialMediaErrors.tiktok_url && { error: socialMediaErrors.tiktok_url })}
+              />
+              <Input
+                label="LinkedIn"
+                type="url"
+                value={profile.profile.linkedin_url || ''}
+                onChange={(e) => handleSocialMediaChange('linkedin_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'linkedin_url');
+                  setSocialMediaErrors(prev => ({ ...prev, linkedin_url: error }));
+                }}
+                placeholder="https://linkedin.com/in/yourprofile"
+                helperText="Your LinkedIn profile"
+                {...(socialMediaErrors.linkedin_url && { error: socialMediaErrors.linkedin_url })}
+              />
+              <Input
+                label="Threads"
+                type="url"
+                value={profile.profile.threads_url || ''}
+                onChange={(e) => handleSocialMediaChange('threads_url', e.target.value)}
+                onBlur={(e) => {
+                  const error = validateSocialMediaUrl(e.target.value, 'threads_url');
+                  setSocialMediaErrors(prev => ({ ...prev, threads_url: error }));
+                }}
+                placeholder="https://www.threads.net/@yourhandle"
+                helperText="Your Threads profile"
+                {...(socialMediaErrors.threads_url && { error: socialMediaErrors.threads_url })}
+              />
+            </div>
           </div>
         );
 
@@ -947,7 +1088,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               <div className="space-y-3">
                 <Toggle
                   label="Show Email"
-                  description="Display email on public profile"
+                  description="Display 'Message Studio' button on public profile"
                   checked={profile.profile.show_email || false}
                   onChange={(checked) => updateProfile('show_email', checked)}
                 />
@@ -959,13 +1100,13 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 />
                 <Toggle
                   label="Show Address"
-                  description="Display full address on public profile"
+                  description="Display address on public profile page"
                   checked={profile.profile.show_address || false}
                   onChange={(checked) => updateProfile('show_address', checked)}
                 />
                 <Toggle
                   label="Show Directions"
-                  description="Display directions link on public profile"
+                  description="Display 'Get Directions' button on public profile"
                   checked={profile.profile.show_directions !== false}
                   onChange={(checked) => updateProfile('show_directions', checked)}
                 />
@@ -1016,58 +1157,63 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
             </div>
 
-            {/* Progress Indicators */}
-            <div className="flex-shrink-0">
+            {/* Progress Indicators and Action Buttons */}
+            <div className="flex-shrink-0 flex flex-col items-end gap-3">
               <ProgressIndicators
                 requiredFieldsCompleted={completionStats.required.completed}
                 totalRequiredFields={completionStats.required.total}
                 overallCompletionPercentage={completionStats.overall.percentage}
                 variant="compact"
               />
+              
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    // Dashboard routes are hash-driven by DashboardContent.
+                    // Using Next's router.push with a hash doesn't reliably fire `hashchange`, so we set `window.location.hash` explicitly.
+                    if (pathname === '/dashboard') {
+                      if (window.location.hash) window.location.hash = '';
+                      return;
+                    }
+                    router.push('/dashboard');
+                  }}
+                  className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group"
+                >
+                  <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                  Overview
+                </button>
+                
+                <button
+                  onClick={handlePreview}
+                  className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group"
+                >
+                  <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                  View My Profile
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Desktop Section Navigation with hover animations */}
           <div className="border-b border-gray-100 px-6 py-1 overflow-hidden">
             <nav className="flex space-x-4" aria-label="Profile sections">
-              {sections.map((section) => {
-                if (section.isBackLink) {
-                  // Overview back link - special styling
-                  return (
-                    <button
-                      key={section.id}
-                      onClick={() => router.push('/dashboard')}
-                      className="py-3 px-1 border-b-2 border-transparent font-medium text-sm whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-red-600 transition-colors group"
-                    >
-                      <motion.div
-                        whileHover={{ x: -3 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                      >
-                        <section.icon className="w-4 h-4 text-gray-500 group-hover:text-red-600 transition-colors" />
-                      </motion.div>
-                      {section.label}
-                    </button>
-                  );
-                }
-                
-                // Regular tabs - keep existing animation
-                return (
-                  <motion.button
-                    key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    data-section={section.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                      activeSection === section.id
-                        ? 'border-red-500 text-red-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    {section.label}
-                  </motion.button>
-                );
-              })}
+              {sections.map((section) => (
+                <motion.button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  data-section={section.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                    activeSection === section.id
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {section.label}
+                </motion.button>
+              ))}
             </nav>
           </div>
         </div>
@@ -1080,34 +1226,20 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         </div>
 
         {/* Desktop Footer Actions - Fixed at bottom */}
-        {hasChanges && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex-shrink-0 flex border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-white items-center justify-between"
+        <div className="flex-shrink-0 flex border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-white items-center justify-end">
+          <Button
+            onClick={handleSave}
+            disabled={saving || !hasChanges}
+            className="flex items-center gap-2"
           >
-            <Button
-              onClick={handlePreview}
-              variant="secondary"
-              className="flex items-center gap-2"
-            >
-              <Eye className="w-4 h-4" />
-              View Profile
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </motion.div>
-        )}
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </motion.div>
 
       {/* Mobile Accordion Sections */}
@@ -1124,7 +1256,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           </div>
         </div>
 
-        {sections.filter(section => !section.isBackLink).map((section) => {
+        {sections.map((section) => {
             const Icon = section.icon;
             const isExpanded = expandedMobileSection === section.id;
             const status = sectionStatusById[section.id as keyof typeof sectionStatusById];

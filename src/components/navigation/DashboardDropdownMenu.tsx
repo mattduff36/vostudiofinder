@@ -161,7 +161,7 @@ export function DashboardDropdownMenu({
 
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-lg rounded-lg shadow-lg border border-gray-200 py-2 z-[110]"
+          className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[110]"
           role="menu"
           aria-orientation="vertical"
         >

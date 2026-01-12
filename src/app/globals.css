@@ -207,14 +207,14 @@ h6,
 /* Mobile-specific adjustment for homepage hero h1 */
 @media (max-width: 768px) {
   .hp1 {
-    font-size: 52px;
+    font-size: 42px;
   }
 }
 
-/* Homepage hero h2 subtitle - mobile-specific adjustment */
+/* Mobile-specific adjustment for homepage hero h2 */
 @media (max-width: 640px) {
   .hp2 {
-    font-size: 20px;
+    font-size: 18px;
   }
 }
 

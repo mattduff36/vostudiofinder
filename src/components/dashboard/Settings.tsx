@@ -18,7 +18,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
@@ -49,6 +49,7 @@ const SUGGESTION_CATEGORIES = [
 
 export function Settings({ data }: SettingsProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [profileData, setProfileData] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   
@@ -145,7 +146,6 @@ export function Settings({ data }: SettingsProps) {
   }, [expandedMobileSection]);
 
   const sections = [
-    { id: 'overview', label: 'Overview', icon: ArrowLeft, description: 'Back to dashboard', isBackLink: true },
     { id: 'membership', label: 'Membership', icon: CreditCard, description: 'Subscription and billing' },
     { id: 'privacy', label: 'Privacy & Security', icon: Shield, description: 'Privacy settings, security, and data' },
     { id: 'support', label: 'Support', icon: MessageCircle, description: 'Report issues, make suggestions' },
@@ -785,57 +785,67 @@ export function Settings({ data }: SettingsProps) {
             </p>
           </div>
 
-          {/* Progress Indicators */}
-          <div className="flex-shrink-0">
+          {/* Progress Indicators and Action Buttons */}
+          <div className="flex-shrink-0 flex flex-col items-end gap-3">
             <ProgressIndicators
               requiredFieldsCompleted={completionStats.required.completed}
               totalRequiredFields={completionStats.required.total}
               overallCompletionPercentage={completionStats.overall.percentage}
               variant="compact"
             />
+            
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  // Dashboard routes are hash-driven by DashboardContent.
+                  // Using Next's router.push with a hash doesn't reliably fire `hashchange`, so we set `window.location.hash` explicitly.
+                  if (pathname === '/dashboard') {
+                    if (window.location.hash) window.location.hash = '';
+                    return;
+                  }
+                  router.push('/dashboard');
+                }}
+                className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group"
+              >
+                <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                Overview
+              </button>
+              
+              <button
+                onClick={() => {
+                  if (profileData?.user?.username) {
+                    window.open(`/${profileData.user.username}`, '_blank');
+                  }
+                }}
+                disabled={!profileData?.user?.username}
+                className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                View My Profile
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Desktop Section Navigation with hover animations */}
         <div className="border-b border-gray-100 px-6 overflow-hidden">
           <nav className="flex space-x-4" aria-label="Settings sections">
-            {sections.map((section) => {
-              if (section.isBackLink) {
-                // Overview back link - special styling
-                return (
-                  <button
-                    key={section.id}
-                    onClick={() => router.push('/dashboard')}
-                    className="py-3 px-1 border-b-2 border-transparent font-medium text-sm whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-red-600 transition-colors group"
-                  >
-                    <motion.div
-                      whileHover={{ x: -3 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                    >
-                      <section.icon className="w-4 h-4 text-gray-500 group-hover:text-red-600 transition-colors" />
-                    </motion.div>
-                    {section.label}
-                  </button>
-                );
-              }
-              
-              // Regular tabs - keep existing animation
-              return (
-                <motion.button
-                  key={section.id}
-                  onClick={() => setActiveDesktopSection(section.id)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                    activeDesktopSection === section.id
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {section.label}
-                </motion.button>
-              );
-            })}
+            {sections.map((section) => (
+              <motion.button
+                key={section.id}
+                onClick={() => setActiveDesktopSection(section.id)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                  activeDesktopSection === section.id
+                    ? 'border-red-500 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {section.label}
+              </motion.button>
+            ))}
           </nav>
         </div>
 
@@ -861,7 +871,7 @@ export function Settings({ data }: SettingsProps) {
           </div>
         </div>
 
-        {sections.filter(section => !section.isBackLink).map((section) => {
+        {sections.map((section) => {
           const Icon = section.icon;
           const isExpanded = expandedMobileSection === section.id;
 
