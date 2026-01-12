@@ -236,8 +236,8 @@ export function AddressPreviewMap({
           
           if (distance > MAX_DISTANCE_KM) {
             // Snap back to the last valid position
-            const snapLat = currentLatRef.current || geoLat;
-            const snapLng = currentLngRef.current || geoLng;
+            const snapLat = currentLatRef.current !== null ? currentLatRef.current : geoLat;
+            const snapLng = currentLngRef.current !== null ? currentLngRef.current : geoLng;
             console.log('Distance exceeded, snapping back to:', snapLat, snapLng);
             setShowDistanceWarning(true);
             setTimeout(() => setShowDistanceWarning(false), 3000);
@@ -342,8 +342,8 @@ export function AddressPreviewMap({
           if (geoLat !== null && geoLng !== null) {
             const distance = calculateDistance(geoLat, geoLng, newLat, newLng);
             if (distance > MAX_DISTANCE_KM) {
-              const snapLat = currentLatRef.current || geoLat;
-              const snapLng = currentLngRef.current || geoLng;
+              const snapLat = currentLatRef.current !== null ? currentLatRef.current : geoLat;
+              const snapLng = currentLngRef.current !== null ? currentLngRef.current : geoLng;
               setShowDistanceWarning(true);
               setTimeout(() => setShowDistanceWarning(false), 3000);
               marker.setPosition({ lat: snapLat, lng: snapLng });
@@ -391,8 +391,8 @@ export function AddressPreviewMap({
           if (geoLat !== null && geoLng !== null) {
             const distance = calculateDistance(geoLat, geoLng, newLat, newLng);
             if (distance > MAX_DISTANCE_KM) {
-              const snapLat = currentLatRef.current || geoLat;
-              const snapLng = currentLngRef.current || geoLng;
+              const snapLat = currentLatRef.current !== null ? currentLatRef.current : geoLat;
+              const snapLng = currentLngRef.current !== null ? currentLngRef.current : geoLng;
               setShowDistanceWarning(true);
               setTimeout(() => setShowDistanceWarning(false), 3000);
               circle.setCenter({ lat: snapLat, lng: snapLng });
