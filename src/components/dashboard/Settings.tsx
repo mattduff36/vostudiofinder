@@ -797,8 +797,8 @@ export function Settings({ data }: SettingsProps) {
         </div>
 
         {/* Desktop Section Navigation with hover animations */}
-        <div className="border-b border-gray-100 px-6">
-          <nav className="flex space-x-4 overflow-x-auto" aria-label="Settings sections">
+        <div className="border-b border-gray-100 px-6 overflow-hidden">
+          <nav className="flex space-x-4" aria-label="Settings sections">
             {sections.map((section) => {
               if (section.isBackLink) {
                 // Overview back link - special styling
