@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
-import { CheckCircle, Circle } from 'lucide-react';
+import { useMemo, type ReactNode } from 'react';
+import { CheckCircle, Circle, Pencil } from 'lucide-react';
+import Link from 'next/link';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
 interface ProfileCompletionProgressProps {
@@ -45,7 +46,7 @@ interface ProfileCompletionProgressProps {
   showLists?: boolean;
   showTitle?: boolean;
   mobileVariant?: boolean;
-  renderWidget?: (widget: React.ReactNode) => React.ReactNode;
+  renderWidget?: (widget: ReactNode) => ReactNode;
 }
 
 interface ProfileField {
@@ -330,8 +331,17 @@ export function ProfileCompletionProgress({
             </div>
           </div>
         ) : (
-          <div className="relative flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
-            <svg width={svgSize} height={svgSize} className="transform -rotate-90">
+          <Link
+            href="/dashboard#edit-profile"
+            aria-label="Edit your profile"
+            className="group relative flex items-center justify-center flex-shrink-0 mx-auto md:mx-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            title="Edit profile"
+          >
+            <svg
+              width={svgSize}
+              height={svgSize}
+              className="transform -rotate-90 transition-opacity group-hover:opacity-80"
+            >
               {/* Background circle */}
               <circle
                 cx={svgSize / 2}
@@ -356,7 +366,7 @@ export function ProfileCompletionProgress({
               />
             </svg>
             {/* Percentage text */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className={`${mobileVariant ? 'text-base' : 'text-4xl'} font-bold ${getColor(completionPercentage)}`}>
                 {completionPercentage}%
               </span>
@@ -364,7 +374,11 @@ export function ProfileCompletionProgress({
                 <span className="text-sm text-gray-600">Complete</span>
               )}
             </div>
-          </div>
+            {/* Pencil icon badge - top right */}
+            <div className="absolute -top-2 -right-2 bg-primary-600 text-white rounded-full p-2 shadow-md group-hover:bg-primary-700 transition-colors">
+              <Pencil className="w-4 h-4" aria-hidden="true" />
+            </div>
+          </Link>
         )}
 
         {/* Completion checklist */}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/auth-guards';
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { db } from '@/lib/db';
 
 /**
@@ -159,6 +159,13 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
+      );
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return NextResponse.json(
+        { error: 'Error log group not found' },
+        { status: 404 }
       );
     }
 

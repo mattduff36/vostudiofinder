@@ -906,7 +906,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         </div>
 
         {/* Desktop Content - Scrollable area */}
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="flex-1 overflow-y-auto px-6 py-6 min-h-0">
           <div className="w-full max-w-5xl mx-auto">
             {renderSectionContent(activeSection)}
           </div>
