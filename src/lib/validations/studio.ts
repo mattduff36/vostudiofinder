@@ -90,6 +90,7 @@ export const updateStudioSchema = z.object({
     .or(z.literal('')),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
+  show_exact_location: z.boolean().optional(),
   studio_services: z
     .array(z.nativeEnum(ServiceType))
     .min(1, 'Please select at least one service')

@@ -449,6 +449,7 @@ export async function PUT(request: NextRequest) {
       if (updates.location !== undefined) profileUpdates.location = updates.location;
       if (updates.latitude !== undefined) profileUpdates.latitude = updates.latitude;
       if (updates.longitude !== undefined) profileUpdates.longitude = updates.longitude;
+      if (updates.show_exact_location !== undefined) profileUpdates.show_exact_location = updates.show_exact_location;
       
       // Contact
       if (updates.phone !== undefined) profileUpdates.phone = updates.phone;

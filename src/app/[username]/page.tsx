@@ -541,6 +541,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             ...(studio.phone ? { phone: studio.phone } : {}),
             ...(studio.latitude ? { latitude: Number(studio.latitude) } : {}),
             ...(studio.longitude ? { longitude: Number(studio.longitude) } : {}),
+            show_exact_location: studio.show_exact_location ?? true,
             studio_images: studio.studio_images.map((img: { id: string; image_url: string; sort_order: number | null; alt_text: string | null }) => ({
               id: img.id,
               image_url: img.image_url,

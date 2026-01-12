@@ -66,6 +66,7 @@ export async function PUT(request: NextRequest) {
     if (updateData.phone !== undefined) updateFields.phone = updateData.phone;
     if (updateData.latitude !== undefined) updateFields.latitude = updateData.latitude;
     if (updateData.longitude !== undefined) updateFields.longitude = updateData.longitude;
+    if (updateData.show_exact_location !== undefined) updateFields.show_exact_location = updateData.show_exact_location;
     
     // Geocode full_address if it's being updated and coordinates aren't manually set
     if (updateData.full_address !== undefined && updateData.full_address && 

@@ -8,22 +8,26 @@ interface AddressPreviewMapProps {
   address: string;
   initialLat?: number | null;
   initialLng?: number | null;
+  showExactLocation?: boolean;
   onCoordinatesChange: (lat: number, lng: number) => void;
   className?: string;
 }
 
 const MAX_DISTANCE_KM = 10; // Maximum distance user can drag pin from geocoded point
+const AREA_RADIUS_M = 100; // Radius in meters for approximate location circle
 
 export function AddressPreviewMap({
   address,
   initialLat,
   initialLng,
+  showExactLocation = true,
   onCoordinatesChange,
   className = '',
 }: AddressPreviewMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
+  const circleRef = useRef<any>(null);
   const geocoderRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentLat, setCurrentLat] = useState<number | null>(initialLat || null);
@@ -183,19 +187,41 @@ export function AddressPreviewMap({
 
       mapInstanceRef.current = map;
 
-      // Create draggable marker
-      const marker = new googleMaps.Marker({
-        position: { lat: currentLat, lng: currentLng },
-        map: map,
-        draggable: true,
-        title: 'Drag to adjust location',
-      });
+      if (showExactLocation) {
+        // Create draggable marker for exact location
+        const marker = new googleMaps.Marker({
+          position: { lat: currentLat, lng: currentLng },
+          map: map,
+          draggable: true,
+          title: 'Drag to adjust location',
+        });
 
-      markerRef.current = marker;
+        markerRef.current = marker;
+      } else {
+        // Create circle for approximate location
+        const circle = new googleMaps.Circle({
+          strokeColor: '#3B82F6',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#3B82F6',
+          fillOpacity: 0.25,
+          map: map,
+          center: { lat: currentLat, lng: currentLng },
+          radius: AREA_RADIUS_M,
+          draggable: true,
+        });
 
-      // Handle marker drag end
-      marker.addListener('dragend', () => {
-        const position = marker.getPosition();
+        circleRef.current = circle;
+      }
+
+      // Handle drag end for marker or circle
+      const handleDragEnd = () => {
+        const position = showExactLocation && markerRef.current 
+          ? markerRef.current.getPosition()
+          : circleRef.current?.getCenter();
+          
+        if (!position) return;
+        
         const newLat = position.lat();
         const newLng = position.lng();
 
@@ -215,7 +241,11 @@ export function AddressPreviewMap({
             console.log('Distance exceeded, snapping back to:', snapLat, snapLng);
             setShowDistanceWarning(true);
             setTimeout(() => setShowDistanceWarning(false), 3000);
-            marker.setPosition({ lat: snapLat, lng: snapLng });
+            if (showExactLocation && markerRef.current) {
+              markerRef.current.setPosition({ lat: snapLat, lng: snapLng });
+            } else if (circleRef.current) {
+              circleRef.current.setCenter({ lat: snapLat, lng: snapLng });
+            }
             return;
           }
         }
@@ -227,7 +257,13 @@ export function AddressPreviewMap({
         currentLngRef.current = newLng;
         onCoordinatesChange(newLat, newLng);
         setShowDistanceWarning(false);
-      });
+      };
+
+      if (showExactLocation && markerRef.current) {
+        markerRef.current.addListener('dragend', handleDragEnd);
+      } else if (circleRef.current) {
+        circleRef.current.addListener('dragend', handleDragEnd);
+      }
 
       // Handle map click
       map.addListener('click', (e: any) => {
@@ -250,7 +286,11 @@ export function AddressPreviewMap({
           }
         }
 
-        marker.setPosition({ lat: clickLat, lng: clickLng });
+        if (showExactLocation && markerRef.current) {
+          markerRef.current.setPosition({ lat: clickLat, lng: clickLng });
+        } else if (circleRef.current) {
+          circleRef.current.setCenter({ lat: clickLat, lng: clickLng });
+        }
         setCurrentLat(clickLat);
         setCurrentLng(clickLng);
         currentLatRef.current = clickLat;
@@ -259,13 +299,117 @@ export function AddressPreviewMap({
         setShowDistanceWarning(false);
       });
     } else {
-      // Update existing map and marker
+      // Update existing map and marker/circle
       mapInstanceRef.current.setCenter({ lat: currentLat, lng: currentLng });
-      if (markerRef.current) {
+      if (showExactLocation && markerRef.current) {
         markerRef.current.setPosition({ lat: currentLat, lng: currentLng });
+      } else if (!showExactLocation && circleRef.current) {
+        circleRef.current.setCenter({ lat: currentLat, lng: currentLng });
       }
     }
-  }, [isLoaded, currentLat, currentLng, geocodedLat, geocodedLng, onCoordinatesChange]);
+  }, [isLoaded, currentLat, currentLng, geocodedLat, geocodedLng, showExactLocation, onCoordinatesChange]);
+
+  // Handle switching between marker and circle when showExactLocation changes
+  useEffect(() => {
+    if (!isLoaded || !mapInstanceRef.current || !currentLat || !currentLng) return;
+
+    const googleMaps = window.google.maps as any;
+
+    if (showExactLocation) {
+      // Switch to marker mode
+      if (circleRef.current) {
+        circleRef.current.setMap(null);
+        circleRef.current = null;
+      }
+      if (!markerRef.current) {
+        const marker = new googleMaps.Marker({
+          position: { lat: currentLat, lng: currentLng },
+          map: mapInstanceRef.current,
+          draggable: true,
+          title: 'Drag to adjust location',
+        });
+        markerRef.current = marker;
+        
+        // Re-add event listener
+        marker.addListener('dragend', () => {
+          const position = marker.getPosition();
+          if (!position) return;
+          const newLat = position.lat();
+          const newLng = position.lng();
+          const geoLat = geocodedLatRef.current;
+          const geoLng = geocodedLngRef.current;
+          
+          if (geoLat !== null && geoLng !== null) {
+            const distance = calculateDistance(geoLat, geoLng, newLat, newLng);
+            if (distance > MAX_DISTANCE_KM) {
+              const snapLat = currentLatRef.current || geoLat;
+              const snapLng = currentLngRef.current || geoLng;
+              setShowDistanceWarning(true);
+              setTimeout(() => setShowDistanceWarning(false), 3000);
+              marker.setPosition({ lat: snapLat, lng: snapLng });
+              return;
+            }
+          }
+          
+          setCurrentLat(newLat);
+          setCurrentLng(newLng);
+          currentLatRef.current = newLat;
+          currentLngRef.current = newLng;
+          onCoordinatesChange(newLat, newLng);
+          setShowDistanceWarning(false);
+        });
+      }
+    } else {
+      // Switch to circle mode
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+        markerRef.current = null;
+      }
+      if (!circleRef.current) {
+        const circle = new googleMaps.Circle({
+          strokeColor: '#3B82F6',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#3B82F6',
+          fillOpacity: 0.25,
+          map: mapInstanceRef.current,
+          center: { lat: currentLat, lng: currentLng },
+          radius: AREA_RADIUS_M,
+          draggable: true,
+        });
+        circleRef.current = circle;
+        
+        // Re-add event listener
+        circle.addListener('dragend', () => {
+          const position = circle.getCenter();
+          if (!position) return;
+          const newLat = position.lat();
+          const newLng = position.lng();
+          const geoLat = geocodedLatRef.current;
+          const geoLng = geocodedLngRef.current;
+          
+          if (geoLat !== null && geoLng !== null) {
+            const distance = calculateDistance(geoLat, geoLng, newLat, newLng);
+            if (distance > MAX_DISTANCE_KM) {
+              const snapLat = currentLatRef.current || geoLat;
+              const snapLng = currentLngRef.current || geoLng;
+              setShowDistanceWarning(true);
+              setTimeout(() => setShowDistanceWarning(false), 3000);
+              circle.setCenter({ lat: snapLat, lng: snapLng });
+              return;
+            }
+          }
+          
+          setCurrentLat(newLat);
+          setCurrentLng(newLng);
+          currentLatRef.current = newLat;
+          currentLngRef.current = newLng;
+          onCoordinatesChange(newLat, newLng);
+          setShowDistanceWarning(false);
+        });
+      }
+    }
+  }, [showExactLocation, isLoaded, currentLat, currentLng, onCoordinatesChange]);
 
   if (!address || address.trim() === '') {
     return (
@@ -334,6 +478,7 @@ export function AddressPreviewMap({
           <div className="flex items-center text-xs text-gray-700">
             <MapPin className="w-3 h-3 mr-1 text-primary-600" />
             <span className="font-mono text-xs">
+              {!showExactLocation && <span className="font-sans mr-1">Center:</span>}
               {currentLat.toFixed(6)}, {currentLng.toFixed(6)}
             </span>
           </div>
@@ -349,7 +494,10 @@ export function AddressPreviewMap({
 
       {/* Instructions - plain text like other helper text */}
       <p className="text-xs text-gray-500 mt-2">
-        Drag the pin or click the map to fine-tune your location. Limited to {MAX_DISTANCE_KM}km from the address you entered.
+        {showExactLocation 
+          ? `Drag the pin or click the map to fine-tune your exact location. Limited to ${MAX_DISTANCE_KM}km from the address you entered.`
+          : `Drag the circle or click the map to adjust the center of your approximate ${AREA_RADIUS_M}m area. Limited to ${MAX_DISTANCE_KM}km from the address you entered.`
+        }
       </p>
     </div>
   );

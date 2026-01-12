@@ -10,9 +10,12 @@ interface SimpleStudioMapProps {
   address: string;
   fullAddress?: string;
   useCoordinates?: boolean; // Force using coordinates instead of address
+  showExactLocation?: boolean; // Show exact pin or approximate area
   height?: string;
   className?: string;
 }
+
+const AREA_RADIUS_M = 100; // Radius in meters for approximate location circle
 
 export function SimpleStudioMap({
   latitude,
@@ -20,6 +23,7 @@ export function SimpleStudioMap({
   address,
   fullAddress,
   useCoordinates = false,
+  showExactLocation = true,
   height = '300px',
   className = '',
 }: SimpleStudioMapProps) {
@@ -152,15 +156,31 @@ export function SimpleStudioMap({
       ],
     });
 
-    // Add marker
-    new googleMaps.Marker({
-      position: { lat: finalLat, lng: finalLng },
-      map: map,
-      title: addressToUse || address,
-    });
+    // Add marker or circle based on privacy setting
+    if (showExactLocation) {
+      // Show exact pin location
+      new googleMaps.Marker({
+        position: { lat: finalLat, lng: finalLng },
+        map: map,
+        title: addressToUse || address,
+      });
+    } else {
+      // Show approximate area circle
+      new googleMaps.Circle({
+        strokeColor: '#3B82F6',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: '#3B82F6',
+        fillOpacity: 0.25,
+        map: map,
+        center: { lat: finalLat, lng: finalLng },
+        radius: AREA_RADIUS_M,
+        clickable: false,
+      });
+    }
 
     mapInstanceRef.current = map;
-  }, [isLoaded, useCoordinates, shouldUseAddress, geocodedLocation, isGeocoding, latitude, longitude, addressToUse, address]);
+  }, [isLoaded, useCoordinates, shouldUseAddress, geocodedLocation, isGeocoding, latitude, longitude, addressToUse, address, showExactLocation]);
 
   // Check if we have a valid location
   const hasValidLocation = useCoordinates 

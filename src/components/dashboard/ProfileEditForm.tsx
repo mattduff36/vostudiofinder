@@ -588,9 +588,31 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   address={profile.studio?.full_address || ''}
                   initialLat={profile.studio?.latitude ?? null}
                   initialLng={profile.studio?.longitude ?? null}
+                  showExactLocation={profile.studio?.show_exact_location ?? true}
                   onCoordinatesChange={handleCoordinatesChange}
                   className="h-full"
                 />
+                
+                {/* Location privacy toggle */}
+                <div className="mt-3 flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex-1">
+                    <label className="text-sm font-medium text-gray-900 cursor-pointer" htmlFor="show-exact-location">
+                      Show exact location
+                    </label>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      {profile.studio?.show_exact_location ?? true 
+                        ? 'Public visitors will see your exact pin location on the map'
+                        : 'Public visitors will see an approximate 100m area instead of your exact address'
+                      }
+                    </p>
+                  </div>
+                  <Toggle
+                    id="show-exact-location"
+                    checked={profile.studio?.show_exact_location ?? true}
+                    onChange={(checked) => updateStudio('show_exact_location', checked)}
+                    aria-label="Toggle exact location display"
+                  />
+                </div>
               </div>
             </div>
           </div>

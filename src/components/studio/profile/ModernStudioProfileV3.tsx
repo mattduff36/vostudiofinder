@@ -50,6 +50,7 @@ interface ModernStudioProfileV3Props {
     is_verified: boolean;
     latitude?: number;
     longitude?: number;
+    show_exact_location?: boolean;
     studio_images?: Array<{
       id: string;
       image_url: string;
@@ -518,6 +519,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   longitude={studio.longitude}
                   address={studio.city || studio.full_address || studio.address || ''}
                   fullAddress={studio.full_address || studio.address || ''}
+                  showExactLocation={studio.show_exact_location ?? true}
                 />
                 {/* Button under map - Same logic as desktop */}
                 {profile?.show_directions !== false ? (
@@ -816,6 +818,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     address={studio.address || ''}
                     fullAddress={studio.full_address || ''}
                     useCoordinates={studio.owner?.profile?.use_coordinates_for_map === true}
+                    showExactLocation={studio.show_exact_location ?? true}
                     height="384px"
                   />
                 </div>

@@ -20,6 +20,7 @@ interface MapFullscreenProps {
   address: string;
   fullAddress?: string;
   useCoordinates?: boolean;
+  showExactLocation?: boolean;
 }
 
 export function MapFullscreen({
@@ -28,6 +29,7 @@ export function MapFullscreen({
   address,
   fullAddress,
   useCoordinates = false,
+  showExactLocation = true,
 }: MapFullscreenProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [supportsNativeFullscreen, setSupportsNativeFullscreen] = useState(false);
@@ -125,6 +127,7 @@ export function MapFullscreen({
         address={address}
         fullAddress={fullAddress || ''}
         useCoordinates={useCoordinates}
+        showExactLocation={showExactLocation}
         height={
           !supportsNativeFullscreen && isFullscreen && viewportHeight
             ? `${viewportHeight}px`

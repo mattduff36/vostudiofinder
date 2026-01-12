@@ -295,6 +295,7 @@ export async function PUT(
     if (body._meta?.url !== undefined) studioUpdateData.website_url = body._meta.url;
     if (body._meta?.latitude !== undefined) studioUpdateData.latitude = parseFloat(body._meta.latitude) || null;
     if (body._meta?.longitude !== undefined) studioUpdateData.longitude = parseFloat(body._meta.longitude) || null;
+    if (body._meta?.show_exact_location !== undefined) studioUpdateData.show_exact_location = body._meta.show_exact_location;
     if (body._meta?.verified !== undefined) studioUpdateData.is_verified = body._meta.verified === '1' || body._meta.verified === true;
     if (body._meta?.is_profile_visible !== undefined) studioUpdateData.is_profile_visible = body._meta.is_profile_visible;
     
