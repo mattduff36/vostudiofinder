@@ -119,7 +119,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   
   if (expandedSession.total_details?.breakdown?.discounts && expandedSession.total_details.breakdown.discounts.length > 0) {
     const discount = expandedSession.total_details.breakdown.discounts[0];
-    couponCode = (discount as any)?.discount?.coupon?.id || null;
+    couponCode = (discount as any)?.discount?.source?.coupon?.id || null;
     
     if (couponCode) {
       console.log(`[DEBUG ${timestamp}] 🎟️ Coupon applied: ${couponCode}`);
