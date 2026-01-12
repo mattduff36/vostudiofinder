@@ -393,7 +393,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                     rel="noopener noreferrer"
                     className="text-primary-600 hover:text-primary-700 hover:underline transition-colors"
                   >
-                    {getBaseUrl()}/{user.username}
+                    {getBaseUrl()}/<span className="text-[#d42027] font-medium">{user.username}</span>
                   </a>
                 </p>
               </div>
