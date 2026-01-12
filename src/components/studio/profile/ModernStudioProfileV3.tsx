@@ -695,6 +695,33 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               </div>
             </div>
 
+            {/* Social Media Links */}
+            {socialLinks.length > 0 && (
+              <div className="mb-6 w-full">
+                <div className="flex flex-wrap gap-3">
+                  {socialLinks.map((link, index) => {
+                    const Icon = link.icon;
+                    return (
+                      <a
+                        key={index}
+                        href={link.url || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={clsx(
+                          'flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors',
+                          link.color,
+                          'hover:bg-gray-50'
+                        )}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="text-sm font-medium">{link.platform}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Reviews Section */}
             {studio.reviews.length > 0 && (
               <div className="mb-6 w-full">
@@ -963,34 +990,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   </div>
                 ) : null;
               })()}
-
-              {/* Social Media Links Card */}
-              {socialLinks.length > 0 && (
-                <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 mt-0">Social Media</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {socialLinks.map((link, index) => {
-                      const Icon = link.icon;
-                      return (
-                        <a
-                          key={index}
-                          href={link.url || '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={clsx(
-                            'flex items-center space-x-2 px-3 py-2 rounded-lg border transition-colors',
-                            link.color,
-                            'hover:bg-gray-50'
-                          )}
-                        >
-                          <Icon className="w-4 h-4" />
-                          <span className="text-sm font-medium">{link.platform}</span>
-                        </a>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
             </div>
           </div>

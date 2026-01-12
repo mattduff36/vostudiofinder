@@ -15,8 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
   AlertTriangle,
-  ArrowLeft,
-  Eye
+  ArrowLeft
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
