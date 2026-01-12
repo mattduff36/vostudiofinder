@@ -128,15 +128,17 @@ export function ProfileCompletionAnimation({
             setIsHovered(false);
           }}
         >
-          {/* Widget wrapper - hides text content on hover */}
-          <div className={`relative transition-opacity duration-300 ${isHovered ? '[&_div]:opacity-0' : ''}`}>
+          {/* Widget - always visible */}
+          <div className="relative">
             {children}
           </div>
           
-          {/* Hover content - positioned exactly where the text was */}
-          <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 pointer-events-none ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-            <Pencil className="w-10 h-10 text-gray-600 mb-1" aria-hidden="true" strokeWidth={1.5} />
-            <span className="text-sm text-gray-600">Edit Profile</span>
+          {/* Hover content - covers center text only with white background circle */}
+          <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="bg-white rounded-full w-36 h-36 flex flex-col items-center justify-center">
+              <Pencil className="w-10 h-10 text-gray-600 mb-1" aria-hidden="true" strokeWidth={1.5} />
+              <span className="text-sm text-gray-600 whitespace-nowrap">Edit Profile</span>
+            </div>
           </div>
         </a>
       </div>
