@@ -102,10 +102,10 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   console.log(`[DEBUG ${timestamp}] ✅ Metadata validation passed`);
   console.log(`💳 Processing membership payment for user ${user_id} (${user_email})`);
 
-  // Expand session to get payment_intent
+  // Expand session to get payment_intent and total_details.breakdown (for coupon metadata)
   console.log(`[DEBUG ${timestamp}] Retrieving expanded session from Stripe...`);
   const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
-    expand: ['payment_intent'],
+    expand: ['payment_intent', 'total_details.breakdown'],
   });
   console.log(`[DEBUG ${timestamp}] Expanded session retrieved. Payment intent: ${expandedSession.payment_intent ? 'EXISTS' : 'MISSING'}`);
   console.log(`[DEBUG ${timestamp}] Session amount_total: ${expandedSession.amount_total}`);
