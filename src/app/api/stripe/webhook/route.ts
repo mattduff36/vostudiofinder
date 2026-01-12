@@ -129,8 +129,15 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
         const coupon = await stripe.coupons.retrieve(couponCode);
         
         if (coupon.metadata?.membership_months) {
-          membershipMonths = parseInt(coupon.metadata.membership_months, 10);
-          console.log(`[DEBUG ${timestamp}] 🎁 Custom membership duration from coupon: ${membershipMonths} months`);
+          const parsedMonths = parseInt(coupon.metadata.membership_months, 10);
+          
+          // Validate parsed value is a valid number and reasonable (1-60 months)
+          if (!isNaN(parsedMonths) && parsedMonths > 0 && parsedMonths <= 60) {
+            membershipMonths = parsedMonths;
+            console.log(`[DEBUG ${timestamp}] 🎁 Custom membership duration from coupon: ${membershipMonths} months`);
+          } else {
+            console.warn(`[DEBUG ${timestamp}] ⚠️ Invalid membership_months value in coupon metadata: "${coupon.metadata.membership_months}" (parsed as: ${parsedMonths}). Using default: 12 months`);
+          }
         } else {
           console.log(`[DEBUG ${timestamp}] ℹ️ Coupon has no membership_months metadata, using default: 12 months`);
         }
