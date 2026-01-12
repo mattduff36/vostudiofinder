@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { UserDashboard } from './UserDashboard';
+import { UserDashboard, invalidateProfileCache } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
 import { Settings } from './Settings';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
@@ -26,6 +26,7 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
   const [isFooterExpanded, setIsFooterExpanded] = useState(false);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const hasMountedRef = useRef(false);
+  const prevTabRef = useRef<DashboardTab>('overview');
 
   // Listen to URL hash changes
   useEffect(() => {
@@ -50,6 +51,15 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
   useEffect(() => {
     hasMountedRef.current = true;
   }, []);
+
+  // Invalidate profile cache when switching from edit-profile to ensure fresh data
+  useEffect(() => {
+    if (prevTabRef.current === 'edit-profile' && activeTab !== 'edit-profile') {
+      // User is navigating away from edit-profile, invalidate cache to get fresh data
+      invalidateProfileCache();
+    }
+    prevTabRef.current = activeTab;
+  }, [activeTab]);
 
   const handleQuickAction = (action: QuickAction) => {
     setActiveTab(action);

@@ -41,6 +41,16 @@ function getCachedProfileAgeMs(): number {
   return Date.now() - cachedProfileFetchedAt;
 }
 
+/**
+ * Invalidate the cached profile data.
+ * Call this after profile updates to ensure fresh data on next load.
+ */
+export function invalidateProfileCache(): void {
+  cachedProfileData = null;
+  cachedProfileFetchedAt = 0;
+  logger.log('[UserDashboard] Profile cache invalidated');
+}
+
 interface UserDashboardProps {
   data: {
     user: {
