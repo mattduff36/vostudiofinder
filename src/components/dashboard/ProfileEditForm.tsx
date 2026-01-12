@@ -405,14 +405,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       case 'basic':
         return (
           <div className="space-y-6">
+            {/* 2x2 Grid for top 4 fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Display Name"
-                value={profile.user.display_name || ''}
-                onChange={(e) => updateUser('display_name', e.target.value)}
-                helperText="Your public display name"
-                required
-              />
               <Input
                 label="Username"
                 value={profile.user.username || ''}
@@ -420,27 +414,33 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 helperText="Used in your profile URL"
                 required
               />
-            </div>
-
-            <Input
-              label="Email"
-              type="email"
-              value={profile.user.email || ''}
-              disabled
-              helperText="Contact admin to change email address"
-            />
-
-            <div>
               <Input
-                label="Studio Name"
-              value={profile.studio?.name || ''}
-              onChange={(e) => updateStudio('name', e.target.value)}
-              maxLength={35}
-            />
-            <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-              <span>Your studio or business name</span>
-              <span>{(profile.studio?.name || '').length}/35 characters</span>
-            </div>
+                label="Display Name"
+                value={profile.user.display_name || ''}
+                onChange={(e) => updateUser('display_name', e.target.value)}
+                helperText="Your public display name"
+                required
+              />
+              <div>
+                <Input
+                  label="Studio Name"
+                  value={profile.studio?.name || ''}
+                  onChange={(e) => updateStudio('name', e.target.value)}
+                  maxLength={35}
+                />
+                <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                  <span>Your studio or business name</span>
+                  <span>{(profile.studio?.name || '').length}/35 characters</span>
+                </div>
+              </div>
+              <Input
+                label="Website URL"
+                type="url"
+                value={profile.studio?.website_url || ''}
+                onChange={(e) => updateStudio('website_url', e.target.value)}
+                helperText="Your studio or personal website"
+                placeholder="https://yourstudio.com"
+              />
             </div>
 
             <div>
@@ -530,20 +530,19 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
+                label="Email"
+                type="email"
+                value={profile.user.email || ''}
+                disabled
+                helperText="Contact admin to change email address"
+              />
+              <Input
                 label="Phone"
                 type="tel"
                 value={profile.profile.phone || ''}
                 onChange={(e) => updateProfile('phone', e.target.value)}
                 helperText="Your contact phone number"
                 placeholder="+44 20 1234 5678"
-              />
-              <Input
-                label="Website URL"
-                type="url"
-                value={profile.studio?.website_url || ''}
-                onChange={(e) => updateStudio('website_url', e.target.value)}
-                helperText="Your studio or personal website"
-                placeholder="https://yourstudio.com"
               />
             </div>
 

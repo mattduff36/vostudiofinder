@@ -118,7 +118,7 @@ export function DashboardDropdownMenu({
   const menuItems = [
     { 
       icon: Home, 
-      label: 'Home', 
+      label: 'Overview', 
       path: '/dashboard',
       active: pathname === '/dashboard' && !currentHash
     },

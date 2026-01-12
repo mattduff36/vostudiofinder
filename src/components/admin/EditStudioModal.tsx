@@ -283,14 +283,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   const renderBasicTab = () => (
     <div className="space-y-6">
+      {/* 2x2 Grid for top 4 fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          label="Display Name"
-          value={profile?.display_name || ''}
-          onChange={(e) => handleBasicChange('display_name', e.target.value)}
-          helperText="Public display name"
-          required
-        />
         <Input
           label="Username"
           value={profile?.username || ''}
@@ -298,42 +292,46 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           helperText="Used in profile URL"
           required
         />
-      </div>
-      
-      <div>
         <Input
-          label="Email"
-          type="email"
-          value={profile?.email || ''}
-          disabled
-          helperText="Edit in Admin Settings tab"
+          label="Display Name"
+          value={profile?.display_name || ''}
+          onChange={(e) => handleBasicChange('display_name', e.target.value)}
+          helperText="Public display name"
+          required
         />
-      </div>
-
-      <div>
-        <Input
-          label="Studio Name"
-          value={profile?._meta?.studio_name || ''}
-        onChange={(e) => {
-          const value = e.target.value;
-            const truncatedValue = value.length > 35 ? value.substring(0, 35) : value;
-          handleMetaChange('studio_name', truncatedValue);
-        }}
-        maxLength={35}
-        placeholder="e.g. VoiceoverGuy - Yorkshire"
-      />
-        <div className="flex justify-between items-center text-xs mt-1">
-          <span className="text-gray-500">Studio display name shown in listings</span>
-          <span 
-            className={`${
-              (profile?._meta?.studio_name || '').length > 25 
-                ? 'text-orange-600 font-medium' 
-                : 'text-gray-400'
-          }`}
-        >
-          {(profile?._meta?.studio_name || '').length}/35 characters
-        </span>
+        <div>
+          <Input
+            label="Studio Name"
+            value={profile?._meta?.studio_name || ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              const truncatedValue = value.length > 35 ? value.substring(0, 35) : value;
+              handleMetaChange('studio_name', truncatedValue);
+            }}
+            maxLength={35}
+            placeholder="e.g. VoiceoverGuy - Yorkshire"
+          />
+          <div className="flex justify-between items-center text-xs mt-1">
+            <span className="text-gray-500">Studio display name shown in listings</span>
+            <span 
+              className={`${
+                (profile?._meta?.studio_name || '').length > 25 
+                  ? 'text-orange-600 font-medium' 
+                  : 'text-gray-400'
+            }`}
+            >
+              {(profile?._meta?.studio_name || '').length}/35 characters
+            </span>
+          </div>
         </div>
+        <Input
+          label="Website URL"
+          type="url"
+          value={profile?._meta?.url || ''}
+          onChange={(e) => handleMetaChange('url', e.target.value)}
+          helperText="Studio or personal website"
+          placeholder="https://yourstudio.com"
+        />
       </div>
 
       <div>
@@ -432,20 +430,19 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
+          label="Email"
+          type="email"
+          value={profile?.email || ''}
+          disabled
+          helperText="Edit in Admin Settings tab"
+        />
+        <Input
           label="Phone"
           type="tel"
           value={profile?._meta?.phone || ''}
           onChange={(e) => handleMetaChange('phone', e.target.value)}
           helperText="Contact phone number"
           placeholder="+44 20 1234 5678"
-        />
-        <Input
-          label="Website URL"
-          type="url"
-          value={profile?._meta?.url || ''}
-          onChange={(e) => handleMetaChange('url', e.target.value)}
-          helperText="Studio or personal website"
-          placeholder="https://yourstudio.com"
         />
       </div>
 

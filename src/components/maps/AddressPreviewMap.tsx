@@ -120,6 +120,10 @@ export function AddressPreviewMap({
       geocoderRef.current = new googleMaps.Geocoder();
     }
 
+    // Check if this is the first geocoding with existing coordinates
+    const hasInitialCoordinates = initialLat !== null && initialLng !== null;
+    const isFirstGeocoding = lastGeocodedAddressRef.current === '';
+
     setIsGeocoding(true);
     setErrorMessage(null);
     
@@ -138,18 +142,28 @@ export function AddressPreviewMap({
           // Mark this address as geocoded
           lastGeocodedAddressRef.current = address;
           
-          // Update both state and refs
+          // Update geocoded position refs for distance checking
           setGeocodedLat(lat);
           setGeocodedLng(lng);
           geocodedLatRef.current = lat;
           geocodedLngRef.current = lng;
           
-          // Always update to the newly geocoded coordinates when address changes
-          setCurrentLat(lat);
-          setCurrentLng(lng);
-          currentLatRef.current = lat;
-          currentLngRef.current = lng;
-          onCoordinatesChange(lat, lng);
+          // IMPORTANT: If this is the first geocoding AND we have saved coordinates,
+          // preserve the saved coordinates (they may have been manually adjusted)
+          // Only use geocoded coords if this is a new address or no saved coords exist
+          if (isFirstGeocoding && hasInitialCoordinates) {
+            console.log('Preserving saved coordinates:', initialLat, initialLng, '(geocoded would be:', lat, lng, ')');
+            // currentLat/currentLng are already set to initialLat/initialLng from state initialization
+            // Don't call onCoordinatesChange - parent already has these coordinates
+          } else {
+            // Address changed to a new address, use new geocoded coordinates
+            console.log('Using geocoded coordinates for new address:', lat, lng);
+            setCurrentLat(lat);
+            setCurrentLng(lng);
+            currentLatRef.current = lat;
+            currentLngRef.current = lng;
+            onCoordinatesChange(lat, lng);
+          }
         } else {
           console.error('Geocoding failed:', status, 'for address:', address);
           setErrorMessage('Address not found. Please check the address.');
@@ -165,7 +179,7 @@ export function AddressPreviewMap({
         }
       }
     );
-  }, [isLoaded, address, onCoordinatesChange]);
+  }, [isLoaded, address, initialLat, initialLng, onCoordinatesChange]);
 
   // Initialize or update map
   useEffect(() => {
