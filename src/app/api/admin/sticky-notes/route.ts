@@ -46,9 +46,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching admin sticky note:', error);
-    await handleApiError(error, request, {
-      context: 'GET /api/admin/sticky-notes'
-    });
+    await handleApiError(error, request);
     return NextResponse.json(
       { error: 'Failed to fetch sticky note' },
       { status: 500 }
@@ -111,9 +109,7 @@ export async function PUT(request: NextRequest) {
 
   } catch (error) {
     console.error('Error saving admin sticky note:', error);
-    await handleApiError(error, request, {
-      context: 'PUT /api/admin/sticky-notes'
-    });
+    await handleApiError(error, request);
     return NextResponse.json(
       { error: 'Failed to save sticky note' },
       { status: 500 }
