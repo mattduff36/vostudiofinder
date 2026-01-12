@@ -42,10 +42,8 @@ export function useProfileAnimation(): UseProfileAnimationReturn {
     // Check if animation has already been shown this session
     const checkAnimationStatus = () => {
       try {
-        // DEVELOPMENT: Temporarily disabled - animation plays on every load
-        // const hasShown = sessionStorage.getItem(STORAGE_KEY) === 'true';
-        // setHasAnimated(hasShown);
-        setHasAnimated(false); // Always show animation for development
+        const hasShown = sessionStorage.getItem(STORAGE_KEY) === 'true';
+        setHasAnimated(hasShown);
       } catch (error) {
         // SessionStorage might not be available (privacy mode, etc.)
         console.warn('SessionStorage not available:', error);
@@ -80,9 +78,8 @@ export function useProfileAnimation(): UseProfileAnimationReturn {
 
   const markAnimationComplete = () => {
     try {
-      // DEVELOPMENT: Temporarily disabled - allow animation to replay
-      // sessionStorage.setItem(STORAGE_KEY, 'true');
-      // setHasAnimated(true);
+      sessionStorage.setItem(STORAGE_KEY, 'true');
+      setHasAnimated(true);
     } catch (error) {
       console.warn('Could not save animation state:', error);
     }

@@ -32,6 +32,8 @@ export function ProfileCompletionAnimation({
   const containerRef = useRef<HTMLDivElement>(null);
   const [finalPosition, setFinalPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
+  const [isPulsing, setIsPulsing] = useState(false);
+  const [hasBeenHovered, setHasBeenHovered] = useState(false);
 
   // Match the color logic from ProfileCompletionProgress
   const getColor = (percentage: number) => {
@@ -92,6 +94,22 @@ export function ProfileCompletionAnimation({
     };
   }, [shouldAnimate, mounted, onAnimationComplete]);
 
+  // Start pulsing shadow after main animation completes
+  useEffect(() => {
+    if (animationPhase === 'complete' && shouldAnimate && !hasBeenHovered) {
+      setIsPulsing(true);
+      
+      // Stop pulsing after 8 seconds
+      const pulseTimer = setTimeout(() => {
+        setIsPulsing(false);
+      }, 8000);
+
+      return () => {
+        clearTimeout(pulseTimer);
+      };
+    }
+  }, [animationPhase, shouldAnimate, hasBeenHovered]);
+
   // Handle link click
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -120,20 +138,39 @@ export function ProfileCompletionAnimation({
   if (!shouldAnimate || animationPhase === 'complete') {
     return (
       <div ref={containerRef} className="hidden md:block">
-        <a
+        <motion.a
           href="/dashboard#edit-profile"
           onClick={handleClick}
           className="group relative flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
           aria-label="Edit your profile"
-          style={{
-            transition: 'all 0.3s ease',
-          }}
+          animate={
+            isPulsing && !isHovered
+              ? {
+                  boxShadow: [
+                    '0 0 0 0 rgba(220, 38, 38, 0)',
+                    '0 0 30px 10px rgba(220, 38, 38, 0.3)',
+                    '0 0 0 0 rgba(220, 38, 38, 0)',
+                  ],
+                }
+              : {}
+          }
+          transition={
+            isPulsing && !isHovered
+              ? {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }
+              : {}
+          }
           onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = '0 0 30px 10px rgba(220, 38, 38, 0.3)';
+            (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px 10px rgba(220, 38, 38, 0.3)';
             setIsHovered(true);
+            setHasBeenHovered(true);
+            setIsPulsing(false);
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = 'none';
+            (e.currentTarget as HTMLElement).style.boxShadow = 'none';
             setIsHovered(false);
           }}
         >
@@ -149,7 +186,7 @@ export function ProfileCompletionAnimation({
               <span className="text-sm text-gray-600 whitespace-nowrap mt-1">Edit Profile</span>
             </div>
           </div>
-        </a>
+        </motion.a>
       </div>
     );
   }
