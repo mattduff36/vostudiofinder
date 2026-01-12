@@ -779,29 +779,24 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 </div>
                 {/* Directions section - hidden when show_directions is off */}
                 {profile?.show_directions !== false && (
-                  <>
-                    {/* Gap - matches the gap between main image and thumbnails */}
-                    <div className="h-4"></div>
-                    {/* Directions section - fills remaining space */}
-                    <div className="flex-1 flex flex-col px-6">
-                      {/* Only show address if show_address is not explicitly false */}
-                      {(profile?.show_address !== false) && (studio.full_address || studio.address || studio.city) && (
-                        <div className="flex items-start space-x-2 mb-4 flex-1">
-                          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                          <p className="text-xs text-gray-600 leading-relaxed">{studio.full_address || studio.address || studio.city}</p>
-                        </div>
-                      )}
-                      <Button
-                        size="sm"
-                        className="w-full mt-auto"
-                        onClick={handleGetDirections}
-                        disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
-                      >
-                        <ExternalLink className="w-3 h-3 mr-2" />
-                        Get Directions
-                      </Button>
-                    </div>
-                  </>
+                  <div className="flex-1 flex flex-col px-6 py-3">
+                    {/* Only show address if show_address is not explicitly false */}
+                    {(profile?.show_address !== false) && (studio.full_address || studio.address || studio.city) && (
+                      <div className="flex items-start space-x-2 mb-3 flex-1">
+                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-gray-600 leading-relaxed">{studio.full_address || studio.address || studio.city}</p>
+                      </div>
+                    )}
+                    <Button
+                      size="sm"
+                      className="w-full mt-auto"
+                      onClick={handleGetDirections}
+                      disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      Get Directions
+                    </Button>
+                  </div>
                 )}
               </div>
 
