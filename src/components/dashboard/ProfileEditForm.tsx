@@ -123,6 +123,9 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  // Ref for auto-growing Full About textarea
+  const fullAboutRef = useRef<HTMLTextAreaElement>(null);
 
   // Fetch profile data
   useEffect(() => {
@@ -158,6 +161,17 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       }, 100); // Small delay to ensure expansion has started
     }
   }, [expandedMobileSection]);
+
+  // Auto-resize Full About textarea (desktop only)
+  useEffect(() => {
+    if (!fullAboutRef.current) return;
+    
+    // Reset height to auto to get accurate scrollHeight
+    fullAboutRef.current.style.height = 'auto';
+    
+    // Set height to match content
+    fullAboutRef.current.style.height = `${fullAboutRef.current.scrollHeight}px`;
+  }, [profile?.profile?.about]);
 
   const fetchProfile = async () => {
     try {
@@ -579,11 +593,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               {/* Bottom Row: Full About (spanning both columns) */}
               <div>
                 <Textarea
+                  ref={fullAboutRef}
                   label="Full About"
                   value={profile.profile.about || ''}
                   onChange={(e) => updateProfile('about', e.target.value)}
-                  rows={6}
                   maxLength={1500}
+                  className="min-h-[150px] resize-none overflow-hidden"
                 />
                 <div className="flex justify-between items-center text-xs mt-1">
                   <span className="text-gray-500">Detailed description for your profile page</span>
