@@ -14,9 +14,11 @@ import {
   CreditCard,
   ChevronDown,
   ChevronUp,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeft
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
@@ -46,6 +48,7 @@ const SUGGESTION_CATEGORIES = [
 ];
 
 export function Settings({ data }: SettingsProps) {
+  const router = useRouter();
   const [profileData, setProfileData] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   
@@ -142,6 +145,7 @@ export function Settings({ data }: SettingsProps) {
   }, [expandedMobileSection]);
 
   const sections = [
+    { id: 'overview', label: 'Overview', icon: ArrowLeft, description: 'Back to dashboard', isBackLink: true },
     { id: 'membership', label: 'Membership', icon: CreditCard, description: 'Subscription and billing' },
     { id: 'privacy', label: 'Privacy & Security', icon: Shield, description: 'Privacy settings, security, and data' },
     { id: 'support', label: 'Support', icon: MessageCircle, description: 'Report issues, make suggestions' },
@@ -798,15 +802,22 @@ export function Settings({ data }: SettingsProps) {
             {sections.map((section) => (
               <motion.button
                 key={section.id}
-                onClick={() => setActiveDesktopSection(section.id)}
+                onClick={() => {
+                  if (section.isBackLink) {
+                    router.push('/dashboard');
+                  } else {
+                    setActiveDesktopSection(section.id);
+                  }
+                }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
-                  activeDesktopSection === section.id
+                className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                  activeDesktopSection === section.id && !section.isBackLink
                     ? 'border-red-500 text-red-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
+                {section.isBackLink && <section.icon className="w-4 h-4" />}
                 {section.label}
               </motion.button>
             ))}
@@ -835,7 +846,7 @@ export function Settings({ data }: SettingsProps) {
           </div>
         </div>
 
-        {sections.map((section) => {
+        {sections.filter(section => !section.isBackLink).map((section) => {
           const Icon = section.icon;
           const isExpanded = expandedMobileSection === section.id;
 

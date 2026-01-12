@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon } from 'lucide-react';
+import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -112,6 +113,7 @@ const CONNECTION_TYPES = [
 ];
 
 export function ProfileEditForm({ userId }: ProfileEditFormProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -381,6 +383,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   }
 
   const sections = [
+    { id: 'overview', label: 'Overview', icon: ArrowLeft, description: 'Back to dashboard', isBackLink: true },
     { id: 'basic', label: 'Basic Info', icon: User, description: 'Display name, username, studio info' },
     { id: 'contact', label: 'Contact & Location', icon: MapPin, description: 'Phone, email, address details' },
     { id: 'rates', label: 'Rates & Pricing', icon: DollarSign, description: 'Pricing and rate tiers' },
@@ -956,16 +959,23 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               {sections.map((section) => (
                 <motion.button
                   key={section.id}
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={() => {
+                    if (section.isBackLink) {
+                      router.push('/dashboard');
+                    } else {
+                      setActiveSection(section.id);
+                    }
+                  }}
                   data-section={section.id}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
-                    activeSection === section.id
+                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                    activeSection === section.id && !section.isBackLink
                       ? 'border-red-500 text-red-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
+                  {section.isBackLink && <section.icon className="w-4 h-4" />}
                   {section.label}
                 </motion.button>
               ))}
@@ -1025,7 +1035,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           </div>
         </div>
 
-        {sections.map((section) => {
+        {sections.filter(section => !section.isBackLink).map((section) => {
             const Icon = section.icon;
             const isExpanded = expandedMobileSection === section.id;
             const status = sectionStatusById[section.id as keyof typeof sectionStatusById];
