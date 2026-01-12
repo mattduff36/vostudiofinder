@@ -113,16 +113,17 @@ export function AddressPreviewMap({
           const lat = location.lat();
           const lng = location.lng();
           
+          console.log('Geocoded address:', address, 'to coordinates:', lat, lng);
+          
           setGeocodedLat(lat);
           setGeocodedLng(lng);
           
-          // If no initial coords or they're far from geocoded point, use geocoded coords
-          if (!currentLat || !currentLng) {
-            setCurrentLat(lat);
-            setCurrentLng(lng);
-            onCoordinatesChange(lat, lng);
-          }
+          // Always update to the newly geocoded coordinates when address changes
+          setCurrentLat(lat);
+          setCurrentLng(lng);
+          onCoordinatesChange(lat, lng);
         } else {
+          console.error('Geocoding failed:', status, 'for address:', address);
           setErrorMessage('Address not found. Please check the address.');
           setCurrentLat(null);
           setCurrentLng(null);
@@ -131,7 +132,7 @@ export function AddressPreviewMap({
         }
       }
     );
-  }, [isLoaded, address, onCoordinatesChange, currentLat, currentLng]);
+  }, [isLoaded, address, onCoordinatesChange]);
 
   // Initialize or update map
   useEffect(() => {
