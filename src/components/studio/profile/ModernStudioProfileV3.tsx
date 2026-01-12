@@ -761,7 +761,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden" 
                 style={{ 
                   height: profile?.show_directions !== false 
-                    ? (profile?.show_address !== false ? '505px' : '470px')
+                    ? (profile?.show_address !== false ? '505px' : '422px') // 384px (map) + 121px (address 83px + button 36px + padding) or + 38px (button 36px + padding)
                     : '384px'
                 }}
               >
