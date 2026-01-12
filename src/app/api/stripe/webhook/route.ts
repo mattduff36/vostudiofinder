@@ -113,6 +113,33 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
 
   const paymentIntent = expandedSession.payment_intent as Stripe.PaymentIntent | null;
   
+  // Extract coupon metadata for custom membership duration
+  let membershipMonths = 12; // Default 12 months
+  let couponCode: string | null = null;
+  
+  if (expandedSession.total_details?.breakdown?.discounts && expandedSession.total_details.breakdown.discounts.length > 0) {
+    const discount = expandedSession.total_details.breakdown.discounts[0];
+    couponCode = discount.discount.coupon?.id || null;
+    
+    if (couponCode) {
+      console.log(`[DEBUG ${timestamp}] 🎟️ Coupon applied: ${couponCode}`);
+      
+      // Retrieve full coupon object to access metadata
+      try {
+        const coupon = await stripe.coupons.retrieve(couponCode);
+        
+        if (coupon.metadata?.membership_months) {
+          membershipMonths = parseInt(coupon.metadata.membership_months, 10);
+          console.log(`[DEBUG ${timestamp}] 🎁 Custom membership duration from coupon: ${membershipMonths} months`);
+        } else {
+          console.log(`[DEBUG ${timestamp}] ℹ️ Coupon has no membership_months metadata, using default: 12 months`);
+        }
+      } catch (err) {
+        console.warn(`[DEBUG ${timestamp}] ⚠️ Could not retrieve coupon metadata:`, err);
+      }
+    }
+  }
+  
   // Handle 100% discount (no payment_intent created by Stripe)
   if (!paymentIntent && expandedSession.amount_total === 0) {
     console.log(`[DEBUG ${timestamp}] 💰 Zero-amount checkout (100% discount applied) - no payment_intent created`);
@@ -147,10 +174,10 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
       throw new Error(`User ${user_id} not found`);
     }
 
-    // Activate user and grant 12-month membership
+    // Activate user and grant membership with custom duration
     const now = new Date();
-    const oneYearFromNow = new Date(now);
-    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+    const expiryDate = new Date(now);
+    expiryDate.setMonth(expiryDate.getMonth() + membershipMonths);
 
     await db.users.update({
       where: { id: user_id },
@@ -171,13 +198,14 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
         payment_method: 'STRIPE',
         status: 'ACTIVE',
         current_period_start: now,
-        current_period_end: oneYearFromNow,
+        current_period_end: expiryDate,
         created_at: now,
         updated_at: now,
       },
     });
 
-    console.log(`[DEBUG ${timestamp}] ✅ User ${user_id} activated with 12-month membership (zero-amount)`);
+    console.log(`[DEBUG ${timestamp}] ✅ User ${user_id} activated with ${membershipMonths}-month membership (zero-amount)${couponCode ? ` using coupon ${couponCode}` : ''}`);
+    console.log(`[DEBUG ${timestamp}] Membership expires: ${expiryDate.toISOString()}`);
     console.log(`[DEBUG ${timestamp}] ========== WEBHOOK: handleMembershipPaymentSuccess END (zero-amount) ==========`);
     return; // Exit early, membership granted
   }
@@ -318,11 +346,11 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   console.log(`[SUCCESS] Payment recorded: ${payment.id}`);
 
   // Grant membership and update payment tracking in single atomic operation
-  console.log(`[DEBUG ${timestamp}] Granting membership to user ${user.id}...`);
+  console.log(`[DEBUG ${timestamp}] Granting ${membershipMonths}-month membership to user ${user.id}${couponCode ? ` using coupon ${couponCode}` : ''}...`);
   await grantMembership(user.id, payment.id, {
     payment_attempted_at: user.payment_attempted_at || new Date(),
     payment_retry_count: 0,
-  });
+  }, membershipMonths);
   console.log(`[DEBUG ${timestamp}] ✅ Membership granted successfully`);
 
   // Send confirmation email
@@ -348,8 +376,12 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
 }
 
 /**
- * Grant 12-month membership to user
+ * Grant membership to user with custom duration
  * Atomically updates user status and payment tracking fields
+ * @param userId - User ID to grant membership to
+ * @param _paymentId - Payment ID (for logging/tracking)
+ * @param paymentTracking - Payment tracking metadata
+ * @param membershipMonths - Number of months to grant (default: 12)
  */
 async function grantMembership(
   userId: string, 
@@ -357,11 +389,12 @@ async function grantMembership(
   paymentTracking?: {
     payment_attempted_at: Date;
     payment_retry_count: number;
-  }
+  },
+  membershipMonths: number = 12
 ) {
   const now = new Date();
-  const oneYearFromNow = new Date(now);
-  oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+  const expiryDate = new Date(now);
+  expiryDate.setMonth(expiryDate.getMonth() + membershipMonths);
 
   // ATOMIC UPDATE: status, payment tracking, and email flags in single operation
   await db.users.update({
@@ -390,7 +423,7 @@ async function grantMembership(
       status: 'ACTIVE',
       payment_method: 'STRIPE',
       current_period_start: now,
-      current_period_end: oneYearFromNow,
+      current_period_end: expiryDate,
       created_at: now,
       updated_at: now,
       // No stripe_subscription_id since this is a one-time payment
@@ -413,7 +446,7 @@ async function grantMembership(
     console.log(`🔄 Studio status set to ACTIVE for user ${userId}`);
   }
 
-  console.log(`[SUCCESS] Membership granted to user ${userId} until ${oneYearFromNow.toISOString()}`);
+  console.log(`[SUCCESS] Membership granted to user ${userId} for ${membershipMonths} months until ${expiryDate.toISOString()}`);
   return subscription;
 }
 
