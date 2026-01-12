@@ -118,7 +118,7 @@ export function DashboardDropdownMenu({
   const menuItems = [
     { 
       icon: Home, 
-      label: 'Overview', 
+      label: 'Home', 
       path: '/dashboard',
       active: pathname === '/dashboard' && !currentHash
     },
@@ -129,10 +129,10 @@ export function DashboardDropdownMenu({
       active: currentHash === '#edit-profile'
     },
     { 
-      icon: Settings, 
-      label: 'Settings', 
-      path: '/dashboard#settings',
-      active: currentHash === '#settings'
+      icon: User, 
+      label: 'My Profile', 
+      path: `/${username}`,
+      active: pathname === `/${username}`
     },
   ];
 
@@ -188,19 +188,19 @@ export function DashboardDropdownMenu({
           {/* Separator */}
           <div className="my-2 border-t border-gray-200" role="separator" />
 
-          {/* My Profile */}
+          {/* Settings */}
           <button
             type="button"
-            onClick={() => handleNavigation(`/${username}`)}
+            onClick={() => handleNavigation('/dashboard#settings')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
-              pathname === `/${username}`
+              currentHash === '#settings'
                 ? 'bg-red-50 text-red-600 font-medium'
                 : 'text-gray-700 hover:bg-gray-50'
             }`}
             role="menuitem"
           >
-            <User className="w-4 h-4" aria-hidden="true" />
-            My Profile
+            <Settings className="w-4 h-4" aria-hidden="true" />
+            Settings
           </button>
 
           {/* Logout */}
