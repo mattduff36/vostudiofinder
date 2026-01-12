@@ -97,13 +97,11 @@ export function ProfileCompletionAnimation({
     };
   }, [shouldAnimate, mounted, onAnimationComplete]);
 
-  // Start pulsing shadow after main animation completes - continues until hover
+  // Start pulsing shadow after main animation completes - continues until first hover (then stops permanently)
+  // Once hasBeenHovered is true, pulsing stops and never restarts (intentional UX behavior)
   useEffect(() => {
-    if (animationPhase === 'complete' && shouldAnimate && !hasBeenHovered) {
-      setIsPulsing(true);
-    } else {
-      setIsPulsing(false);
-    }
+    const shouldPulse = animationPhase === 'complete' && shouldAnimate && !hasBeenHovered;
+    setIsPulsing(shouldPulse);
   }, [animationPhase, shouldAnimate, hasBeenHovered]);
 
   // Handle link click
