@@ -431,6 +431,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           <AboutCollapsible
             about={profile?.about || profile?.short_about || studio.description}
             equipmentList={profile?.equipment_list}
+            servicesOffered={profile?.services_offered}
             studioTypes={studio.studio_studio_types}
           />
 
@@ -451,15 +452,24 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
           {/* Connections Section */}
           {(() => {
+            // Type-safe access to connection fields with fallback
+            const getConnection = (field: string) => {
+              return (profile as any)?.[field] || null;
+            };
+
             const standardConnections = [
-              { id: 'connection1', value: profile?.connection1, label: 'Zoom or Teams' },
-              { id: 'connection2', value: profile?.connection2, label: 'Google Hangouts' },
-              { id: 'connection3', value: profile?.connection3, label: 'Skype' },
-              { id: 'connection4', value: profile?.connection4, label: 'FaceTime' },
-              { id: 'connection5', value: profile?.connection5, label: 'Discord' },
-              { id: 'connection6', value: profile?.connection6, label: 'WhatsApp' },
-              { id: 'connection7', value: profile?.connection7, label: 'Slack' },
-              { id: 'connection8', value: profile?.connection8, label: 'Source Connect' },
+              { id: 'connection1', value: profile?.connection1, label: 'Source Connect' },
+              { id: 'connection2', value: profile?.connection2, label: 'Source Connect Now' },
+              { id: 'connection3', value: profile?.connection3, label: 'Phone Patch' },
+              { id: 'connection4', value: profile?.connection4, label: 'Session Link Pro' },
+              { id: 'connection5', value: profile?.connection5, label: 'Zoom or Teams' },
+              { id: 'connection6', value: profile?.connection6, label: 'Cleanfeed' },
+              { id: 'connection7', value: profile?.connection7, label: 'Riverside' },
+              { id: 'connection8', value: profile?.connection8, label: 'Google Hangouts' },
+              { id: 'connection9', value: getConnection('connection9'), label: 'ipDTL' },
+              { id: 'connection10', value: getConnection('connection10'), label: 'SquadCast' },
+              { id: 'connection11', value: getConnection('connection11'), label: 'Zencastr' },
+              { id: 'connection12', value: getConnection('connection12'), label: 'Other (See profile)' },
             ].filter(conn => conn.value === '1');
 
             const customConnections = (profile?.custom_connection_methods || []).map((method, index) => ({
@@ -513,8 +523,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               </div>
             </div>
           )}
-
-          <ServicesListCompact services={studio.studio_services} />
           
           {/* Mobile Map Section */}
           {studio.latitude && studio.longitude && (
@@ -652,19 +660,36 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
             <div className="mb-6 w-full">
               <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3 w-full">
                 <div className="prose prose-gray max-w-none w-full">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words w-full">
-                    {cleanDescription(profile?.about || profile?.short_about || studio.description)}
-                  </p>
                   {(() => {
+                    const cleanedAbout = cleanDescription(profile?.about || profile?.short_about || studio.description);
                     const cleanedEquipment = profile?.equipment_list ? cleanDescription(profile.equipment_list) : '';
-                    return cleanedEquipment ? (
-                      <div className="mt-4">
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Equipment</h3>
-                        <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
-                          {cleanedEquipment}
-                        </p>
-                      </div>
-                    ) : null;
+                    const cleanedServices = profile?.services_offered ? cleanDescription(profile.services_offered) : '';
+                    
+                    return (
+                      <>
+                        {cleanedAbout && (
+                          <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words w-full">
+                            {cleanedAbout}
+                          </p>
+                        )}
+                        {cleanedEquipment && (
+                          <div className={`${cleanedAbout ? 'pt-4 border-t border-gray-200' : ''}`}>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">Equipment</h3>
+                            <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
+                              {cleanedEquipment}
+                            </p>
+                          </div>
+                        )}
+                        {cleanedServices && (
+                          <div className={`${(cleanedAbout || cleanedEquipment) ? 'pt-4 border-t border-gray-200' : ''}`}>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">Services Offered</h3>
+                            <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
+                              {cleanedServices}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    );
                   })()}
                 </div>
               </div>
