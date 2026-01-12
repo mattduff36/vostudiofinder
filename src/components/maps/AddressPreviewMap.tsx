@@ -34,6 +34,13 @@ export function AddressPreviewMap({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showDistanceWarning, setShowDistanceWarning] = useState(false);
   const lastGeocodedAddressRef = useRef<string>('');
+  
+  // Use refs for values that need to be accessed in event listeners
+  // to avoid closure issues
+  const geocodedLatRef = useRef<number | null>(initialLat || null);
+  const geocodedLngRef = useRef<number | null>(initialLng || null);
+  const currentLatRef = useRef<number | null>(initialLat || null);
+  const currentLngRef = useRef<number | null>(initialLng || null);
 
   // Load Google Maps script
   useEffect(() => {
@@ -127,12 +134,17 @@ export function AddressPreviewMap({
           // Mark this address as geocoded
           lastGeocodedAddressRef.current = address;
           
+          // Update both state and refs
           setGeocodedLat(lat);
           setGeocodedLng(lng);
+          geocodedLatRef.current = lat;
+          geocodedLngRef.current = lng;
           
           // Always update to the newly geocoded coordinates when address changes
           setCurrentLat(lat);
           setCurrentLng(lng);
+          currentLatRef.current = lat;
+          currentLngRef.current = lng;
           onCoordinatesChange(lat, lng);
         } else {
           console.error('Geocoding failed:', status, 'for address:', address);
@@ -141,6 +153,10 @@ export function AddressPreviewMap({
           setCurrentLng(null);
           setGeocodedLat(null);
           setGeocodedLng(null);
+          currentLatRef.current = null;
+          currentLngRef.current = null;
+          geocodedLatRef.current = null;
+          geocodedLngRef.current = null;
           lastGeocodedAddressRef.current = '';
         }
       }
@@ -183,21 +199,32 @@ export function AddressPreviewMap({
         const newLat = position.lat();
         const newLng = position.lng();
 
-        // Check distance from geocoded point
-        if (geocodedLat && geocodedLng) {
-          const distance = calculateDistance(geocodedLat, geocodedLng, newLat, newLng);
+        // Check distance from geocoded point (use refs to get current values)
+        const geoLat = geocodedLatRef.current;
+        const geoLng = geocodedLngRef.current;
+        
+        if (geoLat !== null && geoLng !== null) {
+          const distance = calculateDistance(geoLat, geoLng, newLat, newLng);
+          
+          console.log('Distance moved:', distance.toFixed(2), 'km from geocoded position (max:', MAX_DISTANCE_KM, 'km)');
           
           if (distance > MAX_DISTANCE_KM) {
-            // Snap back to max distance
+            // Snap back to the last valid position
+            const snapLat = currentLatRef.current || geoLat;
+            const snapLng = currentLngRef.current || geoLng;
+            console.log('Distance exceeded, snapping back to:', snapLat, snapLng);
             setShowDistanceWarning(true);
             setTimeout(() => setShowDistanceWarning(false), 3000);
-            marker.setPosition({ lat: currentLat, lng: currentLng });
+            marker.setPosition({ lat: snapLat, lng: snapLng });
             return;
           }
         }
 
+        console.log('Updating position to:', newLat, newLng);
         setCurrentLat(newLat);
         setCurrentLng(newLng);
+        currentLatRef.current = newLat;
+        currentLngRef.current = newLng;
         onCoordinatesChange(newLat, newLng);
         setShowDistanceWarning(false);
       });
@@ -207,9 +234,14 @@ export function AddressPreviewMap({
         const clickLat = e.latLng.lat();
         const clickLng = e.latLng.lng();
 
-        // Check distance from geocoded point
-        if (geocodedLat && geocodedLng) {
-          const distance = calculateDistance(geocodedLat, geocodedLng, clickLat, clickLng);
+        // Check distance from geocoded point (use refs to get current values)
+        const geoLat = geocodedLatRef.current;
+        const geoLng = geocodedLngRef.current;
+        
+        if (geoLat !== null && geoLng !== null) {
+          const distance = calculateDistance(geoLat, geoLng, clickLat, clickLng);
+          
+          console.log('Click distance from geocoded position:', distance.toFixed(2), 'km (max:', MAX_DISTANCE_KM, 'km)');
           
           if (distance > MAX_DISTANCE_KM) {
             setShowDistanceWarning(true);
@@ -221,6 +253,8 @@ export function AddressPreviewMap({
         marker.setPosition({ lat: clickLat, lng: clickLng });
         setCurrentLat(clickLat);
         setCurrentLng(clickLng);
+        currentLatRef.current = clickLat;
+        currentLngRef.current = clickLng;
         onCoordinatesChange(clickLat, clickLng);
         setShowDistanceWarning(false);
       });
