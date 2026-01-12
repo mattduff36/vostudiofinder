@@ -6,9 +6,10 @@ import { logger } from '@/lib/logger';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     // Check admin authorization
@@ -68,7 +69,7 @@ export async function PATCH(
 
     // Update ticket
     const ticket = await db.support_tickets.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         users: {
@@ -82,7 +83,7 @@ export async function PATCH(
       },
     });
 
-    logger.log(`Support ticket ${params.id} updated by admin ${session.user.id}`);
+    logger.log(`Support ticket ${id} updated by admin ${session.user.id}`);
 
     return NextResponse.json({
       success: true,

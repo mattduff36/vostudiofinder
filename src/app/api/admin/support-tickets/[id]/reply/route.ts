@@ -9,9 +9,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     // Check admin authorization
@@ -45,7 +46,7 @@ export async function POST(
 
     // Get ticket details
     const ticket = await db.support_tickets.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         users: {
           select: {
@@ -114,12 +115,12 @@ export async function POST(
       }
 
       await db.support_tickets.update({
-        where: { id: params.id },
+        where: { id },
         data: updateData,
       });
     }
 
-    logger.log(`Admin ${session.user.id} replied to support ticket ${params.id}`);
+    logger.log(`Admin ${session.user.id} replied to support ticket ${id}`);
 
     return NextResponse.json({
       success: true,
