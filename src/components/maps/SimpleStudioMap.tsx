@@ -158,11 +158,11 @@ export function SimpleStudioMap({
 
     // Add marker or circle based on privacy setting
     if (showExactLocation) {
-      // Show exact pin location
+      // Show exact pin location (default Google Maps pin)
       new googleMaps.Marker({
         position: { lat: finalLat, lng: finalLng },
         map: map,
-        title: addressToUse || address,
+        // No title to protect privacy
       });
     } else {
       // Show approximate area circle
@@ -176,6 +176,19 @@ export function SimpleStudioMap({
         center: { lat: finalLat, lng: finalLng },
         radius: AREA_RADIUS_M,
         clickable: false,
+      });
+      
+      // Add custom marker at center (same as /studios page)
+      // NO TITLE for privacy - user specifically chose to hide exact location
+      new googleMaps.Marker({
+        position: { lat: finalLat, lng: finalLng },
+        icon: {
+          url: '/images/marker.png',
+          scaledSize: new googleMaps.Size(32, 32),
+          anchor: new googleMaps.Point(16, 32),
+        },
+        map: map,
+        optimized: false,
       });
     }
 

@@ -797,30 +797,45 @@ export function Settings({ data }: SettingsProps) {
         </div>
 
         {/* Desktop Section Navigation with hover animations */}
-        <div className="border-b border-gray-100 px-6">
-          <nav className="flex space-x-4 overflow-x-auto" aria-label="Settings sections">
-            {sections.map((section) => (
-              <motion.button
-                key={section.id}
-                onClick={() => {
-                  if (section.isBackLink) {
-                    router.push('/dashboard');
-                  } else {
-                    setActiveDesktopSection(section.id);
-                  }
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                  activeDesktopSection === section.id && !section.isBackLink
-                    ? 'border-red-500 text-red-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {section.isBackLink && <section.icon className="w-4 h-4" />}
-                {section.label}
-              </motion.button>
-            ))}
+        <div className="border-b border-gray-100 px-6 overflow-hidden">
+          <nav className="flex space-x-4" aria-label="Settings sections">
+            {sections.map((section) => {
+              if (section.isBackLink) {
+                // Overview back link - special styling
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => router.push('/dashboard')}
+                    className="py-3 px-1 border-b-2 border-transparent font-medium text-sm whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-red-600 transition-colors group"
+                  >
+                    <motion.div
+                      whileHover={{ x: -3 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                    >
+                      <section.icon className="w-4 h-4 text-gray-500 group-hover:text-red-600 transition-colors" />
+                    </motion.div>
+                    {section.label}
+                  </button>
+                );
+              }
+              
+              // Regular tabs - keep existing animation
+              return (
+                <motion.button
+                  key={section.id}
+                  onClick={() => setActiveDesktopSection(section.id)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                    activeDesktopSection === section.id
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {section.label}
+                </motion.button>
+              );
+            })}
           </nav>
         </div>
 

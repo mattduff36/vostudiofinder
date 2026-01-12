@@ -87,11 +87,11 @@ interface ProfileData {
 }
 
 const STUDIO_TYPES = [
-  // Top row - Active types
+  // Top row - Active types (indices 0-2)
   { value: 'HOME', label: 'Home', description: 'Personal recording space in a home environment', disabled: false },
   { value: 'RECORDING', label: 'Recording', description: 'Full, professional recording facility', disabled: false },
   { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
-  // Bottom row - Future additions (disabled)
+  // Bottom row - Future additions (indices 3-5, disabled)
   { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services', disabled: true },
   { value: 'VO_COACH', label: 'VO-Coach', description: 'Voiceover coaching and training services', disabled: true },
   { value: 'EDITING', label: 'Editing', description: 'Post-production and editing services', disabled: true },
@@ -446,83 +446,157 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Studio Types
-              </label>
-              <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
-              <div className="space-y-3">
-                {/* Top row - Active types */}
-                <div className="grid grid-cols-3 gap-3">
-                  {STUDIO_TYPES.slice(0, 3).map((type) => (
-                    <div key={type.value} className="relative group">
-                      <Checkbox
-                        label={type.label}
-                        checked={profile.studio_types.includes(type.value)}
-                        onChange={() => toggleStudioType(type.value)}
-                        disabled={type.disabled}
-                      />
-                      <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                        {type.description}
-                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            {/* Mobile: Single column layout */}
+            <div className="md:hidden space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Studio Types
+                </label>
+                <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
+                <div className="space-y-3">
+                  {/* Top row - Active types */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {STUDIO_TYPES.slice(0, 3).map((type) => (
+                      <div key={type.value} className="relative group">
+                        <Checkbox
+                          label={type.label}
+                          checked={profile.studio_types.includes(type.value)}
+                          onChange={() => toggleStudioType(type.value)}
+                          disabled={type.disabled}
+                        />
+                        <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                          {type.description}
+                          <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  {/* Bottom row - Future additions (disabled) */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {STUDIO_TYPES.slice(3).map((type) => (
+                      <div key={type.value} className="relative group">
+                        <Checkbox
+                          label={type.label}
+                          checked={profile.studio_types.includes(type.value)}
+                          onChange={() => toggleStudioType(type.value)}
+                          disabled={type.disabled}
+                        />
+                        <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                          {type.description}
+                          <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                {/* Bottom row - Future additions (disabled) */}
-                <div className="grid grid-cols-3 gap-3">
-                  {STUDIO_TYPES.slice(3).map((type) => (
-                    <div key={type.value} className="relative group">
-                      <Checkbox
-                        label={type.label}
-                        checked={profile.studio_types.includes(type.value)}
-                        onChange={() => toggleStudioType(type.value)}
-                        disabled={type.disabled}
-                      />
-                      <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                        {type.description}
-                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                      </div>
-                    </div>
-                  ))}
+              </div>
+
+              <div>
+                <Input
+                  label="Short About"
+                  value={profile.profile.short_about || ''}
+                  onChange={(e) => updateProfile('short_about', e.target.value)}
+                  maxLength={150}
+                />
+                <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                  <span>Add a brief description to shown on the Studios page</span>
+                  <span>{(profile.profile.short_about || '').length}/150 characters</span>
+                </div>
+              </div>
+
+              <div>
+                <Textarea
+                  label="Full About"
+                  value={profile.profile.about || ''}
+                  onChange={(e) => updateProfile('about', e.target.value)}
+                  rows={6}
+                  maxLength={1500}
+                />
+                <div className="flex justify-between items-center text-xs mt-1">
+                  <span className="text-gray-500">Add a detailed description for your profile page</span>
+                  <span 
+                    className={`${
+                      (profile.profile.about || '').length >= 1400 
+                        ? 'text-red-600 font-semibold' 
+                        : (profile.profile.about || '').length >= 1300 
+                        ? 'text-orange-600 font-medium' 
+                        : 'text-gray-500'
+                    }`}
+                  >
+                    {(profile.profile.about || '').length}/1500 characters
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div>
-              <Input
-                label="Short About"
-                value={profile.profile.short_about || ''}
-                onChange={(e) => updateProfile('short_about', e.target.value)}
-                maxLength={150}
-              />
-              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                <span>Add a brief description to shown on the Studios page</span>
-                <span>{(profile.profile.short_about || '').length}/150 characters</span>
-              </div>
-            </div>
+            {/* Desktop: Two column layout */}
+            <div className="hidden md:grid md:grid-cols-2 gap-4">
+              {/* Left Column: Studio Types + Short About */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Studio Types
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
+                  <div className="space-y-3">
+                    {/* Compact 2-column grid for desktop */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {STUDIO_TYPES.map((type) => (
+                        <div key={type.value} className="relative group">
+                          <Checkbox
+                            label={type.label}
+                            checked={profile.studio_types.includes(type.value)}
+                            onChange={() => toggleStudioType(type.value)}
+                            disabled={type.disabled}
+                          />
+                          <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                            {type.description}
+                            <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-            <div>
-              <Textarea
-                label="Full About"
-                value={profile.profile.about || ''}
-                onChange={(e) => updateProfile('about', e.target.value)}
-                rows={6}
-                maxLength={1500}
-              />
-              <div className="flex justify-between items-center text-xs mt-1">
-                <span className="text-gray-500">Add a detailed description for your profile page</span>
-                <span 
-                  className={`${
-                    (profile.profile.about || '').length >= 1400 
-                      ? 'text-red-600 font-semibold' 
-                      : (profile.profile.about || '').length >= 1300 
-                      ? 'text-orange-600 font-medium' 
-                      : 'text-gray-500'
-                  }`}
-                >
-                  {(profile.profile.about || '').length}/1500 characters
-                </span>
+                <div>
+                  <Textarea
+                    label="Short About"
+                    value={profile.profile.short_about || ''}
+                    onChange={(e) => updateProfile('short_about', e.target.value)}
+                    rows={8}
+                    maxLength={150}
+                  />
+                  <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                    <span>Brief description for Studios page</span>
+                    <span>{(profile.profile.short_about || '').length}/150 characters</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Full About (matching height) */}
+              <div>
+                <Textarea
+                  label="Full About"
+                  value={profile.profile.about || ''}
+                  onChange={(e) => updateProfile('about', e.target.value)}
+                  rows={16}
+                  maxLength={1500}
+                />
+                <div className="flex justify-between items-center text-xs mt-1">
+                  <span className="text-gray-500">Detailed description for your profile page</span>
+                  <span 
+                    className={`${
+                      (profile.profile.about || '').length >= 1400 
+                        ? 'text-red-600 font-semibold' 
+                        : (profile.profile.about || '').length >= 1300 
+                        ? 'text-orange-600 font-medium' 
+                        : 'text-gray-500'
+                    }`}
+                  >
+                    {(profile.profile.about || '').length}/1500 characters
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -954,31 +1028,46 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           </div>
 
           {/* Desktop Section Navigation with hover animations */}
-          <div className="border-b border-gray-100 px-6 py-1">
-            <nav className="flex space-x-4 overflow-x-auto" aria-label="Profile sections">
-              {sections.map((section) => (
-                <motion.button
-                  key={section.id}
-                  onClick={() => {
-                    if (section.isBackLink) {
-                      router.push('/dashboard');
-                    } else {
-                      setActiveSection(section.id);
-                    }
-                  }}
-                  data-section={section.id}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                    activeSection === section.id && !section.isBackLink
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {section.isBackLink && <section.icon className="w-4 h-4" />}
-                  {section.label}
-                </motion.button>
-              ))}
+          <div className="border-b border-gray-100 px-6 py-1 overflow-hidden">
+            <nav className="flex space-x-4" aria-label="Profile sections">
+              {sections.map((section) => {
+                if (section.isBackLink) {
+                  // Overview back link - special styling
+                  return (
+                    <button
+                      key={section.id}
+                      onClick={() => router.push('/dashboard')}
+                      className="py-3 px-1 border-b-2 border-transparent font-medium text-sm whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-red-600 transition-colors group"
+                    >
+                      <motion.div
+                        whileHover={{ x: -3 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                      >
+                        <section.icon className="w-4 h-4 text-gray-500 group-hover:text-red-600 transition-colors" />
+                      </motion.div>
+                      {section.label}
+                    </button>
+                  );
+                }
+                
+                // Regular tabs - keep existing animation
+                return (
+                  <motion.button
+                    key={section.id}
+                    onClick={() => setActiveSection(section.id)}
+                    data-section={section.id}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                      activeSection === section.id
+                        ? 'border-red-500 text-red-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {section.label}
+                  </motion.button>
+                );
+              })}
             </nav>
           </div>
         </div>
