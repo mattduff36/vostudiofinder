@@ -759,7 +759,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               {/* Map Card - Adjust height based on show_directions */}
               <div 
                 className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden" 
-                style={{ height: profile?.show_directions !== false ? '492px' : '384px' }}
+                style={{ height: profile?.show_directions !== false ? '542px' : '384px' }}
               >
                 {/* Map section */}
                 <div className="h-[384px]">
@@ -778,7 +778,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   <>
                     {/* Gap - matches the gap between main image and thumbnails */}
                     <div className="h-4"></div>
-                    {/* Directions section - fills remaining space (492 - 384 - 16 = 92px) */}
+                    {/* Directions section - fills remaining space (542 - 384 - 16 = 142px) */}
                     <div className="flex-1 flex flex-col justify-center px-6">
                       {/* Only show address if show_address is not explicitly false */}
                       {(profile?.show_address !== false) && (studio.full_address || studio.address || studio.city) && (
