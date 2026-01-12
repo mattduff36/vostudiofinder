@@ -719,7 +719,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
 
               {/* Right column: Map preview (desktop), below fields (mobile) */}
-              <div className="flex flex-col">
+              <div className="flex flex-col h-full">
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex-shrink-0">
                   Map Preview
                 </label>
@@ -729,7 +729,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   initialLng={profile.studio?.longitude ?? null}
                   showExactLocation={profile.studio?.show_exact_location ?? true}
                   onCoordinatesChange={handleCoordinatesChange}
-                  className="flex-1 flex flex-col min-h-0"
+                  className="flex-1 min-h-0 max-h-full"
                 />
               </div>
             </div>
