@@ -783,7 +783,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     {/* Gap - matches the gap between main image and thumbnails */}
                     <div className="h-4"></div>
                     {/* Directions section - fills remaining space */}
-                    <div className="flex-1 flex flex-col px-6 pb-4">
+                    <div className="flex-1 flex flex-col px-6">
                       {/* Only show address if show_address is not explicitly false */}
                       {(profile?.show_address !== false) && (studio.full_address || studio.address || studio.city) && (
                         <div className="flex items-start space-x-2 mb-4 flex-1">
