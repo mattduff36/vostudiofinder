@@ -108,6 +108,7 @@ export function ProfileCompletionAnimation({
         clearTimeout(pulseTimer);
       };
     }
+    return undefined;
   }, [animationPhase, shouldAnimate, hasBeenHovered]);
 
   // Handle link click

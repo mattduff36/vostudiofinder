@@ -9,11 +9,9 @@ import {
   ChevronDown,
   ChevronUp,
   CheckCircle2,
-  XCircle,
   AlertCircle,
   Info,
   Zap,
-  Eye,
   EyeOff
 } from 'lucide-react';
 import { logger } from '@/lib/logger';
@@ -50,7 +48,7 @@ export function ErrorLog() {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page] = useState(1); // Pagination controls to be added in future enhancement
   const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
 
   const fetchErrorLogs = useCallback(async () => {

@@ -113,8 +113,6 @@ export async function GET(request: NextRequest) {
             event_count: eventCount,
             environment,
             release,
-            last_event_id: null,
-            sample_event_json: null,
             updated_at: new Date(),
           },
           update: {

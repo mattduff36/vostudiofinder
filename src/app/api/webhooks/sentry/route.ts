@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     const release = issue.metadata?.release || null;
 
     // Get sample event data if available
-    let sampleEventJson = null;
+    let sampleEventJson: any = null;
     const event = payload.data?.event;
     if (event) {
       // Sanitize event data - remove sensitive information
@@ -76,7 +76,6 @@ export async function POST(request: NextRequest) {
         platform: event.platform,
         timestamp: event.timestamp,
         // Explicitly exclude sensitive data
-        // user: sanitized below
         request: event.request ? {
           url: event.request.url,
           method: event.request.method,

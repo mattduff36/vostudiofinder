@@ -847,7 +847,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         }}
       >
         {/* Sticky Header + Tabs Container */}
-        <div className="sticky top-16 z-30 bg-white/95 backdrop-blur-md rounded-t-2xl">
+        <div className="sticky top-20 z-[110] bg-white/95 backdrop-blur-md rounded-t-2xl">
           {/* Desktop Header with Progress Indicators */}
           <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
             <div className="flex items-center gap-4 flex-1">
