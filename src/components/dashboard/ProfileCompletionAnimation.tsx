@@ -144,7 +144,7 @@ export function ProfileCompletionAnimation({
           
           {/* Hover content - covers center text only with white background circle */}
           <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-            <div className="bg-white rounded-full w-36 h-36 flex flex-col items-center justify-center">
+            <div className="bg-white rounded-full w-28 h-28 flex flex-col items-center justify-center">
               <Pencil className={`w-9 h-9 font-bold ${getColor(completionPercentage)}`} aria-hidden="true" strokeWidth={2} />
               <span className="text-sm text-gray-600 whitespace-nowrap mt-1">Edit Profile</span>
             </div>
