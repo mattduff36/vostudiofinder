@@ -403,13 +403,17 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
             {!loading && (
               <div className="flex items-center justify-between lg:justify-end gap-4 pl-0 lg:pl-6 border-t lg:border-t-0 lg:border-l border-gray-200 pt-4 lg:pt-0">
                 <div className="flex items-center space-x-3">
-                  {isProfileVisible ? (
+                  {!allRequiredComplete ? (
+                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <EyeOff className="w-5 h-5 text-gray-600" />
+                    </div>
+                  ) : isProfileVisible ? (
                     <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <Eye className="w-5 h-5 text-green-600" />
                     </div>
                   ) : (
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <EyeOff className="w-5 h-5 text-gray-600" />
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <EyeOff className="w-5 h-5 text-red-600" />
                     </div>
                   )}
                   <div>
