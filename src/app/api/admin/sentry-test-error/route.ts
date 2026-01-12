@@ -17,7 +17,7 @@ import * as Sentry from '@sentry/nextjs';
  * 
  * ⚠️ This endpoint can be deleted after testing
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Require admin role
     await requireApiRole(Role.ADMIN);
