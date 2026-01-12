@@ -195,7 +195,7 @@ h6,
 
 /* Homepage hero h1 - maintains original large size */
 .hp1 {
-  font-size: 42px;
+  font-size: 56px;
   font-family: var(--font-raleway), sans-serif;
   font-weight: 300;
   margin: 30px 0;
@@ -207,19 +207,14 @@ h6,
 /* Mobile-specific adjustment for homepage hero h1 */
 @media (max-width: 768px) {
   .hp1 {
-    font-size: 38px;
+    font-size: 42px;
   }
-}
-
-/* Homepage hero h2 subtitle */
-.hp2 {
-  font-size: 18px;
 }
 
 /* Mobile-specific adjustment for homepage hero h2 */
 @media (max-width: 640px) {
   .hp2 {
-    font-size: 16px;
+    font-size: 18px;
   }
 }
 
