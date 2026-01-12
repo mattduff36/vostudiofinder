@@ -841,7 +841,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:block flex flex-col overflow-hidden"
+        className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:flex flex-col overflow-hidden"
         style={{
           boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)',
           maxHeight: 'calc(100vh - 8rem)' // Leave space for padding
