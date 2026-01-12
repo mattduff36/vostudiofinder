@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp } from 'lucide-react';
+import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -12,6 +12,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
+import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager';
 import { calculateCompletionStats, type CompletionStats } from '@/lib/utils/profile-completion';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
@@ -215,6 +216,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         connections: 'incomplete',
         rates: 'incomplete',
         social: 'incomplete',
+        images: 'incomplete',
         privacy: 'neutral',
       };
     }
@@ -274,12 +276,18 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     ].filter((url) => url && url.trim() !== '');
     const isSocialComplete = socialLinks.length >= 2;
 
+    // Images section: at least 1 image
+    const isImagesComplete = !!(
+      profile.studio?.images && profile.studio.images.length >= 1
+    );
+
     return {
       basic: isBasicComplete ? 'complete' : 'incomplete',
       contact: isContactComplete ? 'complete' : 'incomplete',
       connections: isConnectionsComplete ? 'complete' : 'incomplete',
       rates: isRatesComplete ? 'complete' : 'incomplete',
       social: isSocialComplete ? 'complete' : 'incomplete',
+      images: isImagesComplete ? 'complete' : 'incomplete',
       privacy: 'neutral',
     };
   }, [profile]);
@@ -370,6 +378,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     { id: 'rates', label: 'Rates & Pricing', icon: DollarSign, description: 'Pricing and rate tiers' },
     { id: 'social', label: 'Social Media', icon: Share2, description: 'Social media profiles' },
     { id: 'connections', label: 'Connections', icon: Wifi, description: 'Remote session connections' },
+    { id: 'images', label: 'Images', icon: ImageIcon, description: 'Studio photos and gallery' },
     { id: 'privacy', label: 'Privacy Settings', icon: Eye, description: 'Display preferences' },
   ];
 
@@ -786,6 +795,16 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 </div>
               </div>
             </div>
+          </div>
+        );
+
+      case 'images':
+        return (
+          <div>
+            <ImageGalleryManager 
+              embedded={true}
+              onImagesChanged={fetchProfile}
+            />
           </div>
         );
 
