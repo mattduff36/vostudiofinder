@@ -280,44 +280,8 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
     };
   }, [initialProfileData]);
 
-  // Compute if all required fields are complete (recalculates whenever profileData changes)
-  const allRequiredComplete = useMemo((): boolean => {
-    if (!profileData) return false;
-    
-    // Check if at least one connection method is selected
-    const hasConnectionMethod = !!(
-      profileData.profile?.connection1 === '1' || 
-      profileData.profile?.connection2 === '1' || 
-      profileData.profile?.connection3 === '1' || 
-      profileData.profile?.connection4 === '1' || 
-      profileData.profile?.connection5 === '1' || 
-      profileData.profile?.connection6 === '1' || 
-      profileData.profile?.connection7 === '1' || 
-      profileData.profile?.connection8 === '1' ||
-      profileData.profile?.connection9 === '1' ||
-      profileData.profile?.connection10 === '1' ||
-      profileData.profile?.connection11 === '1' ||
-      profileData.profile?.connection12 === '1'
-    );
-
-    // Check all 11 required fields
-    const requiredFieldsComplete = !!(
-      profileData.user?.username?.trim() &&
-      profileData.user?.display_name?.trim() &&
-      profileData.user?.email?.trim() &&
-      profileData.studio?.name?.trim() &&
-      profileData.profile?.short_about?.trim() &&
-      profileData.profile?.about?.trim() &&
-      (profileData.studio?.studio_types?.length || 0) >= 1 &&
-      profileData.profile?.location?.trim() &&
-      hasConnectionMethod &&
-      profileData.studio?.website_url?.trim() &&
-      (profileData.studio?.images?.length || 0) >= 1
-    );
-
-    logger.log('[Dashboard] Required fields complete:', requiredFieldsComplete);
-    return requiredFieldsComplete;
-  }, [profileData]);
+  // Use allRequiredComplete from completionStats (single source of truth)
+  const allRequiredComplete = completionStats.allRequiredComplete;
 
   // Handle profile visibility toggle
   const handleVisibilityToggle = async (visible: boolean) => {
