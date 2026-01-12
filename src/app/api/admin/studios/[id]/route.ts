@@ -102,6 +102,7 @@ export async function GET(
       about: decodeHtmlEntities(studio.about || ''),
       latitude: studio.latitude ? parseFloat(studio.latitude.toString()) : null,
       longitude: studio.longitude ? parseFloat(studio.longitude.toString()) : null,
+      show_exact_location: studio.show_exact_location ?? true,
       shortabout: decodeHtmlEntities(studio.short_about || ''),
       category: '', // Not in new schema
       facebook: studio.facebook_url || '',
@@ -169,6 +170,7 @@ export async function GET(
         about: studioData.about,
         latitude: studioData.latitude,
         longitude: studioData.longitude,
+        show_exact_location: studioData.show_exact_location ? '1' : '0',
         short_about: studioData.shortabout,
         category: studioData.category,
         facebook: studioData.facebook,

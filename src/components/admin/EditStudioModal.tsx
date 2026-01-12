@@ -1,7 +1,7 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Eye, Save, X, FileText, MapPin, DollarSign, Globe, Link, Image as ImageIcon, Settings, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -11,6 +11,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
+import { AddressPreviewMap } from '@/components/maps/AddressPreviewMap';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { showError } from '@/lib/toast';
@@ -146,6 +147,12 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       }
     }));
   };
+
+  // Handle coordinate changes from map preview
+  const handleCoordinatesChange = useCallback((lat: number, lng: number) => {
+    handleMetaChange('latitude', lat);
+    handleMetaChange('longitude', lng);
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleBasicChange = (key: string, value: any) => {
@@ -442,33 +449,129 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         />
       </div>
 
-      <AddressAutocomplete
-        label="Address"
-        value={profile?._meta?.full_address || ''}
-        onChange={(value) => {
-          handleMetaChange('full_address', value);
-          // Auto-populate city from full address
-          handleMetaChange('city', extractCity(value));
-        }}
-        placeholder="Start typing the address..."
-        helperText="Address used for map location. Privacy-conscious? Enter a nearby landmark or general area"
-      />
+      {/* Contact & Location - Two Column Layout for Desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left Column - Address Fields */}
+        <div className="space-y-6">
+          <div>
+            <AddressAutocomplete
+              label="Address"
+              value={profile?._meta?.full_address || ''}
+              onChange={(value) => {
+                handleMetaChange('full_address', value);
+                // Auto-populate city from full address
+                handleMetaChange('city', extractCity(value));
+              }}
+              onPlaceSelected={(place) => {
+                // Auto-populate country from Google Places API
+                if (place.address_components) {
+                  const countryComponent = place.address_components.find((component: any) =>
+                    component.types.includes('country')
+                  );
+                  if (countryComponent) {
+                    handleMetaChange('location', countryComponent.long_name);
+                  }
+                }
+              }}
+              placeholder="Start typing the address..."
+            />
 
-      <Input
-        label="Region (Town / City)"
-        type="text"
-        value={profile?._meta?.city || ''}
-        onChange={(e) => handleMetaChange('city', e.target.value)}
-        placeholder="Enter town or city name..."
-        helperText="Region will be auto-populated from the full address above. You can edit it if needed."
-      />
+            {/* Show Exact Location Toggle - Desktop Only */}
+            <div className="mt-3 hidden md:block">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-gray-700">
+                    Show exact location
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {profile?._meta?.show_exact_location === '1'
+                      ? 'Public visitors will see a precise pin on the map. Turn off to show an approximate 150m area instead (ideal for home studios).'
+                      : 'Public visitors will see an approximate 150m area instead of a precise pin. This helps protect privacy while still showing the general location.'}
+                  </p>
+                </div>
+                <div className="ml-4">
+                  <Toggle
+                    checked={profile?._meta?.show_exact_location === '1'}
+                    onChange={(checked) => handleMetaChange('show_exact_location', checked ? '1' : '0')}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
-      <CountryAutocomplete
-        label="Country"
-        value={profile?._meta?.location || ''}
-        onChange={(value) => handleMetaChange('location', value)}
-        placeholder="e.g. United Kingdom"
-      />
+          <Input
+            label="Region (Town / City)"
+            type="text"
+            value={profile?._meta?.city || ''}
+            onChange={(e) => handleMetaChange('city', e.target.value)}
+            placeholder="Enter town or city name..."
+            helperText="Region will be auto-populated from the full address above. You can edit it if needed."
+          />
+
+          <CountryAutocomplete
+            label="Country"
+            value={profile?._meta?.location || ''}
+            onChange={(value) => handleMetaChange('location', value)}
+            placeholder="e.g. United Kingdom"
+          />
+        </div>
+
+        {/* Right Column - Map Preview (Desktop Only) */}
+        <div className="hidden md:block">
+          {profile?._meta?.full_address && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-gray-700 block">
+                Map Preview
+              </label>
+              <AddressPreviewMap
+                address={profile._meta.full_address}
+                initialLat={profile._meta.latitude ?? null}
+                initialLng={profile._meta.longitude ?? null}
+                showExactLocation={profile._meta.show_exact_location === '1'}
+                onCoordinatesChange={handleCoordinatesChange}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Map Preview - Mobile Only */}
+      <div className="md:hidden">
+        {profile?._meta?.full_address && (
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-700 block">
+              Map Preview
+            </label>
+            <AddressPreviewMap
+              address={profile._meta.full_address}
+              initialLat={profile._meta.latitude ?? null}
+              initialLng={profile._meta.longitude ?? null}
+              showExactLocation={profile._meta.show_exact_location === '1'}
+              onCoordinatesChange={handleCoordinatesChange}
+            />
+
+            {/* Show Exact Location Toggle - Mobile Only */}
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Show exact location
+                </label>
+                <p className="text-xs text-gray-500 mt-1">
+                  {profile?._meta?.show_exact_location === '1'
+                    ? 'Public visitors will see a precise pin on the map. Turn off to show an approximate 150m area instead (ideal for home studios).'
+                    : 'Public visitors will see an approximate 150m area instead of a precise pin. This helps protect privacy while still showing the general location.'}
+                </p>
+              </div>
+              <div className="ml-4">
+                <Toggle
+                  checked={profile?._meta?.show_exact_location === '1'}
+                  onChange={(checked) => handleMetaChange('show_exact_location', checked ? '1' : '0')}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h3 className="font-medium text-gray-900 mb-3">Visibility Settings</h3>
