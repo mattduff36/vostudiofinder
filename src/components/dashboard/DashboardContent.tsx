@@ -156,105 +156,109 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
       {/* Collapsible Footer - Desktop only */}
       <div className="hidden md:block relative z-10 w-full" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <AnimatePresence>
-            {isFooterExpanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="overflow-hidden"
-              >
-                <div className="py-6 sm:py-8">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
-                    {/* Company Info */}
-                    <div className="col-span-1 md:col-span-2">
-                      <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4" style={{ color: '#ffffff' }}>Voiceover Studio Finder</h3>
-                      <p className="mb-4 sm:mb-6 max-w-md text-sm sm:text-base" style={{ color: '#ffffff' }}>
-                        The world's leading platform for connecting voice artists and agencies with professional 
-                        recording studios locally.
-                      </p>
-                      
-                      <div className="space-y-2 text-sm" style={{ color: '#ffffff' }}>
-                        <div className="flex items-center">
-                          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                          <span className="break-all">support@voiceoverstudiofinder.com</span>
-                        </div>
-                      </div>
-                    </div>
+          {/* Use flex-direction: column-reverse so content expands upward */}
+          <div className="flex flex-col-reverse">
+            {/* Bottom Bar - Always Visible */}
+            <div 
+              className="pt-6 sm:pt-4" 
+              style={{ borderTop: '1px solid #444444' }}
+            >
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6">
+                <div className="flex items-center space-x-6 mb-2 md:mb-0">
+                  <a href="https://x.com/VOStudioFinder" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }} aria-label="X (formerly Twitter)">
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  </a>
+                </div>
 
-                    {/* Quick Links */}
-                    <div>
-                      <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4" style={{ color: '#ffffff' }}>Quick Links</h4>
-                      <ul className="space-y-2 text-sm" style={{ color: '#cccccc' }}>
-                        <li><a href="/about" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>About</a></li>
-                        <li><a href="/help" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Help Centre</a></li>
-                      </ul>
-                    </div>
-
-                    {/* Resources */}
-                    <div>
-                      <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4" style={{ color: '#ffffff' }}>Resources</h4>
-                      <ul className="space-y-2 text-sm" style={{ color: '#cccccc' }}>
-                        <li><a href="/studios" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Browse Studios</a></li>
-                        <li><a href="/auth/signup" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>List Your Studio</a></li>
-                      </ul>
-                    </div>
+                <div className="flex flex-col md:flex-row items-center space-y-3 md:space-y-0 md:space-x-6 text-xs sm:text-sm text-center md:text-left" style={{ color: '#cccccc' }}>
+                  <span className="px-2">© 2025 VoiceoverGuy & MPDEE Development. All rights reserved.</span>
+                  <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+                    <a href="/privacy" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Privacy Policy</a>
+                    <a href="/terms" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Terms of Service</a>
+                    <button
+                      onClick={() => {
+                        document.cookie = 'vsf_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                        window.location.reload();
+                      }}
+                      className="transition-colors hover:text-red-500"
+                      style={{ color: '#cccccc' }}
+                    >
+                      Cookie Settings
+                    </button>
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
-          {/* Bottom Bar - Always Visible (with green line above) */}
-          <div 
-            className="pt-6 sm:pt-4" 
-            style={{ borderTop: '2px solid #22c55e' }}
-          >
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6">
-              <div className="flex items-center space-x-6 mb-2 md:mb-0">
-                <a href="https://x.com/VOStudioFinder" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }} aria-label="X (formerly Twitter)">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                </a>
-              </div>
-
-              <div className="flex flex-col md:flex-row items-center space-y-3 md:space-y-0 md:space-x-6 text-xs sm:text-sm text-center md:text-left" style={{ color: '#cccccc' }}>
-                <span className="px-2">© 2025 VoiceoverGuy & MPDEE Development. All rights reserved.</span>
-                <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-                  <a href="/privacy" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Privacy Policy</a>
-                  <a href="/terms" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Terms of Service</a>
-                  <button
-                    onClick={() => {
-                      document.cookie = 'vsf_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                      window.location.reload();
-                    }}
-                    className="transition-colors hover:text-red-500"
-                    style={{ color: '#cccccc' }}
-                  >
-                    Cookie Settings
-                  </button>
-                </div>
-              </div>
-
-              {/* Toggle Button */}
-              <button
-                onClick={() => setIsFooterExpanded(!isFooterExpanded)}
-                className="flex items-center space-x-2 text-gray-400 hover:text-red-500 transition-colors"
-                aria-label={isFooterExpanded ? 'Collapse footer' : 'Expand footer'}
-              >
-                <span className="text-xs font-medium">{isFooterExpanded ? 'Hide' : 'Show'} Footer</span>
-                <motion.div
-                  animate={{ rotate: isFooterExpanded ? 0 : 180 }}
-                  transition={{ duration: 0.3 }}
+                {/* Toggle Button */}
+                <button
+                  onClick={() => setIsFooterExpanded(!isFooterExpanded)}
+                  className="flex items-center space-x-2 text-gray-400 hover:text-red-500 transition-colors"
+                  aria-label={isFooterExpanded ? 'Collapse footer' : 'Expand footer'}
                 >
-                  <ChevronDown className="w-4 h-4" />
-                </motion.div>
-              </button>
+                  <span className="text-xs font-medium">{isFooterExpanded ? 'Hide' : 'Show'} Footer</span>
+                  <motion.div
+                    animate={{ rotate: isFooterExpanded ? 0 : 180 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </motion.div>
+                </button>
+              </div>
             </div>
+
+            {/* Expandable Content - Expands upward due to column-reverse */}
+            <AnimatePresence>
+              {isFooterExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="py-6 sm:py-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
+                      {/* Company Info */}
+                      <div className="col-span-1 md:col-span-2">
+                        <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4" style={{ color: '#ffffff' }}>Voiceover Studio Finder</h3>
+                        <p className="mb-4 sm:mb-6 max-w-md text-sm sm:text-base" style={{ color: '#ffffff' }}>
+                          The world's leading platform for connecting voice artists and agencies with professional 
+                          recording studios locally.
+                        </p>
+                        
+                        <div className="space-y-2 text-sm" style={{ color: '#ffffff' }}>
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <span className="break-all">support@voiceoverstudiofinder.com</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick Links */}
+                      <div>
+                        <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4" style={{ color: '#ffffff' }}>Quick Links</h4>
+                        <ul className="space-y-2 text-sm" style={{ color: '#cccccc' }}>
+                          <li><a href="/about" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>About</a></li>
+                          <li><a href="/help" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Help Centre</a></li>
+                        </ul>
+                      </div>
+
+                      {/* Resources */}
+                      <div>
+                        <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4" style={{ color: '#ffffff' }}>Resources</h4>
+                        <ul className="space-y-2 text-sm" style={{ color: '#cccccc' }}>
+                          <li><a href="/studios" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Browse Studios</a></li>
+                          <li><a href="/auth/signup" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>List Your Studio</a></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
