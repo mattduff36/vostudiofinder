@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MousePointer2, Edit3 } from 'lucide-react';
+import { MousePointer2, Pencil } from 'lucide-react';
 
 interface ProfileCompletionAnimationProps {
   children: ReactNode;
@@ -106,14 +106,14 @@ export function ProfileCompletionAnimation({
     );
   }
 
-  // If not animating, render normally with Link wrapper and hover text
+  // If not animating, render normally with Link wrapper and hover overlay
   if (!shouldAnimate || animationPhase === 'complete') {
     return (
-      <div ref={containerRef} className="hidden md:flex md:flex-col md:items-start md:gap-3 group">
+      <div ref={containerRef} className="hidden md:block">
         <a
           href="/dashboard#edit-profile"
           onClick={handleClick}
-          className="relative flex items-center justify-center transition-all duration-300 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
+          className="group relative flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
           aria-label="Edit your profile"
           style={{
             transition: 'all 0.3s ease',
@@ -125,15 +125,17 @@ export function ProfileCompletionAnimation({
             e.currentTarget.style.boxShadow = 'none';
           }}
         >
-          {children}
-        </a>
-        {/* "Edit Profile" text with icon - shows on hover */}
-        <div className="w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Edit3 className="w-4 h-4 text-red-600" aria-hidden="true" />
-            <span className="text-gray-900">Edit Profile</span>
+          {/* Original widget - hidden on hover */}
+          <div className="group-hover:opacity-0 transition-opacity duration-300">
+            {children}
           </div>
-        </div>
+          
+          {/* Hover overlay with icon and text - matches widget styling */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <Pencil className="w-10 h-10 text-gray-600 mb-1" aria-hidden="true" strokeWidth={1.5} />
+            <span className="text-sm text-gray-600">Edit Profile</span>
+          </div>
+        </a>
       </div>
     );
   }
