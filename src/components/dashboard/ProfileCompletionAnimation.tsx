@@ -106,7 +106,10 @@ export function ProfileCompletionAnimation({
     );
   }
 
-  // If not animating, render normally with Link wrapper and hover overlay
+  // State for hover
+  const [isHovered, setIsHovered] = useState(false);
+
+  // If not animating, render normally with Link wrapper and content that changes on hover
   if (!shouldAnimate || animationPhase === 'complete') {
     return (
       <div ref={containerRef} className="hidden md:block">
@@ -120,18 +123,20 @@ export function ProfileCompletionAnimation({
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.boxShadow = '0 0 30px 10px rgba(220, 38, 38, 0.3)';
+            setIsHovered(true);
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.boxShadow = 'none';
+            setIsHovered(false);
           }}
         >
-          {/* Original widget - hidden on hover */}
-          <div className="group-hover:opacity-0 transition-opacity duration-300">
+          {/* Widget wrapper - hides text content on hover */}
+          <div className={`relative transition-opacity duration-300 ${isHovered ? '[&_div]:opacity-0' : ''}`}>
             {children}
           </div>
           
-          {/* Hover overlay with icon and text - matches widget styling */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          {/* Hover content - positioned exactly where the text was */}
+          <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 pointer-events-none ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
             <Pencil className="w-10 h-10 text-gray-600 mb-1" aria-hidden="true" strokeWidth={1.5} />
             <span className="text-sm text-gray-600">Edit Profile</span>
           </div>
