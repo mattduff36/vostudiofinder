@@ -40,25 +40,51 @@ export function AddressPreviewMap({
     
     if (!apiKey) {
       console.warn('Google Maps API key not configured');
+      setErrorMessage('Google Maps API key not configured');
       return;
     }
 
+    // Check if Google Maps is already loaded
     if (window.google && window.google.maps) {
+      console.log('Google Maps already loaded');
       setIsLoaded(true);
       return;
     }
 
+    // Check for existing script
     const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
     if (existingScript) {
-      existingScript.addEventListener('load', () => setIsLoaded(true));
+      console.log('Google Maps script exists, waiting for load');
+      // Check if it's already loaded
+      if (window.google && window.google.maps) {
+        setIsLoaded(true);
+      } else {
+        // Wait for it to load
+        const checkLoaded = setInterval(() => {
+          if (window.google && window.google.maps) {
+            console.log('Google Maps loaded via existing script');
+            setIsLoaded(true);
+            clearInterval(checkLoaded);
+          }
+        }, 100);
+        
+        // Timeout after 10 seconds
+        setTimeout(() => clearInterval(checkLoaded), 10000);
+      }
       return;
     }
 
+    // Load the script
+    console.log('Loading Google Maps script');
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
     script.async = true;
-    script.onload = () => setIsLoaded(true);
+    script.onload = () => {
+      console.log('Google Maps script loaded successfully');
+      setIsLoaded(true);
+    };
     script.onerror = () => {
+      console.error('Failed to load Google Maps script');
       setErrorMessage('Failed to load Google Maps');
     };
     document.head.appendChild(script);
@@ -195,55 +221,71 @@ export function AddressPreviewMap({
 
   if (!address || address.trim() === '') {
     return (
-      <div className={`bg-gray-50 rounded-lg p-6 text-center ${className}`}>
-        <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-        <p className="text-sm text-gray-600">Enter an address to see map preview</p>
+      <div className={className}>
+        <div className="bg-gray-50 rounded-lg border border-gray-300 flex items-center justify-center text-center" style={{ minHeight: '250px' }}>
+          <div>
+            <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+            <p className="text-sm text-gray-600">Enter an address to see map preview</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (isGeocoding) {
     return (
-      <div className={`bg-gray-50 rounded-lg p-6 text-center ${className}`}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-2"></div>
-        <p className="text-sm text-gray-600">Locating address...</p>
+      <div className={className}>
+        <div className="bg-gray-50 rounded-lg border border-gray-300 flex items-center justify-center text-center" style={{ minHeight: '250px' }}>
+          <div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600">Locating address...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (errorMessage) {
     return (
-      <div className={`bg-red-50 rounded-lg p-6 text-center border border-red-200 ${className}`}>
-        <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-600" />
-        <p className="text-sm text-red-700">{errorMessage}</p>
+      <div className={className}>
+        <div className="bg-red-50 rounded-lg border border-red-200 flex items-center justify-center text-center" style={{ minHeight: '250px' }}>
+          <div>
+            <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-600" />
+            <p className="text-sm text-red-700">{errorMessage}</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!currentLat || !currentLng) {
     return (
-      <div className={`bg-gray-50 rounded-lg p-6 text-center ${className}`}>
-        <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-        <p className="text-sm text-gray-600">No location found for this address</p>
+      <div className={className}>
+        <div className="bg-gray-50 rounded-lg border border-gray-300 flex items-center justify-center text-center" style={{ minHeight: '250px' }}>
+          <div>
+            <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+            <p className="text-sm text-gray-600">No location found for this address</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div className={className}>
       {/* Map */}
       <div className="relative">
         <div 
           ref={mapRef} 
           className="rounded-lg border border-gray-300"
-          style={{ height: '300px', width: '100%' }}
+          style={{ height: '100%', width: '100%', minHeight: '250px' }}
         />
         
         {/* Coordinates overlay */}
-        <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg p-2 shadow-md">
+        <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm rounded px-2 py-1 shadow-sm">
           <div className="flex items-center text-xs text-gray-700">
             <MapPin className="w-3 h-3 mr-1 text-primary-600" />
-            <span className="font-mono">
+            <span className="font-mono text-xs">
               {currentLat.toFixed(6)}, {currentLng.toFixed(6)}
             </span>
           </div>
@@ -251,26 +293,16 @@ export function AddressPreviewMap({
 
         {/* Distance warning */}
         {showDistanceWarning && (
-          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm">
+          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-3 py-1.5 rounded shadow-lg text-xs">
             Can't move pin more than {MAX_DISTANCE_KM}km from address
           </div>
         )}
       </div>
 
-      {/* Instructions */}
-      <div className="text-xs text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <div className="flex gap-2">
-          <MapPin className="w-4 h-4 text-blue-700 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium text-blue-900 mb-1">Adjust pin location:</p>
-            <ul className="space-y-0.5 text-blue-800">
-              <li>• Drag the pin to fine-tune your location</li>
-              <li>• Click on the map to move the pin</li>
-              <li>• Limited to {MAX_DISTANCE_KM}km from the address you entered</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      {/* Instructions - plain text like other helper text */}
+      <p className="text-xs text-gray-500 mt-2">
+        Drag the pin or click the map to fine-tune your location. Limited to {MAX_DISTANCE_KM}km from the address you entered.
+      </p>
     </div>
   );
 }

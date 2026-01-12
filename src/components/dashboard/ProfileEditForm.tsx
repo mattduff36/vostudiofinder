@@ -541,49 +541,56 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               />
             </div>
 
-            <AddressAutocomplete
-              label="Address"
-              value={profile.studio?.full_address || ''}
-              onChange={(value) => {
-                updateStudio('full_address', value);
-                updateStudio('city', extractCity(value));
-              }}
-              placeholder="Start typing your address..."
-              helperText="Address used for map location. Privacy-conscious? Enter a nearby landmark or general area instead of your exact address"
-            />
+            {/* Two-column layout for address fields and map preview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left column: Address fields */}
+              <div className="space-y-4">
+                <AddressAutocomplete
+                  label="Address"
+                  value={profile.studio?.full_address || ''}
+                  onChange={(value) => {
+                    updateStudio('full_address', value);
+                    updateStudio('city', extractCity(value));
+                  }}
+                  placeholder="Start typing your address..."
+                  helperText="Address used for map location. Privacy-conscious? Enter a nearby landmark or general area instead of your exact address"
+                />
 
-            {/* Desktop-only address preview map */}
-            <div className="hidden md:block">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Map Preview
-              </label>
-              <AddressPreviewMap
-                address={profile.studio?.full_address || ''}
-                initialLat={profile.studio?.latitude ?? null}
-                initialLng={profile.studio?.longitude ?? null}
-                onCoordinatesChange={(lat, lng) => {
-                  updateStudio('latitude', lat);
-                  updateStudio('longitude', lng);
-                }}
-              />
+                <Input
+                  label="Region (Town / City)"
+                  type="text"
+                  value={profile.studio?.city || ''}
+                  onChange={(e) => updateStudio('city', e.target.value)}
+                  placeholder="Enter town or city name..."
+                  helperText="Region will be auto-populated from the Address above and shown on the Studios page. You can edit it if needed."
+                />
+
+                <CountryAutocomplete
+                  label="Country"
+                  value={profile.profile.location || ''}
+                  onChange={(value) => updateProfile('location', value)}
+                  placeholder="e.g. United Kingdom"
+                  helperText="Your primary country of operation"
+                />
+              </div>
+
+              {/* Right column: Map preview (desktop only) */}
+              <div className="hidden md:block">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Map Preview
+                </label>
+                <AddressPreviewMap
+                  address={profile.studio?.full_address || ''}
+                  initialLat={profile.studio?.latitude ?? null}
+                  initialLng={profile.studio?.longitude ?? null}
+                  onCoordinatesChange={(lat, lng) => {
+                    updateStudio('latitude', lat);
+                    updateStudio('longitude', lng);
+                  }}
+                  className="h-full"
+                />
+              </div>
             </div>
-
-            <Input
-              label="Region (Town / City)"
-              type="text"
-              value={profile.studio?.city || ''}
-              onChange={(e) => updateStudio('city', e.target.value)}
-              placeholder="Enter town or city name..."
-              helperText="Region will be auto-populated from the Full Address above and shown on the Studios page. You can edit it if needed."
-            />
-
-            <CountryAutocomplete
-              label="Country"
-              value={profile.profile.location || ''}
-              onChange={(value) => updateProfile('location', value)}
-              placeholder="e.g. United Kingdom"
-              helperText="Your primary country of operation"
-            />
           </div>
         );
 
