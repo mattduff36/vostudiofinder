@@ -756,10 +756,14 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           {/* Right Sidebar - Sticky on Desktop */}
           <div className="lg:col-span-1 w-full">
             <div className="sticky top-8 space-y-6">
-              {/* Map Card - Adjust height based on show_directions */}
+              {/* Map Card - Adjust height based on show_directions and show_address */}
               <div 
                 className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden" 
-                style={{ height: profile?.show_directions !== false ? '542px' : '384px' }}
+                style={{ 
+                  height: profile?.show_directions !== false 
+                    ? (profile?.show_address !== false ? '542px' : '470px')
+                    : '384px'
+                }}
               >
                 {/* Map section */}
                 <div className="h-[384px]">
@@ -778,18 +782,18 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   <>
                     {/* Gap - matches the gap between main image and thumbnails */}
                     <div className="h-4"></div>
-                    {/* Directions section - fills remaining space (542 - 384 - 16 = 142px) */}
-                    <div className="flex-1 flex flex-col justify-center px-6">
+                    {/* Directions section - fills remaining space */}
+                    <div className="flex-1 flex flex-col px-6 pb-4">
                       {/* Only show address if show_address is not explicitly false */}
                       {(profile?.show_address !== false) && (studio.full_address || studio.address || studio.city) && (
-                        <div className="flex items-center space-x-2 mb-2">
-                          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <p className="text-xs text-gray-600 line-clamp-1">{studio.full_address || studio.address || studio.city}</p>
+                        <div className="flex items-start space-x-2 mb-4 flex-1">
+                          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                          <p className="text-xs text-gray-600 leading-relaxed">{studio.full_address || studio.address || studio.city}</p>
                         </div>
                       )}
                       <Button
                         size="sm"
-                        className="w-full"
+                        className="w-full mt-auto"
                         onClick={handleGetDirections}
                         disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
                       >
