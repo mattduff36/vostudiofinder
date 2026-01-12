@@ -9,6 +9,7 @@ interface ProfileCompletionAnimationProps {
   children: ReactNode;
   shouldAnimate: boolean;
   onAnimationComplete: () => void;
+  completionPercentage: number;
 }
 
 /**
@@ -24,12 +25,20 @@ export function ProfileCompletionAnimation({
   children,
   shouldAnimate,
   onAnimationComplete,
+  completionPercentage,
 }: ProfileCompletionAnimationProps) {
   const [animationPhase, setAnimationPhase] = useState<'initial' | 'center' | 'pause' | 'transition' | 'complete'>('initial');
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [finalPosition, setFinalPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
+
+  // Match the color logic from ProfileCompletionProgress
+  const getColor = (percentage: number) => {
+    if (percentage > 85) return 'text-green-600';
+    if (percentage >= 75) return 'text-amber-600';
+    return 'text-gray-600';
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -136,8 +145,8 @@ export function ProfileCompletionAnimation({
           {/* Hover content - covers center text only with white background circle */}
           <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
             <div className="bg-white rounded-full w-36 h-36 flex flex-col items-center justify-center">
-              <Pencil className="w-10 h-10 text-gray-600 mb-1" aria-hidden="true" strokeWidth={1.5} />
-              <span className="text-sm text-gray-600 whitespace-nowrap">Edit Profile</span>
+              <Pencil className={`w-9 h-9 font-bold ${getColor(completionPercentage)}`} aria-hidden="true" strokeWidth={2} />
+              <span className="text-sm text-gray-600 whitespace-nowrap mt-1">Edit Profile</span>
             </div>
           </div>
         </a>
