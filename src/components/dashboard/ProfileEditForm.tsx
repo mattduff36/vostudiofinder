@@ -550,16 +550,38 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left column: Address fields */}
               <div className="space-y-4">
-                <AddressAutocomplete
-                  label="Address"
-                  value={profile.studio?.full_address || ''}
-                  onChange={(value) => {
-                    updateStudio('full_address', value);
-                    updateStudio('city', extractCity(value));
-                  }}
-                  placeholder="Start typing your address..."
-                  helperText="Address used for map location. Privacy-conscious? Enter a nearby landmark or general area instead of your exact address"
-                />
+                <div>
+                  <AddressAutocomplete
+                    label="Address"
+                    value={profile.studio?.full_address || ''}
+                    onChange={(value) => {
+                      updateStudio('full_address', value);
+                      updateStudio('city', extractCity(value));
+                    }}
+                    placeholder="Start typing your address..."
+                  />
+                  
+                  {/* Location privacy toggle */}
+                  <div className="flex items-center justify-between pt-3 pb-2">
+                    <div className="flex-1 mr-4">
+                      <label className="text-sm font-medium text-gray-700 cursor-pointer flex items-center" htmlFor="show-exact-location">
+                        Show exact location
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {profile.studio?.show_exact_location ?? true 
+                          ? 'Public visitors will see a precise pin on your map. Turn off to show an approximate 100m area instead (ideal for home studios).'
+                          : 'Public visitors will see an approximate 100m area instead of a precise pin. This helps protect your privacy while still showing your general location.'
+                        }
+                      </p>
+                    </div>
+                    <Toggle
+                      id="show-exact-location"
+                      checked={profile.studio?.show_exact_location ?? true}
+                      onChange={(checked) => updateStudio('show_exact_location', checked)}
+                      aria-label="Toggle exact location display"
+                    />
+                  </div>
+                </div>
 
                 <Input
                   label="Region (Town / City)"
@@ -580,41 +602,18 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
 
               {/* Right column: Map preview (desktop only) */}
-              <div className="hidden md:block space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Map Preview
-                  </label>
-                  <AddressPreviewMap
-                    address={profile.studio?.full_address || ''}
-                    initialLat={profile.studio?.latitude ?? null}
-                    initialLng={profile.studio?.longitude ?? null}
-                    showExactLocation={profile.studio?.show_exact_location ?? true}
-                    onCoordinatesChange={handleCoordinatesChange}
-                    className="h-full"
-                  />
-                </div>
-                
-                {/* Location privacy toggle - desktop only */}
-                <div className="flex items-center justify-between pt-3">
-                  <div className="flex-1 mr-4">
-                    <label className="text-sm font-medium text-gray-700 cursor-pointer flex items-center" htmlFor="show-exact-location">
-                      Show exact location
-                    </label>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {profile.studio?.show_exact_location ?? true 
-                        ? 'Public visitors will see a precise pin on your map. Turn off to show an approximate 100m area instead (ideal for home studios).'
-                        : 'Public visitors will see an approximate 100m area instead of a precise pin. This helps protect your privacy while still showing your general location.'
-                      }
-                    </p>
-                  </div>
-                  <Toggle
-                    id="show-exact-location"
-                    checked={profile.studio?.show_exact_location ?? true}
-                    onChange={(checked) => updateStudio('show_exact_location', checked)}
-                    aria-label="Toggle exact location display"
-                  />
-                </div>
+              <div className="hidden md:block">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Map Preview
+                </label>
+                <AddressPreviewMap
+                  address={profile.studio?.full_address || ''}
+                  initialLat={profile.studio?.latitude ?? null}
+                  initialLng={profile.studio?.longitude ?? null}
+                  showExactLocation={profile.studio?.show_exact_location ?? true}
+                  onCoordinatesChange={handleCoordinatesChange}
+                  className="h-full"
+                />
               </div>
             </div>
           </div>

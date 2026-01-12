@@ -495,8 +495,8 @@ export function AddressPreviewMap({
       {/* Instructions - plain text like other helper text */}
       <p className="text-xs text-gray-500 mt-2">
         {showExactLocation 
-          ? `Drag the pin or click the map to fine-tune your exact location. Limited to ${MAX_DISTANCE_KM}km from the address you entered. Toggle "Show exact location" below to display an approximate area instead (ideal for home studios).`
-          : `Showing approximate ${AREA_RADIUS_M}m area for privacy. Drag the circle or click the map to adjust the center. Limited to ${MAX_DISTANCE_KM}km from the address. Toggle "Show exact location" below to display a precise pin instead.`
+          ? `Drag the pin or click the map to fine-tune your exact location. Limited to ${MAX_DISTANCE_KM}km from the address you entered.`
+          : `Showing approximate ${AREA_RADIUS_M}m area for privacy. Drag the circle or click the map to adjust the center. Limited to ${MAX_DISTANCE_KM}km from the address.`
         }
       </p>
     </div>
