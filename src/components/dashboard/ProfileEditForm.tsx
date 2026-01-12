@@ -359,6 +359,29 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
   const handleSave = async () => {
     try {
+      // Validate all social media URLs before saving
+      const socialMediaFields = [
+        'facebook_url', 'x_url', 'youtube_url', 'instagram_url',
+        'soundcloud_url', 'tiktok_url', 'linkedin_url', 'threads_url'
+      ];
+      
+      const errors: { [key: string]: string } = {};
+      socialMediaFields.forEach(field => {
+        const url = profile?.profile[field as keyof typeof profile.profile] as string;
+        if (url) {
+          const error = validateSocialMediaUrl(url, field);
+          if (error) {
+            errors[field] = error;
+          }
+        }
+      });
+
+      if (Object.keys(errors).length > 0) {
+        setSocialMediaErrors(errors);
+        showError('Please fix the invalid social media URLs before saving');
+        return;
+      }
+
       setSaving(true);
 
       const response = await fetch('/api/user/profile', {
