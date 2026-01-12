@@ -52,10 +52,11 @@ export async function GET(request: NextRequest) {
 
     console.log('🔄 [SENTRY_SYNC] Starting Sentry issue sync...');
 
-    // Fetch recent issues from Sentry API
-    // Query for issues from the last 7 days
-    const query = 'is:unresolved';
-    const sentryApiUrl = `https://sentry.io/api/0/projects/${sentryOrgSlug}/${sentryProjectSlug}/issues/?query=${encodeURIComponent(query)}&statsPeriod=7d`;
+    // Fetch ALL issues from Sentry API (resolved + unresolved + ignored)
+    // This ensures we capture ALL errors, not just unresolved ones
+    // Query for issues from the last 30 days to capture more history
+    const query = 'is:unresolved OR is:resolved OR is:ignored';
+    const sentryApiUrl = `https://sentry.io/api/0/projects/${sentryOrgSlug}/${sentryProjectSlug}/issues/?query=${encodeURIComponent(query)}&statsPeriod=30d`;
 
     const response = await fetch(sentryApiUrl, {
       headers: {
@@ -95,11 +96,22 @@ export async function GET(request: NextRequest) {
         const environment = issue.metadata?.environment || null;
         const release = issue.metadata?.release || null;
 
+        // Determine status from Sentry issue state
+        // Sentry uses: 'unresolved', 'resolved', 'ignored', 'muted'
+        let status: 'OPEN' | 'RESOLVED' | 'IGNORED' = 'OPEN';
+        if (issue.status === 'resolved') {
+          status = 'RESOLVED';
+        } else if (issue.status === 'ignored' || issue.status === 'muted') {
+          status = 'IGNORED';
+        } else {
+          status = 'OPEN';
+        }
+
         // Optionally fetch latest event for this issue (for top N issues only)
         // For now, we'll skip individual event fetching to reduce API calls
         // The webhook will provide sample events when they occur
 
-        // Upsert the issue
+        // Upsert the issue - sync status from Sentry
         await db.error_log_groups.upsert({
           where: { sentry_issue_id: sentryIssueId },
           create: {
@@ -107,7 +119,7 @@ export async function GET(request: NextRequest) {
             sentry_issue_id: sentryIssueId,
             title,
             level,
-            status: 'OPEN',
+            status,
             first_seen_at: firstSeenAt,
             last_seen_at: lastSeenAt,
             event_count: eventCount,
@@ -118,6 +130,7 @@ export async function GET(request: NextRequest) {
           update: {
             title,
             level,
+            status, // Sync status from Sentry
             last_seen_at: lastSeenAt,
             event_count: eventCount,
             environment,
