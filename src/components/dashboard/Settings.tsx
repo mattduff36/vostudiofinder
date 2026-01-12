@@ -798,7 +798,7 @@ export function Settings({ data }: SettingsProps) {
 
         {/* Desktop Section Navigation with hover animations */}
         <div className="border-b border-gray-100 px-6">
-          <nav className="flex space-x-4 overflow-x-auto" aria-label="Settings sections">
+          <nav className="flex space-x-4 overflow-x-hidden" aria-label="Settings sections">
             {sections.map((section) => (
               <motion.button
                 key={section.id}
