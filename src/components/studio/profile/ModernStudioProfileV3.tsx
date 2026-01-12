@@ -695,53 +695,6 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               </div>
             </div>
 
-            {/* Connections Section */}
-            {(() => {
-              // Type-safe access to connection fields with fallback
-              const getConnection = (field: string) => {
-                return (profile as any)?.[field] || null;
-              };
-
-              const standardConnections = [
-                { id: 'connection1', label: 'Source Connect', value: profile?.connection1 },
-                { id: 'connection2', label: 'Source Connect Now', value: profile?.connection2 },
-                { id: 'connection3', label: 'Phone Patch', value: profile?.connection3 },
-                { id: 'connection4', label: 'Session Link Pro', value: profile?.connection4 },
-                { id: 'connection5', label: 'Zoom or Teams', value: profile?.connection5 },
-                { id: 'connection6', label: 'Cleanfeed', value: profile?.connection6 },
-                { id: 'connection7', label: 'Riverside', value: profile?.connection7 },
-                { id: 'connection8', label: 'Google Hangouts', value: profile?.connection8 },
-                { id: 'connection9', label: 'ipDTL', value: getConnection('connection9') },
-                { id: 'connection10', label: 'SquadCast', value: getConnection('connection10') },
-                { id: 'connection11', label: 'Zencastr', value: getConnection('connection11') },
-                { id: 'connection12', label: 'Other (See profile)', value: getConnection('connection12') },
-              ].filter(conn => conn.value === '1');
-
-              // Add custom connections
-              const customMethods = ((profile as any)?.custom_connection_methods || []).filter((method: string) => method && method.trim());
-              const customConnections = customMethods.map((method: string, index: number) => ({
-                id: `custom_${index}`,
-                label: method,
-              }));
-
-              const allConnections = [...standardConnections, ...customConnections];
-
-              return allConnections.length > 0 ? (
-                <div className="mb-6 w-full">
-                  <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-6 w-full">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Connections</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      {allConnections.map((connection) => (
-                        <li key={connection.id} className="text-sm text-gray-700">
-                          {connection.label}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ) : null;
-            })()}
-
             {/* Social Media Links */}
             {socialLinks.length > 0 && (
               <div className="mb-6 w-full">
@@ -992,6 +945,51 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                   </div>
                 </div>
               )}
+
+              {/* Connections Card */}
+              {(() => {
+                // Type-safe access to connection fields with fallback
+                const getConnection = (field: string) => {
+                  return (profile as any)?.[field] || null;
+                };
+
+                const standardConnections = [
+                  { id: 'connection1', label: 'Source Connect', value: profile?.connection1 },
+                  { id: 'connection2', label: 'Source Connect Now', value: profile?.connection2 },
+                  { id: 'connection3', label: 'Phone Patch', value: profile?.connection3 },
+                  { id: 'connection4', label: 'Session Link Pro', value: profile?.connection4 },
+                  { id: 'connection5', label: 'Zoom or Teams', value: profile?.connection5 },
+                  { id: 'connection6', label: 'Cleanfeed', value: profile?.connection6 },
+                  { id: 'connection7', label: 'Riverside', value: profile?.connection7 },
+                  { id: 'connection8', label: 'Google Hangouts', value: profile?.connection8 },
+                  { id: 'connection9', label: 'ipDTL', value: getConnection('connection9') },
+                  { id: 'connection10', label: 'SquadCast', value: getConnection('connection10') },
+                  { id: 'connection11', label: 'Zencastr', value: getConnection('connection11') },
+                  { id: 'connection12', label: 'Other (See profile)', value: getConnection('connection12') },
+                ].filter(conn => conn.value === '1');
+
+                // Add custom connections
+                const customMethods = ((profile as any)?.custom_connection_methods || []).filter((method: string) => method && method.trim());
+                const customConnections = customMethods.map((method: string, index: number) => ({
+                  id: `custom_${index}`,
+                  label: method,
+                }));
+
+                const allConnections = [...standardConnections, ...customConnections];
+
+                return allConnections.length > 0 ? (
+                  <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Connections</h3>
+                    <ul className="list-disc list-inside space-y-1">
+                      {allConnections.map((connection) => (
+                        <li key={connection.id} className="text-sm text-gray-700">
+                          {connection.label}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null;
+              })()}
 
             </div>
           </div>

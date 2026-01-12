@@ -881,7 +881,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 }}
                 placeholder="https://facebook.com/your-page"
                 helperText="Your Facebook page or profile"
-                error={socialMediaErrors.facebook_url}
+                {...(socialMediaErrors.facebook_url && { error: socialMediaErrors.facebook_url })}
               />
               <Input
                 label="X (formerly Twitter)"
@@ -894,7 +894,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 }}
                 placeholder="https://x.com/yourhandle"
                 helperText="Your X (Twitter) profile"
-                error={socialMediaErrors.x_url}
+                {...(socialMediaErrors.x_url && { error: socialMediaErrors.x_url })}
               />
               <Input
                 label="YouTube"
@@ -907,7 +907,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 }}
                 placeholder="https://youtube.com/@yourchannel"
                 helperText="Your YouTube channel"
-                error={socialMediaErrors.youtube_url}
+                {...(socialMediaErrors.youtube_url && { error: socialMediaErrors.youtube_url })}
               />
               <Input
                 label="Instagram"
@@ -920,7 +920,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 }}
                 placeholder="https://instagram.com/yourhandle"
                 helperText="Your Instagram profile"
-                error={socialMediaErrors.instagram_url}
+                {...(socialMediaErrors.instagram_url && { error: socialMediaErrors.instagram_url })}
               />
               <Input
                 label="SoundCloud"
@@ -933,7 +933,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 }}
                 placeholder="https://soundcloud.com/yourprofile"
                 helperText="Your SoundCloud profile"
-                error={socialMediaErrors.soundcloud_url}
+                {...(socialMediaErrors.soundcloud_url && { error: socialMediaErrors.soundcloud_url })}
               />
               <Input
                 label="TikTok"
@@ -946,7 +946,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 }}
                 placeholder="https://www.tiktok.com/@yourhandle"
                 helperText="Your TikTok profile"
-                error={socialMediaErrors.tiktok_url}
+                {...(socialMediaErrors.tiktok_url && { error: socialMediaErrors.tiktok_url })}
               />
               <Input
                 label="LinkedIn"
@@ -959,7 +959,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 }}
                 placeholder="https://linkedin.com/in/yourprofile"
                 helperText="Your LinkedIn profile"
-                error={socialMediaErrors.linkedin_url}
+                {...(socialMediaErrors.linkedin_url && { error: socialMediaErrors.linkedin_url })}
               />
               <Input
                 label="Threads"
