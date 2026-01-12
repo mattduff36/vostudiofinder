@@ -516,7 +516,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 label="Display Name"
                 value={profile.user.display_name || ''}
                 onChange={(e) => updateUser('display_name', e.target.value)}
-                helperText="Your public display name"
+                helperText="Your dashboard display name"
                 required
               />
               <div>
