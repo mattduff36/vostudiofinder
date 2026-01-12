@@ -25,7 +25,6 @@ import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
-import { Button } from '@/components/ui/Button';
 
 interface SettingsProps {
   data: any; // dashboardData

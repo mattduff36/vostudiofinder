@@ -14,7 +14,6 @@ import { generateStudioImageAlt } from '@/lib/utils/image-alt';
 // Phase 3: Mobile profile components
 import { CompactHero } from './mobile/CompactHero';
 import { AboutCollapsible } from './mobile/AboutCollapsible';
-import { ServicesListCompact } from './mobile/ServicesListCompact';
 import { MapFullscreen } from './mobile/MapFullscreen';
 
 // Force rebuild: Updated types for connection9-12 and custom_connection_methods
@@ -90,11 +89,14 @@ interface ModernStudioProfileV3Props {
         show_rates?: boolean | null;
         facebook_url?: string | null;
         twitter_url?: string | null;
+        x_url?: string | null;
         linkedin_url?: string | null;
         instagram_url?: string | null;
         youtube_url?: string | null;
         vimeo_url?: string | null;
         soundcloud_url?: string | null;
+        tiktok_url?: string | null;
+        threads_url?: string | null;
         is_crb_checked?: boolean | null;
         is_featured?: boolean | null;
         is_spotlight?: boolean | null;
