@@ -29,7 +29,7 @@ export function ProfileCompletionAnimation({
 }: ProfileCompletionAnimationProps) {
   const [animationPhase, setAnimationPhase] = useState<'initial' | 'center' | 'pause' | 'transition' | 'complete'>('initial');
   const [mounted, setMounted] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const targetRef = useRef<HTMLAnchorElement>(null);
   const [finalPosition, setFinalPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [isPulsing, setIsPulsing] = useState(false);
@@ -68,8 +68,8 @@ export function ProfileCompletionAnimation({
     // Phase 3: Transition to final position (0.8s)
     timers.push(setTimeout(() => {
       // Calculate final position before transitioning
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
+      if (targetRef.current) {
+        const rect = targetRef.current.getBoundingClientRect();
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
         const finalX = rect.left + rect.width / 2;
@@ -126,71 +126,7 @@ export function ProfileCompletionAnimation({
     }
   };
 
-  // Don't render anything during SSR
-  if (!mounted) {
-    return (
-      <div ref={containerRef} className="relative flex items-center justify-center flex-shrink-0">
-        {children}
-      </div>
-    );
-  }
-
-  // If not animating, render normally with Link wrapper and content that changes on hover
-  if (!shouldAnimate || animationPhase === 'complete') {
-    return (
-      <div ref={containerRef} className="hidden md:block">
-        <motion.a
-          href="/dashboard#edit-profile"
-          onClick={handleClick}
-          className="group relative flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
-          aria-label="Edit your profile"
-          animate={
-            isPulsing && !isHovered
-              ? {
-                  boxShadow: [
-                    '0 0 0 0 rgba(220, 38, 38, 0)',
-                    '0 0 30px 10px rgba(220, 38, 38, 0.3)',
-                    '0 0 0 0 rgba(220, 38, 38, 0)',
-                  ],
-                }
-              : {}
-          }
-          transition={
-            isPulsing && !isHovered
-              ? {
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }
-              : {}
-          }
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px 10px rgba(220, 38, 38, 0.3)';
-            setIsHovered(true);
-            setHasBeenHovered(true);
-            setIsPulsing(false);
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-            setIsHovered(false);
-          }}
-        >
-          {/* Widget - always visible */}
-          <div className="relative">
-            {children}
-          </div>
-          
-          {/* Hover content - covers center text only with white background circle */}
-          <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-            <div className="bg-white rounded-full w-28 h-28 flex flex-col items-center justify-center">
-              <Pencil className={`w-9 h-9 font-bold ${getColor(completionPercentage)}`} aria-hidden="true" strokeWidth={2.5} />
-              <span className="text-sm text-gray-600 whitespace-nowrap mt-1">Edit Profile</span>
-            </div>
-          </div>
-        </motion.a>
-      </div>
-    );
-  }
+  const isAnimating = shouldAnimate && mounted && animationPhase !== 'complete';
 
   // Animation phases - render in portal
   const animationContent = (
@@ -314,13 +250,61 @@ export function ProfileCompletionAnimation({
 
   return (
     <>
-      {/* Placeholder in the DOM for final position calculation */}
-      <div ref={containerRef} className="hidden md:block opacity-0 pointer-events-none">
-        {children}
-      </div>
+      {/* In-layout target (used for final position measurement + non-animated interaction) */}
+      <motion.a
+        ref={targetRef}
+        href="/dashboard#edit-profile"
+        onClick={handleClick}
+        className="group relative flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
+        aria-label="Edit your profile"
+        animate={
+          isPulsing && !isHovered
+            ? {
+                boxShadow: [
+                  '0 0 0 0 rgba(220, 38, 38, 0)',
+                  '0 0 30px 10px rgba(220, 38, 38, 0.3)',
+                  '0 0 0 0 rgba(220, 38, 38, 0)',
+                ],
+              }
+            : {}
+        }
+        transition={
+          isPulsing && !isHovered
+            ? {
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }
+            : {}
+        }
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px 10px rgba(220, 38, 38, 0.3)';
+          setIsHovered(true);
+          setHasBeenHovered(true);
+          setIsPulsing(false);
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+          setIsHovered(false);
+        }}
+        style={isAnimating ? { opacity: 0, pointerEvents: 'none' } : undefined}
+      >
+        {/* Widget - always visible */}
+        <div className="relative">
+          {children}
+        </div>
+        
+        {/* Hover content - covers center text only with white background circle */}
+        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="bg-white rounded-full w-28 h-28 flex flex-col items-center justify-center">
+            <Pencil className={`w-9 h-9 font-bold ${getColor(completionPercentage)}`} aria-hidden="true" strokeWidth={2.5} />
+            <span className="text-sm text-gray-600 whitespace-nowrap mt-1">Edit Profile</span>
+          </div>
+        </div>
+      </motion.a>
 
       {/* Portal for animation */}
-      {typeof window !== 'undefined' && createPortal(animationContent, document.body)}
+      {isAnimating && typeof window !== 'undefined' && createPortal(animationContent, document.body)}
     </>
   );
 }
