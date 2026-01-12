@@ -87,13 +87,13 @@ interface ProfileData {
 }
 
 const STUDIO_TYPES = [
-  // Top row - Active types (indices 0-2)
+  // Top row
   { value: 'HOME', label: 'Home', description: 'Personal recording space in a home environment', disabled: false },
-  { value: 'RECORDING', label: 'Recording', description: 'Full, professional recording facility', disabled: false },
-  { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
-  // Bottom row - Future additions (indices 3-5, disabled)
   { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services', disabled: true },
+  { value: 'RECORDING', label: 'Recording', description: 'Full, professional recording facility', disabled: false },
+  // Bottom row
   { value: 'VO_COACH', label: 'VO-Coach', description: 'Voiceover coaching and training services', disabled: true },
+  { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
   { value: 'EDITING', label: 'Editing', description: 'Post-production and editing services', disabled: true },
 ];
 
