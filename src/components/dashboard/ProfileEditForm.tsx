@@ -665,7 +665,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                     maxLength={150}
                   />
                   <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                    <span>Brief description for Studios page</span>
+                    <span>Brief description for the Studios page</span>
                     <span>{(profile.profile.short_about || '').length}/150 characters</span>
                   </div>
                 </div>
