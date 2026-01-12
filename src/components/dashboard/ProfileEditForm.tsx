@@ -612,7 +612,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   value={profile.profile.about || ''}
                   onChange={(e) => updateProfile('about', e.target.value)}
                   maxLength={1500}
-                  className="min-h-[420px] resize-none overflow-hidden"
+                  className="min-h-[352px] resize-none overflow-hidden"
                 />
                 <div className="flex justify-between items-center text-xs mt-1">
                   <span className="text-gray-500">Detailed description for your profile page</span>
