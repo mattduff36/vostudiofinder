@@ -55,7 +55,6 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
           description: true,
           short_about: true,
           full_address: true,
-          abbreviated_address: true,
           city: true,
           phone: true,
           twitter_url: true,
@@ -105,7 +104,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const description = studio?.short_about || studio.description?.substring(0, 160) || `${studio.name} recording studio`;
 
   // Location-aware description
-  const locationSuffix = studio.city ? ` in ${studio.city}` : (studio.abbreviated_address ? ` in ${studio.abbreviated_address}` : '');
+  const locationSuffix = studio.city ? ` in ${studio.city}` : (studio.full_address ? ` in ${studio.full_address}` : '');
   const fullDescription = description.endsWith('.') ? description : `${description}.`;
   const seoDescription = `${fullDescription} Professional voiceover recording studio${locationSuffix}. Book now for your next project.`;
 
@@ -117,7 +116,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
 
   // Enhanced keywords with location
   const locationKeywords = studio.city ? `${studio.city} recording studio, ${studio.city} voiceover studio, ` : '';
-  const keywords = `${locationKeywords}recording studio, ${studio.name}, voiceover, audio production, professional studio, ${studio.abbreviated_address || studio.full_address || ''}`;
+  const keywords = `${locationKeywords}recording studio, ${studio.name}, voiceover, audio production, professional studio, ${studio.city || studio.full_address || ''}`;
 
   const metadata: Metadata = {
     title: `${studio.name}${locationSuffix} - Recording Studio | ${SITE_NAME}`,
@@ -483,7 +482,6 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             })(),
             description: studio.description || '',
             full_address: studio.full_address || '',
-            abbreviated_address: studio.abbreviated_address || '',
             studio_studio_types: studio.studio_studio_types && studio.studio_studio_types.length > 0 
               ? studio.studio_studio_types.map((st: { studio_type: string }) => st.studio_type) 
               : [],
@@ -503,9 +501,12 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
                 show_rates: studio.show_rates,
                 facebook_url: studio.facebook_url,
                 twitter_url: studio.twitter_url,
+                x_url: studio.x_url, // X (formerly Twitter)
                 linkedin_url: studio.linkedin_url,
                 instagram_url: studio.instagram_url,
                 youtube_url: studio.youtube_url,
+                tiktok_url: studio.tiktok_url, // TikTok
+                threads_url: studio.threads_url, // Threads
                 vimeo_url: studio.vimeo_url,
                 soundcloud_url: studio.soundcloud_url,
                 is_crb_checked: studio.is_crb_checked,

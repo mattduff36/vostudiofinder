@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
+import { AddressPreviewMap } from '@/components/maps/AddressPreviewMap';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager';
 import { calculateCompletionStats, type CompletionStats } from '@/lib/utils/profile-completion';
@@ -73,8 +74,9 @@ interface ProfileData {
     description?: string;
     address?: string;
     full_address?: string;
-    abbreviated_address?: string;
     city?: string;
+    latitude?: number | null;
+    longitude?: number | null;
     website_url?: string;
     phone?: string;
     images?: any[];
@@ -540,25 +542,31 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             </div>
 
             <AddressAutocomplete
-              label="Full Address"
+              label="Address"
               value={profile.studio?.full_address || ''}
               onChange={(value) => {
                 updateStudio('full_address', value);
-                updateStudio('abbreviated_address', value);
                 updateStudio('city', extractCity(value));
               }}
-              placeholder="Start typing your full address..."
-              helperText="Address used for geocoding and map coordinates. Home studio privacy? Choose a nearby location or landmark"
+              placeholder="Start typing your address..."
+              helperText="Address used for map location. Privacy-conscious? Enter a nearby landmark or general area instead of your exact address"
             />
 
-            <Input
-              label="Abbreviated Address"
-              type="text"
-              value={profile.studio?.abbreviated_address || ''}
-              onChange={(e) => updateStudio('abbreviated_address', e.target.value)}
-              placeholder="Enter abbreviated address for display..."
-              helperText="Address shown on public profile (if visibility is enabled). Don't want to show a full address on your public profile? Abbreviate or customise it here."
-            />
+            {/* Desktop-only address preview map */}
+            <div className="hidden md:block">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Map Preview
+              </label>
+              <AddressPreviewMap
+                address={profile.studio?.full_address || ''}
+                initialLat={profile.studio?.latitude}
+                initialLng={profile.studio?.longitude}
+                onCoordinatesChange={(lat, lng) => {
+                  updateStudio('latitude', lat);
+                  updateStudio('longitude', lng);
+                }}
+              />
+            </div>
 
             <Input
               label="Region (Town / City)"

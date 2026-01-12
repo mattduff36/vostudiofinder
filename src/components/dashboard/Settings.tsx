@@ -217,8 +217,8 @@ export function Settings({ data }: SettingsProps) {
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">Abbreviated Address</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.studio?.abbreviated_address || 'No address set'}</p>
+                        <p className="text-sm font-medium text-gray-900">Address</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.studio?.full_address || 'No address set'}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         {profileData?.profile?.show_address ? (

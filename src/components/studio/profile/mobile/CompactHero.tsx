@@ -27,7 +27,7 @@ interface CompactHeroProps {
   ownerAvatarUrl?: string | undefined;
   studioImages?: Array<{ image_url: string; alt_text?: string }>;
   isVerified: boolean;
-  abbreviatedAddress?: string | undefined;
+  address?: string | undefined;
   showAddress?: boolean | null | undefined;
 }
 
@@ -37,7 +37,7 @@ export function CompactHero({
   ownerAvatarUrl,
   studioImages = [],
   isVerified,
-  abbreviatedAddress,
+  address,
   showAddress = true,
 }: CompactHeroProps) {
   const [imageError, setImageError] = useState(false);
@@ -214,11 +214,11 @@ export function CompactHero({
                 )}
               </div>
               
-              {/* Abbreviated Address */}
-              {shouldShowAddress && abbreviatedAddress && (
+              {/* Address */}
+              {shouldShowAddress && address && (
                 <div className="flex items-center space-x-1.5 mt-2">
                   <MapPin className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-                  <span className="text-sm text-gray-600">{abbreviatedAddress}</span>
+                  <span className="text-sm text-gray-600">{address}</span>
                 </div>
               )}
             </div>

@@ -443,26 +443,15 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       </div>
 
       <AddressAutocomplete
-        label="Full Address"
+        label="Address"
         value={profile?._meta?.full_address || ''}
         onChange={(value) => {
           handleMetaChange('full_address', value);
-          // Always auto-populate abbreviated address when full address changes
-          handleMetaChange('abbreviated_address', value);
           // Auto-populate city from full address
           handleMetaChange('city', extractCity(value));
         }}
-        placeholder="Start typing your full address..."
-        helperText="Complete address used for geocoding and map coordinates"
-      />
-
-      <Input
-        label="Abbreviated Address"
-        type="text"
-        value={profile?._meta?.abbreviated_address || ''}
-        onChange={(e) => handleMetaChange('abbreviated_address', e.target.value)}
-        placeholder="Enter abbreviated address for display..."
-        helperText="This address will be shown on your public profile (if visibility is enabled). You can abbreviate or customize it."
+        placeholder="Start typing the address..."
+        helperText="Address used for map location. Privacy-conscious? Enter a nearby landmark or general area"
       />
 
       <Input

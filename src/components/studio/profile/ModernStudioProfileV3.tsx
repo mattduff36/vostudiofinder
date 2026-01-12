@@ -43,7 +43,6 @@ interface ModernStudioProfileV3Props {
     studio_studio_types: string[];
     address?: string; // Legacy field
     full_address?: string;
-    abbreviated_address?: string;
     website_url?: string;
     phone?: string;
     is_premium: boolean;
@@ -343,7 +342,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
         ownerAvatarUrl={studio.owner.avatar_url}
         studioImages={displayImages}
         isVerified={studio.is_verified}
-        abbreviatedAddress={studio.abbreviated_address}
+        address={studio.city || studio.full_address || studio.address || ''}
         showAddress={profile?.show_address}
       />
 
@@ -516,7 +515,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 <MapFullscreen
                   latitude={studio.latitude}
                   longitude={studio.longitude}
-                  address={studio.abbreviated_address || studio.address || studio.full_address || ''}
+                  address={studio.city || studio.full_address || studio.address || ''}
                   fullAddress={studio.full_address || studio.address || ''}
                 />
                 {/* Button under map - Same logic as desktop */}
@@ -564,7 +563,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                     src={displayImages[0]?.image_url || ''}
                     alt={generateStudioImageAlt(
                       studio.name,
-                      studio.full_address || studio.abbreviated_address || studio.address,
+                      studio.city || studio.full_address || studio.address,
                       displayImages[0]?.alt_text
                     )}
                     fill
@@ -824,10 +823,10 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 {/* Directions section - fills remaining space (492 - 384 - 16 = 92px) */}
                 <div className="flex-1 flex flex-col justify-center px-6">
                   {/* Only show address if show_address is not explicitly false */}
-                  {(profile?.show_address !== false) && (studio.abbreviated_address || studio.address) && (
+                  {(profile?.show_address !== false) && (studio.city || studio.full_address || studio.address) && (
                     <div className="flex items-center space-x-2 mb-2">
                       <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <p className="text-xs text-gray-600 line-clamp-1">{studio.abbreviated_address || studio.address}</p>
+                      <p className="text-xs text-gray-600 line-clamp-1">{studio.city || studio.full_address || studio.address}</p>
                     </div>
                   )}
                   {profile?.show_directions !== false ? (

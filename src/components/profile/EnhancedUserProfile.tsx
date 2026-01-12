@@ -15,7 +15,9 @@ import {
   Instagram,
   Youtube,
   Music,
-  Globe
+  Globe,
+  Video,
+  MessageCircle
 } from 'lucide-react';
 
 interface EnhancedUserProfileProps {
@@ -46,8 +48,8 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
       color: 'hover:bg-blue-50 hover:text-blue-600 border-blue-200' 
     },
     { 
-      platform: 'Twitter', 
-      url: profile?.twitter_url, 
+      platform: 'X', 
+      url: profile?.x_url || profile?.twitter_url, 
       icon: Twitter, 
       color: 'hover:bg-blue-50 hover:text-blue-400 border-blue-200' 
     },
@@ -62,6 +64,18 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
       url: profile?.instagram_url, 
       icon: Instagram, 
       color: 'hover:bg-pink-50 hover:text-pink-600 border-pink-200' 
+    },
+    { 
+      platform: 'TikTok', 
+      url: profile?.tiktok_url, 
+      icon: Video, 
+      color: 'hover:bg-gray-50 hover:text-gray-900 border-gray-200' 
+    },
+    { 
+      platform: 'Threads', 
+      url: profile?.threads_url, 
+      icon: MessageCircle, 
+      color: 'hover:bg-gray-50 hover:text-gray-900 border-gray-200' 
     },
     { 
       platform: 'YouTube', 
