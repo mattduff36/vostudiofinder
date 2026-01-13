@@ -137,12 +137,12 @@ export function Navbar({ session }: NavbarProps) {
       } ${isMapFullscreen ? 'md:block hidden' : ''}`}
     >
       <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4 w-full">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between relative">
           {/* Logo */}
           <Link 
             href="/" 
             onClick={handleLogoClick}
-            className="relative cursor-pointer"
+            className="relative cursor-pointer z-10"
           >
             <div className={`relative transition-all duration-200 ${
               isLogoLoading ? 'md:scale-100 scale-95' : 'scale-100'
@@ -163,8 +163,8 @@ export function Navbar({ session }: NavbarProps) {
             </div>
           </Link>
           
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
             <Link 
               href="/studios" 
               className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
@@ -214,7 +214,7 @@ export function Navbar({ session }: NavbarProps) {
           </div>
           
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4 z-10">
             {session ? (
               <>
                 <span className={`text-sm ${
