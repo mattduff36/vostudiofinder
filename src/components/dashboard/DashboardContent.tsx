@@ -24,6 +24,7 @@ interface DashboardContentProps {
 export function DashboardContent({ dashboardData, initialProfileData }: DashboardContentProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [isFooterExpanded, setIsFooterExpanded] = useState(false);
+  const [overviewRefreshKey, setOverviewRefreshKey] = useState(0);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const hasMountedRef = useRef(false);
   const prevTabRef = useRef<DashboardTab>('overview');
@@ -52,11 +53,13 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
     hasMountedRef.current = true;
   }, []);
 
-  // Invalidate profile cache when switching from edit-profile to ensure fresh data
+  // Invalidate profile cache and force Overview refresh when switching from edit-profile
   useEffect(() => {
-    if (prevTabRef.current === 'edit-profile' && activeTab !== 'edit-profile') {
-      // User is navigating away from edit-profile, invalidate cache to get fresh data
+    if (prevTabRef.current === 'edit-profile' && activeTab === 'overview') {
+      // User is returning to overview from edit-profile
+      // Invalidate cache and increment refresh key to force UserDashboard to refetch
       invalidateProfileCache();
+      setOverviewRefreshKey(prev => prev + 1);
     }
     prevTabRef.current = activeTab;
   }, [activeTab]);
@@ -73,7 +76,11 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
           // Hide desktop overview on mobile
           return (
             <div className="hidden md:block">
-              <UserDashboard data={dashboardData} initialProfileData={initialProfileData} />
+              <UserDashboard 
+                key={overviewRefreshKey} 
+                data={dashboardData} 
+                initialProfileData={initialProfileData} 
+              />
             </div>
           );
         
@@ -84,7 +91,7 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
           return <Settings data={dashboardData} />;
         
         default:
-          return <UserDashboard data={dashboardData} initialProfileData={initialProfileData} />;
+          return <UserDashboard key={overviewRefreshKey} data={dashboardData} initialProfileData={initialProfileData} />;
       }
     })();
 
@@ -155,6 +162,7 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
           // Overview: Show quick actions on mobile, regular content on desktop
           <div className="md:hidden">
             <QuickActions 
+              key={overviewRefreshKey}
               onActionClick={handleQuickAction}
               displayName={dashboardData?.user?.display_name || dashboardData?.user?.username || ''}
             />
