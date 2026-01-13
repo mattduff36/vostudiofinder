@@ -302,8 +302,8 @@ export async function PUT(
     if (body._meta?.url !== undefined) studioUpdateData.website_url = body._meta.url;
     if (body._meta?.latitude !== undefined) studioUpdateData.latitude = parseFloat(body._meta.latitude) || null;
     if (body._meta?.longitude !== undefined) studioUpdateData.longitude = parseFloat(body._meta.longitude) || null;
-    if (body._meta?.show_exact_location !== undefined) studioUpdateData.show_exact_location = body._meta.show_exact_location === '1' || body._meta.show_exact_location === true;
-    if (body._meta?.verified !== undefined) studioUpdateData.is_verified = body._meta.verified === '1' || body._meta.verified === true;
+    if (body._meta?.show_exact_location !== undefined) studioUpdateData.show_exact_location = body._meta.show_exact_location === '1' || body._meta.show_exact_location === true || body._meta.show_exact_location === 1;
+    if (body._meta?.verified !== undefined) studioUpdateData.is_verified = body._meta.verified === '1' || body._meta.verified === true || body._meta.verified === 1;
     if (body._meta?.is_profile_visible !== undefined) studioUpdateData.is_profile_visible = body._meta.is_profile_visible === '1' || body._meta.is_profile_visible === true || body._meta.is_profile_visible === 1;
     
     // Geocode full_address if it's being updated
@@ -409,7 +409,7 @@ export async function PUT(
     
     // Handle featured status with validation (max 6 featured studios)
     if (body._meta?.featured !== undefined) {
-      const isFeatured = body._meta.featured === '1' || body._meta.featured === true;
+      const isFeatured = body._meta.featured === '1' || body._meta.featured === true || body._meta.featured === 1;
       
       // If trying to feature this studio, check if limit is reached
       if (isFeatured && !existingStudio.is_featured) {
@@ -435,14 +435,14 @@ export async function PUT(
     if (body._meta?.rates1 !== undefined) profileUpdateData.rate_tier_1 = body._meta.rates1;
     if (body._meta?.rates2 !== undefined) profileUpdateData.rate_tier_2 = body._meta.rates2;
     if (body._meta?.rates3 !== undefined) profileUpdateData.rate_tier_3 = body._meta.rates3;
-    if (body._meta?.showrates !== undefined) profileUpdateData.show_rates = body._meta.showrates === '1' || body._meta.showrates === true;
+    if (body._meta?.showrates !== undefined) profileUpdateData.show_rates = body._meta.showrates === '1' || body._meta.showrates === true || body._meta.showrates === 1;
     
     // Contact preferences
-    if (body._meta?.showemail !== undefined) profileUpdateData.show_email = body._meta.showemail === '1' || body._meta.showemail === true;
-    if (body._meta?.showphone !== undefined) profileUpdateData.show_phone = body._meta.showphone === '1' || body._meta.showphone === true;
-    if (body._meta?.showaddress !== undefined) profileUpdateData.show_address = body._meta.showaddress === '1' || body._meta.showaddress === true;
-    if (body._meta?.showdirections !== undefined) profileUpdateData.show_directions = body._meta.showdirections === '1' || body._meta.showdirections === true;
-    if (body._meta?.use_coordinates_for_map !== undefined) profileUpdateData.use_coordinates_for_map = body._meta.use_coordinates_for_map === '1' || body._meta.use_coordinates_for_map === true;
+    if (body._meta?.showemail !== undefined) profileUpdateData.show_email = body._meta.showemail === '1' || body._meta.showemail === true || body._meta.showemail === 1;
+    if (body._meta?.showphone !== undefined) profileUpdateData.show_phone = body._meta.showphone === '1' || body._meta.showphone === true || body._meta.showphone === 1;
+    if (body._meta?.showaddress !== undefined) profileUpdateData.show_address = body._meta.showaddress === '1' || body._meta.showaddress === true || body._meta.showaddress === 1;
+    if (body._meta?.showdirections !== undefined) profileUpdateData.show_directions = body._meta.showdirections === '1' || body._meta.showdirections === true || body._meta.showdirections === 1;
+    if (body._meta?.use_coordinates_for_map !== undefined) profileUpdateData.use_coordinates_for_map = body._meta.use_coordinates_for_map === '1' || body._meta.use_coordinates_for_map === true || body._meta.use_coordinates_for_map === 1;
     
     // Connection types
     if (body._meta?.connection1 !== undefined) profileUpdateData.connection1 = body._meta.connection1;
