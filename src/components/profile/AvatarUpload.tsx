@@ -10,7 +10,7 @@ interface AvatarUploadProps {
   size?: 'small' | 'medium' | 'large';
   editable?: boolean;
   userName?: string;
-  variant?: 'user' | 'admin' | 'profile'; // New: determines border color and style
+  variant?: 'user' | 'admin' | 'profile' | 'light'; // New: determines border color and style
 }
 
 export function AvatarUpload({
@@ -32,8 +32,14 @@ export function AvatarUpload({
   };
 
   // Border color based on variant
-  const borderColorClass = variant === 'admin' ? 'border-gray-900' : 'border-[#d42027]';
-  const hoverBorderColorClass = variant === 'admin' ? 'group-hover:border-gray-700' : 'group-hover:border-[#b91c23]';
+  const borderColorClass = 
+    variant === 'admin' ? 'border-gray-900' 
+    : variant === 'light' ? 'border-white' 
+    : 'border-[#d42027]';
+  const hoverBorderColorClass = 
+    variant === 'admin' ? 'group-hover:border-gray-700' 
+    : variant === 'light' ? 'group-hover:border-gray-100' 
+    : 'group-hover:border-[#b91c23]';
 
   // Treat empty strings as no avatar
   const hasAvatar = currentAvatar && currentAvatar.trim() !== '';
@@ -157,8 +163,16 @@ export function AvatarUpload({
                 // Empty state - always visible on desktop with subtle background
                 <div className="hidden md:flex absolute inset-0 bg-gray-50/50 items-center justify-center z-10">
                   <div className="flex flex-col items-center gap-2 transition-transform group-hover:scale-110">
-                    <Upload className={`w-6 h-6 ${variant === 'admin' ? 'text-gray-900' : 'text-[#d42027]'}`} />
-                    <span className={`text-xs font-medium ${variant === 'admin' ? 'text-gray-900' : 'text-[#d42027]'}`}>
+                    <Upload className={`w-6 h-6 ${
+                      variant === 'admin' ? 'text-gray-900' 
+                      : variant === 'light' ? 'text-white' 
+                      : 'text-[#d42027]'
+                    }`} />
+                    <span className={`text-xs font-medium ${
+                      variant === 'admin' ? 'text-gray-900' 
+                      : variant === 'light' ? 'text-white' 
+                      : 'text-[#d42027]'
+                    }`}>
                       Upload Avatar
                     </span>
                   </div>
@@ -172,7 +186,9 @@ export function AvatarUpload({
                     type="button"
                     className={`text-xs px-3 py-1.5 rounded border ${
                       variant === 'admin' 
-                        ? 'border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white' 
+                        ? 'border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white'
+                        : variant === 'light'
+                        ? 'border-white text-white hover:bg-white hover:text-red-600'
                         : 'border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white'
                     } transition-colors font-medium`}
                     onClick={handleClick}

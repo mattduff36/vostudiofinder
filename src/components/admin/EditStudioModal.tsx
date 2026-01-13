@@ -1162,7 +1162,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                   size="medium"
                   editable={true}
                   userName={profile?.display_name || profile?.username || 'User'}
-                  variant="admin"
+                  variant="light"
                 />
                 
                 {/* Title */}
