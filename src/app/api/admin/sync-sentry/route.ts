@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch issues with pagination
     do {
-      const sentryApiUrl = cursor
+      const sentryApiUrl: string = cursor
         ? `https://sentry.io/api/0/projects/${sentryOrgSlug}/${sentryProjectSlug}/issues/?statsPeriod=14d&cursor=${cursor}`
         : `https://sentry.io/api/0/projects/${sentryOrgSlug}/${sentryProjectSlug}/issues/?statsPeriod=14d`;
 
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       cursor = null;
       if (linkHeader && fullSync) {
         const nextLinkMatch = linkHeader.match(/<[^>]*[?&]cursor=([^>&]+)[^>]*>;\s*rel="next"/);
-        if (nextLinkMatch) {
+        if (nextLinkMatch && nextLinkMatch[1]) {
           cursor = nextLinkMatch[1];
         }
       }
