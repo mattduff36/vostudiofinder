@@ -532,10 +532,10 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
             </div>
             
-            {/* Row 2: Studio Type + Website URL (3:2 ratio) */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {/* Studio Type - 3 columns */}
-              <div className="md:col-span-3">
+            {/* Row 2: Studio Type + Website URL (1:1 ratio) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Studio Type */}
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Studio Type
                 </label>
@@ -557,8 +557,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 </div>
               </div>
               
-              {/* Website URL - 2 columns */}
-              <div className="md:col-span-2">
+              {/* Website URL */}
+              <div>
                 <Input
                   label="Website URL"
                   type="url"
