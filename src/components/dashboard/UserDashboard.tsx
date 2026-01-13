@@ -211,7 +211,10 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
   useEffect(() => {
     let didCancel = false;
 
-    if (initialProfileData) {
+    // Only use initialProfileData if cache hasn't been explicitly invalidated
+    // If cache is null but we have initialProfileData, it means cache was invalidated
+    // and we should fetch fresh data, not reuse the stale initialProfileData
+    if (initialProfileData && cachedProfileFetchedAt > 0) {
       cachedProfileData = initialProfileData;
       cachedProfileFetchedAt = Date.now();
     }
