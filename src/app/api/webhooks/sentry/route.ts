@@ -72,17 +72,22 @@ export async function POST(request: NextRequest) {
     });
 
     // Handle different webhook actions
+    // Note: Sentry may send action as "created" or "issue.created" depending on integration type
     switch (action) {
+      case 'created':
       case 'issue.created':
       case 'event.created':
         return await handleIssueOrEvent(payload);
       
+      case 'resolved':
       case 'issue.resolved':
         return await handleStatusChange(payload, 'RESOLVED');
       
+      case 'ignored':
       case 'issue.ignored':
         return await handleStatusChange(payload, 'IGNORED');
       
+      case 'reopened':
       case 'issue.reopened':
         return await handleStatusChange(payload, 'OPEN');
       
