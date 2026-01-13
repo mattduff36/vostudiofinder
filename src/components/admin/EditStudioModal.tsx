@@ -178,7 +178,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         services_offered: profile._meta?.services_offered || null,
         // Social media (map from _meta to expected field names)
         facebook_url: profile._meta?.facebook || null,
-        x_url: profile._meta?.x || null,
+        x_url: profile._meta?.x || profile._meta?.twitter || null,
         linkedin_url: profile._meta?.linkedin || null,
         instagram_url: profile._meta?.instagram || null,
         youtube_url: profile._meta?.youtubepage || null,
