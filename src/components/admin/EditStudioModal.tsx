@@ -140,24 +140,24 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     }
   };
 
-  // Calculate profile completion stats
+  // Calculate profile completion stats using single source of truth
   const completionStats = useMemo(() => {
     if (!profile) return null;
 
     // Map admin modal's profile structure to calculateCompletionStats format
+    // Profile data comes from API in _meta object
     const mappedData = {
       user: {
         username: profile.username || '',
         display_name: profile.display_name || '',
         email: profile.email || '',
-        avatar_url: profile.avatar_url || null,
+        avatar_url: profile.avatar_image || null,
       },
       profile: {
-        short_about: profile._meta?.short_about || profile.profile?.short_about || null,
-        about: profile._meta?.about || profile.profile?.about || null,
-        phone: profile._meta?.phone || profile.profile?.phone || null,
-        location: profile._meta?.location || profile.profile?.location || null,
-        website_url: profile.website_url || profile._meta?.website_url || null,
+        short_about: profile._meta?.short_about || null,
+        about: profile._meta?.about || null,
+        phone: profile._meta?.phone || null,
+        location: profile._meta?.location || null,
         // Connection methods
         connection1: profile._meta?.connection1 || null,
         connection2: profile._meta?.connection2 || null,
@@ -174,11 +174,11 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         // Rates
         rate_tier_1: profile._meta?.rates1 || null,
         // Equipment & Services
-        equipment_list: profile.profile?.equipment_list || profile._meta?.equipment_list || null,
-        services_offered: profile.profile?.services_offered || profile._meta?.services_offered || null,
+        equipment_list: profile._meta?.equipment_list || null,
+        services_offered: profile._meta?.services_offered || null,
         // Social media (map from _meta to expected field names)
         facebook_url: profile._meta?.facebook || null,
-        x_url: profile.profile?.x_url || profile._meta?.twitter || null,
+        x_url: profile._meta?.x || null,
         linkedin_url: profile._meta?.linkedin || null,
         instagram_url: profile._meta?.instagram || null,
         youtube_url: profile._meta?.youtubepage || null,
@@ -187,10 +187,10 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         soundcloud_url: profile._meta?.soundcloud || null,
       },
       studio: {
-        name: profile.name || null,
+        name: profile.name || profile._meta?.studio_name || null,
         studio_types: profile.studioTypes?.map((st: any) => st.studio_type) || [],
         images: profile.images || [],
-        website_url: profile.website_url || null,
+        website_url: profile._meta?.url || null,
       },
     };
 
@@ -204,22 +204,6 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       _meta: {
         ...prev._meta,
         [key]: value
-      }
-    }));
-  };
-
-  // Handler for fields that need to write to both profile and _meta for compatibility
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleDualChange = (profileKey: string, metaKey: string, value: any) => {
-    setProfile((prev: any) => ({
-      ...prev,
-      profile: {
-        ...prev.profile,
-        [profileKey]: value
-      },
-      _meta: {
-        ...prev._meta,
-        [metaKey]: value
       }
     }));
   };
@@ -719,8 +703,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
       <Textarea
         label="Equipment List"
-        value={profile?.profile?.equipment_list || profile?._meta?.equipment_list || ''}
-        onChange={(e) => handleDualChange('equipment_list', 'equipment_list', e.target.value)}
+        value={profile?._meta?.equipment_list || ''}
+        onChange={(e) => handleMetaChange('equipment_list', e.target.value)}
         rows={4}
         helperText="List your microphones, interfaces, and other equipment"
         placeholder="e.g., Neumann U87, Universal Audio Apollo, etc."
@@ -728,8 +712,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
       <Textarea
         label="Services Offered"
-        value={profile?.profile?.services_offered || profile?._meta?.services_offered || ''}
-        onChange={(e) => handleDualChange('services_offered', 'services_offered', e.target.value)}
+        value={profile?._meta?.services_offered || ''}
+        onChange={(e) => handleMetaChange('services_offered', e.target.value)}
         rows={4}
         helperText="Describe the services you provide"
         placeholder="e.g., Voice recording, audio editing, mixing, mastering..."
@@ -754,8 +738,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         <Input
           label="X (formerly Twitter)"
           type="url"
-          value={profile?.profile?.x_url || profile?._meta?.twitter || ''}
-          onChange={(e) => handleDualChange('x_url', 'twitter', e.target.value)}
+          value={profile?._meta?.x || profile?._meta?.twitter || ''}
+          onChange={(e) => handleMetaChange('x', e.target.value)}
           placeholder="https://x.com/yourhandle"
           helperText="Your X (Twitter) profile"
         />

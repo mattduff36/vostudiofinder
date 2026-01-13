@@ -139,7 +139,9 @@ export async function GET(
       connection10: studio.connection10 || '',
       connection11: studio.connection11 || '',
       connection12: studio.connection12 || '',
-      custom_connection_methods: studio.custom_connection_methods || []
+      custom_connection_methods: studio.custom_connection_methods || [],
+      equipment_list: studio.equipment_list || '',
+      services_offered: studio.services_offered || ''
     };
     
     // Structure the data to match what the frontend expects
@@ -153,11 +155,14 @@ export async function GET(
       joined: studioData.joined,
       avatar_image: studioData.avatar_image, // Add at root level for modal
       studioTypes: studio.studio_studio_types || [],
+      name: studio.name, // Studio name at root level
       
       // All profile fields go in _meta for frontend compatibility
       _meta: {
         studio_name: studio.name, // Actual studio name from studios table
         last_name: studioData.last_name,
+        equipment_list: studioData.equipment_list,
+        services_offered: studioData.services_offered,
         location: studioData.location,
         full_address: studioData.full_address,
         city: studioData.city,
@@ -459,6 +464,15 @@ export async function PUT(
         ? body._meta.custom_connection_methods.filter((m: string) => m && m.trim()).slice(0, 2)
         : [];
     }
+    
+    // Equipment and Services
+    if (body._meta?.equipment_list !== undefined) profileUpdateData.equipment_list = body._meta.equipment_list;
+    if (body._meta?.services_offered !== undefined) profileUpdateData.services_offered = body._meta.services_offered;
+    
+    // Also support profile.* format for compatibility
+    if (body.profile?.equipment_list !== undefined) profileUpdateData.equipment_list = body.profile.equipment_list;
+    if (body.profile?.services_offered !== undefined) profileUpdateData.services_offered = body.profile.services_offered;
+    if (body.profile?.x_url !== undefined) profileUpdateData.x_url = body.profile.x_url;
 
     // Merge all studio_profiles updates into one object
     const allStudioProfileUpdates = {
