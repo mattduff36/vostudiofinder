@@ -516,10 +516,6 @@ export default function AdminStudiosPage() {
     );
   };
 
-  const handleSelectAll = (isSelected: boolean) => {
-    setSelectedStudios(isSelected ? studios.map(studio => studio.id) : []);
-  };
-
   const handleClearSelection = () => {
     setSelectedStudios([]);
   };
