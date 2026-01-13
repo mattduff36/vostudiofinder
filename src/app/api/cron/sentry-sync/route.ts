@@ -52,11 +52,10 @@ export async function GET(request: NextRequest) {
 
     console.log('🔄 [SENTRY_SYNC] Starting Sentry issue sync...');
 
-    // Fetch ALL issues from Sentry API (resolved + unresolved + ignored)
-    // This ensures we capture ALL errors, not just unresolved ones
-    // Query for issues from the last 14 days (maximum allowed by Sentry API)
-    const query = 'is:unresolved OR is:resolved OR is:ignored';
-    const sentryApiUrl = `https://sentry.io/api/0/projects/${sentryOrgSlug}/${sentryProjectSlug}/issues/?query=${encodeURIComponent(query)}&statsPeriod=14d`;
+    // Fetch issues from Sentry API from the last 14 days (maximum allowed)
+    // Note: Sentry API doesn't support OR/AND in queries, so we fetch all issues
+    // The webhook handles real-time updates for resolved/ignored status changes
+    const sentryApiUrl = `https://sentry.io/api/0/projects/${sentryOrgSlug}/${sentryProjectSlug}/issues/?statsPeriod=14d`;
 
     const response = await fetch(sentryApiUrl, {
       headers: {

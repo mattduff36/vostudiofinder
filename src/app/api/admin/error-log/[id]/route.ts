@@ -11,13 +11,13 @@ import { db } from '@/lib/db';
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Require admin role
     await requireApiRole(Role.ADMIN);
 
-    const { id } = params;
+    const { id } = await params;
 
     // Fetch error log group with full details
     const errorLogGroup = await db.error_log_groups.findUnique({
