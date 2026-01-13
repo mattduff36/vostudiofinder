@@ -149,8 +149,8 @@ export function Navbar({ session }: NavbarProps) {
             }`}>
               <Image
                 src={isScrolled || !isHomePage 
-                  ? "/images/voiceover-studio-finder-header-logo2-black.png" 
-                  : "/images/voiceover-studio-finder-header-logo2-white.png"
+                  ? "/images/voiceover-studio-finder-logo-black-BIG.png" 
+                  : "/images/voiceover-studio-finder-logo-WHITE-BIG.png"
                 }
                 alt={SITE_NAME}
                 width={384}

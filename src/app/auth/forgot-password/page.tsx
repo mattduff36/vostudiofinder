@@ -39,7 +39,7 @@ export default async function ForgotPasswordPage() {
       <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="flex justify-center mb-4 sm:mb-0">
           <Image
-            src="/images/voiceover-studio-finder-header-logo2-black.png"
+            src="/images/voiceover-studio-finder-logo-black-BIG.png"
             alt="VoiceoverStudioFinder"
             width={450}
             height={71}

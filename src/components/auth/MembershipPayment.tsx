@@ -243,7 +243,7 @@ export function MembershipPayment() {
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <Image
-            src="/images/voiceover-studio-finder-header-logo2-black.png"
+            src="/images/voiceover-studio-finder-logo-black-BIG.png"
             alt="VoiceoverStudioFinder"
             width={450}
             height={71}
