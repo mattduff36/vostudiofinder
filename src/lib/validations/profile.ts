@@ -76,6 +76,7 @@ export const connectionSchema = z.enum(['0', '1']).optional();
 
 /**
  * User update schema
+ * Note: username is not included as it cannot be changed after signup
  */
 export const userUpdateSchema = z.object({
   display_name: z
@@ -83,7 +84,6 @@ export const userUpdateSchema = z.object({
     .min(2, 'Display name must be at least 2 characters')
     .max(50, 'Display name must be less than 50 characters')
     .optional(),
-  username: usernameSchema.optional(),
 });
 
 /**
