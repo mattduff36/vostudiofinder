@@ -48,7 +48,7 @@ export default function HelpPage() {
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
       {/* Background Image */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <Image
           src="/background-images/21920-6.jpg"
           alt="Help center background texture"

@@ -9,7 +9,7 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
       {/* Background Image */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <Image
           src="/background-images/21920-3.jpg"
           alt="Privacy policy background texture"
