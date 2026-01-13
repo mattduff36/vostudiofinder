@@ -95,7 +95,7 @@ const STUDIO_TYPES = [
   // Bottom row - Future types
   { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services', disabled: true },
   { value: 'VO_COACH', label: 'VO-Coach', description: 'Voiceover coaching and training services', disabled: true },
-  { value: 'EDITING', label: 'Editing', description: 'Post-production and editing services', disabled: true },
+  { value: 'AUDIO_PRODUCER', label: 'Audio Producer', description: 'Audio production and post-production services', disabled: false },
 ];
 
 const CONNECTION_TYPES = [
