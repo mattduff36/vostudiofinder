@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
         const level = issue.level || 'error';
         const firstSeenAt = issue.firstSeen ? new Date(issue.firstSeen) : new Date();
         const lastSeenAt = issue.lastSeen ? new Date(issue.lastSeen) : new Date();
-        const eventCount = issue.count || 1;
+        const eventCount = parseInt(String(issue.count || 1), 10);
         const environment = issue.metadata?.environment || null;
         const release = issue.metadata?.release || null;
 
