@@ -83,7 +83,7 @@ export function ProfilePreviewCard({
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                 <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
                   <Image
-                    src="/images/voiceover-studio-finder-logo-black-BIG.png"
+                    src="/images/voiceover-studio-finder-logo-black-BIG 1.png"
                     alt="Logo"
                     width={48}
                     height={8}

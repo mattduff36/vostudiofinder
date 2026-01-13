@@ -107,7 +107,7 @@ export default function JoinWaitlistPage() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Image
-            src="/images/voiceover-studio-finder-logo-black-BIG.png"
+            src="/images/voiceover-studio-finder-logo-black-BIG 1.png"
             alt="VoiceoverStudioFinder"
             width={450}
             height={71}
