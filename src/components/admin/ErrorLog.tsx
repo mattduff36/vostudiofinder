@@ -12,7 +12,8 @@ import {
   AlertCircle,
   Info,
   Zap,
-  EyeOff
+  EyeOff,
+  RefreshCw
 } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
@@ -50,6 +51,7 @@ export function ErrorLog() {
   const [totalCount, setTotalCount] = useState(0);
   const [page] = useState(1); // Pagination controls to be added in future enhancement
   const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   const fetchErrorLogs = useCallback(async () => {
     setLoading(true);
@@ -141,6 +143,30 @@ export function ErrorLog() {
     }
   };
 
+  const handleSyncNow = async (fullSync = false) => {
+    setSyncing(true);
+    try {
+      const endpoint = fullSync 
+        ? '/api/admin/sync-sentry?full=true'
+        : '/api/admin/sync-sentry';
+      
+      const response = await fetch(endpoint);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to sync with Sentry');
+      }
+
+      showSuccess(`Successfully synced ${data.synced} error${data.synced !== 1 ? 's' : ''} from Sentry`);
+      fetchErrorLogs(); // Refresh the list
+    } catch (error) {
+      logger.error('Error syncing with Sentry:', error);
+      showError('Failed to sync with Sentry');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const styles = {
       OPEN: 'bg-red-100 text-red-700 border-red-300',
@@ -216,11 +242,32 @@ export function ErrorLog() {
       <div className="p-8 min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Error Log</h1>
-            <p className="text-gray-600 mt-2">
-              Monitor and review site-wide errors captured by Sentry
-            </p>
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Error Log</h1>
+              <p className="text-gray-600 mt-2">
+                Monitor and review site-wide errors captured by Sentry
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleSyncNow(false)}
+                disabled={syncing}
+                className="px-4 py-2 bg-[#d42027] hover:bg-[#b01a20] text-white rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+                {syncing ? 'Syncing...' : 'Sync Now'}
+              </button>
+              <button
+                onClick={() => handleSyncNow(true)}
+                disabled={syncing}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Fetch all historical errors from Sentry (may take a few seconds)"
+              >
+                <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+                {syncing ? 'Syncing...' : 'Full Sync'}
+              </button>
+            </div>
           </div>
 
           {/* Filters */}
