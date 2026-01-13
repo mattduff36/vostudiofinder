@@ -156,7 +156,7 @@ export function Navbar({ session }: NavbarProps) {
                 width={384}
                 height={60}
                 priority
-                className={`transition-all duration-300 hover:opacity-80 w-[180px] sm:w-[220px] md:w-[280px] h-auto ${
+                className={`transition-all duration-300 hover:opacity-80 w-[234px] sm:w-[286px] md:w-[364px] h-auto ${
                   isLogoLoading ? 'md:opacity-100 opacity-60' : 'opacity-100'
                 }`}
               />
