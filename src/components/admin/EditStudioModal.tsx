@@ -1167,11 +1167,11 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 
                 {/* Title */}
                 <div className="flex flex-col">
-                  <h2 className="text-xl font-bold text-white">
+                  <h2 className="text-xl font-bold text-white" style={{ color: '#ffffff' }}>
                     Edit Studio Profile
                   </h2>
                   {(profile?.username || studio?.users?.username) && (
-                    <p className="text-lg font-semibold text-white mt-0.5">
+                    <p className="text-lg font-semibold text-white mt-0.5" style={{ color: '#ffffff' }}>
                       {profile?.username || studio?.users?.username}
                     </p>
                   )}
