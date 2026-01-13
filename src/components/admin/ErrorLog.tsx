@@ -13,7 +13,8 @@ import {
   Info,
   Zap,
   EyeOff,
-  RefreshCw
+  RefreshCw,
+  Bug
 } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
@@ -167,6 +168,24 @@ export function ErrorLog() {
     }
   };
 
+  const handleTestError = async () => {
+    try {
+      const response = await fetch('/api/admin/sentry-test-error');
+      const data = await response.json();
+
+      if (response.ok) {
+        showSuccess('Test error sent to Sentry! Check back in a few seconds.');
+        // Refresh after 3 seconds to allow webhook to process
+        setTimeout(() => fetchErrorLogs(), 3000);
+      } else {
+        throw new Error(data.error || 'Failed to trigger test error');
+      }
+    } catch (error) {
+      logger.error('Error triggering test error:', error);
+      showError('Failed to trigger test error');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const styles = {
       OPEN: 'bg-red-100 text-red-700 border-red-300',
@@ -250,6 +269,14 @@ export function ErrorLog() {
               </p>
             </div>
             <div className="flex gap-2">
+              <button
+                onClick={handleTestError}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors flex items-center gap-2"
+                title="Trigger a test error to verify Sentry integration"
+              >
+                <Bug className="w-4 h-4" />
+                Test Error
+              </button>
               <button
                 onClick={() => handleSyncNow(false)}
                 disabled={syncing}
