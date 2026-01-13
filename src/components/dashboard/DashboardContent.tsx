@@ -156,7 +156,8 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
       <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 ${
         // Note: `src/app/layout.tsx` already applies `pt-16` (64px) to <main> to clear the fixed Navbar.
         // This additional `pt-20` is intentional spacing + clearance for the fixed mobile back button.
-        activeTab === 'overview' ? 'py-0 md:py-8' : 'pt-20 pb-8 md:py-8'
+        // pb-32 on desktop to clear the fixed footer at the bottom
+        activeTab === 'overview' ? 'py-0 md:py-8 md:pb-32' : 'pt-20 pb-8 md:py-8 md:pb-32'
       } ${activeTab === 'settings' ? 'space-y-6' : ''}`}>
         {activeTab === 'overview' ? (
           // Overview: Show quick actions on mobile, regular content on desktop
@@ -171,8 +172,22 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
         {renderTabContent()}
       </div>
 
-      {/* Collapsible Footer - Desktop only */}
-      <div className="hidden md:block relative z-10 w-full" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
+      {/* Backdrop when footer is expanded */}
+      <AnimatePresence>
+        {isFooterExpanded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="hidden md:block fixed inset-0 bg-black/20 z-40"
+            onClick={() => setIsFooterExpanded(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Collapsible Footer - Desktop only (Fixed at bottom, overlays content when expanded) */}
+      <div className="hidden md:block fixed bottom-0 left-0 right-0 z-50 w-full" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Use flex-direction: column-reverse so content expands upward */}
           <div className="flex flex-col-reverse">
