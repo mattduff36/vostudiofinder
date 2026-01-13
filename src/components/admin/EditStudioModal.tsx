@@ -354,6 +354,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     { id: 'social', name: 'Social Media' },
     { id: 'connections', name: 'Connections' },
     { id: 'images', name: 'Images' },
+    { id: 'privacy', name: 'Privacy Settings' },
     { id: 'admin', name: 'Admin Settings' }
   ];
 
@@ -365,14 +366,14 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           label="Username"
           value={profile?.username || ''}
           onChange={(e) => handleBasicChange('username', e.target.value)}
-          helperText="Used in profile URL"
+          helperText="Used in your profile URL"
           required
         />
         <Input
           label="Display Name"
           value={profile?.display_name || ''}
           onChange={(e) => handleBasicChange('display_name', e.target.value)}
-          helperText="Public display name"
+          helperText="Your dashboard display name"
           required
         />
         <div>
@@ -385,19 +386,10 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               handleMetaChange('studio_name', truncatedValue);
             }}
             maxLength={35}
-            placeholder="e.g. VoiceoverGuy - Yorkshire"
           />
-          <div className="flex justify-between items-center text-xs mt-1">
-            <span className="text-gray-500">Studio display name shown in listings</span>
-            <span 
-              className={`${
-                (profile?._meta?.studio_name || '').length > 25 
-                  ? 'text-orange-600 font-medium' 
-                  : 'text-gray-400'
-            }`}
-            >
-              {(profile?._meta?.studio_name || '').length}/35 characters
-            </span>
+          <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+            <span>Your studio or business name</span>
+            <span>{(profile?._meta?.studio_name || '').length}/35 characters</span>
           </div>
         </div>
         <Input
@@ -405,98 +397,179 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           type="url"
           value={profile?._meta?.url || ''}
           onChange={(e) => handleMetaChange('url', e.target.value)}
-          helperText="Studio or personal website"
+          helperText="Your studio or personal website"
           placeholder="https://yourstudio.com"
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Studio Types
-        </label>
-        <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio (Admin: all types enabled)</p>
-        <div className="space-y-3">
-          {/* Top row - Active types */}
-          <div className="grid grid-cols-3 gap-3">
-            {STUDIO_TYPES.slice(0, 3).map((type) => {
-              const selectedTypes = profile?.studioTypes || [];
-              const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
-              
-              return (
-                <div key={type.value} className="relative group">
-                  <Checkbox
-                    label={type.label}
-                    checked={isChecked}
-                    onChange={() => toggleStudioType(type.value)}
-                    disabled={false}
-                  />
-                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                    {type.description}
-                    <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+      {/* Mobile: Single column layout */}
+      <div className="md:hidden space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Studio Types
+          </label>
+          <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
+          <div className="space-y-3">
+            {/* Top row - Active types */}
+            <div className="grid grid-cols-3 gap-3">
+              {STUDIO_TYPES.slice(0, 3).map((type) => {
+                const selectedTypes = profile?.studioTypes || [];
+                const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
+                
+                return (
+                  <div key={type.value} className="relative group">
+                    <Checkbox
+                      label={type.label}
+                      checked={isChecked}
+                      onChange={() => toggleStudioType(type.value)}
+                      disabled={false}
+                    />
+                    <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                      {type.description}
+                      <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+            {/* Bottom row - Future additions (disabled) */}
+            <div className="grid grid-cols-3 gap-3">
+              {STUDIO_TYPES.slice(3).map((type) => {
+                const selectedTypes = profile?.studioTypes || [];
+                const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
+                
+                return (
+                  <div key={type.value} className="relative group">
+                    <Checkbox
+                      label={type.label}
+                      checked={isChecked}
+                      onChange={() => toggleStudioType(type.value)}
+                      disabled={false}
+                    />
+                    <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                      {type.description}
+                      <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          {/* Bottom row - Additional types (enabled for admins) */}
-          <div className="grid grid-cols-3 gap-3">
-            {STUDIO_TYPES.slice(3).map((type) => {
-              const selectedTypes = profile?.studioTypes || [];
-              const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
-              
-              return (
-                <div key={type.value} className="relative group">
-                  <Checkbox
-                    label={type.label}
-                    checked={isChecked}
-                    onChange={() => toggleStudioType(type.value)}
-                    disabled={false}
-                  />
-                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                    {type.description}
-                    <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                  </div>
-                </div>
-              );
-            })}
+        </div>
+
+        <div>
+          <Input
+            label="Short About"
+            value={profile?._meta?.short_about || ''}
+            onChange={(e) => handleMetaChange('short_about', e.target.value)}
+            maxLength={150}
+          />
+          <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+            <span>Add a brief description to shown on the Studios page</span>
+            <span>{(profile?._meta?.short_about || '').length}/150 characters</span>
+          </div>
+        </div>
+
+        <div>
+          <Textarea
+            label="Full About"
+            value={decodeHtmlEntities(profile?._meta?.about) || ''}
+            onChange={(e) => handleMetaChange('about', e.target.value)}
+            rows={6}
+            maxLength={1500}
+          />
+          <div className="flex justify-between items-center text-xs mt-1">
+            <span className="text-gray-500">Add a detailed description for your profile page</span>
+            <span 
+              className={`${
+                (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1400 
+                  ? 'text-red-600 font-semibold' 
+                  : (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1300 
+                  ? 'text-orange-600 font-medium' 
+                  : 'text-gray-500'
+              }`}
+            >
+              {(decodeHtmlEntities(profile?._meta?.about) || '').length}/1500 characters
+            </span>
           </div>
         </div>
       </div>
 
-      <div>
-        <Input
-          label="Short About"
-          value={profile?._meta?.short_about || ''}
-          onChange={(e) => handleMetaChange('short_about', e.target.value)}
-          maxLength={150}
-        />
-        <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-          <span>Brief description shown in listings</span>
-          <span>{(profile?._meta?.short_about || '').length}/150 characters</span>
-        </div>
-      </div>
+      {/* Desktop: Reorganized layout */}
+      <div className="hidden md:block space-y-4">
+        {/* Top Row: Studio Types (left) + Short About (right) */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Studio Types */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Studio Types
+            </label>
+            <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
+            <div className="space-y-3">
+              {/* Compact 2-column grid for desktop */}
+              <div className="grid grid-cols-2 gap-3">
+                {STUDIO_TYPES.map((type) => {
+                  const selectedTypes = profile?.studioTypes || [];
+                  const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
+                  
+                  return (
+                    <div key={type.value} className="relative group">
+                      <Checkbox
+                        label={type.label}
+                        checked={isChecked}
+                        onChange={() => toggleStudioType(type.value)}
+                        disabled={false}
+                      />
+                      <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                        {type.description}
+                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
 
-      <div>
-        <Textarea
-          label="Full About"
-          value={decodeHtmlEntities(profile?._meta?.about) || ''}
-          onChange={(e) => handleMetaChange('about', e.target.value)}
-          rows={6}
-          maxLength={1500}
-        />
-        <div className="flex justify-between items-center text-xs mt-1">
-          <span className="text-gray-500">Detailed description for profile page</span>
-          <span 
-            className={`${
-              (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1400 
-                ? 'text-red-600 font-semibold' 
-                : (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1300 
-                ? 'text-orange-600 font-medium' 
-                : 'text-gray-500'
-            }`}
-          >
-            {(decodeHtmlEntities(profile?._meta?.about) || '').length}/1500 characters
-          </span>
+          {/* Short About */}
+          <div>
+            <Textarea
+              label="Short About"
+              value={profile?._meta?.short_about || ''}
+              onChange={(e) => handleMetaChange('short_about', e.target.value)}
+              rows={4}
+              maxLength={150}
+            />
+            <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+              <span>Brief description for the Studios page</span>
+              <span>{(profile?._meta?.short_about || '').length}/150 characters</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Row: Full About (spanning both columns) */}
+        <div>
+          <Textarea
+            label="Full About"
+            value={decodeHtmlEntities(profile?._meta?.about) || ''}
+            onChange={(e) => handleMetaChange('about', e.target.value)}
+            maxLength={1500}
+            className="min-h-[150px] resize-none overflow-hidden"
+          />
+          <div className="flex justify-between items-center text-xs mt-1">
+            <span className="text-gray-500">Detailed description for your profile page</span>
+            <span 
+              className={`${
+                (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1400 
+                  ? 'text-red-600 font-semibold' 
+                  : (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1300 
+                  ? 'text-orange-600 font-medium' 
+                  : 'text-gray-500'
+              }`}
+            >
+              {(decodeHtmlEntities(profile?._meta?.about) || '').length}/1500 characters
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -510,33 +583,31 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           type="email"
           value={profile?.email || ''}
           disabled
-          helperText="Edit in Admin Settings tab"
+          helperText="Contact admin to change email address"
         />
         <Input
           label="Phone"
           type="tel"
           value={profile?._meta?.phone || ''}
           onChange={(e) => handleMetaChange('phone', e.target.value)}
-          helperText="Contact phone number"
+          helperText="Your contact phone number"
           placeholder="+44 20 1234 5678"
         />
       </div>
 
-      {/* Contact & Location - Two Column Layout for Desktop */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column - Address Fields */}
-        <div className="space-y-6">
+      {/* Two-column layout for desktop, stacked for mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:items-stretch">
+        {/* Left column: Address fields */}
+        <div className="space-y-4">
           <div>
             <AddressAutocomplete
               label="Address"
               value={profile?._meta?.full_address || ''}
               onChange={(value) => {
                 handleMetaChange('full_address', value);
-                // Auto-populate city from full address
                 handleMetaChange('city', extractCity(value));
               }}
               onPlaceSelected={(place) => {
-                // Auto-populate country from Google Places API
                 if (place.address_components) {
                   const countryComponent = place.address_components.find((component: any) =>
                     component.types.includes('country')
@@ -546,29 +617,25 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                   }
                 }
               }}
-              placeholder="Start typing the address..."
+              placeholder="Start typing your address..."
             />
-
-            {/* Show Exact Location Toggle - Desktop Only */}
-            <div className="mt-3 hidden md:block">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Show exact location
-                  </label>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {profile?._meta?.show_exact_location === '1'
-                      ? 'Public visitors will see a precise pin on the map. Turn off to show an approximate 150m area instead (ideal for home studios).'
-                      : 'Public visitors will see an approximate 150m area instead of a precise pin. This helps protect privacy while still showing the general location.'}
-                  </p>
-                </div>
-                <div className="ml-4">
-                  <Toggle
-                    checked={profile?._meta?.show_exact_location === '1'}
-                    onChange={(checked) => handleMetaChange('show_exact_location', checked ? '1' : '0')}
-                  />
-                </div>
+            
+            {/* Location privacy toggle */}
+            <div className="flex items-center justify-between pt-3 pb-2">
+              <div className="flex-1 mr-4">
+                <label className="text-sm font-medium text-gray-700 cursor-pointer flex items-center" htmlFor="show-exact-location">
+                  Show exact location
+                </label>
+                <p className="text-xs text-gray-500 mt-1">
+                  {profile?._meta?.show_exact_location === '1'
+                    ? 'Public visitors will see a precise pin on your map. Turn off to show an approximate 150m area instead (ideal for home studios).'
+                    : 'Public visitors will see an approximate 150m area instead of a precise pin. This helps protect your privacy while still showing your general location.'}
+                </p>
               </div>
+              <Toggle
+                checked={profile?._meta?.show_exact_location === '1'}
+                onChange={(checked) => handleMetaChange('show_exact_location', checked ? '1' : '0')}
+              />
             </div>
           </div>
 
@@ -578,7 +645,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             value={profile?._meta?.city || ''}
             onChange={(e) => handleMetaChange('city', e.target.value)}
             placeholder="Enter town or city name..."
-            helperText="Region will be auto-populated from the full address above. You can edit it if needed."
+            helperText="Your region is shown on the studios cards."
           />
 
           <CountryAutocomplete
@@ -586,92 +653,22 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             value={profile?._meta?.location || ''}
             onChange={(value) => handleMetaChange('location', value)}
             placeholder="e.g. United Kingdom"
+            helperText="Your primary country of operation"
           />
         </div>
 
-        {/* Right Column - Map Preview (Desktop Only) */}
-        <div className="hidden md:block">
-          {profile?._meta?.full_address && (
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700 block">
-                Map Preview
-              </label>
-              <AddressPreviewMap
-                address={profile._meta.full_address}
-                initialLat={profile._meta.latitude ?? null}
-                initialLng={profile._meta.longitude ?? null}
-                showExactLocation={profile._meta.show_exact_location === '1'}
-                onCoordinatesChange={handleCoordinatesChange}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Map Preview - Mobile Only */}
-      <div className="md:hidden">
-        {profile?._meta?.full_address && (
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-700 block">
-              Map Preview
-            </label>
-            <AddressPreviewMap
-              address={profile._meta.full_address}
-              initialLat={profile._meta.latitude ?? null}
-              initialLng={profile._meta.longitude ?? null}
-              showExactLocation={profile._meta.show_exact_location === '1'}
-              onCoordinatesChange={handleCoordinatesChange}
-            />
-
-            {/* Show Exact Location Toggle - Mobile Only */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label className="text-sm font-medium text-gray-700">
-                  Show exact location
-                </label>
-                <p className="text-xs text-gray-500 mt-1">
-                  {profile?._meta?.show_exact_location === '1'
-                    ? 'Public visitors will see a precise pin on the map. Turn off to show an approximate 150m area instead (ideal for home studios).'
-                    : 'Public visitors will see an approximate 150m area instead of a precise pin. This helps protect privacy while still showing the general location.'}
-                </p>
-              </div>
-              <div className="ml-4">
-                <Toggle
-                  checked={profile?._meta?.show_exact_location === '1'}
-                  onChange={(checked) => handleMetaChange('show_exact_location', checked ? '1' : '0')}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="font-medium text-gray-900 mb-3">Visibility Settings</h3>
-        <div className="space-y-3">
-          <Toggle
-            label="Show Email"
-            description="Display email on public profile"
-            checked={profile?._meta?.showemail === '1'}
-            onChange={(checked) => handleMetaChange('showemail', checked ? '1' : '0')}
-          />
-          <Toggle
-            label="Show Phone"
-            description="Display phone number on public profile"
-            checked={profile?._meta?.showphone === '1'}
-            onChange={(checked) => handleMetaChange('showphone', checked ? '1' : '0')}
-          />
-          <Toggle
-            label="Show Address"
-            description="Display full address on public profile"
-            checked={profile?._meta?.showaddress === '1'}
-            onChange={(checked) => handleMetaChange('showaddress', checked ? '1' : '0')}
-          />
-          <Toggle
-            label="Show Directions"
-            description="Display directions link on public profile"
-            checked={profile?._meta?.showdirections === '1'}
-            onChange={(checked) => handleMetaChange('showdirections', checked ? '1' : '0')}
+        {/* Right column: Map preview (desktop), below fields (mobile) */}
+        <div className="flex flex-col h-full">
+          <label className="block text-sm font-medium text-gray-700 mb-2 flex-shrink-0">
+            Map Preview
+          </label>
+          <AddressPreviewMap
+            address={profile?._meta?.full_address || ''}
+            initialLat={profile?._meta?.latitude ?? null}
+            initialLng={profile?._meta?.longitude ?? null}
+            showExactLocation={profile?._meta?.show_exact_location === '1'}
+            onCoordinatesChange={handleCoordinatesChange}
+            className="flex-1 min-h-0 max-h-full"
           />
         </div>
       </div>
@@ -900,6 +897,45 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     if (!studio) return null;
     return <ImageGalleryManager studioId={studio.id} isAdminMode={true} />;
   };
+
+  const renderPrivacyTab = () => (
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm text-gray-600 mb-4">
+          Control what information is shown on your public profile
+        </p>
+      </div>
+
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="space-y-3">
+          <Toggle
+            label="Show Email"
+            description="Display 'Message Studio' button on public profile"
+            checked={profile?._meta?.showemail === '1'}
+            onChange={(checked) => handleMetaChange('showemail', checked ? '1' : '0')}
+          />
+          <Toggle
+            label="Show Phone"
+            description="Display phone number on public profile"
+            checked={profile?._meta?.showphone === '1'}
+            onChange={(checked) => handleMetaChange('showphone', checked ? '1' : '0')}
+          />
+          <Toggle
+            label="Show Address"
+            description="Display address on public profile page"
+            checked={profile?._meta?.showaddress === '1'}
+            onChange={(checked) => handleMetaChange('showaddress', checked ? '1' : '0')}
+          />
+          <Toggle
+            label="Show Directions"
+            description="Display 'Get Directions' button on public profile"
+            checked={profile?._meta?.showdirections === '1'}
+            onChange={(checked) => handleMetaChange('showdirections', checked ? '1' : '0')}
+          />
+        </div>
+      </div>
+    </div>
+  );
 
   const renderAdminTab = () => (
     <div className="space-y-6">
@@ -1198,6 +1234,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                   {activeTab === 'social' && renderSocialMediaTab()}
                   {activeTab === 'connections' && renderConnectionsTab()}
                   {activeTab === 'images' && renderImagesTab()}
+                  {activeTab === 'privacy' && renderPrivacyTab()}
                   {activeTab === 'admin' && renderAdminTab()}
                 </div>
               </div>
