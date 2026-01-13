@@ -1194,7 +1194,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 <button
                   onClick={onClose}
                   className="text-white hover:text-red-100 hover:bg-red-800 rounded-full flex items-center justify-center font-bold transition-colors duration-200"
-                  style={{ width: '32px', height: '32px', fontSize: '24px' }}
+                  style={{ width: '64px', height: '64px', fontSize: '48px' }}
                   title="Close modal (Esc)"
                 >
                   ×
