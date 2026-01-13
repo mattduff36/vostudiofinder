@@ -304,7 +304,7 @@ export async function PUT(
     if (body._meta?.longitude !== undefined) studioUpdateData.longitude = parseFloat(body._meta.longitude) || null;
     if (body._meta?.show_exact_location !== undefined) studioUpdateData.show_exact_location = body._meta.show_exact_location === '1' || body._meta.show_exact_location === true;
     if (body._meta?.verified !== undefined) studioUpdateData.is_verified = body._meta.verified === '1' || body._meta.verified === true;
-    if (body._meta?.is_profile_visible !== undefined) studioUpdateData.is_profile_visible = body._meta.is_profile_visible;
+    if (body._meta?.is_profile_visible !== undefined) studioUpdateData.is_profile_visible = body._meta.is_profile_visible === '1' || body._meta.is_profile_visible === true || body._meta.is_profile_visible === 1;
     
     // Geocode full_address if it's being updated
     // Always geocode when full_address changes, unless coordinates are explicitly being set to different values
