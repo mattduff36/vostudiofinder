@@ -1205,14 +1205,14 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             {/* Modal body with scrollable content */}
             <div className="overflow-y-auto max-h-[calc(95vh-220px)]">
               {/* Tab Navigation - Matches Edit Profile styling (text-only) */}
-              <div className="border-b border-gray-100 bg-white sticky top-0 z-10">
+              <div className="border-b border-gray-100 bg-white sticky top-0 z-10 overflow-hidden">
                 <nav className="flex space-x-4 px-6 overflow-x-auto" aria-label="Tabs">
                   {tabs.map((tab) => (
                     <motion.button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
                         activeTab === tab.id
                           ? 'border-red-500 text-red-600'
