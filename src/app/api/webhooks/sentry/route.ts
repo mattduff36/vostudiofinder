@@ -130,7 +130,7 @@ async function handleIssueOrEvent(payload: any): Promise<NextResponse> {
   const level = issue.level || event?.level || 'error';
   const firstSeenAt = issue.firstSeen ? new Date(issue.firstSeen) : new Date();
   const lastSeenAt = issue.lastSeen ? new Date(issue.lastSeen) : (event?.timestamp ? new Date(event.timestamp) : new Date());
-  const eventCount = issue.count || 1;
+  const eventCount = parseInt(String(issue.count || 1), 10);
   const environment = issue.metadata?.environment || event?.environment || null;
   const release = issue.metadata?.release || event?.release || null;
 
