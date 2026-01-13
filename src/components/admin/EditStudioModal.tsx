@@ -1,8 +1,9 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Loader2, Eye, Save, X, FileText, MapPin, DollarSign, Globe, Link, Image as ImageIcon, Settings, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Loader2, Eye, Save, X, AlertTriangle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Toggle } from '@/components/ui/Toggle';
@@ -12,9 +13,11 @@ import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { AddressPreviewMap } from '@/components/maps/AddressPreviewMap';
+import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { showError } from '@/lib/toast';
+import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
 interface Studio {
   id: string;
@@ -50,9 +53,9 @@ const STUDIO_TYPES = [
   { value: 'RECORDING', label: 'Recording', description: 'Full, professional recording facility', disabled: false },
   { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
   // Bottom row - Future additions (disabled)
-  { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services', disabled: true },
-  { value: 'VO_COACH', label: 'VO-Coach', description: 'Voiceover coaching and training services', disabled: true },
-  { value: 'EDITING', label: 'Editing', description: 'Post-production and editing services', disabled: true },
+  { value: 'VOICEOVER', label: 'Voiceover', description: 'Coming soon!', disabled: true },
+  { value: 'VO_COACH', label: 'VO-Coach', description: 'Coming soon!', disabled: true },
+  { value: 'EDITING', label: 'Editing', description: 'Coming soon!', disabled: true },
 ];
 
 const CONNECTION_TYPES = [
@@ -137,6 +140,63 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     }
   };
 
+  // Calculate profile completion stats
+  const completionStats = useMemo(() => {
+    if (!profile) return null;
+
+    // Map admin modal's profile structure to calculateCompletionStats format
+    const mappedData = {
+      user: {
+        username: profile.username || '',
+        display_name: profile.display_name || '',
+        email: profile.email || '',
+        avatar_url: profile.avatar_url || null,
+      },
+      profile: {
+        short_about: profile._meta?.short_about || profile.profile?.short_about || null,
+        about: profile._meta?.about || profile.profile?.about || null,
+        phone: profile._meta?.phone || profile.profile?.phone || null,
+        location: profile._meta?.location || profile.profile?.location || null,
+        website_url: profile.website_url || profile._meta?.website_url || null,
+        // Connection methods
+        connection1: profile._meta?.connection1 || null,
+        connection2: profile._meta?.connection2 || null,
+        connection3: profile._meta?.connection3 || null,
+        connection4: profile._meta?.connection4 || null,
+        connection5: profile._meta?.connection5 || null,
+        connection6: profile._meta?.connection6 || null,
+        connection7: profile._meta?.connection7 || null,
+        connection8: profile._meta?.connection8 || null,
+        connection9: profile._meta?.connection9 || null,
+        connection10: profile._meta?.connection10 || null,
+        connection11: profile._meta?.connection11 || null,
+        connection12: profile._meta?.connection12 || null,
+        // Rates
+        rate_tier_1: profile._meta?.rates1 || null,
+        // Equipment & Services
+        equipment_list: profile.profile?.equipment_list || profile._meta?.equipment_list || null,
+        services_offered: profile.profile?.services_offered || profile._meta?.services_offered || null,
+        // Social media (map from _meta to expected field names)
+        facebook_url: profile._meta?.facebook || null,
+        x_url: profile.profile?.x_url || profile._meta?.twitter || null,
+        linkedin_url: profile._meta?.linkedin || null,
+        instagram_url: profile._meta?.instagram || null,
+        youtube_url: profile._meta?.youtubepage || null,
+        tiktok_url: profile._meta?.tiktok || null,
+        threads_url: profile._meta?.threads || null,
+        soundcloud_url: profile._meta?.soundcloud || null,
+      },
+      studio: {
+        name: profile.name || null,
+        studio_types: profile.studioTypes?.map((st: any) => st.studio_type) || [],
+        images: profile.images || [],
+        website_url: profile.website_url || null,
+      },
+    };
+
+    return calculateCompletionStats(mappedData);
+  }, [profile]);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleMetaChange = (key: string, value: any) => {
     setProfile((prev: any) => ({
@@ -144,6 +204,22 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       _meta: {
         ...prev._meta,
         [key]: value
+      }
+    }));
+  };
+
+  // Handler for fields that need to write to both profile and _meta for compatibility
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleDualChange = (profileKey: string, metaKey: string, value: any) => {
+    setProfile((prev: any) => ({
+      ...prev,
+      profile: {
+        ...prev.profile,
+        [profileKey]: value
+      },
+      _meta: {
+        ...prev._meta,
+        [metaKey]: value
       }
     }));
   };
@@ -272,13 +348,13 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   if (!isOpen || !studio) return null;
 
   const tabs = [
-    { id: 'basic', name: 'Basic Info', icon: FileText },
-    { id: 'contact', name: 'Contact & Location', icon: MapPin },
-    { id: 'rates', name: 'Rates & Pricing', icon: DollarSign },
-    { id: 'social', name: 'Social Media', icon: Globe },
-    { id: 'connections', name: 'Connections', icon: Link },
-    { id: 'images', name: 'Images', icon: ImageIcon },
-    { id: 'admin', name: 'Admin Settings', icon: Settings }
+    { id: 'basic', name: 'Basic Info' },
+    { id: 'contact', name: 'Contact & Location' },
+    { id: 'rates', name: 'Rates & Pricing' },
+    { id: 'social', name: 'Social Media' },
+    { id: 'connections', name: 'Connections' },
+    { id: 'images', name: 'Images' },
+    { id: 'admin', name: 'Admin Settings' }
   ];
 
   const renderBasicTab = () => (
@@ -645,8 +721,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
       <Textarea
         label="Equipment List"
-        value={profile?._meta?.equipment_list || ''}
-        onChange={(e) => handleMetaChange('equipment_list', e.target.value)}
+        value={profile?.profile?.equipment_list || profile?._meta?.equipment_list || ''}
+        onChange={(e) => handleDualChange('equipment_list', 'equipment_list', e.target.value)}
         rows={4}
         helperText="List microphones, interfaces, and other equipment"
         placeholder="e.g., Neumann U87, Universal Audio Apollo, etc."
@@ -654,8 +730,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
       <Textarea
         label="Services Offered"
-        value={profile?._meta?.services_offered || ''}
-        onChange={(e) => handleMetaChange('services_offered', e.target.value)}
+        value={profile?.profile?.services_offered || profile?._meta?.services_offered || ''}
+        onChange={(e) => handleDualChange('services_offered', 'services_offered', e.target.value)}
         rows={4}
         helperText="Describe the services provided"
         placeholder="e.g., Voice recording, audio editing, mixing, mastering..."
@@ -677,10 +753,10 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         helperText="Facebook page or profile"
       />
       <Input
-        label="X (formerly Twitter)"
+        label="X (formerly Twitter) URL"
         type="url"
-        value={profile?._meta?.twitter || ''}
-        onChange={(e) => handleMetaChange('twitter', e.target.value)}
+        value={profile?.profile?.x_url || profile?._meta?.twitter || ''}
+        onChange={(e) => handleDualChange('x_url', 'twitter', e.target.value)}
         placeholder="https://x.com/yourhandle"
         helperText="X (Twitter) profile"
       />
@@ -1063,44 +1139,54 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 </div>
               </div>
               
-              <button
-                onClick={onClose}
-                className="text-white hover:text-red-100 hover:bg-red-800 rounded-full flex items-center justify-center font-bold transition-colors duration-200"
-                style={{ width: '32px', height: '32px', fontSize: '24px' }}
-                title="Close modal (Esc)"
-              >
-                ×
-              </button>
+              {/* Progress Indicators (right side) */}
+              <div className="flex items-center gap-4">
+                {completionStats && (
+                  <ProgressIndicators 
+                    requiredFieldsCompleted={completionStats.required.completed}
+                    totalRequiredFields={completionStats.required.total}
+                    overallCompletionPercentage={completionStats.overall.percentage}
+                    variant="compact"
+                  />
+                )}
+                
+                <button
+                  onClick={onClose}
+                  className="text-white hover:text-red-100 hover:bg-red-800 rounded-full flex items-center justify-center font-bold transition-colors duration-200"
+                  style={{ width: '32px', height: '32px', fontSize: '24px' }}
+                  title="Close modal (Esc)"
+                >
+                  ×
+                </button>
+              </div>
             </div>
             
             {/* Modal body with scrollable content */}
             <div className="overflow-y-auto max-h-[calc(95vh-220px)]">
-              {/* Tab Navigation */}
-              <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
-                <nav className="flex space-x-8 px-6 overflow-x-auto" aria-label="Tabs">
-                  {tabs.map((tab) => {
-                    const TabIcon = tab.icon;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center ${
-                          activeTab === tab.id
-                            ? 'border-red-500 text-red-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        }`}
-                      >
-                        <TabIcon className="w-4 h-4 mr-2" aria-hidden="true" />
-                        {tab.name}
-                      </button>
-                    );
-                  })}
+              {/* Tab Navigation - Matches Edit Profile styling (text-only) */}
+              <div className="border-b border-gray-100 bg-white sticky top-0 z-10">
+                <nav className="flex space-x-4 px-6 overflow-x-auto" aria-label="Tabs">
+                  {tabs.map((tab) => (
+                    <motion.button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                        activeTab === tab.id
+                          ? 'border-red-500 text-red-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      {tab.name}
+                    </motion.button>
+                  ))}
                 </nav>
               </div>
 
-              {/* Tab Content */}
-              <div className="px-6 py-6 min-h-[400px] flex justify-center">
-                <div className="w-full max-w-5xl">
+              {/* Tab Content - Matches Edit Profile wrapper structure */}
+              <div className="px-6 py-6">
+                <div className="w-full max-w-5xl mx-auto">
                   {activeTab === 'basic' && renderBasicTab()}
                   {activeTab === 'contact' && renderContactTab()}
                   {activeTab === 'rates' && renderRatesTab()}
