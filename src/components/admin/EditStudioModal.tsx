@@ -682,49 +682,50 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     <div className="space-y-6">
       <div>
         <p className="text-sm text-gray-600 mb-4">
-          Set up to three rate tiers for services
+          Set up to three rate tiers for your services
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Input
-            label="15 minutes"
+            label={`15 minutes (${getCurrencySymbol(profile?._meta?.location)})`}
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates1) || ''}
             onChange={(e) => handleMetaChange('rates1', e.target.value)}
             helperText="15 minute session rate"
-            placeholder={`e.g. ${getCurrencySymbol(profile?._meta?.location)}80`}
+            placeholder="0.00"
           />
           <Input
-            label="30 minutes"
+            label={`30 minutes (${getCurrencySymbol(profile?._meta?.location)})`}
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates2) || ''}
             onChange={(e) => handleMetaChange('rates2', e.target.value)}
             helperText="30 minute session rate"
-            placeholder={`e.g. ${getCurrencySymbol(profile?._meta?.location)}100`}
+            placeholder="0.00"
           />
           <Input
-            label="60 minutes"
+            label={`60 minutes (${getCurrencySymbol(profile?._meta?.location)})`}
             type="text"
             value={decodeHtmlEntities(profile?._meta?.rates3) || ''}
             onChange={(e) => handleMetaChange('rates3', e.target.value)}
             helperText="60 minute session rate"
-            placeholder={`e.g. ${getCurrencySymbol(profile?._meta?.location)}125`}
+            placeholder="0.00"
           />
+          <div className="flex items-start pt-6">
+            <Toggle
+              label="Show Rates on Profile"
+              description="Display your pricing information publicly"
+              checked={profile?._meta?.showrates === '1'}
+              onChange={(checked) => handleMetaChange('showrates', checked ? '1' : '0')}
+            />
+          </div>
         </div>
       </div>
-
-      <Toggle
-        label="Show Rates on Profile"
-        description="Display pricing information publicly"
-        checked={profile?._meta?.showrates === '1'}
-        onChange={(checked) => handleMetaChange('showrates', checked ? '1' : '0')}
-      />
 
       <Textarea
         label="Equipment List"
         value={profile?.profile?.equipment_list || profile?._meta?.equipment_list || ''}
         onChange={(e) => handleDualChange('equipment_list', 'equipment_list', e.target.value)}
         rows={4}
-        helperText="List microphones, interfaces, and other equipment"
+        helperText="List your microphones, interfaces, and other equipment"
         placeholder="e.g., Neumann U87, Universal Audio Apollo, etc."
       />
 
@@ -733,7 +734,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         value={profile?.profile?.services_offered || profile?._meta?.services_offered || ''}
         onChange={(e) => handleDualChange('services_offered', 'services_offered', e.target.value)}
         rows={4}
-        helperText="Describe the services provided"
+        helperText="Describe the services you provide"
         placeholder="e.g., Voice recording, audio editing, mixing, mastering..."
       />
     </div>
@@ -742,72 +743,74 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   const renderSocialMediaTab = () => (
     <div className="space-y-4">
       <p className="text-sm text-gray-600 mb-4">
-        Add links to social media profiles
+        Add links to your social media profiles
       </p>
-      <Input
-        label="Facebook"
-        type="url"
-        value={profile?._meta?.facebook || ''}
-        onChange={(e) => handleMetaChange('facebook', e.target.value)}
-        placeholder="https://facebook.com/your-page"
-        helperText="Facebook page or profile"
-      />
-      <Input
-        label="X (formerly Twitter) URL"
-        type="url"
-        value={profile?.profile?.x_url || profile?._meta?.twitter || ''}
-        onChange={(e) => handleDualChange('x_url', 'twitter', e.target.value)}
-        placeholder="https://x.com/yourhandle"
-        helperText="X (Twitter) profile"
-      />
-      <Input
-        label="LinkedIn"
-        type="url"
-        value={profile?._meta?.linkedin || ''}
-        onChange={(e) => handleMetaChange('linkedin', e.target.value)}
-        placeholder="https://linkedin.com/in/yourprofile"
-        helperText="LinkedIn profile"
-      />
-      <Input
-        label="Instagram"
-        type="url"
-        value={profile?._meta?.instagram || ''}
-        onChange={(e) => handleMetaChange('instagram', e.target.value)}
-        placeholder="https://instagram.com/yourhandle"
-        helperText="Instagram profile"
-      />
-      <Input
-        label="TikTok"
-        type="url"
-        value={profile?._meta?.tiktok || ''}
-        onChange={(e) => handleMetaChange('tiktok', e.target.value)}
-        placeholder="https://www.tiktok.com/@yourhandle"
-        helperText="TikTok profile"
-      />
-      <Input
-        label="Threads"
-        type="url"
-        value={profile?._meta?.threads || ''}
-        onChange={(e) => handleMetaChange('threads', e.target.value)}
-        placeholder="https://www.threads.net/@yourhandle"
-        helperText="Threads profile"
-      />
-      <Input
-        label="YouTube"
-        type="url"
-        value={profile?._meta?.youtubepage || ''}
-        onChange={(e) => handleMetaChange('youtubepage', e.target.value)}
-        placeholder="https://youtube.com/@yourchannel"
-        helperText="YouTube channel"
-      />
-      <Input
-        label="SoundCloud"
-        type="url"
-        value={profile?._meta?.soundcloud || ''}
-        onChange={(e) => handleMetaChange('soundcloud', e.target.value)}
-        placeholder="https://soundcloud.com/yourprofile"
-        helperText="SoundCloud profile"
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input
+          label="Facebook"
+          type="url"
+          value={profile?._meta?.facebook || ''}
+          onChange={(e) => handleMetaChange('facebook', e.target.value)}
+          placeholder="https://facebook.com/your-page"
+          helperText="Your Facebook page or profile"
+        />
+        <Input
+          label="X (formerly Twitter)"
+          type="url"
+          value={profile?.profile?.x_url || profile?._meta?.twitter || ''}
+          onChange={(e) => handleDualChange('x_url', 'twitter', e.target.value)}
+          placeholder="https://x.com/yourhandle"
+          helperText="Your X (Twitter) profile"
+        />
+        <Input
+          label="YouTube"
+          type="url"
+          value={profile?._meta?.youtubepage || ''}
+          onChange={(e) => handleMetaChange('youtubepage', e.target.value)}
+          placeholder="https://youtube.com/@yourchannel"
+          helperText="Your YouTube channel"
+        />
+        <Input
+          label="Instagram"
+          type="url"
+          value={profile?._meta?.instagram || ''}
+          onChange={(e) => handleMetaChange('instagram', e.target.value)}
+          placeholder="https://instagram.com/yourhandle"
+          helperText="Your Instagram profile"
+        />
+        <Input
+          label="SoundCloud"
+          type="url"
+          value={profile?._meta?.soundcloud || ''}
+          onChange={(e) => handleMetaChange('soundcloud', e.target.value)}
+          placeholder="https://soundcloud.com/yourprofile"
+          helperText="Your SoundCloud profile"
+        />
+        <Input
+          label="TikTok"
+          type="url"
+          value={profile?._meta?.tiktok || ''}
+          onChange={(e) => handleMetaChange('tiktok', e.target.value)}
+          placeholder="https://www.tiktok.com/@yourhandle"
+          helperText="Your TikTok profile"
+        />
+        <Input
+          label="LinkedIn"
+          type="url"
+          value={profile?._meta?.linkedin || ''}
+          onChange={(e) => handleMetaChange('linkedin', e.target.value)}
+          placeholder="https://linkedin.com/in/yourprofile"
+          helperText="Your LinkedIn profile"
+        />
+        <Input
+          label="Threads"
+          type="url"
+          value={profile?._meta?.threads || ''}
+          onChange={(e) => handleMetaChange('threads', e.target.value)}
+          placeholder="https://www.threads.net/@yourhandle"
+          helperText="Your Threads profile"
+        />
+      </div>
     </div>
   );
 
@@ -815,7 +818,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     <div className="space-y-6">
       <div>
         <p className="text-sm text-gray-600 mb-4">
-          Select connections supported for remote sessions
+          Select the connections you support for remote sessions.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {CONNECTION_TYPES.map((connection) => (
@@ -827,9 +830,9 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 type="checkbox"
                 checked={profile?._meta?.[connection.id] === '1'}
                 onChange={(e) => handleMetaChange(connection.id, e.target.checked ? '1' : '0')}
-                className="mr-3 h-4 w-4 text-red-600 accent-red-600 focus:ring-red-500 border-gray-300 rounded"
+                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
               />
-              <span className="text-sm font-medium text-gray-900">
+              <span className="ml-3 text-sm font-medium text-gray-900">
                 {connection.label}
               </span>
             </label>
@@ -1142,12 +1145,14 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               {/* Progress Indicators (right side) */}
               <div className="flex items-center gap-4">
                 {completionStats && (
-                  <ProgressIndicators 
-                    requiredFieldsCompleted={completionStats.required.completed}
-                    totalRequiredFields={completionStats.required.total}
-                    overallCompletionPercentage={completionStats.overall.percentage}
-                    variant="compact"
-                  />
+                  <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+                    <ProgressIndicators 
+                      requiredFieldsCompleted={completionStats.required.completed}
+                      totalRequiredFields={completionStats.required.total}
+                      overallCompletionPercentage={completionStats.overall.percentage}
+                      variant="compact"
+                    />
+                  </div>
                 )}
                 
                 <button
