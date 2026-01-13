@@ -136,8 +136,8 @@ export function Navbar({ session }: NavbarProps) {
           : 'bg-transparent'
       } ${isMapFullscreen ? 'md:block hidden' : ''}`}
     >
-      <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4 w-full">
-        <div className="flex items-center justify-between relative">
+      <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4 w-full relative">
+        <div className="flex items-center justify-between">
           {/* Logo */}
           <Link 
             href="/" 
@@ -163,8 +163,8 @@ export function Navbar({ session }: NavbarProps) {
             </div>
           </Link>
           
-          {/* Desktop Navigation - Centered */}
-          <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
+          {/* Desktop Navigation - Centered within container */}
+          <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
             <Link 
               href="/studios" 
               className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}

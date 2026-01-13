@@ -47,7 +47,7 @@ export const rateSchema = z
 export const StudioTypeEnum = z.enum([
   'HOME',
   'RECORDING',
-  'EDITING',
+  'AUDIO_PRODUCER',
   'VO_COACH',
   'PODCAST',
   'VOICEOVER',
