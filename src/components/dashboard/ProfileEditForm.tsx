@@ -539,7 +539,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Studio Types
                 </label>
-                <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
                 <div className="grid grid-cols-3 gap-3">
                   {STUDIO_TYPES.map((type) => (
                     <div key={type.value} className="relative group">
@@ -556,6 +555,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                     </div>
                   ))}
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Select all that apply to your studio</p>
               </div>
               
               {/* Website URL - 2 columns */}
