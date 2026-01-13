@@ -480,6 +480,14 @@ export async function PUT(
       ...profileUpdateData
     };
 
+    // Add updated_at timestamp for studio_profiles updates
+    if (Object.keys(allStudioProfileUpdates).length > 0) {
+      allStudioProfileUpdates.updated_at = new Date();
+    }
+
+    // Log what we're trying to update for debugging
+    logger.log('[Admin Update] Studio updates:', JSON.stringify(allStudioProfileUpdates, null, 2));
+
     // Perform updates using Prisma transactions
     await prisma.$transaction(async (tx) => {
       // Update user if there are user changes
