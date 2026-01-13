@@ -415,21 +415,20 @@ export function Settings({ data }: SettingsProps) {
               </div>
             ) : (
               <>
-                {/* Admin Account Notice */}
+                {/* Admin Account Warning Banner */}
                 {isAdminUser && (
-                  <div className="p-4 bg-blue-50 rounded-md border border-blue-200">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-xl">👑</span>
-                      <p className="text-sm font-semibold text-blue-900">Admin Account</p>
+                  <div className="p-2 bg-red-50 rounded-md border border-red-200">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm">👑</span>
+                      <p className="text-xs font-medium text-red-900">
+                        Admin Account - Content shown for development purposes
+                      </p>
                     </div>
-                    <p className="text-xs text-blue-700">
-                      As an administrator, your account has permanent access with no membership expiry date.
-                    </p>
                   </div>
                 )}
 
-                {/* Regular Membership Display */}
-                {!isAdminUser && (() => {
+                {/* Membership Display */}
+                {(() => {
                   const membership = profileData?.membership;
                   const isActive = membership?.state === 'ACTIVE';
                   const isExpired = membership?.state === 'EXPIRED';
