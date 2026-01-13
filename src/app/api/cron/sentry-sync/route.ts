@@ -54,9 +54,9 @@ export async function GET(request: NextRequest) {
 
     // Fetch ALL issues from Sentry API (resolved + unresolved + ignored)
     // This ensures we capture ALL errors, not just unresolved ones
-    // Query for issues from the last 30 days to capture more history
+    // Query for issues from the last 14 days (maximum allowed by Sentry API)
     const query = 'is:unresolved OR is:resolved OR is:ignored';
-    const sentryApiUrl = `https://sentry.io/api/0/projects/${sentryOrgSlug}/${sentryProjectSlug}/issues/?query=${encodeURIComponent(query)}&statsPeriod=30d`;
+    const sentryApiUrl = `https://sentry.io/api/0/projects/${sentryOrgSlug}/${sentryProjectSlug}/issues/?query=${encodeURIComponent(query)}&statsPeriod=14d`;
 
     const response = await fetch(sentryApiUrl, {
       headers: {
