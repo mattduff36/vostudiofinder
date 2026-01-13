@@ -688,29 +688,6 @@ export default function AdminStudiosPage() {
       ) : (
         <>
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                {/* Left side - Select All checkbox */}
-                <div className="flex items-center">
-                  {studios.length > 0 && !hiddenColumns.includes('select') && (
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedStudios.length === studios.length}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                        className="rounded border-gray-300"
-                      />
-                      <span className="text-sm text-gray-600">Select All</span>
-                    </label>
-                  )}
-                </div>
-
-                {/* Center - Studios title */}
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Studios ({pagination.total || 0})
-                </h2>
-              </div>
-            </div>
             <div 
               ref={tableContainerRef} 
               className="overflow-x-auto hide-scrollbar"

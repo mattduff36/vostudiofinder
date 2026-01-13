@@ -560,7 +560,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                           disabled={type.disabled}
                         />
                         <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                          {type.description}
+                          {type.disabled ? 'Coming soon!' : type.description}
                           <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                         </div>
                       </div>
@@ -577,7 +577,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                           disabled={type.disabled}
                         />
                         <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                          {type.description}
+                          {type.disabled ? 'Coming soon!' : type.description}
                           <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                         </div>
                       </div>
@@ -646,7 +646,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                             disabled={type.disabled}
                           />
                           <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                            {type.description}
+                            {type.disabled ? 'Coming soon!' : type.description}
                             <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                           </div>
                         </div>
