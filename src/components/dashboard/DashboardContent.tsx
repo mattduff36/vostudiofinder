@@ -211,15 +211,14 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
                 {/* Toggle Button */}
                 <button
                   onClick={() => setIsFooterExpanded(!isFooterExpanded)}
-                  className="flex items-center space-x-2 text-gray-400 hover:text-red-500 transition-colors"
+                  className="flex items-center text-gray-400 hover:text-red-500 transition-colors"
                   aria-label={isFooterExpanded ? 'Collapse footer' : 'Expand footer'}
                 >
-                  <span className="text-xs font-medium">{isFooterExpanded ? 'Hide' : 'Show'} Footer</span>
                   <motion.div
                     animate={{ rotate: isFooterExpanded ? 0 : 180 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-6 h-6" />
                   </motion.div>
                 </button>
               </div>
