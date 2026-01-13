@@ -252,7 +252,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         },
         body: JSON.stringify({
           ...profile,
-          meta: profile._meta
+          _meta: profile._meta
         }),
       });
 
@@ -289,7 +289,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         },
         body: JSON.stringify({
           ...profile,
-          meta: profile._meta
+          _meta: profile._meta
         }),
       });
 
