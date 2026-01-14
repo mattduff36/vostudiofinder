@@ -174,6 +174,8 @@ export async function GET(
             sentryLatestEvent = redactEventData(rawEvent);
           } else {
             console.warn(`[ERROR_LOG_API] Failed to fetch Sentry latest event: ${eventResponse.status}`);
+            const eventError = `Failed to fetch latest event (HTTP ${eventResponse.status})`;
+            sentryError = sentryError ? `${sentryError}; ${eventError}` : eventError;
           }
         } catch (error) {
           console.error('[ERROR_LOG_API] Error fetching from Sentry:', error);
