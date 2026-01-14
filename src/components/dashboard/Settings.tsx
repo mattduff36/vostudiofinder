@@ -18,7 +18,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { RenewalModal } from '@/components/dashboard/RenewalModal';
@@ -52,6 +52,7 @@ const SUGGESTION_CATEGORIES = [
 export function Settings({ data }: SettingsProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [profileData, setProfileData] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   
@@ -80,6 +81,26 @@ export function Settings({ data }: SettingsProps) {
   // Mobile accordion
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Read section from URL parameters and set active section
+  useEffect(() => {
+    const sectionParam = searchParams.get('section');
+    if (sectionParam && ['membership', 'privacy', 'support'].includes(sectionParam)) {
+      setActiveDesktopSection(sectionParam);
+      setExpandedMobileSection(sectionParam);
+      logger.log(`[Settings] Opening section from URL: ${sectionParam}`);
+    }
+    
+    // Support direct modal opening via URL (e.g., ?action=change-password)
+    const actionParam = searchParams.get('action');
+    if (actionParam === 'change-password') {
+      // Open privacy section and password modal
+      setActiveDesktopSection('privacy');
+      setExpandedMobileSection('privacy');
+      setShowPasswordModal(true);
+      logger.log('[Settings] Opening Change Password modal from URL');
+    }
+  }, [searchParams]);
 
 
   // Fetch full profile data
@@ -169,153 +190,196 @@ export function Settings({ data }: SettingsProps) {
     switch (sectionId) {
       case 'privacy':
         return (
-          <div className="space-y-6">
-            {/* Privacy Settings - Improved clarity */}
-            <div className="border border-gray-200 rounded-md p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <Shield className="w-5 h-5 text-gray-600" />
-                  <h3 className="text-lg font-medium text-gray-900">Privacy Settings</h3>
-                </div>
-                <button
-                  onClick={() => {
-                    // Store the target section in sessionStorage for ProfileEditForm to read
-                    sessionStorage.setItem('openProfileSection', 'privacy');
-                    window.location.href = '/dashboard#edit-profile';
-                  }}
-                  className="text-sm text-[#d42027] hover:text-[#a1181d] flex items-center space-x-1"
-                >
-                  <span>Manage</span>
-                  <ExternalLink className="w-3 h-3" />
-                </button>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">Control what information is visible on your public profile</p>
-              <div className="space-y-3">
-                {loadingProfile ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+          <div className="space-y-5">
+            {/* Privacy Settings */}
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-900">Privacy Settings</h3>
+                      <p className="text-xs text-gray-500">Control public profile visibility</p>
+                    </div>
                   </div>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">Email Address</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.user?.email || data.user.email}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {profileData?.profile?.show_email ? (
-                          <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">Visible</span>
-                        ) : (
-                          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
-                        )}
-                      </div>
+                  <motion.button
+                    onClick={() => {
+                      sessionStorage.setItem('openProfileSection', 'privacy');
+                      window.location.href = '/dashboard#edit-profile';
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-3 py-1.5 text-xs font-semibold text-[#d42027] hover:text-white bg-red-50 hover:bg-[#d42027] border border-[#d42027] rounded-lg transition-all flex items-center space-x-1"
+                  >
+                    <span>Manage</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </motion.button>
+                </div>
+                
+                <div className="space-y-2">
+                  {loadingProfile ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                     </div>
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">Phone Number</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.studio?.phone || 'No phone number set'}</p>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-white border border-gray-100">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">Email Address</p>
+                          <p className="text-xs text-gray-500 mt-0.5 truncate">{profileData?.user?.email || data.user.email}</p>
+                        </div>
+                        <span className={`ml-3 px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${
+                          profileData?.profile?.show_email 
+                            ? 'text-green-700 bg-green-100 border border-green-200' 
+                            : 'text-gray-500 bg-gray-100 border border-gray-200'
+                        }`}>
+                          {profileData?.profile?.show_email ? '👁 Visible' : '🔒 Hidden'}
+                        </span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        {profileData?.profile?.show_phone ? (
-                          <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">Visible</span>
-                        ) : (
-                          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
-                        )}
+                      <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-white border border-gray-100">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">Phone Number</p>
+                          <p className="text-xs text-gray-500 mt-0.5 truncate">{profileData?.studio?.phone || 'No phone number set'}</p>
+                        </div>
+                        <span className={`ml-3 px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${
+                          profileData?.profile?.show_phone 
+                            ? 'text-green-700 bg-green-100 border border-green-200' 
+                            : 'text-gray-500 bg-gray-100 border border-gray-200'
+                        }`}>
+                          {profileData?.profile?.show_phone ? '👁 Visible' : '🔒 Hidden'}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">Address</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{profileData?.studio?.full_address || 'No address set'}</p>
+                      <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-white border border-gray-100">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">Studio Address</p>
+                          <p className="text-xs text-gray-500 mt-0.5 truncate">{profileData?.studio?.full_address || 'No address set'}</p>
+                        </div>
+                        <span className={`ml-3 px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${
+                          profileData?.profile?.show_address 
+                            ? 'text-green-700 bg-green-100 border border-green-200' 
+                            : 'text-gray-500 bg-gray-100 border border-gray-200'
+                        }`}>
+                          {profileData?.profile?.show_address ? '👁 Visible' : '🔒 Hidden'}
+                        </span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        {profileData?.profile?.show_address ? (
-                          <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">Visible</span>
-                        ) : (
-                          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">Hidden</span>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Download Data */}
-            <div className="border border-gray-200 rounded-md p-4">
-              <div className="flex items-center space-x-2 mb-4">
-                <Download className="w-5 h-5 text-gray-600" />
-                <h3 className="text-lg font-medium text-gray-900">Download All My Data</h3>
+            {/* Account Security */}
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">Account Security</h3>
+                    <p className="text-xs text-gray-500">Protect your account</p>
+                  </div>
+                </div>
+                <motion.button
+                  onClick={() => setShowPasswordModal(true)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full py-3 px-4 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] transition-all shadow-sm hover:shadow-md"
+                >
+                  Change Password
+                </motion.button>
               </div>
-              <p className="text-sm text-gray-600 mb-4">Export your data in ZIP format (GDPR compliant)</p>
-              <button
-                onClick={handleDownloadData}
-                disabled={downloadingData}
-                className="w-full px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-              >
-                {downloadingData && <Loader2 className="w-4 h-4 animate-spin" />}
-                <span>{downloadingData ? 'Preparing Download...' : 'Download My Data'}</span>
-              </button>
             </div>
 
-            {/* Change Password */}
-            <div className="border border-gray-200 rounded-md p-4">
-              <div className="flex items-center space-x-2 mb-4">
-                <Lock className="w-5 h-5 text-gray-600" />
-                <h3 className="text-lg font-medium text-gray-900">Change Password</h3>
+            {/* Data Management */}
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Download className="w-5 h-5 text-gray-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">Data Management</h3>
+                    <p className="text-xs text-gray-500">Export or delete your data</p>
+                  </div>
+                </div>
+                <motion.button
+                  onClick={handleDownloadData}
+                  disabled={downloadingData}
+                  whileHover={downloadingData ? {} : { scale: 1.02 }}
+                  whileTap={downloadingData ? {} : { scale: 0.98 }}
+                  className="w-full py-3 px-4 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+                >
+                  {downloadingData && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <Download className="w-4 h-4" />
+                  <span>{downloadingData ? 'Preparing Download...' : 'Download My Data'}</span>
+                </motion.button>
               </div>
-              <p className="text-sm text-gray-600 mb-4">Update your account password</p>
-              <button
-                onClick={() => setShowPasswordModal(true)}
-                className="w-full px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md hover:bg-gray-800 flex items-center justify-center space-x-2"
-              >
-                <span>Change Password</span>
-              </button>
             </div>
 
-            {/* Close Account - Keep Red */}
-            <div className="border border-red-200 rounded-md p-4 bg-red-50">
-              <div className="flex items-center space-x-2 mb-4">
-                <Trash2 className="w-5 h-5 text-red-600" />
-                <h3 className="text-lg font-medium text-red-900">Close Account</h3>
+            {/* Close Account */}
+            <div className="relative overflow-hidden rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-white shadow-sm">
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                    <Trash2 className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-red-900">Close Account</h3>
+                    <p className="text-xs text-red-600">Permanently delete your account</p>
+                  </div>
+                </div>
+                <p className="text-sm text-red-700 mb-4">This action cannot be undone. All your data will be permanently deleted.</p>
+                <motion.button
+                  onClick={() => setShowCloseAccountModal(true)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full py-3 px-4 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-all flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Close Account</span>
+                </motion.button>
               </div>
-              <p className="text-sm text-red-700 mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
-              <button
-                onClick={() => setShowCloseAccountModal(true)}
-                className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center justify-center space-x-2"
-              >
-                <AlertTriangle className="w-4 h-4" />
-                <span>Close Account</span>
-              </button>
             </div>
           </div>
         );
 
       case 'support':
         return (
-          <div className="space-y-3">
+          <div className="space-y-5">
             {/* Report an Issue */}
-            <div className="border border-gray-200 rounded-md">
-              <button
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+              <motion.button
                 onClick={() => setIssueFormOpen(!issueFormOpen)}
-                className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                whileHover={{ scale: 1.01 }}
+                className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm font-medium text-gray-900">Report an Issue</span>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-base font-semibold text-gray-900">Report an Issue</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">Having trouble? Let us know</p>
+                  </div>
                 </div>
-                {issueFormOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-              </button>
+                {issueFormOpen ? 
+                  <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" /> : 
+                  <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                }
+              </motion.button>
 
               {issueFormOpen && (
-                <form onSubmit={handleSubmitIssue} className="p-3 border-t border-gray-200 space-y-3">
+                <form onSubmit={handleSubmitIssue} className="p-5 border-t border-gray-200 space-y-4 bg-white">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                     <select
                       value={issueCategory}
                       onChange={(e) => setIssueCategory(e.target.value)}
                       disabled={submittingIssue}
-                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent"
                       required
                     >
                       <option value="">Select a category</option>
@@ -326,52 +390,63 @@ export function Settings({ data }: SettingsProps) {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
                     <textarea
                       value={issueMessage}
                       onChange={(e) => setIssueMessage(e.target.value)}
                       disabled={submittingIssue}
                       rows={4}
                       placeholder="Please describe the issue in detail..."
-                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent resize-none"
                       required
                     />
                   </div>
 
-                  <button
+                  <motion.button
                     type="submit"
                     disabled={submittingIssue}
-                    className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    whileHover={submittingIssue ? {} : { scale: 1.02 }}
+                    whileTap={submittingIssue ? {} : { scale: 0.98 }}
+                    className="w-full px-4 py-3 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
                   >
                     {submittingIssue && <Loader2 className="w-4 h-4 animate-spin" />}
                     <span>{submittingIssue ? 'Submitting...' : 'Submit Issue'}</span>
-                  </button>
+                  </motion.button>
                 </form>
               )}
             </div>
 
             {/* Make a Suggestion */}
-            <div className="border border-gray-200 rounded-md">
-              <button
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+              <motion.button
                 onClick={() => setSuggestionFormOpen(!suggestionFormOpen)}
-                className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                whileHover={{ scale: 1.01 }}
+                className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center space-x-2">
-                  <Lightbulb className="w-4 h-4 text-yellow-600" />
-                  <span className="text-sm font-medium text-gray-900">Make a Suggestion</span>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
+                    <Lightbulb className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-base font-semibold text-gray-900">Make a Suggestion</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">Share your ideas with us</p>
+                  </div>
                 </div>
-                {suggestionFormOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-              </button>
+                {suggestionFormOpen ? 
+                  <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" /> : 
+                  <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                }
+              </motion.button>
 
               {suggestionFormOpen && (
-                <form onSubmit={handleSubmitSuggestion} className="p-3 border-t border-gray-200 space-y-3">
+                <form onSubmit={handleSubmitSuggestion} className="p-5 border-t border-gray-200 space-y-4 bg-white">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                     <select
                       value={suggestionCategory}
                       onChange={(e) => setSuggestionCategory(e.target.value)}
                       disabled={submittingSuggestion}
-                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent"
                       required
                     >
                       <option value="">Select a category</option>
@@ -382,26 +457,28 @@ export function Settings({ data }: SettingsProps) {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Your Suggestion</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Your Suggestion</label>
                     <textarea
                       value={suggestionMessage}
                       onChange={(e) => setSuggestionMessage(e.target.value)}
                       disabled={submittingSuggestion}
                       rows={4}
                       placeholder="Tell us your idea..."
-                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent resize-none"
                       required
                     />
                   </div>
 
-                  <button
+                  <motion.button
                     type="submit"
                     disabled={submittingSuggestion}
-                    className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    whileHover={submittingSuggestion ? {} : { scale: 1.02 }}
+                    whileTap={submittingSuggestion ? {} : { scale: 0.98 }}
+                    className="w-full px-4 py-3 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
                   >
                     {submittingSuggestion && <Loader2 className="w-4 h-4 animate-spin" />}
                     <span>{submittingSuggestion ? 'Submitting...' : 'Submit Suggestion'}</span>
-                  </button>
+                  </motion.button>
                 </form>
               )}
             </div>
@@ -440,118 +517,170 @@ export function Settings({ data }: SettingsProps) {
                   
                   return (
               <>
-                <div className="p-4 bg-white rounded-md border border-gray-200 shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-medium text-gray-700">Membership Status</p>
-                    {isActive && (
-                      <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full border border-green-300">
-                        Active
-                      </span>
+                {/* Status Card */}
+                <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-2">
+                        <CreditCard className="w-5 h-5 text-gray-600" />
+                        <h3 className="text-base font-semibold text-gray-900">Membership Status</h3>
+                      </div>
+                      {isActive && (
+                        <span className="px-3 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full border border-green-200 shadow-sm">
+                          ✓ Active
+                        </span>
+                      )}
+                      {isExpired && (
+                        <span className="px-3 py-1 text-xs font-semibold text-red-700 bg-red-100 rounded-full border border-red-200 shadow-sm">
+                          ✗ Expired
+                        </span>
+                      )}
+                      {hasNoExpiry && (
+                        <span className="px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-200 shadow-sm">
+                          Not Set
+                        </span>
+                      )}
+                    </div>
+                    
+                    {membership?.expiresAt && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Expires on</p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {new Date(membership.expiresAt).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </p>
+                        {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
+                          <p className={`text-sm font-medium ${
+                            membership.daysUntilExpiry < 0 
+                              ? 'text-red-600' 
+                              : membership.daysUntilExpiry <= 30 
+                              ? 'text-amber-600' 
+                              : 'text-gray-600'
+                          }`}>
+                            {membership.daysUntilExpiry < 0 
+                              ? `Expired ${Math.abs(membership.daysUntilExpiry)} days ago` 
+                              : `${membership.daysUntilExpiry} days remaining`}
+                          </p>
+                        )}
+                      </div>
                     )}
-                    {isExpired && (
-                      <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full border border-red-300">
-                        Expired
-                      </span>
-                    )}
+                    
                     {hasNoExpiry && (
-                      <span className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full border border-gray-300">
-                        Not Set
-                      </span>
+                      <p className="text-sm text-gray-500">No membership expiry set. Please contact support.</p>
                     )}
                   </div>
-                  
-                  {membership?.expiresAt && (
-                    <>
-                      <p className="text-xs text-gray-600 mb-1">Expires on</p>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {new Date(membership.expiresAt).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </p>
-                    </>
-                  )}
-                  
-                  {hasNoExpiry && (
-                    <p className="text-xs text-gray-500">No membership expiry set. Please contact support.</p>
-                  )}
                 </div>
 
-                {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
-                  <div className="p-4 bg-white rounded-md border border-gray-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-medium text-gray-700">Days until renewal</p>
-                      <span className={`text-lg font-bold ${
-                        membership.daysUntilExpiry < 0 
-                          ? 'text-red-600' 
-                          : membership.daysUntilExpiry <= 30 
-                          ? 'text-orange-600' 
-                          : 'text-gray-900'
+                {/* Renewal Options */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-gray-900 flex items-center space-x-2">
+                    <span>Renewal Options</span>
+                  </h4>
+                  
+                  {/* Early Renewal Card */}
+                  <motion.button
+                    onClick={() => {
+                      const days = membership.daysUntilExpiry ?? 0;
+                      if (days < 30) {
+                        showError('Early renewal bonus requires at least 30 days remaining on your current membership.');
+                        return;
+                      }
+                      setRenewalType('early');
+                      setRenewalModalOpen(true);
+                    }}
+                    disabled={!membership.daysUntilExpiry || membership.daysUntilExpiry < 30}
+                    whileHover={(!membership.daysUntilExpiry || membership.daysUntilExpiry < 30) ? {} : { scale: 1.02 }}
+                    whileTap={(!membership.daysUntilExpiry || membership.daysUntilExpiry < 30) ? {} : { scale: 0.98 }}
+                    className={`w-full relative overflow-hidden rounded-xl border-2 p-5 text-left transition-all duration-200 ${
+                      !membership.daysUntilExpiry || membership.daysUntilExpiry < 30
+                        ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60'
+                        : 'bg-gradient-to-br from-red-50 to-pink-50 border-[#d42027] hover:border-[#a1181d] cursor-pointer shadow-sm hover:shadow-md'
+                    }`}
+                  >
+                    {/* Decorative Badge */}
+                    {(!membership.daysUntilExpiry || membership.daysUntilExpiry >= 30) && (
+                      <div className="absolute top-3 right-3 px-2 py-1 bg-[#d42027] text-white text-xs font-bold rounded-full shadow-sm">
+                        BONUS!
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h5 className={`text-base font-bold ${
+                          !membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
+                            ? 'text-gray-500' 
+                            : 'text-gray-900'
+                        }`}>
+                          Early Renewal
+                        </h5>
+                        <span className={`text-xl font-extrabold ${
+                          !membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
+                            ? 'text-gray-400' 
+                            : 'text-[#d42027]'
+                        }`}>
+                          £25
+                        </span>
+                      </div>
+                      
+                      <p className={`text-sm leading-relaxed ${
+                        !membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
+                          ? 'text-gray-400' 
+                          : 'text-gray-700'
                       }`}>
-                        {membership.daysUntilExpiry < 0 
-                          ? `${Math.abs(membership.daysUntilExpiry)} days ago` 
-                          : membership.daysUntilExpiry}
-                      </span>
+                        {!membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
+                          ? 'Available when you have 30+ days remaining'
+                          : 'Get 1 year + 1 month bonus added to your current membership'
+                        }
+                      </p>
+                      
+                      {(!membership.daysUntilExpiry || membership.daysUntilExpiry >= 30) && (
+                        <div className="flex items-center space-x-2 pt-1">
+                          <span className="text-xs font-semibold text-[#d42027]">365 days + 30 day bonus</span>
+                        </div>
+                      )}
                     </div>
-                    {isExpired && (
-                      <p className="text-xs text-red-600 mt-2">
-                        Your membership has expired. Renewal required at £25/year. Payments coming soon.
-                      </p>
-                    )}
-                    {isActive && membership.daysUntilExpiry <= 30 && (
-                      <p className="text-xs text-orange-600 mt-2">
-                        Your membership will expire soon. Renewal will be available at £25/year.
-                      </p>
-                    )}
-                  </div>
-                )}
+                  </motion.button>
 
-                <button
-                  onClick={() => {
-                    // Check if eligible for early renewal (>= 30 days remaining)
-                    const days = membership.daysUntilExpiry ?? 0;
-                    if (days < 30) {
-                      showError('Early renewal bonus requires at least 30 days remaining on your current membership.');
-                      return;
-                    }
-                    setRenewalType('early');
-                    setRenewalModalOpen(true);
-                  }}
-                  disabled={!membership.daysUntilExpiry || membership.daysUntilExpiry < 30}
-                  className={`w-full p-3 rounded-md border transition-colors ${
-                    !membership.daysUntilExpiry || membership.daysUntilExpiry < 30
-                      ? 'bg-gray-100 border-gray-200 cursor-not-allowed'
-                      : 'bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer'
-                  }`}
-                >
-                  <p className={`text-sm font-medium ${
-                    !membership.daysUntilExpiry || membership.daysUntilExpiry < 30 ? 'text-gray-500' : 'text-green-900'
-                  }`}>
-                    Renew Early (1 month bonus!)
-                  </p>
-                  <p className={`text-xs mt-1 ${
-                    !membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
-                      ? 'text-gray-400' 
-                      : 'text-green-700'
-                  }`}>
-                    {!membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
-                      ? 'Requires 30+ days remaining for bonus'
-                      : '£25 - Get 1 year + 1 month free'
-                    }
-                  </p>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setRenewalType('5year');
-                    setRenewalModalOpen(true);
-                  }}
-                  className="w-full p-3 bg-blue-50 border border-blue-200 hover:bg-blue-100 cursor-pointer rounded-md transition-colors"
-                >
-                  <p className="text-sm font-medium text-blue-900">5-Year Membership - £80</p>
-                  <p className="text-xs text-blue-700 mt-1">Save £45 vs annual renewals!</p>
-                </button>
+                  {/* 5-Year Membership Card */}
+                  <motion.button
+                    onClick={() => {
+                      setRenewalType('5year');
+                      setRenewalModalOpen(true);
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full relative overflow-hidden rounded-xl border-2 border-gray-300 hover:border-[#d42027] bg-gradient-to-br from-gray-50 to-white p-5 text-left transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md group"
+                  >
+                    {/* Best Value Badge */}
+                    <div className="absolute top-3 right-3 px-2 py-1 bg-gradient-to-r from-amber-400 to-amber-500 text-gray-900 text-xs font-bold rounded-full shadow-sm">
+                      SAVE £45
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-base font-bold text-gray-900">
+                          5-Year Membership
+                        </h5>
+                        <span className="text-xl font-extrabold text-[#d42027] group-hover:text-[#a1181d] transition-colors">
+                          £80
+                        </span>
+                      </div>
+                      
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        Lock in the best rate and save £45 compared to annual renewals
+                      </p>
+                      
+                      <div className="flex items-center space-x-2 pt-1">
+                        <span className="text-xs font-semibold text-gray-600">1,825 days (5 full years)</span>
+                        <span className="text-xs text-gray-400">•</span>
+                        <span className="text-xs text-gray-500 line-through">£125</span>
+                      </div>
+                    </div>
+                  </motion.button>
+                </div>
               </>
                   );
                 })()}
@@ -576,99 +705,117 @@ export function Settings({ data }: SettingsProps) {
       case 'support':
         // Desktop: always-visible forms (no collapsibles)
         return (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* Report an Issue - Always visible */}
-            <div className="border border-gray-200 rounded-md p-4">
-              <div className="flex items-center space-x-2 mb-4">
-                <AlertCircle className="w-5 h-5 text-orange-600" />
-                <h3 className="text-lg font-medium text-gray-900">Report an Issue</h3>
-              </div>
-              <form onSubmit={handleSubmitIssue} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                  <select
-                    value={issueCategory}
-                    onChange={(e) => setIssueCategory(e.target.value)}
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+              <div className="p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">Report an Issue</h3>
+                    <p className="text-xs text-gray-500">Having trouble? Let us know</p>
+                  </div>
+                </div>
+                <form onSubmit={handleSubmitIssue} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                    <select
+                      value={issueCategory}
+                      onChange={(e) => setIssueCategory(e.target.value)}
+                      disabled={submittingIssue}
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent"
+                      required
+                    >
+                      <option value="">Select a category</option>
+                      {ISSUE_CATEGORIES.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                    <textarea
+                      value={issueMessage}
+                      onChange={(e) => setIssueMessage(e.target.value)}
+                      disabled={submittingIssue}
+                      rows={4}
+                      placeholder="Please describe the issue in detail..."
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent resize-none"
+                      required
+                    />
+                  </div>
+
+                  <motion.button
+                    type="submit"
                     disabled={submittingIssue}
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
+                    whileHover={submittingIssue ? {} : { scale: 1.02 }}
+                    whileTap={submittingIssue ? {} : { scale: 0.98 }}
+                    className="w-full px-4 py-3 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
                   >
-                    <option value="">Select a category</option>
-                    {ISSUE_CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <textarea
-                    value={issueMessage}
-                    onChange={(e) => setIssueMessage(e.target.value)}
-                    disabled={submittingIssue}
-                    rows={4}
-                    placeholder="Please describe the issue in detail..."
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submittingIssue}
-                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {submittingIssue && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>{submittingIssue ? 'Submitting...' : 'Submit Issue'}</span>
-                </button>
-              </form>
+                    {submittingIssue && <Loader2 className="w-4 h-4 animate-spin" />}
+                    <span>{submittingIssue ? 'Submitting...' : 'Submit Issue'}</span>
+                  </motion.button>
+                </form>
+              </div>
             </div>
 
             {/* Make a Suggestion - Always visible */}
-            <div className="border border-gray-200 rounded-md p-4">
-              <div className="flex items-center space-x-2 mb-4">
-                <Lightbulb className="w-5 h-5 text-yellow-600" />
-                <h3 className="text-lg font-medium text-gray-900">Make a Suggestion</h3>
-              </div>
-              <form onSubmit={handleSubmitSuggestion} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                  <select
-                    value={suggestionCategory}
-                    onChange={(e) => setSuggestionCategory(e.target.value)}
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+              <div className="p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
+                    <Lightbulb className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">Make a Suggestion</h3>
+                    <p className="text-xs text-gray-500">Share your ideas with us</p>
+                  </div>
+                </div>
+                <form onSubmit={handleSubmitSuggestion} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                    <select
+                      value={suggestionCategory}
+                      onChange={(e) => setSuggestionCategory(e.target.value)}
+                      disabled={submittingSuggestion}
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent"
+                      required
+                    >
+                      <option value="">Select a category</option>
+                      {SUGGESTION_CATEGORIES.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Your Suggestion</label>
+                    <textarea
+                      value={suggestionMessage}
+                      onChange={(e) => setSuggestionMessage(e.target.value)}
+                      disabled={submittingSuggestion}
+                      rows={4}
+                      placeholder="Tell us your idea..."
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent resize-none"
+                      required
+                    />
+                  </div>
+
+                  <motion.button
+                    type="submit"
                     disabled={submittingSuggestion}
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
+                    whileHover={submittingSuggestion ? {} : { scale: 1.02 }}
+                    whileTap={submittingSuggestion ? {} : { scale: 0.98 }}
+                    className="w-full px-4 py-3 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
                   >
-                    <option value="">Select a category</option>
-                    {SUGGESTION_CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Your Suggestion</label>
-                  <textarea
-                    value={suggestionMessage}
-                    onChange={(e) => setSuggestionMessage(e.target.value)}
-                    disabled={submittingSuggestion}
-                    rows={4}
-                    placeholder="Tell us your idea..."
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submittingSuggestion}
-                  className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {submittingSuggestion && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>{submittingSuggestion ? 'Submitting...' : 'Submit Suggestion'}</span>
-                </button>
-              </form>
+                    {submittingSuggestion && <Loader2 className="w-4 h-4 animate-spin" />}
+                    <span>{submittingSuggestion ? 'Submitting...' : 'Submit Suggestion'}</span>
+                  </motion.button>
+                </form>
+              </div>
             </div>
           </div>
         );
