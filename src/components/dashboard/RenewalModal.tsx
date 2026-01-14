@@ -114,7 +114,15 @@ export function RenewalModal({
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-600">
               <span>Current days remaining:</span>
-              <span className="font-medium text-gray-900">{breakdown.current} days</span>
+              <span className="font-medium text-gray-900">
+                {breakdown.current < 0 ? (
+                  <span className="text-red-600">Membership expired</span>
+                ) : breakdown.current === 0 ? (
+                  <span className="text-orange-600">Expires today</span>
+                ) : (
+                  `${breakdown.current} days`
+                )}
+              </span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span>New period added:</span>

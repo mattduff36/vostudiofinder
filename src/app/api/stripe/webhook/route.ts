@@ -378,16 +378,30 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   // Send confirmation email
   if (customer?.email || user_email) {
     try {
+      // Determine plan name and billing period based on renewal type
+      let planName = 'Annual Membership';
+      let nextBillingDays = 365;
+      
+      if (isRenewal) {
+        if (renewal_type === 'early') {
+          planName = 'Early Renewal (with 1-month bonus)';
+          nextBillingDays = 395; // 365 + 30 bonus days
+        } else if (renewal_type === '5year') {
+          planName = '5-Year Membership';
+          nextBillingDays = 1825; // 5 years
+        }
+      }
+      
       await sendEmail({
         to: customer?.email || user_email,
-        subject: 'Membership Confirmed - VoiceoverStudioFinder',
+        subject: isRenewal ? 'Membership Renewed - VoiceoverStudioFinder' : 'Membership Confirmed - VoiceoverStudioFinder',
         html: paymentSuccessTemplate({
           customerName: user_name || customer?.name || user.display_name || 'Valued Member',
           amount: (payment.amount / 100).toFixed(2),
           currency: payment.currency.toUpperCase(),
           paymentId: payment.id,
-          planName: 'Annual Membership',
-          nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+          planName,
+          nextBillingDate: new Date(Date.now() + nextBillingDays * 24 * 60 * 60 * 1000).toLocaleDateString(),
         }),
       });
       console.log(`[EMAIL] Confirmation email sent to ${customer?.email || user_email}`);

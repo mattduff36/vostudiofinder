@@ -510,31 +510,32 @@ export function Settings({ data }: SettingsProps) {
                 <button
                   onClick={() => {
                     // Check if eligible for early renewal (>= 30 days remaining)
-                    if (membership.daysUntilExpiry < 30) {
+                    const days = membership.daysUntilExpiry ?? 0;
+                    if (days < 30) {
                       showError('Early renewal bonus requires at least 30 days remaining on your current membership.');
                       return;
                     }
                     setRenewalType('early');
                     setRenewalModalOpen(true);
                   }}
-                  disabled={membership.daysUntilExpiry < 30}
+                  disabled={!membership.daysUntilExpiry || membership.daysUntilExpiry < 30}
                   className={`w-full p-3 rounded-md border transition-colors ${
-                    membership.daysUntilExpiry < 30
+                    !membership.daysUntilExpiry || membership.daysUntilExpiry < 30
                       ? 'bg-gray-100 border-gray-200 cursor-not-allowed'
                       : 'bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer'
                   }`}
                 >
                   <p className={`text-sm font-medium ${
-                    membership.daysUntilExpiry < 30 ? 'text-gray-500' : 'text-green-900'
+                    !membership.daysUntilExpiry || membership.daysUntilExpiry < 30 ? 'text-gray-500' : 'text-green-900'
                   }`}>
                     Renew Early (1 month bonus!)
                   </p>
                   <p className={`text-xs mt-1 ${
-                    membership.daysUntilExpiry < 30 
+                    !membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
                       ? 'text-gray-400' 
                       : 'text-green-700'
                   }`}>
-                    {membership.daysUntilExpiry < 30 
+                    {!membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
                       ? 'Requires 30+ days remaining for bonus'
                       : '£25 - Get 1 year + 1 month free'
                     }
