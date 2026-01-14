@@ -740,22 +740,33 @@ export function Settings({ data }: SettingsProps) {
         return renderSectionContent(sectionId);
 
       case 'support':
-        // Desktop: always-visible forms (no collapsibles)
+        // Desktop: collapsible forms
         return (
           <div className="space-y-5">
-            {/* Report an Issue - Always visible */}
+            {/* Report an Issue - Collapsible */}
             <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
-              <div className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
+              <motion.button
+                onClick={() => setIssueFormOpen(!issueFormOpen)}
+                whileHover={{ scale: 1.01 }}
+                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
                     <AlertCircle className="w-5 h-5 text-orange-600" />
                   </div>
-                  <div>
+                  <div className="text-left">
                     <h3 className="text-base font-semibold text-gray-900">Report an Issue</h3>
-                    <p className="text-xs text-gray-500">Having trouble? Let us know</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Having trouble? Let us know</p>
                   </div>
                 </div>
-                <form onSubmit={handleSubmitIssue} className="space-y-4">
+                {issueFormOpen ? 
+                  <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" /> : 
+                  <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                }
+              </motion.button>
+
+              {issueFormOpen && (
+                <form onSubmit={handleSubmitIssue} className="px-6 pb-6 border-t border-gray-200 pt-5 space-y-4 bg-white">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                     <select
@@ -798,22 +809,33 @@ export function Settings({ data }: SettingsProps) {
                     </motion.button>
                   </div>
                 </form>
-              </div>
+              )}
             </div>
 
-            {/* Make a Suggestion - Always visible */}
+            {/* Make a Suggestion - Collapsible */}
             <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
-              <div className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
+              <motion.button
+                onClick={() => setSuggestionFormOpen(!suggestionFormOpen)}
+                whileHover={{ scale: 1.01 }}
+                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
                     <Lightbulb className="w-5 h-5 text-yellow-600" />
                   </div>
-                  <div>
+                  <div className="text-left">
                     <h3 className="text-base font-semibold text-gray-900">Make a Suggestion</h3>
-                    <p className="text-xs text-gray-500">Share your ideas with us</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Share your ideas with us</p>
                   </div>
                 </div>
-                <form onSubmit={handleSubmitSuggestion} className="space-y-4">
+                {suggestionFormOpen ? 
+                  <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" /> : 
+                  <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                }
+              </motion.button>
+
+              {suggestionFormOpen && (
+                <form onSubmit={handleSubmitSuggestion} className="px-6 pb-6 border-t border-gray-200 pt-5 space-y-4 bg-white">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                     <select
@@ -856,7 +878,7 @@ export function Settings({ data }: SettingsProps) {
                     </motion.button>
                   </div>
                 </form>
-              </div>
+              )}
             </div>
           </div>
         );
