@@ -142,29 +142,29 @@ export function Navbar({ session }: NavbarProps) {
           <Link 
             href="/" 
             onClick={handleLogoClick}
-            className="relative cursor-pointer"
+            className="relative cursor-pointer flex-shrink-0"
           >
             <div className={`relative transition-all duration-200 ${
               isLogoLoading ? 'md:scale-100 scale-95' : 'scale-100'
             }`}>
               <Image
                 src={isScrolled || !isHomePage 
-                  ? "/images/voiceover-studio-finder-header-logo2-black.png" 
-                  : "/images/voiceover-studio-finder-header-logo2-white.png"
+                  ? "/images/voiceover-studio-finder-logo-black-BIG 1.png" 
+                  : "/images/voiceover-studio-finder-logo-WHITE-BIG 1.png"
                 }
                 alt={SITE_NAME}
                 width={384}
                 height={60}
                 priority
-                className={`transition-all duration-300 hover:opacity-80 w-[180px] sm:w-[220px] md:w-[280px] h-auto ${
+                className={`transition-all duration-300 hover:opacity-80 w-[234px] sm:w-[286px] md:w-[364px] h-auto ${
                   isLogoLoading ? 'md:opacity-100 opacity-60' : 'opacity-100'
                 }`}
               />
             </div>
           </Link>
           
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Desktop Navigation - Flex centered */}
+          <div className="hidden md:flex items-center space-x-8 flex-1 justify-center">
             <Link 
               href="/studios" 
               className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
@@ -214,7 +214,7 @@ export function Navbar({ session }: NavbarProps) {
           </div>
           
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4 flex-shrink-0">
             {session ? (
               <>
                 <span className={`text-sm ${

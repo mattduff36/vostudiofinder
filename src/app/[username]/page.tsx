@@ -109,7 +109,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const seoDescription = `${fullDescription} Professional voiceover recording studio${locationSuffix}. Book now for your next project.`;
 
   // Use first image or fallback to logo
-  const ogImage = studio.studio_images?.[0]?.image_url || `${baseUrl}/images/voiceover-studio-finder-header-logo2-black.png`;
+  const ogImage = studio.studio_images?.[0]?.image_url || `${baseUrl}/images/voiceover-studio-finder-logo-black-BIG 1.png`;
 
   // Check if user has Twitter handle
   const hasTwitter = studio?.twitter_url && studio.twitter_url.trim().length > 0;

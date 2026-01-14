@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { MapLocation, geocodeAddress, getCurrentLocation } from '@/lib/maps';
 import { MapPin, Navigation, Search } from 'lucide-react';
+import { showError, showWarning } from '@/lib/toast';
 
 interface LocationPickerProps {
   initialLocation?: MapLocation;
@@ -40,11 +41,11 @@ export function LocationPicker({
         setAddress(result.address);
         onLocationChange({ ...newLocation, address: result.address });
       } else {
-        alert('Address not found. Please try a different address.');
+        showWarning('Address not found. Please try a different address.');
       }
     } catch (error) {
       console.error('Geocoding error:', error);
-      alert('Error searching for address. Please try again.');
+      showError('Error searching for address. Please try again.');
     } finally {
       setIsGeocoding(false);
     }
@@ -58,7 +59,7 @@ export function LocationPicker({
       onLocationChange({ ...location, address });
     } catch (error) {
       console.error('Geolocation error:', error);
-      alert('Unable to get your current location. Please ensure location permissions are enabled.');
+      showError('Unable to get your current location. Please ensure location permissions are enabled.');
     } finally {
       setIsGettingLocation(false);
     }

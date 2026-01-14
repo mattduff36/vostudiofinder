@@ -405,23 +405,11 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
 
     // Update users table if needed
+    // Note: username cannot be changed after signup, only display_name and avatar_url
     if (body.user) {
       const userUpdates: any = {};
       if (body.user.display_name !== undefined) userUpdates.display_name = body.user.display_name;
       if (body.user.avatar_url !== undefined) userUpdates.avatar_url = body.user.avatar_url;
-      if (body.user.username !== undefined) {
-        // Check if username is already taken by another user
-        const existingUser = await db.users.findUnique({
-          where: { username: body.user.username },
-        });
-        if (existingUser && existingUser.id !== userId) {
-          return NextResponse.json(
-            { success: false, error: 'Username is already taken' },
-            { status: 409 }
-          );
-        }
-        userUpdates.username = body.user.username;
-      }
 
       if (Object.keys(userUpdates).length > 0) {
         await db.users.update({

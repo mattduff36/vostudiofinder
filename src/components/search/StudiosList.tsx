@@ -91,7 +91,7 @@ export function StudiosList({ studios, pagination, onLoadMore, loadingMore }: St
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-100">
                   <Image
-                    src="/images/voiceover-studio-finder-header-logo2-black.png"
+                    src="/images/voiceover-studio-finder-logo-black-BIG 1.png"
                     alt="VoiceoverStudioFinder Logo"
                     width={120}
                     height={40}

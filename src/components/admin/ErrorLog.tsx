@@ -12,7 +12,15 @@ import {
   AlertCircle,
   Info,
   Zap,
-  EyeOff
+  EyeOff,
+  RefreshCw,
+  ExternalLink,
+  Copy,
+  User,
+  Globe,
+  Code,
+  List,
+  FileJson
 } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
@@ -38,6 +46,48 @@ interface ErrorLogGroupDetails extends ErrorLogGroup {
   sample_event_json: any;
 }
 
+interface SentryIssue {
+  id: string;
+  title: string;
+  culprit: string;
+  permalink: string;
+  status: string;
+  statusDetails: any;
+  count: string;
+  userCount: number;
+  firstSeen: string;
+  lastSeen: string;
+  stats: any;
+  annotations: any[];
+  assignedTo: any;
+  [key: string]: any;
+}
+
+interface SentryEvent {
+  id: string;
+  eventID: string;
+  message: string;
+  title: string;
+  culprit: string;
+  dateCreated: string;
+  platform: string;
+  tags: Array<{ key: string; value: string }>;
+  contexts: any;
+  user: any;
+  request: any;
+  exception: any;
+  breadcrumbs: any;
+  entries: any[];
+  [key: string]: any;
+}
+
+interface ErrorDetailsResponse {
+  errorLogGroup: ErrorLogGroupDetails;
+  sentryIssue: SentryIssue | null;
+  sentryLatestEvent: SentryEvent | null;
+  sentryError: string | null;
+}
+
 export function ErrorLog() {
   const [errorLogGroups, setErrorLogGroups] = useState<ErrorLogGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,11 +95,15 @@ export function ErrorLog() {
   const [filterLevel, setFilterLevel] = useState<string>('ALL');
   const [searchText, setSearchText] = useState('');
   const [selectedError, setSelectedError] = useState<ErrorLogGroupDetails | null>(null);
+  const [sentryIssue, setSentryIssue] = useState<SentryIssue | null>(null);
+  const [sentryEvent, setSentryEvent] = useState<SentryEvent | null>(null);
+  const [sentryError, setSentryError] = useState<string | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [page] = useState(1); // Pagination controls to be added in future enhancement
   const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   const fetchErrorLogs = useCallback(async () => {
     setLoading(true);
@@ -87,14 +141,17 @@ export function ErrorLog() {
   const fetchErrorDetails = async (errorId: string) => {
     setLoadingDetails(true);
     try {
-      const response = await fetch(`/api/admin/error-log/${errorId}`);
-      const data = await response.json();
+      const response = await fetch(`/api/admin/error-log/${errorId}?live=1`);
+      const data: ErrorDetailsResponse = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch error details');
+        throw new Error(data.errorLogGroup?.title || 'Failed to fetch error details');
       }
 
       setSelectedError(data.errorLogGroup);
+      setSentryIssue(data.sentryIssue);
+      setSentryEvent(data.sentryLatestEvent);
+      setSentryError(data.sentryError);
       setExpandedErrorId(errorId);
     } catch (error) {
       logger.error('Error fetching error details:', error);
@@ -136,8 +193,31 @@ export function ErrorLog() {
     if (expandedErrorId === errorId) {
       setExpandedErrorId(null);
       setSelectedError(null);
+      setSentryIssue(null);
+      setSentryEvent(null);
+      setSentryError(null);
     } else {
       fetchErrorDetails(errorId);
+    }
+  };
+
+  const handleSyncNow = async () => {
+    setSyncing(true);
+    try {
+      const response = await fetch('/api/admin/sync-sentry');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to sync with Sentry');
+      }
+
+      showSuccess(`Successfully synced ${data.synced} error${data.synced !== 1 ? 's' : ''} from Sentry`);
+      fetchErrorLogs(); // Refresh the list
+    } catch (error) {
+      logger.error('Error syncing with Sentry:', error);
+      showError('Failed to sync with Sentry');
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -209,6 +289,16 @@ export function ErrorLog() {
     });
   };
 
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      showSuccess(`${label} copied to clipboard`);
+    } catch (error) {
+      logger.error('Failed to copy to clipboard:', error);
+      showError('Failed to copy to clipboard');
+    }
+  };
+
   return (
     <>
       <AdminTabs activeTab="error_log" />
@@ -216,11 +306,23 @@ export function ErrorLog() {
       <div className="p-8 min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Error Log</h1>
-            <p className="text-gray-600 mt-2">
-              Monitor and review site-wide errors captured by Sentry
-            </p>
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Error Log</h1>
+              <p className="text-gray-600 mt-2">
+                Monitor and review site-wide errors captured by Sentry
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSyncNow}
+                disabled={syncing}
+                className="px-4 py-2 bg-[#d42027] hover:bg-[#b01a20] text-white rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+                {syncing ? 'Syncing...' : 'Sync Now'}
+              </button>
+            </div>
           </div>
 
           {/* Filters */}
@@ -285,8 +387,11 @@ export function ErrorLog() {
                   key={error.id}
                   className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all"
                 >
-                  {/* Error Summary */}
-                  <div className="p-4">
+                  {/* Error Summary - Clickable to expand */}
+                  <div 
+                    className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => toggleErrorDetails(error.id)}
+                  >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
@@ -317,135 +422,303 @@ export function ErrorLog() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => toggleErrorDetails(error.id)}
-                          disabled={loadingDetails && expandedErrorId === error.id}
-                          className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center gap-1"
-                        >
-                          {loadingDetails && expandedErrorId === error.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : expandedErrorId === error.id ? (
-                            <>
-                              <ChevronUp className="w-4 h-4" />
-                              Hide Details
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="w-4 h-4" />
-                              Show Details
-                            </>
-                          )}
-                        </button>
+                        {loadingDetails && expandedErrorId === error.id ? (
+                          <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                        ) : expandedErrorId === error.id ? (
+                          <ChevronUp className="w-5 h-5 text-gray-400 transition-transform" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-gray-400 transition-transform" />
+                        )}
                       </div>
                     </div>
                   </div>
 
                   {/* Expanded Details */}
                   {expandedErrorId === error.id && selectedError && (
-                    <div className="border-t border-gray-200 bg-gray-50 p-4">
+                    <div className="border-t border-gray-200 bg-gray-50 p-4" onClick={(e) => e.stopPropagation()}>
+                      {/* Header with Status Control */}
                       <div className="mb-4 flex items-center justify-between">
                         <h4 className="text-sm font-semibold text-gray-900">Error Details</h4>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">Status:</span>
-                          <select
-                            value={selectedError.status}
-                            onChange={(e) => handleUpdateStatus(error.id, e.target.value)}
-                            disabled={updatingStatus}
-                            className="text-sm px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-                          >
-                            <option value="OPEN">Open</option>
-                            <option value="RESOLVED">Resolved</option>
-                            <option value="IGNORED">Ignored</option>
-                          </select>
+                        <div className="flex items-center gap-3">
+                          {sentryIssue?.permalink && (
+                            <a
+                              href={sentryIssue.permalink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Open in Sentry
+                            </a>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">Status:</span>
+                            <select
+                              value={selectedError.status}
+                              onChange={(e) => handleUpdateStatus(error.id, e.target.value)}
+                              disabled={updatingStatus}
+                              className="text-sm px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                            >
+                              <option value="OPEN">Open</option>
+                              <option value="RESOLVED">Resolved</option>
+                              <option value="IGNORED">Ignored</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="space-y-3">
-                        {/* Metadata */}
-                        <div className="bg-white rounded-lg p-3 border border-gray-200">
-                          <div className="grid grid-cols-2 gap-3 text-sm">
+                      {/* Sentry Error Warning */}
+                      {sentryError && (
+                        <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                          <AlertTriangle className="w-4 h-4 inline mr-2" />
+                          Could not fetch live Sentry data: {sentryError}. Showing DB-cached data only.
+                        </div>
+                      )}
+
+                      <div className="space-y-4">
+                        {/* Overview Section */}
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <Info className="w-4 h-4" />
+                            Overview
+                          </h5>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             <div>
-                              <span className="font-medium text-gray-700">Sentry Issue ID:</span>
-                              <p className="text-gray-900 font-mono">{selectedError.sentry_issue_id}</p>
+                              <span className="font-medium text-gray-700">Sentry Issue ID</span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <p className="text-gray-900 font-mono text-xs">{selectedError.sentry_issue_id}</p>
+                                <button
+                                  onClick={() => copyToClipboard(selectedError.sentry_issue_id, 'Issue ID')}
+                                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                                  title="Copy to clipboard"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              </div>
                             </div>
                             {selectedError.last_event_id && (
                               <div>
-                                <span className="font-medium text-gray-700">Last Event ID:</span>
-                                <p className="text-gray-900 font-mono text-xs">{selectedError.last_event_id}</p>
+                                <span className="font-medium text-gray-700">Last Event ID</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <p className="text-gray-900 font-mono text-xs truncate">{selectedError.last_event_id}</p>
+                                  <button
+                                    onClick={() => copyToClipboard(selectedError.last_event_id!, 'Event ID')}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                                    title="Copy to clipboard"
+                                  >
+                                    <Copy className="w-3 h-3" />
+                                  </button>
+                                </div>
                               </div>
                             )}
-                            {selectedError.release && (
+                            <div>
+                              <span className="font-medium text-gray-700">Occurrences</span>
+                              <p className="text-gray-900 font-semibold mt-1">
+                                {sentryIssue?.count || selectedError.event_count.toLocaleString()}
+                              </p>
+                            </div>
+                            {(selectedError.environment || sentryIssue) && (
                               <div>
-                                <span className="font-medium text-gray-700">Release:</span>
-                                <p className="text-gray-900">{selectedError.release}</p>
+                                <span className="font-medium text-gray-700">Environment</span>
+                                <p className="text-gray-900 mt-1">{selectedError.environment || 'N/A'}</p>
+                              </div>
+                            )}
+                            {(selectedError.release || sentryIssue) && (
+                              <div>
+                                <span className="font-medium text-gray-700">Release</span>
+                                <p className="text-gray-900 mt-1 font-mono text-xs">{selectedError.release || 'N/A'}</p>
+                              </div>
+                            )}
+                            {sentryIssue?.culprit && (
+                              <div>
+                                <span className="font-medium text-gray-700">Culprit</span>
+                                <p className="text-gray-900 mt-1 font-mono text-xs truncate">{sentryIssue.culprit}</p>
                               </div>
                             )}
                           </div>
                         </div>
 
-                        {/* Sample Event JSON */}
-                        {selectedError.sample_event_json && (
-                          <div className="bg-white rounded-lg p-3 border border-gray-200">
-                            <h5 className="text-sm font-semibold text-gray-900 mb-2">Sample Event Data</h5>
-                            
-                            {/* Exception/Message */}
-                            {selectedError.sample_event_json.message && (
-                              <div className="mb-3">
-                                <span className="text-xs font-medium text-gray-700">Message:</span>
-                                <p className="text-sm text-gray-900 mt-1">{selectedError.sample_event_json.message}</p>
-                              </div>
-                            )}
-
-                            {/* Stack Trace */}
-                            {selectedError.sample_event_json.exception?.values?.[0]?.stacktrace && (
-                              <div className="mb-3">
-                                <span className="text-xs font-medium text-gray-700">Stack Trace:</span>
-                                <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded mt-1 overflow-x-auto max-h-64 overflow-y-auto">
-                                  {JSON.stringify(selectedError.sample_event_json.exception.values[0].stacktrace, null, 2)}
-                                </pre>
-                              </div>
-                            )}
-
-                            {/* Request Context */}
-                            {selectedError.sample_event_json.request && (
-                              <div className="mb-3">
-                                <span className="text-xs font-medium text-gray-700">Request:</span>
-                                <div className="text-sm mt-1">
-                                  <p><span className="font-medium">URL:</span> {selectedError.sample_event_json.request.url}</p>
-                                  <p><span className="font-medium">Method:</span> {selectedError.sample_event_json.request.method}</p>
+                        {/* What Happened Section */}
+                        {(sentryEvent?.message || sentryEvent?.exception || selectedError.sample_event_json?.message) && (
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4" />
+                              What Happened
+                            </h5>
+                            <div className="space-y-2">
+                              {(sentryEvent?.message || selectedError.sample_event_json?.message) && (
+                                <div>
+                                  <span className="text-xs font-medium text-gray-700">Message:</span>
+                                  <p className="text-sm text-gray-900 mt-1 font-mono bg-gray-50 p-2 rounded">
+                                    {sentryEvent?.message || selectedError.sample_event_json?.message}
+                                  </p>
                                 </div>
-                              </div>
-                            )}
-
-                            {/* Tags */}
-                            {selectedError.sample_event_json.tags && Object.keys(selectedError.sample_event_json.tags).length > 0 && (
-                              <div className="mb-3">
-                                <span className="text-xs font-medium text-gray-700">Tags:</span>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {Object.entries(selectedError.sample_event_json.tags).map(([key, value]) => (
-                                    <span key={key} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-                                      {key}: {String(value)}
-                                    </span>
-                                  ))}
+                              )}
+                              {(sentryEvent?.exception?.values?.[0] || selectedError.sample_event_json?.exception?.values?.[0]) && (
+                                <div>
+                                  <span className="text-xs font-medium text-gray-700">Exception:</span>
+                                  <p className="text-sm text-red-700 mt-1 font-mono">
+                                    {sentryEvent?.exception?.values?.[0]?.type || selectedError.sample_event_json?.exception?.values?.[0]?.type}
+                                    {': '}
+                                    {sentryEvent?.exception?.values?.[0]?.value || selectedError.sample_event_json?.exception?.values?.[0]?.value}
+                                  </p>
                                 </div>
-                              </div>
-                            )}
-
-                            {/* Full JSON (collapsed) */}
-                            <details className="mt-3">
-                              <summary className="text-xs font-medium text-gray-700 cursor-pointer hover:text-gray-900">
-                                View Full Event JSON
-                              </summary>
-                              <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded mt-2 overflow-x-auto max-h-96 overflow-y-auto">
-                                {JSON.stringify(selectedError.sample_event_json, null, 2)}
-                              </pre>
-                            </details>
+                              )}
+                            </div>
                           </div>
                         )}
 
-                        {!selectedError.sample_event_json && (
-                          <div className="bg-white rounded-lg p-3 border border-gray-200 text-center text-sm text-gray-500">
-                            No sample event data available for this error group.
+                        {/* Stack Trace Section */}
+                        {(sentryEvent?.exception?.values?.[0]?.stacktrace || selectedError.sample_event_json?.exception?.values?.[0]?.stacktrace) && (
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <Code className="w-4 h-4" />
+                              Stack Trace
+                            </h5>
+                            <div className="max-h-96 overflow-y-auto">
+                              <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto">
+                                {JSON.stringify(
+                                  sentryEvent?.exception?.values?.[0]?.stacktrace || selectedError.sample_event_json?.exception?.values?.[0]?.stacktrace,
+                                  null,
+                                  2
+                                )}
+                              </pre>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Request Section */}
+                        {(sentryEvent?.request || selectedError.sample_event_json?.request) && (
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <Globe className="w-4 h-4" />
+                              Request
+                            </h5>
+                            <div className="space-y-3 text-sm">
+                              {(sentryEvent?.request?.url || selectedError.sample_event_json?.request?.url) && (
+                                <div>
+                                  <span className="font-medium text-gray-700">URL:</span>
+                                  <p className="text-gray-900 font-mono text-xs mt-1 break-all">
+                                    {sentryEvent?.request?.url || selectedError.sample_event_json?.request?.url}
+                                  </p>
+                                </div>
+                              )}
+                              {(sentryEvent?.request?.method || selectedError.sample_event_json?.request?.method) && (
+                                <div>
+                                  <span className="font-medium text-gray-700">Method:</span>
+                                  <p className="text-gray-900 font-mono mt-1">
+                                    {sentryEvent?.request?.method || selectedError.sample_event_json?.request?.method}
+                                  </p>
+                                </div>
+                              )}
+                              {(sentryEvent?.request?.headers || selectedError.sample_event_json?.request?.headers) && (
+                                <details>
+                                  <summary className="font-medium text-gray-700 cursor-pointer hover:text-gray-900">
+                                    Headers (Click to expand)
+                                  </summary>
+                                  <pre className="text-xs bg-gray-50 p-2 rounded mt-2 overflow-x-auto">
+                                    {JSON.stringify(sentryEvent?.request?.headers || selectedError.sample_event_json?.request?.headers, null, 2)}
+                                  </pre>
+                                </details>
+                              )}
+                              {(sentryEvent?.request?.data || selectedError.sample_event_json?.request?.data) && (
+                                <details>
+                                  <summary className="font-medium text-gray-700 cursor-pointer hover:text-gray-900">
+                                    Request Body (Click to expand)
+                                  </summary>
+                                  <pre className="text-xs bg-gray-50 p-2 rounded mt-2 overflow-x-auto">
+                                    {JSON.stringify(sentryEvent?.request?.data || selectedError.sample_event_json?.request?.data, null, 2)}
+                                  </pre>
+                                </details>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* User Section */}
+                        {(sentryEvent?.user || selectedError.sample_event_json?.user) && (
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <User className="w-4 h-4" />
+                              User
+                            </h5>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              {(sentryEvent?.user?.id || selectedError.sample_event_json?.user?.id) && (
+                                <div>
+                                  <span className="font-medium text-gray-700">ID:</span>
+                                  <p className="text-gray-900 font-mono text-xs mt-1">
+                                    {sentryEvent?.user?.id || selectedError.sample_event_json?.user?.id}
+                                  </p>
+                                </div>
+                              )}
+                              {(sentryEvent?.user?.username || selectedError.sample_event_json?.user?.username) && (
+                                <div>
+                                  <span className="font-medium text-gray-700">Username:</span>
+                                  <p className="text-gray-900 mt-1">
+                                    {sentryEvent?.user?.username || selectedError.sample_event_json?.user?.username}
+                                  </p>
+                                </div>
+                              )}
+                              {(sentryEvent?.user?.email || selectedError.sample_event_json?.user?.email) && (
+                                <div>
+                                  <span className="font-medium text-gray-700">Email:</span>
+                                  <p className="text-gray-900 mt-1">
+                                    {sentryEvent?.user?.email || selectedError.sample_event_json?.user?.email}
+                                  </p>
+                                </div>
+                              )}
+                              {(sentryEvent?.user?.ip_address || selectedError.sample_event_json?.user?.ip_address) && (
+                                <div>
+                                  <span className="font-medium text-gray-700">IP Address:</span>
+                                  <p className="text-gray-900 font-mono text-xs mt-1">
+                                    {sentryEvent?.user?.ip_address || selectedError.sample_event_json?.user?.ip_address}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Breadcrumbs Section */}
+                        {(sentryEvent?.breadcrumbs?.values || selectedError.sample_event_json?.breadcrumbs?.values) && (
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <List className="w-4 h-4" />
+                              Breadcrumbs
+                            </h5>
+                            <div className="max-h-64 overflow-y-auto">
+                              <div className="space-y-2">
+                                {(sentryEvent?.breadcrumbs?.values || selectedError.sample_event_json?.breadcrumbs?.values)?.slice(-10).map((breadcrumb: any, idx: number) => (
+                                  <div key={idx} className="text-xs border-l-2 border-gray-300 pl-3 py-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-mono text-gray-500">{breadcrumb.timestamp}</span>
+                                      <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded">{breadcrumb.type || breadcrumb.category}</span>
+                                    </div>
+                                    <p className="text-gray-900 mt-1">{breadcrumb.message || JSON.stringify(breadcrumb.data)}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Raw Event JSON */}
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <details>
+                            <summary className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-gray-700 flex items-center gap-2">
+                              <FileJson className="w-4 h-4" />
+                              Raw Event JSON (Click to expand)
+                            </summary>
+                            <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded mt-3 overflow-x-auto max-h-96 overflow-y-auto">
+                              {JSON.stringify(sentryEvent || selectedError.sample_event_json, null, 2)}
+                            </pre>
+                          </details>
+                        </div>
+
+                        {/* No Data Message */}
+                        {!sentryEvent && !selectedError.sample_event_json && (
+                          <div className="bg-white rounded-lg p-4 border border-gray-200 text-center text-sm text-gray-500">
+                            No detailed event data available for this error group.
                           </div>
                         )}
                       </div>

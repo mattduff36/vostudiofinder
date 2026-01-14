@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, GripVertical, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { AdminTabs } from '@/components/admin/AdminTabs';
+import { showSuccess, showError, showWarning } from '@/lib/toast';
+import { showConfirm } from '@/components/ui/ConfirmDialog';
 
 interface FAQ {
   id: string;
@@ -44,7 +46,7 @@ export default function AdminFAQPage() {
   // Create new FAQ
   const handleCreate = async () => {
     if (!editForm.question.trim() || !editForm.answer.trim()) {
-      alert('Please fill in both question and answer');
+      showWarning('Please fill in both question and answer');
       return;
     }
 
@@ -60,15 +62,16 @@ export default function AdminFAQPage() {
       await fetchFAQs();
       setIsAddingNew(false);
       setEditForm({ question: '', answer: '' });
+      showSuccess('FAQ created successfully');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to create FAQ');
+      showError(err instanceof Error ? err.message : 'Failed to create FAQ');
     }
   };
 
   // Update FAQ
   const handleUpdate = async (id: string) => {
     if (!editForm.question.trim() || !editForm.answer.trim()) {
-      alert('Please fill in both question and answer');
+      showWarning('Please fill in both question and answer');
       return;
     }
 
@@ -84,14 +87,22 @@ export default function AdminFAQPage() {
       await fetchFAQs();
       setEditingId(null);
       setEditForm({ question: '', answer: '' });
+      showSuccess('FAQ updated successfully');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update FAQ');
+      showError(err instanceof Error ? err.message : 'Failed to update FAQ');
     }
   };
 
   // Delete FAQ
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this FAQ?')) return;
+    const confirmed = await showConfirm({
+      title: 'Delete FAQ?',
+      message: 'Are you sure you want to delete this FAQ? This action cannot be undone.',
+      confirmText: 'Delete',
+      isDangerous: true,
+    });
+    
+    if (!confirmed) return;
 
     try {
       const response = await fetch(`/api/admin/faq/${id}`, {
@@ -101,8 +112,9 @@ export default function AdminFAQPage() {
       if (!response.ok) throw new Error('Failed to delete FAQ');
       
       await fetchFAQs();
+      showSuccess('FAQ deleted successfully');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete FAQ');
+      showError(err instanceof Error ? err.message : 'Failed to delete FAQ');
     }
   };
 
@@ -164,8 +176,9 @@ export default function AdminFAQPage() {
       if (!response.ok) throw new Error('Failed to reorder FAQs');
       
       await fetchFAQs();
+      showSuccess('FAQs reordered successfully');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to reorder FAQs');
+      showError(err instanceof Error ? err.message : 'Failed to reorder FAQs');
       await fetchFAQs(); // Revert to original order
     } finally {
       setDraggedItem(null);

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { showSuccess, showError } from '@/lib/toast';
+import { showConfirm } from '@/components/ui/ConfirmDialog';
 
 interface WaitlistEntry {
   id: string;
@@ -36,9 +38,14 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete ${name} from the waitlist?`)) {
-      return;
-    }
+    const confirmed = await showConfirm({
+      title: 'Delete Waitlist Entry?',
+      message: `Are you sure you want to delete ${name} from the waitlist? This action cannot be undone.`,
+      confirmText: 'Delete',
+      isDangerous: true,
+    });
+    
+    if (!confirmed) return;
 
     setDeletingId(id);
     try {
@@ -53,10 +60,11 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
       }
 
       // Refresh the page to show updated list
+      showSuccess(`${name} has been removed from the waitlist`);
       router.refresh();
     } catch (error) {
       console.error('Error deleting entry:', error);
-      alert(`Failed to delete entry: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showError(`Failed to delete entry: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDeletingId(null);
     }

@@ -60,7 +60,7 @@ export function HeroSection({
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Image
-            src="/images/voiceover-studio-finder-header-logo2-black.png"
+            src="/images/voiceover-studio-finder-logo-black-BIG 1.png"
             alt="VoiceoverStudioFinder"
             width={400}
             height={63}

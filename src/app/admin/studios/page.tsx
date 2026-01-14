@@ -8,6 +8,8 @@ import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { getCompletionBgColor } from '@/lib/profile-completion';
 import { formatRelativeDate, formatDate } from '@/lib/date-format';
+import { showSuccess, showError } from '@/lib/toast';
+import { showConfirm } from '@/components/ui/ConfirmDialog';
 
 interface Studio {
   id: string;
@@ -57,7 +59,6 @@ export default function AdminStudiosPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -366,9 +367,14 @@ export default function AdminStudiosPage() {
   };
 
   const handleDeleteStudio = async (studio: Studio) => {
-    if (!confirm(`WARNING: This will permanently delete "${studio.name}" AND the associated user account!\n\nThis includes:\n• User account\n• Studio profile\n• All images\n• All reviews\n• All related data\n\nThis action CANNOT be undone. Are you sure?`)) {
-      return;
-    }
+    const confirmed = await showConfirm({
+      title: 'Delete Studio?',
+      message: `WARNING: This will permanently delete "${studio.name}" AND the associated user account!\n\nThis includes:\n• User account\n• Studio profile\n• All images\n• All reviews\n• All related data\n\nThis action CANNOT be undone. Are you sure?`,
+      confirmText: 'Delete Permanently',
+      isDangerous: true,
+    });
+    
+    if (!confirmed) return;
 
     try {
       const response = await fetch(`/api/admin/studios/${studio.id}`, {
@@ -379,13 +385,13 @@ export default function AdminStudiosPage() {
         throw new Error('Failed to delete studio and user account');
       }
 
-      alert('Studio and user account deleted successfully');
+      showSuccess('Studio and user account deleted successfully');
       setStudios([]); // Clear studios to prevent duplicates
       setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page
       // fetchStudios will be called automatically by the useEffect
     } catch (error) {
       console.error('Error deleting studio:', error);
-      alert('Failed to delete studio and user account. Please try again.');
+      showError('Failed to delete studio and user account. Please try again.');
     }
   };
 
@@ -406,11 +412,10 @@ export default function AdminStudiosPage() {
         s.id === studio.id ? { ...s, is_profile_visible: isVisible } : s
       ));
 
-      setSuccessMessage(`Profile visibility ${isVisible ? 'enabled' : 'disabled'} for ${studio.name}`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      showSuccess(`Profile visibility ${isVisible ? 'enabled' : 'disabled'} for ${studio.name}`);
     } catch (error) {
       console.error('Error toggling visibility:', error);
-      alert('Failed to update visibility. Please try again.');
+      showError('Failed to update visibility. Please try again.');
     }
   };
 
@@ -431,11 +436,10 @@ export default function AdminStudiosPage() {
         s.id === studio.id ? { ...s, is_verified: isVerified } : s
       ));
 
-      setSuccessMessage(`Studio ${isVerified ? 'verified' : 'unverified'}: ${studio.name}`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      showSuccess(`Studio ${isVerified ? 'verified' : 'unverified'}: ${studio.name}`);
     } catch (error) {
       console.error('Error toggling verified status:', error);
-      alert('Failed to update verified status. Please try again.');
+      showError('Failed to update verified status. Please try again.');
     }
   };
 
@@ -456,11 +460,10 @@ export default function AdminStudiosPage() {
         s.id === studio.id ? { ...s, is_featured: isFeatured } : s
       ));
 
-      setSuccessMessage(`Studio ${isFeatured ? 'featured' : 'unfeatured'}: ${studio.name}`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      showSuccess(`Studio ${isFeatured ? 'featured' : 'unfeatured'}: ${studio.name}`);
     } catch (error) {
       console.error('Error toggling featured status:', error);
-      alert('Failed to update featured status. Please try again.');
+      showError('Failed to update featured status. Please try again.');
     }
   };
 
@@ -481,11 +484,10 @@ export default function AdminStudiosPage() {
         s.id === studio.id ? { ...s, status: newStatus } : s
       ));
 
-      setSuccessMessage(`Studio status updated to ${newStatus}: ${studio.name}`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      showSuccess(`Studio status updated to ${newStatus}: ${studio.name}`);
     } catch (error) {
       console.error('Error toggling status:', error);
-      alert('Failed to update status. Please try again.');
+      showError('Failed to update status. Please try again.');
     }
   };
 
@@ -524,10 +526,14 @@ export default function AdminStudiosPage() {
     // Add confirmation for delete action
     if (action === 'delete') {
       const count = studioIds.length;
-      const confirmMessage = `WARNING: This will permanently delete ${count} studio${count !== 1 ? 's' : ''} AND their associated user accounts!\n\nThis includes:\n• ${count} user account${count !== 1 ? 's' : ''}\n• ${count} studio profile${count !== 1 ? 's' : ''}\n• All images, reviews, and related data\n\nThis action CANNOT be undone. Are you sure?`;
-      if (!confirm(confirmMessage)) {
-        return;
-      }
+      const confirmed = await showConfirm({
+        title: `Delete ${count} Studio${count !== 1 ? 's' : ''}?`,
+        message: `WARNING: This will permanently delete ${count} studio${count !== 1 ? 's' : ''} AND their associated user accounts!\n\nThis includes:\n• ${count} user account${count !== 1 ? 's' : ''}\n• ${count} studio profile${count !== 1 ? 's' : ''}\n• All images, reviews, and related data\n\nThis action CANNOT be undone. Are you sure?`,
+        confirmText: 'Delete All',
+        isDangerous: true,
+      });
+      
+      if (!confirmed) return;
     }
 
     try {
@@ -554,12 +560,12 @@ export default function AdminStudiosPage() {
       if (!response.ok) throw new Error('Bulk operation failed');
       
       const result = await response.json();
-      alert(result.message);
+      showSuccess(result.message);
       
       // Refresh the studios list
       fetchStudios();
     } catch (error) {
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showError(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -610,13 +616,6 @@ export default function AdminStudiosPage() {
           Add Studio
         </button>
       </div>
-
-      {/* Success Message */}
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <p className="text-green-800 font-medium">{successMessage}</p>
-        </div>
-      )}
 
       {/* Bulk Operations */}
       <AdminBulkOperations
@@ -1019,10 +1018,9 @@ export default function AdminStudiosPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={(message) => {
-          setSuccessMessage(message);
+          showSuccess(message);
           setStudios([]);
           setPagination(prev => ({ ...prev, offset: 0 }));
-          setTimeout(() => setSuccessMessage(null), 10000);
         }}
       />
         </div>

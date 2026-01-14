@@ -113,7 +113,7 @@ export default function VerifyEmailContent({ flow, email: emailProp, error }: Ve
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <Image
-            src="/images/voiceover-studio-finder-header-logo2-black.png"
+            src="/images/voiceover-studio-finder-logo-black-BIG 1.png"
             alt="VoiceoverStudioFinder"
             width={450}
             height={71}

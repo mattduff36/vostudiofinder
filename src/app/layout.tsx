@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { cookies } from 'next/headers';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Navbar } from '@/components/navigation/Navbar';
 import { MobileShell } from '@/components/navigation/MobileShell';
 import { CookieConsentBanner } from '@/components/consent/CookieConsentBanner';
@@ -102,6 +103,7 @@ export default async function RootLayout({
       >
         <SessionProvider session={session}>
           <ToastProvider />
+          <ConfirmDialog />
           <Navbar session={session} />
           <main className="pt-16 pb-16 md:pt-20 md:pb-0">
             {children}
