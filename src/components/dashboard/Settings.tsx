@@ -526,33 +526,33 @@ export function Settings({ data }: SettingsProps) {
               <>
                 {/* Status Card */}
                 <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
-                        <CreditCard className="w-5 h-5 text-gray-600" />
-                        <h3 className="text-base font-semibold text-gray-900">Membership Status</h3>
+                        <CreditCard className="w-4 h-4 text-gray-600" />
+                        <h3 className="text-sm font-semibold text-gray-900">Membership Status</h3>
                       </div>
                       {isActive && (
-                        <span className="px-3 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full border border-green-200 shadow-sm">
+                        <span className="px-2 py-0.5 text-xs font-semibold text-green-700 bg-green-100 rounded-full border border-green-200">
                           ✓ Active
                         </span>
                       )}
                       {isExpired && (
-                        <span className="px-3 py-1 text-xs font-semibold text-red-700 bg-red-100 rounded-full border border-red-200 shadow-sm">
+                        <span className="px-2 py-0.5 text-xs font-semibold text-red-700 bg-red-100 rounded-full border border-red-200">
                           ✗ Expired
                         </span>
                       )}
                       {hasNoExpiry && (
-                        <span className="px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-200 shadow-sm">
+                        <span className="px-2 py-0.5 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-200">
                           Not Set
                         </span>
                       )}
                     </div>
                     
                     {membership?.expiresAt && (
-                      <div className="space-y-1">
+                      <div className="space-y-0.5">
                         <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Expires on</p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-base font-bold text-gray-900">
                           {new Date(membership.expiresAt).toLocaleDateString('en-GB', {
                             day: 'numeric',
                             month: 'long',
@@ -560,7 +560,7 @@ export function Settings({ data }: SettingsProps) {
                           })}
                         </p>
                         {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
-                          <p className={`text-sm font-medium ${
+                          <p className={`text-xs font-medium ${
                             membership.daysUntilExpiry < 0 
                               ? 'text-red-600' 
                               : membership.daysUntilExpiry <= 30 
@@ -576,7 +576,7 @@ export function Settings({ data }: SettingsProps) {
                     )}
                     
                     {hasNoExpiry && (
-                      <p className="text-sm text-gray-500">No membership expiry set. Please contact support.</p>
+                      <p className="text-xs text-gray-500">No membership expiry set. Please contact support.</p>
                     )}
                   </div>
                 </div>
