@@ -333,11 +333,11 @@ export function Settings({ data }: SettingsProps) {
                       <p className="text-xs text-red-600">Permanently delete your account</p>
                     </div>
                   </div>
-                  <p className="text-sm text-red-700 mb-4">This action cannot be undone. All your data will be permanently deleted.</p>
                   <motion.button
                     onClick={() => setShowCloseAccountModal(true)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    title="This action cannot be undone. All your data will be permanently deleted."
                     className="w-full py-3 px-4 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-all flex items-center justify-center space-x-2 shadow-sm hover:shadow-md mt-auto"
                   >
                     <AlertTriangle className="w-4 h-4" />
