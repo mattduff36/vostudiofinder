@@ -7,6 +7,10 @@ import { paymentSuccessTemplate } from '@/lib/email/templates/payment-success';
 import { randomBytes } from 'crypto';
 import type Stripe from 'stripe';
 import { UserStatus } from '@prisma/client';
+import {
+  calculateEarlyRenewalExpiry,
+  calculate5YearRenewalExpiry,
+} from '@/lib/membership-renewal';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
@@ -77,15 +81,19 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   console.log(`[DEBUG ${timestamp}] Payment status: ${session.payment_status}`);
   console.log(`[DEBUG ${timestamp}] Session metadata:`, JSON.stringify(session.metadata || {}, null, 2));
   
-  const { user_id, user_email, user_name, purpose } = session.metadata || {};
+  const { user_id, user_email, user_name, purpose, renewal_type, current_expiry } = session.metadata || {};
 
-  console.log(`[DEBUG ${timestamp}] Extracted metadata - user_id: ${user_id}, user_email: ${user_email}, purpose: ${purpose}`);
+  console.log(`[DEBUG ${timestamp}] Extracted metadata - user_id: ${user_id}, user_email: ${user_email}, purpose: ${purpose}, renewal_type: ${renewal_type || 'N/A'}`);
 
-  if (purpose !== 'membership') {
+  // Accept both 'membership' (initial signup) and 'membership_renewal' (renewals)
+  if (purpose !== 'membership' && purpose !== 'membership_renewal') {
     console.log(`[DEBUG ${timestamp}] ❌ Session ${session.id} is not a membership payment (purpose: ${purpose}), skipping`);
     console.log(`[INFO] Session ${session.id} is not a membership payment, skipping`);
     return;
   }
+  
+  // Check if this is a renewal
+  const isRenewal = purpose === 'membership_renewal' && renewal_type;
 
   if (!user_id) {
     console.error(`[DEBUG ${timestamp}] ❌ ERROR: Missing user_id in session metadata`);
@@ -352,13 +360,20 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   console.log(`[DEBUG ${timestamp}]   - Status: ${payment.status}`);
   console.log(`[SUCCESS] Payment recorded: ${payment.id}`);
 
-  // Grant membership and update payment tracking in single atomic operation
-  console.log(`[DEBUG ${timestamp}] Granting ${membershipMonths}-month membership to user ${user.id}${couponCode ? ` using coupon ${couponCode}` : ''}...`);
-  await grantMembership(user.id, payment.id, {
-    payment_attempted_at: user.payment_attempted_at || new Date(),
-    payment_retry_count: 0,
-  }, membershipMonths);
-  console.log(`[DEBUG ${timestamp}] ✅ Membership granted successfully`);
+  // Handle renewal vs initial signup
+  if (isRenewal) {
+    console.log(`[DEBUG ${timestamp}] Processing ${renewal_type} renewal for user ${user.id}...`);
+    await handleMembershipRenewal(user.id, renewal_type as 'early' | '5year', current_expiry);
+    console.log(`[DEBUG ${timestamp}] ✅ Membership renewal processed successfully`);
+  } else {
+    // Grant membership and update payment tracking in single atomic operation
+    console.log(`[DEBUG ${timestamp}] Granting ${membershipMonths}-month membership to user ${user.id}${couponCode ? ` using coupon ${couponCode}` : ''}...`);
+    await grantMembership(user.id, payment.id, {
+      payment_attempted_at: user.payment_attempted_at || new Date(),
+      payment_retry_count: 0,
+    }, membershipMonths);
+    console.log(`[DEBUG ${timestamp}] ✅ Membership granted successfully`);
+  }
 
   // Send confirmation email
   if (customer?.email || user_email) {
@@ -455,6 +470,89 @@ async function grantMembership(
 
   console.log(`[SUCCESS] Membership granted to user ${userId} for ${membershipMonths} months until ${expiryDate.toISOString()}`);
   return subscription;
+}
+
+/**
+ * Handle membership renewal
+ * Extends existing membership based on renewal type
+ * @param userId - User ID to renew membership for
+ * @param renewalType - Type of renewal ('early' or '5year')
+ * @param currentExpiryIso - Current expiry date from metadata (ISO string)
+ */
+async function handleMembershipRenewal(
+  userId: string,
+  renewalType: 'early' | '5year',
+  currentExpiryIso?: string
+) {
+  console.log(`[INFO] Processing ${renewalType} renewal for user ${userId}`);
+
+  // Find existing subscription
+  const subscription = await db.subscriptions.findFirst({
+    where: { user_id: userId },
+    orderBy: { created_at: 'desc' },
+  });
+
+  if (!subscription) {
+    console.error(`[ERROR] No subscription found for user ${userId} during renewal`);
+    throw new Error('No subscription found for renewal');
+  }
+
+  // Get current expiry (from metadata or database)
+  let currentExpiry = subscription.current_period_end;
+  if (currentExpiryIso && currentExpiryIso !== 'none') {
+    try {
+      currentExpiry = new Date(currentExpiryIso);
+    } catch (error) {
+      console.warn(`[WARNING] Could not parse current_expiry from metadata, using database value`);
+    }
+  }
+
+  if (!currentExpiry) {
+    console.error(`[ERROR] No current expiry date found for user ${userId}`);
+    throw new Error('No current expiry date found');
+  }
+
+  // Calculate new expiry based on renewal type
+  let newExpiry: Date;
+  if (renewalType === 'early') {
+    newExpiry = calculateEarlyRenewalExpiry(currentExpiry);
+    console.log(`[INFO] Early renewal: ${currentExpiry.toISOString()} + 395 days = ${newExpiry.toISOString()}`);
+  } else if (renewalType === '5year') {
+    newExpiry = calculate5YearRenewalExpiry(currentExpiry);
+    console.log(`[INFO] 5-year renewal: ${currentExpiry.toISOString()} + 1825 days = ${newExpiry.toISOString()}`);
+  } else {
+    throw new Error(`Invalid renewal type: ${renewalType}`);
+  }
+
+  // Update subscription with new expiry
+  await db.subscriptions.update({
+    where: { id: subscription.id },
+    data: {
+      current_period_end: newExpiry,
+      status: 'ACTIVE', // Ensure status is active (in case was expired)
+      updated_at: new Date(),
+    },
+  });
+
+  // Ensure user status is ACTIVE (in case was EXPIRED)
+  await db.users.update({
+    where: { id: userId },
+    data: {
+      status: UserStatus.ACTIVE,
+      updated_at: new Date(),
+    },
+  });
+
+  // Ensure studio is ACTIVE if exists
+  await db.studio_profiles.updateMany({
+    where: { user_id: userId },
+    data: {
+      status: 'ACTIVE',
+      updated_at: new Date(),
+    },
+  });
+
+  console.log(`[SUCCESS] Membership renewed for user ${userId} until ${newExpiry.toISOString()}`);
 }
 
 /**

@@ -50,8 +50,9 @@ STRIPE_WEBHOOK_SECRET="whsec_..."
 - **Events**: Same as preview
 - Copy the signing secret
 
-### 3. Membership Price ID
+### 3. Membership Price IDs
 
+#### Annual Membership (£25)
 ```env
 STRIPE_MEMBERSHIP_PRICE_ID="price_..."
 ```
@@ -63,7 +64,20 @@ STRIPE_MEMBERSHIP_PRICE_ID="price_..."
 4. Billing: **One-time** (NOT recurring)
 5. Copy the Price ID (starts with `price_`)
 
-⚠️ **IMPORTANT**: Use SAME price ID for test and live modes (create in both)
+#### 5-Year Membership (£80) - NEW
+```env
+STRIPE_5YEAR_MEMBERSHIP_PRICE_ID="price_..."
+```
+
+**How to create**:
+1. Stripe Dashboard → Products → Create product
+2. Name: "Five-Year Membership"
+3. Description: "VoiceoverStudioFinder five-year membership - save £45"
+4. Price: £80.00 GBP
+5. Billing: **One-time** (NOT recurring)
+6. Copy the Price ID (starts with `price_`)
+
+⚠️ **IMPORTANT**: Create both price IDs in test mode AND live mode
 
 ## Vercel Configuration
 
@@ -75,6 +89,7 @@ STRIPE_MEMBERSHIP_PRICE_ID="price_..."
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✅ Live key | ✅ Test key | ✅ Test key |
 | `STRIPE_WEBHOOK_SECRET` | ✅ Live webhook | ✅ Preview webhook | ✅ CLI webhook |
 | `STRIPE_MEMBERSHIP_PRICE_ID` | ✅ Live price | ✅ Test price | ✅ Test price |
+| `STRIPE_5YEAR_MEMBERSHIP_PRICE_ID` | ✅ Live price | ✅ Test price | ✅ Test price |
 
 ### Setting in Vercel
 

@@ -21,10 +21,12 @@ import { motion } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
+import { RenewalModal } from '@/components/dashboard/RenewalModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
+import { isEligibleForEarlyRenewal } from '@/lib/membership-renewal';
 
 interface SettingsProps {
   data: any; // dashboardData
@@ -56,6 +58,8 @@ export function Settings({ data }: SettingsProps) {
   // Modals
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showCloseAccountModal, setShowCloseAccountModal] = useState(false);
+  const [renewalModalOpen, setRenewalModalOpen] = useState(false);
+  const [renewalType, setRenewalType] = useState<'early' | '5year'>('early');
   
   // Support forms
   const [issueFormOpen, setIssueFormOpen] = useState(false);
@@ -504,19 +508,48 @@ export function Settings({ data }: SettingsProps) {
                 )}
 
                 <button
-                  disabled
-                  className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
+                  onClick={() => {
+                    // Check if eligible for early renewal (>= 30 days remaining)
+                    if (membership.daysUntilExpiry < 30) {
+                      showError('Early renewal bonus requires at least 30 days remaining on your current membership.');
+                      return;
+                    }
+                    setRenewalType('early');
+                    setRenewalModalOpen(true);
+                  }}
+                  disabled={membership.daysUntilExpiry < 30}
+                  className={`w-full p-3 rounded-md border transition-colors ${
+                    membership.daysUntilExpiry < 30
+                      ? 'bg-gray-100 border-gray-200 cursor-not-allowed'
+                      : 'bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer'
+                  }`}
                 >
-                  <p className="text-sm font-medium text-gray-500">Renew Early (2 weeks extra free!)</p>
-                  <p className="text-xs text-gray-400 mt-1">Coming soon</p>
+                  <p className={`text-sm font-medium ${
+                    membership.daysUntilExpiry < 30 ? 'text-gray-500' : 'text-green-900'
+                  }`}>
+                    Renew Early (1 month bonus!)
+                  </p>
+                  <p className={`text-xs mt-1 ${
+                    membership.daysUntilExpiry < 30 
+                      ? 'text-gray-400' 
+                      : 'text-green-700'
+                  }`}>
+                    {membership.daysUntilExpiry < 30 
+                      ? 'Requires 30+ days remaining for bonus'
+                      : '£25 - Get 1 year + 1 month free'
+                    }
+                  </p>
                 </button>
 
                 <button
-                  disabled
-                  className="w-full p-3 bg-gray-100 rounded-md border border-gray-200 cursor-not-allowed"
+                  onClick={() => {
+                    setRenewalType('5year');
+                    setRenewalModalOpen(true);
+                  }}
+                  className="w-full p-3 bg-blue-50 border border-blue-200 hover:bg-blue-100 cursor-pointer rounded-md transition-colors"
                 >
-                  <p className="text-sm font-medium text-gray-500">5-Year Membership - £75</p>
-                  <p className="text-xs text-gray-400 mt-1">Pay now to add 4 more years! (Coming soon)</p>
+                  <p className="text-sm font-medium text-blue-900">5-Year Membership - £80</p>
+                  <p className="text-xs text-blue-700 mt-1">Save £45 vs annual renewals!</p>
                 </button>
               </>
                   );
@@ -951,6 +984,14 @@ export function Settings({ data }: SettingsProps) {
       <CloseAccountModal 
         isOpen={showCloseAccountModal}
         onClose={() => setShowCloseAccountModal(false)}
+      />
+      
+      <RenewalModal
+        isOpen={renewalModalOpen}
+        onClose={() => setRenewalModalOpen(false)}
+        renewalType={renewalType}
+        currentExpiry={profileData?.membership?.expiresAt}
+        daysRemaining={profileData?.membership?.daysUntilExpiry || 0}
       />
     </>
   );
