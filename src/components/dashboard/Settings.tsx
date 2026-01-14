@@ -635,7 +635,7 @@ export function Settings({ data }: SettingsProps) {
                         }
                       </p>
                       
-                      {(!membership.daysUntilExpiry || membership.daysUntilExpiry >= 30) && (
+                      {membership.daysUntilExpiry && membership.daysUntilExpiry >= 30 && (
                         <div className="flex items-center space-x-2 pt-1">
                           <span className="text-xs font-semibold text-[#d42027]">365 days + 30 day bonus</span>
                         </div>
