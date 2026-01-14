@@ -137,6 +137,9 @@ export async function GET(
 
       if (sentryAuthToken && sentryOrgSlug && sentryProjectSlug) {
         try {
+          console.log(`[ERROR_LOG_API] Fetching Sentry data for issue ${errorLogGroup.sentry_issue_id}`);
+          console.log(`[ERROR_LOG_API] Config: org=${sentryOrgSlug}, project=${sentryProjectSlug}, token=${sentryAuthToken.substring(0, 10)}...`);
+          
           // Fetch issue details
           const issueResponse = await fetch(
             `https://sentry.io/api/0/issues/${errorLogGroup.sentry_issue_id}/`,
@@ -151,8 +154,10 @@ export async function GET(
 
           if (issueResponse.ok) {
             sentryIssue = await issueResponse.json();
+            console.log(`[ERROR_LOG_API] ✅ Successfully fetched Sentry issue`);
           } else {
-            console.warn(`[ERROR_LOG_API] Failed to fetch Sentry issue: ${issueResponse.status}`);
+            const errorBody = await issueResponse.text();
+            console.warn(`[ERROR_LOG_API] ❌ Failed to fetch Sentry issue: ${issueResponse.status} - ${errorBody}`);
             sentryError = `Sentry API returned ${issueResponse.status}`;
           }
 
@@ -172,8 +177,10 @@ export async function GET(
             const rawEvent = await eventResponse.json();
             // Apply privacy redaction before sending to client
             sentryLatestEvent = redactEventData(rawEvent);
+            console.log(`[ERROR_LOG_API] ✅ Successfully fetched Sentry latest event`);
           } else {
-            console.warn(`[ERROR_LOG_API] Failed to fetch Sentry latest event: ${eventResponse.status}`);
+            const errorBody = await eventResponse.text();
+            console.warn(`[ERROR_LOG_API] ❌ Failed to fetch Sentry latest event: ${eventResponse.status} - ${errorBody}`);
             const eventError = `Failed to fetch latest event (HTTP ${eventResponse.status})`;
             sentryError = sentryError ? `${sentryError}; ${eventError}` : eventError;
           }
