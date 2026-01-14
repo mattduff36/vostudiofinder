@@ -26,7 +26,6 @@ import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
-import { isEligibleForEarlyRenewal } from '@/lib/membership-renewal';
 
 interface SettingsProps {
   data: any; // dashboardData
@@ -1138,7 +1137,9 @@ export function Settings({ data }: SettingsProps) {
         isOpen={renewalModalOpen}
         onClose={() => setRenewalModalOpen(false)}
         renewalType={renewalType}
-        currentExpiry={profileData?.membership?.expiresAt ? new Date(profileData.membership.expiresAt) : undefined}
+        {...(profileData?.membership?.expiresAt && {
+          currentExpiry: new Date(profileData.membership.expiresAt)
+        })}
         daysRemaining={profileData?.membership?.daysUntilExpiry || 0}
       />
     </>
