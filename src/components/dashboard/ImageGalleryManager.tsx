@@ -332,6 +332,8 @@ export function ImageGalleryManager({
     
     if (!confirmed) return;
 
+    setError(null); // Clear any previous errors
+
     try {
       const endpoint = isAdminMode && studioId
         ? `/api/admin/studios/${studioId}/images/${imageId}`
@@ -344,6 +346,7 @@ export function ImageGalleryManager({
       if (!response.ok) throw new Error('Failed to delete image');
 
       setImages(images.filter(img => img.id !== imageId));
+      showSuccess('Image deleted successfully');
       
       // Notify parent component if embedded
       if (onImagesChanged) {
