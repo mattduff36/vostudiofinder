@@ -16,7 +16,7 @@ import { AddressPreviewMap } from '@/components/maps/AddressPreviewMap';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
-import { showError } from '@/lib/toast';
+import { showError, showSuccess } from '@/lib/toast';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
 interface Studio {
@@ -100,7 +100,6 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     if (studio && isOpen) {
@@ -304,7 +303,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       await fetchProfile();
 
       onSave();
-      setShowSuccessModal(true);
+      showSuccess('Changes saved successfully!');
     } catch (error) {
       logger.error('Error saving profile:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to save profile. Please try again.';
@@ -1159,30 +1158,9 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 </button>
               </div>
             </div>
-          </div>
         </div>
-
-        {/* Success Modal */}
-        {showSuccessModal && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center cursor-pointer"
-            onClick={() => setShowSuccessModal(false)}
-          >
-            <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-4">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Success!</h3>
-              </div>
-              <p className="text-gray-600 mb-4">Changes saved successfully!</p>
-              <p className="text-xs text-gray-500">Click anywhere to close</p>
-            </div>
-          </div>
-        )}
       </div>
+    </div>
     </div>
   );
 }
