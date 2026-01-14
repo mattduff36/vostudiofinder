@@ -561,19 +561,21 @@ async function handleMembershipRenewal(
     }
   }
 
-  if (!currentExpiry) {
-    console.error(`[ERROR] No current expiry date found for user ${userId}`);
-    throw new Error('No current expiry date found');
-  }
-
   // Calculate new expiry based on renewal type
   let newExpiry: Date;
   if (renewalType === 'early') {
+    // Early renewal requires a current expiry date
+    if (!currentExpiry) {
+      console.error(`[ERROR] Early renewal requires a current expiry date for user ${userId}`);
+      throw new Error('Early renewal requires a current expiry date');
+    }
     newExpiry = calculateEarlyRenewalExpiry(currentExpiry);
     console.log(`[INFO] Early renewal: ${currentExpiry.toISOString()} + 395 days = ${newExpiry.toISOString()}`);
   } else if (renewalType === '5year') {
+    // 5-year renewal can handle null (defaults to today)
     newExpiry = calculate5YearRenewalExpiry(currentExpiry);
-    console.log(`[INFO] 5-year renewal: ${currentExpiry.toISOString()} + 1825 days = ${newExpiry.toISOString()}`);
+    const currentExpiryStr = currentExpiry ? currentExpiry.toISOString() : 'null (using today)';
+    console.log(`[INFO] 5-year renewal: ${currentExpiryStr} + 1825 days = ${newExpiry.toISOString()}`);
   } else {
     throw new Error(`Invalid renewal type: ${renewalType}`);
   }
