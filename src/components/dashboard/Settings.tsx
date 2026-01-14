@@ -271,10 +271,10 @@ export function Settings({ data }: SettingsProps) {
             </div>
 
             {/* Bottom 3 sections - side by side on desktop */}
-            <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-4">
+            <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-4 md:items-stretch">
               {/* Account Security */}
-              <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm md:w-1/3">
-                <div className="p-6">
+              <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm md:w-1/3 flex flex-col">
+                <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-center space-x-2 mb-4">
                     <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
                       <Lock className="w-5 h-5 text-purple-600" />
@@ -288,7 +288,7 @@ export function Settings({ data }: SettingsProps) {
                     onClick={() => setShowPasswordModal(true)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 px-4 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] transition-all shadow-sm hover:shadow-md"
+                    className="w-full py-3 px-4 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] transition-all shadow-sm hover:shadow-md mt-auto"
                   >
                     Change Password
                   </motion.button>
@@ -296,8 +296,8 @@ export function Settings({ data }: SettingsProps) {
               </div>
 
               {/* Data Management */}
-              <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm md:w-1/3">
-                <div className="p-6">
+              <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm md:w-1/3 flex flex-col">
+                <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-center space-x-2 mb-4">
                     <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                       <Download className="w-5 h-5 text-gray-600" />
@@ -312,7 +312,7 @@ export function Settings({ data }: SettingsProps) {
                     disabled={downloadingData}
                     whileHover={downloadingData ? {} : { scale: 1.02 }}
                     whileTap={downloadingData ? {} : { scale: 0.98 }}
-                    className="w-full py-2.5 px-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+                    className="w-full py-2.5 px-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md mt-auto"
                   >
                     {downloadingData && <Loader2 className="w-4 h-4 animate-spin" />}
                     <Download className="w-4 h-4" />
@@ -322,8 +322,8 @@ export function Settings({ data }: SettingsProps) {
               </div>
 
               {/* Close Account */}
-              <div className="relative overflow-hidden rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-white shadow-sm md:w-1/3">
-                <div className="p-6">
+              <div className="relative overflow-hidden rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-white shadow-sm md:w-1/3 flex flex-col">
+                <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-center space-x-2 mb-4">
                     <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                       <Trash2 className="w-5 h-5 text-red-600" />
@@ -338,7 +338,7 @@ export function Settings({ data }: SettingsProps) {
                     onClick={() => setShowCloseAccountModal(true)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 px-4 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-all flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+                    className="w-full py-3 px-4 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-all flex items-center justify-center space-x-2 shadow-sm hover:shadow-md mt-auto"
                   >
                     <AlertTriangle className="w-4 h-4" />
                     <span>Close Account</span>
