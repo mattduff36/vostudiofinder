@@ -52,10 +52,10 @@ const STUDIO_TYPES = [
   { value: 'HOME', label: 'Home', description: 'Personal recording space in a home environment', disabled: false },
   { value: 'RECORDING', label: 'Recording', description: 'Full, professional recording facility', disabled: false },
   { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
-  // Bottom row - Future additions (disabled)
-  { value: 'VOICEOVER', label: 'Voiceover', description: 'Coming soon!', disabled: true },
-  { value: 'VO_COACH', label: 'VO-Coach', description: 'Coming soon!', disabled: true },
-  { value: 'EDITING', label: 'Editing', description: 'Coming soon!', disabled: true },
+  // Bottom row - Future types
+  { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services', disabled: true },
+  { value: 'VO_COACH', label: 'VO-Coach', description: 'Voiceover coaching and training services', disabled: true },
+  { value: 'AUDIO_PRODUCER', label: 'Audio Producer', description: 'Audio production and post-production services', disabled: false },
 ];
 
 const CONNECTION_TYPES = [
@@ -344,15 +344,8 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
 
   const renderBasicTab = () => (
     <div className="space-y-6">
-      {/* 2x2 Grid for top 4 fields */}
+      {/* Row 1: Display Name + Studio Name (1:1 ratio) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          label="Username"
-          value={profile?.username || ''}
-          onChange={(e) => handleBasicChange('username', e.target.value)}
-          helperText="Used in your profile URL"
-          required
-        />
         <Input
           label="Display Name"
           value={profile?.display_name || ''}
@@ -376,184 +369,88 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             <span>{(profile?._meta?.studio_name || '').length}/35 characters</span>
           </div>
         </div>
-        <Input
-          label="Website URL"
-          type="url"
-          value={profile?._meta?.url || ''}
-          onChange={(e) => handleMetaChange('url', e.target.value)}
-          helperText="Your studio or personal website"
-          placeholder="https://yourstudio.com"
-        />
       </div>
 
-      {/* Mobile: Single column layout */}
-      <div className="md:hidden space-y-6">
+      {/* Row 2: Studio Type + Website URL (1:1 ratio) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Studio Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Studio Types
+            Studio Type
           </label>
-          <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
-          <div className="space-y-3">
-            {/* Top row - Active types */}
-            <div className="grid grid-cols-3 gap-3">
-              {STUDIO_TYPES.slice(0, 3).map((type) => {
-                const selectedTypes = profile?.studioTypes || [];
-                const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
-                
-                return (
-                  <div key={type.value} className="relative group">
-                    <Checkbox
-                      label={type.label}
-                      checked={isChecked}
-                      onChange={() => toggleStudioType(type.value)}
-                      disabled={false}
-                    />
-                    <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                      {type.description}
-                      <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                    </div>
+          <div className="grid grid-cols-3 gap-3">
+            {STUDIO_TYPES.map((type) => {
+              const selectedTypes = profile?.studioTypes || [];
+              const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
+              
+              return (
+                <div key={type.value} className="relative group">
+                  <Checkbox
+                    label={type.label}
+                    checked={isChecked}
+                    onChange={() => toggleStudioType(type.value)}
+                    disabled={type.disabled}
+                  />
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                    {type.disabled ? 'Coming soon!' : type.description}
+                    <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                   </div>
-                );
-              })}
-            </div>
-            {/* Bottom row - Future additions (disabled) */}
-            <div className="grid grid-cols-3 gap-3">
-              {STUDIO_TYPES.slice(3).map((type) => {
-                const selectedTypes = profile?.studioTypes || [];
-                const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
-                
-                return (
-                  <div key={type.value} className="relative group">
-                    <Checkbox
-                      label={type.label}
-                      checked={isChecked}
-                      onChange={() => toggleStudioType(type.value)}
-                      disabled={false}
-                    />
-                    <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                      {type.description}
-                      <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
+        {/* Website URL */}
         <div>
           <Input
-            label="Short About"
-            value={profile?._meta?.short_about || ''}
-            onChange={(e) => handleMetaChange('short_about', e.target.value)}
-            maxLength={150}
+            label="Website URL"
+            type="url"
+            value={profile?._meta?.url || ''}
+            onChange={(e) => handleMetaChange('url', e.target.value)}
+            helperText="Your studio or personal website"
+            placeholder="https://yourstudio.com"
           />
-          <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-            <span>Add a brief description to shown on the Studios page</span>
-            <span>{(profile?._meta?.short_about || '').length}/150 characters</span>
-          </div>
-        </div>
-
-        <div>
-          <Textarea
-            label="Full About"
-            value={decodeHtmlEntities(profile?._meta?.about) || ''}
-            onChange={(e) => handleMetaChange('about', e.target.value)}
-            rows={6}
-            maxLength={1500}
-          />
-          <div className="flex justify-between items-center text-xs mt-1">
-            <span className="text-gray-500">Add a detailed description for your profile page</span>
-            <span 
-              className={`${
-                (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1400 
-                  ? 'text-red-600 font-semibold' 
-                  : (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1300 
-                  ? 'text-orange-600 font-medium' 
-                  : 'text-gray-500'
-              }`}
-            >
-              {(decodeHtmlEntities(profile?._meta?.about) || '').length}/1500 characters
-            </span>
-          </div>
         </div>
       </div>
 
-      {/* Desktop: Reorganized layout */}
-      <div className="hidden md:block space-y-4">
-        {/* Top Row: Studio Types (left) + Short About (right) */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Studio Types */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Studio Types
-            </label>
-            <p className="text-xs text-gray-500 mb-3">Select all that apply to your studio</p>
-            <div className="space-y-3">
-              {/* Compact 2-column grid for desktop */}
-              <div className="grid grid-cols-2 gap-3">
-                {STUDIO_TYPES.map((type) => {
-                  const selectedTypes = profile?.studioTypes || [];
-                  const isChecked = selectedTypes.some((st: any) => st.studio_type === type.value);
-                  
-                  return (
-                    <div key={type.value} className="relative group">
-                      <Checkbox
-                        label={type.label}
-                        checked={isChecked}
-                        onChange={() => toggleStudioType(type.value)}
-                        disabled={false}
-                      />
-                      <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                        {type.description}
-                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Short About */}
-          <div>
-            <Textarea
-              label="Short About"
-              value={profile?._meta?.short_about || ''}
-              onChange={(e) => handleMetaChange('short_about', e.target.value)}
-              rows={4}
-              maxLength={150}
-            />
-            <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-              <span>Brief description for the Studios page</span>
-              <span>{(profile?._meta?.short_about || '').length}/150 characters</span>
-            </div>
-          </div>
+      {/* Row 3: Short About (single line input, full width) */}
+      <div>
+        <Input
+          label="Short About"
+          value={profile?._meta?.short_about || ''}
+          onChange={(e) => handleMetaChange('short_about', e.target.value)}
+          maxLength={150}
+        />
+        <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+          <span>Brief description shown on the Studios page</span>
+          <span>{(profile?._meta?.short_about || '').length}/150 characters</span>
         </div>
+      </div>
 
-        {/* Bottom Row: Full About (spanning both columns) */}
-        <div>
-          <Textarea
-            label="Full About"
-            value={decodeHtmlEntities(profile?._meta?.about) || ''}
-            onChange={(e) => handleMetaChange('about', e.target.value)}
-            maxLength={1500}
-            className="min-h-[150px] resize-none overflow-hidden"
-          />
-          <div className="flex justify-between items-center text-xs mt-1">
-            <span className="text-gray-500">Detailed description for your profile page</span>
-            <span 
-              className={`${
-                (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1400 
-                  ? 'text-red-600 font-semibold' 
-                  : (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1300 
-                  ? 'text-orange-600 font-medium' 
-                  : 'text-gray-500'
-              }`}
-            >
-              {(decodeHtmlEntities(profile?._meta?.about) || '').length}/1500 characters
-            </span>
-          </div>
+      {/* Row 4: Full About (textarea, full width) */}
+      <div>
+        <Textarea
+          label="Full About"
+          value={decodeHtmlEntities(profile?._meta?.about) || ''}
+          onChange={(e) => handleMetaChange('about', e.target.value)}
+          maxLength={1500}
+          rows={6}
+          className="min-h-[150px] resize-none overflow-hidden"
+        />
+        <div className="flex justify-between items-center text-xs mt-1">
+          <span className="text-gray-500">Detailed description for your profile page</span>
+          <span 
+            className={`${
+              (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1400 
+                ? 'text-red-600 font-semibold' 
+                : (decodeHtmlEntities(profile?._meta?.about) || '').length >= 1300 
+                ? 'text-orange-600 font-medium' 
+                : 'text-gray-500'
+            }`}
+          >
+            {(decodeHtmlEntities(profile?._meta?.about) || '').length}/1500 characters
+          </span>
         </div>
       </div>
     </div>
