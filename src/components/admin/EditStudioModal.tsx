@@ -1028,8 +1028,17 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                       type="date"
                       value={profile?._meta?.membership_expires_at ? new Date(profile._meta.membership_expires_at).toISOString().split('T')[0] : ''}
                       onChange={(e) => {
-                        const dateValue = e.target.value ? new Date(e.target.value).toISOString() : '';
-                        handleMetaChange('membership_expires_at', dateValue);
+                        if (!e.target.value) {
+                          handleMetaChange('membership_expires_at', '');
+                          return;
+                        }
+                        // Parse date as local midnight, then convert to UTC to avoid timezone issues
+                        const parts = e.target.value.split('-').map(Number);
+                        if (parts.length === 3 && parts.every(n => !isNaN(n))) {
+                          const [year, month, day] = parts as [number, number, number];
+                          const dateValue = new Date(Date.UTC(year, month - 1, day)).toISOString();
+                          handleMetaChange('membership_expires_at', dateValue);
+                        }
                       }}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -1051,8 +1060,17 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                   type="date"
                   value={profile?._meta?.membership_expires_at ? new Date(profile._meta.membership_expires_at).toISOString().split('T')[0] : ''}
                   onChange={(e) => {
-                    const dateValue = e.target.value ? new Date(e.target.value).toISOString() : '';
-                    handleMetaChange('membership_expires_at', dateValue);
+                    if (!e.target.value) {
+                      handleMetaChange('membership_expires_at', '');
+                      return;
+                    }
+                    // Parse date as local midnight, then convert to UTC to avoid timezone issues
+                    const parts = e.target.value.split('-').map(Number);
+                    if (parts.length === 3 && parts.every(n => !isNaN(n))) {
+                      const [year, month, day] = parts as [number, number, number];
+                      const dateValue = new Date(Date.UTC(year, month - 1, day)).toISOString();
+                      handleMetaChange('membership_expires_at', dateValue);
+                    }
                   }}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                 />

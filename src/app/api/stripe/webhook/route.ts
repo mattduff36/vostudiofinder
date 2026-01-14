@@ -367,22 +367,32 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   console.log(`[DEBUG ${timestamp}]   - Status: ${payment.status}`);
   console.log(`[SUCCESS] Payment recorded: ${payment.id}`);
 
-  // Handle renewal vs initial signup
-  if (isRenewal) {
-    console.log(`[DEBUG ${timestamp}] Processing ${renewal_type} renewal for user ${user.id}...`);
-    await handleMembershipRenewal(user.id, renewal_type as 'early' | '5year', current_expiry);
-    console.log(`[DEBUG ${timestamp}] ✅ Membership renewal processed successfully`);
-  } else {
-    // Grant membership and update payment tracking in single atomic operation
-    console.log(`[DEBUG ${timestamp}] Granting ${membershipMonths}-month membership to user ${user.id}${couponCode ? ` using coupon ${couponCode}` : ''}...`);
-    await grantMembership(user.id, payment.id, {
-      payment_attempted_at: user.payment_attempted_at || new Date(),
-      payment_retry_count: 0,
-    }, membershipMonths);
-    console.log(`[DEBUG ${timestamp}] ✅ Membership granted successfully`);
+  // Handle renewal vs initial signup with error handling to ensure email is sent
+  let membershipProcessingError: Error | null = null;
+  
+  try {
+    if (isRenewal) {
+      console.log(`[DEBUG ${timestamp}] Processing ${renewal_type} renewal for user ${user.id}...`);
+      await handleMembershipRenewal(user.id, renewal_type as 'early' | '5year', current_expiry);
+      console.log(`[DEBUG ${timestamp}] ✅ Membership renewal processed successfully`);
+    } else {
+      // Grant membership and update payment tracking in single atomic operation
+      console.log(`[DEBUG ${timestamp}] Granting ${membershipMonths}-month membership to user ${user.id}${couponCode ? ` using coupon ${couponCode}` : ''}...`);
+      await grantMembership(user.id, payment.id, {
+        payment_attempted_at: user.payment_attempted_at || new Date(),
+        payment_retry_count: 0,
+      }, membershipMonths);
+      console.log(`[DEBUG ${timestamp}] ✅ Membership granted successfully`);
+    }
+  } catch (error) {
+    // Store error but don't throw yet - we need to send confirmation email first
+    membershipProcessingError = error instanceof Error ? error : new Error(String(error));
+    console.error(`[ERROR ${timestamp}] Membership processing failed:`, error);
+    console.error(`[ERROR ${timestamp}] Payment was recorded but membership was not granted/renewed`);
+    console.error(`[ERROR ${timestamp}] Will attempt to send notification email before re-throwing error`);
   }
 
-  // Send confirmation email
+  // Send confirmation email (even if membership processing failed)
   if (customer?.email || user_email) {
     try {
       // Fetch actual expiry date from database after processing
@@ -455,6 +465,12 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
     } catch (emailError) {
       console.warn(`[WARNING] Failed to send confirmation email: ${emailError}`);
     }
+  }
+  
+  // If membership processing failed, re-throw error now that email has been sent
+  if (membershipProcessingError) {
+    console.error(`[ERROR ${timestamp}] Re-throwing membership processing error after email attempt`);
+    throw membershipProcessingError;
   }
 }
 
