@@ -378,17 +378,53 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   // Send confirmation email
   if (customer?.email || user_email) {
     try {
-      // Determine plan name and billing period based on renewal type
-      let planName = 'Annual Membership';
-      let nextBillingDays = 365;
+      // Fetch actual expiry date from database after processing
+      const updatedSubscription = await db.subscriptions.findFirst({
+        where: { user_id: user.id },
+        orderBy: { created_at: 'desc' },
+        select: { current_period_end: true },
+      });
+
+      let actualExpiryDate: Date;
       
+      if (!updatedSubscription?.current_period_end) {
+        // ERROR: Subscription not found after successful payment/renewal
+        // This should never happen, but we'll calculate a fallback date to still send the email
+        console.error(`[ERROR] No subscription found for user ${user.id} after payment processing. Using fallback date calculation.`);
+        
+        // Calculate fallback expiry date based on renewal type or default to 1 year from now
+        if (isRenewal && renewal_type) {
+          if (renewal_type === 'early' && current_expiry) {
+            const currentExpiryDate = new Date(current_expiry);
+            actualExpiryDate = calculateEarlyRenewalExpiry(currentExpiryDate);
+            console.log(`[FALLBACK] Using calculated early renewal expiry: ${actualExpiryDate.toISOString()}`);
+          } else if (renewal_type === '5year') {
+            const currentExpiryDate = current_expiry ? new Date(current_expiry) : null;
+            actualExpiryDate = calculate5YearRenewalExpiry(currentExpiryDate);
+            console.log(`[FALLBACK] Using calculated 5-year renewal expiry: ${actualExpiryDate.toISOString()}`);
+          } else {
+            // Unknown renewal type, default to 1 year
+            actualExpiryDate = new Date();
+            actualExpiryDate.setFullYear(actualExpiryDate.getFullYear() + 1);
+            console.log(`[FALLBACK] Using default 1-year expiry: ${actualExpiryDate.toISOString()}`);
+          }
+        } else {
+          // Initial signup, calculate based on membership months
+          actualExpiryDate = new Date();
+          actualExpiryDate.setMonth(actualExpiryDate.getMonth() + (membershipMonths || 12));
+          console.log(`[FALLBACK] Using ${membershipMonths || 12}-month expiry: ${actualExpiryDate.toISOString()}`);
+        }
+      } else {
+        actualExpiryDate = updatedSubscription.current_period_end;
+      }
+      
+      // Determine plan name based on renewal type
+      let planName = 'Annual Membership';
       if (isRenewal) {
         if (renewal_type === 'early') {
           planName = 'Early Renewal (with 1-month bonus)';
-          nextBillingDays = 395; // 365 + 30 bonus days
         } else if (renewal_type === '5year') {
           planName = '5-Year Membership';
-          nextBillingDays = 1825; // 5 years
         }
       }
       
@@ -401,10 +437,14 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
           currency: payment.currency.toUpperCase(),
           paymentId: payment.id,
           planName,
-          nextBillingDate: new Date(Date.now() + nextBillingDays * 24 * 60 * 60 * 1000).toLocaleDateString(),
+          nextBillingDate: actualExpiryDate.toLocaleDateString('en-GB', { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric' 
+          }),
         }),
       });
-      console.log(`[EMAIL] Confirmation email sent to ${customer?.email || user_email}`);
+      console.log(`[EMAIL] Confirmation email sent to ${customer?.email || user_email} with expiry: ${actualExpiryDate.toISOString()}`);
     } catch (emailError) {
       console.warn(`[WARNING] Failed to send confirmation email: ${emailError}`);
     }
