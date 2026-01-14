@@ -272,7 +272,7 @@ export function Settings({ data }: SettingsProps) {
 
             {/* Bottom 3 sections - side by side on desktop */}
             <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-4 md:items-stretch">
-              {/* Account Security */}
+              {/* Password */}
               <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm md:w-1/3 flex flex-col">
                 <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-center space-x-2 mb-4">
@@ -280,8 +280,8 @@ export function Settings({ data }: SettingsProps) {
                       <Lock className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <h3 className="text-base font-semibold text-gray-900">Account Security</h3>
-                      <p className="text-xs text-gray-500">Protect your account</p>
+                      <h3 className="text-base font-semibold text-gray-900">Password</h3>
+                      <p className="text-xs text-gray-500">Change your password</p>
                     </div>
                   </div>
                   <motion.button
