@@ -49,7 +49,7 @@ const useConfirmDialogStore = create<ConfirmDialogStore>((set, get) => ({
       // Show next in queue, if any
       if (state.queue.length > 0) {
         const [next, ...rest] = state.queue;
-        set({ current: next, queue: rest });
+        set({ current: next!, queue: rest }); // Non-null assertion: length > 0 guarantees next exists
       } else {
         set({ current: null });
       }

@@ -10,7 +10,7 @@ import { ImageCropperModal } from '@/components/images/ImageCropperModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats, type CompletionStats } from '@/lib/utils/profile-completion';
 import { showConfirm } from '@/components/ui/ConfirmDialog';
-import { showSuccess, showError } from '@/lib/toast';
+import { showSuccess } from '@/lib/toast';
 
 interface StudioImage {
   id: string;
