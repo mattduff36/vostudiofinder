@@ -579,21 +579,22 @@ export function Settings({ data }: SettingsProps) {
                     <span>Renewal Options</span>
                   </h4>
                   
-                  {/* Early Renewal Card */}
-                  <motion.button
-                    onClick={() => {
-                      const days = membership.daysUntilExpiry ?? 0;
-                      if (days < 30) {
-                        showError('Early renewal bonus requires at least 30 days remaining on your current membership.');
-                        return;
-                      }
-                      setRenewalType('early');
-                      setRenewalModalOpen(true);
-                    }}
-                    disabled={!membership.daysUntilExpiry || membership.daysUntilExpiry < 30}
-                    whileHover={(!membership.daysUntilExpiry || membership.daysUntilExpiry < 30) ? {} : { scale: 1.02 }}
-                    whileTap={(!membership.daysUntilExpiry || membership.daysUntilExpiry < 30) ? {} : { scale: 0.98 }}
-                    className={`w-full relative overflow-hidden rounded-xl border-2 p-5 text-left transition-all duration-200 ${
+                  <div className="flex gap-3">
+                    {/* Early Renewal Card */}
+                    <motion.button
+                      onClick={() => {
+                        const days = membership.daysUntilExpiry ?? 0;
+                        if (days < 30) {
+                          showError('Early renewal bonus requires at least 30 days remaining on your current membership.');
+                          return;
+                        }
+                        setRenewalType('early');
+                        setRenewalModalOpen(true);
+                      }}
+                      disabled={!membership.daysUntilExpiry || membership.daysUntilExpiry < 30}
+                      whileHover={(!membership.daysUntilExpiry || membership.daysUntilExpiry < 30) ? {} : { scale: 1.02 }}
+                      whileTap={(!membership.daysUntilExpiry || membership.daysUntilExpiry < 30) ? {} : { scale: 0.98 }}
+                      className={`flex-1 relative overflow-hidden rounded-xl border-2 p-5 text-left transition-all duration-200 ${
                       !membership.daysUntilExpiry || membership.daysUntilExpiry < 30
                         ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60'
                         : 'bg-gradient-to-br from-red-50 to-pink-50 border-[#d42027] hover:border-[#a1181d] cursor-pointer shadow-sm hover:shadow-md'
@@ -641,18 +642,18 @@ export function Settings({ data }: SettingsProps) {
                         </div>
                       )}
                     </div>
-                  </motion.button>
+                    </motion.button>
 
-                  {/* 5-Year Membership Card */}
-                  <motion.button
-                    onClick={() => {
-                      setRenewalType('5year');
-                      setRenewalModalOpen(true);
-                    }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full relative overflow-hidden rounded-xl border-2 border-gray-300 hover:border-[#d42027] bg-gradient-to-br from-gray-50 to-white p-5 text-left transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md group"
-                  >
+                    {/* 5-Year Membership Card */}
+                    <motion.button
+                      onClick={() => {
+                        setRenewalType('5year');
+                        setRenewalModalOpen(true);
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="flex-1 relative overflow-hidden rounded-xl border-2 border-gray-300 hover:border-[#d42027] bg-gradient-to-br from-gray-50 to-white p-5 text-left transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md group"
+                    >
                     {/* Best Value Badge */}
                     <div className="absolute top-3 right-3 px-2 py-1 bg-gradient-to-r from-amber-400 to-amber-500 text-gray-900 text-xs font-bold rounded-full shadow-sm">
                       SAVE £45
@@ -678,7 +679,8 @@ export function Settings({ data }: SettingsProps) {
                         <span className="text-xs text-gray-500 line-through">£125</span>
                       </div>
                     </div>
-                  </motion.button>
+                    </motion.button>
+                  </div>
                 </div>
               </>
                   );
