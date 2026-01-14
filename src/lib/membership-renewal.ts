@@ -96,6 +96,30 @@ export function formatRenewalBreakdown(
 }
 
 /**
+ * Calculate the final expiry date that will result from a renewal
+ * Matches the backend logic exactly for UI preview
+ * 
+ * @param currentExpiry Current membership expiry date (or null if none)
+ * @param renewalType Type of renewal
+ * @returns The new expiry date after renewal
+ */
+export function calculateFinalExpiryForDisplay(
+  currentExpiry: Date | null,
+  renewalType: 'early' | '5year'
+): Date {
+  if (renewalType === 'early') {
+    // Early renewal always extends from current expiry
+    if (!currentExpiry) {
+      throw new Error('Early renewal requires existing expiry date');
+    }
+    return calculateEarlyRenewalExpiry(currentExpiry);
+  } else {
+    // 5-year renewal uses backend logic (today if expired)
+    return calculate5YearRenewalExpiry(currentExpiry);
+  }
+}
+
+/**
  * Get renewal price information
  * 
  * @param renewalType Type of renewal

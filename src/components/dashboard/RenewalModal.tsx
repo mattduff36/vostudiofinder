@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Loader2, X, Calendar, Gift } from 'lucide-react';
-import { formatRenewalBreakdown, getRenewalPrice } from '@/lib/membership-renewal';
+import { formatRenewalBreakdown, getRenewalPrice, calculateFinalExpiryForDisplay } from '@/lib/membership-renewal';
 
 // Initialize Stripe
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -135,7 +135,7 @@ export function RenewalModal({
             </div>
             {currentExpiry && (
               <div className="pt-2 text-xs text-gray-500">
-                New expiry: {new Date(new Date(currentExpiry).getTime() + (breakdown.added + breakdown.bonus) * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
+                New expiry: {calculateFinalExpiryForDisplay(currentExpiry, renewalType).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric'
