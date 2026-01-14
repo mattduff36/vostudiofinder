@@ -394,12 +394,12 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
         
         // Calculate fallback expiry date based on renewal type or default to 1 year from now
         if (isRenewal && renewal_type) {
-          if (renewal_type === 'early' && current_expiry) {
+          if (renewal_type === 'early' && current_expiry && current_expiry !== 'none') {
             const currentExpiryDate = new Date(current_expiry);
             actualExpiryDate = calculateEarlyRenewalExpiry(currentExpiryDate);
             console.log(`[FALLBACK] Using calculated early renewal expiry: ${actualExpiryDate.toISOString()}`);
           } else if (renewal_type === '5year') {
-            const currentExpiryDate = current_expiry ? new Date(current_expiry) : null;
+            const currentExpiryDate = (current_expiry && current_expiry !== 'none') ? new Date(current_expiry) : null;
             actualExpiryDate = calculate5YearRenewalExpiry(currentExpiryDate);
             console.log(`[FALLBACK] Using calculated 5-year renewal expiry: ${actualExpiryDate.toISOString()}`);
           } else {

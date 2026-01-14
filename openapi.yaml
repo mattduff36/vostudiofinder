@@ -1,0 +1,119 @@
+openapi: 3.0.3
+info:
+  title: Voiceover Studio Finder Production API
+  version: 1.0.0
+servers:
+  - url: https://voiceoverstudiofinder.com/api
+
+tags:
+  - name: Auth
+  - name: User
+  - name: Studios
+
+paths:
+  /auth/session:
+    post:
+      tags: [Auth]
+      summary: Create session (login)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+            examples:
+              testLogin:
+                value:
+                  email: matt.mpdee@gmail.com
+                  password: TestSprite26?
+      responses:
+        "200":
+          description: Logged in, session cookie set
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+        "401":
+          description: Invalid credentials
+    get:
+      tags: [Auth]
+      summary: Get current session
+      responses:
+        "200":
+          description: Session present
+        "401":
+          description: No session
+
+  /user/profile:
+    get:
+      tags: [User]
+      summary: Get current user profile (requires session cookie)
+      responses:
+        "200":
+          description: Profile
+        "401":
+          description: No session
+        "403":
+          description: Forbidden
+    patch:
+      tags: [User]
+      summary: Update current user profile (safe field only, requires session cookie)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+            examples:
+              safeUpdate:
+                value:
+                  displayName: "TestSprite User"
+      responses:
+        "200":
+          description: Updated profile
+        "400":
+          description: Validation error
+        "401":
+          description: No session
+        "403":
+          description: Forbidden
+
+  /studios:
+    get:
+      tags: [Studios]
+      summary: List studios (public)
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+          required: false
+          description: Free text search
+      responses:
+        "200":
+          description: Studio list
+
+  /studios/{id}:
+    get:
+      tags: [Studios]
+      summary: Get studio by id (public)
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Studio
+        "404":
+          description: Not found
