@@ -87,23 +87,19 @@ export function formatRenewalBreakdown(
   bonus: number;
   total: number;
 } {
-  // For expired memberships (negative days), normalize to 0 for calculation
-  // Display will show "Membership expired" but calculation uses 0
-  const normalizedCurrent = Math.max(0, daysRemaining);
-  
   if (renewalType === 'early') {
     return {
       current: daysRemaining, // Keep original for display logic
       added: 365,
       bonus: 30,
-      total: normalizedCurrent + 365 + 30,
+      total: 365 + 30, // Only the renewal period, not including current days
     };
   } else {
     return {
       current: daysRemaining, // Keep original for display logic
       added: 1825,
       bonus: 0,
-      total: normalizedCurrent + 1825,
+      total: 1825, // Only the renewal period, not including current days
     };
   }
 }
