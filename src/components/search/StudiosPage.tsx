@@ -14,6 +14,7 @@ import { logger } from '@/lib/logger';
 import { Footer } from '@/components/home/Footer';
 import { SelectedStudioDetails } from './SelectedStudioDetails';
 import { Button } from '@/components/ui/Button';
+import { showWarning } from '@/lib/toast';
 
 interface Studio {
   id: string;
@@ -572,7 +573,7 @@ export function StudiosPage() {
         logger.warn('⚠️ mapBounds is null! Attempting to get current bounds from map...');
         // The map bounds should update shortly via the bounds_changed listener
         // Return false to prevent enabling until bounds are available
-        alert('Please wait for the map to fully load before filtering by map area.');
+        showWarning('Please wait for the map to fully load before filtering by map area.');
         return false;
       }
       

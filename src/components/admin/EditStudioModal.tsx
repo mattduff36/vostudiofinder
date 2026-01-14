@@ -1,7 +1,7 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Loader2, Eye, Save, X, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/Input';
@@ -100,6 +100,9 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+  
+  // Ref for auto-growing Full About textarea
+  const fullAboutRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (studio && isOpen) {
@@ -118,6 +121,17 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       document.body.classList.remove('admin-modal-open');
     };
   }, [studio, isOpen]);
+
+  // Auto-resize Full About textarea
+  useEffect(() => {
+    if (!fullAboutRef.current) return;
+    
+    // Reset height to auto to get accurate scrollHeight
+    fullAboutRef.current.style.height = 'auto';
+    
+    // Set height to match content
+    fullAboutRef.current.style.height = `${fullAboutRef.current.scrollHeight}px`;
+  }, [profile?._meta?.about]);
 
   const fetchProfile = async () => {
     if (!studio) return;
@@ -430,6 +444,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       {/* Row 4: Full About (textarea, full width) */}
       <div>
         <Textarea
+          ref={fullAboutRef}
           label="Full About"
           value={decodeHtmlEntities(profile?._meta?.about) || ''}
           onChange={(e) => handleMetaChange('about', e.target.value)}

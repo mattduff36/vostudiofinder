@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/Input';
 import { ImageCropperModal } from '@/components/images/ImageCropperModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats, type CompletionStats } from '@/lib/utils/profile-completion';
+import { showConfirm } from '@/components/ui/ConfirmDialog';
+import { showSuccess, showError } from '@/lib/toast';
 
 interface StudioImage {
   id: string;
@@ -321,7 +323,14 @@ export function ImageGalleryManager({
   };
 
   const handleDelete = async (imageId: string) => {
-    if (!confirm('Are you sure you want to delete this image?')) return;
+    const confirmed = await showConfirm({
+      title: 'Delete Image?',
+      message: 'Are you sure you want to delete this image? This action cannot be undone.',
+      confirmText: 'Delete',
+      isDangerous: true,
+    });
+    
+    if (!confirmed) return;
 
     try {
       const endpoint = isAdminMode && studioId
