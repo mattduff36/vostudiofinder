@@ -196,8 +196,8 @@ export function Settings({ data }: SettingsProps) {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-2">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-[#d42027]" />
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-gray-900">Privacy Settings</h3>
@@ -276,8 +276,8 @@ export function Settings({ data }: SettingsProps) {
               <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm md:w-1/3 flex flex-col">
                 <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-center space-x-2 mb-4">
-                    <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-                      <Lock className="w-5 h-5 text-purple-600" />
+                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                      <Lock className="w-5 h-5 text-[#d42027]" />
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-gray-900">Password</h3>
@@ -360,8 +360,8 @@ export function Settings({ data }: SettingsProps) {
                 className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="w-5 h-5 text-orange-600" />
+                  <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-[#d42027]" />
                   </div>
                   <div className="text-left">
                     <h3 className="text-base font-semibold text-gray-900">Report an Issue</h3>
@@ -429,8 +429,8 @@ export function Settings({ data }: SettingsProps) {
                 className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
-                    <Lightbulb className="w-5 h-5 text-yellow-600" />
+                  <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                    <Lightbulb className="w-5 h-5 text-[#d42027]" />
                   </div>
                   <div className="text-left">
                     <h3 className="text-base font-semibold text-gray-900">Make a Suggestion</h3>
@@ -751,8 +751,8 @@ export function Settings({ data }: SettingsProps) {
                 className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="w-5 h-5 text-orange-600" />
+                  <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-[#d42027]" />
                   </div>
                   <div className="text-left">
                     <h3 className="text-base font-semibold text-gray-900">Report an Issue</h3>
@@ -820,8 +820,8 @@ export function Settings({ data }: SettingsProps) {
                 className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
-                    <Lightbulb className="w-5 h-5 text-yellow-600" />
+                  <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                    <Lightbulb className="w-5 h-5 text-[#d42027]" />
                   </div>
                   <div className="text-left">
                     <h3 className="text-base font-semibold text-gray-900">Make a Suggestion</h3>
