@@ -141,8 +141,9 @@ export async function GET(
           console.log(`[ERROR_LOG_API] Config: org=${sentryOrgSlug}, project=${sentryProjectSlug}, token=${sentryAuthToken.substring(0, 10)}...`);
           
           // Fetch issue details
+          // Try organization-scoped endpoint first (required for some token types)
           const issueResponse = await fetch(
-            `https://sentry.io/api/0/issues/${errorLogGroup.sentry_issue_id}/`,
+            `https://sentry.io/api/0/organizations/${sentryOrgSlug}/issues/${errorLogGroup.sentry_issue_id}/`,
             {
               headers: {
                 'Authorization': `Bearer ${sentryAuthToken}`,
@@ -162,8 +163,9 @@ export async function GET(
           }
 
           // Fetch latest event for this issue
+          // Use organization-scoped endpoint for consistency
           const eventResponse = await fetch(
-            `https://sentry.io/api/0/issues/${errorLogGroup.sentry_issue_id}/events/latest/`,
+            `https://sentry.io/api/0/organizations/${sentryOrgSlug}/issues/${errorLogGroup.sentry_issue_id}/events/latest/`,
             {
               headers: {
                 'Authorization': `Bearer ${sentryAuthToken}`,
