@@ -24,6 +24,7 @@ import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { RenewalModal } from '@/components/dashboard/RenewalModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
+import { calculateFinalExpiryForDisplay } from '@/lib/membership-renewal';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
 
@@ -643,9 +644,18 @@ export function Settings({ data }: SettingsProps) {
                         }
                       </p>
                       
-                      {membership.daysUntilExpiry && membership.daysUntilExpiry >= 30 && (
+                      {membership.daysUntilExpiry && membership.daysUntilExpiry >= 30 && profileData?.membership?.expiresAt && (
                         <div className="flex items-center space-x-2 pt-1">
-                          <span className="text-xs font-semibold text-[#d42027]">365 days + 30 day bonus</span>
+                          <span className="text-xs font-semibold text-[#d42027]">
+                            New expiry: {calculateFinalExpiryForDisplay(
+                              new Date(profileData.membership.expiresAt),
+                              'early'
+                            ).toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -681,7 +691,26 @@ export function Settings({ data }: SettingsProps) {
                       </p>
                       
                       <div className="flex items-center space-x-2 pt-1">
-                        <span className="text-xs font-semibold text-gray-600">1,825 days (5 full years)</span>
+                        <span className="text-xs font-semibold text-gray-600">
+                          New expiry: {profileData?.membership?.expiresAt 
+                            ? calculateFinalExpiryForDisplay(
+                                new Date(profileData.membership.expiresAt),
+                                '5year'
+                              ).toLocaleDateString('en-GB', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                              })
+                            : calculateFinalExpiryForDisplay(
+                                null,
+                                '5year'
+                              ).toLocaleDateString('en-GB', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                              })
+                          }
+                        </span>
                         <span className="text-xs text-gray-400">•</span>
                         <span className="text-xs text-gray-500 line-through">£125</span>
                       </div>
