@@ -94,6 +94,13 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   
   // Check if this is a renewal
   const isRenewal = purpose === 'membership_renewal' && renewal_type;
+  
+  // DEFENSIVE CHECK: If purpose is renewal, renewal_type MUST be present
+  if (purpose === 'membership_renewal' && !renewal_type) {
+    console.error(`[DEBUG ${timestamp}] ❌ ERROR: Renewal payment missing renewal_type in metadata`);
+    console.error(`[DEBUG ${timestamp}] This indicates malformed webhook metadata - payment will be recorded but membership will NOT be extended`);
+    throw new Error('Renewal payment missing renewal_type in metadata');
+  }
 
   if (!user_id) {
     console.error(`[DEBUG ${timestamp}] ❌ ERROR: Missing user_id in session metadata`);
