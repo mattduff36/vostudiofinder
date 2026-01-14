@@ -100,6 +100,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+  const [adminNeverExpires, setAdminNeverExpires] = useState(true);
   
   // Ref for auto-growing Full About textarea
   const fullAboutRef = useRef<HTMLTextAreaElement>(null);
@@ -143,6 +144,13 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       
       const data = await response.json();
       setProfile(data.profile);
+      
+      // Initialize admin never expires toggle based on current expiry date
+      const isAdminAccount = data.profile.email === 'admin@mpdee.co.uk' || data.profile.email === 'guy@voiceoverguy.co.uk';
+      if (isAdminAccount) {
+        setAdminNeverExpires(!data.profile._meta?.membership_expires_at);
+      }
+      
       logger.log('[Admin Modal] Profile visibility:', data.profile._meta?.is_profile_visible);
       logger.log('[Admin Modal] Membership expires at:', data.profile._meta?.membership_expires_at);
       logger.log('[Admin Modal] Featured expires at:', data.profile._meta?.featured_expires_at);
@@ -258,14 +266,26 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     
     setSaving(true);
     try {
+      // Prepare profile data for saving
+      const profileToSave = { ...profile };
+      
+      // If admin account with "Never Expires" enabled, clear membership expiry
+      const isAdminAccount = profile.email === 'admin@mpdee.co.uk' || profile.email === 'guy@voiceoverguy.co.uk';
+      if (isAdminAccount && adminNeverExpires) {
+        profileToSave._meta = {
+          ...profileToSave._meta,
+          membership_expires_at: null
+        };
+      }
+      
       const response = await fetch(`/api/admin/studios/${studio?.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...profile,
-          _meta: profile._meta
+          ...profileToSave,
+          _meta: profileToSave._meta
         }),
       });
 
@@ -295,14 +315,26 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     
     setSaving(true);
     try {
+      // Prepare profile data for saving
+      const profileToSave = { ...profile };
+      
+      // If admin account with "Never Expires" enabled, clear membership expiry
+      const isAdminAccount = profile.email === 'admin@mpdee.co.uk' || profile.email === 'guy@voiceoverguy.co.uk';
+      if (isAdminAccount && adminNeverExpires) {
+        profileToSave._meta = {
+          ...profileToSave._meta,
+          membership_expires_at: null
+        };
+      }
+      
       const response = await fetch(`/api/admin/studios/${studio?.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...profile,
-          _meta: profile._meta
+          ...profileToSave,
+          _meta: profileToSave._meta
         }),
       });
 
@@ -970,18 +1002,48 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </label>
             {(profile?.email === 'admin@mpdee.co.uk' || profile?.email === 'guy@voiceoverguy.co.uk') ? (
               <>
-                <input
-                  type="date"
-                  disabled
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-500"
-                  placeholder="N/A"
-                />
-                <div className="flex items-start space-x-2 mt-2 p-2 bg-blue-50 rounded-md border border-blue-200">
-                  <span className="text-sm">👑</span>
-                  <p className="text-xs text-blue-700">
-                    This is an admin account. Admin accounts have permanent access with no membership expiry date.
-                  </p>
+                {/* Admin Account Toggle */}
+                <div className="flex items-center space-x-3 mb-3 p-3 bg-blue-50 rounded-md border border-blue-200">
+                  <span className="text-lg">👑</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-blue-900">Admin Account</p>
+                    <p className="text-xs text-blue-700">Toggle to set expiry for testing renewal features</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={adminNeverExpires}
+                      onChange={(e) => setAdminNeverExpires(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <span className="ml-2 text-xs font-medium text-gray-700">Never Expires</span>
+                  </label>
                 </div>
+                
+                {/* Date input (shown when "Never Expires" is OFF) */}
+                {!adminNeverExpires && (
+                  <>
+                    <input
+                      type="date"
+                      value={profile?._meta?.membership_expires_at ? new Date(profile._meta.membership_expires_at).toISOString().split('T')[0] : ''}
+                      onChange={(e) => {
+                        const dateValue = e.target.value ? new Date(e.target.value).toISOString() : '';
+                        handleMetaChange('membership_expires_at', dateValue);
+                      }}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-blue-600 mt-1">
+                      ⚠️ Testing mode: Set expiry date to test renewal features. Toggle back to "Never Expires" when done.
+                    </p>
+                  </>
+                )}
+                
+                {adminNeverExpires && (
+                  <div className="p-2 bg-gray-50 rounded border border-gray-200 text-center">
+                    <p className="text-sm text-gray-600">No expiry date - unlimited access</p>
+                  </div>
+                )}
               </>
             ) : (
               <>
