@@ -599,17 +599,17 @@ export function Settings({ data }: SettingsProps) {
                         setRenewalType('early');
                         setRenewalModalOpen(true);
                       }}
-                      disabled={!membership.daysUntilExpiry || membership.daysUntilExpiry < 30}
-                      whileHover={(!membership.daysUntilExpiry || membership.daysUntilExpiry < 30) ? {} : { scale: 1.02 }}
-                      whileTap={(!membership.daysUntilExpiry || membership.daysUntilExpiry < 30) ? {} : { scale: 0.98 }}
+                      disabled={membership.daysUntilExpiry == null || membership.daysUntilExpiry < 30}
+                      whileHover={(membership.daysUntilExpiry == null || membership.daysUntilExpiry < 30) ? {} : { scale: 1.02 }}
+                      whileTap={(membership.daysUntilExpiry == null || membership.daysUntilExpiry < 30) ? {} : { scale: 0.98 }}
                       className={`flex-1 relative overflow-hidden rounded-xl border-2 p-5 text-left transition-all duration-200 ${
-                      !membership.daysUntilExpiry || membership.daysUntilExpiry < 30
+                      membership.daysUntilExpiry == null || membership.daysUntilExpiry < 30
                         ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60'
                         : 'bg-gradient-to-br from-red-50 to-pink-50 border-[#d42027] hover:border-[#a1181d] cursor-pointer shadow-sm hover:shadow-md'
                     }`}
                   >
                     {/* Decorative Badge - Only show when enabled */}
-                    {membership.daysUntilExpiry && membership.daysUntilExpiry >= 30 && (
+                    {membership.daysUntilExpiry != null && membership.daysUntilExpiry >= 30 && (
                       <div className="absolute top-3 right-3 px-2 py-1 bg-[#d42027] text-white text-xs font-bold rounded-full shadow-sm">
                         BONUS!
                       </div>
@@ -618,14 +618,14 @@ export function Settings({ data }: SettingsProps) {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <h5 className={`text-base font-bold ${
-                          !membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
+                          membership.daysUntilExpiry == null || membership.daysUntilExpiry < 30 
                             ? 'text-gray-500' 
                             : 'text-gray-900'
                         }`}>
                           Early Renewal
                         </h5>
                         <span className={`text-xl font-extrabold ${
-                          !membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
+                          membership.daysUntilExpiry == null || membership.daysUntilExpiry < 30 
                             ? 'text-gray-400' 
                             : 'text-[#d42027]'
                         }`}>
@@ -634,17 +634,17 @@ export function Settings({ data }: SettingsProps) {
                       </div>
                       
                       <p className={`text-sm leading-relaxed ${
-                        !membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
+                        membership.daysUntilExpiry == null || membership.daysUntilExpiry < 30 
                           ? 'text-gray-400' 
                           : 'text-gray-700'
                       }`}>
-                        {!membership.daysUntilExpiry || membership.daysUntilExpiry < 30 
+                        {membership.daysUntilExpiry == null || membership.daysUntilExpiry < 30 
                           ? 'Available when you have 30+ days remaining'
                           : 'Get 1 year + 1 month bonus added to your current membership'
                         }
                       </p>
                       
-                      {membership.daysUntilExpiry && membership.daysUntilExpiry >= 30 && profileData?.membership?.expiresAt && (
+                      {membership.daysUntilExpiry != null && membership.daysUntilExpiry >= 30 && profileData?.membership?.expiresAt && (
                         <div className="flex items-center space-x-2 pt-1">
                           <span className="text-xs font-semibold text-[#d42027]">
                             New expiry: {calculateFinalExpiryForDisplay(
