@@ -4,17 +4,6 @@ import { create } from 'zustand';
 import { AlertTriangle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface ConfirmDialogState {
-  isOpen: boolean;
-  title: string;
-  message: string;
-  confirmText: string;
-  cancelText: string;
-  isDangerous: boolean;
-  onConfirm: () => void | Promise<void>;
-  onCancel: () => void;
-}
-
 interface ConfirmDialogOptions {
   title: string;
   message: string;
@@ -23,53 +12,66 @@ interface ConfirmDialogOptions {
   isDangerous?: boolean;
 }
 
-const useConfirmDialogStore = create<ConfirmDialogState & {
-  open: (options: ConfirmDialogOptions, onConfirm: () => void | Promise<void>) => void;
-  close: () => void;
-}>((set) => ({
-  isOpen: false,
-  title: '',
-  message: '',
-  confirmText: 'Confirm',
-  cancelText: 'Cancel',
-  isDangerous: false,
-  onConfirm: () => {},
-  onCancel: () => {},
+interface ConfirmDialogItem {
+  id: string;
+  options: ConfirmDialogOptions;
+  resolve: (value: boolean) => void;
+}
+
+interface ConfirmDialogStore {
+  queue: ConfirmDialogItem[];
+  current: ConfirmDialogItem | null;
+  enqueue: (item: ConfirmDialogItem) => void;
+  resolveAndNext: (value: boolean) => void;
+}
+
+const useConfirmDialogStore = create<ConfirmDialogStore>((set, get) => ({
+  queue: [],
+  current: null,
   
-  open: (options, onConfirm) => {
-    set({
-      isOpen: true,
-      title: options.title,
-      message: options.message,
-      confirmText: options.confirmText || 'Confirm',
-      cancelText: options.cancelText || 'Cancel',
-      isDangerous: options.isDangerous || false,
-      onConfirm,
-      onCancel: () => set({ isOpen: false }),
-    });
+  enqueue: (item) => {
+    const state = get();
+    if (!state.current) {
+      // No dialog open, show immediately
+      set({ current: item });
+    } else {
+      // Queue for later
+      set({ queue: [...state.queue, item] });
+    }
   },
   
-  close: () => set({ isOpen: false }),
+  resolveAndNext: (value) => {
+    const state = get();
+    if (state.current) {
+      // Resolve the current promise
+      state.current.resolve(value);
+      
+      // Show next in queue, if any
+      if (state.queue.length > 0) {
+        const [next, ...rest] = state.queue;
+        set({ current: next, queue: rest });
+      } else {
+        set({ current: null });
+      }
+    }
+  },
 }));
 
 /**
  * Show a confirmation dialog
  * @returns Promise that resolves to true if confirmed, false if canceled
+ * 
+ * Multiple concurrent calls are queued and shown one at a time
  */
 export const showConfirm = (options: ConfirmDialogOptions): Promise<boolean> => {
   return new Promise((resolve) => {
-    useConfirmDialogStore.getState().open(options, () => {
-      resolve(true);
-      useConfirmDialogStore.getState().close();
-    });
+    const item: ConfirmDialogItem = {
+      id: `confirm-${Date.now()}-${Math.random()}`,
+      options,
+      resolve,
+    };
     
-    // Override onCancel to resolve with false
-    useConfirmDialogStore.setState({
-      onCancel: () => {
-        resolve(false);
-        useConfirmDialogStore.getState().close();
-      },
-    });
+    useConfirmDialogStore.getState().enqueue(item);
   });
 };
 
@@ -78,17 +80,28 @@ export const showConfirm = (options: ConfirmDialogOptions): Promise<boolean> => 
  * Must be included in app layout
  */
 export function ConfirmDialog() {
-  const { isOpen, title, message, confirmText, cancelText, isDangerous, onConfirm, onCancel } = useConfirmDialogStore();
+  const { current, resolveAndNext } = useConfirmDialogStore();
   
-  const handleConfirm = async () => {
-    await onConfirm();
+  const handleConfirm = () => {
+    resolveAndNext(true);
+  };
+  
+  const handleCancel = () => {
+    resolveAndNext(false);
   };
   
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      onCancel();
+      handleCancel();
     }
   };
+  
+  const isOpen = !!current;
+  const title = current?.options.title || '';
+  const message = current?.options.message || '';
+  const confirmText = current?.options.confirmText || 'Confirm';
+  const cancelText = current?.options.cancelText || 'Cancel';
+  const isDangerous = current?.options.isDangerous || false;
   
   return (
     <AnimatePresence>
@@ -116,7 +129,7 @@ export function ConfirmDialog() {
           >
             {/* Close button */}
             <button
-              onClick={onCancel}
+              onClick={handleCancel}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Close dialog"
             >
@@ -145,7 +158,7 @@ export function ConfirmDialog() {
               {/* Actions */}
               <div className="flex gap-3 justify-end mt-6">
                 <button
-                  onClick={onCancel}
+                  onClick={handleCancel}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                 >
                   {cancelText}

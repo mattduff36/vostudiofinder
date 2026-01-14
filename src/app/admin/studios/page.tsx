@@ -59,7 +59,6 @@ export default function AdminStudiosPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -413,8 +412,7 @@ export default function AdminStudiosPage() {
         s.id === studio.id ? { ...s, is_profile_visible: isVisible } : s
       ));
 
-      setSuccessMessage(`Profile visibility ${isVisible ? 'enabled' : 'disabled'} for ${studio.name}`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      showSuccess(`Profile visibility ${isVisible ? 'enabled' : 'disabled'} for ${studio.name}`);
     } catch (error) {
       console.error('Error toggling visibility:', error);
       showError('Failed to update visibility. Please try again.');
@@ -438,8 +436,7 @@ export default function AdminStudiosPage() {
         s.id === studio.id ? { ...s, is_verified: isVerified } : s
       ));
 
-      setSuccessMessage(`Studio ${isVerified ? 'verified' : 'unverified'}: ${studio.name}`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      showSuccess(`Studio ${isVerified ? 'verified' : 'unverified'}: ${studio.name}`);
     } catch (error) {
       console.error('Error toggling verified status:', error);
       showError('Failed to update verified status. Please try again.');
@@ -463,8 +460,7 @@ export default function AdminStudiosPage() {
         s.id === studio.id ? { ...s, is_featured: isFeatured } : s
       ));
 
-      setSuccessMessage(`Studio ${isFeatured ? 'featured' : 'unfeatured'}: ${studio.name}`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      showSuccess(`Studio ${isFeatured ? 'featured' : 'unfeatured'}: ${studio.name}`);
     } catch (error) {
       console.error('Error toggling featured status:', error);
       showError('Failed to update featured status. Please try again.');
@@ -488,8 +484,7 @@ export default function AdminStudiosPage() {
         s.id === studio.id ? { ...s, status: newStatus } : s
       ));
 
-      setSuccessMessage(`Studio status updated to ${newStatus}: ${studio.name}`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      showSuccess(`Studio status updated to ${newStatus}: ${studio.name}`);
     } catch (error) {
       console.error('Error toggling status:', error);
       showError('Failed to update status. Please try again.');
@@ -621,13 +616,6 @@ export default function AdminStudiosPage() {
           Add Studio
         </button>
       </div>
-
-      {/* Success Message */}
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <p className="text-green-800 font-medium">{successMessage}</p>
-        </div>
-      )}
 
       {/* Bulk Operations */}
       <AdminBulkOperations
@@ -1030,10 +1018,9 @@ export default function AdminStudiosPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={(message) => {
-          setSuccessMessage(message);
+          showSuccess(message);
           setStudios([]);
           setPagination(prev => ({ ...prev, offset: 0 }));
-          setTimeout(() => setSuccessMessage(null), 10000);
         }}
       />
         </div>
