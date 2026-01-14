@@ -7,6 +7,8 @@ import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Button } from '@/components/ui/Button';
 import { Search, RefreshCw, Clock, AlertCircle, CheckCircle, XCircle, Trash2, Filter } from 'lucide-react';
 import { formatDate } from '@/lib/date-format';
+import { showSuccess, showError } from '@/lib/toast';
+import { showConfirm } from '@/components/ui/ConfirmDialog';
 
 interface PendingUser {
   id: string;
@@ -85,17 +87,14 @@ export default function AdminReservationsPage() {
   };
 
   const handleDeleteReservation = async (userId: string, email: string, username: string) => {
-    if (!confirm(`PERMANENT DELETION WARNING\n\nAre you sure you want to permanently delete ${email} (@${username})?\n\nThis will:\n• Delete the user account completely\n• Delete all payment records\n• Delete any studio profiles\n• Cancel all pending reminder emails\n\nTHIS ACTION CANNOT BE UNDONE!\n\nType their email to confirm deletion.`)) {
-      return;
-    }
+    const confirmed = await showConfirm({
+      title: 'Permanent Deletion Warning',
+      message: `Are you sure you want to permanently delete ${email} (@${username})?\n\nThis will:\n• Delete the user account completely\n• Delete all payment records\n• Delete any studio profiles\n• Cancel all pending reminder emails\n\nTHIS ACTION CANNOT BE UNDONE!`,
+      confirmText: 'Delete Permanently',
+      isDangerous: true,
+    });
     
-    // Second confirmation for safety
-    const confirmEmail = prompt(`To confirm deletion, please type the email address:\n${email}`);
-    if (confirmEmail !== email) {
-      setDeleteError('Email confirmation did not match. Deletion cancelled.');
-      setTimeout(() => setDeleteError(null), 3000);
-      return;
-    }
+    if (!confirmed) return;
 
     setDeletingUserId(userId);
     setDeleteError(null);
@@ -111,15 +110,12 @@ export default function AdminReservationsPage() {
         throw new Error(data.error || 'Failed to delete reservation');
       }
 
-      setDeleteSuccess(`User ${email} has been permanently deleted along with all associated data.`);
+      showSuccess(`User ${email} has been permanently deleted along with all associated data.`);
       
       // Refresh the list
-      setTimeout(() => {
-        fetchUsers();
-        setDeleteSuccess(null);
-      }, 2000);
+      fetchUsers();
     } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : 'Failed to delete reservation');
+      showError(error instanceof Error ? error.message : 'Failed to delete reservation');
     } finally {
       setDeletingUserId(null);
     }
