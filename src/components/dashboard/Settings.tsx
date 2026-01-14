@@ -600,8 +600,8 @@ export function Settings({ data }: SettingsProps) {
                         : 'bg-gradient-to-br from-red-50 to-pink-50 border-[#d42027] hover:border-[#a1181d] cursor-pointer shadow-sm hover:shadow-md'
                     }`}
                   >
-                    {/* Decorative Badge */}
-                    {(!membership.daysUntilExpiry || membership.daysUntilExpiry >= 30) && (
+                    {/* Decorative Badge - Only show when enabled */}
+                    {membership.daysUntilExpiry && membership.daysUntilExpiry >= 30 && (
                       <div className="absolute top-3 right-3 px-2 py-1 bg-[#d42027] text-white text-xs font-bold rounded-full shadow-sm">
                         BONUS!
                       </div>
@@ -1138,7 +1138,7 @@ export function Settings({ data }: SettingsProps) {
         isOpen={renewalModalOpen}
         onClose={() => setRenewalModalOpen(false)}
         renewalType={renewalType}
-        currentExpiry={profileData?.membership?.expiresAt}
+        currentExpiry={profileData?.membership?.expiresAt ? new Date(profileData.membership.expiresAt) : undefined}
         daysRemaining={profileData?.membership?.daysUntilExpiry || 0}
       />
     </>

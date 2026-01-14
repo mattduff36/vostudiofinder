@@ -14,7 +14,10 @@
  * @returns New expiry date (current + 365 days + 30 bonus days)
  */
 export function calculateEarlyRenewalExpiry(currentExpiry: Date): Date {
-  const newExpiry = new Date(currentExpiry);
+  // Convert to Date object if string (defensive programming)
+  const expiryDate = currentExpiry instanceof Date ? currentExpiry : new Date(currentExpiry);
+  
+  const newExpiry = new Date(expiryDate);
   newExpiry.setDate(newExpiry.getDate() + 365 + 30); // 395 days total
   return newExpiry;
 }
@@ -27,9 +30,15 @@ export function calculateEarlyRenewalExpiry(currentExpiry: Date): Date {
  * @returns New expiry date (current/now + 1825 days)
  */
 export function calculate5YearRenewalExpiry(currentExpiry: Date | null): Date {
+  // Convert to Date object if string (defensive programming)
+  let expiryDate: Date | null = null;
+  if (currentExpiry) {
+    expiryDate = currentExpiry instanceof Date ? currentExpiry : new Date(currentExpiry);
+  }
+  
   // If membership is expired or doesn't exist, start from now
-  const baseDate = currentExpiry && currentExpiry > new Date() 
-    ? currentExpiry 
+  const baseDate = expiryDate && expiryDate > new Date() 
+    ? expiryDate 
     : new Date();
   
   const newExpiry = new Date(baseDate);
