@@ -25,20 +25,19 @@ export function RenewalModal({
   currentExpiry,
   daysRemaining = 0,
 }: RenewalModalProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setIsLoading(true);
+      setIsLoading(false);
       setError(null);
     }
   }, [isOpen]);
 
   const fetchClientSecret = useCallback(async () => {
     setError(null);
-    setIsLoading(true);
 
     try {
       const endpoint = renewalType === 'early' 
