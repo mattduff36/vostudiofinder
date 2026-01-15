@@ -1201,9 +1201,9 @@ export function Settings({ data }: SettingsProps) {
         isOpen={renewalModalOpen}
         onClose={() => setRenewalModalOpen(false)}
         renewalType={renewalType}
-        {...(profileData?.membership?.expiresAt && {
+        {...(profileData?.membership?.expiresAt ? {
           currentExpiry: new Date(profileData.membership.expiresAt)
-        })}
+        } : {})}
         daysRemaining={profileData?.membership?.daysUntilExpiry || 0}
       />
     </>
