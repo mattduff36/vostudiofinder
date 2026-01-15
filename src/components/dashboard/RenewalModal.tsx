@@ -138,7 +138,7 @@ export function RenewalModal({
               </div>
             )}
             <div className="pt-2 border-t border-gray-300 flex justify-between text-gray-900 font-bold">
-              <span>Total new period:</span>
+              <span>Extension period:</span>
               <span>{breakdown.total} days</span>
             </div>
             {currentExpiry && (

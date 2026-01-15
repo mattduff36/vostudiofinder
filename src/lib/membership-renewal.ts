@@ -66,7 +66,7 @@ export function isEligibleForEarlyRenewal(daysRemaining: number): boolean {
 export function calculateDaysUntilExpiry(expiryDate: Date): number {
   const now = new Date();
   const diffTime = expiryDate.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   return diffDays;
 }
 
