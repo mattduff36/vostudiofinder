@@ -8,7 +8,7 @@
  */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 interface VisibilityToggleMobileProps {
@@ -20,6 +20,18 @@ export function VisibilityToggleMobile({
 }: VisibilityToggleMobileProps) {
   const [isVisible, setIsVisible] = useState(initialVisibility);
   const [saving, setSaving] = useState(false);
+
+  // Listen for visibility changes from other components (e.g., burger menu)
+  useEffect(() => {
+    const handleVisibilityChange = (event: CustomEvent<{ isVisible: boolean }>) => {
+      setIsVisible(event.detail.isVisible);
+    };
+    
+    window.addEventListener('profile-visibility-changed', handleVisibilityChange as EventListener);
+    return () => {
+      window.removeEventListener('profile-visibility-changed', handleVisibilityChange as EventListener);
+    };
+  }, []);
 
   // Phase 4 feature gate
 
@@ -33,7 +45,12 @@ export function VisibilityToggleMobile({
       });
 
       if (response.ok) {
-        setIsVisible(!isVisible);
+        const newVisibility = !isVisible;
+        setIsVisible(newVisibility);
+        // Broadcast visibility change to other components
+        window.dispatchEvent(new CustomEvent('profile-visibility-changed', { 
+          detail: { isVisible: newVisibility } 
+        }));
       } else {
         console.error('Failed to update visibility');
       }

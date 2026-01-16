@@ -212,6 +212,7 @@ export function ResetPasswordForm() {
             <li>One uppercase letter</li>
             <li>One lowercase letter</li>
             <li>One number</li>
+            <li>One special character (!@#$%^&*(),.?&quot;:{}|&lt;&gt;)</li>
           </ul>
         </div>
 

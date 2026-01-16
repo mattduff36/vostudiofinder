@@ -84,7 +84,12 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
       });
 
       if (response.ok) {
-        setIsVisible(!isVisible);
+        const newVisibility = !isVisible;
+        setIsVisible(newVisibility);
+        // Broadcast visibility change to other components
+        window.dispatchEvent(new CustomEvent('profile-visibility-changed', { 
+          detail: { isVisible: newVisibility } 
+        }));
       } else {
         console.error('Failed to update visibility');
       }
@@ -189,9 +194,9 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
           {/* Membership (logged in users only) */}
           {session && (
             <Link
-              href="/auth/membership"
+              href="/dashboard#settings"
               className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
-                pathname === '/auth/membership'
+                pathname === '/dashboard' && typeof window !== 'undefined' && window.location.hash === '#settings'
                   ? 'bg-red-50 text-[#d42027]'
                   : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
               }`}

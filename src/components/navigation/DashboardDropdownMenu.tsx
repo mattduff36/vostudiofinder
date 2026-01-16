@@ -58,7 +58,12 @@ export function DashboardDropdownMenu({
       });
 
       if (response.ok) {
-        setIsVisible(!isVisible);
+        const newVisibility = !isVisible;
+        setIsVisible(newVisibility);
+        // Broadcast visibility change to other components
+        window.dispatchEvent(new CustomEvent('profile-visibility-changed', { 
+          detail: { isVisible: newVisibility } 
+        }));
       } else {
         console.error('Failed to update visibility');
       }
@@ -236,9 +241,9 @@ export function DashboardDropdownMenu({
           {/* Membership */}
           <button
             type="button"
-            onClick={() => handleNavigation('/auth/membership')}
+            onClick={() => handleNavigation('/dashboard#settings')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
-              pathname === '/auth/membership'
+              currentHash === '#settings'
                 ? 'bg-red-50 text-red-600 font-medium'
                 : 'text-gray-700 hover:bg-gray-50'
             }`}

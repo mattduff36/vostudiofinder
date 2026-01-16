@@ -138,6 +138,18 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
   // Animation hook for profile completion widget (desktop only)
   const { shouldAnimate, isDesktop, markAnimationComplete } = useProfileAnimation();
 
+  // Listen for visibility changes from other components (e.g., burger menu)
+  useEffect(() => {
+    const handleVisibilityChange = (event: CustomEvent<{ isVisible: boolean }>) => {
+      setIsProfileVisible(event.detail.isVisible);
+    };
+    
+    window.addEventListener('profile-visibility-changed', handleVisibilityChange as EventListener);
+    return () => {
+      window.removeEventListener('profile-visibility-changed', handleVisibilityChange as EventListener);
+    };
+  }, []);
+
   const completionStats = useMemo(() => {
     if (!profileData) return { percentage: 0, allRequiredComplete: false };
 
@@ -312,6 +324,10 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
 
       if (response.ok) {
         setIsProfileVisible(visible);
+        // Broadcast visibility change to other components
+        window.dispatchEvent(new CustomEvent('profile-visibility-changed', { 
+          detail: { isVisible: visible } 
+        }));
         logger.log('[SUCCESS] Profile visibility updated successfully to:', visible);
       } else {
         const errorData = await response.json().catch(() => ({}));

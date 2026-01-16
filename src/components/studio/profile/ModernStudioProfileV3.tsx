@@ -34,7 +34,8 @@ import {
   Instagram,
   Youtube,
   Music,
-  Video
+  Video,
+  Eye
 } from 'lucide-react';
 import { XLogo } from '@/components/icons/XLogo';
 
