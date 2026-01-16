@@ -417,6 +417,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
                     height: `${config.circleSize}px`,
                     backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                     WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
+                    color: isDarkBackground ? '#ffffff' : '#000000',
                   }}
                 >
                   <Icon className="w-6 h-6" />
@@ -444,6 +445,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
                 height: `${config.circleSize}px`,
                 backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                 WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
+                color: isDarkBackground ? '#ffffff' : '#000000',
               }}
             >
               <Menu className="w-6 h-6" />
