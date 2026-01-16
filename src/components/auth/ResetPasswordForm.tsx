@@ -177,6 +177,9 @@ export function ResetPasswordForm() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Hidden input for token validation */}
+        <input type="hidden" value={token || ''} {...register('token')} />
+
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-md">
             <p className="text-sm text-red-600">{error}</p>
