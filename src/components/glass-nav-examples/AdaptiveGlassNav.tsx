@@ -76,11 +76,12 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
         const radius = rect.width / 2;
 
         // 4 sample points around the button edges (top, right, bottom, left)
+        // Now positioned just 1px away from button edge for more accurate local sampling
         const samplePoints = [
-          { x: centerX, y: rect.top - 10, color: '#ff0000', label: 'T' },              // Top (red)
-          { x: rect.right + 10, y: centerY, color: '#00ff00', label: 'R' },            // Right (green)
-          { x: centerX, y: rect.bottom + 10, color: '#0000ff', label: 'B' },           // Bottom (blue)
-          { x: rect.left - 10, y: centerY, color: '#ffff00', label: 'L' }              // Left (yellow)
+          { x: centerX, y: rect.top - 1, color: '#ff0000', label: 'T' },              // Top (red)
+          { x: rect.right + 1, y: centerY, color: '#00ff00', label: 'R' },            // Right (green)
+          { x: centerX, y: rect.bottom + 1, color: '#0000ff', label: 'B' },           // Bottom (blue)
+          { x: rect.left - 1, y: centerY, color: '#ffff00', label: 'L' }              // Left (yellow)
         ];
 
         samplePoints.forEach((point) => {
