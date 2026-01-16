@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Search, LayoutDashboard, Menu, User } from 'lucide-react';
 import { Session } from 'next-auth';
-import { LiquidGlass } from '@specy/liquid-glass-react';
 
 interface AdaptiveGlassNavProps {
   mode: 'static' | 'auto-hide' | 'minimal';
@@ -18,6 +17,65 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isDarkBackground, setIsDarkBackground] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
+
+  // Detect background brightness dynamically
+  useEffect(() => {
+    if (!navRef.current) return;
+
+    const detectBackgroundBrightness = () => {
+      if (!navRef.current) return;
+
+      // Get the element behind the nav
+      const rect = navRef.current.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+
+      // Temporarily hide nav to sample background
+      navRef.current.style.visibility = 'hidden';
+      const elementBehind = document.elementFromPoint(x, y);
+      navRef.current.style.visibility = 'visible';
+
+      if (elementBehind) {
+        const computedStyle = window.getComputedStyle(elementBehind);
+        const bgColor = computedStyle.backgroundColor;
+
+        // Parse RGB values
+        const rgb = bgColor.match(/\d+/g);
+        if (rgb && rgb.length >= 3) {
+          // Calculate relative luminance
+          const r = parseInt(rgb[0]);
+          const g = parseInt(rgb[1]);
+          const b = parseInt(rgb[2]);
+          const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+          // If luminance < 0.5, it's a dark background
+          setIsDarkBackground(luminance < 0.5);
+        }
+      }
+    };
+
+    // Initial detection
+    detectBackgroundBrightness();
+
+    // Re-detect on scroll, resize, or any layout changes
+    const handleUpdate = () => {
+      requestAnimationFrame(detectBackgroundBrightness);
+    };
+
+    window.addEventListener('scroll', handleUpdate, { passive: true });
+    window.addEventListener('resize', handleUpdate);
+    
+    // Also check periodically for dynamic background changes
+    const interval = setInterval(detectBackgroundBrightness, 500);
+
+    return () => {
+      window.removeEventListener('scroll', handleUpdate);
+      window.removeEventListener('resize', handleUpdate);
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (mode !== 'auto-hide') {
@@ -151,12 +209,14 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
 
   return (
     <nav
+      ref={navRef}
       className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ${
         isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
       }`}
       style={{
         padding: '0 max(env(safe-area-inset-left), 1rem) env(safe-area-inset-bottom) max(env(safe-area-inset-right), 1rem)',
       }}
+      data-dark-bg={isDarkBackground}
     >
       <div className="mx-auto max-w-lg mb-4">
         {/* Individual floating elements - circles and badge pills only */}
@@ -170,11 +230,11 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
                 className="flex flex-col items-center gap-2 group"
               >
                 {/* Circular glass bubble for icon */}
-                <div className={`adaptive-circle-glass ${item.active ? 'active' : ''}`}>
+                <div className={`adaptive-circle-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}>
                   <Icon className="w-6 h-6" />
                 </div>
                 {/* Pill/badge glass for label */}
-                <span className={`adaptive-pill-glass ${item.active ? 'active' : ''}`}>
+                <span className={`adaptive-pill-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}>
                   {item.label}
                 </span>
               </Link>
@@ -183,11 +243,11 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
 
           <button onClick={onMenuClick} className="flex flex-col items-center gap-2 group">
             {/* Circular glass bubble for icon */}
-            <div className="adaptive-circle-glass">
+            <div className={`adaptive-circle-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}>
               <Menu className="w-6 h-6" />
             </div>
             {/* Pill/badge glass for label */}
-            <span className="adaptive-pill-glass">Menu</span>
+            <span className={`adaptive-pill-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}>Menu</span>
           </button>
         </div>
       </div>
@@ -347,36 +407,78 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
             0 0 0 1.5px rgba(212, 32, 39, 0.2);
         }
 
-        /* Dark background detection - Enhanced glass */
-        @media (prefers-color-scheme: dark) {
-          .adaptive-circle-glass,
-          .adaptive-pill-glass {
-            background: color-mix(in srgb, Canvas 35%, transparent);
-            backdrop-filter: blur(44px) saturate(200%) brightness(1.25) contrast(0.8);
-            -webkit-backdrop-filter: blur(44px) saturate(200%) brightness(1.25) contrast(0.8);
-          }
-          
-          .group:hover .adaptive-circle-glass,
-          .group:hover .adaptive-pill-glass {
-            backdrop-filter: blur(52px) saturate(220%) brightness(1.3) contrast(0.75);
-            -webkit-backdrop-filter: blur(52px) saturate(220%) brightness(1.3) contrast(0.75);
-          }
+        /* DYNAMIC ADAPTATION - Based on actual background brightness */
+        
+        /* Dark background detected - Use lighter, brighter glass */
+        .adaptive-circle-glass.dark-bg,
+        .adaptive-pill-glass.dark-bg {
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(44px) saturate(200%) brightness(1.4) contrast(0.75);
+          -webkit-backdrop-filter: blur(44px) saturate(200%) brightness(1.4) contrast(0.75);
+          color: rgba(255, 255, 255, 0.95);
+          box-shadow: 
+            0 12px 40px rgba(0, 0, 0, 0.3),
+            0 4px 16px rgba(0, 0, 0, 0.2),
+            inset 0 1px 3px rgba(255, 255, 255, 0.25),
+            inset 0 0 60px rgba(255, 255, 255, 0.1);
+        }
+        
+        .group:hover .adaptive-circle-glass.dark-bg,
+        .group:hover .adaptive-pill-glass.dark-bg {
+          background: rgba(255, 255, 255, 0.18);
+          backdrop-filter: blur(52px) saturate(220%) brightness(1.5) contrast(0.7);
+          -webkit-backdrop-filter: blur(52px) saturate(220%) brightness(1.5) contrast(0.7);
+          box-shadow: 
+            0 16px 50px rgba(0, 0, 0, 0.35),
+            0 6px 20px rgba(0, 0, 0, 0.25),
+            inset 0 1px 3px rgba(255, 255, 255, 0.3),
+            inset 0 0 80px rgba(255, 255, 255, 0.15);
         }
 
-        /* Light background detection - Enhanced glass */
-        @media (prefers-color-scheme: light) {
-          .adaptive-circle-glass,
-          .adaptive-pill-glass {
-            background: color-mix(in srgb, Canvas 50%, transparent);
-            backdrop-filter: blur(38px) saturate(200%) brightness(1.08) contrast(0.9);
-            -webkit-backdrop-filter: blur(38px) saturate(200%) brightness(1.08) contrast(0.9);
-          }
-          
-          .group:hover .adaptive-circle-glass,
-          .group:hover .adaptive-pill-glass {
-            backdrop-filter: blur(46px) saturate(220%) brightness(1.12) contrast(0.85);
-            -webkit-backdrop-filter: blur(46px) saturate(220%) brightness(1.12) contrast(0.85);
-          }
+        .adaptive-circle-glass.dark-bg::before,
+        .adaptive-pill-glass.dark-bg::before {
+          background: radial-gradient(
+            circle at 50% 0%,
+            rgba(255, 255, 255, 0.25),
+            transparent 70%
+          );
+          opacity: 0.8;
+        }
+
+        /* Light background detected - Use darker, more subtle glass */
+        .adaptive-circle-glass.light-bg,
+        .adaptive-pill-glass.light-bg {
+          background: rgba(0, 0, 0, 0.08);
+          backdrop-filter: blur(38px) saturate(200%) brightness(0.95) contrast(1.1);
+          -webkit-backdrop-filter: blur(38px) saturate(200%) brightness(0.95) contrast(1.1);
+          color: rgba(0, 0, 0, 0.85);
+          box-shadow: 
+            0 12px 40px rgba(0, 0, 0, 0.08),
+            0 4px 16px rgba(0, 0, 0, 0.05),
+            inset 0 1px 3px rgba(0, 0, 0, 0.05),
+            inset 0 0 60px rgba(0, 0, 0, 0.03);
+        }
+        
+        .group:hover .adaptive-circle-glass.light-bg,
+        .group:hover .adaptive-pill-glass.light-bg {
+          background: rgba(0, 0, 0, 0.12);
+          backdrop-filter: blur(46px) saturate(220%) brightness(0.92) contrast(1.15);
+          -webkit-backdrop-filter: blur(46px) saturate(220%) brightness(0.92) contrast(1.15);
+          box-shadow: 
+            0 16px 50px rgba(0, 0, 0, 0.12),
+            0 6px 20px rgba(0, 0, 0, 0.08),
+            inset 0 1px 3px rgba(0, 0, 0, 0.08),
+            inset 0 0 80px rgba(0, 0, 0, 0.05);
+        }
+
+        .adaptive-circle-glass.light-bg::before,
+        .adaptive-pill-glass.light-bg::before {
+          background: radial-gradient(
+            circle at 50% 0%,
+            rgba(0, 0, 0, 0.08),
+            transparent 70%
+          );
+          opacity: 0.5;
         }
       `}</style>
     </nav>
