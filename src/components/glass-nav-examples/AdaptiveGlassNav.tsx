@@ -159,169 +159,215 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
       }}
     >
       <div className="mx-auto max-w-lg mb-4">
-        <div className="adaptive-glass-nav">
-          <div className="adaptive-nav-inner">
-            <div className="flex items-center justify-around h-20 px-3">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex flex-col items-center gap-2 flex-1 group"
-                  >
-                    <div className={`adaptive-icon-ring ${item.active ? 'active' : ''}`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <span className={`adaptive-label ${item.active ? 'active' : ''}`}>
-                      {item.label}
-                    </span>
-                  </Link>
-                );
-              })}
-
-              <button onClick={onMenuClick} className="flex flex-col items-center gap-2 flex-1 group">
-                <div className="adaptive-icon-ring">
-                  <Menu className="w-6 h-6" />
+        {/* Floating buttons without container */}
+        <div className="flex items-center justify-around gap-2 px-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="adaptive-floating-button group"
+              >
+                <div className={`adaptive-button-glass ${item.active ? 'active' : ''}`}>
+                  <div className="adaptive-icon-wrapper">
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <span className={`adaptive-button-label ${item.active ? 'active' : ''}`}>
+                    {item.label}
+                  </span>
                 </div>
-                <span className="adaptive-label">Menu</span>
-              </button>
+              </Link>
+            );
+          })}
+
+          <button onClick={onMenuClick} className="adaptive-floating-button group">
+            <div className="adaptive-button-glass">
+              <div className="adaptive-icon-wrapper">
+                <Menu className="w-6 h-6" />
+              </div>
+              <span className="adaptive-button-label">Menu</span>
             </div>
-          </div>
+          </button>
         </div>
       </div>
 
       <style jsx global>{`
-        /* Adaptive Glass Navigation - Changes based on background */
-        .adaptive-glass-nav {
-          /* Use color-mix to blend with canvas (adapts to light/dark) */
-          background: color-mix(in srgb, Canvas 55%, transparent);
+        /* Floating Button Container */
+        .adaptive-floating-button {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Individual Glass Button - Enhanced blur */
+        .adaptive-button-glass {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          padding: 12px 16px;
           
-          /* Advanced backdrop filters that adapt */
-          backdrop-filter: blur(24px) saturate(180%) brightness(1.1) contrast(0.9);
-          -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.1) contrast(0.9);
+          /* Enhanced adaptive glass effect */
+          background: color-mix(in srgb, Canvas 45%, transparent);
           
-          border-radius: 28px;
-          border: 1.5px solid color-mix(in srgb, Canvas 25%, transparent);
+          /* INCREASED blur and saturation for stronger liquid glass effect */
+          backdrop-filter: blur(40px) saturate(200%) brightness(1.15) contrast(0.85);
+          -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.15) contrast(0.85);
           
+          border-radius: 24px;
+          
+          /* NO outer border - buttons float freely */
+          border: none;
+          
+          /* Enhanced shadow for depth without border */
           box-shadow: 
-            0 16px 56px rgba(0, 0, 0, 0.12),
-            0 6px 24px rgba(0, 0, 0, 0.08),
-            inset 0 1px 2px color-mix(in srgb, Canvas 80%, transparent),
-            inset 0 -1px 2px rgba(0, 0, 0, 0.03);
+            0 12px 40px rgba(0, 0, 0, 0.15),
+            0 4px 16px rgba(0, 0, 0, 0.1),
+            inset 0 1px 3px color-mix(in srgb, Canvas 90%, transparent),
+            inset 0 0 60px color-mix(in srgb, Canvas 30%, transparent);
           
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
           position: relative;
           overflow: hidden;
         }
 
-        /* Adaptive shine effect */
-        .adaptive-glass-nav::before {
+        /* Floating effect on hover */
+        .adaptive-floating-button:hover .adaptive-button-glass {
+          transform: translateY(-6px) scale(1.05);
+          background: color-mix(in srgb, Canvas 55%, transparent);
+          backdrop-filter: blur(48px) saturate(220%) brightness(1.2) contrast(0.8);
+          -webkit-backdrop-filter: blur(48px) saturate(220%) brightness(1.2) contrast(0.8);
+          box-shadow: 
+            0 20px 60px rgba(0, 0, 0, 0.2),
+            0 8px 24px rgba(0, 0, 0, 0.15),
+            inset 0 1px 3px color-mix(in srgb, Canvas 95%, transparent),
+            inset 0 0 80px color-mix(in srgb, Canvas 40%, transparent);
+        }
+
+        .adaptive-floating-button:active .adaptive-button-glass {
+          transform: translateY(-2px) scale(0.98);
+        }
+
+        /* Active state with red accent */
+        .adaptive-button-glass.active {
+          background: color-mix(in srgb, rgba(212, 32, 39, 0.25) 60%, Canvas 40%);
+          backdrop-filter: blur(40px) saturate(220%) brightness(1.1);
+          -webkit-backdrop-filter: blur(40px) saturate(220%) brightness(1.1);
+          box-shadow: 
+            0 12px 40px rgba(212, 32, 39, 0.25),
+            0 4px 16px rgba(212, 32, 39, 0.15),
+            inset 0 1px 3px rgba(255, 255, 255, 0.3),
+            inset 0 0 60px rgba(212, 32, 39, 0.15),
+            0 0 0 2px rgba(212, 32, 39, 0.2);
+        }
+
+        /* Shimmer effect inside button */
+        .adaptive-button-glass::before {
           content: '';
           position: absolute;
           inset: 0;
           background: radial-gradient(
             circle at 50% 0%,
-            color-mix(in srgb, Canvas 40%, transparent),
+            color-mix(in srgb, Canvas 50%, transparent),
             transparent 70%
           );
           pointer-events: none;
+          opacity: 0.6;
         }
 
-        .adaptive-nav-inner {
-          background: color-mix(in srgb, Canvas 15%, transparent);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-radius: 24px;
-          padding: 10px 4px;
-        }
-
-        .adaptive-icon-ring {
+        /* Icon wrapper with enhanced glass */
+        .adaptive-icon-wrapper {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 54px;
-          height: 54px;
-          border-radius: 50%;
+          width: 52px;
+          height: 52px;
+          border-radius: 18px;
           
-          /* Adaptive background */
-          background: color-mix(in srgb, Canvas 35%, transparent);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
+          /* Enhanced inner glass effect */
+          background: color-mix(in srgb, Canvas 30%, transparent);
+          backdrop-filter: blur(16px) saturate(180%);
+          -webkit-backdrop-filter: blur(16px) saturate(180%);
           
           /* Use CanvasText for automatic light/dark text */
           color: CanvasText;
           
-          border: 1px solid color-mix(in srgb, Canvas 20%, transparent);
           transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-          box-shadow: inset 0 1px 2px color-mix(in srgb, Canvas 50%, transparent);
-        }
-
-        .group:hover .adaptive-icon-ring {
-          transform: scale(1.1) translateY(-2px);
-          background: color-mix(in srgb, Canvas 50%, transparent);
           box-shadow: 
-            0 6px 20px rgba(0, 0, 0, 0.1),
-            inset 0 1px 2px color-mix(in srgb, Canvas 70%, transparent);
+            inset 0 2px 6px color-mix(in srgb, Canvas 60%, transparent),
+            inset 0 0 30px color-mix(in srgb, Canvas 20%, transparent);
         }
 
-        .group:active .adaptive-icon-ring {
-          transform: scale(0.95);
+        .adaptive-floating-button:hover .adaptive-icon-wrapper {
+          transform: scale(1.1) rotate(5deg);
+          background: color-mix(in srgb, Canvas 40%, transparent);
+          box-shadow: 
+            inset 0 2px 8px color-mix(in srgb, Canvas 70%, transparent),
+            inset 0 0 40px color-mix(in srgb, Canvas 30%, transparent),
+            0 4px 16px rgba(0, 0, 0, 0.1);
         }
 
-        .adaptive-icon-ring.active {
-          background: rgba(212, 32, 39, 0.15);
+        .adaptive-button-glass.active .adaptive-icon-wrapper {
+          background: rgba(212, 32, 39, 0.2);
           color: #d42027;
-          border-color: rgba(212, 32, 39, 0.25);
           box-shadow: 
-            inset 0 2px 12px rgba(212, 32, 39, 0.15),
-            0 0 0 1px rgba(212, 32, 39, 0.1),
-            0 0 20px rgba(212, 32, 39, 0.1);
+            inset 0 2px 12px rgba(212, 32, 39, 0.2),
+            inset 0 0 40px rgba(212, 32, 39, 0.1),
+            0 0 20px rgba(212, 32, 39, 0.15);
         }
 
-        .adaptive-label {
+        /* Label styling */
+        .adaptive-button-label {
           font-size: 11px;
           font-weight: 600;
           letter-spacing: 0.02em;
           /* Automatic text color adaptation */
           color: CanvasText;
-          opacity: 0.8;
+          opacity: 0.85;
           transition: all 0.3s ease;
+          position: relative;
+          z-index: 10;
         }
 
-        .adaptive-label.active {
+        .adaptive-button-label.active {
           color: #d42027;
           font-weight: 700;
           opacity: 1;
         }
 
-        .group:hover .adaptive-label {
+        .adaptive-floating-button:hover .adaptive-button-label {
           opacity: 1;
+          transform: scale(1.05);
         }
 
-        /* Alternative implementation using mix-blend-mode for even more adaptation */
-        @supports (mix-blend-mode: difference) {
-          .adaptive-glass-nav-alt {
-            mix-blend-mode: luminosity;
-          }
-        }
-
-        /* Dark background detection using prefers-color-scheme */
+        /* Dark background detection - Enhanced glass */
         @media (prefers-color-scheme: dark) {
-          .adaptive-glass-nav {
-            /* On dark backgrounds, use lighter glass */
-            background: color-mix(in srgb, Canvas 40%, transparent);
-            backdrop-filter: blur(24px) saturate(180%) brightness(1.2) contrast(0.85);
-            -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.2) contrast(0.85);
+          .adaptive-button-glass {
+            background: color-mix(in srgb, Canvas 35%, transparent);
+            backdrop-filter: blur(44px) saturate(200%) brightness(1.25) contrast(0.8);
+            -webkit-backdrop-filter: blur(44px) saturate(200%) brightness(1.25) contrast(0.8);
+          }
+          
+          .adaptive-floating-button:hover .adaptive-button-glass {
+            backdrop-filter: blur(52px) saturate(220%) brightness(1.3) contrast(0.75);
+            -webkit-backdrop-filter: blur(52px) saturate(220%) brightness(1.3) contrast(0.75);
           }
         }
 
-        /* Light background detection */
+        /* Light background detection - Enhanced glass */
         @media (prefers-color-scheme: light) {
-          .adaptive-glass-nav {
-            /* On light backgrounds, use darker glass */
-            background: color-mix(in srgb, Canvas 60%, transparent);
-            backdrop-filter: blur(24px) saturate(180%) brightness(1.05) contrast(0.95);
-            -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.05) contrast(0.95);
+          .adaptive-button-glass {
+            background: color-mix(in srgb, Canvas 50%, transparent);
+            backdrop-filter: blur(38px) saturate(200%) brightness(1.08) contrast(0.9);
+            -webkit-backdrop-filter: blur(38px) saturate(200%) brightness(1.08) contrast(0.9);
+          }
+          
+          .adaptive-floating-button:hover .adaptive-button-glass {
+            backdrop-filter: blur(46px) saturate(220%) brightness(1.12) contrast(0.85);
+            -webkit-backdrop-filter: blur(46px) saturate(220%) brightness(1.12) contrast(0.85);
           }
         }
       `}</style>
