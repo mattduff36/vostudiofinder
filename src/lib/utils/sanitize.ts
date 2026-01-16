@@ -20,9 +20,8 @@ export function stripHtmlTags(input: string | null | undefined): string {
   cleaned = decodeHtmlEntities(cleaned);
 
   // Clean up excessive whitespace that might result from tag removal
+  // NOTE: We preserve single spaces for normal text input
   cleaned = cleaned
-    // Replace multiple spaces with single space
-    .replace(/[ \t]+/g, ' ')
     // Normalize multiple newlines to max 2 consecutive (one blank line)
     .replace(/(\s*\n){3,}/g, '\n\n')
     // Remove leading/trailing whitespace

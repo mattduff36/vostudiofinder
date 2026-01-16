@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Loader2, Upload } from 'lucide-react';
+import { ImageCropperModal } from '@/components/images/ImageCropperModal';
 
 interface AvatarUploadProps {
   currentAvatar?: string | null | undefined;
@@ -24,6 +25,8 @@ export function AvatarUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileToCrop, setFileToCrop] = useState<File | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
 
   const sizeClasses = {
     small: 'w-12 h-12',
@@ -60,13 +63,22 @@ export function AvatarUpload({
       return;
     }
 
+    setUploadError(null);
+
+    // Open cropper modal with square aspect ratio
+    setFileToCrop(file);
+    setIsCropperOpen(true);
+  };
+
+  const handleCropConfirm = async (croppedFile: File) => {
     setIsUploading(true);
+    setIsCropperOpen(false);
     setUploadError(null);
 
     try {
       // Create form data
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', croppedFile);
       formData.append('folder', 'voiceover-studios/avatars');
 
       // Upload to Cloudinary via our API
@@ -94,6 +106,16 @@ export function AvatarUpload({
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      setFileToCrop(null);
+    }
+  };
+
+  const handleCropCancel = () => {
+    setIsCropperOpen(false);
+    setFileToCrop(null);
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -224,6 +246,17 @@ export function AvatarUpload({
       {uploadError && (
         <p className="text-xs text-red-600 text-center">{uploadError}</p>
       )}
+
+      {/* Image Cropper Modal - Square aspect ratio for avatars */}
+      <ImageCropperModal
+        file={fileToCrop}
+        isOpen={isCropperOpen}
+        onConfirm={handleCropConfirm}
+        onCancel={handleCropCancel}
+        aspect={1}
+        maxWidth={800}
+        maxHeight={800}
+      />
     </div>
   );
 }

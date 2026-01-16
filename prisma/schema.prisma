@@ -338,6 +338,8 @@ model studio_profiles {
   studio_studio_types     studio_studio_types[]
   reviews                 reviews[]
   pending_subscriptions   pending_subscriptions[]
+  profile_audit_findings  profile_audit_findings[]
+  profile_audit_log       profile_audit_log[]
   
   @@index([user_id])
   @@index([city])
@@ -444,6 +446,10 @@ model users {
   user_connections_user_connections_user_idTousers           user_connections[]      @relation("user_connections_user_idTousers")
   user_metadata                                              user_metadata[]
   support_tickets                                            support_tickets[]
+  profile_audit_findings                                     profile_audit_findings[]
+  profile_enrichment_suggestions_reviewed                    profile_enrichment_suggestions[] @relation("suggestions_reviewed_by")
+  profile_audit_log_user                                     profile_audit_log[]     @relation("audit_log_user")
+  profile_audit_log_performer                                profile_audit_log[]     @relation("audit_log_performer")
 }
 
 model waitlist {
@@ -633,6 +639,106 @@ model admin_sticky_notes {
   content    String   @db.Text
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+}
+
+// Profile Audit System
+model profile_audit_findings {
+  id                    String                  @id
+  user_id               String
+  studio_profile_id     String?
+  classification        AuditClassification
+  reasons               Json                     // Array of reason strings
+  completeness_score    Int                      // 0-100
+  recommended_action    String?
+  metadata              Json?                    // Additional classification data
+  created_at            DateTime                 @default(now())
+  updated_at            DateTime
+  users                 users                    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  studio_profiles       studio_profiles?         @relation(fields: [studio_profile_id], references: [id], onDelete: Cascade)
+  enrichment_suggestions profile_enrichment_suggestions[]
+  
+  @@index([user_id])
+  @@index([classification])
+  @@index([completeness_score])
+  @@index([created_at])
+}
+
+model profile_enrichment_suggestions {
+  id                    String                  @id
+  audit_finding_id      String
+  field_name            String                   // e.g., "website_url", "city", "phone"
+  current_value         String?                  // Current value (null if missing)
+  suggested_value       String                   // Proposed value
+  confidence            EnrichmentConfidence
+  evidence_url          String?                  // Source URL for the suggestion
+  evidence_type         String?                  // e.g., "website", "social", "places_api"
+  status                SuggestionStatus         @default(PENDING)
+  reviewed_by_id        String?
+  reviewed_at           DateTime?
+  applied_at            DateTime?
+  created_at            DateTime                 @default(now())
+  updated_at            DateTime
+  audit_finding         profile_audit_findings   @relation(fields: [audit_finding_id], references: [id], onDelete: Cascade)
+  reviewed_by           users?                   @relation("suggestions_reviewed_by", fields: [reviewed_by_id], references: [id])
+  
+  @@index([audit_finding_id])
+  @@index([status])
+  @@index([confidence])
+  @@index([field_name])
+  @@index([created_at])
+}
+
+model profile_audit_log {
+  id                    String                  @id
+  suggestion_id         String?                  // Optional link to suggestion that triggered this
+  user_id               String
+  studio_profile_id     String?
+  action                AuditLogAction
+  field_name            String?
+  old_value             String?
+  new_value             String?
+  evidence_url          String?
+  performed_by_id       String
+  notes                 String?
+  created_at            DateTime                 @default(now())
+  users                 users                    @relation("audit_log_user", fields: [user_id], references: [id], onDelete: Cascade)
+  studio_profiles       studio_profiles?         @relation(fields: [studio_profile_id], references: [id], onDelete: Cascade)
+  performed_by          users                    @relation("audit_log_performer", fields: [performed_by_id], references: [id])
+  
+  @@index([user_id])
+  @@index([studio_profile_id])
+  @@index([action])
+  @@index([performed_by_id])
+  @@index([created_at])
+}
+
+enum AuditClassification {
+  JUNK
+  NEEDS_UPDATE
+  NOT_ADVERTISING
+  EXCEPTION
+  HEALTHY
+}
+
+enum EnrichmentConfidence {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  APPLIED
+}
+
+enum AuditLogAction {
+  FIELD_UPDATE
+  STATUS_CHANGE
+  VISIBILITY_CHANGE
+  BULK_UPDATE
+  MANUAL_REVIEW
 }
 
 enum UserStatus {

@@ -10,6 +10,7 @@ import { formatRateWithCurrency } from '@/lib/utils/currency';
 import { Footer } from '@/components/home/Footer';
 import clsx from 'clsx';
 import { generateStudioImageAlt } from '@/lib/utils/image-alt';
+import { ContactStudioModal } from '@/components/studio/ContactStudioModal';
 
 // Phase 3: Mobile profile components
 import { CompactHero } from './mobile/CompactHero';
@@ -137,6 +138,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
   const [displayImages, setDisplayImages] = useState(studio.studio_images || []);
   const [showUnavailableModal, setShowUnavailableModal] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   // Calculate average rating
   const averageRating = studio.reviews.length > 0
@@ -246,20 +248,13 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
   // Email and contact handling
   const canContactViaEmail = profile?.show_email !== false && studio.owner.email;
-  
-  const getMailtoLink = () => {
-    if (!canContactViaEmail) return '#';
-    const subject = encodeURIComponent(
-      `Enquiry about ${studio.name} from voiceoverstudiofinder.com`
-    );
-    return `mailto:${studio.owner.email}?subject=${subject}`;
-  };
 
   const handleContactClick = () => {
     if (!canContactViaEmail) {
       setShowUnavailableModal(true);
+    } else {
+      setShowContactModal(true);
     }
-    // If email is available, mailto link will handle it
   };
 
   // Directions handling with platform detection
@@ -364,21 +359,13 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           {/* Top Action Button - Same logic as desktop Studio Details section */}
           <div className="bg-white border-b border-gray-200 md:hidden px-4 py-3">
             {canContactViaEmail ? (
-              <a 
-                href={getMailtoLink()} 
-                rel="nofollow noopener noreferrer"
-                onClick={(e) => {
-                  if (!e.isTrusted) {
-                    e.preventDefault();
-                  }
-                }}
-                className="block w-full"
+              <button 
+                onClick={() => setShowContactModal(true)}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors font-medium"
               >
-                <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors font-medium">
-                  <Mail className="w-5 h-5" aria-hidden="true" />
-                  <span>Message Studio</span>
-                </button>
-              </a>
+                <Mail className="w-5 h-5" aria-hidden="true" />
+                <span>Message Studio</span>
+              </button>
             ) : studio.website_url && (profile?.show_email === false) ? (
               <a 
                 href={studio.website_url}
@@ -855,24 +842,14 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 {/* Message Studio Button */}
                 <div className="mt-3 pt-3 border-t border-gray-200">
                   {canContactViaEmail ? (
-                    <a 
-                      href={getMailtoLink()} 
-                      rel="nofollow noopener noreferrer"
-                      onClick={(e) => {
-                        // Additional bot protection - only works with actual user clicks
-                        if (!e.isTrusted) {
-                          e.preventDefault();
-                        }
-                      }}
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setShowContactModal(true)}
                     >
-                      <Button
-                        size="sm"
-                        className="w-full"
-                      >
-                        <Mail className="w-4 h-4 mr-2" />
-                        Message Studio
-                      </Button>
-                    </a>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Message Studio
+                    </Button>
                   ) : studio.website_url && (profile?.show_email === false) ? (
                     <a 
                       href={studio.website_url}
@@ -1039,6 +1016,15 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
           </div>
         </div>
       )}
+
+      {/* Contact Studio Modal */}
+      <ContactStudioModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        studioName={studio.name}
+        studioId={studio.id}
+        ownerEmail={studio.owner.email}
+      />
 
         {/* Footer - Desktop only */}
         <div className="hidden md:block">

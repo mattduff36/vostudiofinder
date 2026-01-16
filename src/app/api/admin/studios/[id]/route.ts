@@ -398,7 +398,11 @@ export async function PUT(
     if (body._meta?.shortabout !== undefined) profileUpdateData.short_about = body._meta.shortabout; // Legacy support
     if (body._meta?.facebook !== undefined) profileUpdateData.facebook_url = body._meta.facebook;
     if (body._meta?.twitter !== undefined) profileUpdateData.twitter_url = body._meta.twitter;
-    if (body._meta?.x !== undefined) profileUpdateData.x_url = body._meta.x;
+    // When updating X/Twitter, update both fields to ensure removal works correctly
+    if (body._meta?.x !== undefined) {
+      profileUpdateData.x_url = body._meta.x;
+      profileUpdateData.twitter_url = body._meta.x; // Also update twitter_url to keep them in sync
+    }
     if (body._meta?.linkedin !== undefined) profileUpdateData.linkedin_url = body._meta.linkedin;
     if (body._meta?.instagram !== undefined) profileUpdateData.instagram_url = body._meta.instagram;
     if (body._meta?.youtubepage !== undefined) profileUpdateData.youtube_url = body._meta.youtubepage;
