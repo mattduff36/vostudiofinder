@@ -64,6 +64,7 @@ export default function GlassNavTestPage() {
   // Save customization to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('glassNavCustomization', JSON.stringify(customization));
+    console.log('✅ SAVED to localStorage:', customization);
   }, [customization]);
 
   // Save background to localStorage whenever it changes
@@ -71,8 +72,26 @@ export default function GlassNavTestPage() {
     localStorage.setItem('glassNavBackground', background);
   }, [background]);
 
+  // Debug: Log customization changes
+  useEffect(() => {
+    console.log('📊 CUSTOMIZATION STATE UPDATED:', customization);
+    console.log('🎯 Current values being passed to AdaptiveGlassNav:', {
+      blur: customization.blur,
+      saturation: customization.saturation,
+      brightness: customization.brightness,
+      contrast: customization.contrast,
+      backgroundOpacity: customization.backgroundOpacity,
+      circleSize: customization.circleSize,
+    });
+  }, [customization]);
+
   const updateValue = (key: keyof GlassCustomization, value: number | boolean) => {
-    setCustomization(prev => ({ ...prev, [key]: value }));
+    console.log(`🔧 SLIDER CHANGED: "${key}" = ${value}`);
+    setCustomization(prev => {
+      const newState = { ...prev, [key]: value };
+      console.log(`✨ NEW STATE for "${key}":`, newState[key]);
+      return newState;
+    });
   };
 
   const resetDefaults = () => {

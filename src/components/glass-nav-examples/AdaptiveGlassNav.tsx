@@ -43,9 +43,46 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDarkBackground, setIsDarkBackground] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Use customization if provided, otherwise use defaults
   const config = customization || DEFAULT_CONFIG;
+
+  // Debug: Log when customization prop changes
+  useEffect(() => {
+    console.log('🎨 AdaptiveGlassNav RECEIVED customization prop:', customization);
+    console.log('⚙️ AdaptiveGlassNav USING config:', config);
+  }, [customization, config]);
+
+  // Debug: Verify CSS variables are actually applied to the DOM
+  useEffect(() => {
+    if (containerRef.current) {
+      const computedStyle = window.getComputedStyle(containerRef.current);
+      const actualBlur = containerRef.current.style.getPropertyValue('--glass-blur');
+      const actualSaturation = containerRef.current.style.getPropertyValue('--glass-saturation');
+      const actualBrightness = containerRef.current.style.getPropertyValue('--glass-brightness');
+      const actualContrast = containerRef.current.style.getPropertyValue('--glass-contrast');
+      
+      console.log('🔍 CSS VARIABLES APPLIED TO DOM:', {
+        '--glass-blur': actualBlur,
+        '--glass-saturation': actualSaturation,
+        '--glass-brightness': actualBrightness,
+        '--glass-contrast': actualContrast,
+      });
+      
+      // Also check the actual button element
+      const button = containerRef.current.querySelector('.adaptive-circle-glass');
+      if (button) {
+        const buttonStyle = window.getComputedStyle(button);
+        console.log('🎯 BUTTON COMPUTED STYLES:', {
+          'backdrop-filter': buttonStyle.backdropFilter,
+          'width': buttonStyle.width,
+          'height': buttonStyle.height,
+          'background': buttonStyle.background,
+        });
+      }
+    }
+  }, [config]);
 
   // Detect background brightness dynamically with debouncing
   useEffect(() => {
@@ -348,20 +385,20 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
       data-dark-bg={isDarkBackground}
     >
       <div 
+        ref={containerRef}
         className="mx-auto max-w-lg mb-4"
         style={{
-          // @ts-ignore - CSS custom properties
           '--glass-blur': `${config.blur}px`,
           '--glass-saturation': `${config.saturation}%`,
-          '--glass-brightness': config.brightness,
-          '--glass-contrast': config.contrast,
-          '--glass-bg-opacity': config.backgroundOpacity,
+          '--glass-brightness': String(config.brightness),
+          '--glass-contrast': String(config.contrast),
+          '--glass-bg-opacity': String(config.backgroundOpacity),
           '--glass-border-width': `${config.borderWidth}px`,
-          '--glass-border-opacity': config.borderOpacity,
-          '--glass-shadow-intensity': config.shadowIntensity,
+          '--glass-border-opacity': String(config.borderOpacity),
+          '--glass-shadow-intensity': String(config.shadowIntensity),
           '--glass-shadow-spread': `${config.shadowSpread}px`,
           '--glass-hover-lift': `${config.hoverLift}px`,
-          '--glass-hover-scale': config.hoverScale,
+          '--glass-hover-scale': String(config.hoverScale),
         } as React.CSSProperties}
       >
         {/* Individual floating elements - circles and badge pills only */}
