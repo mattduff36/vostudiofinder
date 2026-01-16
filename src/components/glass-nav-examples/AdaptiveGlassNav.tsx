@@ -267,7 +267,23 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
       }}
       data-dark-bg={isDarkBackground}
     >
-      <div className="mx-auto max-w-lg mb-4">
+      <div 
+        className="mx-auto max-w-lg mb-4"
+        style={{
+          // @ts-ignore - CSS custom properties
+          '--glass-blur': `${config.blur}px`,
+          '--glass-saturation': `${config.saturation}%`,
+          '--glass-brightness': config.brightness,
+          '--glass-contrast': config.contrast,
+          '--glass-bg-opacity': config.backgroundOpacity,
+          '--glass-border-width': `${config.borderWidth}px`,
+          '--glass-border-opacity': config.borderOpacity,
+          '--glass-shadow-intensity': config.shadowIntensity,
+          '--glass-shadow-spread': `${config.shadowSpread}px`,
+          '--glass-hover-lift': `${config.hoverLift}px`,
+          '--glass-hover-scale': config.hoverScale,
+        } as React.CSSProperties}
+      >
         {/* Individual floating elements - circles and badge pills only */}
         <div className="flex items-center justify-around gap-3 px-2">
           {navItems.map((item) => {
@@ -279,11 +295,23 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
                 className="flex flex-col items-center gap-2 group"
               >
                 {/* Circular glass bubble for icon */}
-                <div className={`adaptive-circle-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}>
+                <div 
+                  className={`adaptive-circle-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
+                  style={{
+                    width: `${config.circleSize}px`,
+                    height: `${config.circleSize}px`,
+                  }}
+                >
                   <Icon className="w-6 h-6" />
                 </div>
                 {/* Pill/badge glass for label */}
-                <span className={`adaptive-pill-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}>
+                <span 
+                  className={`adaptive-pill-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
+                  style={{
+                    padding: `${config.pillPaddingY}px ${config.pillPaddingX}px`,
+                    fontSize: `${config.fontSize}px`,
+                  }}
+                >
                   {item.label}
                 </span>
               </Link>
@@ -292,11 +320,25 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
 
           <button onClick={onMenuClick} className="flex flex-col items-center gap-2 group">
             {/* Circular glass bubble for icon */}
-            <div className={`adaptive-circle-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}>
+            <div 
+              className={`adaptive-circle-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
+              style={{
+                width: `${config.circleSize}px`,
+                height: `${config.circleSize}px`,
+              }}
+            >
               <Menu className="w-6 h-6" />
             </div>
             {/* Pill/badge glass for label */}
-            <span className={`adaptive-pill-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}>Menu</span>
+            <span 
+              className={`adaptive-pill-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
+              style={{
+                padding: `${config.pillPaddingY}px ${config.pillPaddingX}px`,
+                fontSize: `${config.fontSize}px`,
+              }}
+            >
+              Menu
+            </span>
           </button>
         </div>
       </div>
@@ -307,29 +349,27 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
           display: flex;
           align-items: center;
           justify-content: center;
-          width: ${config.circleSize}px;
-          height: ${config.circleSize}px;
           border-radius: 50%;
           
           /* Enhanced adaptive glass effect */
-          background: color-mix(in srgb, Canvas ${config.backgroundOpacity * 100}%, transparent);
+          background: rgba(128, 128, 128, var(--glass-bg-opacity, 0.45));
           
           /* Customizable blur and saturation for liquid glass effect */
-          backdrop-filter: blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast});
-          -webkit-backdrop-filter: blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast});
+          backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+          -webkit-backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
           
           /* Use CanvasText for automatic light/dark text */
           color: CanvasText;
           
           /* Customizable border matching text/icon color */
-          border: ${config.borderWidth}px solid rgba(128, 128, 128, ${config.borderOpacity});
+          border: var(--glass-border-width, 0.5px) solid rgba(128, 128, 128, var(--glass-border-opacity, 0.3));
           
           /* Customizable shadow for depth */
           box-shadow: 
-            0 ${config.shadowSpread / 3}px ${config.shadowSpread}px rgba(0, 0, 0, ${config.shadowIntensity}),
-            0 ${config.shadowSpread / 10}px ${config.shadowSpread / 2.5}px rgba(0, 0, 0, ${config.shadowIntensity * 0.67}),
-            inset 0 1px 3px color-mix(in srgb, Canvas 90%, transparent),
-            inset 0 0 60px color-mix(in srgb, Canvas 30%, transparent);
+            0 calc(var(--glass-shadow-spread, 40px) / 3) var(--glass-shadow-spread, 40px) rgba(0, 0, 0, var(--glass-shadow-intensity, 0.15)),
+            0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 2.5) rgba(0, 0, 0, calc(var(--glass-shadow-intensity, 0.15) * 0.67)),
+            inset 0 1px 3px rgba(255, 255, 255, 0.1),
+            inset 0 0 60px rgba(255, 255, 255, 0.05);
           
           transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
           position: relative;
@@ -352,15 +392,15 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
 
         /* Circle hover effect */
         .group:hover .adaptive-circle-glass {
-          transform: translateY(-${config.hoverLift}px) scale(${config.hoverScale});
-          background: color-mix(in srgb, Canvas ${(config.backgroundOpacity + 0.1) * 100}%, transparent);
-          backdrop-filter: blur(${config.blur + 8}px) saturate(${config.saturation + 20}%) brightness(${config.brightness + 0.05}) contrast(${config.contrast - 0.05});
-          -webkit-backdrop-filter: blur(${config.blur + 8}px) saturate(${config.saturation + 20}%) brightness(${config.brightness + 0.05}) contrast(${config.contrast - 0.05});
+          transform: translateY(calc(-1 * var(--glass-hover-lift, 4px))) scale(var(--glass-hover-scale, 1.08));
+          background: rgba(128, 128, 128, calc(var(--glass-bg-opacity, 0.45) + 0.1));
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) + 8px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(calc(var(--glass-brightness, 1.15) + 0.05)) contrast(calc(var(--glass-contrast, 0.85) - 0.05));
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 8px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(calc(var(--glass-brightness, 1.15) + 0.05)) contrast(calc(var(--glass-contrast, 0.85) - 0.05));
           box-shadow: 
-            0 ${config.shadowSpread / 2.5}px ${config.shadowSpread * 1.25}px rgba(0, 0, 0, ${config.shadowIntensity * 1.33}),
-            0 ${config.shadowSpread / 6.7}px ${config.shadowSpread / 2}px rgba(0, 0, 0, ${config.shadowIntensity}),
-            inset 0 1px 3px color-mix(in srgb, Canvas 95%, transparent),
-            inset 0 0 80px color-mix(in srgb, Canvas 40%, transparent);
+            0 calc(var(--glass-shadow-spread, 40px) / 2.5) calc(var(--glass-shadow-spread, 40px) * 1.25) rgba(0, 0, 0, calc(var(--glass-shadow-intensity, 0.15) * 1.33)),
+            0 calc(var(--glass-shadow-spread, 40px) / 6.7) calc(var(--glass-shadow-spread, 40px) / 2) rgba(0, 0, 0, var(--glass-shadow-intensity, 0.15)),
+            inset 0 1px 3px rgba(255, 255, 255, 0.15),
+            inset 0 0 80px rgba(255, 255, 255, 0.08);
         }
 
         .group:active .adaptive-circle-glass {
@@ -384,32 +424,30 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
         /* PILL/BADGE GLASS - For labels only */
         .adaptive-pill-glass {
           display: inline-block;
-          padding: ${config.pillPaddingY}px ${config.pillPaddingX}px;
           border-radius: 16px;
           
           /* Enhanced adaptive glass effect */
-          background: color-mix(in srgb, Canvas ${config.backgroundOpacity * 100}%, transparent);
+          background: rgba(128, 128, 128, var(--glass-bg-opacity, 0.45));
           
           /* Customizable blur and saturation */
-          backdrop-filter: blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast});
-          -webkit-backdrop-filter: blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast});
+          backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+          -webkit-backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
           
           /* Automatic text color adaptation */
           color: CanvasText;
           
           /* Customizable border matching text color */
-          border: ${config.borderWidth}px solid rgba(128, 128, 128, ${config.borderOpacity});
+          border: var(--glass-border-width, 0.5px) solid rgba(128, 128, 128, var(--glass-border-opacity, 0.3));
           
-          font-size: ${config.fontSize}px;
           font-weight: 600;
           letter-spacing: 0.02em;
           
           /* Customizable shadow for depth */
           box-shadow: 
-            0 ${config.shadowSpread / 5}px ${config.shadowSpread / 1.67}px rgba(0, 0, 0, ${config.shadowIntensity * 0.8}),
-            0 ${config.shadowSpread / 20}px ${config.shadowSpread / 5}px rgba(0, 0, 0, ${config.shadowIntensity * 0.53}),
-            inset 0 1px 2px color-mix(in srgb, Canvas 90%, transparent),
-            inset 0 0 40px color-mix(in srgb, Canvas 30%, transparent);
+            0 calc(var(--glass-shadow-spread, 40px) / 5) calc(var(--glass-shadow-spread, 40px) / 1.67) rgba(0, 0, 0, calc(var(--glass-shadow-intensity, 0.15) * 0.8)),
+            0 calc(var(--glass-shadow-spread, 40px) / 20) calc(var(--glass-shadow-spread, 40px) / 5) rgba(0, 0, 0, calc(var(--glass-shadow-intensity, 0.15) * 0.53)),
+            inset 0 1px 2px rgba(255, 255, 255, 0.1),
+            inset 0 0 40px rgba(255, 255, 255, 0.05);
           
           transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
           position: relative;
@@ -432,15 +470,15 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
 
         /* Pill hover effect */
         .group:hover .adaptive-pill-glass {
-          transform: translateY(-${config.hoverLift / 2}px) scale(${(config.hoverScale - 1) * 0.625 + 1});
-          background: color-mix(in srgb, Canvas ${(config.backgroundOpacity + 0.1) * 100}%, transparent);
-          backdrop-filter: blur(${config.blur + 8}px) saturate(${config.saturation + 20}%) brightness(${config.brightness + 0.05}) contrast(${config.contrast - 0.05});
-          -webkit-backdrop-filter: blur(${config.blur + 8}px) saturate(${config.saturation + 20}%) brightness(${config.brightness + 0.05}) contrast(${config.contrast - 0.05});
+          transform: translateY(calc(-1 * var(--glass-hover-lift, 4px) / 2)) scale(calc(1 + (var(--glass-hover-scale, 1.08) - 1) * 0.625));
+          background: rgba(128, 128, 128, calc(var(--glass-bg-opacity, 0.45) + 0.1));
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) + 8px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(calc(var(--glass-brightness, 1.15) + 0.05)) contrast(calc(var(--glass-contrast, 0.85) - 0.05));
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 8px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(calc(var(--glass-brightness, 1.15) + 0.05)) contrast(calc(var(--glass-contrast, 0.85) - 0.05));
           box-shadow: 
-            0 ${config.shadowSpread / 3.33}px ${config.shadowSpread / 1.25}px rgba(0, 0, 0, ${config.shadowIntensity * 1.07}),
-            0 ${config.shadowSpread / 10}px ${config.shadowSpread / 3.33}px rgba(0, 0, 0, ${config.shadowIntensity * 0.8}),
-            inset 0 1px 2px color-mix(in srgb, Canvas 95%, transparent),
-            inset 0 0 50px color-mix(in srgb, Canvas 40%, transparent);
+            0 calc(var(--glass-shadow-spread, 40px) / 3.33) calc(var(--glass-shadow-spread, 40px) / 1.25) rgba(0, 0, 0, calc(var(--glass-shadow-intensity, 0.15) * 1.07)),
+            0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 3.33) rgba(0, 0, 0, calc(var(--glass-shadow-intensity, 0.15) * 0.8)),
+            inset 0 1px 2px rgba(255, 255, 255, 0.15),
+            inset 0 0 50px rgba(255, 255, 255, 0.08);
         }
 
         .group:active .adaptive-pill-glass {
@@ -467,27 +505,27 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
         /* Dark background detected - Use lighter, brighter glass */
         .adaptive-circle-glass.dark-bg,
         .adaptive-pill-glass.dark-bg {
-          background: rgba(255, 255, 255, ${config.backgroundOpacity * 0.27});
-          backdrop-filter: blur(${config.blur + 4}px) saturate(${config.saturation}%) brightness(${config.darkBrightness}) contrast(${config.contrast * 0.88});
-          -webkit-backdrop-filter: blur(${config.blur + 4}px) saturate(${config.saturation}%) brightness(${config.darkBrightness}) contrast(${config.contrast * 0.88});
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) + 4px)) saturate(var(--glass-saturation, 200%)) brightness(1.4) contrast(0.75);
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 4px)) saturate(var(--glass-saturation, 200%)) brightness(1.4) contrast(0.75);
           color: rgba(255, 255, 255, 0.95);
-          border-color: rgba(255, 255, 255, ${config.borderOpacity});
+          border-color: rgba(255, 255, 255, 0.3);
           box-shadow: 
-            0 ${config.shadowSpread / 3.33}px ${config.shadowSpread}px rgba(0, 0, 0, ${config.shadowIntensity * 2}),
-            0 ${config.shadowSpread / 10}px ${config.shadowSpread / 2.5}px rgba(0, 0, 0, ${config.shadowIntensity * 1.33}),
+            0 calc(var(--glass-shadow-spread, 40px) / 3.33) var(--glass-shadow-spread, 40px) rgba(0, 0, 0, 0.3),
+            0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 2.5) rgba(0, 0, 0, 0.2),
             inset 0 1px 3px rgba(255, 255, 255, 0.25),
             inset 0 0 60px rgba(255, 255, 255, 0.1);
         }
         
         .group:hover .adaptive-circle-glass.dark-bg,
         .group:hover .adaptive-pill-glass.dark-bg {
-          background: rgba(255, 255, 255, ${config.backgroundOpacity * 0.4});
-          backdrop-filter: blur(${config.blur + 12}px) saturate(${config.saturation + 20}%) brightness(${config.darkBrightness + 0.1}) contrast(${config.contrast * 0.82});
-          -webkit-backdrop-filter: blur(${config.blur + 12}px) saturate(${config.saturation + 20}%) brightness(${config.darkBrightness + 0.1}) contrast(${config.contrast * 0.82});
-          border-color: rgba(255, 255, 255, ${config.borderOpacity + 0.1});
+          background: rgba(255, 255, 255, 0.18);
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) + 12px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(1.5) contrast(0.7);
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 12px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(1.5) contrast(0.7);
+          border-color: rgba(255, 255, 255, 0.4);
           box-shadow: 
-            0 ${config.shadowSpread / 2.5}px ${config.shadowSpread * 1.25}px rgba(0, 0, 0, ${config.shadowIntensity * 2.33}),
-            0 ${config.shadowSpread / 6.67}px ${config.shadowSpread / 2}px rgba(0, 0, 0, ${config.shadowIntensity * 1.67}),
+            0 calc(var(--glass-shadow-spread, 40px) / 2.5) calc(var(--glass-shadow-spread, 40px) * 1.25) rgba(0, 0, 0, 0.35),
+            0 calc(var(--glass-shadow-spread, 40px) / 6.67) calc(var(--glass-shadow-spread, 40px) / 2) rgba(0, 0, 0, 0.25),
             inset 0 1px 3px rgba(255, 255, 255, 0.3),
             inset 0 0 80px rgba(255, 255, 255, 0.15);
         }
@@ -505,27 +543,27 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
         /* Light background detected - Use darker, more subtle glass */
         .adaptive-circle-glass.light-bg,
         .adaptive-pill-glass.light-bg {
-          background: rgba(0, 0, 0, ${config.backgroundOpacity * 0.18});
-          backdrop-filter: blur(${config.blur - 2}px) saturate(${config.saturation}%) brightness(${config.lightBrightness}) contrast(${config.contrast * 1.29});
-          -webkit-backdrop-filter: blur(${config.blur - 2}px) saturate(${config.saturation}%) brightness(${config.lightBrightness}) contrast(${config.contrast * 1.29});
+          background: rgba(0, 0, 0, 0.08);
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) - 2px)) saturate(var(--glass-saturation, 200%)) brightness(0.95) contrast(1.1);
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) - 2px)) saturate(var(--glass-saturation, 200%)) brightness(0.95) contrast(1.1);
           color: rgba(0, 0, 0, 0.85);
-          border-color: rgba(0, 0, 0, ${config.borderOpacity * 0.67});
+          border-color: rgba(0, 0, 0, 0.2);
           box-shadow: 
-            0 ${config.shadowSpread / 3.33}px ${config.shadowSpread}px rgba(0, 0, 0, ${config.shadowIntensity * 0.53}),
-            0 ${config.shadowSpread / 10}px ${config.shadowSpread / 2.5}px rgba(0, 0, 0, ${config.shadowIntensity * 0.33}),
+            0 calc(var(--glass-shadow-spread, 40px) / 3.33) var(--glass-shadow-spread, 40px) rgba(0, 0, 0, 0.08),
+            0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 2.5) rgba(0, 0, 0, 0.05),
             inset 0 1px 3px rgba(0, 0, 0, 0.05),
             inset 0 0 60px rgba(0, 0, 0, 0.03);
         }
         
         .group:hover .adaptive-circle-glass.light-bg,
         .group:hover .adaptive-pill-glass.light-bg {
-          background: rgba(0, 0, 0, ${config.backgroundOpacity * 0.27});
-          backdrop-filter: blur(${config.blur + 6}px) saturate(${config.saturation + 20}%) brightness(${config.lightBrightness - 0.03}) contrast(${config.contrast * 1.35});
-          -webkit-backdrop-filter: blur(${config.blur + 6}px) saturate(${config.saturation + 20}%) brightness(${config.lightBrightness - 0.03}) contrast(${config.contrast * 1.35});
-          border-color: rgba(0, 0, 0, ${config.borderOpacity * 0.83});
+          background: rgba(0, 0, 0, 0.12);
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) + 6px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(0.92) contrast(1.15);
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 6px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(0.92) contrast(1.15);
+          border-color: rgba(0, 0, 0, 0.25);
           box-shadow: 
-            0 ${config.shadowSpread / 2.5}px ${config.shadowSpread * 1.25}px rgba(0, 0, 0, ${config.shadowIntensity * 0.8}),
-            0 ${config.shadowSpread / 6.67}px ${config.shadowSpread / 2}px rgba(0, 0, 0, ${config.shadowIntensity * 0.53}),
+            0 calc(var(--glass-shadow-spread, 40px) / 2.5) calc(var(--glass-shadow-spread, 40px) * 1.25) rgba(0, 0, 0, 0.12),
+            0 calc(var(--glass-shadow-spread, 40px) / 6.67) calc(var(--glass-shadow-spread, 40px) / 2) rgba(0, 0, 0, 0.08),
             inset 0 1px 3px rgba(0, 0, 0, 0.08),
             inset 0 0 80px rgba(0, 0, 0, 0.05);
         }
