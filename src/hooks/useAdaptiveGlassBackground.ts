@@ -39,7 +39,7 @@ export function useAdaptiveGlassBackground({
 
       // Most browsers return rgb()/rgba() from computedStyle.backgroundColor
       const rgbMatch = normalized.match(/^rgba?\((.+)\)$/);
-      if (!rgbMatch) return null;
+      if (!rgbMatch || !rgbMatch[1]) return null;
 
       const parts = rgbMatch[1]
         .split(',')
@@ -113,7 +113,7 @@ export function useAdaptiveGlassBackground({
           ctx.clearRect(0, 0, 1, 1);
           ctx.drawImage(img, srcX, srcY, 1, 1, 0, 0, 1, 1);
           const data = ctx.getImageData(0, 0, 1, 1).data;
-          if (!data || data.length < 3) return null;
+          if (!data || data.length < 3 || data[0] === undefined || data[1] === undefined || data[2] === undefined) return null;
           return luminanceFromRgb(data[0], data[1], data[2]);
         } catch {
           return null;
@@ -128,7 +128,7 @@ export function useAdaptiveGlassBackground({
         ctx.clearRect(0, 0, 1, 1);
         ctx.drawImage(img, srcX, srcY, 1, 1, 0, 0, 1, 1);
         const data = ctx.getImageData(0, 0, 1, 1).data;
-        if (!data || data.length < 3) return null;
+        if (!data || data.length < 3 || data[0] === undefined || data[1] === undefined || data[2] === undefined) return null;
         return luminanceFromRgb(data[0], data[1], data[2]);
       } catch {
         // Can fail if the image is cross-origin/tainted

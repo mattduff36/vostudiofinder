@@ -146,7 +146,7 @@ export function AdaptiveGlassBubblesNav({
               <Link
                 key={buttonId}
                 href={item.href}
-                onClick={item.onClick}
+                {...(item.onClick ? { onClick: item.onClick } : {})}
                 className="flex flex-col items-center group touch-manipulation"
                 aria-label={item.label}
                 aria-current={item.active ? 'page' : undefined}
