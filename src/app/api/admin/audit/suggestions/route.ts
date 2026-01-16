@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { SuggestionStatus, EnrichmentConfidence, Prisma } from '@prisma/client';
+import { SuggestionStatus, EnrichmentConfidence } from '@prisma/client';
 
 /**
  * GET /api/admin/audit/suggestions

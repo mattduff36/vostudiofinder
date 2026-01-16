@@ -8,9 +8,9 @@ import { Prisma, ServiceType } from '@prisma/client';
 import { geocodeAddress, calculateDistance } from '@/lib/maps';
 import crypto from 'crypto';
 
-// Throttle lazy enforcement to run at most once every 5 minutes
-let lastEnforcementRun = 0;
-const ENFORCEMENT_THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
+// Throttle lazy enforcement to run at most once every 5 minutes (currently disabled)
+// let lastEnforcementRun = 0;
+// const ENFORCEMENT_THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
 
 // Fisher-Yates shuffle algorithm for randomizing array
 function shuffleArray<T>(array: T[]): T[] {
@@ -77,7 +77,7 @@ function prioritizeStudios<T extends {
 }
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
+  // const startTime = Date.now();
   try {
     const { searchParams } = new URL(request.url);
     
@@ -125,11 +125,11 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     const shouldRunEnforcement = false; // DISABLED - use cron job instead
     
-    const lazyEnforcementStart = Date.now();
+    // const lazyEnforcementStart = Date.now();
     
     if (shouldRunEnforcement) {
       try {
-        lastEnforcementRun = Date.now();
+        // lastEnforcementRun = Date.now();
       
         // Find studios with expired memberships that are still ACTIVE (exclude admin emails)
         const expiredStudios = await db.studio_profiles.findMany({
@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
         });
         logger.log(`🔄 Search: Unfeatured ${expiredFeaturedStudios.length} expired featured studios`);
       }
-        const lazyEnforcementEnd = Date.now();
+        // const lazyEnforcementEnd = Date.now();
       } catch (enforcementError) {
         // Log but don't fail the search if enforcement fails
         logger.error('Search lazy enforcement error:', enforcementError);
@@ -493,7 +493,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const dbQueryEndTime = Date.now();
+    // const dbQueryEndTime = Date.now();
 
     // Filter by geographic distance if applicable
     if (searchCoordinates && validatedParams.radius) {
@@ -524,7 +524,7 @@ export async function GET(request: NextRequest) {
       allStudios = fetchedStudios;
     }
 
-    const prioStartTime = Date.now();
+    // const prioStartTime = Date.now();
 
     // Apply prioritization logic (verified+images -> images -> no images)
     totalCount = allStudios.length;
@@ -532,7 +532,7 @@ export async function GET(request: NextRequest) {
     const studios = prioritized.studios;
     hasMore = prioritized.hasMore;
 
-    const prioEndTime = Date.now();
+    // const prioEndTime = Date.now();
 
     // Calculate pagination info for load-more pattern
     const totalPages = Math.ceil(totalCount / validatedParams.limit);
@@ -550,7 +550,7 @@ export async function GET(request: NextRequest) {
       studio_images: studio.studio_images || [],
     }));
 
-    const serializeStartTime = Date.now();
+    // const serializeStartTime = Date.now();
 
     // Get map markers based on search criteria
     // For location-based searches, only show studios that match the search criteria
@@ -652,6 +652,7 @@ export async function GET(request: NextRequest) {
           name: true,
           latitude: true,
           longitude: true,
+          show_exact_location: true,
           studio_studio_types: {
             select: {
               studio_type: true,
@@ -724,8 +725,8 @@ export async function GET(request: NextRequest) {
         show_exact_location: studio.show_exact_location,
       }));
 
-    const serializeEndTime = Date.now();
-    const totalDuration = Date.now() - startTime;
+    // const serializeEndTime = Date.now();
+    // const totalDuration = Date.now() - startTime;
 
     const response = {
       studios: serializedStudios,
