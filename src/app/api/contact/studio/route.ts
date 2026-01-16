@@ -23,108 +23,90 @@ export async function POST(request: NextRequest) {
 
     // Create HTML email content
     const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-              line-height: 1.6;
-              color: #333;
-              max-width: 600px;
-              margin: 0 auto;
-              padding: 20px;
-            }
-            .header {
-              background-color: #d42027;
-              color: white;
-              padding: 20px;
-              border-radius: 8px 8px 0 0;
-              text-align: center;
-            }
-            .content {
-              background-color: #f9fafb;
-              padding: 30px;
-              border: 1px solid #e5e7eb;
-              border-top: none;
-              border-radius: 0 0 8px 8px;
-            }
-            .message-box {
-              background-color: white;
-              padding: 20px;
-              border-radius: 6px;
-              border: 1px solid #e5e7eb;
-              margin: 20px 0;
-            }
-            .sender-info {
-              background-color: #f3f4f6;
-              padding: 15px;
-              border-radius: 6px;
-              margin-top: 20px;
-            }
-            .footer {
-              text-align: center;
-              color: #6b7280;
-              font-size: 12px;
-              margin-top: 20px;
-              padding-top: 20px;
-              border-top: 1px solid #e5e7eb;
-            }
-            h1 {
-              margin: 0;
-              font-size: 24px;
-            }
-            h2 {
-              color: #d42027;
-              font-size: 18px;
-              margin-top: 0;
-            }
-            .label {
-              font-weight: 600;
-              color: #4b5563;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>📧 New Booking Enquiry</h1>
-          </div>
-          <div class="content">
-            <p>Hello,</p>
-            <p>You have received a new booking enquiry through <strong>VoiceoverStudioFinder.com</strong> for <strong>${studioName}</strong>.</p>
-            
-            <div class="message-box">
-              <h2>Message:</h2>
-              <p>${message.replace(/\n/g, '<br>')}</p>
-            </div>
-
-            <div class="sender-info">
-              <p class="label">From:</p>
-              <p><strong>${senderName}</strong></p>
-              <p class="label">Email:</p>
-              <p><a href="mailto:${senderEmail}">${senderEmail}</a></p>
-            </div>
-
-            <p style="margin-top: 30px;">
-              <strong>To reply:</strong> Simply reply to this email or contact ${senderName} directly at 
-              <a href="mailto:${senderEmail}">${senderEmail}</a>
-            </p>
-          </div>
-          
-          <div class="footer">
-            <p>This enquiry was sent via VoiceoverStudioFinder.com</p>
-            <p>© ${new Date().getFullYear()} VoiceoverStudioFinder. All rights reserved.</p>
-          </div>
-        </body>
-      </html>
-    `;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>New Booking Enquiry</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 4px;">
+          <tr>
+            <td style="padding: 40px 40px 32px 40px;">
+              <div style="margin-bottom: 32px;">
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
+              </div>
+              <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">New booking enquiry</h1>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">You have received a new enquiry for <strong>${studioName}</strong> through Voiceover Studio Finder.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f9f9f9; border-radius: 4px;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Message</p>
+                    <p style="margin: 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f9f9f9; border-radius: 4px;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding: 0 0 12px 0;">
+                          <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">From</p>
+                          <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 500; color: #1a1a1a; line-height: 1.6;">${senderName}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 12px 0 0 0; border-top: 1px solid #e5e5e5;">
+                          <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Email</p>
+                          <p style="margin: 4px 0 0 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;"><a href="mailto:${senderEmail}" style="color: #d42027; text-decoration: underline;">${senderEmail}</a></p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">To reply, simply respond to this email or contact ${senderName} directly at <a href="mailto:${senderEmail}" style="color: #d42027; text-decoration: underline;">${senderEmail}</a>.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `.trim();
 
     // Create plain text version
     const textContent = `
-New Booking Enquiry - ${studioName}
+New Booking Enquiry
 
-You have received a new booking enquiry through VoiceoverStudioFinder.com
+You have received a new enquiry for ${studioName} through Voiceover Studio Finder.
 
 MESSAGE:
 ${message}
@@ -132,10 +114,12 @@ ${message}
 FROM: ${senderName}
 EMAIL: ${senderEmail}
 
-To reply, simply respond to this email or contact ${senderName} directly at ${senderEmail}
+To reply, simply respond to this email or contact ${senderName} directly at ${senderEmail}.
 
 ---
-This enquiry was sent via VoiceoverStudioFinder.com
+Voiceover Studio Finder
+© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.
+Questions? support@voiceoverstudiofinder.com
     `.trim();
 
     // Send email using Resend
