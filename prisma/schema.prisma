@@ -652,7 +652,7 @@ model profile_audit_findings {
   recommended_action    String?
   metadata              Json?                    // Additional classification data
   created_at            DateTime                 @default(now())
-  updated_at            DateTime
+  updated_at            DateTime                 @updatedAt
   users                 users                    @relation(fields: [user_id], references: [id], onDelete: Cascade)
   studio_profiles       studio_profiles?         @relation(fields: [studio_profile_id], references: [id], onDelete: Cascade)
   enrichment_suggestions profile_enrichment_suggestions[]
@@ -677,7 +677,7 @@ model profile_enrichment_suggestions {
   reviewed_at           DateTime?
   applied_at            DateTime?
   created_at            DateTime                 @default(now())
-  updated_at            DateTime
+  updated_at            DateTime                 @updatedAt
   audit_finding         profile_audit_findings   @relation(fields: [audit_finding_id], references: [id], onDelete: Cascade)
   reviewed_by           users?                   @relation("suggestions_reviewed_by", fields: [reviewed_by_id], references: [id])
   

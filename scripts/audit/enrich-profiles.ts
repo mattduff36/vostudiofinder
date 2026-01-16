@@ -251,8 +251,9 @@ async function enrichProfile(
         if (field === 'twitter_url' && normalized.includes('x.com')) {
           const existingXUrl = studioProfile.x_url;
           
-          // Only suggest migration if x_url is empty OR if it matches the normalized twitter URL
-          if (!existingXUrl || existingXUrl === normalized || existingXUrl === currentValue) {
+          // Only suggest if x_url is empty OR has the old twitter.com URL
+          // Skip if x_url already has the correct x.com URL
+          if (!existingXUrl || (existingXUrl.includes('twitter.com') && !existingXUrl.includes('x.com'))) {
             suggestions.push({
               audit_finding_id: finding.id,
               field_name: 'x_url',
@@ -263,6 +264,9 @@ async function enrichProfile(
               evidence_type: 'url_normalization',
             });
             console.log(`    ✅ Migrate twitter_url to x_url: ${normalized}`);
+          } else if (existingXUrl === normalized) {
+            // x_url already has the correct value - no action needed
+            console.log(`    ℹ️  x_url already correct: ${existingXUrl}`);
           } else {
             // x_url already exists with a different value - don't overwrite
             console.log(`    ⚠️  Skipping twitter_url migration - x_url already set to: ${existingXUrl}`);
@@ -407,7 +411,7 @@ async function runEnrichment(options: {
         for (const suggestion of suggestions) {
           await db.profile_enrichment_suggestions.create({
             data: {
-              id: `enrich_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              id: `enrich_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
               ...suggestion,
               updated_at: new Date(),
             }
