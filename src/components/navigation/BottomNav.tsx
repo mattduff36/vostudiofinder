@@ -55,6 +55,11 @@ export function BottomNav({ onMenuClick, session }: BottomNavProps) {
     return null;
   }
 
+  // Hide bottom nav on glass navigation test page
+  if (pathname === '/glass-nav-test') {
+    return null;
+  }
+
   // Build navigation items based on auth state
   const navItems = [
     {

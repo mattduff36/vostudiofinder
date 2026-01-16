@@ -27,27 +27,25 @@ export function DashboardDropdownMenu({
   const router = useRouter();
   const pathname = usePathname();
 
-  // Fetch profile visibility when dropdown opens
+  // Fetch profile visibility immediately on mount (single source of truth from database)
   useEffect(() => {
-    if (isOpen) {
+    const fetchProfileVisibility = async () => {
       setLoadingVisibility(true);
-      fetchProfileVisibility();
-    }
-  }, [isOpen]);
-
-  const fetchProfileVisibility = async () => {
-    try {
-      const response = await fetch('/api/user/profile');
-      if (response.ok) {
-        const data = await response.json();
-        setIsVisible(data.studio?.is_profile_visible ?? false);
+      try {
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+          const data = await response.json();
+          setIsVisible(data.studio?.is_profile_visible ?? false);
+        }
+      } catch (error) {
+        console.error('Error fetching profile visibility:', error);
+      } finally {
+        setLoadingVisibility(false);
       }
-    } catch (error) {
-      console.error('Error fetching profile visibility:', error);
-    } finally {
-      setLoadingVisibility(false);
-    }
-  };
+    };
+
+    fetchProfileVisibility();
+  }, []);
 
   const handleToggleVisibility = async () => {
     setTogglingVisibility(true);

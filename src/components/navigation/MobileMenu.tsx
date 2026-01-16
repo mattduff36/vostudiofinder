@@ -53,27 +53,30 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Fetch profile visibility when menu opens and user is logged in
+  // Fetch profile visibility immediately when user is logged in (single source of truth)
   useEffect(() => {
-    if (isOpen && session?.user?.id) {
+    const fetchProfileVisibility = async () => {
       setLoadingVisibility(true);
-      fetchProfileVisibility();
-    }
-  }, [isOpen, session?.user?.id]);
-
-  const fetchProfileVisibility = async () => {
-    try {
-      const response = await fetch('/api/user/profile');
-      if (response.ok) {
-        const data = await response.json();
-        setIsVisible(data.studio?.is_profile_visible ?? false);
+      try {
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+          const data = await response.json();
+          setIsVisible(data.studio?.is_profile_visible ?? false);
+        }
+      } catch (error) {
+        console.error('Error fetching profile visibility:', error);
+      } finally {
+        setLoadingVisibility(false);
       }
-    } catch (error) {
-      console.error('Error fetching profile visibility:', error);
-    } finally {
+    };
+
+    if (session?.user?.id) {
+      fetchProfileVisibility();
+    } else {
+      // No user logged in, stop loading
       setLoadingVisibility(false);
     }
-  };
+  }, [session?.user?.id]);
 
   const handleToggleVisibility = async () => {
     setTogglingVisibility(true);
