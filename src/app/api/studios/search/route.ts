@@ -537,6 +537,7 @@ export async function GET(request: NextRequest) {
             name: true,
             latitude: true,
             longitude: true,
+            show_exact_location: true,
             studio_studio_types: {
               select: {
                 studio_type: true,
@@ -583,6 +584,7 @@ export async function GET(request: NextRequest) {
             name: true,
             latitude: true,
             longitude: true,
+            show_exact_location: true,
             studio_studio_types: {
               select: {
                 studio_type: true,
@@ -683,6 +685,7 @@ export async function GET(request: NextRequest) {
         ...studio,
         latitude: Number(studio.latitude),
         longitude: Number(studio.longitude),
+        show_exact_location: studio.show_exact_location,
       }));
 
     const response = {

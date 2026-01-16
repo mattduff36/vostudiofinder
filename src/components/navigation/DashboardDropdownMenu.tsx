@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { Menu, Home, Edit, Settings, User, LogOut } from 'lucide-react';
+import { Menu, Home, Edit, Settings, User, LogOut, CreditCard, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface DashboardDropdownMenuProps {
@@ -20,9 +20,54 @@ export function DashboardDropdownMenu({
   const [isOpen, setIsOpen] = useState(false);
   const [currentHash, setCurrentHash] = useState('');
   const [pendingDashboardHash, setPendingDashboardHash] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [togglingVisibility, setTogglingVisibility] = useState(false);
+  const [loadingVisibility, setLoadingVisibility] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  // Fetch profile visibility when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchProfileVisibility();
+    }
+  }, [isOpen]);
+
+  const fetchProfileVisibility = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setIsVisible(data.studio?.is_profile_visible ?? false);
+      }
+    } catch (error) {
+      console.error('Error fetching profile visibility:', error);
+    } finally {
+      setLoadingVisibility(false);
+    }
+  };
+
+  const handleToggleVisibility = async () => {
+    setTogglingVisibility(true);
+    try {
+      const response = await fetch('/api/user/profile/visibility', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isVisible: !isVisible }),
+      });
+
+      if (response.ok) {
+        setIsVisible(!isVisible);
+      } else {
+        console.error('Failed to update visibility');
+      }
+    } catch (error) {
+      console.error('Error updating visibility:', error);
+    } finally {
+      setTogglingVisibility(false);
+    }
+  };
 
   // Track hash changes (only when on dashboard page)
   useEffect(() => {
@@ -187,6 +232,45 @@ export function DashboardDropdownMenu({
 
           {/* Separator */}
           <div className="my-2 border-t border-gray-200" role="separator" />
+
+          {/* Membership */}
+          <button
+            type="button"
+            onClick={() => handleNavigation('/auth/membership')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+              pathname === '/auth/membership'
+                ? 'bg-red-50 text-red-600 font-medium'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+            role="menuitem"
+          >
+            <CreditCard className="w-4 h-4" aria-hidden="true" />
+            Membership
+          </button>
+
+          {/* Profile Visibility Toggle */}
+          <button
+            type="button"
+            onClick={handleToggleVisibility}
+            disabled={togglingVisibility || loadingVisibility}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+              togglingVisibility || loadingVisibility
+                ? 'opacity-50 cursor-not-allowed'
+                : isVisible
+                ? 'text-green-700 hover:bg-green-50'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+            role="menuitem"
+          >
+            {togglingVisibility || loadingVisibility ? (
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+            ) : isVisible ? (
+              <Eye className="w-4 h-4 text-green-600" aria-hidden="true" />
+            ) : (
+              <EyeOff className="w-4 h-4 text-gray-600" aria-hidden="true" />
+            )}
+            {isVisible ? 'Hide Profile' : 'Make Profile Visible'}
+          </button>
 
           {/* Settings */}
           <button

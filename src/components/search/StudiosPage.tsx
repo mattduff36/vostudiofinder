@@ -15,6 +15,7 @@ import { Footer } from '@/components/home/Footer';
 import { SelectedStudioDetails } from './SelectedStudioDetails';
 import { Button } from '@/components/ui/Button';
 import { showWarning } from '@/lib/toast';
+import { formatStudioTypeLabel } from '@/lib/utils/studio-types';
 
 interface Studio {
   id: string;
@@ -47,6 +48,7 @@ interface SearchResponse {
     name: string;
     latitude: number | null;
     longitude: number | null;
+    show_exact_location: boolean;
     studio_studio_types: Array<{ studio_type: string }>;
     is_verified: boolean;
     users?: {
@@ -103,20 +105,12 @@ export function StudiosPage() {
     const studioTypesParam = searchParams.get('studioTypes');
     const studioTypes = studioTypesParam ? studioTypesParam.split(',').filter(Boolean) : [];
     
-    // Map studio type enum values to display names
-    const studioTypeLabels: Record<string, string> = {
-      'HOME': 'Home Studio',
-      'RECORDING': 'Recording Studio',
-      'PODCAST': 'Podcast Studio',
-      'VOICEOVER': 'Voiceover Studio',
-      'VO_COACH': 'VO-Coach Studio',
-      'EDITING': 'Editing Studio'
-    };
-    
     // If exactly one studio type is selected, use it in the heading
     if (studioTypes.length === 1 && studioTypes[0]) {
-      const studioTypeLabel = studioTypeLabels[studioTypes[0]] || 'Studio';
-      const pluralLabel = studioTypeLabel + 's'; // Simple pluralization
+      const studioTypeLabel = formatStudioTypeLabel(studioTypes[0]) || 'Studio';
+      const pluralLabel = studioTypeLabel.includes('Studio') 
+        ? studioTypeLabel + 's' // e.g., "Home Studios"
+        : studioTypeLabel + ' Studios'; // e.g., "Audio Producer Studios"
       
       if (location && location.trim()) {
         return `${pluralLabel} Available in ${location}`;
@@ -969,7 +963,7 @@ export function StudiosPage() {
                     )}
                     {searchParams.get('studio_type') && (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        🎙️ {searchParams.get('studio_type')?.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} Studio
+                        🎙️ {formatStudioTypeLabel(searchParams.get('studio_type')!)}
                       </span>
                     )}
                     {searchParams.get('services') && (

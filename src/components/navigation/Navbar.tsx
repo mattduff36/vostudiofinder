@@ -178,7 +178,7 @@ export function Navbar({ session }: NavbarProps) {
                 e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
               }}
             >
-              Studios
+              Browse Studios
             </Link>
             <Link 
               href="/about" 
@@ -193,7 +193,7 @@ export function Navbar({ session }: NavbarProps) {
                 e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
               }}
             >
-              About
+              About Us
             </Link>
             {/* Blog - Coming Soon */}
             <div className="relative group">

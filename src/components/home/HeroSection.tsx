@@ -74,7 +74,7 @@ export function HeroSection() {
           <h2 className={`hp2 text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-center mb-2 sm:mb-3 transition-all duration-1000 ease-out px-4 ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.4s', color: '#ffffff', maxWidth: '768px', margin: '0 auto 0.5rem auto' }}>
-            Professional Voiceover, Podcast & Broadcast Studios Worldwide
+            Professional Voiceover, Podcast & Recording Studios Worldwide
           </h2>
           
           <p className={`text-sm sm:text-base md:text-lg text-center transition-all duration-1000 ease-out px-4 mb-4 sm:mb-0 ${

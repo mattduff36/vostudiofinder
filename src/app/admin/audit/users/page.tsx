@@ -249,6 +249,24 @@ export default function AdminAuditUsersPage() {
       <AdminTabs activeTab="audit" />
 
       <div className="max-w-7xl mx-auto mt-6">
+        {/* Under Construction Warning */}
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-yellow-400" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">
+                🚧 Feature Under Development
+              </h3>
+              <p className="mt-1 text-sm text-yellow-700">
+                This user audit system is currently under construction and not fully functional. Some features may not work as expected. 
+                We will complete this feature in a future update.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-6">
             <div>

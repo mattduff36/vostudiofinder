@@ -8,7 +8,7 @@
  */
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Session } from 'next-auth';
@@ -17,6 +17,10 @@ import {
   Info,
   FileText,
   Edit,
+  CreditCard,
+  Eye,
+  EyeOff,
+  Loader2,
 } from 'lucide-react';
 import { getUserDisplayName, getUserAvatarUrl } from '@/lib/auth-utils';
 
@@ -28,6 +32,9 @@ interface MobileMenuProps {
 
 export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
   const pathname = usePathname();
+  const [isVisible, setIsVisible] = useState(false);
+  const [togglingVisibility, setTogglingVisibility] = useState(false);
+  const [loadingVisibility, setLoadingVisibility] = useState(true);
 
   // Close menu on route change
   useEffect(() => {
@@ -45,6 +52,48 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
+
+  // Fetch profile visibility when menu opens and user is logged in
+  useEffect(() => {
+    if (isOpen && session?.user?.id) {
+      fetchProfileVisibility();
+    }
+  }, [isOpen, session?.user?.id]);
+
+  const fetchProfileVisibility = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setIsVisible(data.studio?.is_profile_visible ?? false);
+      }
+    } catch (error) {
+      console.error('Error fetching profile visibility:', error);
+    } finally {
+      setLoadingVisibility(false);
+    }
+  };
+
+  const handleToggleVisibility = async () => {
+    setTogglingVisibility(true);
+    try {
+      const response = await fetch('/api/user/profile/visibility', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isVisible: !isVisible }),
+      });
+
+      if (response.ok) {
+        setIsVisible(!isVisible);
+      } else {
+        console.error('Failed to update visibility');
+      }
+    } catch (error) {
+      console.error('Error updating visibility:', error);
+    } finally {
+      setTogglingVisibility(false);
+    }
+  };
 
   const displayName = session?.user ? getUserDisplayName(session.user) : '';
   const avatarUrl = session?.user ? getUserAvatarUrl(session.user) : undefined;
@@ -115,7 +164,7 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
 
         {/* Quick Links */}
         <div className="py-2 px-3 max-h-80 overflow-y-auto">
-          {/* About */}
+          {/* About Us */}
           <Link
             href="/about"
             className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
@@ -125,7 +174,7 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
             }`}
           >
             <Info className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-            <span className="text-sm font-medium">About</span>
+            <span className="text-sm font-medium">About Us</span>
           </Link>
 
           {/* Blog (Coming Soon) */}
@@ -136,6 +185,47 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
               Coming soon
             </span>
           </div>
+
+          {/* Membership (logged in users only) */}
+          {session && (
+            <Link
+              href="/auth/membership"
+              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
+                pathname === '/auth/membership'
+                  ? 'bg-red-50 text-[#d42027]'
+                  : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
+              }`}
+            >
+              <CreditCard className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+              <span className="text-sm font-medium">Membership</span>
+            </Link>
+          )}
+
+          {/* Profile Visibility Toggle (logged in users only) */}
+          {session && (
+            <button
+              onClick={handleToggleVisibility}
+              disabled={togglingVisibility || loadingVisibility}
+              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors mb-1 w-full ${
+                togglingVisibility || loadingVisibility
+                  ? 'opacity-50 cursor-not-allowed'
+                  : isVisible
+                  ? 'text-green-700 hover:bg-green-50 active:bg-green-100'
+                  : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
+              }`}
+            >
+              {togglingVisibility || loadingVisibility ? (
+                <Loader2 className="w-5 h-5 flex-shrink-0 animate-spin" aria-hidden="true" />
+              ) : isVisible ? (
+                <Eye className="w-5 h-5 flex-shrink-0 text-green-600" aria-hidden="true" />
+              ) : (
+                <EyeOff className="w-5 h-5 flex-shrink-0 text-gray-600" aria-hidden="true" />
+              )}
+              <span className={`text-sm font-medium flex-1 text-left ${isVisible ? 'text-green-700' : 'text-gray-700'}`}>
+                {isVisible ? 'Hide Profile' : 'Make Profile Visible'}
+              </span>
+            </button>
+          )}
 
           {/* Admin Panel (admin only) */}
           {isAdmin && (

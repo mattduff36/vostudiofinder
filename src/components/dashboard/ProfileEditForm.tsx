@@ -94,7 +94,7 @@ const STUDIO_TYPES = [
   { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
   // Bottom row - Future types
   { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services', disabled: true },
-  { value: 'VO_COACH', label: 'VO-Coach', description: 'Voiceover coaching and training services', disabled: true },
+  { value: 'VO_COACH', label: 'VO Coach', description: 'Professional voiceover coaching and training', disabled: false },
   { value: 'AUDIO_PRODUCER', label: 'Audio Producer', description: 'Audio production and post-production services', disabled: false },
 ];
 

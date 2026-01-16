@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { ModernStudioProfileV3 } from '@/components/studio/profile/ModernStudioProfileV3';
 import { EnhancedUserProfile } from '@/components/profile/EnhancedUserProfile';
@@ -257,27 +259,37 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       return <div>Studio not found</div>;
     }
 
+    // Get current session to check if the viewer is the owner
+    const session = await getServerSession(authOptions);
+    const isOwner = session?.user?.id === user.id;
+
     // If profile is hidden, show the simplified user profile with hidden message
+    // UNLESS the viewer is the owner - then show full profile in preview mode
     if (studio.is_profile_visible === false) {
-      // Serialize user data to avoid Decimal serialization issues
-      const serializedUser = {
-        ...user,
-        studio_profiles: {
-          ...studio,
-          status: studio.status,
-          is_profile_visible: studio.is_profile_visible,
-          latitude: studio.latitude ? Number(studio.latitude) : null,
-          longitude: studio.longitude ? Number(studio.longitude) : null,
-        }
-      };
-      
-      return (
-        <div className="min-h-screen bg-gray-50 py-8">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <EnhancedUserProfile user={serializedUser as any} isHidden={true} />
+      // If the viewer is NOT the owner, show the hidden profile message
+      if (!isOwner) {
+        // Serialize user data to avoid Decimal serialization issues
+        const serializedUser = {
+          ...user,
+          studio_profiles: {
+            ...studio,
+            status: studio.status,
+            is_profile_visible: studio.is_profile_visible,
+            latitude: studio.latitude ? Number(studio.latitude) : null,
+            longitude: studio.longitude ? Number(studio.longitude) : null,
+          }
+        };
+        
+        return (
+          <div className="min-h-screen bg-gray-50 py-8">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+              <EnhancedUserProfile user={serializedUser as any} isHidden={true} />
+            </div>
           </div>
-        </div>
-      );
+        );
+      }
+      // If the viewer IS the owner, continue rendering the full profile
+      // with previewMode flag below
     }
 
     // Calculate average rating
@@ -475,6 +487,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(cleanedBreadcrumbSchema) }}
         />
         <ModernStudioProfileV3 
+          previewMode={!studio.is_profile_visible}
           studio={({
             ...((): Omit<typeof studio, 'website_url' | 'phone' | 'latitude' | 'longitude' | 'studio_images' | 'reviews' | 'users' | 'studio_studio_types'> => {
               const { website_url: _, phone: __, latitude: ___, longitude: ____, studio_images: _____, reviews: ______, users: _______, studio_studio_types: ________, ...rest } = studio;

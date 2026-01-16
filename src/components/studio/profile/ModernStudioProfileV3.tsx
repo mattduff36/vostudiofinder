@@ -11,6 +11,8 @@ import { Footer } from '@/components/home/Footer';
 import clsx from 'clsx';
 import { generateStudioImageAlt } from '@/lib/utils/image-alt';
 import { ContactStudioModal } from '@/components/studio/ContactStudioModal';
+import { formatStudioTypeLabel } from '@/lib/utils/studio-types';
+import { ShareProfileButton } from '@/components/profile/ShareProfileButton';
 
 // Phase 3: Mobile profile components
 import { CompactHero } from './mobile/CompactHero';
@@ -37,6 +39,7 @@ import {
 import { XLogo } from '@/components/icons/XLogo';
 
 interface ModernStudioProfileV3Props {
+  previewMode?: boolean; // If true, show preview banner for owner viewing hidden profile
   studio: {
     id: string;
     name: string;
@@ -134,7 +137,7 @@ interface ModernStudioProfileV3Props {
   };
 }
 
-export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
+export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStudioProfileV3Props) {
   const [displayImages, setDisplayImages] = useState(studio.studio_images || []);
   const [showUnavailableModal, setShowUnavailableModal] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
@@ -161,15 +164,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
     }
   };
 
-  // Studio type mapping
-  const studioTypeLabels: { [key: string]: string } = {
-    'HOME': 'Home Studio',
-    'RECORDING': 'Recording Studio',
-    'PODCAST': 'Podcast Studio',
-    'EDITING': 'Editing Service',
-    'VO_COACH': 'Voiceover Coaching Service',
-    'VOICEOVER': 'Voiceover Artist'
-  };
+  // Studio type formatting is now handled by formatStudioTypeLabel utility
 
   // Social media links from owner profile
   const profile = studio.owner.profile;
@@ -340,6 +335,17 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Preview Mode Banner (owner viewing hidden profile) */}
+      {previewMode && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-sm text-yellow-800">
+            <Eye className="w-4 h-4" />
+            <span className="font-medium">Preview Mode:</span>
+            <span>Only you can see this profile. It's hidden from the public until you make it visible.</span>
+          </div>
+        </div>
+      )}
+      
       {/* Mobile Compact Hero (< 768px only) */}
       <CompactHero
         studioName={studio.name}
@@ -356,8 +362,8 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
       <div className="flex-1 flex flex-col">
         {/* Mobile Components (< 768px only) */}
         <>
-          {/* Top Action Button - Same logic as desktop Studio Details section */}
-          <div className="bg-white border-b border-gray-200 md:hidden px-4 py-3">
+          {/* Top Action Buttons - Mobile */}
+          <div className="bg-white border-b border-gray-200 md:hidden px-4 py-3 space-y-2">
             {canContactViaEmail ? (
               <button 
                 onClick={() => setShowContactModal(true)}
@@ -387,6 +393,14 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 <span>Contact Studio</span>
               </button>
             )}
+            {/* Share Profile Button - Mobile */}
+            <ShareProfileButton
+              profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
+              profileName={studio.name}
+              variant="outline"
+              size="md"
+              className="w-full"
+            />
           </div>
 
           {/* Contact Info */}
@@ -613,11 +627,16 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 )}
                 <span>{studio.name}</span>
                 {studio.is_verified && (
-                  <span 
-                    className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 hover:bg-red-600 transition-colors cursor-help" 
-                    title="Verified studio — approved by our team"
-                  >
-                    <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                  <span className="group relative inline-flex items-center">
+                    <span 
+                      className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 transition-colors" 
+                    >
+                      <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                    </span>
+                    {/* Hover expand text - desktop only */}
+                    <span className="hidden md:inline-flex absolute left-full ml-1 items-center px-2 py-0.5 bg-green-600 text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      Verified
+                    </span>
                   </span>
                 )}
               </h1>
@@ -724,20 +743,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
               </div>
             )}
 
-            {/* Verified Studio Badge at Bottom */}
-            {studio.is_verified && (
-              <div className="mb-6 w-full">
-                <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-lg w-full">
-                  <span 
-                    className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 flex-shrink-0" 
-                    title="Verified studio — approved by our team"
-                  >
-                    <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
-                  </span>
-                  <span className="text-sm font-medium text-green-800">Verified Studio</span>
-                </div>
-              </div>
-            )}
+            {/* Verified Studio Badge removed - now shown next to name at top */}
           </div>
 
           {/* Right Sidebar - Sticky on Desktop */}
@@ -797,7 +803,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                             key={index}
                             className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800"
                           >
-                            {studioTypeLabels[type] || type}
+                            {formatStudioTypeLabel(type)}
                           </span>
                         ))}
                       </div>
@@ -840,7 +846,7 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                 </div>
                 
                 {/* Message Studio Button */}
-                <div className="mt-3 pt-3 border-t border-gray-200">
+                <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
                   {canContactViaEmail ? (
                     <Button
                       size="sm"
@@ -875,6 +881,14 @@ export function ModernStudioProfileV3({ studio }: ModernStudioProfileV3Props) {
                       Message Studio
                     </Button>
                   )}
+                  {/* Share Profile Button - Desktop */}
+                  <ShareProfileButton
+                    profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
+                    profileName={studio.name}
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  />
                 </div>
               </div>
 

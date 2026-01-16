@@ -14,6 +14,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Wrench, Briefcase } from 'lucide-react';
 import { cleanDescription } from '@/lib/utils/text';
+import { formatStudioTypeLabel } from '@/lib/utils/studio-types';
 
 interface AboutCollapsibleProps {
   about?: string | undefined;
@@ -60,7 +61,7 @@ export function AboutCollapsible({
                 key={index}
                 className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#d42027]/10 text-[#d42027]"
               >
-                {type}
+                {formatStudioTypeLabel(type)}
               </span>
             ))}
           </div>
