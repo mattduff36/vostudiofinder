@@ -4,23 +4,20 @@
 
 import * as Sentry from '@sentry/nextjs';
 
-// Disable Sentry in development to prevent dev server slowdowns
-const isDevelopment = process.env.NODE_ENV === 'development';
-
 Sentry.init({
-  dsn: isDevelopment ? '' : (process.env.NEXT_PUBLIC_SENTRY_DSN || ''),
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN || '',
 
   // Adjust this value in production, or use tracesSampler for greater control
-  tracesSampleRate: isDevelopment ? 0 : 1,
+  tracesSampleRate: 1,
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: false,
 
-  replaysOnErrorSampleRate: isDevelopment ? 0 : 1.0,
+  replaysOnErrorSampleRate: 1.0,
 
   // This sets the sample rate to be 10%. You may want this to be 100% while
   // in development and sample at a lower rate in production
-  replaysSessionSampleRate: isDevelopment ? 0 : 0.1,
+  replaysSessionSampleRate: 0.1,
 
   // You can remove this option if you're not planning to use the Sentry Session Replay feature:
   integrations: [
@@ -43,6 +40,6 @@ Sentry.init({
     return event;
   },
 
-  // Performance monitoring - disabled in development
-  profilesSampleRate: isDevelopment ? 0 : 1.0,
+  // Performance monitoring
+  profilesSampleRate: 1.0,
 });

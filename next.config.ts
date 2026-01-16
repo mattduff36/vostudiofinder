@@ -96,10 +96,7 @@ const nextConfig: NextConfig = {
 };
 
 // Make sure adding Sentry options is the last code to run before exporting
-// Disable Sentry in development to prevent dev server slowdowns
-const isDevelopment = process.env.NODE_ENV === 'development';
-
-export default isDevelopment ? nextConfig : withSentryConfig(nextConfig, {
+export default withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
