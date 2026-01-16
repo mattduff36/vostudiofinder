@@ -136,7 +136,8 @@ function extractSocialLinks(html: string): Record<string, string> {
 
   const patterns = [
     { name: 'facebook', regex: /(?:href|url)=["'](https?:\/\/(?:www\.)?facebook\.com\/[^"'\s]+)["']/gi },
-    { name: 'twitter', regex: /(?:href|url)=["'](https?:\/\/(?:www\.)?(?:twitter|x)\.com\/[^"'\s]+)["']/gi },
+    { name: 'twitter', regex: /(?:href|url)=["'](https?:\/\/(?:www\.)?twitter\.com\/[^"'\s]+)["']/gi },
+    { name: 'x', regex: /(?:href|url)=["'](https?:\/\/(?:www\.)?x\.com\/[^"'\s]+)["']/gi },
     { name: 'linkedin', regex: /(?:href|url)=["'](https?:\/\/(?:www\.)?linkedin\.com\/[^"'\s]+)["']/gi },
     { name: 'instagram', regex: /(?:href|url)=["'](https?:\/\/(?:www\.)?instagram\.com\/[^"'\s]+)["']/gi },
     { name: 'youtube', regex: /(?:href|url)=["'](https?:\/\/(?:www\.)?youtube\.com\/[^"'\s]+)["']/gi },
@@ -208,7 +209,10 @@ async function enrichProfile(
 
       // Suggest social links if found and missing
       Object.entries(socialLinks).forEach(([platform, url]) => {
-        const fieldName = platform === 'twitter' ? 'x_url' : `${platform}_url`;
+        // Map platform name to correct database field
+        const fieldName = platform === 'twitter' ? 'twitter_url' : 
+                         platform === 'x' ? 'x_url' : 
+                         `${platform}_url`;
         const currentValue = (studioProfile as any)[fieldName];
 
         if (!currentValue) {
@@ -316,17 +320,10 @@ async function enrichProfile(
   // Strategy 4: Reverse geocoding (if coordinates exist but city missing)
   if (studioProfile.latitude && studioProfile.longitude && (!studioProfile.city || studioProfile.city === '')) {
     // Note: This would require Google Maps API or similar
-    // For now, we'll flag it as a manual review item
-    console.log(`  🗺️  Has coordinates but missing city - requires geocoding API`);
-    suggestions.push({
-      audit_finding_id: finding.id,
-      field_name: 'city',
-      current_value: studioProfile.city,
-      suggested_value: '[REQUIRES_GEOCODING_API]',
-      confidence: 'MEDIUM',
-      evidence_url: null,
-      evidence_type: 'reverse_geocoding_needed',
-    });
+    // Skip creating a suggestion with placeholder text to prevent data corruption
+    // Admin should manually add geocoding API support or fill in city manually
+    console.log(`  🗺️  Has coordinates but missing city - requires geocoding API (skipping suggestion)`);
+    // NOT creating a suggestion here to prevent placeholder text from being applied
   }
 
   // Strategy 5: Forward geocoding (if city/address exist but no coordinates)
