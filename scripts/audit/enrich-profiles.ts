@@ -255,8 +255,8 @@ async function enrichProfile(
         if (field === 'twitter_url' && normalized.includes('x.com')) {
           const existingXUrl = studioProfile.x_url;
           
-          // Only suggest migration if x_url is empty OR if it matches the normalized twitter URL
-          if (!existingXUrl || existingXUrl === normalized || existingXUrl === currentValue) {
+          // Only suggest migration if x_url is empty OR if it already equals the normalized version
+          if (!existingXUrl || existingXUrl === normalized) {
             suggestions.push({
               audit_finding_id: finding.id,
               field_name: 'x_url',
