@@ -1,33 +1,21 @@
 /**
- * MobileGlassNav - Production Mobile Bottom Navigation with Adaptive Glass Effect
+ * MobileGlassNav - Production Mobile Bottom Navigation
  * 
- * Matches the AdaptiveGlassNav styling from the demo page exactly.
+ * Uses AdaptiveGlassBubblesNav for consistent bubble styling with demo.
+ * NO backdrop-filter on container - only on individual bubbles.
  */
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Home, Search, LayoutDashboard, Menu, UserPlus, User, X, UserCircle, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { Session } from 'next-auth';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
+import { AdaptiveGlassBubblesNav, DEFAULT_CONFIG, type NavItem } from './AdaptiveGlassBubblesNav';
 
 interface MobileGlassNavProps {
   session: Session | null;
 }
-
-const DEFAULT_CONFIG = {
-  blur: 5,
-  saturation: 100,
-  brightness: 1.15,
-  contrast: 1.05,
-  backgroundOpacity: 0.05,
-  borderWidth: 1,
-  circleSize: 56,
-  darkBrightness: 1.15,
-  lightBrightness: 0.95,
-  luminanceThreshold: 0.4,
-};
 
 export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const pathname = usePathname();
@@ -37,7 +25,6 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkBackground, setIsDarkBackground] = useState(false);
   const [tappedButton, setTappedButton] = useState<string | null>(null);
-  const navRef = useRef<HTMLElement>(null);
 
   // Monitor fullscreen state
   useEffect(() => {
@@ -53,79 +40,13 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     return () => observer.disconnect();
   }, []);
 
-  // Background detection for adaptive glass (exactly like demo page)
-  useEffect(() => {
-    if (!navRef.current) return;
-
-    const detectBackground = () => {
-      const buttons = document.querySelectorAll('.mobile-glass-button');
-      if (buttons.length === 0) return;
-
-      let totalLuminance = 0;
-      let sampleCount = 0;
-
-      buttons.forEach((button) => {
-        const rect = button.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        // Sample 4 points around each button (exactly like demo)
-        const offsets = [
-          { x: 0, y: -1 }, // top
-          { x: rect.width / 2 - 1, y: 0 }, // right
-          { x: 0, y: rect.height + 1 }, // bottom
-          { x: -rect.width / 2 + 1, y: 0 }, // left
-        ];
-
-        offsets.forEach(offset => {
-          const el = document.elementFromPoint(
-            centerX + offset.x,
-            centerY + offset.y
-          );
-
-          if (el && el !== button && !button.contains(el)) {
-            // Walk up DOM to find visible background
-            let current: HTMLElement | null = el as HTMLElement;
-            while (current && current !== document.body) {
-              const styles = window.getComputedStyle(current);
-              const bgColor = styles.backgroundColor;
-              
-              if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
-                const rgba = bgColor.match(/\d+\.?\d*/g);
-                if (rgba && rgba.length >= 4 && parseFloat(rgba[3]) > 0.1) {
-                  const r = parseInt(rgba[0]);
-                  const g = parseInt(rgba[1]);
-                  const b = parseInt(rgba[2]);
-                  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-                  totalLuminance += luminance;
-                  sampleCount++;
-                  break;
-                }
-              }
-              current = current.parentElement;
-            }
-          }
-        });
-      });
-
-      if (sampleCount > 0) {
-        const avgLuminance = totalLuminance / sampleCount;
-        setIsDarkBackground(avgLuminance < DEFAULT_CONFIG.luminanceThreshold);
-      }
-    };
-
-    detectBackground();
-    const interval = setInterval(detectBackground, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Hide on specific pages
   if (pathname === '/auth/membership/success' || pathname === '/glass-nav-test') {
     return null;
   }
 
   // Build navigation items
-  const navItems = [
+  const navItems: NavItem[] = [
     {
       label: 'Home',
       icon: Home,
@@ -164,159 +85,43 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     }
   );
 
+  // Add menu button
+  navItems.push({
+    label: isMenuOpen ? 'Close' : 'Menu',
+    icon: isMenuOpen ? X : Menu,
+    onClick: () => {
+      handleTap('menu');
+      setIsMenuOpen(!isMenuOpen);
+    },
+  });
+
   const handleTap = (buttonId: string) => {
     setTappedButton(buttonId);
     setTimeout(() => setTappedButton(null), 300);
   };
 
-  const config = DEFAULT_CONFIG;
-
   return (
     <>
       <nav
-        ref={navRef}
-        className={`adaptive-glass-nav fixed bottom-0 left-0 right-0 md:hidden z-50 transition-transform safe-area-bottom [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${
-          scrollDirection === 'down' && !isAtTop ? 'translate-y-full duration-0' : 'translate-y-0 duration-300'
-        } ${isMapFullscreen ? 'hidden' : ''}`}
+        className={`fixed bottom-0 left-0 right-0 md:hidden z-50 transition-all duration-300 ${
+          scrollDirection === 'down' && !isAtTop ? 'translate-y-full' : 'translate-y-0'
+        } ${isMapFullscreen ? 'hidden' : ''} [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden`}
         role="navigation"
         aria-label="Mobile navigation"
         style={{
-          backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${isDarkBackground ? config.darkBrightness : config.lightBrightness}) contrast(${config.contrast})`,
-          WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${isDarkBackground ? config.darkBrightness : config.lightBrightness}) contrast(${config.contrast})`,
+          padding: '0 max(env(safe-area-inset-left), 1rem) env(safe-area-inset-bottom) max(env(safe-area-inset-right), 1rem)',
         }}
       >
-        <div className="flex items-center justify-around px-4 py-3 gap-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const buttonId = item.href;
-            const isTapped = tappedButton === buttonId;
-            
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => handleTap(buttonId)}
-                className="mobile-glass-button group flex-1 flex items-center justify-center touch-manipulation"
-                aria-label={item.label}
-                aria-current={item.active ? 'page' : undefined}
-              >
-                <div 
-                  className={`adaptive-circle-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'} ${isTapped ? 'tapped' : ''}`}
-                  style={{
-                    width: `${config.circleSize}px`,
-                    height: `${config.circleSize}px`,
-                    color: isDarkBackground ? '#ffffff' : '#000000',
-                    borderColor: isDarkBackground ? '#ffffff' : '#000000',
-                    backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
-                    WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
-                  }}
-                >
-                  <Icon className="w-6 h-6" />
-                </div>
-              </Link>
-            );
-          })}
-
-          {/* Menu button */}
-          <button
-            onClick={() => {
-              handleTap('menu');
-              setIsMenuOpen(!isMenuOpen);
-            }}
-            className="mobile-glass-button group flex-1 flex items-center justify-center touch-manipulation"
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={isMenuOpen}
-          >
-            <div 
-              className={`adaptive-circle-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'} ${tappedButton === 'menu' ? 'tapped' : ''}`}
-              style={{
-                width: `${config.circleSize}px`,
-                height: `${config.circleSize}px`,
-                color: isDarkBackground ? '#ffffff' : '#000000',
-                borderColor: isDarkBackground ? '#ffffff' : '#000000',
-                backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
-                WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
-              }}
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </div>
-          </button>
+        <div className="mx-auto max-w-lg mb-4">
+          <AdaptiveGlassBubblesNav
+            items={navItems}
+            isDarkBackground={isDarkBackground}
+            onBackgroundChange={setIsDarkBackground}
+            tappedButtonId={tappedButton}
+            config={DEFAULT_CONFIG}
+            debugSensors={false}
+          />
         </div>
-
-        <style jsx global>{`
-          /* Base glass circle styles - EXACTLY like demo page */
-          .adaptive-circle-glass {
-            display: flex;
-            align-items: center;
-            justify-center;
-            border-radius: 50%;
-            background: rgba(128, 128, 128, ${config.backgroundOpacity});
-            border: ${config.borderWidth}px solid currentColor;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 
-              0 4px 12px rgba(0, 0, 0, 0.08),
-              0 2px 4px rgba(0, 0, 0, 0.05),
-              inset 0 1px 2px rgba(255, 255, 255, 0.1),
-              inset 0 0 40px rgba(255, 255, 255, 0.05);
-          }
-
-          /* SVG icon stroke inherits color */
-          .adaptive-circle-glass svg {
-            stroke: currentColor;
-            transition: stroke 0.3s ease;
-          }
-
-          /* Tap animation - plays hover effect once */
-          .adaptive-circle-glass.tapped {
-            transform: translateY(-4px) scale(1.08);
-            box-shadow: 
-              0 8px 24px rgba(0, 0, 0, 0.15),
-              0 4px 8px rgba(0, 0, 0, 0.1),
-              inset 0 1px 3px rgba(255, 255, 255, 0.15),
-              inset 0 0 50px rgba(255, 255, 255, 0.08);
-          }
-
-          /* Active state with red accent */
-          .adaptive-circle-glass.active {
-            background: rgba(212, 32, 39, 0.15);
-            border-color: #d42027 !important;
-            box-shadow: 
-              0 6px 20px rgba(212, 32, 39, 0.2),
-              0 2px 6px rgba(212, 32, 39, 0.12),
-              inset 0 1px 2px rgba(255, 255, 255, 0.3),
-              inset 0 0 40px rgba(212, 32, 39, 0.15);
-          }
-
-          .adaptive-circle-glass.active svg {
-            stroke: #d42027 !important;
-          }
-
-          /* Dark background styles */
-          .adaptive-circle-glass.dark-bg {
-            background: rgba(255, 255, 255, 0.12);
-            color: #ffffff !important;
-            border-color: #ffffff !important;
-            box-shadow: 
-              0 4px 12px rgba(0, 0, 0, 0.3),
-              0 2px 4px rgba(0, 0, 0, 0.2),
-              inset 0 1px 3px rgba(255, 255, 255, 0.25),
-              inset 0 0 60px rgba(255, 255, 255, 0.1);
-          }
-
-          /* Light background styles */
-          .adaptive-circle-glass.light-bg {
-            background: rgba(0, 0, 0, 0.08);
-            color: #000000 !important;
-            border-color: #000000 !important;
-            box-shadow: 
-              0 4px 12px rgba(0, 0, 0, 0.08),
-              0 2px 4px rgba(0, 0, 0, 0.05),
-              inset 0 1px 3px rgba(0, 0, 0, 0.05),
-              inset 0 0 60px rgba(0, 0, 0, 0.03);
-          }
-        `}</style>
       </nav>
 
       {/* Expanding Menu */}
@@ -328,38 +133,44 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           <div 
             className={`glass-menu absolute bottom-20 right-4 w-64 ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
             style={{
-              backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${isDarkBackground ? config.darkBrightness : config.lightBrightness}) contrast(${config.contrast})`,
-              WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${isDarkBackground ? config.darkBrightness : config.lightBrightness}) contrast(${config.contrast})`,
+              backdropFilter: `blur(${DEFAULT_CONFIG.blur}px) saturate(${DEFAULT_CONFIG.saturation}%) brightness(${isDarkBackground ? DEFAULT_CONFIG.darkBrightness : DEFAULT_CONFIG.lightBrightness}) contrast(${DEFAULT_CONFIG.contrast})`,
+              WebkitBackdropFilter: `blur(${DEFAULT_CONFIG.blur}px) saturate(${DEFAULT_CONFIG.saturation}%) brightness(${isDarkBackground ? DEFAULT_CONFIG.darkBrightness : DEFAULT_CONFIG.lightBrightness}) contrast(${DEFAULT_CONFIG.contrast})`,
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-2 space-y-1">
               {session ? (
                 <>
-                  <Link 
-                    href={`/${session.user.username}`}
-                    className="menu-item"
-                    onClick={() => setIsMenuOpen(false)}
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      router.push(`/${session.user.username}`);
+                    }}
+                    className="menu-item w-full"
                   >
                     <UserCircle className="w-5 h-5" />
                     <span>My Profile</span>
-                  </Link>
-                  <Link 
-                    href="/dashboard/settings"
-                    className="menu-item"
-                    onClick={() => setIsMenuOpen(false)}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      router.push('/dashboard/settings');
+                    }}
+                    className="menu-item w-full"
                   >
                     <Settings className="w-5 h-5" />
                     <span>Settings</span>
-                  </Link>
-                  <Link 
-                    href="/about"
-                    className="menu-item"
-                    onClick={() => setIsMenuOpen(false)}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      router.push('/about');
+                    }}
+                    className="menu-item w-full"
                   >
                     <HelpCircle className="w-5 h-5" />
                     <span>About & Help</span>
-                  </Link>
+                  </button>
                   <button
                     onClick={() => {
                       setIsMenuOpen(false);
@@ -373,30 +184,36 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
                 </>
               ) : (
                 <>
-                  <Link 
-                    href="/auth/signin"
-                    className="menu-item"
-                    onClick={() => setIsMenuOpen(false)}
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      router.push('/auth/signin');
+                    }}
+                    className="menu-item w-full"
                   >
                     <User className="w-5 h-5" />
                     <span>Sign In</span>
-                  </Link>
-                  <Link 
-                    href="/auth/signup"
-                    className="menu-item"
-                    onClick={() => setIsMenuOpen(false)}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      router.push('/auth/signup');
+                    }}
+                    className="menu-item w-full"
                   >
                     <UserPlus className="w-5 h-5" />
                     <span>Sign Up</span>
-                  </Link>
-                  <Link 
-                    href="/about"
-                    className="menu-item"
-                    onClick={() => setIsMenuOpen(false)}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      router.push('/about');
+                    }}
+                    className="menu-item w-full"
                   >
                     <HelpCircle className="w-5 h-5" />
                     <span>About & Help</span>
-                  </Link>
+                  </button>
                 </>
               )}
             </div>
@@ -405,19 +222,19 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           <style jsx global>{`
             .glass-menu {
               border-radius: 16px;
-              background: rgba(128, 128, 128, ${config.backgroundOpacity * 3});
-              border: ${config.borderWidth}px solid ${isDarkBackground ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)'};
+              background: rgba(128, 128, 128, ${DEFAULT_CONFIG.backgroundOpacity * 3});
+              border: ${DEFAULT_CONFIG.borderWidth}px solid ${isDarkBackground ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)'};
               box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
               animation: slideUp 0.2s ease-out;
             }
 
             .glass-menu.dark-bg {
-              background: rgba(255, 255, 255, ${config.backgroundOpacity * 3.5});
+              background: rgba(255, 255, 255, ${DEFAULT_CONFIG.backgroundOpacity * 3.5});
               color: #ffffff;
             }
 
             .glass-menu.light-bg {
-              background: rgba(0, 0, 0, ${config.backgroundOpacity * 2.5});
+              background: rgba(0, 0, 0, ${DEFAULT_CONFIG.backgroundOpacity * 2.5});
               color: #000000;
             }
 
@@ -432,6 +249,9 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
               font-weight: 500;
               color: inherit;
               text-align: left;
+              cursor: pointer;
+              background: none;
+              border: none;
             }
 
             .menu-item:hover,
