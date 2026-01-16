@@ -81,19 +81,41 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
         ];
 
         samplePoints.forEach((point) => {
-          const elementBehind = document.elementFromPoint(point.x, point.y);
+          // Get the topmost element at this point
+          let elementBehind = document.elementFromPoint(point.x, point.y);
+          
           if (elementBehind) {
-            const computedStyle = window.getComputedStyle(elementBehind);
-            const bgColor = computedStyle.backgroundColor;
+            // Walk up the tree to find an element with an actual background color
+            // This ensures we get the frontmost visible background, not a transparent overlay
+            let currentElement = elementBehind;
+            let foundValidBackground = false;
+            let attempts = 0;
+            const maxAttempts = 10; // Prevent infinite loops
 
-            // Parse RGB values
-            const rgb = bgColor.match(/\d+/g);
-            if (rgb && rgb.length >= 3) {
-              const r = parseInt(rgb[0]);
-              const g = parseInt(rgb[1]);
-              const b = parseInt(rgb[2]);
-              const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-              luminanceValues.push(luminance);
+            while (currentElement && attempts < maxAttempts) {
+              const computedStyle = window.getComputedStyle(currentElement);
+              const bgColor = computedStyle.backgroundColor;
+              
+              // Check if this element has a non-transparent background
+              const rgb = bgColor.match(/\d+/g);
+              if (rgb && rgb.length >= 3) {
+                const r = parseInt(rgb[0]);
+                const g = parseInt(rgb[1]);
+                const b = parseInt(rgb[2]);
+                const alpha = rgb.length >= 4 ? parseFloat(rgb[3]) : 1;
+
+                // If background has some opacity, use it
+                if (alpha > 0.1) {
+                  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                  luminanceValues.push(luminance);
+                  foundValidBackground = true;
+                  break;
+                }
+              }
+
+              // Move to parent element
+              currentElement = currentElement.parentElement;
+              attempts++;
             }
           }
         });
