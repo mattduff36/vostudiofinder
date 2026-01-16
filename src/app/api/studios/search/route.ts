@@ -8,6 +8,10 @@ import { Prisma, ServiceType } from '@prisma/client';
 import { geocodeAddress, calculateDistance } from '@/lib/maps';
 import crypto from 'crypto';
 
+// Throttle lazy enforcement to run at most once every 5 minutes
+let lastEnforcementRun = 0;
+const ENFORCEMENT_THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
+
 // Fisher-Yates shuffle algorithm for randomizing array
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -73,6 +77,7 @@ function prioritizeStudios<T extends {
 }
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
   try {
     const { searchParams } = new URL(request.url);
     
@@ -115,12 +120,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Lazy enforcement: update expired memberships to INACTIVE status (skip admin accounts)
-    // This ensures search results are accurate even if no one has logged in recently
-    try {
-      const now = new Date();
+    // Throttled to run at most once every 5 minutes to prevent performance issues
+    const now = new Date();
+    const shouldRunEnforcement = Date.now() - lastEnforcementRun > ENFORCEMENT_THROTTLE_MS;
+    
+    const lazyEnforcementStart = Date.now();
+    
+    if (shouldRunEnforcement) {
+      try {
+        lastEnforcementRun = Date.now();
       
-      // Find studios with expired memberships that are still ACTIVE (exclude admin emails)
-      const expiredStudios = await db.studio_profiles.findMany({
+        // Find studios with expired memberships that are still ACTIVE (exclude admin emails)
+        const expiredStudios = await db.studio_profiles.findMany({
         where: {
           status: 'ACTIVE',
           users: {
@@ -152,11 +163,13 @@ export async function GET(request: NextRequest) {
         }
       });
 
+
       // Filter to only include studios whose latest subscription is expired
       const studiesToDeactivate = expiredStudios.filter(studio => {
         const latestSub = studio.users?.subscriptions[0];
         return latestSub && latestSub.current_period_end && latestSub.current_period_end < now;
       });
+
 
       // Batch update expired studios to INACTIVE
       if (studiesToDeactivate.length > 0) {
@@ -173,6 +186,7 @@ export async function GET(request: NextRequest) {
         });
         logger.log(`🔄 Search: Updated ${studiesToDeactivate.length} expired studios to INACTIVE`);
       }
+      
       
       // Lazy enforcement: unfeature expired featured studios
       const expiredFeaturedStudios = await db.studio_profiles.findMany({
@@ -201,9 +215,12 @@ export async function GET(request: NextRequest) {
         });
         logger.log(`🔄 Search: Unfeatured ${expiredFeaturedStudios.length} expired featured studios`);
       }
-    } catch (enforcementError) {
-      // Log but don't fail the search if enforcement fails
-      logger.error('Search lazy enforcement error:', enforcementError);
+        const lazyEnforcementEnd = Date.now();
+      } catch (enforcementError) {
+        // Log but don't fail the search if enforcement fails
+        logger.error('Search lazy enforcement error:', enforcementError);
+      }
+    } else {
     }
 
     // Build where clause
@@ -409,6 +426,10 @@ export async function GET(request: NextRequest) {
     // Use offset for load-more pattern instead of page-based pagination
     const offset = validatedParams.offset || 0;
 
+    // Define search criteria flags
+    const hasLocationSearch = validatedParams.location && validatedParams.radius;
+    const hasOtherFilters = validatedParams.query || validatedParams.studio_studio_types?.length || validatedParams.studio_services?.length || validatedParams.equipment?.length;
+
     // Execute search query - fetch all matching studios for prioritization
     let allStudios: any[];
     let totalCount: number;
@@ -467,6 +488,8 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const dbQueryEndTime = Date.now();
+
     // Filter by geographic distance if applicable
     if (searchCoordinates && validatedParams.radius) {
       allStudios = fetchedStudios
@@ -496,11 +519,15 @@ export async function GET(request: NextRequest) {
       allStudios = fetchedStudios;
     }
 
+    const prioStartTime = Date.now();
+
     // Apply prioritization logic (verified+images -> images -> no images)
     totalCount = allStudios.length;
     const prioritized = prioritizeStudios(allStudios, offset, validatedParams.limit);
     const studios = prioritized.studios;
     hasMore = prioritized.hasMore;
+
+    const prioEndTime = Date.now();
 
     // Calculate pagination info for load-more pattern
     const totalPages = Math.ceil(totalCount / validatedParams.limit);
@@ -518,12 +545,11 @@ export async function GET(request: NextRequest) {
       studio_images: studio.studio_images || [],
     }));
 
+    const serializeStartTime = Date.now();
+
     // Get map markers based on search criteria
     // For location-based searches, only show studios that match the search criteria
     // For general searches, show all active studios
-    const hasLocationSearch = validatedParams.location && validatedParams.radius;
-    const hasOtherFilters = validatedParams.query || validatedParams.studio_studio_types?.length || validatedParams.studio_services?.length || validatedParams.equipment?.length;
-    
     let mapMarkers;
     if (hasLocationSearch) {
       // For location searches, only show studios within the search radius
@@ -679,6 +705,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
+
     // Serialize map markers - filter out studios without coordinates
     const serializedMapMarkers = mapMarkers
       .filter(studio => studio.latitude !== null && studio.longitude !== null)
@@ -688,6 +715,9 @@ export async function GET(request: NextRequest) {
         longitude: Number(studio.longitude),
         show_exact_location: studio.show_exact_location,
       }));
+
+    const serializeEndTime = Date.now();
+    const totalDuration = Date.now() - startTime;
 
     const response = {
       studios: serializedStudios,
