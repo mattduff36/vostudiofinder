@@ -526,13 +526,6 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
           transform: translateY(-1px) scale(0.98);
         }
 
-        /* Force SVG icons to inherit the button color */
-        .adaptive-circle-glass svg {
-          color: inherit !important;
-          stroke: currentColor !important;
-          fill: currentColor !important;
-        }
-
         /* Active state circle with red accent */
         .adaptive-circle-glass.active {
           background: color-mix(in srgb, rgba(212, 32, 39, 0.25) 60%, Canvas 40%);
