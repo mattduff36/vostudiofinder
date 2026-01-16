@@ -381,25 +381,23 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
       }`}
       style={{
         padding: '0 max(env(safe-area-inset-left), 1rem) env(safe-area-inset-bottom) max(env(safe-area-inset-right), 1rem)',
-      }}
+        '--glass-blur': `${config.blur}px`,
+        '--glass-saturation': `${config.saturation}%`,
+        '--glass-brightness': String(config.brightness),
+        '--glass-contrast': String(config.contrast),
+        '--glass-bg-opacity': String(config.backgroundOpacity),
+        '--glass-border-width': `${config.borderWidth}px`,
+        '--glass-border-opacity': String(config.borderOpacity),
+        '--glass-shadow-intensity': String(config.shadowIntensity),
+        '--glass-shadow-spread': `${config.shadowSpread}px`,
+        '--glass-hover-lift': `${config.hoverLift}px`,
+        '--glass-hover-scale': String(config.hoverScale),
+      } as React.CSSProperties}
       data-dark-bg={isDarkBackground}
     >
       <div 
         ref={containerRef}
         className="mx-auto max-w-lg mb-4"
-        style={{
-          '--glass-blur': `${config.blur}px`,
-          '--glass-saturation': `${config.saturation}%`,
-          '--glass-brightness': String(config.brightness),
-          '--glass-contrast': String(config.contrast),
-          '--glass-bg-opacity': String(config.backgroundOpacity),
-          '--glass-border-width': `${config.borderWidth}px`,
-          '--glass-border-opacity': String(config.borderOpacity),
-          '--glass-shadow-intensity': String(config.shadowIntensity),
-          '--glass-shadow-spread': `${config.shadowSpread}px`,
-          '--glass-hover-lift': `${config.hoverLift}px`,
-          '--glass-hover-scale': String(config.hoverScale),
-        } as React.CSSProperties}
       >
         {/* Individual floating elements - circles and badge pills only */}
         <div className="flex items-center justify-around gap-3 px-2">
