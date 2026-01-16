@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Share2, Check, Copy } from 'lucide-react';
+import { Share2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { showSuccess, showError } from '@/lib/toast';
 
@@ -9,7 +9,7 @@ interface ShareProfileButtonProps {
   profileUrl: string;
   profileName: string;
   className?: string;
-  variant?: 'default' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
 }
 

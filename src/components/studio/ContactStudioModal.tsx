@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Mail, Loader2, CheckCircle } from 'lucide-react';
+import { X, Mail, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
