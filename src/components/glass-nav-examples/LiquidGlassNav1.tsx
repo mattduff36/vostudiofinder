@@ -58,17 +58,20 @@ export function LiquidGlassNav1({ mode, session, onMenuClick }: LiquidGlassNav1P
                 const Icon = item.icon;
                 return (
                   <Link key={item.href} href={item.href}>
-                    <LiquidGlass
-                      intensity={0.8}
-                      blur={20}
-                      saturation={1.8}
-                      className="liquid-minimal-item"
+                    <div
                       style={{
                         animation: `liquidFadeIn 0.4s ease-out ${index * 0.05}s both`,
                       }}
                     >
-                      <Icon className={`w-5 h-5 ${item.active ? 'text-[#d42027]' : 'text-gray-800'}`} />
-                    </LiquidGlass>
+                      <LiquidGlass
+                        intensity={0.8}
+                        blur={20}
+                        saturation={1.8}
+                        className="liquid-minimal-item"
+                      >
+                        <Icon className={`w-5 h-5 ${item.active ? 'text-[#d42027]' : 'text-gray-800'}`} />
+                      </LiquidGlass>
+                    </div>
                   </Link>
                 );
               })}
