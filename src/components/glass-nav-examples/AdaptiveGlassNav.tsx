@@ -61,6 +61,9 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
 
       const luminanceValues: number[] = [];
 
+      // Remove old debug markers if they exist
+      document.querySelectorAll('.sensor-debug-marker').forEach(el => el.remove());
+
       // Temporarily hide nav to sample background
       navRef.current.style.pointerEvents = 'none';
       navRef.current.style.opacity = '0';
@@ -74,13 +77,39 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
 
         // 4 sample points around the button edges (top, right, bottom, left)
         const samplePoints = [
-          { x: centerX, y: rect.top - 10 },              // Top (10px above)
-          { x: rect.right + 10, y: centerY },            // Right (10px right)
-          { x: centerX, y: rect.bottom + 10 },           // Bottom (10px below)
-          { x: rect.left - 10, y: centerY }              // Left (10px left)
+          { x: centerX, y: rect.top - 10, color: '#ff0000', label: 'T' },              // Top (red)
+          { x: rect.right + 10, y: centerY, color: '#00ff00', label: 'R' },            // Right (green)
+          { x: centerX, y: rect.bottom + 10, color: '#0000ff', label: 'B' },           // Bottom (blue)
+          { x: rect.left - 10, y: centerY, color: '#ffff00', label: 'L' }              // Left (yellow)
         ];
 
         samplePoints.forEach((point) => {
+          // Create visual debug marker
+          const marker = document.createElement('div');
+          marker.className = 'sensor-debug-marker';
+          marker.style.cssText = `
+            position: fixed;
+            left: ${point.x - 6}px;
+            top: ${point.y - 6}px;
+            width: 12px;
+            height: 12px;
+            background: ${point.color};
+            border: 2px solid white;
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 2px black;
+          `;
+          marker.textContent = point.label;
+          document.body.appendChild(marker);
+
           // Get the topmost element at this point
           let elementBehind = document.elementFromPoint(point.x, point.y);
           
