@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
@@ -143,6 +143,21 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
   const [showUnavailableModal, setShowUnavailableModal] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+
+  // Refresh page when visibility is toggled from burger menu (to remove preview banner)
+  useEffect(() => {
+    const handleVisibilityChange = (event: CustomEvent<{ isVisible: boolean }>) => {
+      // Only refresh if profile was made visible (preview mode -> live mode)
+      if (previewMode && event.detail.isVisible) {
+        window.location.reload();
+      }
+    };
+    
+    window.addEventListener('profile-visibility-changed', handleVisibilityChange as EventListener);
+    return () => {
+      window.removeEventListener('profile-visibility-changed', handleVisibilityChange as EventListener);
+    };
+  }, [previewMode]);
 
   // Calculate average rating
   const averageRating = studio.reviews.length > 0
