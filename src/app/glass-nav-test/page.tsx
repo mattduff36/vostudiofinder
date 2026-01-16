@@ -15,10 +15,11 @@ import { LiquidGlassNav2 } from '@/components/glass-nav-examples/LiquidGlassNav2
 import { VisionOSGlassNav } from '@/components/glass-nav-examples/VisionOSGlassNav';
 import { GlassUINav } from '@/components/glass-nav-examples/GlassUINav';
 import { GlassCNNav } from '@/components/glass-nav-examples/GlassCNNav';
+import { AdaptiveGlassNav } from '@/components/glass-nav-examples/AdaptiveGlassNav';
 
 type NavMode = 'static' | 'auto-hide' | 'minimal';
 type Implementation = 'ios' | 'youtube' | 'floating' | 'framer' | 'minimal-lib' | 'aceternity' | 
-  'liquid1' | 'liquid2' | 'visionos' | 'glassui' | 'glasscn';
+  'liquid1' | 'liquid2' | 'visionos' | 'glassui' | 'glasscn' | 'adaptive';
 
 // Mock session for testing (since this is a test page)
 const mockSession: Session = {
@@ -33,10 +34,12 @@ const mockSession: Session = {
 
 export default function GlassNavTestPage() {
   const [mode, setMode] = useState<NavMode>('static');
-  const [implementation, setImplementation] = useState<Implementation>('liquid1');
+  const [implementation, setImplementation] = useState<Implementation>('adaptive');
   const [showComparison, setShowComparison] = useState(false);
+  const [background, setBackground] = useState<'white' | 'black' | 'gradient' | 'color' | 'image'>('gradient');
 
   const implementations = [
+    { id: 'adaptive', name: '🌟 Adaptive Glass', description: 'Auto-adapts to light/dark content behind it', category: 'Premium Libraries' },
     { id: 'liquid1', name: 'Liquid Glass v1', description: '@specy/liquid-glass-react with high intensity', category: 'Premium Libraries' },
     { id: 'liquid2', name: 'Liquid Glass v2', description: 'Dynamic pill style with liquid effects', category: 'Premium Libraries' },
     { id: 'visionos', name: 'visionOS Style', description: 'Apple visionOS inspired with specular highlights', category: 'Premium Libraries' },
@@ -50,6 +53,23 @@ export default function GlassNavTestPage() {
     { id: 'aceternity', name: 'Aceternity UI', description: 'Premium glass components', category: 'Custom CSS' },
   ] as const;
 
+  const getBackgroundClass = (bg: typeof background) => {
+    switch (bg) {
+      case 'white':
+        return 'bg-white';
+      case 'black':
+        return 'bg-gray-900';
+      case 'gradient':
+        return 'bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100';
+      case 'color':
+        return 'bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500';
+      case 'image':
+        return 'bg-pattern';
+      default:
+        return 'bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100';
+    }
+  };
+
   const renderNav = (impl: Implementation, testMode: NavMode) => {
     const commonProps = {
       mode: testMode,
@@ -58,6 +78,8 @@ export default function GlassNavTestPage() {
     };
 
     switch (impl) {
+      case 'adaptive':
+        return <AdaptiveGlassNav {...commonProps} />;
       case 'liquid1':
         return <LiquidGlassNav1 {...commonProps} />;
       case 'liquid2':
@@ -179,6 +201,33 @@ export default function GlassNavTestPage() {
           </div>
         </div>
 
+        {/* Background Selector */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Background Style</h2>
+          <div className="flex gap-3 flex-wrap">
+            {(['white', 'black', 'gradient', 'color', 'image'] as const).map((bg) => (
+              <button
+                key={bg}
+                onClick={() => setBackground(bg)}
+                className={`px-6 py-3 rounded-lg font-medium transition-all border-2 ${
+                  background === bg
+                    ? 'border-[#d42027] bg-red-50 text-[#d42027]'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {bg === 'white' && '⚪ White'}
+                {bg === 'black' && '⚫ Black'}
+                {bg === 'gradient' && '🌈 Gradient'}
+                {bg === 'color' && '🎨 Colored'}
+                {bg === 'image' && '🖼️ Image/Pattern'}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-sm text-gray-600">
+            Test how glass effects look on different backgrounds
+          </p>
+        </div>
+
         {/* Comparison Toggle */}
         <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
           <label className="flex items-center gap-3 cursor-pointer">
@@ -198,7 +247,7 @@ export default function GlassNavTestPage() {
       {/* Preview Area */}
       <div className="max-w-7xl mx-auto px-4 pb-32">
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 relative">
+          <div className={`relative ${getBackgroundClass(background)}`}>
             {showComparison ? (
               <div className="grid grid-cols-2 gap-4 p-4">
                 {/* Left side - Current implementation */}
@@ -257,22 +306,51 @@ export default function GlassNavTestPage() {
                 {/* Fake content for scrolling test */}
                 <div className="p-6 space-y-4">
                   <div className="text-center py-8">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                    <h3 className={`text-2xl font-bold mb-2 ${
+                      background === 'black' ? 'text-white' : 
+                      background === 'color' ? 'text-white' : 
+                      'text-gray-800'
+                    }`}>
                       {implementations.find((i) => i.id === implementation)?.name}
                     </h3>
-                    <p className="text-gray-600">
+                    <p className={`${
+                      background === 'black' ? 'text-gray-300' : 
+                      background === 'color' ? 'text-white/90' : 
+                      'text-gray-600'
+                    }`}>
                       {implementations.find((i) => i.id === implementation)?.description}
                     </p>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Mode: <span className="font-semibold capitalize">{mode}</span>
+                    <p className={`text-sm mt-2 ${
+                      background === 'black' ? 'text-gray-400' : 
+                      background === 'color' ? 'text-white/80' : 
+                      'text-gray-500'
+                    }`}>
+                      Mode: <span className="font-semibold capitalize">{mode}</span> | 
+                      Background: <span className="font-semibold capitalize">{background}</span>
                     </p>
                   </div>
 
+                  {/* Background-specific content cards */}
                   {Array.from({ length: 30 }).map((_, i) => (
-                    <div key={i} className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-sm">
-                      <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
-                      <div className="h-4 bg-gray-100 rounded w-full mb-2"></div>
-                      <div className="h-4 bg-gray-100 rounded w-5/6"></div>
+                    <div 
+                      key={i} 
+                      className={`rounded-xl p-6 shadow-sm ${
+                        background === 'white' ? 'bg-gray-50 border border-gray-200' :
+                        background === 'black' ? 'bg-white/10 backdrop-blur-sm border border-white/20' :
+                        background === 'color' ? 'bg-white/20 backdrop-blur-md border border-white/30' :
+                        background === 'image' ? 'bg-white/70 backdrop-blur-md border border-white/40' :
+                        'bg-white/80 backdrop-blur-sm'
+                      }`}
+                    >
+                      <div className={`h-5 rounded w-3/4 mb-3 ${
+                        background === 'black' || background === 'color' ? 'bg-white/30' : 'bg-gray-200'
+                      }`}></div>
+                      <div className={`h-4 rounded w-full mb-2 ${
+                        background === 'black' || background === 'color' ? 'bg-white/20' : 'bg-gray-100'
+                      }`}></div>
+                      <div className={`h-4 rounded w-5/6 ${
+                        background === 'black' || background === 'color' ? 'bg-white/20' : 'bg-gray-100'
+                      }`}></div>
                     </div>
                   ))}
                 </div>
@@ -293,9 +371,20 @@ export default function GlassNavTestPage() {
           <li>• Click nav items to see animations</li>
           <li>• Try minimal mode expansion</li>
           <li>• Use comparison view to evaluate</li>
+          <li>• Test different backgrounds</li>
           <li>• Test on mobile device or DevTools</li>
         </ul>
       </div>
+
+      {/* Pattern Background Style */}
+      <style jsx global>{`
+        .bg-pattern {
+          background-color: #1a1a2e;
+          background-image: 
+            repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px),
+            repeating-linear-gradient(-45deg, transparent, transparent 35px, rgba(255,255,255,.03) 35px, rgba(255,255,255,.03) 70px);
+        }
+      `}</style>
     </div>
   );
 }
