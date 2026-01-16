@@ -119,10 +119,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Lazy enforcement: update expired memberships to INACTIVE status (skip admin accounts)
+    // Lazy enforcement: DISABLED for performance
+    // This should be run as a scheduled cron job instead of on every search request
     // Throttled to run at most once every 5 minutes to prevent performance issues
     const now = new Date();
-    const shouldRunEnforcement = Date.now() - lastEnforcementRun > ENFORCEMENT_THROTTLE_MS;
+    const shouldRunEnforcement = false; // DISABLED - use cron job instead
     
     const lazyEnforcementStart = Date.now();
     
@@ -435,9 +436,13 @@ export async function GET(request: NextRequest) {
     let totalCount: number;
     let hasMore: boolean;
 
-    // Fetch all matching studios (we'll apply prioritization and pagination in memory)
+    // Fetch matching studios with a reasonable limit to prevent performance issues
+    // Cap at 200 studios max to avoid loading entire database into memory
+    const MAX_STUDIOS_TO_FETCH = 200;
+    
     const fetchedStudios = await db.studio_profiles.findMany({
       where,
+      take: MAX_STUDIOS_TO_FETCH,
       select: {
         id: true,
         name: true,
@@ -555,9 +560,10 @@ export async function GET(request: NextRequest) {
       // For location searches, only show studios within the search radius
       // Use the same filtering logic as the main query
       if (searchCoordinates && validatedParams.radius) {
-        // Get all studios that match the search criteria (not just paginated results)
+        // Get all studios that match the search criteria (cap at 200 for performance)
         mapMarkers = await db.studio_profiles.findMany({
           where,
+          take: MAX_STUDIOS_TO_FETCH,
           select: {
             id: true,
             name: true,
@@ -637,9 +643,10 @@ export async function GET(request: NextRequest) {
         });
       }
     } else if (hasOtherFilters) {
-      // For other filters, show all matching studios
+      // For other filters, show matching studios (cap at 200 for performance)
       mapMarkers = await db.studio_profiles.findMany({
         where,
+        take: MAX_STUDIOS_TO_FETCH,
         select: {
           id: true,
           name: true,
@@ -670,9 +677,10 @@ export async function GET(request: NextRequest) {
         },
       });
     } else {
-      // No filters - show ALL active and visible studios on map
+      // No filters - show active and visible studios on map (cap at 200 for performance)
       mapMarkers = await db.studio_profiles.findMany({
         where: { status: 'ACTIVE', is_profile_visible: true },
+        take: MAX_STUDIOS_TO_FETCH,
         select: {
           id: true,
           name: true,
