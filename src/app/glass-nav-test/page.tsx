@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Session } from 'next-auth';
 import { AdaptiveGlassNav } from '@/components/glass-nav-examples/AdaptiveGlassNav';
 import type { GlassCustomization } from '@/types/glass-customization';
@@ -42,12 +42,44 @@ export default function GlassNavTestPage() {
   const [background, setBackground] = useState<'white' | 'black' | 'gradient' | 'color' | 'image'>('gradient');
   const [customization, setCustomization] = useState<GlassCustomization>(DEFAULT_VALUES);
 
+  // Load saved settings from localStorage on mount
+  useEffect(() => {
+    const savedCustomization = localStorage.getItem('glassNavCustomization');
+    const savedBackground = localStorage.getItem('glassNavBackground');
+    
+    if (savedCustomization) {
+      try {
+        const parsed = JSON.parse(savedCustomization);
+        setCustomization(parsed);
+      } catch (e) {
+        console.error('Failed to parse saved customization', e);
+      }
+    }
+    
+    if (savedBackground) {
+      setBackground(savedBackground as typeof background);
+    }
+  }, []);
+
+  // Save customization to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('glassNavCustomization', JSON.stringify(customization));
+  }, [customization]);
+
+  // Save background to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('glassNavBackground', background);
+  }, [background]);
+
   const updateValue = (key: keyof GlassCustomization, value: number | boolean) => {
     setCustomization(prev => ({ ...prev, [key]: value }));
   };
 
   const resetDefaults = () => {
     setCustomization(DEFAULT_VALUES);
+    setBackground('gradient');
+    localStorage.removeItem('glassNavCustomization');
+    localStorage.removeItem('glassNavBackground');
   };
 
   const getBackgroundStyle = () => {
