@@ -58,7 +58,6 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization, de
   // Debug: Verify CSS variables are actually applied to the DOM
   useEffect(() => {
     if (containerRef.current) {
-      const computedStyle = window.getComputedStyle(containerRef.current);
       const actualBlur = containerRef.current.style.getPropertyValue('--glass-blur');
       const actualSaturation = containerRef.current.style.getPropertyValue('--glass-saturation');
       const actualBrightness = containerRef.current.style.getPropertyValue('--glass-brightness');
@@ -115,7 +114,6 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization, de
         const rect = button.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        const radius = rect.width / 2;
 
         // 4 sample points around the button edges (top, right, bottom, left)
         // Now positioned just 1px away from button edge for more accurate local sampling
@@ -161,8 +159,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization, de
           if (elementBehind) {
             // Walk up the tree to find an element with an actual background color
             // This ensures we get the frontmost visible background, not a transparent overlay
-            let currentElement = elementBehind;
-            let foundValidBackground = false;
+            let currentElement: Element | null = elementBehind;
             let attempts = 0;
             const maxAttempts = 10; // Prevent infinite loops
 
@@ -173,22 +170,21 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization, de
               // Check if this element has a non-transparent background
               const rgb = bgColor.match(/\d+/g);
               if (rgb && rgb.length >= 3) {
-                const r = parseInt(rgb[0]);
-                const g = parseInt(rgb[1]);
-                const b = parseInt(rgb[2]);
-                const alpha = rgb.length >= 4 ? parseFloat(rgb[3]) : 1;
+                const r = parseInt(rgb[0]!);
+                const g = parseInt(rgb[1]!);
+                const b = parseInt(rgb[2]!);
+                const alpha = rgb.length >= 4 ? parseFloat(rgb[3]!) : 1;
 
                 // If background has some opacity, use it
                 if (alpha > 0.1) {
                   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
                   luminanceValues.push(luminance);
-                  foundValidBackground = true;
                   break;
                 }
               }
 
               // Move to parent element
-              currentElement = currentElement.parentElement;
+              currentElement = currentElement.parentElement as Element | null;
               attempts++;
             }
           }

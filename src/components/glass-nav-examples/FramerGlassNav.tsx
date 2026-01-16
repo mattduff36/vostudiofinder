@@ -51,13 +51,13 @@ export function FramerGlassNav({ mode, session, onMenuClick }: FramerGlassNavPro
   ];
 
   const springConfig = {
-    type: 'spring',
+    type: 'spring' as const,
     stiffness: 400,
     damping: 30,
   };
 
   const softSpring = {
-    type: 'spring',
+    type: 'spring' as const,
     stiffness: 300,
     damping: 25,
   };
@@ -182,7 +182,7 @@ export function FramerGlassNav({ mode, session, onMenuClick }: FramerGlassNavPro
           className="framer-glass-nav"
         >
           <div className="flex items-center justify-around h-20 px-2">
-            {navItems.map((item, index) => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link key={item.href} href={item.href} className="flex-1">

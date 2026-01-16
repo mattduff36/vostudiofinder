@@ -9,9 +9,12 @@ import type { GlassCustomization } from '@/types/glass-customization';
 const mockSession: Session = {
   user: {
     id: 'test-user',
-    name: 'Test User',
+    display_name: 'Test User',
     email: 'test@example.com',
     username: 'testuser',
+    role: 'ADMIN',
+    avatar_url: null,
+    email_verified: true,
   },
   expires: '2025-12-31',
 };

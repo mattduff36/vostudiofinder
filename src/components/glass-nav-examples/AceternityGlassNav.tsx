@@ -18,7 +18,7 @@ export function AceternityGlassNav({ mode, session, onMenuClick }: AceternityGla
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [_mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (mode !== 'auto-hide') {
@@ -56,7 +56,7 @@ export function AceternityGlassNav({ mode, session, onMenuClick }: AceternityGla
     if (activeIdx !== -1) setActiveIndex(activeIdx);
   }, [pathname]);
 
-  const handleMouseMove = (e: React.MouseEvent, index: number) => {
+  const handleMouseMove = (e: React.MouseEvent, _index: number) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setMousePosition({
       x: e.clientX - rect.left,
