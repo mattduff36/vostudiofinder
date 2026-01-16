@@ -30,6 +30,7 @@ export function DashboardDropdownMenu({
   // Fetch profile visibility when dropdown opens
   useEffect(() => {
     if (isOpen) {
+      setLoadingVisibility(true);
       fetchProfileVisibility();
     }
   }, [isOpen]);

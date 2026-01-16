@@ -56,6 +56,7 @@ export function MobileMenu({ isOpen, onClose, session }: MobileMenuProps) {
   // Fetch profile visibility when menu opens and user is logged in
   useEffect(() => {
     if (isOpen && session?.user?.id) {
+      setLoadingVisibility(true);
       fetchProfileVisibility();
     }
   }, [isOpen, session?.user?.id]);
