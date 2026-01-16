@@ -1,12 +1,7 @@
 /**
- * MobileGlassNav - Production Mobile Bottom Navigation with Glass Effect
+ * MobileGlassNav - Production Mobile Bottom Navigation with Adaptive Glass Effect
  * 
- * Features:
- * - Adaptive glass effect that changes based on background
- * - Tap animation on mobile (plays hover effect once when clicked)
- * - Auto-hide on scroll down, show on scroll up
- * - Expandable menu with glass styling
- * - Session-aware navigation items
+ * Matches the AdaptiveGlassNav styling from the demo page exactly.
  */
 'use client';
 
@@ -58,7 +53,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     return () => observer.disconnect();
   }, []);
 
-  // Background detection for adaptive glass
+  // Background detection for adaptive glass (exactly like demo page)
   useEffect(() => {
     if (!navRef.current) return;
 
@@ -74,7 +69,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
 
-        // Sample 4 points around each button
+        // Sample 4 points around each button (exactly like demo)
         const offsets = [
           { x: 0, y: -1 }, // top
           { x: rect.width / 2 - 1, y: 0 }, // right
@@ -89,7 +84,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           );
 
           if (el && el !== button && !button.contains(el)) {
-            // Walk up the DOM to find visible background
+            // Walk up DOM to find visible background
             let current: HTMLElement | null = el as HTMLElement;
             while (current && current !== document.body) {
               const styles = window.getComputedStyle(current);
@@ -175,21 +170,20 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   };
 
   const config = DEFAULT_CONFIG;
-  const glassStyles = {
-    backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${isDarkBackground ? config.darkBrightness : config.lightBrightness}) contrast(${config.contrast})`,
-    WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${isDarkBackground ? config.darkBrightness : config.lightBrightness}) contrast(${config.contrast})`,
-  };
 
   return (
     <>
       <nav
         ref={navRef}
-        className={`fixed bottom-0 left-0 right-0 md:hidden z-50 transition-transform safe-area-bottom [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${
+        className={`adaptive-glass-nav fixed bottom-0 left-0 right-0 md:hidden z-50 transition-transform safe-area-bottom [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${
           scrollDirection === 'down' && !isAtTop ? 'translate-y-full duration-0' : 'translate-y-0 duration-300'
         } ${isMapFullscreen ? 'hidden' : ''}`}
         role="navigation"
         aria-label="Mobile navigation"
-        style={glassStyles}
+        style={{
+          backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${isDarkBackground ? config.darkBrightness : config.lightBrightness}) contrast(${config.contrast})`,
+          WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${isDarkBackground ? config.darkBrightness : config.lightBrightness}) contrast(${config.contrast})`,
+        }}
       >
         <div className="flex items-center justify-around px-4 py-3 gap-2">
           {navItems.map((item) => {
@@ -207,12 +201,14 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
                 aria-current={item.active ? 'page' : undefined}
               >
                 <div 
-                  className={`glass-circle ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'} ${isTapped ? 'tapped' : ''}`}
+                  className={`adaptive-circle-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'} ${isTapped ? 'tapped' : ''}`}
                   style={{
                     width: `${config.circleSize}px`,
                     height: `${config.circleSize}px`,
                     color: isDarkBackground ? '#ffffff' : '#000000',
                     borderColor: isDarkBackground ? '#ffffff' : '#000000',
+                    backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
+                    WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                   }}
                 >
                   <Icon className="w-6 h-6" />
@@ -232,12 +228,14 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
             aria-expanded={isMenuOpen}
           >
             <div 
-              className={`glass-circle ${isDarkBackground ? 'dark-bg' : 'light-bg'} ${tappedButton === 'menu' ? 'tapped' : ''}`}
+              className={`adaptive-circle-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'} ${tappedButton === 'menu' ? 'tapped' : ''}`}
               style={{
                 width: `${config.circleSize}px`,
                 height: `${config.circleSize}px`,
                 color: isDarkBackground ? '#ffffff' : '#000000',
                 borderColor: isDarkBackground ? '#ffffff' : '#000000',
+                backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
+                WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
               }}
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -246,7 +244,8 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
         </div>
 
         <style jsx global>{`
-          .glass-circle {
+          /* Base glass circle styles - EXACTLY like demo page */
+          .adaptive-circle-glass {
             display: flex;
             align-items: center;
             justify-center;
@@ -256,38 +255,66 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            box-shadow: 
+              0 4px 12px rgba(0, 0, 0, 0.08),
+              0 2px 4px rgba(0, 0, 0, 0.05),
+              inset 0 1px 2px rgba(255, 255, 255, 0.1),
+              inset 0 0 40px rgba(255, 255, 255, 0.05);
           }
 
-          .glass-circle svg {
+          /* SVG icon stroke inherits color */
+          .adaptive-circle-glass svg {
             stroke: currentColor;
             transition: stroke 0.3s ease;
           }
 
           /* Tap animation - plays hover effect once */
-          .glass-circle.tapped {
+          .adaptive-circle-glass.tapped {
             transform: translateY(-4px) scale(1.08);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            box-shadow: 
+              0 8px 24px rgba(0, 0, 0, 0.15),
+              0 4px 8px rgba(0, 0, 0, 0.1),
+              inset 0 1px 3px rgba(255, 255, 255, 0.15),
+              inset 0 0 50px rgba(255, 255, 255, 0.08);
           }
 
-          .glass-circle.active {
+          /* Active state with red accent */
+          .adaptive-circle-glass.active {
             background: rgba(212, 32, 39, 0.15);
             border-color: #d42027 !important;
+            box-shadow: 
+              0 6px 20px rgba(212, 32, 39, 0.2),
+              0 2px 6px rgba(212, 32, 39, 0.12),
+              inset 0 1px 2px rgba(255, 255, 255, 0.3),
+              inset 0 0 40px rgba(212, 32, 39, 0.15);
           }
 
-          .glass-circle.active svg {
+          .adaptive-circle-glass.active svg {
             stroke: #d42027 !important;
           }
 
           /* Dark background styles */
-          .glass-circle.dark-bg {
-            background: rgba(255, 255, 255, ${config.backgroundOpacity * 2.4});
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          .adaptive-circle-glass.dark-bg {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff !important;
+            border-color: #ffffff !important;
+            box-shadow: 
+              0 4px 12px rgba(0, 0, 0, 0.3),
+              0 2px 4px rgba(0, 0, 0, 0.2),
+              inset 0 1px 3px rgba(255, 255, 255, 0.25),
+              inset 0 0 60px rgba(255, 255, 255, 0.1);
           }
 
           /* Light background styles */
-          .glass-circle.light-bg {
-            background: rgba(0, 0, 0, ${config.backgroundOpacity * 1.6});
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          .adaptive-circle-glass.light-bg {
+            background: rgba(0, 0, 0, 0.08);
+            color: #000000 !important;
+            border-color: #000000 !important;
+            box-shadow: 
+              0 4px 12px rgba(0, 0, 0, 0.08),
+              0 2px 4px rgba(0, 0, 0, 0.05),
+              inset 0 1px 3px rgba(0, 0, 0, 0.05),
+              inset 0 0 60px rgba(0, 0, 0, 0.03);
           }
         `}</style>
       </nav>
@@ -299,8 +326,11 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           onClick={() => setIsMenuOpen(false)}
         >
           <div 
-            className={`absolute bottom-20 right-4 w-64 glass-menu ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
-            style={glassStyles}
+            className={`glass-menu absolute bottom-20 right-4 w-64 ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
+            style={{
+              backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${isDarkBackground ? config.darkBrightness : config.lightBrightness}) contrast(${config.contrast})`,
+              WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${isDarkBackground ? config.darkBrightness : config.lightBrightness}) contrast(${config.contrast})`,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-2 space-y-1">
