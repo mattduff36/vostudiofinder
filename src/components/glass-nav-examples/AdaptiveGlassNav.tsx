@@ -55,40 +55,65 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
     const detectBackgroundBrightness = () => {
       if (!navRef.current) return;
 
-      // Sample from ABOVE the nav buttons to get the actual page background
-      // Not from the center which might be over the control panel
-      const rect = navRef.current.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top - 20; // 20px above the nav buttons
+      // Get all button elements (glass circles)
+      const buttons = navRef.current.querySelectorAll('.adaptive-circle-glass');
+      if (buttons.length === 0) return;
+
+      const luminanceValues: number[] = [];
 
       // Temporarily hide nav to sample background
       navRef.current.style.pointerEvents = 'none';
       navRef.current.style.opacity = '0';
-      const elementBehind = document.elementFromPoint(x, y);
+
+      // Sample 4 points around each button's edges
+      buttons.forEach((button) => {
+        const rect = button.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const radius = rect.width / 2;
+
+        // 4 sample points around the button edges (top, right, bottom, left)
+        const samplePoints = [
+          { x: centerX, y: rect.top - 10 },              // Top (10px above)
+          { x: rect.right + 10, y: centerY },            // Right (10px right)
+          { x: centerX, y: rect.bottom + 10 },           // Bottom (10px below)
+          { x: rect.left - 10, y: centerY }              // Left (10px left)
+        ];
+
+        samplePoints.forEach((point) => {
+          const elementBehind = document.elementFromPoint(point.x, point.y);
+          if (elementBehind) {
+            const computedStyle = window.getComputedStyle(elementBehind);
+            const bgColor = computedStyle.backgroundColor;
+
+            // Parse RGB values
+            const rgb = bgColor.match(/\d+/g);
+            if (rgb && rgb.length >= 3) {
+              const r = parseInt(rgb[0]);
+              const g = parseInt(rgb[1]);
+              const b = parseInt(rgb[2]);
+              const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+              luminanceValues.push(luminance);
+            }
+          }
+        });
+      });
+
+      // Restore nav visibility
       navRef.current.style.pointerEvents = '';
       navRef.current.style.opacity = '';
 
-      if (elementBehind) {
-        const computedStyle = window.getComputedStyle(elementBehind);
-        const bgColor = computedStyle.backgroundColor;
+      // Calculate average luminance from all samples
+      if (luminanceValues.length > 0) {
+        const avgLuminance = luminanceValues.reduce((a, b) => a + b, 0) / luminanceValues.length;
 
-        // Parse RGB values
-        const rgb = bgColor.match(/\d+/g);
-        if (rgb && rgb.length >= 3) {
-          // Calculate relative luminance
-          const r = parseInt(rgb[0]);
-          const g = parseInt(rgb[1]);
-          const b = parseInt(rgb[2]);
-          const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-          // Add hysteresis to prevent flashing
-          // Only change if luminance differs significantly from last reading
-          const threshold = 0.15;
-          if (Math.abs(luminance - lastLuminance) > threshold) {
-            lastLuminance = luminance;
-            // Use customizable threshold
-            setIsDarkBackground(luminance < config.luminanceThreshold);
-          }
+        // Add hysteresis to prevent flashing
+        // Only change if luminance differs significantly from last reading
+        const threshold = 0.15;
+        if (Math.abs(avgLuminance - lastLuminance) > threshold) {
+          lastLuminance = avgLuminance;
+          // Use customizable threshold
+          setIsDarkBackground(avgLuminance < config.luminanceThreshold);
         }
       }
     };
