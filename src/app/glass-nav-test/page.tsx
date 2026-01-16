@@ -101,6 +101,31 @@ export default function GlassNavTestPage() {
     localStorage.removeItem('glassNavBackground');
   };
 
+  const applyToFile = async () => {
+    try {
+      console.log('📝 Applying settings to file:', customization);
+      const response = await fetch('/api/update-glass-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customization),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('✅ SUCCESS! Settings applied to file. Refreshing page...');
+        // Refresh the page to see changes
+        window.location.reload();
+      } else {
+        console.error('❌ FAILED:', result.error);
+        alert('Failed to apply settings: ' + result.error);
+      }
+    } catch (error) {
+      console.error('❌ ERROR:', error);
+      alert('Error applying settings: ' + error);
+    }
+  };
+
   const getBackgroundStyle = () => {
     switch (background) {
       case 'white':
@@ -498,6 +523,12 @@ export default function GlassNavTestPage() {
               className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
             >
               Reset Defaults
+            </button>
+            <button
+              onClick={applyToFile}
+              className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+            >
+              Apply to File & Refresh
             </button>
           </div>
         </div>
