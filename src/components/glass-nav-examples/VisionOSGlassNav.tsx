@@ -63,7 +63,14 @@ export function VisionOSGlassNav({ mode, session, onMenuClick }: VisionOSGlassNa
         <div className="relative">
           {isExpanded && (
             <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-max">
-              <LiquidGlass intensity={1.4} blur={36} saturation={2.2} className="visionos-expanded-container">
+              <LiquidGlass 
+                glassStyle={{
+                  intensity: 1.4,
+                  blur: 36,
+                  saturation: 2.2,
+                }}
+                style="visionos-expanded-container"
+              >
                 <div className="flex gap-3 p-3">
                   {navItems.map((item, index) => {
                     const Icon = item.icon;
@@ -89,7 +96,14 @@ export function VisionOSGlassNav({ mode, session, onMenuClick }: VisionOSGlassNa
           )}
 
           <button onClick={() => setIsExpanded(!isExpanded)}>
-            <LiquidGlass intensity={1.5} blur={40} saturation={2.3} className="visionos-orb">
+            <LiquidGlass 
+              glassStyle={{
+                intensity: 1.5,
+                blur: 40,
+                saturation: 2.3,
+              }}
+              style="visionos-orb"
+            >
               <div className="visionos-orb-inner">
                 <Menu className={`w-7 h-7 z-10 relative transition-all duration-500 ${isExpanded ? 'rotate-180 scale-90' : ''}`} />
                 <div className="visionos-orb-shine" />
@@ -274,7 +288,14 @@ export function VisionOSGlassNav({ mode, session, onMenuClick }: VisionOSGlassNa
       }}
       onMouseMove={handleMouseMove}
     >
-      <LiquidGlass intensity={1.3} blur={36} saturation={2.1} className="visionos-nav-container">
+      <LiquidGlass 
+        glassStyle={{
+          intensity: 1.3,
+          blur: 36,
+          saturation: 2.1,
+        }}
+        style="visionos-nav-container"
+      >
         <div
           className="visionos-specular"
           style={{

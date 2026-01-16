@@ -64,10 +64,12 @@ export function LiquidGlassNav1({ mode, session, onMenuClick }: LiquidGlassNav1P
                       }}
                     >
                       <LiquidGlass
-                        intensity={0.8}
-                        blur={20}
-                        saturation={1.8}
-                        className="liquid-minimal-item"
+                        glassStyle={{
+                          intensity: 0.8,
+                          blur: 20,
+                          saturation: 1.8,
+                        }}
+                        style="liquid-minimal-item"
                       >
                         <Icon className={`w-5 h-5 ${item.active ? 'text-[#d42027]' : 'text-gray-800'}`} />
                       </LiquidGlass>
@@ -79,7 +81,14 @@ export function LiquidGlassNav1({ mode, session, onMenuClick }: LiquidGlassNav1P
           )}
 
           <button onClick={() => setIsExpanded(!isExpanded)}>
-            <LiquidGlass intensity={1} blur={24} saturation={2} className="liquid-fab">
+            <LiquidGlass 
+              glassStyle={{
+                intensity: 1,
+                blur: 24,
+                saturation: 2,
+              }}
+              style="liquid-fab"
+            >
               <Menu className={`w-6 h-6 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
             </LiquidGlass>
           </button>
@@ -160,7 +169,14 @@ export function LiquidGlassNav1({ mode, session, onMenuClick }: LiquidGlassNav1P
       }}
     >
       <div className="mx-auto max-w-lg mb-4">
-        <LiquidGlass intensity={0.9} blur={24} saturation={1.9} className="liquid-glass-nav">
+        <LiquidGlass 
+          glassStyle={{
+            intensity: 0.9,
+            blur: 24,
+            saturation: 1.9,
+          }}
+          style="liquid-glass-nav"
+        >
           <div className="flex items-center justify-around h-20 px-3">
             {navItems.map((item) => {
               const Icon = item.icon;

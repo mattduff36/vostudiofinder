@@ -58,20 +58,25 @@ export function LiquidGlassNav2({ mode, session, onMenuClick }: LiquidGlassNav2P
               const Icon = item.icon;
               return (
                 <Link key={item.href} href={item.href}>
-                  <LiquidGlass
-                    intensity={1.2}
-                    blur={28}
-                    saturation={2}
-                    className="liquid-v2-minimal"
+                  <div
                     style={{
                       animation: `slideInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.06}s both`,
                     }}
                   >
-                    <span className="text-sm font-semibold mr-3">{item.label}</span>
-                    <div className={`liquid-v2-icon ${item.active ? 'active' : ''}`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                  </LiquidGlass>
+                    <LiquidGlass
+                      glassStyle={{
+                        intensity: 1.2,
+                        blur: 28,
+                        saturation: 2,
+                      }}
+                      style="liquid-v2-minimal"
+                    >
+                      <span className="text-sm font-semibold mr-3">{item.label}</span>
+                      <div className={`liquid-v2-icon ${item.active ? 'active' : ''}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                    </LiquidGlass>
+                  </div>
                 </Link>
               );
             })}
@@ -79,7 +84,14 @@ export function LiquidGlassNav2({ mode, session, onMenuClick }: LiquidGlassNav2P
         )}
 
         <button onClick={() => setIsExpanded(!isExpanded)}>
-          <LiquidGlass intensity={1.3} blur={32} saturation={2.1} className="liquid-v2-fab">
+          <LiquidGlass 
+            glassStyle={{
+              intensity: 1.3,
+              blur: 32,
+              saturation: 2.1,
+            }}
+            style="liquid-v2-fab"
+          >
             <div className="relative">
               <Menu className={`w-6 h-6 transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
               <div className="liquid-v2-glow" />
@@ -213,7 +225,14 @@ export function LiquidGlassNav2({ mode, session, onMenuClick }: LiquidGlassNav2P
         paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)',
       }}
     >
-      <LiquidGlass intensity={1.1} blur={28} saturation={2} className="liquid-v2-container">
+      <LiquidGlass 
+        glassStyle={{
+          intensity: 1.1,
+          blur: 28,
+          saturation: 2,
+        }}
+        style="liquid-v2-container"
+      >
         <div className="flex items-center gap-2 px-3 py-2">
           {navItems.map((item, index) => {
             const Icon = item.icon;
