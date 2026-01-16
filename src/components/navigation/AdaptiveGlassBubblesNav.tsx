@@ -95,6 +95,105 @@ export function AdaptiveGlassBubblesNav({
       return { r, g, b, a };
     };
 
+    const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+    const getLuminanceFromRgb = (r: number, g: number, b: number) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    const sampleImgLuminanceAtPoint = (img: HTMLImageElement, pointX: number, pointY: number): number | null => {
+      if (!ctx) return null;
+      if (!img.complete || img.naturalWidth <= 0 || img.naturalHeight <= 0) return null;
+
+      const rect = img.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return null;
+      if (pointX < rect.left || pointX > rect.right || pointY < rect.top || pointY > rect.bottom) return null;
+
+      const localX = pointX - rect.left;
+      const localY = pointY - rect.top;
+
+      const computed = window.getComputedStyle(img);
+      const objectFit = computed.objectFit || 'fill';
+
+      const nw = img.naturalWidth;
+      const nh = img.naturalHeight;
+      const w = rect.width;
+      const h = rect.height;
+
+      let scale = 1;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if (objectFit === 'cover') {
+        scale = Math.max(w / nw, h / nh);
+        offsetX = (w - nw * scale) / 2;
+        offsetY = (h - nh * scale) / 2;
+      } else if (objectFit === 'contain') {
+        scale = Math.min(w / nw, h / nh);
+        offsetX = (w - nw * scale) / 2;
+        offsetY = (h - nh * scale) / 2;
+      } else if (objectFit === 'fill') {
+        // Stretch
+        const sx = nw / w;
+        const sy = nh / h;
+        const srcX = clamp(localX * sx, 0, nw - 1);
+        const srcY = clamp(localY * sy, 0, nh - 1);
+        try {
+          ctx.clearRect(0, 0, 1, 1);
+          ctx.drawImage(img, srcX, srcY, 1, 1, 0, 0, 1, 1);
+          const data = ctx.getImageData(0, 0, 1, 1).data;
+          if (!data || data.length < 3) return null;
+          return getLuminanceFromRgb(data[0], data[1], data[2]);
+        } catch {
+          return null;
+        }
+      }
+
+      // Map displayed pixel back to natural pixel using scale/offset
+      const srcX = clamp((localX - offsetX) / scale, 0, nw - 1);
+      const srcY = clamp((localY - offsetY) / scale, 0, nh - 1);
+
+      try {
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.drawImage(img, srcX, srcY, 1, 1, 0, 0, 1, 1);
+        const data = ctx.getImageData(0, 0, 1, 1).data;
+        if (!data || data.length < 3) return null;
+        return getLuminanceFromRgb(data[0], data[1], data[2]);
+      } catch {
+        // Can fail if the image is cross-origin/tainted
+        return null;
+      }
+    };
+
+    const getLuminanceAtPoint = (x: number, y: number): number | null => {
+      // Skip sampling outside the viewport (elementFromPoint can behave oddly there)
+      if (x < 0 || y < 0 || x > window.innerWidth - 1 || y > window.innerHeight - 1) return null;
+
+      const stack = document.elementsFromPoint(x, y);
+      for (const el of stack) {
+        // Ignore anything inside the nav itself
+        if (navRef.current?.contains(el)) continue;
+
+        const computedStyle = window.getComputedStyle(el);
+        const bgColor = computedStyle.backgroundColor;
+        const rgba = parseCssColorToRgba(bgColor);
+        if (rgba && rgba.a > 0.1) {
+          return getLuminanceFromRgb(rgba.r, rgba.g, rgba.b);
+        }
+
+        // If the element itself is an image, sample the actual rendered pixel
+        if (el instanceof HTMLImageElement) {
+          const lum = sampleImgLuminanceAtPoint(el, x, y);
+          if (lum !== null) return lum;
+        }
+      }
+
+      return null;
+    };
+
     const detectBackgroundBrightness = () => {
       if (!navRef.current) return;
 
@@ -129,6 +228,16 @@ export function AdaptiveGlassBubblesNav({
         ];
 
         samplePoints.forEach((point) => {
+          // Skip points outside the viewport (can cause false readings)
+          if (
+            point.x < 0 ||
+            point.y < 0 ||
+            point.x > window.innerWidth - 1 ||
+            point.y > window.innerHeight - 1
+          ) {
+            return;
+          }
+
           // Create visual debug marker if enabled
           if (debugSensors) {
             const marker = document.createElement('div');
@@ -157,30 +266,9 @@ export function AdaptiveGlassBubblesNav({
             document.body.appendChild(marker);
           }
 
-          // Get the topmost element at this point
-          const elementBehind = document.elementFromPoint(point.x, point.y);
-          
-          if (elementBehind) {
-            // Walk up the tree to find an element with an actual background color
-            let currentElement = elementBehind;
-            let attempts = 0;
-            const maxAttempts = 10;
-
-            while (currentElement && attempts < maxAttempts) {
-              const computedStyle = window.getComputedStyle(currentElement);
-              const bgColor = computedStyle.backgroundColor;
-              
-              // Check if this element has a non-transparent background
-              const rgba = parseCssColorToRgba(bgColor);
-              if (rgba && rgba.a > 0.1) {
-                const luminance = (0.299 * rgba.r + 0.587 * rgba.g + 0.114 * rgba.b) / 255;
-                luminanceValues.push(luminance);
-                break;
-              }
-
-              currentElement = currentElement.parentElement;
-              attempts++;
-            }
+          const luminance = getLuminanceAtPoint(point.x, point.y);
+          if (luminance !== null) {
+            luminanceValues.push(luminance);
           }
         });
       });
