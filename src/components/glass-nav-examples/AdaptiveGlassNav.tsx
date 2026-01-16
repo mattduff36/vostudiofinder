@@ -296,6 +296,9 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
           /* Use CanvasText for automatic light/dark text */
           color: CanvasText;
           
+          /* Thin border matching text/icon color */
+          border: 0.5px solid currentColor;
+          
           /* Enhanced shadow for depth */
           box-shadow: 
             0 12px 40px rgba(0, 0, 0, 0.15),
@@ -343,14 +346,14 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
         .adaptive-circle-glass.active {
           background: color-mix(in srgb, rgba(212, 32, 39, 0.25) 60%, Canvas 40%);
           color: #d42027;
+          border-color: #d42027;
           backdrop-filter: blur(40px) saturate(220%) brightness(1.1);
           -webkit-backdrop-filter: blur(40px) saturate(220%) brightness(1.1);
           box-shadow: 
             0 12px 40px rgba(212, 32, 39, 0.25),
             0 4px 16px rgba(212, 32, 39, 0.15),
             inset 0 1px 3px rgba(255, 255, 255, 0.3),
-            inset 0 0 60px rgba(212, 32, 39, 0.15),
-            0 0 0 2px rgba(212, 32, 39, 0.2);
+            inset 0 0 60px rgba(212, 32, 39, 0.15);
         }
 
         /* PILL/BADGE GLASS - For labels only */
@@ -368,6 +371,9 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
           
           /* Automatic text color adaptation */
           color: CanvasText;
+          
+          /* Thin border matching text color */
+          border: 0.5px solid currentColor;
           
           font-size: 11px;
           font-weight: 600;
@@ -420,6 +426,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
         .adaptive-pill-glass.active {
           background: color-mix(in srgb, rgba(212, 32, 39, 0.25) 60%, Canvas 40%);
           color: #d42027;
+          border-color: #d42027;
           font-weight: 700;
           backdrop-filter: blur(40px) saturate(220%) brightness(1.1);
           -webkit-backdrop-filter: blur(40px) saturate(220%) brightness(1.1);
@@ -427,8 +434,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
             0 8px 24px rgba(212, 32, 39, 0.2),
             0 2px 8px rgba(212, 32, 39, 0.12),
             inset 0 1px 2px rgba(255, 255, 255, 0.3),
-            inset 0 0 40px rgba(212, 32, 39, 0.15),
-            0 0 0 1.5px rgba(212, 32, 39, 0.2);
+            inset 0 0 40px rgba(212, 32, 39, 0.15);
         }
 
         /* DYNAMIC ADAPTATION - Based on actual background brightness */
@@ -440,6 +446,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
           backdrop-filter: blur(44px) saturate(200%) brightness(1.4) contrast(0.75);
           -webkit-backdrop-filter: blur(44px) saturate(200%) brightness(1.4) contrast(0.75);
           color: rgba(255, 255, 255, 0.95);
+          border-color: rgba(255, 255, 255, 0.3);
           box-shadow: 
             0 12px 40px rgba(0, 0, 0, 0.3),
             0 4px 16px rgba(0, 0, 0, 0.2),
@@ -452,6 +459,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
           background: rgba(255, 255, 255, 0.18);
           backdrop-filter: blur(52px) saturate(220%) brightness(1.5) contrast(0.7);
           -webkit-backdrop-filter: blur(52px) saturate(220%) brightness(1.5) contrast(0.7);
+          border-color: rgba(255, 255, 255, 0.4);
           box-shadow: 
             0 16px 50px rgba(0, 0, 0, 0.35),
             0 6px 20px rgba(0, 0, 0, 0.25),
@@ -476,6 +484,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
           backdrop-filter: blur(38px) saturate(200%) brightness(0.95) contrast(1.1);
           -webkit-backdrop-filter: blur(38px) saturate(200%) brightness(0.95) contrast(1.1);
           color: rgba(0, 0, 0, 0.85);
+          border-color: rgba(0, 0, 0, 0.2);
           box-shadow: 
             0 12px 40px rgba(0, 0, 0, 0.08),
             0 4px 16px rgba(0, 0, 0, 0.05),
@@ -488,6 +497,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
           background: rgba(0, 0, 0, 0.12);
           backdrop-filter: blur(46px) saturate(220%) brightness(0.92) contrast(1.15);
           -webkit-backdrop-filter: blur(46px) saturate(220%) brightness(0.92) contrast(1.15);
+          border-color: rgba(0, 0, 0, 0.25);
           box-shadow: 
             0 16px 50px rgba(0, 0, 0, 0.12),
             0 6px 20px rgba(0, 0, 0, 0.08),
