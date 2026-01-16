@@ -46,6 +46,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   }
 
   // Build navigation items
+  const signupPath = '/auth/signup';
   const navItems: NavItem[] = [
     {
       label: 'Home',
@@ -80,13 +81,14 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     } : {
       label: 'List Studio',
       icon: UserPlus,
-      href: '/auth/signup',
-      active: pathname === '/auth/signup',
+      href: signupPath,
+      active: pathname === signupPath,
     }
   );
 
   // Add menu button
   navItems.push({
+    id: 'menu',
     label: isMenuOpen ? 'Close' : 'Menu',
     icon: isMenuOpen ? X : Menu,
     onClick: () => {

@@ -12,6 +12,7 @@ interface AdaptiveGlassNavProps {
   session: Session | null;
   onMenuClick: () => void;
   customization?: GlassCustomization;
+  debugSensors?: boolean;
 }
 
 const DEFAULT_CONFIG = {
@@ -36,7 +37,7 @@ const DEFAULT_CONFIG = {
   luminanceThreshold: 0.4,
 };
 
-export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: AdaptiveGlassNavProps) {
+export function AdaptiveGlassNav({ mode, session, onMenuClick, customization, debugSensors = false }: AdaptiveGlassNavProps) {
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -101,7 +102,9 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
       const luminanceValues: number[] = [];
 
       // Remove old debug markers if they exist
-      document.querySelectorAll('.sensor-debug-marker').forEach(el => el.remove());
+      if (debugSensors) {
+        document.querySelectorAll('.sensor-debug-marker').forEach(el => el.remove());
+      }
 
       // Temporarily hide nav to sample background
       navRef.current.style.pointerEvents = 'none';
@@ -124,31 +127,33 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
         ];
 
         samplePoints.forEach((point) => {
-          // Create visual debug marker
-          const marker = document.createElement('div');
-          marker.className = 'sensor-debug-marker';
-          marker.style.cssText = `
-            position: fixed;
-            left: ${point.x - 6}px;
-            top: ${point.y - 6}px;
-            width: 12px;
-            height: 12px;
-            background: ${point.color};
-            border: 2px solid white;
-            border-radius: 50%;
-            z-index: 9999;
-            pointer-events: none;
-            box-shadow: 0 0 4px rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 0 0 2px black;
-          `;
-          marker.textContent = point.label;
-          document.body.appendChild(marker);
+          // Create visual debug marker (dev only)
+          if (debugSensors) {
+            const marker = document.createElement('div');
+            marker.className = 'sensor-debug-marker';
+            marker.style.cssText = `
+              position: fixed;
+              left: ${point.x - 6}px;
+              top: ${point.y - 6}px;
+              width: 12px;
+              height: 12px;
+              background: ${point.color};
+              border: 2px solid white;
+              border-radius: 50%;
+              z-index: 9999;
+              pointer-events: none;
+              box-shadow: 0 0 4px rgba(0,0,0,0.5);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 8px;
+              font-weight: bold;
+              color: white;
+              text-shadow: 0 0 2px black;
+            `;
+            marker.textContent = point.label;
+            document.body.appendChild(marker);
+          }
 
           // Get the topmost element at this point
           let elementBehind = document.elementFromPoint(point.x, point.y);
@@ -241,7 +246,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
       window.removeEventListener('resize', handleResize);
       clearInterval(interval);
     };
-  }, [config.adaptiveEnabled, config.luminanceThreshold]);
+  }, [config.adaptiveEnabled, config.luminanceThreshold, debugSensors]);
 
   useEffect(() => {
     if (mode !== 'auto-hide') {
