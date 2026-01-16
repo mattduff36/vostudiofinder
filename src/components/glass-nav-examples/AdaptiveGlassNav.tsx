@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Search, LayoutDashboard, Menu, User } from 'lucide-react';
 import { Session } from 'next-auth';
-import type { GlassCustomization } from '@/app/glass-nav-test/page';
+import type { GlassCustomization } from '@/types/glass-customization';
 
 interface AdaptiveGlassNavProps {
   mode: 'static' | 'auto-hide' | 'minimal';

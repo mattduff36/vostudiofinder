@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Session } from 'next-auth';
 import { AdaptiveGlassNav } from '@/components/glass-nav-examples/AdaptiveGlassNav';
+import type { GlassCustomization } from '@/types/glass-customization';
 
 // Mock session for testing
 const mockSession: Session = {
@@ -14,41 +15,6 @@ const mockSession: Session = {
   },
   expires: '2025-12-31',
 };
-
-export interface GlassCustomization {
-  // Glass Effect
-  blur: number;
-  saturation: number;
-  brightness: number;
-  contrast: number;
-  
-  // Background
-  backgroundOpacity: number;
-  
-  // Border
-  borderWidth: number;
-  borderOpacity: number;
-  
-  // Size
-  circleSize: number;
-  pillPaddingX: number;
-  pillPaddingY: number;
-  fontSize: number;
-  
-  // Shadow
-  shadowIntensity: number;
-  shadowSpread: number;
-  
-  // Animation
-  hoverLift: number;
-  hoverScale: number;
-  
-  // Adaptive Settings
-  adaptiveEnabled: boolean;
-  darkBrightness: number;
-  lightBrightness: number;
-  luminanceThreshold: number;
-}
 
 export default function GlassNavTestPage() {
   const [background, setBackground] = useState<'white' | 'black' | 'gradient' | 'color' | 'image'>('gradient');
