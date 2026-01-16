@@ -14,6 +14,28 @@ interface AdaptiveGlassNavProps {
   customization?: GlassCustomization;
 }
 
+const DEFAULT_CONFIG = {
+  blur: 40,
+  saturation: 200,
+  brightness: 1.15,
+  contrast: 0.85,
+  backgroundOpacity: 0.45,
+  borderWidth: 0.5,
+  borderOpacity: 0.3,
+  circleSize: 56,
+  pillPaddingX: 12,
+  pillPaddingY: 6,
+  fontSize: 11,
+  shadowIntensity: 0.15,
+  shadowSpread: 40,
+  hoverLift: 4,
+  hoverScale: 1.08,
+  adaptiveEnabled: true,
+  darkBrightness: 1.4,
+  lightBrightness: 0.95,
+  luminanceThreshold: 0.4,
+};
+
 export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: AdaptiveGlassNavProps) {
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
@@ -23,27 +45,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
   const navRef = useRef<HTMLDivElement>(null);
 
   // Use customization if provided, otherwise use defaults
-  const config = customization || {
-    blur: 40,
-    saturation: 200,
-    brightness: 1.15,
-    contrast: 0.85,
-    backgroundOpacity: 0.45,
-    borderWidth: 0.5,
-    borderOpacity: 0.3,
-    circleSize: 56,
-    pillPaddingX: 12,
-    pillPaddingY: 6,
-    fontSize: 11,
-    shadowIntensity: 0.15,
-    shadowSpread: 40,
-    hoverLift: 4,
-    hoverScale: 1.08,
-    adaptiveEnabled: true,
-    darkBrightness: 1.4,
-    lightBrightness: 0.95,
-    luminanceThreshold: 0.4,
-  };
+  const config = customization || DEFAULT_CONFIG;
 
   // Detect background brightness dynamically with debouncing
   useEffect(() => {
