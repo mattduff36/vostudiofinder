@@ -117,7 +117,6 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
         <div className="mx-auto max-w-lg mb-4">
           <AdaptiveGlassBubblesNav
             items={navItems}
-            isDarkBackground={isDarkBackground}
             onBackgroundChange={setIsDarkBackground}
             tappedButtonId={tappedButton}
             config={DEFAULT_CONFIG}

@@ -59,13 +59,41 @@ export function AdaptiveGlassBubblesNav({
 
   const isDarkBackground = externalIsDarkBackground ?? internalIsDarkBackground;
 
+  const shouldDetectBackground =
+    config.adaptiveEnabled && (externalIsDarkBackground === undefined || Boolean(onBackgroundChange));
+
   // Detect background brightness dynamically with debouncing
   useEffect(() => {
-    if (!navRef.current || externalIsDarkBackground !== undefined) return;
-    if (!config.adaptiveEnabled) return;
+    if (!navRef.current) return;
+    if (!shouldDetectBackground) return;
 
     let timeoutId: NodeJS.Timeout;
     let lastLuminance = 0.5;
+
+    const parseCssColorToRgba = (color: string): { r: number; g: number; b: number; a: number } | null => {
+      const normalized = color.trim().toLowerCase();
+      if (normalized === 'transparent') return null;
+
+      // Most browsers return rgb()/rgba() from computedStyle.backgroundColor
+      const rgbMatch = normalized.match(/^rgba?\((.+)\)$/);
+      if (!rgbMatch) return null;
+
+      const parts = rgbMatch[1]
+        .split(',')
+        .map((p) => p.trim())
+        .filter(Boolean);
+
+      if (parts.length < 3) return null;
+
+      const r = Number(parts[0]);
+      const g = Number(parts[1]);
+      const b = Number(parts[2]);
+      const a = parts.length >= 4 ? Number(parts[3]) : 1;
+
+      if (![r, g, b, a].every((n) => Number.isFinite(n))) return null;
+
+      return { r, g, b, a };
+    };
 
     const detectBackgroundBrightness = () => {
       if (!navRef.current) return;
@@ -143,19 +171,11 @@ export function AdaptiveGlassBubblesNav({
               const bgColor = computedStyle.backgroundColor;
               
               // Check if this element has a non-transparent background
-              const rgb = bgColor.match(/\d+/g);
-              if (rgb && rgb.length >= 3) {
-                const r = parseInt(rgb[0]);
-                const g = parseInt(rgb[1]);
-                const b = parseInt(rgb[2]);
-                const alpha = rgb.length >= 4 ? parseFloat(rgb[3]) : 1;
-
-                // If background has some opacity, use it
-                if (alpha > 0.1) {
-                  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-                  luminanceValues.push(luminance);
-                  break;
-                }
+              const rgba = parseCssColorToRgba(bgColor);
+              if (rgba && rgba.a > 0.1) {
+                const luminance = (0.299 * rgba.r + 0.587 * rgba.g + 0.114 * rgba.b) / 255;
+                luminanceValues.push(luminance);
+                break;
               }
 
               currentElement = currentElement.parentElement;
@@ -178,10 +198,10 @@ export function AdaptiveGlassBubblesNav({
         if (Math.abs(avgLuminance - lastLuminance) > threshold) {
           lastLuminance = avgLuminance;
           const isDark = avgLuminance < config.luminanceThreshold;
-          setInternalIsDarkBackground(isDark);
-          if (onBackgroundChange) {
-            onBackgroundChange(isDark);
+          if (externalIsDarkBackground === undefined) {
+            setInternalIsDarkBackground(isDark);
           }
+          onBackgroundChange?.(isDark);
         }
       }
     };
@@ -218,7 +238,14 @@ export function AdaptiveGlassBubblesNav({
       window.removeEventListener('resize', handleResize);
       clearInterval(interval);
     };
-  }, [config.adaptiveEnabled, config.luminanceThreshold, externalIsDarkBackground, onBackgroundChange, debugSensors]);
+  }, [
+    config.adaptiveEnabled,
+    config.luminanceThreshold,
+    externalIsDarkBackground,
+    onBackgroundChange,
+    debugSensors,
+    shouldDetectBackground,
+  ]);
 
   return (
     <>
