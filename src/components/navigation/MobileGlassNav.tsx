@@ -12,6 +12,7 @@ import { Home, Search, LayoutDashboard, Menu, UserPlus, User, X, UserCircle, Set
 import { Session } from 'next-auth';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { AdaptiveGlassBubblesNav, DEFAULT_CONFIG, type NavItem } from './AdaptiveGlassBubblesNav';
+import { AdaptiveGlassMenu } from './AdaptiveGlassMenu';
 
 interface MobileGlassNavProps {
   session: Session | null;
@@ -131,12 +132,11 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           className="fixed inset-0 z-40 md:hidden"
           onClick={() => setIsMenuOpen(false)}
         >
-          <div 
-            className={`glass-menu absolute bottom-20 right-4 w-64 ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
-            style={{
-              backdropFilter: `blur(${DEFAULT_CONFIG.blur}px) saturate(${DEFAULT_CONFIG.saturation}%) brightness(${isDarkBackground ? DEFAULT_CONFIG.darkBrightness : DEFAULT_CONFIG.lightBrightness}) contrast(${DEFAULT_CONFIG.contrast})`,
-              WebkitBackdropFilter: `blur(${DEFAULT_CONFIG.blur}px) saturate(${DEFAULT_CONFIG.saturation}%) brightness(${isDarkBackground ? DEFAULT_CONFIG.darkBrightness : DEFAULT_CONFIG.lightBrightness}) contrast(${DEFAULT_CONFIG.contrast})`,
-            }}
+          <AdaptiveGlassMenu
+            className="absolute bottom-20 right-4 w-64"
+            config={DEFAULT_CONFIG}
+            debugSensors={false}
+            onBackgroundChange={setIsDarkBackground}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-2 space-y-1">
@@ -218,27 +218,9 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
                 </>
               )}
             </div>
-          </div>
+          </AdaptiveGlassMenu>
 
           <style jsx global>{`
-            .glass-menu {
-              border-radius: 16px;
-              background: rgba(128, 128, 128, ${DEFAULT_CONFIG.backgroundOpacity * 3});
-              border: ${DEFAULT_CONFIG.borderWidth}px solid ${isDarkBackground ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)'};
-              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-              animation: slideUp 0.2s ease-out;
-            }
-
-            .glass-menu.dark-bg {
-              background: rgba(255, 255, 255, ${DEFAULT_CONFIG.backgroundOpacity * 3.5});
-              color: #ffffff;
-            }
-
-            .glass-menu.light-bg {
-              background: rgba(0, 0, 0, ${DEFAULT_CONFIG.backgroundOpacity * 2.5});
-              color: #000000;
-            }
-
             .menu-item {
               display: flex;
               align-items: center;
@@ -259,17 +241,6 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
             .menu-item:active {
               background: ${isDarkBackground ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
               transform: translateX(4px);
-            }
-
-            @keyframes slideUp {
-              from {
-                opacity: 0;
-                transform: translateY(10px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
             }
           `}</style>
         </div>

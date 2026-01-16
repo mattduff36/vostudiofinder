@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import type { GlassCustomization } from '@/types/glass-customization';
+import { useAdaptiveGlassBackground } from '@/hooks/useAdaptiveGlassBackground';
 
 export const DEFAULT_CONFIG = {
   // Match `/glass-nav-test` default look (demo page source of truth)
@@ -62,278 +63,43 @@ export function AdaptiveGlassBubblesNav({
   const shouldDetectBackground =
     config.adaptiveEnabled && (externalIsDarkBackground === undefined || Boolean(onBackgroundChange));
 
-  // Detect background brightness dynamically with debouncing
-  useEffect(() => {
-    if (!navRef.current) return;
-    if (!shouldDetectBackground) return;
-
-    let timeoutId: NodeJS.Timeout;
-    let lastLuminance = 0.5;
-
-    const parseCssColorToRgba = (color: string): { r: number; g: number; b: number; a: number } | null => {
-      const normalized = color.trim().toLowerCase();
-      if (normalized === 'transparent') return null;
-
-      // Most browsers return rgb()/rgba() from computedStyle.backgroundColor
-      const rgbMatch = normalized.match(/^rgba?\((.+)\)$/);
-      if (!rgbMatch) return null;
-
-      const parts = rgbMatch[1]
-        .split(',')
-        .map((p) => p.trim())
-        .filter(Boolean);
-
-      if (parts.length < 3) return null;
-
-      const r = Number(parts[0]);
-      const g = Number(parts[1]);
-      const b = Number(parts[2]);
-      const a = parts.length >= 4 ? Number(parts[3]) : 1;
-
-      if (![r, g, b, a].every((n) => Number.isFinite(n))) return null;
-
-      return { r, g, b, a };
-    };
-
-    const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
-
-    const getLuminanceFromRgb = (r: number, g: number, b: number) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-    const sampleImgLuminanceAtPoint = (img: HTMLImageElement, pointX: number, pointY: number): number | null => {
-      if (!ctx) return null;
-      if (!img.complete || img.naturalWidth <= 0 || img.naturalHeight <= 0) return null;
-
-      const rect = img.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return null;
-      if (pointX < rect.left || pointX > rect.right || pointY < rect.top || pointY > rect.bottom) return null;
-
-      const localX = pointX - rect.left;
-      const localY = pointY - rect.top;
-
-      const computed = window.getComputedStyle(img);
-      const objectFit = computed.objectFit || 'fill';
-
-      const nw = img.naturalWidth;
-      const nh = img.naturalHeight;
-      const w = rect.width;
-      const h = rect.height;
-
-      let scale = 1;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      if (objectFit === 'cover') {
-        scale = Math.max(w / nw, h / nh);
-        offsetX = (w - nw * scale) / 2;
-        offsetY = (h - nh * scale) / 2;
-      } else if (objectFit === 'contain') {
-        scale = Math.min(w / nw, h / nh);
-        offsetX = (w - nw * scale) / 2;
-        offsetY = (h - nh * scale) / 2;
-      } else if (objectFit === 'fill') {
-        // Stretch
-        const sx = nw / w;
-        const sy = nh / h;
-        const srcX = clamp(localX * sx, 0, nw - 1);
-        const srcY = clamp(localY * sy, 0, nh - 1);
-        try {
-          ctx.clearRect(0, 0, 1, 1);
-          ctx.drawImage(img, srcX, srcY, 1, 1, 0, 0, 1, 1);
-          const data = ctx.getImageData(0, 0, 1, 1).data;
-          if (!data || data.length < 3) return null;
-          return getLuminanceFromRgb(data[0], data[1], data[2]);
-        } catch {
-          return null;
-        }
-      }
-
-      // Map displayed pixel back to natural pixel using scale/offset
-      const srcX = clamp((localX - offsetX) / scale, 0, nw - 1);
-      const srcY = clamp((localY - offsetY) / scale, 0, nh - 1);
-
-      try {
-        ctx.clearRect(0, 0, 1, 1);
-        ctx.drawImage(img, srcX, srcY, 1, 1, 0, 0, 1, 1);
-        const data = ctx.getImageData(0, 0, 1, 1).data;
-        if (!data || data.length < 3) return null;
-        return getLuminanceFromRgb(data[0], data[1], data[2]);
-      } catch {
-        // Can fail if the image is cross-origin/tainted
-        return null;
-      }
-    };
-
-    const getLuminanceAtPoint = (x: number, y: number): number | null => {
-      // Skip sampling outside the viewport (elementFromPoint can behave oddly there)
-      if (x < 0 || y < 0 || x > window.innerWidth - 1 || y > window.innerHeight - 1) return null;
-
-      const stack = document.elementsFromPoint(x, y);
-      for (const el of stack) {
-        // Ignore anything inside the nav itself
-        if (navRef.current?.contains(el)) continue;
-
-        const computedStyle = window.getComputedStyle(el);
-        const bgColor = computedStyle.backgroundColor;
-        const rgba = parseCssColorToRgba(bgColor);
-        if (rgba && rgba.a > 0.1) {
-          return getLuminanceFromRgb(rgba.r, rgba.g, rgba.b);
-        }
-
-        // If the element itself is an image, sample the actual rendered pixel
-        if (el instanceof HTMLImageElement) {
-          const lum = sampleImgLuminanceAtPoint(el, x, y);
-          if (lum !== null) return lum;
-        }
-      }
-
-      return null;
-    };
-
-    const detectBackgroundBrightness = () => {
-      if (!navRef.current) return;
-
-      // Get all button elements (glass circles)
+  const getSamplePoints = useMemo(() => {
+    return () => {
+      if (!navRef.current) return [];
       const buttons = navRef.current.querySelectorAll('.adaptive-circle-glass');
-      if (buttons.length === 0) return;
+      if (buttons.length === 0) return [];
 
-      const luminanceValues: number[] = [];
-
-      // Remove old debug markers if they exist
-      if (debugSensors) {
-        document.querySelectorAll('.sensor-debug-marker').forEach(el => el.remove());
-      }
-
-      // Temporarily hide nav to sample background
-      navRef.current.style.pointerEvents = 'none';
-      navRef.current.style.opacity = '0';
-
-      // Sample 4 points around each button's edges
+      const points: Array<{ x: number; y: number; color: string; label: string }> = [];
       buttons.forEach((button) => {
         const rect = button.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
 
-        // 4 sample points around the button edges (top, right, bottom, left)
-        // Positioned just 1px away from button edge for accurate local sampling
-        const samplePoints = [
-          { x: centerX, y: rect.top - 1, color: '#ff0000', label: 'T' },              // Top (red)
-          { x: rect.right + 1, y: centerY, color: '#00ff00', label: 'R' },            // Right (green)
-          { x: centerX, y: rect.bottom + 1, color: '#0000ff', label: 'B' },           // Bottom (blue)
-          { x: rect.left - 1, y: centerY, color: '#ffff00', label: 'L' }              // Left (yellow)
-        ];
-
-        samplePoints.forEach((point) => {
-          // Skip points outside the viewport (can cause false readings)
-          if (
-            point.x < 0 ||
-            point.y < 0 ||
-            point.x > window.innerWidth - 1 ||
-            point.y > window.innerHeight - 1
-          ) {
-            return;
-          }
-
-          // Create visual debug marker if enabled
-          if (debugSensors) {
-            const marker = document.createElement('div');
-            marker.className = 'sensor-debug-marker';
-            marker.style.cssText = `
-              position: fixed;
-              left: ${point.x - 6}px;
-              top: ${point.y - 6}px;
-              width: 12px;
-              height: 12px;
-              background: ${point.color};
-              border: 2px solid white;
-              border-radius: 50%;
-              z-index: 9999;
-              pointer-events: none;
-              box-shadow: 0 0 4px rgba(0,0,0,0.5);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 8px;
-              font-weight: bold;
-              color: white;
-              text-shadow: 0 0 2px black;
-            `;
-            marker.textContent = point.label;
-            document.body.appendChild(marker);
-          }
-
-          const luminance = getLuminanceAtPoint(point.x, point.y);
-          if (luminance !== null) {
-            luminanceValues.push(luminance);
-          }
-        });
+        points.push(
+          { x: centerX, y: rect.top - 1, color: '#ff0000', label: 'T' },
+          { x: rect.right + 1, y: centerY, color: '#00ff00', label: 'R' },
+          { x: centerX, y: rect.bottom + 1, color: '#0000ff', label: 'B' },
+          { x: rect.left - 1, y: centerY, color: '#ffff00', label: 'L' },
+        );
       });
 
-      // Restore nav visibility
-      navRef.current.style.pointerEvents = '';
-      navRef.current.style.opacity = '';
-
-      // Calculate average luminance from all samples
-      if (luminanceValues.length > 0) {
-        const avgLuminance = luminanceValues.reduce((a, b) => a + b, 0) / luminanceValues.length;
-
-        // Add hysteresis to prevent flashing
-        const threshold = 0.15;
-        if (Math.abs(avgLuminance - lastLuminance) > threshold) {
-          lastLuminance = avgLuminance;
-          const isDark = avgLuminance < config.luminanceThreshold;
-          if (externalIsDarkBackground === undefined) {
-            setInternalIsDarkBackground(isDark);
-          }
-          onBackgroundChange?.(isDark);
-        }
-      }
+      return points;
     };
+  }, []);
 
-    // Initial detection with delay
-    const initialTimeout = setTimeout(detectBackgroundBrightness, 100);
-
-    // Debounced scroll handler
-    const handleScroll = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        requestAnimationFrame(detectBackgroundBrightness);
-      }, 150);
-    };
-
-    // Debounced resize handler
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        requestAnimationFrame(detectBackgroundBrightness);
-      }, 200);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleResize);
-    
-    // Check every 2 seconds
-    const interval = setInterval(detectBackgroundBrightness, 2000);
-
-    return () => {
-      clearTimeout(initialTimeout);
-      clearTimeout(timeoutId);
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleResize);
-      clearInterval(interval);
-    };
-  }, [
-    config.adaptiveEnabled,
-    config.luminanceThreshold,
-    externalIsDarkBackground,
-    onBackgroundChange,
+  useAdaptiveGlassBackground({
+    enabled: shouldDetectBackground,
+    luminanceThreshold: config.luminanceThreshold,
+    getSamplePoints,
+    ignoreElement: () => navRef.current,
     debugSensors,
-    shouldDetectBackground,
-  ]);
+    onChange: (nextIsDark) => {
+      if (externalIsDarkBackground === undefined) {
+        setInternalIsDarkBackground(nextIsDark);
+      }
+      onBackgroundChange?.(nextIsDark);
+    },
+  });
 
   return (
     <>
