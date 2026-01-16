@@ -372,7 +372,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-col items-center gap-2 group"
+                className="flex flex-col items-center group"
               >
                 {/* Circular glass bubble for icon */}
                 <div 
@@ -384,8 +384,8 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
                 >
                   <Icon className="w-6 h-6" />
                 </div>
-                {/* Pill/badge glass for label */}
-                <span 
+                {/* SAVED STYLING - Pill/badge glass for label (hidden, uncomment to restore) */}
+                {/* <span 
                   className={`adaptive-pill-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
                   style={{
                     padding: `${config.pillPaddingY}px ${config.pillPaddingX}px`,
@@ -393,12 +393,12 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
                   }}
                 >
                   {item.label}
-                </span>
+                </span> */}
               </Link>
             );
           })}
 
-          <button onClick={onMenuClick} className="flex flex-col items-center gap-2 group">
+          <button onClick={onMenuClick} className="flex flex-col items-center group">
             {/* Circular glass bubble for icon */}
             <div 
               className={`adaptive-circle-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
@@ -409,8 +409,8 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
             >
               <Menu className="w-6 h-6" />
             </div>
-            {/* Pill/badge glass for label */}
-            <span 
+            {/* SAVED STYLING - Pill/badge glass for label (hidden, uncomment to restore) */}
+            {/* <span 
               className={`adaptive-pill-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
               style={{
                 padding: `${config.pillPaddingY}px ${config.pillPaddingX}px`,
@@ -418,7 +418,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
               }}
             >
               Menu
-            </span>
+            </span> */}
           </button>
         </div>
       </div>
@@ -501,8 +501,11 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
             inset 0 0 60px rgba(212, 32, 39, 0.15);
         }
 
-        /* PILL/BADGE GLASS - For labels only */
-        .adaptive-pill-glass {
+        /* ==================== SAVED STYLING - PILL/BADGE GLASS ====================
+           Uncomment this entire section to restore text labels under buttons
+           ======================================================================== */
+        
+        /* .adaptive-pill-glass {
           display: inline-block;
           border-radius: 16px;
           
@@ -565,7 +568,6 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
           transform: scale(0.98);
         }
 
-        /* Active state pill with red accent */
         .adaptive-pill-glass.active {
           background: color-mix(in srgb, rgba(212, 32, 39, 0.25) 60%, Canvas 40%);
           color: #d42027;
@@ -578,13 +580,14 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
             0 2px 8px rgba(212, 32, 39, 0.12),
             inset 0 1px 2px rgba(255, 255, 255, 0.3),
             inset 0 0 40px rgba(212, 32, 39, 0.15);
-        }
+        } */
+
+        /* ==================== END SAVED PILL/BADGE STYLING ==================== */
 
         /* DYNAMIC ADAPTATION - Based on actual background brightness */
         
         /* Dark background detected - Use lighter, brighter glass */
-        .adaptive-circle-glass.dark-bg,
-        .adaptive-pill-glass.dark-bg {
+        .adaptive-circle-glass.dark-bg {
           background: rgba(255, 255, 255, 0.12);
           backdrop-filter: blur(calc(var(--glass-blur, 40px) + 4px)) saturate(var(--glass-saturation, 200%)) brightness(1.4) contrast(0.75);
           -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 4px)) saturate(var(--glass-saturation, 200%)) brightness(1.4) contrast(0.75);
@@ -597,8 +600,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
             inset 0 0 60px rgba(255, 255, 255, 0.1);
         }
         
-        .group:hover .adaptive-circle-glass.dark-bg,
-        .group:hover .adaptive-pill-glass.dark-bg {
+        .group:hover .adaptive-circle-glass.dark-bg {
           background: rgba(255, 255, 255, 0.18);
           backdrop-filter: blur(calc(var(--glass-blur, 40px) + 12px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(1.5) contrast(0.7);
           -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 12px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(1.5) contrast(0.7);
@@ -610,8 +612,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
             inset 0 0 80px rgba(255, 255, 255, 0.15);
         }
 
-        .adaptive-circle-glass.dark-bg::before,
-        .adaptive-pill-glass.dark-bg::before {
+        .adaptive-circle-glass.dark-bg::before {
           background: radial-gradient(
             circle at 50% 0%,
             rgba(255, 255, 255, 0.25),
@@ -621,8 +622,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
         }
 
         /* Light background detected - Use darker, more subtle glass */
-        .adaptive-circle-glass.light-bg,
-        .adaptive-pill-glass.light-bg {
+        .adaptive-circle-glass.light-bg {
           background: rgba(0, 0, 0, 0.08);
           backdrop-filter: blur(calc(var(--glass-blur, 40px) - 2px)) saturate(var(--glass-saturation, 200%)) brightness(0.95) contrast(1.1);
           -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) - 2px)) saturate(var(--glass-saturation, 200%)) brightness(0.95) contrast(1.1);
@@ -635,8 +635,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
             inset 0 0 60px rgba(0, 0, 0, 0.03);
         }
         
-        .group:hover .adaptive-circle-glass.light-bg,
-        .group:hover .adaptive-pill-glass.light-bg {
+        .group:hover .adaptive-circle-glass.light-bg {
           background: rgba(0, 0, 0, 0.12);
           backdrop-filter: blur(calc(var(--glass-blur, 40px) + 6px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(0.92) contrast(1.15);
           -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 6px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(0.92) contrast(1.15);
@@ -648,8 +647,7 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
             inset 0 0 80px rgba(0, 0, 0, 0.05);
         }
 
-        .adaptive-circle-glass.light-bg::before,
-        .adaptive-pill-glass.light-bg::before {
+        .adaptive-circle-glass.light-bg::before {
           background: radial-gradient(
             circle at 50% 0%,
             rgba(0, 0, 0, 0.08),
