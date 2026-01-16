@@ -20,9 +20,12 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
   const [isDarkBackground, setIsDarkBackground] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
 
-  // Detect background brightness dynamically
+  // Detect background brightness dynamically with debouncing
   useEffect(() => {
     if (!navRef.current) return;
+
+    let timeoutId: NodeJS.Timeout;
+    let lastLuminance = 0.5;
 
     const detectBackgroundBrightness = () => {
       if (!navRef.current) return;
@@ -33,9 +36,11 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
       const y = rect.top + rect.height / 2;
 
       // Temporarily hide nav to sample background
-      navRef.current.style.visibility = 'hidden';
+      navRef.current.style.pointerEvents = 'none';
+      navRef.current.style.opacity = '0';
       const elementBehind = document.elementFromPoint(x, y);
-      navRef.current.style.visibility = 'visible';
+      navRef.current.style.pointerEvents = '';
+      navRef.current.style.opacity = '';
 
       if (elementBehind) {
         const computedStyle = window.getComputedStyle(elementBehind);
@@ -50,29 +55,48 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick }: AdaptiveGlassNa
           const b = parseInt(rgb[2]);
           const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
-          // If luminance < 0.5, it's a dark background
-          setIsDarkBackground(luminance < 0.5);
+          // Add hysteresis to prevent flashing
+          // Only change if luminance differs significantly from last reading
+          const threshold = 0.15;
+          if (Math.abs(luminance - lastLuminance) > threshold) {
+            lastLuminance = luminance;
+            // Use 0.4 and 0.6 as thresholds instead of 0.5 for more stability
+            setIsDarkBackground(luminance < 0.4);
+          }
         }
       }
     };
 
-    // Initial detection
-    detectBackgroundBrightness();
+    // Initial detection with delay
+    const initialTimeout = setTimeout(detectBackgroundBrightness, 100);
 
-    // Re-detect on scroll, resize, or any layout changes
-    const handleUpdate = () => {
-      requestAnimationFrame(detectBackgroundBrightness);
+    // Debounced scroll handler
+    const handleScroll = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        requestAnimationFrame(detectBackgroundBrightness);
+      }, 150);
     };
 
-    window.addEventListener('scroll', handleUpdate, { passive: true });
-    window.addEventListener('resize', handleUpdate);
+    // Debounced resize handler
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        requestAnimationFrame(detectBackgroundBrightness);
+      }, 200);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleResize);
     
-    // Also check periodically for dynamic background changes
-    const interval = setInterval(detectBackgroundBrightness, 500);
+    // Check less frequently - every 2 seconds instead of 500ms
+    const interval = setInterval(detectBackgroundBrightness, 2000);
 
     return () => {
-      window.removeEventListener('scroll', handleUpdate);
-      window.removeEventListener('resize', handleUpdate);
+      clearTimeout(initialTimeout);
+      clearTimeout(timeoutId);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
       clearInterval(interval);
     };
   }, []);
