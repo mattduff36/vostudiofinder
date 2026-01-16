@@ -372,7 +372,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
             </div>
           </div>
 
-          <style jsx>{`
+          <style jsx global>{`
             .glass-menu {
               border-radius: 16px;
               background: rgba(128, 128, 128, ${config.backgroundOpacity * 3});
