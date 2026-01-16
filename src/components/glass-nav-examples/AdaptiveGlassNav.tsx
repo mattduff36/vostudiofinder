@@ -15,24 +15,24 @@ interface AdaptiveGlassNavProps {
 }
 
 const DEFAULT_CONFIG = {
-  blur: 40,
-  saturation: 200,
-  brightness: 1.15,
-  contrast: 0.85,
-  backgroundOpacity: 0.45,
-  borderWidth: 0.5,
-  borderOpacity: 0.3,
-  circleSize: 56,
+  blur: 2,
+  saturation: 100,
+  brightness: 1.65,
+  contrast: 1.2,
+  backgroundOpacity: 0.35,
+  borderWidth: 2,
+  borderOpacity: 1,
+  circleSize: 60,
   pillPaddingX: 12,
   pillPaddingY: 6,
   fontSize: 11,
-  shadowIntensity: 0.15,
-  shadowSpread: 40,
+  shadowIntensity: 0,
+  shadowSpread: 0,
   hoverLift: 4,
   hoverScale: 1.08,
   adaptiveEnabled: true,
-  darkBrightness: 1.4,
-  lightBrightness: 0.95,
+  darkBrightness: 1.35,
+  lightBrightness: 0.8,
   luminanceThreshold: 0.4,
 };
 
@@ -630,8 +630,8 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
           background: rgba(255, 255, 255, 0.12);
           backdrop-filter: blur(calc(var(--glass-blur, 40px) + 4px)) saturate(var(--glass-saturation, 200%)) brightness(1.4) contrast(0.75);
           -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 4px)) saturate(var(--glass-saturation, 200%)) brightness(1.4) contrast(0.75);
-          color: rgba(255, 255, 255, 0.95);
-          border-color: rgba(255, 255, 255, 0.3);
+          color: #ffffff !important;
+          border-color: #ffffff !important;
           box-shadow: 
             0 calc(var(--glass-shadow-spread, 40px) / 3.33) var(--glass-shadow-spread, 40px) rgba(0, 0, 0, 0.3),
             0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 2.5) rgba(0, 0, 0, 0.2),
@@ -643,7 +643,8 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
           background: rgba(255, 255, 255, 0.18);
           backdrop-filter: blur(calc(var(--glass-blur, 40px) + 12px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(1.5) contrast(0.7);
           -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 12px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(1.5) contrast(0.7);
-          border-color: rgba(255, 255, 255, 0.4);
+          color: #ffffff !important;
+          border-color: #ffffff !important;
           box-shadow: 
             0 calc(var(--glass-shadow-spread, 40px) / 2.5) calc(var(--glass-shadow-spread, 40px) * 1.25) rgba(0, 0, 0, 0.35),
             0 calc(var(--glass-shadow-spread, 40px) / 6.67) calc(var(--glass-shadow-spread, 40px) / 2) rgba(0, 0, 0, 0.25),
@@ -665,8 +666,8 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
           background: rgba(0, 0, 0, 0.08);
           backdrop-filter: blur(calc(var(--glass-blur, 40px) - 2px)) saturate(var(--glass-saturation, 200%)) brightness(0.95) contrast(1.1);
           -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) - 2px)) saturate(var(--glass-saturation, 200%)) brightness(0.95) contrast(1.1);
-          color: rgba(0, 0, 0, 0.85);
-          border-color: rgba(0, 0, 0, 0.2);
+          color: #000000 !important;
+          border-color: #000000 !important;
           box-shadow: 
             0 calc(var(--glass-shadow-spread, 40px) / 3.33) var(--glass-shadow-spread, 40px) rgba(0, 0, 0, 0.08),
             0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 2.5) rgba(0, 0, 0, 0.05),
@@ -678,7 +679,8 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
           background: rgba(0, 0, 0, 0.12);
           backdrop-filter: blur(calc(var(--glass-blur, 40px) + 6px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(0.92) contrast(1.15);
           -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 6px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(0.92) contrast(1.15);
-          border-color: rgba(0, 0, 0, 0.25);
+          color: #000000 !important;
+          border-color: #000000 !important;
           box-shadow: 
             0 calc(var(--glass-shadow-spread, 40px) / 2.5) calc(var(--glass-shadow-spread, 40px) * 1.25) rgba(0, 0, 0, 0.12),
             0 calc(var(--glass-shadow-spread, 40px) / 6.67) calc(var(--glass-shadow-spread, 40px) / 2) rgba(0, 0, 0, 0.08),
