@@ -22,7 +22,7 @@ const DEFAULT_CONFIG = {
   backgroundOpacity: 0.35,
   borderWidth: 2,
   borderOpacity: 1,
-  circleSize: 60,
+  circleSize: 56,
   pillPaddingX: 12,
   pillPaddingY: 6,
   fontSize: 11,
@@ -31,9 +31,9 @@ const DEFAULT_CONFIG = {
   hoverLift: 4,
   hoverScale: 1.08,
   adaptiveEnabled: true,
-  darkBrightness: 1.35,
+  darkBrightness: 2,
   lightBrightness: 0.8,
-  luminanceThreshold: 0.4,
+  luminanceThreshold: 0.15,
 };
 
 export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: AdaptiveGlassNavProps) {
@@ -524,6 +524,13 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
 
         .group:active .adaptive-circle-glass {
           transform: translateY(-1px) scale(0.98);
+        }
+
+        /* Force SVG icons to inherit the button color */
+        .adaptive-circle-glass svg {
+          color: inherit !important;
+          stroke: currentColor !important;
+          fill: currentColor !important;
         }
 
         /* Active state circle with red accent */
