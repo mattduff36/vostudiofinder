@@ -55,10 +55,11 @@ export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: 
     const detectBackgroundBrightness = () => {
       if (!navRef.current) return;
 
-      // Get the element behind the nav
+      // Sample from ABOVE the nav buttons to get the actual page background
+      // Not from the center which might be over the control panel
       const rect = navRef.current.getBoundingClientRect();
       const x = rect.left + rect.width / 2;
-      const y = rect.top + rect.height / 2;
+      const y = rect.top - 20; // 20px above the nav buttons
 
       // Temporarily hide nav to sample background
       navRef.current.style.pointerEvents = 'none';
