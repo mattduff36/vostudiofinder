@@ -15,12 +15,12 @@ interface AdaptiveGlassNavProps {
 }
 
 const DEFAULT_CONFIG = {
-  blur: 2,
+  blur: 5,
   saturation: 100,
-  brightness: 1.65,
-  contrast: 1.2,
-  backgroundOpacity: 0.35,
-  borderWidth: 2,
+  brightness: 1.15,
+  contrast: 1.05,
+  backgroundOpacity: 0.05,
+  borderWidth: 1,
   borderOpacity: 1,
   circleSize: 56,
   pillPaddingX: 12,
@@ -31,9 +31,9 @@ const DEFAULT_CONFIG = {
   hoverLift: 4,
   hoverScale: 1.08,
   adaptiveEnabled: true,
-  darkBrightness: 2,
-  lightBrightness: 0.8,
-  luminanceThreshold: 0.15,
+  darkBrightness: 1.15,
+  lightBrightness: 0.95,
+  luminanceThreshold: 0.4,
 };
 
 export function AdaptiveGlassNav({ mode, session, onMenuClick, customization }: AdaptiveGlassNavProps) {
