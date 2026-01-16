@@ -249,16 +249,24 @@ async function enrichProfile(
       if (normalized !== currentValue) {
         // Handle twitter -> x migration
         if (field === 'twitter_url' && normalized.includes('x.com')) {
-          suggestions.push({
-            audit_finding_id: finding.id,
-            field_name: 'x_url',
-            current_value: null,
-            suggested_value: normalized,
-            confidence: 'HIGH',
-            evidence_url: null,
-            evidence_type: 'url_normalization',
-          });
-          console.log(`    ✅ Migrate twitter_url to x_url: ${normalized}`);
+          const existingXUrl = studioProfile.x_url;
+          
+          // Only suggest migration if x_url is empty OR if it matches the normalized twitter URL
+          if (!existingXUrl || existingXUrl === normalized || existingXUrl === currentValue) {
+            suggestions.push({
+              audit_finding_id: finding.id,
+              field_name: 'x_url',
+              current_value: existingXUrl || null,
+              suggested_value: normalized,
+              confidence: 'HIGH',
+              evidence_url: null,
+              evidence_type: 'url_normalization',
+            });
+            console.log(`    ✅ Migrate twitter_url to x_url: ${normalized}`);
+          } else {
+            // x_url already exists with a different value - don't overwrite
+            console.log(`    ⚠️  Skipping twitter_url migration - x_url already set to: ${existingXUrl}`);
+          }
         } else {
           suggestions.push({
             audit_finding_id: finding.id,

@@ -652,6 +652,7 @@ export async function GET(request: NextRequest) {
           name: true,
           latitude: true,
           longitude: true,
+          show_exact_location: true,
           studio_studio_types: {
             select: {
               studio_type: true,

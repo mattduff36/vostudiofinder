@@ -166,7 +166,7 @@ This enquiry was sent via VoiceoverStudioFinder.com
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.errors[0].message },
+        { error: error.issues[0]?.message || 'Validation error' },
         { status: 400 }
       );
     }
