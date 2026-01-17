@@ -23,6 +23,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkBackground, setIsDarkBackground] = useState(false);
   const [tappedButton, setTappedButton] = useState<string | null>(null);
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const signinPath = '/auth/signin';
   const signupPath = '/auth/signup';
   const aboutPath = '/about';
@@ -32,6 +33,20 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     session?.user?.email === 'admin@mpdee.co.uk' ||
     session?.user?.username === 'VoiceoverGuy' ||
     session?.user?.role === 'ADMIN';
+
+  // Monitor fullscreen map state (iOS/Android map fullscreen)
+  useEffect(() => {
+    const checkFullscreen = () => {
+      setIsMapFullscreen(document.documentElement.hasAttribute('data-map-fullscreen'));
+    };
+    checkFullscreen();
+    const observer = new MutationObserver(checkFullscreen);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-map-fullscreen']
+    });
+    return () => observer.disconnect();
+  }, []);
 
   // Prevent body scroll when menu is open
   useEffect(() => {
@@ -126,7 +141,9 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   return (
     <>
       <nav
-        className="fixed bottom-0 left-0 right-0 md:hidden z-50"
+        className={`fixed bottom-0 left-0 right-0 md:hidden z-50 ${
+          isMapFullscreen ? 'hidden' : ''
+        } [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden`}
         role="navigation"
         aria-label="Mobile navigation"
         style={{
