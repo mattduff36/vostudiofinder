@@ -149,10 +149,19 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     const trimmed = rawUrl.trim();
     if (!trimmed) return '';
 
-    // If user already included a scheme, keep it.
-    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    // Check if URL has ANY scheme (protocol): word characters followed by ://
+    const hasScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//i.test(trimmed);
+    
+    if (hasScheme) {
+      // If it has a scheme, only accept http:// or https://
+      if (/^https?:\/\//i.test(trimmed)) {
+        return trimmed;
+      }
+      // Reject URLs with unsupported schemes (ftp://, file://, mailto:, etc.)
+      return '';
+    }
 
-    // Allow scheme-less input like "facebook.com/user" or "www.facebook.com/user"
+    // No scheme detected, prepend https://
     return `https://${trimmed}`;
   };
 
