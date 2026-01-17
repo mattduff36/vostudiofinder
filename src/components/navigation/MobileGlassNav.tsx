@@ -33,6 +33,18 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     session?.user?.username === 'VoiceoverGuy' ||
     session?.user?.role === 'ADMIN';
 
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
+
   // Mirror the desktop "ADMIN / EDIT" buttons behavior for mobile.
   useEffect(() => {
     if (!isAdminUser) return;
@@ -135,11 +147,12 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       {/* Expanding Menu */}
       {isMenuOpen && (
         <div
-          className="fixed inset-0 z-40 md:hidden"
+          className="fixed inset-0 z-[200] md:hidden pointer-events-auto"
           onClick={() => setIsMenuOpen(false)}
+          style={{ touchAction: 'none' }}
         >
           <AdaptiveGlassMenu
-            className="absolute bottom-20 right-4 w-64"
+            className="absolute bottom-20 right-4 w-64 pointer-events-auto"
             config={DEFAULT_CONFIG}
             debugSensors={false}
             onBackgroundChange={setIsDarkBackground}
