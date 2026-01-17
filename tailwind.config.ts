@@ -10,6 +10,8 @@ const config: Config = {
     extend: {
       screens: {
         'xs': '375px',
+        // Tablet uses burger menu up to 1080px
+        'desktop': '1080px',
       },
       colors: {
         // Original VoiceoverStudioFinder color scheme

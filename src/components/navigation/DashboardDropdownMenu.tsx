@@ -10,12 +10,14 @@ interface DashboardDropdownMenuProps {
   username: string;
   isScrolled: boolean;
   isHomePage: boolean;
+  includeSiteLinks?: boolean;
 }
 
 export function DashboardDropdownMenu({ 
   username, 
   isScrolled, 
-  isHomePage 
+  isHomePage,
+  includeSiteLinks = false,
 }: DashboardDropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentHash, setCurrentHash] = useState('');
@@ -35,7 +37,7 @@ export function DashboardDropdownMenu({
         const response = await fetch('/api/user/profile');
         if (response.ok) {
           const data = await response.json();
-          setIsVisible(data.studio?.is_profile_visible ?? false);
+          setIsVisible(data?.data?.studio?.is_profile_visible ?? false);
         }
       } catch (error) {
         console.error('Error fetching profile visibility:', error);
@@ -45,6 +47,18 @@ export function DashboardDropdownMenu({
     };
 
     fetchProfileVisibility();
+  }, []);
+
+  // Keep in sync if another component toggles visibility
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const customEvent = event as CustomEvent<{ isVisible: boolean }>;
+      if (customEvent?.detail && typeof customEvent.detail.isVisible === 'boolean') {
+        setIsVisible(customEvent.detail.isVisible);
+      }
+    };
+    window.addEventListener('profile-visibility-changed', handler as EventListener);
+    return () => window.removeEventListener('profile-visibility-changed', handler as EventListener);
   }, []);
 
   const handleToggleVisibility = async () => {
@@ -185,6 +199,27 @@ export function DashboardDropdownMenu({
     },
   ];
 
+  const siteItems = includeSiteLinks ? [
+    {
+      icon: Home,
+      label: 'Home',
+      path: '/',
+      active: pathname === '/',
+    },
+    {
+      icon: Home,
+      label: 'Browse Studios',
+      path: '/studios',
+      active: pathname === '/studios',
+    },
+    {
+      icon: Home,
+      label: 'About Us',
+      path: '/about',
+      active: pathname === '/about',
+    },
+  ] : [];
+
   return (
     <div className="relative" ref={dropdownRef}>
       <Button
@@ -214,6 +249,31 @@ export function DashboardDropdownMenu({
           role="menu"
           aria-orientation="vertical"
         >
+          {siteItems.length > 0 && (
+            <>
+              {siteItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    type="button"
+                    key={item.path}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+                      item.active
+                        ? 'bg-red-50 text-red-600 font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                    role="menuitem"
+                  >
+                    <Icon className="w-4 h-4" aria-hidden="true" />
+                    {item.label}
+                  </button>
+                );
+              })}
+              <div className="my-2 border-t border-gray-200" role="separator" />
+            </>
+          )}
+
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -273,7 +333,7 @@ export function DashboardDropdownMenu({
             ) : (
               <EyeOff className="w-4 h-4 text-gray-600" aria-hidden="true" />
             )}
-            {isVisible ? 'Hide Profile' : 'Make Profile Visible'}
+            {loadingVisibility ? 'Checking visibility...' : isVisible ? 'Hide Profile' : 'Make Profile Visible'}
           </button>
 
           {/* Settings */}

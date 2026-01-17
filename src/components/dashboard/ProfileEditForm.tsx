@@ -145,11 +145,23 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   });
 
   // Social media URL validation functions
+  const normalizeSocialMediaUrl = (rawUrl: string): string => {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return '';
+
+    // If user already included a scheme, keep it.
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+    // Allow scheme-less input like "facebook.com/user" or "www.facebook.com/user"
+    return `https://${trimmed}`;
+  };
+
   const validateSocialMediaUrl = (url: string, platform: string): string => {
     if (!url || url.trim() === '') return '';
     
     try {
-      const urlObj = new URL(url);
+      const normalizedUrl = normalizeSocialMediaUrl(url);
+      const urlObj = new URL(normalizedUrl);
       const hostname = urlObj.hostname.toLowerCase().replace('www.', '');
       
       const platformPatterns: { [key: string]: string[] } = {
@@ -395,10 +407,26 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
       setSaving(true);
 
+      // Normalize social URLs for storage (standardize to https://...).
+      const profileToSave: ProfileData = {
+        ...profile,
+        profile: {
+          ...profile.profile,
+          facebook_url: normalizeSocialMediaUrl(profile.profile.facebook_url || ''),
+          x_url: normalizeSocialMediaUrl(profile.profile.x_url || ''),
+          youtube_url: normalizeSocialMediaUrl(profile.profile.youtube_url || ''),
+          instagram_url: normalizeSocialMediaUrl(profile.profile.instagram_url || ''),
+          soundcloud_url: normalizeSocialMediaUrl(profile.profile.soundcloud_url || ''),
+          tiktok_url: normalizeSocialMediaUrl(profile.profile.tiktok_url || ''),
+          linkedin_url: normalizeSocialMediaUrl(profile.profile.linkedin_url || ''),
+          threads_url: normalizeSocialMediaUrl(profile.profile.threads_url || ''),
+        },
+      };
+
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profile),
+        body: JSON.stringify(profileToSave),
       });
 
       if (!response.ok) {
@@ -797,10 +825,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.facebook_url || ''}
                 onChange={(e) => handleSocialMediaChange('facebook_url', e.target.value)}
                 onBlur={(e) => {
-                  const error = validateSocialMediaUrl(e.target.value, 'facebook_url');
+                  const normalized = normalizeSocialMediaUrl(e.target.value);
+                  if (normalized && normalized !== e.target.value) {
+                    updateProfile('facebook_url', normalized);
+                  }
+                  const error = validateSocialMediaUrl(normalized || e.target.value, 'facebook_url');
                   setSocialMediaErrors(prev => ({ ...prev, facebook_url: error }));
                 }}
-                placeholder="https://facebook.com/your-page"
+                placeholder="facebook.com/your-page"
                 helperText="Your Facebook page or profile"
                 {...(socialMediaErrors.facebook_url && { error: socialMediaErrors.facebook_url })}
               />
@@ -810,10 +842,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.x_url || ''}
                 onChange={(e) => handleSocialMediaChange('x_url', e.target.value)}
                 onBlur={(e) => {
-                  const error = validateSocialMediaUrl(e.target.value, 'x_url');
+                  const normalized = normalizeSocialMediaUrl(e.target.value);
+                  if (normalized && normalized !== e.target.value) {
+                    updateProfile('x_url', normalized);
+                  }
+                  const error = validateSocialMediaUrl(normalized || e.target.value, 'x_url');
                   setSocialMediaErrors(prev => ({ ...prev, x_url: error }));
                 }}
-                placeholder="https://x.com/yourhandle"
+                placeholder="x.com/yourhandle"
                 helperText="Your X (Twitter) profile"
                 {...(socialMediaErrors.x_url && { error: socialMediaErrors.x_url })}
               />
@@ -823,10 +859,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.youtube_url || ''}
                 onChange={(e) => handleSocialMediaChange('youtube_url', e.target.value)}
                 onBlur={(e) => {
-                  const error = validateSocialMediaUrl(e.target.value, 'youtube_url');
+                  const normalized = normalizeSocialMediaUrl(e.target.value);
+                  if (normalized && normalized !== e.target.value) {
+                    updateProfile('youtube_url', normalized);
+                  }
+                  const error = validateSocialMediaUrl(normalized || e.target.value, 'youtube_url');
                   setSocialMediaErrors(prev => ({ ...prev, youtube_url: error }));
                 }}
-                placeholder="https://youtube.com/@yourchannel"
+                placeholder="youtube.com/@yourchannel"
                 helperText="Your YouTube channel"
                 {...(socialMediaErrors.youtube_url && { error: socialMediaErrors.youtube_url })}
               />
@@ -836,10 +876,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.instagram_url || ''}
                 onChange={(e) => handleSocialMediaChange('instagram_url', e.target.value)}
                 onBlur={(e) => {
-                  const error = validateSocialMediaUrl(e.target.value, 'instagram_url');
+                  const normalized = normalizeSocialMediaUrl(e.target.value);
+                  if (normalized && normalized !== e.target.value) {
+                    updateProfile('instagram_url', normalized);
+                  }
+                  const error = validateSocialMediaUrl(normalized || e.target.value, 'instagram_url');
                   setSocialMediaErrors(prev => ({ ...prev, instagram_url: error }));
                 }}
-                placeholder="https://instagram.com/yourhandle"
+                placeholder="instagram.com/yourhandle"
                 helperText="Your Instagram profile"
                 {...(socialMediaErrors.instagram_url && { error: socialMediaErrors.instagram_url })}
               />
@@ -849,10 +893,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.soundcloud_url || ''}
                 onChange={(e) => handleSocialMediaChange('soundcloud_url', e.target.value)}
                 onBlur={(e) => {
-                  const error = validateSocialMediaUrl(e.target.value, 'soundcloud_url');
+                  const normalized = normalizeSocialMediaUrl(e.target.value);
+                  if (normalized && normalized !== e.target.value) {
+                    updateProfile('soundcloud_url', normalized);
+                  }
+                  const error = validateSocialMediaUrl(normalized || e.target.value, 'soundcloud_url');
                   setSocialMediaErrors(prev => ({ ...prev, soundcloud_url: error }));
                 }}
-                placeholder="https://soundcloud.com/yourprofile"
+                placeholder="soundcloud.com/yourprofile"
                 helperText="Your SoundCloud profile"
                 {...(socialMediaErrors.soundcloud_url && { error: socialMediaErrors.soundcloud_url })}
               />
@@ -862,10 +910,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.tiktok_url || ''}
                 onChange={(e) => handleSocialMediaChange('tiktok_url', e.target.value)}
                 onBlur={(e) => {
-                  const error = validateSocialMediaUrl(e.target.value, 'tiktok_url');
+                  const normalized = normalizeSocialMediaUrl(e.target.value);
+                  if (normalized && normalized !== e.target.value) {
+                    updateProfile('tiktok_url', normalized);
+                  }
+                  const error = validateSocialMediaUrl(normalized || e.target.value, 'tiktok_url');
                   setSocialMediaErrors(prev => ({ ...prev, tiktok_url: error }));
                 }}
-                placeholder="https://www.tiktok.com/@yourhandle"
+                placeholder="tiktok.com/@yourhandle"
                 helperText="Your TikTok profile"
                 {...(socialMediaErrors.tiktok_url && { error: socialMediaErrors.tiktok_url })}
               />
@@ -875,10 +927,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.linkedin_url || ''}
                 onChange={(e) => handleSocialMediaChange('linkedin_url', e.target.value)}
                 onBlur={(e) => {
-                  const error = validateSocialMediaUrl(e.target.value, 'linkedin_url');
+                  const normalized = normalizeSocialMediaUrl(e.target.value);
+                  if (normalized && normalized !== e.target.value) {
+                    updateProfile('linkedin_url', normalized);
+                  }
+                  const error = validateSocialMediaUrl(normalized || e.target.value, 'linkedin_url');
                   setSocialMediaErrors(prev => ({ ...prev, linkedin_url: error }));
                 }}
-                placeholder="https://linkedin.com/in/yourprofile"
+                placeholder="linkedin.com/in/yourprofile"
                 helperText="Your LinkedIn profile"
                 {...(socialMediaErrors.linkedin_url && { error: socialMediaErrors.linkedin_url })}
               />
@@ -888,10 +944,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.threads_url || ''}
                 onChange={(e) => handleSocialMediaChange('threads_url', e.target.value)}
                 onBlur={(e) => {
-                  const error = validateSocialMediaUrl(e.target.value, 'threads_url');
+                  const normalized = normalizeSocialMediaUrl(e.target.value);
+                  if (normalized && normalized !== e.target.value) {
+                    updateProfile('threads_url', normalized);
+                  }
+                  const error = validateSocialMediaUrl(normalized || e.target.value, 'threads_url');
                   setSocialMediaErrors(prev => ({ ...prev, threads_url: error }));
                 }}
-                placeholder="https://www.threads.net/@yourhandle"
+                placeholder="threads.net/@yourhandle"
                 helperText="Your Threads profile"
                 {...(socialMediaErrors.threads_url && { error: socialMediaErrors.threads_url })}
               />

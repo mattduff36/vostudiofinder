@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { colors } from '../home/HomePage';
 import { SITE_NAME } from '@/lib/seo/site';
 import { DashboardDropdownMenu } from './DashboardDropdownMenu';
+import { PublicDropdownMenu } from './PublicDropdownMenu';
 
 interface NavbarProps {
   session: Session | null;
@@ -164,7 +165,7 @@ export function Navbar({ session }: NavbarProps) {
           </Link>
           
           {/* Desktop Navigation - Flex centered */}
-          <div className="hidden md:flex items-center space-x-8 flex-1 justify-center">
+          <div className="hidden desktop:flex items-center space-x-8 flex-1 justify-center">
             <Link 
               href="/studios" 
               className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
@@ -214,7 +215,7 @@ export function Navbar({ session }: NavbarProps) {
           </div>
           
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4 flex-shrink-0">
+          <div className="hidden desktop:flex items-center space-x-4 flex-shrink-0">
             {session ? (
               <>
                 <span className={`text-sm ${
@@ -263,6 +264,23 @@ export function Navbar({ session }: NavbarProps) {
             )}
           </div>
 
+          {/* Tablet Menu (768px-1079px): put top nav links inside burger */}
+          <div className="hidden md:flex desktop:hidden items-center gap-3 flex-shrink-0">
+            {session ? (
+              <DashboardDropdownMenu
+                username={session.user.username || ''}
+                isScrolled={isScrolled}
+                isHomePage={isHomePage}
+                includeSiteLinks={true}
+              />
+            ) : (
+              <PublicDropdownMenu
+                isScrolled={isScrolled}
+                isHomePage={isHomePage}
+              />
+            )}
+          </div>
+
           {/* Mobile Sign In/Out Button */}
           {session ? (
             <button
@@ -292,7 +310,7 @@ export function Navbar({ session }: NavbarProps) {
     
     {/* Admin Buttons - Positioned below nav bar on right side */}
     {(session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN') && (
-      <div className={`hidden md:flex fixed top-[72px] right-6 z-[99] items-center gap-0 bg-black rounded-md text-white text-xs font-medium shadow-lg [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${isMapFullscreen ? 'hidden' : ''}`}>
+      <div className={`hidden desktop:flex fixed top-[72px] right-6 z-[99] items-center gap-0 bg-black rounded-md text-white text-xs font-medium shadow-lg [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${isMapFullscreen ? 'hidden' : ''}`}>
         {showEditButton && (
           <>
             <button
