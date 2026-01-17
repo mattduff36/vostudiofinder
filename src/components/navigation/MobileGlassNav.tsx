@@ -78,7 +78,8 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
 
   // Hide on specific pages
   // Keep hidden on the demo page to avoid double-nav rendering.
-  if (pathname === '/glass-nav-test') {
+  // Hide on payment success page to maintain focused onboarding flow.
+  if (pathname === '/glass-nav-test' || pathname === '/auth/membership/success') {
     return null;
   }
 
