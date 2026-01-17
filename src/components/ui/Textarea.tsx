@@ -1,4 +1,5 @@
 import { forwardRef, TextareaHTMLAttributes } from 'react';
+import { cn } from '@/lib/utils';
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -19,11 +20,11 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         <textarea
           ref={ref}
-          className={`w-full px-3 py-2 text-sm text-black border rounded-md focus:outline-none focus:ring-2 transition-colors ${
-            error
-              ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-          } ${className}`}
+          className={cn(
+            'flex w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+            error && 'border-red-500 focus-visible:ring-red-500',
+            className
+          )}
           {...props}
         />
         {error && (

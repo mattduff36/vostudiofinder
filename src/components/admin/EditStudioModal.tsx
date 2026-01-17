@@ -18,6 +18,7 @@ import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { showError, showSuccess } from '@/lib/toast';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
+import { useAutosizeTextarea } from '@/hooks/useAutosizeTextarea';
 
 interface Studio {
   id: string;
@@ -102,8 +103,23 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   const [activeTab, setActiveTab] = useState('basic');
   const [adminNeverExpires, setAdminNeverExpires] = useState(true);
   
-  // Ref for auto-growing Full About textarea
-  const fullAboutRef = useRef<HTMLTextAreaElement>(null);
+  const isBasicTabActive = activeTab === 'basic';
+  const isRatesTabActive = activeTab === 'rates';
+
+  const fullAboutRef = useAutosizeTextarea({
+    value: decodeHtmlEntities(profile?._meta?.about) || '',
+    isEnabled: isBasicTabActive,
+  });
+
+  const equipmentListRef = useAutosizeTextarea({
+    value: profile?._meta?.equipment_list || '',
+    isEnabled: isRatesTabActive,
+  });
+
+  const servicesOfferedRef = useAutosizeTextarea({
+    value: profile?._meta?.services_offered || '',
+    isEnabled: isRatesTabActive,
+  });
 
   useEffect(() => {
     if (studio && isOpen) {
@@ -122,17 +138,6 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       document.body.classList.remove('admin-modal-open');
     };
   }, [studio, isOpen]);
-
-  // Auto-resize Full About textarea
-  useEffect(() => {
-    if (!fullAboutRef.current) return;
-    
-    // Reset height to auto to get accurate scrollHeight
-    fullAboutRef.current.style.height = 'auto';
-    
-    // Set height to match content
-    fullAboutRef.current.style.height = `${fullAboutRef.current.scrollHeight}px`;
-  }, [profile?._meta?.about]);
 
   const fetchProfile = async () => {
     if (!studio) return;
@@ -645,21 +650,25 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       </div>
 
       <Textarea
+        ref={equipmentListRef}
         label="Equipment List"
         value={profile?._meta?.equipment_list || ''}
         onChange={(e) => handleMetaChange('equipment_list', e.target.value)}
         rows={4}
         helperText="List your microphones, interfaces, and other equipment"
         placeholder="e.g., Neumann U87, Universal Audio Apollo, etc."
+        className="min-h-[120px] resize-none overflow-hidden"
       />
 
       <Textarea
+        ref={servicesOfferedRef}
         label="Services Offered"
         value={profile?._meta?.services_offered || ''}
         onChange={(e) => handleMetaChange('services_offered', e.target.value)}
         rows={4}
         helperText="Describe the services you provide"
         placeholder="e.g., Voice recording, audio editing, mixing, mastering..."
+        className="min-h-[120px] resize-none overflow-hidden"
       />
     </div>
   );
