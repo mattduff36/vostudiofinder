@@ -6,9 +6,9 @@
  */
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Search, LayoutDashboard, Menu, UserPlus, User, X, UserCircle, HelpCircle, LogOut } from 'lucide-react';
+import { Home, Search, LayoutDashboard, Menu, UserPlus, User, X, UserCircle, HelpCircle, LogOut, Shield, Pencil } from 'lucide-react';
 import { Session } from 'next-auth';
 import { AdaptiveGlassBubblesNav, DEFAULT_CONFIG, type NavItem } from './AdaptiveGlassBubblesNav';
 import { AdaptiveGlassMenu } from './AdaptiveGlassMenu';
@@ -23,7 +23,31 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkBackground, setIsDarkBackground] = useState(false);
   const [tappedButton, setTappedButton] = useState<string | null>(null);
+  const signinPath = '/auth/signin';
   const signupPath = '/auth/signup';
+  const aboutPath = '/about';
+  const [showAdminEditButton, setShowAdminEditButton] = useState(false);
+
+  const isAdminUser =
+    session?.user?.email === 'admin@mpdee.co.uk' ||
+    session?.user?.username === 'VoiceoverGuy' ||
+    session?.user?.role === 'ADMIN';
+
+  // Mirror the desktop "ADMIN / EDIT" buttons behavior for mobile.
+  useEffect(() => {
+    if (!isAdminUser) return;
+
+    const handleEditHandlerReady = () => setShowAdminEditButton(true);
+    const handleEditHandlerUnmount = () => setShowAdminEditButton(false);
+
+    window.addEventListener('profileEditHandlerReady', handleEditHandlerReady);
+    window.addEventListener('profileEditHandlerUnmount', handleEditHandlerUnmount);
+
+    return () => {
+      window.removeEventListener('profileEditHandlerReady', handleEditHandlerReady);
+      window.removeEventListener('profileEditHandlerUnmount', handleEditHandlerUnmount);
+    };
+  }, [isAdminUser]);
 
   // Hide on specific pages
   // Keep hidden on the demo page to avoid double-nav rendering.
@@ -124,6 +148,30 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
             <div className="p-2 space-y-1">
               {session ? (
                 <>
+                  {isAdminUser && showAdminEditButton && (
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        window.dispatchEvent(new Event('profileEditClick'));
+                      }}
+                      className="menu-item w-full"
+                    >
+                      <Pencil className="w-5 h-5" />
+                      <span>EDIT</span>
+                    </button>
+                  )}
+                  {isAdminUser && (
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        router.push('/admin/studios');
+                      }}
+                      className="menu-item w-full"
+                    >
+                      <Shield className="w-5 h-5" />
+                      <span>ADMIN</span>
+                    </button>
+                  )}
                   <button 
                     onClick={() => {
                       setIsMenuOpen(false);
@@ -137,12 +185,12 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
                   <button 
                     onClick={() => {
                       setIsMenuOpen(false);
-                      router.push('/about');
+                      router.push(aboutPath);
                     }}
                     className="menu-item w-full"
                   >
                     <HelpCircle className="w-5 h-5" />
-                    <span>About & Help</span>
+                    <span>About Us</span>
                   </button>
                   <button
                     onClick={() => {
@@ -157,11 +205,11 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
                 </>
               ) : (
                 <>
-                  {pathname !== '/auth/signin' && (
+                  {pathname !== signinPath && (
                     <button 
                       onClick={() => {
                         setIsMenuOpen(false);
-                        router.push('/auth/signin');
+                        router.push(signinPath);
                       }}
                       className="menu-item w-full"
                     >
@@ -169,11 +217,11 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
                       <span>Sign In</span>
                     </button>
                   )}
-                  {pathname !== '/auth/signup' && (
+                  {pathname !== signupPath && (
                     <button 
                       onClick={() => {
                         setIsMenuOpen(false);
-                        router.push('/auth/signup');
+                        router.push(signupPath);
                       }}
                       className="menu-item w-full"
                     >
@@ -184,12 +232,12 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
                   <button 
                     onClick={() => {
                       setIsMenuOpen(false);
-                      router.push('/about');
+                      router.push(aboutPath);
                     }}
                     className="menu-item w-full"
                   >
                     <HelpCircle className="w-5 h-5" />
-                    <span>About & Help</span>
+                    <span>About Us</span>
                   </button>
                 </>
               )}
