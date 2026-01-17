@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Search, LayoutDashboard, Menu, UserPlus, User, X, UserCircle, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { Home, Search, LayoutDashboard, Menu, UserPlus, User, X, UserCircle, HelpCircle, LogOut } from 'lucide-react';
 import { Session } from 'next-auth';
 import { AdaptiveGlassBubblesNav, DEFAULT_CONFIG, type NavItem } from './AdaptiveGlassBubblesNav';
 import { AdaptiveGlassMenu } from './AdaptiveGlassMenu';
@@ -23,6 +23,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkBackground, setIsDarkBackground] = useState(false);
   const [tappedButton, setTappedButton] = useState<string | null>(null);
+  const signupPath = '/auth/signup';
 
   // Hide on specific pages
   // Keep hidden on the demo page to avoid double-nav rendering.
@@ -31,7 +32,6 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   }
 
   // Build navigation items
-  const signupPath = '/auth/signup';
   const navItems: NavItem[] = [
     {
       label: 'Home',
@@ -137,16 +137,6 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
                   <button 
                     onClick={() => {
                       setIsMenuOpen(false);
-                      router.push('/dashboard/settings');
-                    }}
-                    className="menu-item w-full"
-                  >
-                    <Settings className="w-5 h-5" />
-                    <span>Settings</span>
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setIsMenuOpen(false);
                       router.push('/about');
                     }}
                     className="menu-item w-full"
@@ -167,26 +157,30 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
                 </>
               ) : (
                 <>
-                  <button 
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      router.push('/auth/signin');
-                    }}
-                    className="menu-item w-full"
-                  >
-                    <User className="w-5 h-5" />
-                    <span>Sign In</span>
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      router.push('/auth/signup');
-                    }}
-                    className="menu-item w-full"
-                  >
-                    <UserPlus className="w-5 h-5" />
-                    <span>Sign Up</span>
-                  </button>
+                  {pathname !== '/auth/signin' && (
+                    <button 
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        router.push('/auth/signin');
+                      }}
+                      className="menu-item w-full"
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Sign In</span>
+                    </button>
+                  )}
+                  {pathname !== '/auth/signup' && (
+                    <button 
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        router.push('/auth/signup');
+                      }}
+                      className="menu-item w-full"
+                    >
+                      <UserPlus className="w-5 h-5" />
+                      <span>Sign Up</span>
+                    </button>
+                  )}
                   <button 
                     onClick={() => {
                       setIsMenuOpen(false);
