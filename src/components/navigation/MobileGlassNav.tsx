@@ -6,11 +6,10 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, Search, LayoutDashboard, Menu, UserPlus, User, X, UserCircle, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { Session } from 'next-auth';
-import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { AdaptiveGlassBubblesNav, DEFAULT_CONFIG, type NavItem } from './AdaptiveGlassBubblesNav';
 import { AdaptiveGlassMenu } from './AdaptiveGlassMenu';
 
@@ -21,28 +20,13 @@ interface MobileGlassNavProps {
 export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
-  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkBackground, setIsDarkBackground] = useState(false);
   const [tappedButton, setTappedButton] = useState<string | null>(null);
 
-  // Monitor fullscreen state
-  useEffect(() => {
-    const checkFullscreen = () => {
-      setIsMapFullscreen(document.documentElement.hasAttribute('data-map-fullscreen'));
-    };
-    checkFullscreen();
-    const observer = new MutationObserver(checkFullscreen);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-map-fullscreen']
-    });
-    return () => observer.disconnect();
-  }, []);
-
   // Hide on specific pages
-  if (pathname === '/auth/membership/success' || pathname === '/glass-nav-test') {
+  // Keep hidden on the demo page to avoid double-nav rendering.
+  if (pathname === '/glass-nav-test') {
     return null;
   }
 
@@ -106,9 +90,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   return (
     <>
       <nav
-        className={`fixed bottom-0 left-0 right-0 md:hidden z-50 transition-all duration-300 ${
-          scrollDirection === 'down' && !isAtTop ? 'translate-y-full' : 'translate-y-0'
-        } ${isMapFullscreen ? 'hidden' : ''} [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden`}
+        className="fixed bottom-0 left-0 right-0 md:hidden z-50"
         role="navigation"
         aria-label="Mobile navigation"
         style={{

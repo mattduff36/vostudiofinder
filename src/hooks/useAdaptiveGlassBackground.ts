@@ -147,13 +147,21 @@ export function useAdaptiveGlassBackground({
         if (ignore && ignore.contains(el)) continue;
 
         const computedStyle = window.getComputedStyle(el);
+        const elementOpacity = Number(computedStyle.opacity || '1');
+        const opacity = Number.isFinite(elementOpacity) ? elementOpacity : 1;
+
         const bgColor = computedStyle.backgroundColor;
         const rgba = parseCssColorToRgba(bgColor);
-        if (rgba && rgba.a > 0.1) {
+        if (rgba && rgba.a * opacity > 0.1) {
           return luminanceFromRgb(rgba.r, rgba.g, rgba.b);
         }
 
         if (el instanceof HTMLImageElement) {
+          // If an image is heavily faded via CSS opacity (e.g. subtle texture overlays),
+          // sampling its raw pixels can incorrectly bias the reading dark/light.
+          // In that case, ignore the image and keep walking down the stack.
+          if (opacity <= 0.25) continue;
+
           const lum = sampleImgLuminanceAtPoint(el, x, y);
           if (lum !== null) return lum;
         }
