@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 
 interface LoadingContextValue {
@@ -21,11 +21,15 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   const [isPageLoading, setIsPageLoading] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const pathname = usePathname();
+  const isInitialMountRef = useRef(true);
 
   // Track route changes (only affects page loading state, not initial load)
   useEffect(() => {
     // Skip on initial mount
-    if (isInitialLoad) return;
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
+    }
 
     // Mark as loading when route changes
     setIsPageLoading(true);
@@ -36,7 +40,7 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [pathname, isInitialLoad]);
+  }, [pathname]);
 
   // Mark initial load as complete after hydration (500ms grace period)
   useEffect(() => {
