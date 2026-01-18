@@ -15,12 +15,7 @@ export default async function UsernameSelectionPage() {
 
   // Redirect if already authenticated
   if (session) {
-    // Special redirect for admin@mpdee.co.uk
-    if (session.user?.email === 'admin@mpdee.co.uk') {
-      redirect('/admin');
-    } else {
-      redirect('/dashboard');
-    }
+    redirect('/dashboard');
   }
   return (
     <div className="h-[calc(100vh-5rem)] relative overflow-hidden flex flex-col justify-start sm:justify-center py-8 sm:py-12 sm:px-6 lg:px-8">

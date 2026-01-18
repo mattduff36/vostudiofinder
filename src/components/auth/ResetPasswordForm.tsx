@@ -82,12 +82,7 @@ export function ResetPasswordForm() {
 
           if (signInResult?.ok) {
             // Sign in successful - redirect to dashboard
-            // Special redirect for admin@mpdee.co.uk
-            if (result.email === 'admin@mpdee.co.uk') {
-              router.push('/admin');
-            } else {
-              router.push('/dashboard');
-            }
+            router.push('/dashboard');
             router.refresh();
             return; // Don't show the success message since we're redirecting
           }

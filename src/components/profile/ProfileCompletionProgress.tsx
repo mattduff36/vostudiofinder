@@ -3,6 +3,7 @@
 import { useMemo, type ReactNode } from 'react';
 import { CheckCircle, Circle, Pencil } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
 interface ProfileCompletionProgressProps {
@@ -63,6 +64,8 @@ export function ProfileCompletionProgress({
   mobileVariant = false,
   renderWidget
 }: ProfileCompletionProgressProps) {
+  const router = useRouter();
+
   // Use the single source of truth for calculation
   const completionStats = useMemo(() => {
     return calculateCompletionStats({
@@ -184,8 +187,8 @@ export function ProfileCompletionProgress({
     // Set the target section in sessionStorage for ProfileEditForm to pick up
     sessionStorage.setItem('openProfileSection', sectionId);
     
-    // Navigate to edit-profile tab
-    window.location.hash = '#edit-profile';
+    // Navigate to edit-profile page
+    router.push('/dashboard/edit-profile');
   };
 
   // Check if all required fields are complete
@@ -349,7 +352,7 @@ export function ProfileCompletionProgress({
           </div>
         ) : (
           <Link
-            href="/dashboard#edit-profile"
+            href="/dashboard/edit-profile"
             aria-label="Edit your profile"
             className="group relative flex items-center justify-center flex-shrink-0 mx-auto md:mx-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             title="Edit profile"

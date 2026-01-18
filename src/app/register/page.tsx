@@ -7,12 +7,7 @@ export default async function RegisterRedirect() {
 
   // Redirect if already authenticated
   if (session) {
-    // Special redirect for admin@mpdee.co.uk
-    if (session.user?.email === 'admin@mpdee.co.uk') {
-      redirect('/admin');
-    } else {
-      redirect('/dashboard');
-    }
+    redirect('/dashboard');
   }
 
   // If not authenticated, redirect based on environment

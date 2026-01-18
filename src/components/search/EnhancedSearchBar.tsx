@@ -88,7 +88,6 @@ export function EnhancedSearchBar({
     };
   }, []);
 
-
   // Detect search type - location or user
   const detectSearchType = (input: string): 'location' | 'user' => {
     const lowerInput = input.toLowerCase().trim();

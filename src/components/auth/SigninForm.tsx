@@ -63,12 +63,7 @@ export function SigninForm() {
       }
 
       if (result?.ok) {
-        // Special redirect for admin@mpdee.co.uk
-        if (data.email === 'admin@mpdee.co.uk') {
-          router.push('/admin');
-        } else {
-          router.push(callbackUrl);
-        }
+        router.push(callbackUrl);
         router.refresh();
       }
     } catch {

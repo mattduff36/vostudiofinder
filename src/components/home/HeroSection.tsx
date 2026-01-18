@@ -18,7 +18,6 @@ export function HeroSection() {
     setIsLoaded(true);
   }, []);
 
-
   const handleSearch = (location: string, coordinates?: { lat: number; lng: number }, radius?: number) => {
     logger.log('Location search initiated:', { location, coordinates, radius });
     

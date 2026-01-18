@@ -15,12 +15,7 @@ export default async function ResetPasswordPage() {
 
   // Redirect if already authenticated
   if (session) {
-    // Special redirect for admin@mpdee.co.uk
-    if (session.user?.email === 'admin@mpdee.co.uk') {
-      redirect('/admin');
-    } else {
-      redirect('/dashboard');
-    }
+    redirect('/dashboard');
   }
 
   return (

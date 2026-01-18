@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { UserDashboard, invalidateProfileCache } from './UserDashboard';
+import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
 import { Settings } from './Settings';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
@@ -19,95 +20,44 @@ import { QuickActions, QuickAction } from './mobile/QuickActions';
 interface DashboardContentProps {
   dashboardData: any;
   initialProfileData: ProfileData | null;
+  activeTab: DashboardTab;
 }
 
-export function DashboardContent({ dashboardData, initialProfileData }: DashboardContentProps) {
-  const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
+export function DashboardContent({ dashboardData, initialProfileData, activeTab }: DashboardContentProps) {
   const [isFooterExpanded, setIsFooterExpanded] = useState(false);
-  const [overviewRefreshKey, setOverviewRefreshKey] = useState(0);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
-  const hasMountedRef = useRef(false);
-  const prevTabRef = useRef<DashboardTab>('overview');
-
-  // Listen to URL hash changes
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1); // Remove '#'
-      const nextTab: DashboardTab =
-        hash && ['edit-profile', 'settings'].includes(hash)
-          ? (hash as DashboardTab)
-          : 'overview';
-
-      setActiveTab(nextTab);
-    };
-
-    // Set initial tab from hash
-    handleHashChange();
-
-    // Listen for hash changes
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
-  useEffect(() => {
-    hasMountedRef.current = true;
-  }, []);
-
-  // Invalidate profile cache and force Overview refresh when switching from edit-profile
-  useEffect(() => {
-    if (prevTabRef.current === 'edit-profile' && activeTab === 'overview') {
-      // User is returning to overview from edit-profile
-      // Invalidate cache and increment refresh key to force UserDashboard to refetch
-      invalidateProfileCache();
-      setOverviewRefreshKey(prev => prev + 1);
-    }
-    prevTabRef.current = activeTab;
-  }, [activeTab]);
+  const router = useRouter();
 
   const handleQuickAction = (action: QuickAction) => {
-    setActiveTab(action);
-    window.location.hash = action;
+    const routeMap: Record<'edit-profile' | 'settings', string> = {
+      'edit-profile': '/dashboard/edit-profile',
+      'settings': '/dashboard/settings',
+    };
+    router.push(routeMap[action]);
   };
 
   const renderTabContent = () => {
-    const content = (() => {
-      switch (activeTab) {
-        case 'overview':
-          // Hide desktop overview on mobile
-          return (
-            <div className="hidden md:block">
-              <UserDashboard 
-                key={overviewRefreshKey} 
-                data={dashboardData} 
-                initialProfileData={initialProfileData} 
-              />
-            </div>
-          );
-        
-        case 'edit-profile':
-          return <ProfileEditForm userId={dashboardData.user.id} />;
-        
-        case 'settings':
-          return <Settings data={dashboardData} />;
-        
-        default:
-          return <UserDashboard key={overviewRefreshKey} data={dashboardData} initialProfileData={initialProfileData} />;
-      }
-    })();
-
-    return (
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={activeTab}
-          initial={hasMountedRef.current ? { opacity: 0, y: 10 } : false}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-        >
-          {content}
-        </motion.div>
-      </AnimatePresence>
-    );
+    switch (activeTab) {
+      case 'overview':
+        // Hide desktop overview on mobile
+        return (
+          <div className="hidden md:block">
+            <UserDashboard 
+              data={dashboardData} 
+              initialProfileData={initialProfileData} 
+            />
+          </div>
+        );
+      
+      case 'edit-profile':
+        return <ProfileEditForm userId={dashboardData.user.id} />;
+      
+      case 'settings':
+        return <Settings data={dashboardData} />;
+      
+      default:
+        return <UserDashboard data={dashboardData} initialProfileData={initialProfileData} />;
+    }
   };
 
   return (
@@ -124,13 +74,13 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/30 to-white/60 hidden md:block" />
       </div>
 
-      {/* Mobile Back Button - Only for sub-pages - Sticky with show/hide on scroll */}
+      {/* Mobile Back Button - Only for sub-pages - Slides up with navbar on scroll */}
       {activeTab !== 'overview' && (
-        <div className={`md:hidden fixed top-16 left-0 right-0 z-30 bg-white border-b border-gray-200 px-4 py-3 transition-transform duration-300 ${
-          scrollDirection === 'down' && !isAtTop ? '-translate-y-full' : 'translate-y-0'
+        <div className={`md:hidden fixed top-16 left-0 right-0 z-30 bg-white border-b border-gray-200 px-4 py-3 transition-transform duration-300 ease-in-out ${
+          scrollDirection === 'down' && !isAtTop ? '-translate-y-16' : 'translate-y-0'
         }`}>
           <button
-            onClick={() => setActiveTab('overview')}
+            onClick={() => router.push('/dashboard')}
             className="flex items-center space-x-2 text-[#d42027] hover:text-[#a1181d] transition-colors"
           >
             <svg
@@ -163,7 +113,6 @@ export function DashboardContent({ dashboardData, initialProfileData }: Dashboar
           // Overview: Show quick actions on mobile, regular content on desktop
           <div className="md:hidden">
             <QuickActions 
-              key={overviewRefreshKey}
               onActionClick={handleQuickAction}
               displayName={dashboardData?.user?.display_name || dashboardData?.user?.username || ''}
             />

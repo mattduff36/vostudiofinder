@@ -15,11 +15,8 @@ export default function RedirectHandler({ children }: RedirectHandlerProps) {
   useEffect(() => {
     if (status === 'loading') return; // Still loading
 
-    if (session?.user?.email === 'admin@mpdee.co.uk') {
-      // Admin user should go to /admin
-      router.push('/admin');
-    } else if (session) {
-      // Other authenticated users go to /dashboard
+    if (session) {
+      // Authenticated users go to /dashboard
       router.push('/dashboard');
     }
   }, [session, status, router]);

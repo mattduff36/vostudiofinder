@@ -80,7 +80,6 @@ export function AdaptiveGlassMenu({
       >
         {children}
       </div>
-
       <style jsx global>{`
         .adaptive-menu-glass {
           border-radius: 16px;

@@ -33,7 +33,8 @@ const raleway = Raleway({
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseUrl()),
   title: `${SITE_NAME} - Find Professional Recording Studios`,
-  description: 'Browse professional voiceover recording studios worldwide - no signup required! Find studios, read reviews, and contact directly. Studio owners can list for £25/year.',
+  description:
+    'Browse professional voiceover recording studios worldwide - no signup required! Find studios, read reviews, and contact directly. Studio owners can list for £25/year.',
   keywords: 'voiceover, recording studio, audio production, voice talent, studio rental',
   authors: [{ name: `${SITE_NAME} Team` }],
   icons: {
@@ -42,12 +43,8 @@ export const metadata: Metadata = {
       { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       { url: '/favicon/favicon.ico', sizes: 'any' },
     ],
-    apple: [
-      { url: '/favicon/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
-    other: [
-      { rel: 'manifest', url: '/favicon/site.webmanifest' },
-    ],
+    apple: [{ url: '/favicon/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    other: [{ rel: 'manifest', url: '/favicon/site.webmanifest' }],
   },
   openGraph: {
     title: SITE_NAME,
@@ -69,8 +66,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getServerSession(authOptions);
-  
-  // Read cookie consent preference with error handling
+
   let consentLevel: 'all' | 'necessary' | 'decline' | undefined;
   try {
     const cookieStore = await cookies();
@@ -82,15 +78,12 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang='en'>
+    <html lang="en">
       <head>
-        {/* Google Analytics is loaded dynamically by DynamicAnalytics component based on consent */}
-        {/* No server-side GA initialization needed - handled client-side */}
-        <meta 
-          name="viewport" 
-          content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" 
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover"
         />
-        {/* Google Maps - Always load (necessary for core functionality) */}
         {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
           <Script
             src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
@@ -98,21 +91,15 @@ export default async function RootLayout({
           />
         )}
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${raleway.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} ${raleway.variable} antialiased`}>
         <SessionProvider session={session}>
           <ToastProvider />
           <ConfirmDialog />
           <Navbar session={session} />
-          <main className="pt-16 pb-16 md:pt-20 md:pb-0">
-            {children}
-          </main>
+          <main className="pt-16 pb-16 md:pt-20 md:pb-0">{children}</main>
           <MobileShell session={session} />
         </SessionProvider>
-        {/* Vercel Analytics - Dynamically loads based on consent (no reload needed) */}
         <DynamicAnalytics />
-        {/* Cookie Consent Banner */}
         <CookieConsentBanner initialLevel={consentLevel || null} />
       </body>
     </html>

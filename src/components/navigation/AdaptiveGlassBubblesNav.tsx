@@ -7,7 +7,7 @@ import type { GlassCustomization } from '@/types/glass-customization';
 import { useAdaptiveGlassBackground } from '@/hooks/useAdaptiveGlassBackground';
 
 export const DEFAULT_CONFIG = {
-  // Match `/glass-nav-test` default look (demo page source of truth)
+  // Default glass bubble configuration
   blur: 40,
   saturation: 200,
   brightness: 1.15,
@@ -42,7 +42,6 @@ interface AdaptiveGlassBubblesNavProps {
   items: NavItem[];
   isDarkBackground?: boolean;
   onBackgroundChange?: (isDark: boolean) => void;
-  tappedButtonId?: string | null;
   config?: GlassCustomization;
   debugSensors?: boolean;
 }
@@ -51,7 +50,6 @@ export function AdaptiveGlassBubblesNav({
   items,
   isDarkBackground: externalIsDarkBackground,
   onBackgroundChange,
-  tappedButtonId,
   config = DEFAULT_CONFIG,
   debugSensors = false,
 }: AdaptiveGlassBubblesNavProps) {
@@ -123,18 +121,27 @@ export function AdaptiveGlassBubblesNav({
         {items.map((item) => {
           const Icon = item.icon;
           const buttonId = item.id || item.href || item.label;
-          const isTapped = tappedButtonId === buttonId;
           
           const bubble = (
             <div 
-              className={`adaptive-circle-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'} ${isTapped ? 'tapped' : ''}`}
+              className={`adaptive-circle-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
               style={{
                 width: `${config.circleSize}px`,
                 height: `${config.circleSize}px`,
                 backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                 WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                 color: isDarkBackground ? '#ffffff' : '#000000',
-                borderColor: isDarkBackground ? '#ffffff' : '#000000',
+                borderColor: isDarkBackground ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.12)',
+                borderWidth: `${config.borderWidth}px`,
+                borderStyle: 'solid',
+                borderRadius: '9999px',
+                background: isDarkBackground ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                boxShadow: isDarkBackground
+                  ? `0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 3px rgba(255,255,255,0.25)`
+                  : `0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05), inset 0 1px 3px rgba(0,0,0,0.05)`,
+                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                position: 'relative',
+                overflow: 'hidden',
               }}
             >
               <Icon className="w-6 h-6" />
@@ -168,9 +175,8 @@ export function AdaptiveGlassBubblesNav({
           }
         })}
       </div>
-
       <style jsx global>{`
-        /* CIRCULAR GLASS BUBBLE - copied from demo (AdaptiveGlassNav) */
+        /* CIRCULAR GLASS BUBBLE - For icons only */
         .adaptive-circle-glass {
           display: flex;
           align-items: center;
@@ -216,12 +222,7 @@ export function AdaptiveGlassBubblesNav({
           opacity: 0.6;
         }
 
-        /* Make SVG icon strokes inherit the button color */
-        .adaptive-circle-glass svg {
-          stroke: currentColor;
-        }
-
-        /* Hover effect (demo) */
+        /* Circle hover effect */
         .group:hover .adaptive-circle-glass {
           transform: translateY(calc(-1 * var(--glass-hover-lift, 4px))) scale(var(--glass-hover-scale, 1.08));
           background: rgba(128, 128, 128, calc(var(--glass-bg-opacity, 0.45) + 0.1));
@@ -238,17 +239,9 @@ export function AdaptiveGlassBubblesNav({
           transform: translateY(-1px) scale(0.98);
         }
 
-        /* Tap animation - match hover lift once on touch */
-        .adaptive-circle-glass.tapped {
-          transform: translateY(calc(-1 * var(--glass-hover-lift, 4px))) scale(var(--glass-hover-scale, 1.08));
-          background: rgba(128, 128, 128, calc(var(--glass-bg-opacity, 0.45) + 0.1));
-          backdrop-filter: blur(calc(var(--glass-blur, 40px) + 8px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(calc(var(--glass-brightness, 1.15) + 0.05)) contrast(calc(var(--glass-contrast, 0.85) - 0.05));
-          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 8px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(calc(var(--glass-brightness, 1.15) + 0.05)) contrast(calc(var(--glass-contrast, 0.85) - 0.05));
-          box-shadow: 
-            0 calc(var(--glass-shadow-spread, 40px) / 2.5) calc(var(--glass-shadow-spread, 40px) * 1.25) rgba(0, 0, 0, calc(var(--glass-shadow-intensity, 0.15) * 1.33)),
-            0 calc(var(--glass-shadow-spread, 40px) / 6.7) calc(var(--glass-shadow-spread, 40px) / 2) rgba(0, 0, 0, var(--glass-shadow-intensity, 0.15)),
-            inset 0 1px 3px rgba(255, 255, 255, 0.15),
-            inset 0 0 80px rgba(255, 255, 255, 0.08);
+        /* Make SVG icon strokes inherit the button color (white on dark, black on light) */
+        .adaptive-circle-glass svg {
+          stroke: currentColor;
         }
 
         /* Active state circle with red accent */
@@ -261,10 +254,12 @@ export function AdaptiveGlassBubblesNav({
           box-shadow: 
             0 12px 40px rgba(212, 32, 39, 0.25),
             0 4px 16px rgba(212, 32, 39, 0.15),
-            inset 0 1px 2px rgba(255, 255, 255, 0.3),
+            inset 0 1px 3px rgba(255, 255, 255, 0.3),
             inset 0 0 60px rgba(212, 32, 39, 0.15);
         }
 
+        /* DYNAMIC ADAPTATION - Based on actual background brightness */
+        
         /* Dark background detected - Use lighter, brighter glass */
         .adaptive-circle-glass.dark-bg {
           background: rgba(255, 255, 255, 0.12);
@@ -278,7 +273,7 @@ export function AdaptiveGlassBubblesNav({
             inset 0 1px 3px rgba(255, 255, 255, 0.25),
             inset 0 0 60px rgba(255, 255, 255, 0.1);
         }
-
+        
         .group:hover .adaptive-circle-glass.dark-bg {
           background: rgba(255, 255, 255, 0.18);
           backdrop-filter: blur(calc(var(--glass-blur, 40px) + 12px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(1.5) contrast(0.7);
@@ -314,7 +309,7 @@ export function AdaptiveGlassBubblesNav({
             inset 0 1px 3px rgba(0, 0, 0, 0.05),
             inset 0 0 60px rgba(0, 0, 0, 0.03);
         }
-
+        
         .group:hover .adaptive-circle-glass.light-bg {
           background: rgba(0, 0, 0, 0.12);
           backdrop-filter: blur(calc(var(--glass-blur, 40px) + 6px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(0.92) contrast(1.15);

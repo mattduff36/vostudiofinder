@@ -1,7 +1,7 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Loader2, Eye, Save, X, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/Input';

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MousePointer2, Pencil } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface ProfileCompletionAnimationProps {
   children: ReactNode;
@@ -29,6 +30,7 @@ export function ProfileCompletionAnimation({
   completionPercentage,
   allRequiredComplete,
 }: ProfileCompletionAnimationProps) {
+  const router = useRouter();
   const [animationPhase, setAnimationPhase] = useState<'initial' | 'center' | 'pause' | 'transition' | 'complete'>('initial');
   const [mounted, setMounted] = useState(false);
   const targetRef = useRef<HTMLAnchorElement>(null);
@@ -107,16 +109,8 @@ export function ProfileCompletionAnimation({
   // Handle link click
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    // Scroll to the edit-profile section
-    const editSection = document.getElementById('edit-profile');
-    if (editSection) {
-      editSection.scrollIntoView({ behavior: 'smooth' });
-      // Update URL hash without triggering reload
-      window.history.pushState(null, '', '/dashboard#edit-profile');
-    } else {
-      // Fallback: just update the hash
-      window.location.hash = 'edit-profile';
-    }
+    // Navigate to edit profile page
+    router.push('/dashboard/edit-profile');
   };
 
   const isAnimating = shouldAnimate && mounted && animationPhase !== 'complete';
@@ -246,7 +240,7 @@ export function ProfileCompletionAnimation({
       {/* In-layout target (used for final position measurement + non-animated interaction) */}
       <motion.a
         ref={targetRef}
-        href="/dashboard#edit-profile"
+        href="/dashboard/edit-profile"
         onClick={handleClick}
         className="group relative flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
         aria-label="Edit your profile"

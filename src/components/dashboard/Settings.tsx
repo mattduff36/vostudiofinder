@@ -18,7 +18,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { RenewalModal } from '@/components/dashboard/RenewalModal';
@@ -51,7 +51,6 @@ const SUGGESTION_CATEGORIES = [
 
 export function Settings({ data }: SettingsProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [profileData, setProfileData] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -207,7 +206,7 @@ export function Settings({ data }: SettingsProps) {
                   <motion.button
                     onClick={() => {
                       sessionStorage.setItem('openProfileSection', 'privacy');
-                      window.location.href = '/dashboard#edit-profile';
+                      router.push('/dashboard/edit-profile');
                     }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -1041,12 +1040,6 @@ export function Settings({ data }: SettingsProps) {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
-                  // Dashboard routes are hash-driven by DashboardContent.
-                  // Using Next's router.push with a hash doesn't reliably fire `hashchange`, so we set `window.location.hash` explicitly.
-                  if (pathname === '/dashboard') {
-                    if (window.location.hash) window.location.hash = '';
-                    return;
-                  }
                   router.push('/dashboard');
                 }}
                 className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group"

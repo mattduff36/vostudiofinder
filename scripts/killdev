@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Kill common local development servers (Next.js / Prisma Studio / Vite, etc.)
+# Works in Git Bash on Windows via PowerShell, and on macOS/Linux via lsof/fuser.
+#
+# Usage:
+#   killdev
+#
+# Notes:
+# - This targets processes LISTENING on common dev ports (safer than killing all node).
+# - Also removes Next.js dev lock file in this repo to avoid "Unable to acquire lock".
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+PORTS=(
+  3000 3001 3002 3003 3004 3005
+  4173 5173
+  5555
+  8000 8080
+  9229
+)
+
+is_windows_bash() {
+  case "${OSTYPE:-}" in
+    msys*|cygwin*) return 0 ;;
+  esac
+  case "$(uname -s 2>/dev/null || true)" in
+    MINGW*|MSYS*|CYGWIN*) return 0 ;;
+  esac
+  return 1
+}
+
+kill_ports_windows() {
+  # IMPORTANT: avoid $PID (PowerShell automatic variable, case-insensitive).
+  local ps_script
+  ps_script="$(cat <<'PS'
+$ports = @(PORTS_PLACEHOLDER)
+$killed = @()
+foreach ($p in $ports) {
+  $conns = Get-NetTCPConnection -State Listen -LocalPort $p -ErrorAction SilentlyContinue
+  foreach ($c in $conns) {
+    $owningPid = $c.OwningProcess
+    if ($owningPid -and $owningPid -ne 0) {
+      try {
+        $proc = Get-Process -Id $owningPid -ErrorAction SilentlyContinue
+        Stop-Process -Id $owningPid -Force -ErrorAction SilentlyContinue
+        $killed += [PSCustomObject]@{ Port = $p; PID = $owningPid; Name = $proc.ProcessName }
+      } catch {}
+    }
+  }
+}
+if ($killed.Count -eq 0) {
+  Write-Host "No listening dev ports found."
+} else {
+  $killed | Sort-Object Port,PID | Format-Table -AutoSize
+}
+PS
+)"
+
+  # Inject ports list into PowerShell array.
+  local ports_csv
+  ports_csv="$(IFS=,; echo "${PORTS[*]}")"
+  ps_script="${ps_script/PORTS_PLACEHOLDER/$ports_csv}"
+
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ps_script"
+}
+
+kill_ports_unix() {
+  local any_killed=0
+
+  if command -v lsof >/dev/null 2>&1; then
+    for port in "${PORTS[@]}"; do
+      local pids=""
+      pids="$(lsof -ti "tcp:${port}" -sTCP:LISTEN 2>/dev/null || true)"
+      if [ -n "$pids" ]; then
+        any_killed=1
+        echo "Killing listeners on port ${port}: ${pids}"
+        kill $pids 2>/dev/null || true
+        sleep 0.2
+        # Force any survivors
+        for pid in $pids; do
+          if kill -0 "$pid" 2>/dev/null; then
+            kill -9 "$pid" 2>/dev/null || true
+          fi
+        done
+      fi
+    done
+  elif command -v fuser >/dev/null 2>&1; then
+    for port in "${PORTS[@]}"; do
+      if fuser -n tcp "$port" >/dev/null 2>&1; then
+        any_killed=1
+        echo "Killing listeners on port ${port}"
+        fuser -k -n tcp "$port" >/dev/null 2>&1 || true
+      fi
+    done
+  else
+    echo "Neither 'lsof' nor 'fuser' found; cannot kill by port on this system." >&2
+    return 1
+  fi
+
+  if [ "$any_killed" -eq 0 ]; then
+    echo "No listening dev ports found."
+  fi
+}
+
+cleanup_next_lock() {
+  # Clear Next.js dev lock that can remain after crashes.
+  if [ -f "${REPO_ROOT}/.next/dev/lock" ]; then
+    rm -f "${REPO_ROOT}/.next/dev/lock" || true
+    echo "Removed ${REPO_ROOT}/.next/dev/lock"
+  fi
+}
+
+main() {
+  if is_windows_bash; then
+    kill_ports_windows
+  else
+    kill_ports_unix
+  fi
+
+  cleanup_next_lock
+}
+
+main "$@"
+

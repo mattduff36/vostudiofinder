@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, ArrowLeft, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -115,7 +115,6 @@ const CONNECTION_TYPES = [
 
 export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -417,19 +416,21 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       setSaving(true);
 
       // Normalize social URLs for storage (standardize to https://...).
-      const profileToSave: ProfileData = {
-        ...profile,
+      const profileToSave = {
+        user: profile!.user,
         profile: {
-          ...profile.profile,
-          facebook_url: normalizeSocialMediaUrl(profile.profile.facebook_url || ''),
-          x_url: normalizeSocialMediaUrl(profile.profile.x_url || ''),
-          youtube_url: normalizeSocialMediaUrl(profile.profile.youtube_url || ''),
-          instagram_url: normalizeSocialMediaUrl(profile.profile.instagram_url || ''),
-          soundcloud_url: normalizeSocialMediaUrl(profile.profile.soundcloud_url || ''),
-          tiktok_url: normalizeSocialMediaUrl(profile.profile.tiktok_url || ''),
-          linkedin_url: normalizeSocialMediaUrl(profile.profile.linkedin_url || ''),
-          threads_url: normalizeSocialMediaUrl(profile.profile.threads_url || ''),
+          ...profile!.profile!,
+          facebook_url: normalizeSocialMediaUrl(profile!.profile!.facebook_url || ''),
+          x_url: normalizeSocialMediaUrl(profile!.profile!.x_url || ''),
+          youtube_url: normalizeSocialMediaUrl(profile!.profile!.youtube_url || ''),
+          instagram_url: normalizeSocialMediaUrl(profile!.profile!.instagram_url || ''),
+          soundcloud_url: normalizeSocialMediaUrl(profile!.profile!.soundcloud_url || ''),
+          tiktok_url: normalizeSocialMediaUrl(profile!.profile!.tiktok_url || ''),
+          linkedin_url: normalizeSocialMediaUrl(profile!.profile!.linkedin_url || ''),
+          threads_url: normalizeSocialMediaUrl(profile!.profile!.threads_url || ''),
         },
+        studio: profile!.studio,
+        studio_types: profile!.studio_types,
       };
 
       const response = await fetch('/api/user/profile', {
@@ -1154,12 +1155,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => {
-                    // Dashboard routes are hash-driven by DashboardContent.
-                    // Using Next's router.push with a hash doesn't reliably fire `hashchange`, so we set `window.location.hash` explicitly.
-                    if (pathname === '/dashboard') {
-                      if (window.location.hash) window.location.hash = '';
-                      return;
-                    }
                     router.push('/dashboard');
                   }}
                   className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group"

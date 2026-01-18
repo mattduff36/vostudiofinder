@@ -3,14 +3,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { Menu, Home, Edit, Settings, User, LogOut, CreditCard, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Menu, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { getDesktopBurgerMenuItems } from '@/config/navigation';
 
 interface DashboardDropdownMenuProps {
   username: string;
   isScrolled: boolean;
   isHomePage: boolean;
   includeSiteLinks?: boolean;
+  session?: any;
+  isAdminUser?: boolean;
+  showEditButton?: boolean;
 }
 
 export function DashboardDropdownMenu({ 
@@ -18,10 +22,11 @@ export function DashboardDropdownMenu({
   isScrolled, 
   isHomePage,
   includeSiteLinks = false,
+  session,
+  isAdminUser = false,
+  showEditButton = false,
 }: DashboardDropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentHash, setCurrentHash] = useState('');
-  const [pendingDashboardHash, setPendingDashboardHash] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
   const [loadingVisibility, setLoadingVisibility] = useState(true);
@@ -87,24 +92,6 @@ export function DashboardDropdownMenu({
     }
   };
 
-  // Track hash changes (only when on dashboard page)
-  useEffect(() => {
-    const updateHash = () => {
-      // Only track hash if we're on the dashboard page
-      if (pathname === '/dashboard') {
-        setCurrentHash(window.location.hash);
-      } else {
-        setCurrentHash('');
-      }
-    };
-    
-    // Set initial hash based on current pathname
-    updateHash();
-    
-    // Listen for hash changes
-    window.addEventListener('hashchange', updateHash);
-    return () => window.removeEventListener('hashchange', updateHash);
-  }, [pathname]);
 
   // Close on outside click
   useEffect(() => {
@@ -140,85 +127,28 @@ export function DashboardDropdownMenu({
     };
   }, [isOpen]);
 
-  // If a user clicks a dashboard hash link from a non-dashboard page, we first route to /dashboard,
-  // then set window.location.hash once we're there (to ensure DashboardContent's hashchange listener runs).
-  useEffect(() => {
-    if (pathname !== '/dashboard') return;
-    if (!pendingDashboardHash) return;
-
-    window.location.hash = pendingDashboardHash;
-    setPendingDashboardHash(null);
-  }, [pathname, pendingDashboardHash]);
-
   const handleNavigation = (path: string) => {
     setIsOpen(false);
-
-    // Dashboard routes are hash-driven by DashboardContent.
-    // Using Next's router.push with a hash doesn't reliably fire `hashchange`, so we set `window.location.hash` explicitly.
-    if (path === '/dashboard') {
-      if (pathname === '/dashboard') {
-        if (window.location.hash) window.location.hash = '';
-        return;
-      }
-      router.push('/dashboard');
-      return;
-    }
-
-    if (path.startsWith('/dashboard#')) {
-      const hash = path.slice('/dashboard'.length); // e.g. "#images"
-      if (pathname === '/dashboard') {
-        window.location.hash = hash;
-        return;
-      }
-      setPendingDashboardHash(hash);
-      router.push('/dashboard');
-      return;
-    }
-
     router.push(path);
   };
 
-  const menuItems = [
-    { 
-      icon: Home, 
-      label: 'Overview', 
-      path: '/dashboard',
-      active: pathname === '/dashboard' && !currentHash
-    },
-    { 
-      icon: Edit, 
-      label: 'Edit Profile', 
-      path: '/dashboard#edit-profile',
-      active: currentHash === '#edit-profile'
-    },
-    { 
-      icon: User, 
-      label: 'My Profile', 
-      path: `/${username}`,
-      active: pathname === `/${username}`
-    },
-  ];
+  const handleAction = (action: string) => {
+    setIsOpen(false);
+    if (action === 'logout') {
+      signOut({ callbackUrl: '/' });
+    } else if (action === 'profileEditClick') {
+      window.dispatchEvent(new Event('profileEditClick'));
+    }
+  };
 
-  const siteItems = includeSiteLinks ? [
-    {
-      icon: Home,
-      label: 'Home',
-      path: '/',
-      active: pathname === '/',
-    },
-    {
-      icon: Home,
-      label: 'Browse Studios',
-      path: '/studios',
-      active: pathname === '/studios',
-    },
-    {
-      icon: Home,
-      label: 'About Us',
-      path: '/about',
-      active: pathname === '/about',
-    },
-  ] : [];
+  // Get menu items from config
+  const menuItems = getDesktopBurgerMenuItems({
+    session: session || { user: { username } },
+    isAdminUser,
+    showEditButton,
+    username,
+    includeSiteLinks,
+  });
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -249,17 +179,57 @@ export function DashboardDropdownMenu({
           role="menu"
           aria-orientation="vertical"
         >
-          {siteItems.length > 0 && (
-            <>
-              {siteItems.map((item) => {
-                const Icon = item.icon;
-                return (
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = item.href === pathname;
+            const needsSeparatorBefore = 
+              (index > 0 && item.section !== menuItems[index - 1]?.section);
+
+            return (
+              <div key={item.id}>
+                {needsSeparatorBefore && (
+                  <div className="my-2 border-t border-gray-200" role="separator" />
+                )}
+                
+                {item.type === 'visibility-toggle' ? (
                   <button
                     type="button"
-                    key={item.path}
-                    onClick={() => handleNavigation(item.path)}
+                    onClick={handleToggleVisibility}
+                    disabled={togglingVisibility || loadingVisibility}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
-                      item.active
+                      togglingVisibility || loadingVisibility
+                        ? 'opacity-50 cursor-not-allowed'
+                        : isVisible
+                        ? 'text-green-700 hover:bg-green-50'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                    role="menuitem"
+                  >
+                    {togglingVisibility || loadingVisibility ? (
+                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                    ) : isVisible ? (
+                      <Icon className="w-4 h-4 text-green-600" aria-hidden="true" />
+                    ) : (
+                      <Icon className="w-4 h-4 text-gray-600" aria-hidden="true" />
+                    )}
+                    {loadingVisibility ? 'Checking visibility...' : isVisible ? 'Hide Profile' : 'Make Profile Visible'}
+                  </button>
+                ) : item.type === 'action' ? (
+                  <button
+                    type="button"
+                    onClick={() => handleAction(item.action!)}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors text-gray-700 hover:bg-gray-50"
+                    role="menuitem"
+                  >
+                    <Icon className="w-4 h-4" aria-hidden="true" />
+                    {item.label}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleNavigation(item.href!)}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+                      isActive
                         ? 'bg-red-50 text-red-600 font-medium'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
@@ -268,102 +238,10 @@ export function DashboardDropdownMenu({
                     <Icon className="w-4 h-4" aria-hidden="true" />
                     {item.label}
                   </button>
-                );
-              })}
-              <div className="my-2 border-t border-gray-200" role="separator" />
-            </>
-          )}
-
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                type="button"
-                key={item.path}
-                onClick={() => handleNavigation(item.path)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
-                  item.active
-                    ? 'bg-red-50 text-red-600 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-                role="menuitem"
-              >
-                <Icon className="w-4 h-4" aria-hidden="true" />
-                {item.label}
-              </button>
+                )}
+              </div>
             );
           })}
-
-          {/* Separator */}
-          <div className="my-2 border-t border-gray-200" role="separator" />
-
-          {/* Membership */}
-          <button
-            type="button"
-            onClick={() => handleNavigation('/dashboard#settings')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
-              currentHash === '#settings'
-                ? 'bg-red-50 text-red-600 font-medium'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-            role="menuitem"
-          >
-            <CreditCard className="w-4 h-4" aria-hidden="true" />
-            Membership
-          </button>
-
-          {/* Profile Visibility Toggle */}
-          <button
-            type="button"
-            onClick={handleToggleVisibility}
-            disabled={togglingVisibility || loadingVisibility}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
-              togglingVisibility || loadingVisibility
-                ? 'opacity-50 cursor-not-allowed'
-                : isVisible
-                ? 'text-green-700 hover:bg-green-50'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-            role="menuitem"
-          >
-            {togglingVisibility || loadingVisibility ? (
-              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-            ) : isVisible ? (
-              <Eye className="w-4 h-4 text-green-600" aria-hidden="true" />
-            ) : (
-              <EyeOff className="w-4 h-4 text-gray-600" aria-hidden="true" />
-            )}
-            {loadingVisibility ? 'Checking visibility...' : isVisible ? 'Hide Profile' : 'Make Profile Visible'}
-          </button>
-
-          {/* Settings */}
-          <button
-            type="button"
-            onClick={() => handleNavigation('/dashboard#settings')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
-              currentHash === '#settings'
-                ? 'bg-red-50 text-red-600 font-medium'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-            role="menuitem"
-          >
-            <Settings className="w-4 h-4" aria-hidden="true" />
-            Settings
-          </button>
-
-          {/* Logout */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              signOut({ callbackUrl: '/' });
-            }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors text-gray-700 hover:bg-gray-50"
-            role="menuitem"
-          >
-            <LogOut className="w-4 h-4" aria-hidden="true" />
-            Logout
-          </button>
         </div>
       )}
     </div>

@@ -20,12 +20,7 @@ export default async function MembershipPage({ searchParams }: MembershipPagePro
 
   // Redirect if already authenticated
   if (session) {
-    // Special redirect for admin@mpdee.co.uk
-    if (session.user?.email === 'admin@mpdee.co.uk') {
-      redirect('/admin');
-    } else {
-      redirect('/dashboard');
-    }
+    redirect('/dashboard');
   }
 
   // CRITICAL: Verify email before allowing payment
