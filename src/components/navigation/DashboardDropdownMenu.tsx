@@ -138,6 +138,10 @@ export function DashboardDropdownMenu({
       signOut({ callbackUrl: '/' });
     } else if (action === 'profileEditClick') {
       window.dispatchEvent(new Event('profileEditClick'));
+    } else if (action === 'resetCookies') {
+      // Delete the consent cookie to show the banner again
+      document.cookie = 'vsf_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      window.location.reload();
     }
   };
 

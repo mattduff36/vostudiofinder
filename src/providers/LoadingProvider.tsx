@@ -22,21 +22,23 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const pathname = usePathname();
 
-  // Track route changes
+  // Track route changes (only affects page loading state, not initial load)
   useEffect(() => {
+    // Skip on initial mount
+    if (isInitialLoad) return;
+
     // Mark as loading when route changes
     setIsPageLoading(true);
 
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
       setIsPageLoading(false);
-      setIsInitialLoad(false);
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [pathname]);
+  }, [pathname, isInitialLoad]);
 
-  // Mark initial load as complete after hydration
+  // Mark initial load as complete after hydration (500ms grace period)
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsInitialLoad(false);
