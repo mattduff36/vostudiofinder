@@ -278,7 +278,7 @@ export function getMobileMenuItems(context: MenuContext & { bottomNavIds: string
 
   if (session) {
     // Section 1: Welcome message (non-clickable greeting since Profile is in bottom nav)
-    const displayName = session.user?.name || username || 'User';
+    const displayName = session.user?.display_name || username || 'User';
     items.push({
       id: 'welcome-user',
       label: `Welcome, ${displayName}`,
