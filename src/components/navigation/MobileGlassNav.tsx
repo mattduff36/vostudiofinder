@@ -8,6 +8,7 @@
 
 import { useEffect, useState, type MouseEvent } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { Home, Search, LayoutDashboard, Menu, UserPlus, User, X } from 'lucide-react';
 import { Session } from 'next-auth';
 import { AdaptiveGlassBubblesNav, DEFAULT_CONFIG, type NavItem } from './AdaptiveGlassBubblesNav';
@@ -129,7 +130,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const handleAction = (action: string) => {
     setIsMenuOpen(false);
     if (action === 'logout') {
-      router.push('/auth/signout');
+      signOut({ callbackUrl: '/' });
     } else if (action === 'profileEditClick') {
       window.dispatchEvent(new Event('profileEditClick'));
     }
