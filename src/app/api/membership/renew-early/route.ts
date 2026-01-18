@@ -7,6 +7,7 @@ import { getBaseUrl } from '@/lib/seo/site';
 import {
   calculateDaysUntilExpiry,
   isEligibleForEarlyRenewal,
+  isEligibleForStandardRenewal,
 } from '@/lib/membership-renewal';
 import { authOptions } from '@/lib/auth';
 
@@ -16,7 +17,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 
 /**
  * POST /api/membership/renew-early
- * Create Stripe checkout session for early renewal (£25 + 30 day bonus)
+ * Create Stripe checkout session for annual renewal (£25)
+ * - Early renewal (6+ months): £25 + 30 day bonus
+ * - Standard renewal (<6 months): £25, no bonus
  */
 export async function POST(request: NextRequest) {
   try {
@@ -55,11 +58,16 @@ export async function POST(request: NextRequest) {
     // Calculate days remaining
     const daysRemaining = calculateDaysUntilExpiry(subscription.current_period_end);
 
-    // Validate eligibility (must have >= 30 days remaining for bonus)
-    if (!isEligibleForEarlyRenewal(daysRemaining)) {
+    // Determine renewal type based on days remaining
+    let renewalType: 'early' | 'standard';
+    if (isEligibleForEarlyRenewal(daysRemaining)) {
+      renewalType = 'early'; // 6+ months remaining, gets bonus
+    } else if (isEligibleForStandardRenewal(daysRemaining)) {
+      renewalType = 'standard'; // <6 months remaining, no bonus
+    } else {
       return NextResponse.json(
         {
-          error: 'Early renewal bonus requires at least 30 days remaining on your current membership.',
+          error: 'Membership expired or invalid. Please use 5-year renewal option.',
           daysRemaining,
         },
         { status: 400 }
@@ -109,7 +117,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         user_id: userId,
         user_email: user.email,
-        renewal_type: 'early',
+        renewal_type: renewalType, // 'early' or 'standard'
         days_remaining: daysRemaining.toString(),
         current_expiry: subscription.current_period_end.toISOString(),
         purpose: 'membership_renewal',
@@ -118,7 +126,7 @@ export async function POST(request: NextRequest) {
         metadata: {
           user_id: userId,
           user_email: user.email,
-          renewal_type: 'early',
+          renewal_type: renewalType, // 'early' or 'standard'
           days_remaining: daysRemaining.toString(),
           current_expiry: subscription.current_period_end.toISOString(),
           purpose: 'membership_renewal',
@@ -127,7 +135,7 @@ export async function POST(request: NextRequest) {
       allow_promotion_codes: true,
     });
 
-    console.log(`[SUCCESS] Early renewal checkout created: ${stripeSession.id} for user ${userId}`);
+    console.log(`[SUCCESS] ${renewalType === 'early' ? 'Early' : 'Standard'} renewal checkout created: ${stripeSession.id} for user ${userId}`);
 
     return NextResponse.json({ clientSecret: stripeSession.client_secret });
   } catch (error) {

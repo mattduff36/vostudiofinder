@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Button } from '@/components/ui/Button';
 import { Search, RefreshCw, Clock, AlertCircle, CheckCircle, XCircle, Trash2, Filter } from 'lucide-react';
-import { formatDate } from '@/lib/date-format';
+import { formatDate, formatDaysAsYearsMonthsDays } from '@/lib/date-format';
 import { showSuccess, showError } from '@/lib/toast';
 import { showConfirm } from '@/components/ui/ConfirmDialog';
 
@@ -162,12 +162,10 @@ export default function AdminReservationsPage() {
       return <span className="text-red-600 font-semibold">Expired</span>;
     } else if (days === 0) {
       return <span className="text-red-600 font-semibold">Expires today</span>;
-    } else if (days === 1) {
-      return <span className="text-orange-600 font-semibold">1 day left</span>;
     } else if (days <= 2) {
-      return <span className="text-orange-600 font-semibold">{days} days left</span>;
+      return <span className="text-orange-600 font-semibold">{formatDaysAsYearsMonthsDays(days)} left</span>;
     } else {
-      return <span className="text-gray-600">{days} days left</span>;
+      return <span className="text-gray-600">{formatDaysAsYearsMonthsDays(days)} left</span>;
     }
   };
 

@@ -2,13 +2,15 @@
  * Membership Renewal Utilities
  * 
  * Handles calculations and logic for membership renewals:
- * - Early Renewal: £25 with 30-day bonus (requires >= 30 days remaining)
- * - 5-Year Renewal: £80 for 5 years (1,825 days)
+ * - Early Renewal: £25 with 30-day bonus (requires >= 180 days remaining - first 6 months)
+ * - Standard Renewal: £25 for 1 year (no bonus, available when < 180 days remaining - last 6 months)
+ * - 5-Year Renewal: £80 for 5 years (1,825 days) - always available
  */
 
 /**
- * Calculate new expiry date for early renewal
+ * Calculate new expiry date for early renewal (with bonus)
  * Adds 365 days (1 year) + 30 bonus days to current expiry
+ * Only available when >= 180 days remaining
  * 
  * @param currentExpiry Current membership expiry date
  * @returns New expiry date (current + 365 days + 30 bonus days)
@@ -19,6 +21,23 @@ export function calculateEarlyRenewalExpiry(currentExpiry: Date): Date {
   
   const newExpiry = new Date(expiryDate);
   newExpiry.setDate(newExpiry.getDate() + 365 + 30); // 395 days total
+  return newExpiry;
+}
+
+/**
+ * Calculate new expiry date for standard renewal (no bonus)
+ * Adds 365 days (1 year) to current expiry
+ * Available when < 180 days remaining
+ * 
+ * @param currentExpiry Current membership expiry date
+ * @returns New expiry date (current + 365 days)
+ */
+export function calculateStandardRenewalExpiry(currentExpiry: Date): Date {
+  // Convert to Date object if string (defensive programming)
+  const expiryDate = currentExpiry instanceof Date ? currentExpiry : new Date(currentExpiry);
+  
+  const newExpiry = new Date(expiryDate);
+  newExpiry.setDate(newExpiry.getDate() + 365); // 365 days, no bonus
   return newExpiry;
 }
 
@@ -48,13 +67,24 @@ export function calculate5YearRenewalExpiry(currentExpiry: Date | null): Date {
 
 /**
  * Check if user is eligible for early renewal bonus
- * User must have >= 30 days remaining to get the bonus
+ * User must have >= 180 days (6 months) remaining to get the 30-day bonus
  * 
  * @param daysRemaining Days until current membership expiry
- * @returns true if >= 30 days remaining, false otherwise
+ * @returns true if >= 180 days remaining, false otherwise
  */
 export function isEligibleForEarlyRenewal(daysRemaining: number): boolean {
-  return daysRemaining >= 30;
+  return daysRemaining >= 180;
+}
+
+/**
+ * Check if user is eligible for standard renewal (no bonus)
+ * Available when < 180 days remaining (last 6 months)
+ * 
+ * @param daysRemaining Days until current membership expiry
+ * @returns true if 0 <= days < 180, false otherwise
+ */
+export function isEligibleForStandardRenewal(daysRemaining: number): boolean {
+  return daysRemaining >= 0 && daysRemaining < 180;
 }
 
 /**
@@ -75,12 +105,12 @@ export function calculateDaysUntilExpiry(expiryDate: Date): number {
  * Shows current days, added days, bonus, and total
  * 
  * @param daysRemaining Current days remaining on membership
- * @param renewalType Type of renewal ('early' or '5year')
+ * @param renewalType Type of renewal ('early', 'standard', or '5year')
  * @returns Breakdown object with all periods
  */
 export function formatRenewalBreakdown(
   daysRemaining: number,
-  renewalType: 'early' | '5year'
+  renewalType: 'early' | 'standard' | '5year'
 ): {
   current: number;
   added: number;
@@ -89,17 +119,24 @@ export function formatRenewalBreakdown(
 } {
   if (renewalType === 'early') {
     return {
-      current: daysRemaining, // Keep original for display logic
+      current: daysRemaining,
       added: 365,
       bonus: 30,
-      total: 365 + 30, // Only the renewal period, not including current days
+      total: 365 + 30, // 1 year + 30-day bonus
+    };
+  } else if (renewalType === 'standard') {
+    return {
+      current: daysRemaining,
+      added: 365,
+      bonus: 0,
+      total: 365, // 1 year, no bonus
     };
   } else {
     return {
-      current: daysRemaining, // Keep original for display logic
+      current: daysRemaining,
       added: 1825,
       bonus: 0,
-      total: 1825, // Only the renewal period, not including current days
+      total: 1825, // 5 years
     };
   }
 }
@@ -114,14 +151,20 @@ export function formatRenewalBreakdown(
  */
 export function calculateFinalExpiryForDisplay(
   currentExpiry: Date | null,
-  renewalType: 'early' | '5year'
+  renewalType: 'early' | 'standard' | '5year'
 ): Date {
   if (renewalType === 'early') {
-    // Early renewal always extends from current expiry
+    // Early renewal always extends from current expiry (with bonus)
     if (!currentExpiry) {
       throw new Error('Early renewal requires existing expiry date');
     }
     return calculateEarlyRenewalExpiry(currentExpiry);
+  } else if (renewalType === 'standard') {
+    // Standard renewal extends from current expiry (no bonus)
+    if (!currentExpiry) {
+      throw new Error('Standard renewal requires existing expiry date');
+    }
+    return calculateStandardRenewalExpiry(currentExpiry);
   } else {
     // 5-year renewal uses backend logic (today if expired)
     return calculate5YearRenewalExpiry(currentExpiry);
@@ -134,13 +177,13 @@ export function calculateFinalExpiryForDisplay(
  * @param renewalType Type of renewal
  * @returns Price details
  */
-export function getRenewalPrice(renewalType: 'early' | '5year'): {
+export function getRenewalPrice(renewalType: 'early' | 'standard' | '5year'): {
   amount: number;
   currency: string;
   formatted: string;
   savings?: string;
 } {
-  if (renewalType === 'early') {
+  if (renewalType === 'early' || renewalType === 'standard') {
     return {
       amount: 25,
       currency: 'GBP',
@@ -165,22 +208,30 @@ export function getRenewalPrice(renewalType: 'early' | '5year'): {
  * @returns Validation result with error message if invalid
  */
 export function validateRenewalRequest(
-  renewalType: 'early' | '5year',
+  renewalType: 'early' | 'standard' | '5year',
   daysRemaining: number
 ): { valid: boolean; error?: string } {
   // Validate renewal type
-  if (renewalType !== 'early' && renewalType !== '5year') {
+  if (renewalType !== 'early' && renewalType !== 'standard' && renewalType !== '5year') {
     return {
       valid: false,
       error: 'Invalid renewal type',
     };
   }
 
-  // Early renewal requires >= 30 days remaining for bonus
-  if (renewalType === 'early' && daysRemaining < 30) {
+  // Early renewal requires >= 180 days remaining (6 months) for bonus
+  if (renewalType === 'early' && daysRemaining < 180) {
     return {
       valid: false,
-      error: 'Early renewal bonus not available - less than 30 days remaining. Please use 5-year option or wait until expiry.',
+      error: 'Early renewal bonus not available - less than 6 months remaining. Please use standard renewal.',
+    };
+  }
+
+  // Standard renewal requires >= 0 days (not expired) and < 180 days
+  if (renewalType === 'standard' && (daysRemaining < 0 || daysRemaining >= 180)) {
+    return {
+      valid: false,
+      error: 'Standard renewal not available. Use early renewal (6+ months remaining) or 5-year option.',
     };
   }
 

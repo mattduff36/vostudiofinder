@@ -77,3 +77,54 @@ export function formatDateTime(date: Date | string | null): string {
   });
 }
 
+/**
+ * Format days as "X years, Y months, Z days"
+ * Intelligently handles singular/plural and omits zero values
+ * 
+ * Examples:
+ * - 400 days → "1 year, 1 month, 5 days"
+ * - 45 days → "1 month, 15 days"
+ * - 10 days → "10 days"
+ * - 1 day → "1 day"
+ * - 365 days → "1 year"
+ * - 730 days → "2 years"
+ * 
+ * @param totalDays Total number of days
+ * @returns Formatted string with years, months, and days
+ */
+export function formatDaysAsYearsMonthsDays(totalDays: number): string {
+  if (totalDays === 0) return '0 days';
+  if (totalDays === 1) return '1 day';
+  
+  // Calculate years (365 days per year)
+  const years = Math.floor(totalDays / 365);
+  let remainingDays = totalDays % 365;
+  
+  // Calculate months (30 days per month for simplicity)
+  const months = Math.floor(remainingDays / 30);
+  const days = remainingDays % 30;
+  
+  // Build the result array
+  const parts: string[] = [];
+  
+  if (years > 0) {
+    parts.push(years === 1 ? '1 year' : `${years} years`);
+  }
+  
+  if (months > 0) {
+    parts.push(months === 1 ? '1 month' : `${months} months`);
+  }
+  
+  if (days > 0) {
+    parts.push(days === 1 ? '1 day' : `${days} days`);
+  }
+  
+  // Join with commas, but use 'and' for the last item if there are multiple parts
+  if (parts.length === 0) return '0 days';
+  if (parts.length === 1) return parts[0]!;
+  if (parts.length === 2) return parts.join(' and ');
+  
+  // For 3 parts: "X years, Y months and Z days"
+  return parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1]!;
+}
+

@@ -24,7 +24,8 @@ import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { RenewalModal } from '@/components/dashboard/RenewalModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
-import { calculateFinalExpiryForDisplay } from '@/lib/membership-renewal';
+import { calculateFinalExpiryForDisplay, isEligibleForEarlyRenewal, isEligibleForStandardRenewal } from '@/lib/membership-renewal';
+import { formatDaysAsYearsMonthsDays } from '@/lib/date-format';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
 
@@ -59,7 +60,7 @@ export function Settings({ data }: SettingsProps) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showCloseAccountModal, setShowCloseAccountModal] = useState(false);
   const [renewalModalOpen, setRenewalModalOpen] = useState(false);
-  const [renewalType, setRenewalType] = useState<'early' | '5year'>('early');
+  const [renewalType, setRenewalType] = useState<'early' | 'standard' | '5year'>('early');
   
   // Support forms
   const [issueFormOpen, setIssueFormOpen] = useState(false);
@@ -562,13 +563,13 @@ export function Settings({ data }: SettingsProps) {
                           <p className={`text-xs font-medium ${
                             membership?.daysUntilExpiry < 0 
                               ? 'text-red-600' 
-                              : membership?.daysUntilExpiry <= 30 
+                              : membership?.daysUntilExpiry < 180 
                               ? 'text-amber-600' 
                               : 'text-gray-600'
                           }`}>
                             {membership?.daysUntilExpiry < 0 
-                              ? `Expired ${Math.abs(membership?.daysUntilExpiry)} days ago` 
-                              : `${membership?.daysUntilExpiry} days remaining`}
+                              ? `Expired ${formatDaysAsYearsMonthsDays(Math.abs(membership?.daysUntilExpiry))} ago` 
+                              : `${formatDaysAsYearsMonthsDays(membership?.daysUntilExpiry)} remaining`}
                           </p>
                         )}
                       </div>
@@ -586,79 +587,120 @@ export function Settings({ data }: SettingsProps) {
                     <span>Renewal Options</span>
                   </h4>
                   
-                  <div className="flex gap-3">
-                    {/* Early Renewal Card */}
-                    <motion.button
-                      onClick={() => {
-                        const days = membership?.daysUntilExpiry ?? 0;
-                        if (days < 30) {
-                          showError('Early renewal bonus requires at least 30 days remaining on your current membership.');
-                          return;
-                        }
-                        setRenewalType('early');
-                        setRenewalModalOpen(true);
-                      }}
-                      disabled={membership?.daysUntilExpiry == null || membership?.daysUntilExpiry < 30 || !profileData?.membership?.expiresAt}
-                      whileHover={(membership?.daysUntilExpiry == null || membership?.daysUntilExpiry < 30 || !profileData?.membership?.expiresAt) ? {} : { scale: 1.02 }}
-                      whileTap={(membership?.daysUntilExpiry == null || membership?.daysUntilExpiry < 30 || !profileData?.membership?.expiresAt) ? {} : { scale: 0.98 }}
-                      className={`flex-1 relative overflow-hidden rounded-xl border-2 p-5 text-left transition-all duration-200 ${
-                      membership.daysUntilExpiry == null || membership.daysUntilExpiry < 30 || !profileData?.membership?.expiresAt
-                        ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60'
-                        : 'bg-gradient-to-br from-red-50 to-pink-50 border-[#d42027] hover:border-[#a1181d] cursor-pointer shadow-sm hover:shadow-md'
-                    }`}
-                  >
-                    {/* Decorative Badge - Only show when enabled */}
-                    {membership?.daysUntilExpiry != null && membership?.daysUntilExpiry >= 30 && profileData?.membership?.expiresAt && (
-                      <div className="absolute top-3 right-3 px-2 py-1 bg-[#d42027] text-white text-xs font-bold rounded-full shadow-sm">
-                        BONUS!
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {/* Early Renewal Card (6+ months remaining) */}
+                    {membership?.daysUntilExpiry != null && isEligibleForEarlyRenewal(membership.daysUntilExpiry) && (
+                      <motion.button
+                        onClick={() => {
+                          setRenewalType('early');
+                          setRenewalModalOpen(true);
+                        }}
+                        disabled={!profileData?.membership?.expiresAt}
+                        whileHover={!profileData?.membership?.expiresAt ? {} : { scale: 1.02 }}
+                        whileTap={!profileData?.membership?.expiresAt ? {} : { scale: 0.98 }}
+                        className="flex-1 relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left transition-all duration-200 bg-gradient-to-br from-red-50 to-pink-50 border-[#d42027] hover:border-[#a1181d] cursor-pointer shadow-sm hover:shadow-md"
+                      >
+                        {/* Bonus Badge */}
+                        <div className="absolute top-2 sm:top-3 right-2 sm:right-3 px-2 py-0.5 sm:py-1 bg-[#d42027] text-white text-xs font-bold rounded-full shadow-sm">
+                          BONUS!
+                        </div>
+                        
+                        <div className="space-y-1.5 sm:space-y-2">
+                          <div className="flex items-center justify-between pr-14 sm:pr-0">
+                            <h5 className="text-sm sm:text-base font-bold text-gray-900">
+                              Early Renewal
+                            </h5>
+                            <span className="text-lg sm:text-xl font-extrabold text-[#d42027]">
+                              £25
+                            </span>
+                          </div>
+                          
+                          <p className="text-xs sm:text-sm leading-relaxed text-gray-700">
+                            Get 1 year + 1 month bonus added to your current membership
+                          </p>
+                          
+                          {profileData?.membership?.expiresAt && (
+                            <div className="flex items-center space-x-2 pt-0.5 sm:pt-1">
+                              <span className="text-xs font-semibold text-[#d42027]">
+                                New expiry: {calculateFinalExpiryForDisplay(
+                                  new Date(profileData.membership.expiresAt),
+                                  'early'
+                                ).toLocaleDateString('en-GB', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </motion.button>
+                    )}
+
+                    {/* Standard Renewal Card (<6 months remaining) */}
+                    {membership?.daysUntilExpiry != null && isEligibleForStandardRenewal(membership.daysUntilExpiry) && (
+                      <motion.button
+                        onClick={() => {
+                          setRenewalType('standard');
+                          setRenewalModalOpen(true);
+                        }}
+                        disabled={!profileData?.membership?.expiresAt}
+                        whileHover={!profileData?.membership?.expiresAt ? {} : { scale: 1.02 }}
+                        whileTap={!profileData?.membership?.expiresAt ? {} : { scale: 0.98 }}
+                        className="flex-1 relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left transition-all duration-200 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-400 hover:border-blue-600 cursor-pointer shadow-sm hover:shadow-md"
+                      >
+                        <div className="space-y-1.5 sm:space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h5 className="text-sm sm:text-base font-bold text-gray-900">
+                              Standard Renewal
+                            </h5>
+                            <span className="text-lg sm:text-xl font-extrabold text-[#d42027]">
+                              £25
+                            </span>
+                          </div>
+                          
+                          <p className="text-xs sm:text-sm leading-relaxed text-gray-700">
+                            Get 1 year added to your current membership
+                          </p>
+                          
+                          {profileData?.membership?.expiresAt && (
+                            <div className="flex items-center space-x-2 pt-0.5 sm:pt-1">
+                              <span className="text-xs font-semibold text-blue-600">
+                                New expiry: {calculateFinalExpiryForDisplay(
+                                  new Date(profileData.membership.expiresAt),
+                                  'standard'
+                                ).toLocaleDateString('en-GB', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </motion.button>
+                    )}
+
+                    {/* Neither option available - show disabled state */}
+                    {(membership?.daysUntilExpiry == null || membership?.daysUntilExpiry < 0 || !profileData?.membership?.expiresAt) && (
+                      <div className="flex-1 relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left bg-gray-50 border-gray-200 opacity-60">
+                        <div className="space-y-1.5 sm:space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h5 className="text-sm sm:text-base font-bold text-gray-500">
+                              Annual Renewal
+                            </h5>
+                            <span className="text-lg sm:text-xl font-extrabold text-gray-400">
+                              £25
+                            </span>
+                          </div>
+                          <p className="text-xs sm:text-sm leading-relaxed text-gray-400">
+                            {membership?.daysUntilExpiry != null && membership?.daysUntilExpiry < 0
+                              ? 'Membership expired. Please use 5-year option to renew.'
+                              : 'Not available. Please contact support.'}
+                          </p>
+                        </div>
                       </div>
                     )}
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h5 className={`text-base font-bold ${
-                          membership?.daysUntilExpiry == null || membership?.daysUntilExpiry < 30 || !profileData?.membership?.expiresAt
-                            ? 'text-gray-500' 
-                            : 'text-gray-900'
-                        }`}>
-                          Early Renewal
-                        </h5>
-                        <span className={`text-xl font-extrabold ${
-                          membership?.daysUntilExpiry == null || membership?.daysUntilExpiry < 30 || !profileData?.membership?.expiresAt
-                            ? 'text-gray-400' 
-                            : 'text-[#d42027]'
-                        }`}>
-                          £25
-                        </span>
-                      </div>
-                      
-                      <p className={`text-sm leading-relaxed ${
-                        membership?.daysUntilExpiry == null || membership?.daysUntilExpiry < 30 || !profileData?.membership?.expiresAt
-                          ? 'text-gray-400' 
-                          : 'text-gray-700'
-                      }`}>
-                        {membership?.daysUntilExpiry == null || membership?.daysUntilExpiry < 30 || !profileData?.membership?.expiresAt
-                          ? 'Available when you have 30+ days remaining'
-                          : 'Get 1 year + 1 month bonus added to your current membership'
-                        }
-                      </p>
-                      
-                      {membership?.daysUntilExpiry != null && membership?.daysUntilExpiry >= 30 && profileData?.membership?.expiresAt && (
-                        <div className="flex items-center space-x-2 pt-1">
-                          <span className="text-xs font-semibold text-[#d42027]">
-                            New expiry: {calculateFinalExpiryForDisplay(
-                              new Date(profileData.membership.expiresAt),
-                              'early'
-                            ).toLocaleDateString('en-GB', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric'
-                            })}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    </motion.button>
 
                     {/* 5-Year Membership Card */}
                     <motion.button
@@ -668,28 +710,28 @@ export function Settings({ data }: SettingsProps) {
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex-1 relative overflow-hidden rounded-xl border-2 border-gray-300 hover:border-[#d42027] bg-gradient-to-br from-gray-50 to-white p-5 text-left transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md group"
+                      className="flex-1 relative overflow-hidden rounded-xl border-2 border-gray-300 hover:border-[#d42027] bg-gradient-to-br from-gray-50 to-white p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md group"
                     >
                     {/* Best Value Badge */}
-                    <div className="absolute top-3 right-3 px-2 py-1 bg-gradient-to-r from-amber-400 to-amber-500 text-gray-900 text-xs font-bold rounded-full shadow-sm">
+                    <div className="absolute top-2 sm:top-3 right-2 sm:right-3 px-2 py-0.5 sm:py-1 bg-gradient-to-r from-amber-400 to-amber-500 text-gray-900 text-xs font-bold rounded-full shadow-sm">
                       SAVE £45
                     </div>
                     
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h5 className="text-base font-bold text-gray-900">
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <div className="flex items-center justify-between pr-16 sm:pr-0">
+                        <h5 className="text-sm sm:text-base font-bold text-gray-900">
                           5-Year Membership
                         </h5>
-                        <span className="text-xl font-extrabold text-[#d42027] group-hover:text-[#a1181d] transition-colors">
+                        <span className="text-lg sm:text-xl font-extrabold text-[#d42027] group-hover:text-[#a1181d] transition-colors">
                           £80
                         </span>
                       </div>
                       
-                      <p className="text-sm text-gray-700 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
                         Lock in the best rate and save £45 compared to annual renewals
                       </p>
                       
-                      <div className="flex items-center space-x-2 pt-1">
+                      <div className="flex items-center space-x-2 pt-0.5 sm:pt-1">
                         <span className="text-xs font-semibold text-gray-600">
                           New expiry: {profileData?.membership?.expiresAt 
                             ? calculateFinalExpiryForDisplay(
@@ -697,7 +739,7 @@ export function Settings({ data }: SettingsProps) {
                                 '5year'
                               ).toLocaleDateString('en-GB', {
                                 day: 'numeric',
-                                month: 'long',
+                                month: 'short',
                                 year: 'numeric'
                               })
                             : calculateFinalExpiryForDisplay(
@@ -705,7 +747,7 @@ export function Settings({ data }: SettingsProps) {
                                 '5year'
                               ).toLocaleDateString('en-GB', {
                                 day: 'numeric',
-                                month: 'long',
+                                month: 'short',
                                 year: 'numeric'
                               })
                           }
@@ -1124,8 +1166,8 @@ export function Settings({ data }: SettingsProps) {
               // Expired - red
               iconBgClass = 'bg-red-50';
               iconColorClass = 'text-[#d42027]';
-            } else if (daysUntilExpiry !== null && daysUntilExpiry !== undefined && daysUntilExpiry <= 30) {
-              // Expiring soon (≤30 days) - yellow/amber
+            } else if (daysUntilExpiry !== null && daysUntilExpiry !== undefined && daysUntilExpiry < 180) {
+              // Last 6 months (<180 days) - yellow/amber
               iconBgClass = 'bg-amber-50';
               iconColorClass = 'text-amber-600';
             } else {

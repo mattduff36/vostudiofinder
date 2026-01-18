@@ -9,6 +9,7 @@ import type Stripe from 'stripe';
 import { UserStatus } from '@prisma/client';
 import {
   calculateEarlyRenewalExpiry,
+  calculateStandardRenewalExpiry,
   calculate5YearRenewalExpiry,
 } from '@/lib/membership-renewal';
 
@@ -373,7 +374,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   try {
     if (isRenewal) {
       console.log(`[DEBUG ${timestamp}] Processing ${renewal_type} renewal for user ${user.id}...`);
-      await handleMembershipRenewal(user.id, renewal_type as 'early' | '5year', current_expiry);
+      await handleMembershipRenewal(user.id, renewal_type as 'early' | 'standard' | '5year', current_expiry);
       console.log(`[DEBUG ${timestamp}] ✅ Membership renewal processed successfully`);
     } else {
       // Grant membership and update payment tracking in single atomic operation
@@ -411,10 +412,15 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
         
         // Calculate fallback expiry date based on renewal type or default to 1 year from now
         if (isRenewal && renewal_type) {
-          if (renewal_type === 'early' && current_expiry && current_expiry !== 'none') {
+          if ((renewal_type === 'early' || renewal_type === 'standard') && current_expiry && current_expiry !== 'none') {
             const currentExpiryDate = new Date(current_expiry);
-            actualExpiryDate = calculateEarlyRenewalExpiry(currentExpiryDate);
-            console.log(`[FALLBACK] Using calculated early renewal expiry: ${actualExpiryDate.toISOString()}`);
+            if (renewal_type === 'early') {
+              actualExpiryDate = calculateEarlyRenewalExpiry(currentExpiryDate);
+              console.log(`[FALLBACK] Using calculated early renewal expiry: ${actualExpiryDate.toISOString()}`);
+            } else {
+              actualExpiryDate = calculateStandardRenewalExpiry(currentExpiryDate);
+              console.log(`[FALLBACK] Using calculated standard renewal expiry: ${actualExpiryDate.toISOString()}`);
+            }
           } else if (renewal_type === '5year') {
             const currentExpiryDate = (current_expiry && current_expiry !== 'none') ? new Date(current_expiry) : null;
             actualExpiryDate = calculate5YearRenewalExpiry(currentExpiryDate);
@@ -440,6 +446,8 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
       if (isRenewal) {
         if (renewal_type === 'early') {
           planName = 'Early Renewal (with 1-month bonus)';
+        } else if (renewal_type === 'standard') {
+          planName = 'Standard Renewal';
         } else if (renewal_type === '5year') {
           planName = '5-Year Membership';
         }
@@ -553,12 +561,12 @@ async function grantMembership(
  * Handle membership renewal
  * Extends existing membership based on renewal type
  * @param userId - User ID to renew membership for
- * @param renewalType - Type of renewal ('early' or '5year')
+ * @param renewalType - Type of renewal ('early', 'standard', or '5year')
  * @param currentExpiryIso - Current expiry date from metadata (ISO string)
  */
 async function handleMembershipRenewal(
   userId: string,
-  renewalType: 'early' | '5year',
+  renewalType: 'early' | 'standard' | '5year',
   currentExpiryIso?: string
 ) {
   console.log(`[INFO] Processing ${renewalType} renewal for user ${userId}`);
@@ -593,7 +601,15 @@ async function handleMembershipRenewal(
       throw new Error('Early renewal requires a current expiry date');
     }
     newExpiry = calculateEarlyRenewalExpiry(currentExpiry);
-    console.log(`[INFO] Early renewal: ${currentExpiry.toISOString()} + 395 days = ${newExpiry.toISOString()}`);
+    console.log(`[INFO] Early renewal (with bonus): ${currentExpiry.toISOString()} + 395 days = ${newExpiry.toISOString()}`);
+  } else if (renewalType === 'standard') {
+    // Standard renewal requires a current expiry date
+    if (!currentExpiry) {
+      console.error(`[ERROR] Standard renewal requires a current expiry date for user ${userId}`);
+      throw new Error('Standard renewal requires a current expiry date');
+    }
+    newExpiry = calculateStandardRenewalExpiry(currentExpiry);
+    console.log(`[INFO] Standard renewal (no bonus): ${currentExpiry.toISOString()} + 365 days = ${newExpiry.toISOString()}`);
   } else if (renewalType === '5year') {
     // 5-year renewal can handle null (defaults to today)
     newExpiry = calculate5YearRenewalExpiry(currentExpiry);

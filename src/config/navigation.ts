@@ -100,7 +100,7 @@ export const NAV_ITEMS: Record<string, NavItem> = {
     label: 'Membership',
     icon: CreditCard,
     type: 'link',
-    href: '/dashboard/settings',
+    href: '/dashboard/settings?section=membership',
     section: 'settings',
     requiresAuth: true,
     showOnMobile: true,
@@ -121,7 +121,7 @@ export const NAV_ITEMS: Record<string, NavItem> = {
     label: 'Settings',
     icon: Settings,
     type: 'link',
-    href: '/dashboard/settings',
+    href: '/dashboard/settings?section=privacy',
     section: 'settings',
     requiresAuth: true,
     showOnMobile: true,
@@ -280,6 +280,10 @@ export function getMobileMenuItems(context: MenuContext & { bottomNavIds: string
         items.push(link);
       }
     }
+
+    // Add Membership and Settings
+    items.push(NAV_ITEMS.membership!);
+    items.push(NAV_ITEMS.settings!);
 
     // Always add About Us (even if in bottom nav, per requirements for signed in)
     if (!items.find(item => item.id === 'about')) {

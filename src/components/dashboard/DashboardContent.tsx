@@ -61,7 +61,10 @@ export function DashboardContent({ dashboardData, initialProfileData, activeTab 
   };
 
   return (
-    <div className="min-h-screen relative bg-gray-50 flex flex-col">
+    // RootLayout already adds `pt-16 pb-16` to <main> on mobile and `pt-20` on desktop.
+    // Using `min-h-screen` here makes the page *always* taller than the viewport (because of <main> padding),
+    // which creates scrolling even when the content fits.
+    <div className="relative bg-gray-50 flex flex-col min-h-[calc(100dvh-8rem)] md:min-h-[calc(100dvh-5rem)]">
       {/* Background Image - Fixed with enhanced gradient overlay on desktop */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
@@ -104,10 +107,10 @@ export function DashboardContent({ dashboardData, initialProfileData, activeTab 
 
       {/* Content */}
       <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 ${
-        // Note: `src/app/layout.tsx` already applies `pt-16` (64px) to <main> to clear the fixed Navbar.
-        // This additional `pt-20` is intentional spacing + clearance for the fixed mobile back button.
-        // pb-32 on desktop to clear the fixed footer at the bottom
-        activeTab === 'overview' ? 'py-0 md:py-8 md:pb-32' : 'pt-20 pb-8 md:py-8 md:pb-32'
+        // Mobile: the fixed back-button sits at `top-16` and is ~48px tall.
+        // Use `pt-14` to give a small visual gap (~8px) between the back bar and the first content (e.g. progress strip).
+        // Desktop: pb-32 to clear the fixed footer at the bottom.
+        activeTab === 'overview' ? 'py-0 md:py-8 md:pb-32' : 'pt-14 pb-8 md:py-8 md:pb-32'
       } ${activeTab === 'settings' ? 'space-y-6' : ''}`}>
         {activeTab === 'overview' ? (
           // Overview: Show quick actions on mobile, regular content on desktop

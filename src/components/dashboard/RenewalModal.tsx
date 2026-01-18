@@ -5,6 +5,7 @@ import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe
 import { loadStripe } from '@stripe/stripe-js';
 import { Loader2, X, Calendar, Gift } from 'lucide-react';
 import { formatRenewalBreakdown, getRenewalPrice, calculateFinalExpiryForDisplay } from '@/lib/membership-renewal';
+import { formatDaysAsYearsMonthsDays } from '@/lib/date-format';
 
 // Initialize Stripe
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -13,7 +14,7 @@ const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 interface RenewalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  renewalType: 'early' | '5year';
+  renewalType: 'early' | 'standard' | '5year';
   currentExpiry?: Date;
   daysRemaining?: number;
 }
@@ -40,9 +41,14 @@ export function RenewalModal({
     setError(null);
 
     try {
-      const endpoint = renewalType === 'early' 
-        ? '/api/membership/renew-early'
-        : '/api/membership/renew-5year';
+      // Map renewal types to API endpoints
+      let endpoint: string;
+      if (renewalType === 'early' || renewalType === 'standard') {
+        // Both use the same endpoint (early renewal API handles both with/without bonus)
+        endpoint = '/api/membership/renew-early';
+      } else {
+        endpoint = '/api/membership/renew-5year';
+      }
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -78,26 +84,30 @@ export function RenewalModal({
   const breakdown = formatRenewalBreakdown(daysRemaining, renewalType);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="relative w-full max-w-2xl bg-white rounded-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50">
+      <div className="relative w-full max-w-2xl bg-white rounded-lg shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors z-10"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors z-10"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {renewalType === 'early' ? 'Early Renewal' : '5-Year Membership'}
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 pr-12 sm:pr-14">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+            {renewalType === 'early' 
+              ? 'Early Renewal' 
+              : renewalType === 'standard'
+              ? 'Standard Renewal'
+              : '5-Year Membership'}
           </h2>
-          <p className="mt-1 text-lg font-semibold text-[#d42027]">
+          <p className="mt-1 text-base sm:text-lg font-semibold text-[#d42027]">
             {priceInfo.formatted}
             {priceInfo.savings && (
-              <span className="ml-2 text-sm text-green-600">
+              <span className="ml-2 text-xs sm:text-sm text-green-600">
                 Save {priceInfo.savings}!
               </span>
             )}
@@ -105,46 +115,46 @@ export function RenewalModal({
         </div>
 
         {/* Breakdown */}
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-            <Calendar className="w-4 h-4 mr-2" />
+        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-b border-gray-200">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
+            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
             Membership Calculation
           </h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between text-gray-600">
-              <span>Current days remaining:</span>
-              <span className="font-medium text-gray-900">
+          <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+            <div className="flex justify-between text-gray-600 gap-2">
+              <span className="flex-shrink-0">Current time:</span>
+              <span className="font-medium text-gray-900 text-right">
                 {breakdown.current < 0 ? (
-                  <span className="text-red-600">Membership expired</span>
+                  <span className="text-red-600">Expired</span>
                 ) : breakdown.current === 0 ? (
                   <span className="text-orange-600">Expires today</span>
                 ) : (
-                  `${breakdown.current} days`
+                  formatDaysAsYearsMonthsDays(breakdown.current)
                 )}
               </span>
             </div>
-            <div className="flex justify-between text-gray-600">
-              <span>New period added:</span>
-              <span className="font-medium text-gray-900">{breakdown.added} days</span>
+            <div className="flex justify-between text-gray-600 gap-2">
+              <span className="flex-shrink-0">Period added:</span>
+              <span className="font-medium text-gray-900 text-right">{formatDaysAsYearsMonthsDays(breakdown.added)}</span>
             </div>
             {breakdown.bonus > 0 && (
-              <div className="flex justify-between text-green-600">
-                <span className="flex items-center">
-                  <Gift className="w-4 h-4 mr-1" />
-                  Bonus days:
+              <div className="flex justify-between text-green-600 gap-2">
+                <span className="flex items-center flex-shrink-0">
+                  <Gift className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                  Bonus:
                 </span>
-                <span className="font-semibold">{breakdown.bonus} days</span>
+                <span className="font-semibold text-right">{formatDaysAsYearsMonthsDays(breakdown.bonus)}</span>
               </div>
             )}
-            <div className="pt-2 border-t border-gray-300 flex justify-between text-gray-900 font-bold">
-              <span>Extension period:</span>
-              <span>{breakdown.total} days</span>
+            <div className="pt-1.5 sm:pt-2 border-t border-gray-300 flex justify-between text-gray-900 font-bold gap-2">
+              <span className="flex-shrink-0">Extension:</span>
+              <span className="text-right">{formatDaysAsYearsMonthsDays(breakdown.total)}</span>
             </div>
             {currentExpiry && (
-              <div className="pt-2 text-xs text-gray-500">
+              <div className="pt-1.5 sm:pt-2 text-xs text-gray-500">
                 New expiry: {calculateFinalExpiryForDisplay(currentExpiry, renewalType).toLocaleDateString('en-GB', {
                   day: 'numeric',
-                  month: 'long',
+                  month: 'short',
                   year: 'numeric'
                 })}
               </div>
@@ -153,22 +163,22 @@ export function RenewalModal({
         </div>
 
         {/* Payment Form */}
-        <div className="px-6 py-6">
+        <div className="px-4 sm:px-6 py-4 sm:py-6">
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-xs sm:text-sm text-red-800">{error}</p>
             </div>
           )}
 
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-[#d42027] mb-3" />
-              <span className="text-gray-600">Loading payment form...</span>
+            <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+              <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-[#d42027] mb-2 sm:mb-3" />
+              <span className="text-sm sm:text-base text-gray-600">Loading payment form...</span>
             </div>
           ) : !stripePromise ? (
-            <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800 font-medium mb-2">Payment system error</p>
-              <p className="text-red-600 text-sm">
+            <div className="p-4 sm:p-6 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-800 font-medium mb-1 sm:mb-2 text-sm sm:text-base">Payment system error</p>
+              <p className="text-red-600 text-xs sm:text-sm">
                 Please contact support. Error: Stripe not configured
               </p>
             </div>
@@ -185,7 +195,7 @@ export function RenewalModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 text-center">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-500">
             🔒 Secure payment powered by Stripe
           </p>
