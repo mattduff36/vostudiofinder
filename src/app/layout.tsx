@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { cookies } from 'next/headers';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
+import { LoadingProvider } from '@/providers/LoadingProvider';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Navbar } from '@/components/navigation/Navbar';
 import { MobileShell } from '@/components/navigation/MobileShell';
@@ -93,11 +94,13 @@ export default async function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${raleway.variable} antialiased`}>
         <SessionProvider session={session}>
-          <ToastProvider />
-          <ConfirmDialog />
-          <Navbar session={session} />
-          <main className="pt-16 pb-16 md:pt-20 md:pb-0">{children}</main>
-          <MobileShell session={session} />
+          <LoadingProvider>
+            <ToastProvider />
+            <ConfirmDialog />
+            <Navbar session={session} />
+            <main className="pt-16 pb-16 md:pt-20 md:pb-0">{children}</main>
+            <MobileShell session={session} />
+          </LoadingProvider>
         </SessionProvider>
         <DynamicAnalytics />
         <CookieConsentBanner initialLevel={consentLevel || null} />

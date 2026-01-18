@@ -13,6 +13,7 @@ interface AdaptiveGlassMenuProps {
   children: ReactNode;
   onClick?: MouseEventHandler<HTMLDivElement>;
   isVisible?: boolean;
+  style?: CSSProperties;
 }
 
 export function AdaptiveGlassMenu({
@@ -23,6 +24,7 @@ export function AdaptiveGlassMenu({
   children,
   onClick,
   isVisible = true,
+  style,
 }: AdaptiveGlassMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [isDarkBackground, setIsDarkBackground] = useState(false);
@@ -73,6 +75,7 @@ export function AdaptiveGlassMenu({
         className={`adaptive-menu-glass ${hasAnimated.current ? (isVisible ? 'menu-show' : 'menu-hide') : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'} ${className ?? ''}`}
         onClick={onClick}
         style={{
+          ...style,
           color: textColor,
           borderColor,
           '--glass-blur': `${config.blur}px`,

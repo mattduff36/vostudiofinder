@@ -14,7 +14,8 @@ import { Session } from 'next-auth';
 import { AdaptiveGlassBubblesNav, DEFAULT_CONFIG, type NavItem } from './AdaptiveGlassBubblesNav';
 import { AdaptiveGlassMenu } from './AdaptiveGlassMenu';
 import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
-import { useScrollVisibility } from '@/hooks/useScrollVisibility';
+import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
+import { useLoading } from '@/providers/LoadingProvider';
 
 interface MobileGlassNavProps {
   session: Session | null;
@@ -26,16 +27,20 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showAdminEditButton, setShowAdminEditButton] = useState(false);
+  const { isInitialLoad } = useLoading();
   
-  // iOS-style scroll visibility behavior
-  const isScrollVisible = useScrollVisibility({ showDelay: 800 });
+  // iOS-style scroll-driven navigation (matches native browser toolbar behavior)
+  const { translateY, isFullyHidden } = useScrollDrivenNav({ 
+    navHeight: 88, // Match the approximate height of nav + safe area
+    scrollThreshold: 3 
+  });
 
-  // Close menu when scrolling starts (buttons hide)
+  // Close menu when nav is significantly hidden
   useEffect(() => {
-    if (!isScrollVisible && isMenuOpen) {
+    if (translateY > 20 && isMenuOpen) {
       setIsMenuOpen(false);
     }
-  }, [isScrollVisible, isMenuOpen]);
+  }, [translateY, isMenuOpen]);
 
   const isAdminUser =
     session?.user?.email === 'admin@mpdee.co.uk' ||
@@ -137,6 +142,10 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       signOut({ callbackUrl: '/' });
     } else if (action === 'profileEditClick') {
       window.dispatchEvent(new Event('profileEditClick'));
+    } else if (action === 'resetCookies') {
+      // Delete the consent cookie to show the banner again
+      document.cookie = 'vsf_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      window.location.reload();
     }
   };
 
@@ -154,6 +163,11 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     bottomNavIds,
   });
 
+  // Hide during initial page load for graceful loading
+  if (isInitialLoad) {
+    return null;
+  }
+
   return (
     <>
       <nav
@@ -164,6 +178,10 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
         aria-label="Mobile navigation"
         style={{
           padding: '0 max(env(safe-area-inset-left), 1rem) env(safe-area-inset-bottom) max(env(safe-area-inset-right), 1rem)',
+          transform: `translateY(${translateY}px)`,
+          transition: 'none', // No CSS transitions - let scroll drive the animation
+          opacity: 1,
+          animation: 'fadeIn 0.3s ease-in',
         }}
       >
         <div className="mx-auto max-w-lg mb-4">
@@ -171,7 +189,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
             items={navItems}
             config={DEFAULT_CONFIG}
             debugSensors={false}
-            isVisible={isScrollVisible}
+            isVisible={!isFullyHidden}
           />
         </div>
       </nav>
@@ -184,11 +202,15 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           style={{ touchAction: 'none' }}
         >
           <AdaptiveGlassMenu
-            className="absolute bottom-[calc(env(safe-area-inset-bottom)+88px)] right-4 w-64 max-h-[70vh] overflow-y-auto pointer-events-auto"
+            className="absolute right-4 w-64 max-h-[70vh] overflow-y-auto pointer-events-auto"
             config={DEFAULT_CONFIG}
             debugSensors={false}
-            isVisible={isScrollVisible}
+            isVisible={!isFullyHidden}
             onClick={(e: MouseEvent<HTMLDivElement>) => e.stopPropagation()}
+            style={{
+              bottom: `calc(env(safe-area-inset-bottom) + 88px - ${translateY}px)`,
+              transition: 'none', // Let scroll drive the animation
+            }}
           >
             <div className="p-2 space-y-1">
               {menuItems.map((item, index) => {
