@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useState, useRef, type MouseEvent } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Home, Search, LayoutDashboard, Menu, User, X } from 'lucide-react';
@@ -35,11 +35,14 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     scrollThreshold: 3 
   });
 
-  // Close menu when nav is significantly hidden
+  // Close menu when user scrolls (not when menu is opened while already scrolled)
+  const prevTranslateY = useRef(translateY);
   useEffect(() => {
-    if (translateY > 20 && isMenuOpen) {
+    // Only close if translateY changed (scroll happened) AND menu is open AND scrolled significantly
+    if (translateY !== prevTranslateY.current && translateY > 20 && isMenuOpen) {
       setIsMenuOpen(false);
     }
+    prevTranslateY.current = translateY;
   }, [translateY, isMenuOpen]);
 
   const isAdminUser =
