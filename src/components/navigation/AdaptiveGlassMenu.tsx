@@ -12,6 +12,7 @@ interface AdaptiveGlassMenuProps {
   onBackgroundChange?: (isDark: boolean) => void;
   children: ReactNode;
   onClick?: MouseEventHandler<HTMLDivElement>;
+  isVisible?: boolean;
 }
 
 export function AdaptiveGlassMenu({
@@ -21,9 +22,18 @@ export function AdaptiveGlassMenu({
   onBackgroundChange,
   children,
   onClick,
+  isVisible = true,
 }: AdaptiveGlassMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [isDarkBackground, setIsDarkBackground] = useState(false);
+  const hasAnimated = useRef(false);
+
+  // Track if visibility has changed from initial state
+  const prevVisible = useRef(isVisible);
+  if (prevVisible.current !== isVisible) {
+    hasAnimated.current = true;
+    prevVisible.current = isVisible;
+  }
 
   const getSamplePoints = useMemo(() => {
     return () => {
@@ -60,7 +70,7 @@ export function AdaptiveGlassMenu({
     <>
       <div
         ref={menuRef}
-        className={`adaptive-menu-glass ${isDarkBackground ? 'dark-bg' : 'light-bg'} ${className ?? ''}`}
+        className={`adaptive-menu-glass ${hasAnimated.current ? (isVisible ? 'menu-show' : 'menu-hide') : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'} ${className ?? ''}`}
         onClick={onClick}
         style={{
           color: textColor,
@@ -113,6 +123,8 @@ export function AdaptiveGlassMenu({
 
         .adaptive-menu-glass.dark-bg {
           background: rgba(255, 255, 255, 0.12);
+          color: #ffffff;
+          border-color: rgba(255, 255, 255, 0.25);
           box-shadow:
             0 calc(var(--glass-shadow-spread, 40px) / 3.33) var(--glass-shadow-spread, 40px) rgba(0, 0, 0, 0.3),
             0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 2.5)
@@ -123,6 +135,8 @@ export function AdaptiveGlassMenu({
 
         .adaptive-menu-glass.light-bg {
           background: rgba(0, 0, 0, 0.08);
+          color: #000000;
+          border-color: rgba(0, 0, 0, 0.12);
           box-shadow:
             0 calc(var(--glass-shadow-spread, 40px) / 3.33) var(--glass-shadow-spread, 40px) rgba(0, 0, 0, 0.08),
             0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 2.5)
@@ -146,9 +160,55 @@ export function AdaptiveGlassMenu({
           }
         }
 
+        /* Menu hide animation - matches button timing */
+        @keyframes liquidMenuHide {
+          0% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(10px) scale(0.85);
+          }
+        }
+
+        /* Menu show animation - matches button timing with bounce */
+        @keyframes liquidMenuShow {
+          0% {
+            opacity: 0;
+            transform: translateY(10px) scale(0.85);
+          }
+          60% {
+            opacity: 1;
+            transform: translateY(-4px) scale(1.08);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        .adaptive-menu-glass.menu-hide {
+          animation: liquidMenuHide 250ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+          pointer-events: none;
+        }
+
+        .adaptive-menu-glass.menu-show {
+          animation: liquidMenuShow 250ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .adaptive-menu-glass {
             animation: none;
+          }
+          
+          .adaptive-menu-glass.menu-hide {
+            opacity: 0;
+            pointer-events: none;
+          }
+          
+          .adaptive-menu-glass.menu-show {
+            opacity: 1;
           }
         }
       `}</style>

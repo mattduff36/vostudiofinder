@@ -6,7 +6,7 @@
  * consume this config to ensure consistency.
  */
 
-import { LucideIcon, Home, Search, User, Edit, CreditCard, Settings, LogOut, Eye, LogIn, UserPlus, Shield, Pencil, HelpCircle } from 'lucide-react';
+import { LucideIcon, Home, Search, User, Edit, CreditCard, Settings, LogOut, Eye, LogIn, UserPlus, Shield, Pencil, HelpCircle, FileText, Cookie } from 'lucide-react';
 
 export type NavItemType = 'link' | 'action' | 'visibility-toggle';
 
@@ -56,6 +56,36 @@ export const NAV_ITEMS: Record<string, NavItem> = {
     icon: HelpCircle,
     type: 'link',
     href: '/about',
+    section: 'site',
+    showOnMobile: true,
+    showOnDesktop: true,
+  },
+  help: {
+    id: 'help',
+    label: 'Help Center',
+    icon: HelpCircle,
+    type: 'link',
+    href: '/help',
+    section: 'site',
+    showOnMobile: true,
+    showOnDesktop: true,
+  },
+  privacy: {
+    id: 'privacy',
+    label: 'Privacy Policy',
+    icon: FileText,
+    type: 'link',
+    href: '/privacy',
+    section: 'site',
+    showOnMobile: true,
+    showOnDesktop: true,
+  },
+  cookies: {
+    id: 'cookies',
+    label: 'Cookie Settings',
+    icon: Cookie,
+    type: 'link',
+    href: '/cookies',
     section: 'site',
     showOnMobile: true,
     showOnDesktop: true,
@@ -242,69 +272,65 @@ export function getDesktopBurgerMenuItems(context: MenuContext & { includeSiteLi
  * - Admin users: Add EDIT/ADMIN actions at the top
  */
 export function getMobileMenuItems(context: MenuContext & { bottomNavIds: string[] }): NavItem[] {
-  const { session, isAdminUser, showEditButton, username, bottomNavIds, pathname } = context;
+  const { session, isAdminUser, showEditButton, username } = context;
 
   const items: NavItem[] = [];
 
   if (session) {
-    // Signed in: Add admin actions first
-    if (isAdminUser) {
-      if (showEditButton) {
-        items.push(NAV_ITEMS.adminEdit!);
-      }
-      items.push(NAV_ITEMS.adminPanel!);
-    }
+    // Section 1: Welcome message (non-clickable greeting since Profile is in bottom nav)
+    const displayName = session.user?.name || username || 'User';
+    items.push({
+      id: 'welcome-user',
+      label: `Welcome, ${displayName}`,
+      icon: undefined as any,
+      type: 'action' as const,
+      // No href - non-clickable greeting
+      section: 'site' as const,
+    });
 
-    // Add site links (excluding Home since logo acts as home)
-    const siteLinks = [NAV_ITEMS.studios!, NAV_ITEMS.about!];
-    for (const link of siteLinks) {
-      // Exclude if already in bottom nav
-      if (link && !bottomNavIds.includes(link.id)) {
-        items.push(link);
-      }
-    }
-
-    // Add account links (excluding those in bottom nav)
-    const accountLinks: NavItem[] = [
-      NAV_ITEMS.overview!,
-      NAV_ITEMS.editProfile!,
-      {
-        ...NAV_ITEMS.myProfile!,
-        href: `/${username || 'profile'}`,
-      },
-    ];
-
-    for (const link of accountLinks) {
-      // Exclude if already in bottom nav
-      if (link && link.id && !bottomNavIds.includes(link.id)) {
-        items.push(link);
-      }
-    }
-
-    // Add Membership and Settings
+    // Section 2: Account Management (Edit Profile, Membership, Settings)
+    items.push(NAV_ITEMS.editProfile!);
     items.push(NAV_ITEMS.membership!);
     items.push(NAV_ITEMS.settings!);
 
-    // Always add About Us (even if in bottom nav, per requirements for signed in)
-    if (!items.find(item => item.id === 'about')) {
-      items.push(NAV_ITEMS.about!);
+    // Section 3: Site Links (About, Help, Privacy, Cookies)
+    items.push(NAV_ITEMS.about!);
+    items.push(NAV_ITEMS.help!);
+    items.push(NAV_ITEMS.privacy!);
+    items.push(NAV_ITEMS.cookies!);
+
+    // Section 4: Admin actions (if admin user)
+    if (isAdminUser) {
+      items.push(NAV_ITEMS.adminPanel!);
+      if (showEditButton) {
+        items.push(NAV_ITEMS.adminEdit!);
+      }
     }
 
-    // Add Sign Out
+    // Section 5: Logout (always last)
     items.push(NAV_ITEMS.logout!);
 
   } else {
-    // Signed out: Show all links (including duplicates)
-    // Don't filter by pathname for Sign In button (always show in menu)
-    items.push(NAV_ITEMS.signin!);
+    // Signed out: Show welcome message and navigation links
     
-    // Only show Sign Up if not on signup page
-    if (pathname !== '/auth/signup') {
-      items.push(NAV_ITEMS.signup!);
-    }
-
-    // Add About Us
+    // Section 1: Welcome message (no profile link for logged out)
+    items.push({
+      id: 'welcome-guest',
+      label: 'Welcome!',
+      icon: undefined as any,
+      type: 'action' as const,
+      // No href - non-clickable greeting
+      section: 'site' as const,
+    });
+    
+    // Section 2: About and Sign Up
     items.push(NAV_ITEMS.about!);
+    items.push(NAV_ITEMS.signup!); // "List Your Studio" - will be styled in red
+    
+    // Section 3: Help/Legal links
+    items.push(NAV_ITEMS.help!);
+    items.push(NAV_ITEMS.privacy!);
+    items.push(NAV_ITEMS.cookies!);
   }
 
   return items;
@@ -315,5 +341,5 @@ export function getMobileMenuItems(context: MenuContext & { bottomNavIds: string
  */
 export const BOTTOM_NAV_BUTTON_IDS = {
   SIGNED_IN: ['home', 'studios', 'myProfile', 'overview'],
-  SIGNED_OUT: ['home', 'studios', 'signup'],
+  SIGNED_OUT: ['home', 'studios'],
 };

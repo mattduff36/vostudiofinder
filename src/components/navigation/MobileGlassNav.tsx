@@ -9,11 +9,12 @@
 import { useEffect, useState, type MouseEvent } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { Home, Search, LayoutDashboard, Menu, UserPlus, User, X } from 'lucide-react';
+import { Home, Search, LayoutDashboard, Menu, User, X } from 'lucide-react';
 import { Session } from 'next-auth';
 import { AdaptiveGlassBubblesNav, DEFAULT_CONFIG, type NavItem } from './AdaptiveGlassBubblesNav';
 import { AdaptiveGlassMenu } from './AdaptiveGlassMenu';
 import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
+import { useScrollVisibility } from '@/hooks/useScrollVisibility';
 
 interface MobileGlassNavProps {
   session: Session | null;
@@ -25,6 +26,16 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showAdminEditButton, setShowAdminEditButton] = useState(false);
+  
+  // iOS-style scroll visibility behavior
+  const isScrollVisible = useScrollVisibility({ showDelay: 800 });
+
+  // Close menu when scrolling starts (buttons hide)
+  useEffect(() => {
+    if (!isScrollVisible && isMenuOpen) {
+      setIsMenuOpen(false);
+    }
+  }, [isScrollVisible, isMenuOpen]);
 
   const isAdminUser =
     session?.user?.email === 'admin@mpdee.co.uk' ||
@@ -88,10 +99,11 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       active: pathname === '/',
     },
     {
-      label: 'Studios',
+      label: 'Browse Studios',
       icon: Search,
       href: '/studios',
       active: pathname === '/studios',
+      showLabel: !session, // Show text label when logged out
     },
   ];
 
@@ -103,21 +115,13 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       href: `/${username}`,
       active: pathname === `/${username}`,
     });
-  }
-
-  navItems.push(
-    session ? {
+    navItems.push({
       label: 'Dashboard',
       icon: LayoutDashboard,
       href: '/dashboard',
       active: pathname.startsWith('/dashboard'),
-    } : {
-      label: 'List Studio',
-      icon: UserPlus,
-      href: '/auth/signup',
-      active: pathname === '/auth/signup',
-    }
-  );
+    });
+  }
 
   // Add menu button
   navItems.push({
@@ -167,6 +171,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
             items={navItems}
             config={DEFAULT_CONFIG}
             debugSensors={false}
+            isVisible={isScrollVisible}
           />
         </div>
       </nav>
@@ -179,36 +184,67 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           style={{ touchAction: 'none' }}
         >
           <AdaptiveGlassMenu
-            className="absolute bottom-20 right-4 w-64 pointer-events-auto"
+            className="absolute bottom-[calc(env(safe-area-inset-bottom)+88px)] right-4 w-64 max-h-[70vh] overflow-y-auto pointer-events-auto"
             config={DEFAULT_CONFIG}
             debugSensors={false}
+            isVisible={isScrollVisible}
             onClick={(e: MouseEvent<HTMLDivElement>) => e.stopPropagation()}
           >
             <div className="p-2 space-y-1">
-              {menuItems.map((item) => {
+              {menuItems.map((item, index) => {
                 const Icon = item.icon;
                 const isAdminItem = item.section === 'admin';
+                const isWelcomeItem = item.id === 'welcome-guest' || item.id === 'welcome-user';
+                const isLogoutItem = item.id === 'logout';
+                const isSignupItem = item.id === 'signup'; // "List Your Studio" in red
+                
+                // Determine if we need a divider before this item
+                const showDividerBefore = (
+                  // Divider before Edit Profile (after username) - signed in
+                  (session && index === 1) ||
+                  // Divider before About Us (after Settings) - signed in
+                  (session && index === 4) ||
+                  // Divider before Admin section (after Cookie Settings) - signed in
+                  (session && isAdminItem && index > 0 && menuItems[index - 1]?.section !== 'admin') ||
+                  // Divider before Logout - signed in
+                  (session && isLogoutItem) ||
+                  // Divider before About Us (after Welcome) - signed out
+                  (!session && index === 1) ||
+                  // Divider before Help Centre (after List Your Studio) - signed out
+                  (!session && index === 3)
+                );
 
                 return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      if (item.type === 'link' && item.href) {
-                        setIsMenuOpen(false);
-                        router.push(item.href);
-                      } else if (item.type === 'action' && item.action) {
-                        handleAction(item.action);
-                      }
-                    }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-[15px] font-medium transition-colors ${
-                      isAdminItem
-                        ? 'text-red-600 hover:bg-red-50'
-                        : 'text-inherit hover:bg-black/5'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </button>
+                  <div key={item.id}>
+                    {showDividerBefore && (
+                      <div className="my-2 border-t border-black/10 dark:border-white/10" />
+                    )}
+                    <button
+                      onClick={() => {
+                        // Don't navigate for welcome messages
+                        if (isWelcomeItem) {
+                          return;
+                        }
+                        
+                        if (item.type === 'link' && item.href) {
+                          setIsMenuOpen(false);
+                          router.push(item.href);
+                        } else if (item.type === 'action' && item.action) {
+                          handleAction(item.action);
+                        }
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-[15px] font-medium transition-all ${
+                        isAdminItem || isLogoutItem || isSignupItem
+                          ? 'text-red-600 hover:bg-red-50 active:scale-95 active:bg-red-100'
+                          : isWelcomeItem
+                          ? 'font-semibold text-inherit hover:bg-black/5'
+                          : 'text-inherit hover:bg-black/5 active:scale-95 active:bg-black/10'
+                      }`}
+                    >
+                      {Icon && <Icon className="w-5 h-5" />}
+                      <span className={isWelcomeItem ? 'flex-1' : ''}>{item.label}</span>
+                    </button>
+                  </div>
                 );
               })}
             </div>

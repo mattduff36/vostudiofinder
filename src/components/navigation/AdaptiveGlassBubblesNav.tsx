@@ -36,6 +36,7 @@ export interface NavItem {
   href?: string;
   active?: boolean;
   onClick?: () => void;
+  showLabel?: boolean; // Show text label next to icon (pill shape)
 }
 
 interface AdaptiveGlassBubblesNavProps {
@@ -44,6 +45,7 @@ interface AdaptiveGlassBubblesNavProps {
   onBackgroundChange?: (isDark: boolean) => void;
   config?: GlassCustomization;
   debugSensors?: boolean;
+  isVisible?: boolean;
 }
 
 export function AdaptiveGlassBubblesNav({
@@ -52,11 +54,20 @@ export function AdaptiveGlassBubblesNav({
   onBackgroundChange,
   config = DEFAULT_CONFIG,
   debugSensors = false,
+  isVisible = true,
 }: AdaptiveGlassBubblesNavProps) {
   const [internalIsDarkBackground, setInternalIsDarkBackground] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+  const hasAnimated = useRef(false);
 
   const isDarkBackground = externalIsDarkBackground ?? internalIsDarkBackground;
+
+  // Track if visibility has changed from initial state
+  const prevVisible = useRef(isVisible);
+  if (prevVisible.current !== isVisible) {
+    hasAnimated.current = true;
+    prevVisible.current = isVisible;
+  }
 
   const shouldDetectBackground =
     config.adaptiveEnabled && (externalIsDarkBackground === undefined || Boolean(onBackgroundChange));
@@ -121,13 +132,18 @@ export function AdaptiveGlassBubblesNav({
         {items.map((item) => {
           const Icon = item.icon;
           const buttonId = item.id || item.href || item.label;
+          const isPill = item.showLabel;
           
           const bubble = (
             <div 
-              className={`adaptive-circle-glass ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
+              className={`${isPill ? 'adaptive-pill-glass' : 'adaptive-circle-glass'} ${hasAnimated.current ? (isVisible ? 'glass-show' : 'glass-hide') : ''} ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
               style={{
-                width: `${config.circleSize}px`,
+                width: isPill ? 'auto' : `${config.circleSize}px`,
                 height: `${config.circleSize}px`,
+                paddingLeft: isPill ? `${config.pillPaddingX}px` : undefined,
+                paddingRight: isPill ? `${config.pillPaddingX}px` : undefined,
+                paddingTop: isPill ? `${config.pillPaddingY}px` : undefined,
+                paddingBottom: isPill ? `${config.pillPaddingY}px` : undefined,
                 backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                 WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                 color: isDarkBackground ? '#ffffff' : '#000000',
@@ -145,6 +161,7 @@ export function AdaptiveGlassBubblesNav({
               }}
             >
               <Icon className="w-6 h-6" />
+              {isPill && <span className="ml-2 text-sm font-medium whitespace-nowrap">{item.label}</span>}
             </div>
           );
 
@@ -208,6 +225,38 @@ export function AdaptiveGlassBubblesNav({
           overflow: hidden;
         }
 
+        /* PILL-SHAPED GLASS BUBBLE - For icon + text */
+        .adaptive-pill-glass {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 9999px;
+          
+          /* Enhanced adaptive glass effect */
+          background: rgba(128, 128, 128, var(--glass-bg-opacity, 0.45));
+          
+          /* Customizable blur and saturation for liquid glass effect */
+          backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+          -webkit-backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+          
+          /* Use CanvasText for automatic light/dark text */
+          color: CanvasText;
+          
+          /* Customizable border matching text/icon color */
+          border: var(--glass-border-width, 0.5px) solid rgba(128, 128, 128, var(--glass-border-opacity, 0.3));
+          
+          /* Customizable shadow for depth */
+          box-shadow: 
+            0 calc(var(--glass-shadow-spread, 40px) / 3) var(--glass-shadow-spread, 40px) rgba(0, 0, 0, var(--glass-shadow-intensity, 0.15)),
+            0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 2.5) rgba(0, 0, 0, calc(var(--glass-shadow-intensity, 0.15) * 0.67)),
+            inset 0 1px 3px rgba(255, 255, 255, 0.1),
+            inset 0 0 60px rgba(255, 255, 255, 0.05);
+          
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          position: relative;
+          overflow: hidden;
+        }
+
         /* Shimmer effect inside circle */
         .adaptive-circle-glass::before {
           content: '';
@@ -236,7 +285,11 @@ export function AdaptiveGlassBubblesNav({
         }
 
         .group:active .adaptive-circle-glass {
-          transform: translateY(-1px) scale(0.98);
+          transform: translateY(2px) scale(0.92);
+          transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 
+            0 2px 8px rgba(0, 0, 0, 0.08),
+            inset 0 2px 6px rgba(0, 0, 0, 0.15);
         }
 
         /* Make SVG icon strokes inherit the button color (white on dark, black on light) */
@@ -330,6 +383,261 @@ export function AdaptiveGlassBubblesNav({
             transparent 70%
           );
           opacity: 0.5;
+        }
+
+        /* PILL STYLES - Same as circle but pill-specific selectors */
+        
+        .adaptive-pill-glass::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(
+            circle at 50% 0%,
+            color-mix(in srgb, Canvas 50%, transparent),
+            transparent 70%
+          );
+          pointer-events: none;
+          opacity: 0.6;
+        }
+
+        .group:hover .adaptive-pill-glass {
+          transform: translateY(calc(-1 * var(--glass-hover-lift, 4px))) scale(var(--glass-hover-scale, 1.08));
+          background: rgba(128, 128, 128, calc(var(--glass-bg-opacity, 0.45) + 0.1));
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) + 8px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(calc(var(--glass-brightness, 1.15) + 0.05)) contrast(calc(var(--glass-contrast, 0.85) - 0.05));
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 8px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(calc(var(--glass-brightness, 1.15) + 0.05)) contrast(calc(var(--glass-contrast, 0.85) - 0.05));
+          box-shadow: 
+            0 calc(var(--glass-shadow-spread, 40px) / 2.5) calc(var(--glass-shadow-spread, 40px) * 1.25) rgba(0, 0, 0, calc(var(--glass-shadow-intensity, 0.15) * 1.33)),
+            0 calc(var(--glass-shadow-spread, 40px) / 6.7) calc(var(--glass-shadow-spread, 40px) / 2) rgba(0, 0, 0, var(--glass-shadow-intensity, 0.15)),
+            inset 0 1px 3px rgba(255, 255, 255, 0.15),
+            inset 0 0 80px rgba(255, 255, 255, 0.08);
+        }
+
+        .group:active .adaptive-pill-glass {
+          transform: translateY(2px) scale(0.92);
+          transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 
+            0 2px 8px rgba(0, 0, 0, 0.08),
+            inset 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .adaptive-pill-glass svg {
+          stroke: currentColor;
+        }
+
+        .adaptive-pill-glass.active {
+          background: color-mix(in srgb, rgba(212, 32, 39, 0.25) 60%, Canvas 40%);
+          color: #d42027;
+          border-color: #d42027;
+          backdrop-filter: blur(40px) saturate(220%) brightness(1.1);
+          -webkit-backdrop-filter: blur(40px) saturate(220%) brightness(1.1);
+          box-shadow: 
+            0 12px 40px rgba(212, 32, 39, 0.25),
+            0 4px 16px rgba(212, 32, 39, 0.15),
+            inset 0 1px 3px rgba(255, 255, 255, 0.3),
+            inset 0 0 60px rgba(212, 32, 39, 0.15);
+        }
+
+        .adaptive-pill-glass.dark-bg {
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) + 4px)) saturate(var(--glass-saturation, 200%)) brightness(1.4) contrast(0.75);
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 4px)) saturate(var(--glass-saturation, 200%)) brightness(1.4) contrast(0.75);
+          color: #ffffff !important;
+          border-color: #ffffff !important;
+          box-shadow: 
+            0 calc(var(--glass-shadow-spread, 40px) / 3.33) var(--glass-shadow-spread, 40px) rgba(0, 0, 0, 0.3),
+            0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 2.5) rgba(0, 0, 0, 0.2),
+            inset 0 1px 3px rgba(255, 255, 255, 0.25),
+            inset 0 0 60px rgba(255, 255, 255, 0.1);
+        }
+        
+        .group:hover .adaptive-pill-glass.dark-bg {
+          background: rgba(255, 255, 255, 0.18);
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) + 12px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(1.5) contrast(0.7);
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 12px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(1.5) contrast(0.7);
+          color: #ffffff !important;
+          border-color: #ffffff !important;
+          box-shadow: 
+            0 calc(var(--glass-shadow-spread, 40px) / 2.5) calc(var(--glass-shadow-spread, 40px) * 1.25) rgba(0, 0, 0, 0.35),
+            0 calc(var(--glass-shadow-spread, 40px) / 6.67) calc(var(--glass-shadow-spread, 40px) / 2) rgba(0, 0, 0, 0.25),
+            inset 0 1px 3px rgba(255, 255, 255, 0.3),
+            inset 0 0 80px rgba(255, 255, 255, 0.15);
+        }
+
+        .adaptive-pill-glass.dark-bg::before {
+          background: radial-gradient(
+            circle at 50% 0%,
+            rgba(255, 255, 255, 0.25),
+            transparent 70%
+          );
+          opacity: 0.8;
+        }
+
+        .adaptive-pill-glass.light-bg {
+          background: rgba(0, 0, 0, 0.08);
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) - 2px)) saturate(var(--glass-saturation, 200%)) brightness(0.95) contrast(1.1);
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) - 2px)) saturate(var(--glass-saturation, 200%)) brightness(0.95) contrast(1.1);
+          color: #000000 !important;
+          border-color: #000000 !important;
+          box-shadow: 
+            0 calc(var(--glass-shadow-spread, 40px) / 3.33) var(--glass-shadow-spread, 40px) rgba(0, 0, 0, 0.08),
+            0 calc(var(--glass-shadow-spread, 40px) / 10) calc(var(--glass-shadow-spread, 40px) / 2.5) rgba(0, 0, 0, 0.05),
+            inset 0 1px 3px rgba(0, 0, 0, 0.05),
+            inset 0 0 60px rgba(0, 0, 0, 0.03);
+        }
+        
+        .group:hover .adaptive-pill-glass.light-bg {
+          background: rgba(0, 0, 0, 0.12);
+          backdrop-filter: blur(calc(var(--glass-blur, 40px) + 6px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(0.92) contrast(1.15);
+          -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) + 6px)) saturate(calc(var(--glass-saturation, 200%) + 20%)) brightness(0.92) contrast(1.15);
+          color: #000000 !important;
+          border-color: #000000 !important;
+          box-shadow: 
+            0 calc(var(--glass-shadow-spread, 40px) / 2.5) calc(var(--glass-shadow-spread, 40px) * 1.25) rgba(0, 0, 0, 0.12),
+            0 calc(var(--glass-shadow-spread, 40px) / 6.67) calc(var(--glass-shadow-spread, 40px) / 2) rgba(0, 0, 0, 0.08),
+            inset 0 1px 3px rgba(0, 0, 0, 0.08),
+            inset 0 0 80px rgba(0, 0, 0, 0.05);
+        }
+
+        .adaptive-pill-glass.light-bg::before {
+          background: radial-gradient(
+            circle at 50% 0%,
+            rgba(0, 0, 0, 0.08),
+            transparent 70%
+          );
+          opacity: 0.5;
+        }
+      
+        /* iOS LIQUID GLASS ANIMATIONS - Scroll hide/show */
+        
+        /* Hide animation - 250ms */
+        @keyframes liquidGlassHide {
+          0% {
+            opacity: 1;
+            transform: scale(1);
+            backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+            -webkit-backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+          }
+          100% {
+            opacity: 0;
+            transform: scale(0.85);
+            backdrop-filter: blur(70px) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+            -webkit-backdrop-filter: blur(70px) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+          }
+        }
+
+        /* Show animation - 250ms with bounce */
+        @keyframes liquidGlassShow {
+          0% {
+            opacity: 0;
+            transform: scale(0.85);
+            backdrop-filter: blur(70px) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+            -webkit-backdrop-filter: blur(70px) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.15);
+            backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+            -webkit-backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+            backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+            -webkit-backdrop-filter: blur(var(--glass-blur, 40px)) saturate(var(--glass-saturation, 200%)) brightness(var(--glass-brightness, 1.15)) contrast(var(--glass-contrast, 0.85));
+          }
+        }
+
+        /* Icon hide animation - faster (150ms) */
+        @keyframes liquidGlassIconHide {
+          0% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+          }
+        }
+
+        /* Icon show animation - 150ms */
+        @keyframes liquidGlassIconShow {
+          0% {
+            opacity: 0;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+
+        /* Apply hide animation */
+        .adaptive-circle-glass.glass-hide {
+          animation: liquidGlassHide 250ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+          pointer-events: none;
+        }
+
+        .adaptive-circle-glass.glass-hide svg {
+          animation: liquidGlassIconHide 150ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+        }
+
+        /* Apply show animation */
+        .adaptive-circle-glass.glass-show {
+          animation: liquidGlassShow 250ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+        }
+
+        .adaptive-circle-glass.glass-show svg {
+          animation: liquidGlassIconShow 150ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+        }
+
+        /* Apply hide animation to pills */
+        .adaptive-pill-glass.glass-hide {
+          animation: liquidGlassHide 250ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+          pointer-events: none;
+        }
+
+        .adaptive-pill-glass.glass-hide svg {
+          animation: liquidGlassIconHide 150ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+        }
+
+        .adaptive-pill-glass.glass-hide span {
+          animation: liquidGlassIconHide 150ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+        }
+
+        /* Apply show animation to pills */
+        .adaptive-pill-glass.glass-show {
+          animation: liquidGlassShow 250ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+        }
+
+        .adaptive-pill-glass.glass-show svg {
+          animation: liquidGlassIconShow 150ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+        }
+
+        .adaptive-pill-glass.glass-show span {
+          animation: liquidGlassIconShow 150ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+        }
+
+        /* Respect reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+          .adaptive-circle-glass.glass-hide,
+          .adaptive-circle-glass.glass-show,
+          .adaptive-circle-glass.glass-hide svg,
+          .adaptive-circle-glass.glass-show svg,
+          .adaptive-pill-glass.glass-hide,
+          .adaptive-pill-glass.glass-show,
+          .adaptive-pill-glass.glass-hide svg,
+          .adaptive-pill-glass.glass-show svg,
+          .adaptive-pill-glass.glass-hide span,
+          .adaptive-pill-glass.glass-show span {
+            animation: none;
+          }
+          
+          .adaptive-circle-glass.glass-hide,
+          .adaptive-pill-glass.glass-hide {
+            opacity: 0;
+            pointer-events: none;
+          }
+          
+          .adaptive-circle-glass.glass-show,
+          .adaptive-pill-glass.glass-show {
+            opacity: 1;
+          }
         }
       `}</style>
     </>
