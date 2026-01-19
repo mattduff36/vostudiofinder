@@ -96,11 +96,11 @@ export function Navbar({ session }: NavbarProps) {
     };
     
     // Set initial scroll state
-    setIsScrolled(getScrollPosition() > 100);
+    setIsScrolled(getScrollPosition() > 600);
     
     const handleScroll = () => {
       const scrollPos = getScrollPosition();
-      setIsScrolled(scrollPos > 100);
+      setIsScrolled(scrollPos > 600);
     };
 
     // Listen to scroll on multiple targets to ensure we catch it
@@ -110,7 +110,7 @@ export function Navbar({ session }: NavbarProps) {
     // Also check periodically as a fallback (in case scroll events don't fire)
     const checkScrollInterval = setInterval(() => {
       const scrollPos = getScrollPosition();
-      const shouldBeScrolled = scrollPos > 100;
+      const shouldBeScrolled = scrollPos > 600;
       // React will only re-render if the state actually changes
       setIsScrolled(shouldBeScrolled);
     }, 100);
