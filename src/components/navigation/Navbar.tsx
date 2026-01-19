@@ -96,11 +96,11 @@ export function Navbar({ session }: NavbarProps) {
     };
     
     // Set initial scroll state
-    setIsScrolled(getScrollPosition() > 10);
+    setIsScrolled(getScrollPosition() > 100);
     
     const handleScroll = () => {
       const scrollPos = getScrollPosition();
-      setIsScrolled(scrollPos > 10);
+      setIsScrolled(scrollPos > 100);
     };
 
     // Listen to scroll on multiple targets to ensure we catch it
@@ -110,7 +110,7 @@ export function Navbar({ session }: NavbarProps) {
     // Also check periodically as a fallback (in case scroll events don't fire)
     const checkScrollInterval = setInterval(() => {
       const scrollPos = getScrollPosition();
-      const shouldBeScrolled = scrollPos > 10;
+      const shouldBeScrolled = scrollPos > 100;
       // React will only re-render if the state actually changes
       setIsScrolled(shouldBeScrolled);
     }, 100);
@@ -154,10 +154,10 @@ export function Navbar({ session }: NavbarProps) {
           ? 'bg-white/70 md:bg-white backdrop-blur-lg shadow-lg'
           : 'bg-transparent'
       } ${isMapFullscreen ? 'md:block hidden' : ''}`}
-      style={{
+      style={isMobile ? {
         transform: `translateY(-${navTranslateY}px)`,
-        transition: 'none', // No CSS transitions on mobile - let scroll drive the animation
-      }}
+        transition: 'none', // No CSS transitions - let scroll drive the animation
+      } : undefined}
     >
       <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4 w-full">
         <div className="flex items-center justify-between">
