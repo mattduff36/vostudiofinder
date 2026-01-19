@@ -25,6 +25,7 @@ export function Navbar({ session }: NavbarProps) {
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [heroHeight, setHeroHeight] = useState<number | null>(null);
   
   // Check if we're on mobile viewport
   useEffect(() => {
@@ -35,6 +36,13 @@ export function Navbar({ session }: NavbarProps) {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Lock hero height on mount to use as scroll threshold (matches HeroSection height)
+  useEffect(() => {
+    if (heroHeight === null) {
+      setHeroHeight(window.innerHeight);
+    }
+  }, [heroHeight]);
   
   // Mobile-only: Smooth scroll-driven animation for top navbar
   const { translateY: navTranslateY } = useScrollDrivenNav({ 
@@ -85,8 +93,11 @@ export function Navbar({ session }: NavbarProps) {
     window.dispatchEvent(new Event('profileEditClick'));
   };
 
-  // Handle scroll effect
+  // Handle scroll effect - use hero height as threshold
   useEffect(() => {
+    // Don't set up scroll listeners until we have the hero height
+    if (heroHeight === null) return;
+
     // Function to get scroll position from any scrollable element
     const getScrollPosition = () => {
       return window.scrollY || 
@@ -95,12 +106,12 @@ export function Navbar({ session }: NavbarProps) {
              0;
     };
     
-    // Set initial scroll state
-    setIsScrolled(getScrollPosition() > 600);
+    // Set initial scroll state - use hero height as threshold
+    setIsScrolled(getScrollPosition() > heroHeight);
     
     const handleScroll = () => {
       const scrollPos = getScrollPosition();
-      setIsScrolled(scrollPos > 600);
+      setIsScrolled(scrollPos > heroHeight);
     };
 
     // Listen to scroll on multiple targets to ensure we catch it
@@ -110,7 +121,7 @@ export function Navbar({ session }: NavbarProps) {
     // Also check periodically as a fallback (in case scroll events don't fire)
     const checkScrollInterval = setInterval(() => {
       const scrollPos = getScrollPosition();
-      const shouldBeScrolled = scrollPos > 600;
+      const shouldBeScrolled = scrollPos > heroHeight;
       // React will only re-render if the state actually changes
       setIsScrolled(shouldBeScrolled);
     }, 100);
@@ -120,7 +131,7 @@ export function Navbar({ session }: NavbarProps) {
       document.removeEventListener('scroll', handleScroll);
       clearInterval(checkScrollInterval);
     };
-  }, []);
+  }, [heroHeight]);
 
 
 
@@ -152,7 +163,7 @@ export function Navbar({ session }: NavbarProps) {
       className={`fixed top-0 left-0 right-0 z-[100] w-full max-w-full [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${
         isScrolled || !isHomePage
           ? 'bg-white/70 md:bg-white backdrop-blur-lg shadow-lg'
-          : 'bg-transparent'
+          : 'bg-black/30 backdrop-blur-md'
       } ${isMapFullscreen ? 'md:block hidden' : ''}`}
       style={isMobile ? {
         transform: `translateY(-${navTranslateY}px)`,
