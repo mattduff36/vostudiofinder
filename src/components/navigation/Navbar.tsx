@@ -27,6 +27,7 @@ export function Navbar({ session }: NavbarProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const lastWidthRef = useRef<number | null>(null);
+  const hasInitializedRef = useRef(false);
   
   // Check if we're on mobile viewport
   useEffect(() => {
@@ -45,11 +46,12 @@ export function Navbar({ session }: NavbarProps) {
       const currentHeight = window.innerHeight;
       
       // Only update if:
-      // 1. Initial mount (heroHeight is null)
+      // 1. Initial mount (not yet initialized)
       // 2. Width changed (rotation/resize), but NOT just height change (browser UI)
-      if (heroHeight === null || (lastWidthRef.current !== null && currentWidth !== lastWidthRef.current)) {
+      if (!hasInitializedRef.current || (lastWidthRef.current !== null && currentWidth !== lastWidthRef.current)) {
         setHeroHeight(currentHeight);
         lastWidthRef.current = currentWidth;
+        hasInitializedRef.current = true;
       }
     };
 

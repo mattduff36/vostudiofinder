@@ -15,6 +15,7 @@ export function HeroSection() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const lastWidthRef = useRef<number | null>(null);
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -27,11 +28,12 @@ export function HeroSection() {
       const currentHeight = window.innerHeight;
       
       // Only update if:
-      // 1. Initial mount (heroHeight is null)
+      // 1. Initial mount (not yet initialized)
       // 2. Width changed (rotation/resize), but NOT just height change (browser UI)
-      if (heroHeight === null || (lastWidthRef.current !== null && currentWidth !== lastWidthRef.current)) {
+      if (!hasInitializedRef.current || (lastWidthRef.current !== null && currentWidth !== lastWidthRef.current)) {
         setHeroHeight(currentHeight);
         lastWidthRef.current = currentWidth;
+        hasInitializedRef.current = true;
         logger.log('🏠 Hero height locked:', currentHeight, 'width:', currentWidth);
       }
     };
