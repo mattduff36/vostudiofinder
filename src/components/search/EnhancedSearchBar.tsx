@@ -617,6 +617,7 @@ export function EnhancedSearchBar({
                   touchAction: 'manipulation'
                 } as React.CSSProperties}
                 value={query}
+                suppressHydrationWarning
                 onChange={(e) => {
                   const newValue = e.target.value;
                   logger.log('⌨️ Input onChange triggered with:', newValue);

@@ -13,28 +13,35 @@ interface UseScrollDrivenNavOptions {
 
 /**
  * Hook for scroll-driven navigation animation matching iOS browser toolbar behavior.
- * The nav position interpolates smoothly based on scroll delta, not discrete show/hide states.
+ * The nav position interpolates smoothly based on scroll delta.
+ * 
+ * - Scrolling down: navbar hides by sliding up
+ * - Scrolling up: navbar shows by sliding down
+ * - Smooth interpolation based on actual scroll distance
  */
 export function useScrollDrivenNav({
   navHeight = 88,
   enabled = true,
   scrollThreshold = 5,
 }: UseScrollDrivenNavOptions = {}) {
-  const [translateY, setTranslateY] = useState(0);
+  const [scrollHideOffset, setScrollHideOffset] = useState(0);
   const lastScrollY = useRef(0);
   const accumulatedDelta = useRef(0);
   const rafId = useRef<number | null>(null);
 
   useEffect(() => {
     if (!enabled) {
-      setTranslateY(0);
+      setScrollHideOffset(0);
       return;
     }
 
     // Initialize scroll position
-    lastScrollY.current = window.scrollY;
+    const initialScrollY = window.visualViewport 
+      ? window.visualViewport.pageTop 
+      : window.scrollY;
+    lastScrollY.current = initialScrollY;
 
-    const handleScroll = () => {
+    const handleViewportChange = () => {
       // Cancel any pending animation frame
       if (rafId.current) {
         cancelAnimationFrame(rafId.current);
@@ -42,9 +49,11 @@ export function useScrollDrivenNav({
 
       // Use RAF for smooth performance
       rafId.current = requestAnimationFrame(() => {
-        const currentScrollY = window.scrollY;
+        const currentScrollY = window.visualViewport 
+          ? window.visualViewport.pageTop 
+          : window.scrollY;
         const scrollDelta = currentScrollY - lastScrollY.current;
-
+        
         // Only react to scroll if we're past the threshold
         if (Math.abs(scrollDelta) < scrollThreshold && accumulatedDelta.current === 0) {
           lastScrollY.current = currentScrollY;
@@ -68,22 +77,39 @@ export function useScrollDrivenNav({
           accumulatedDelta.current = 0;
         }
 
-        // Update transform
-        setTranslateY(accumulatedDelta.current);
+        // Update scroll-based hide offset
+        setScrollHideOffset(accumulatedDelta.current);
         lastScrollY.current = currentScrollY;
       });
     };
 
-    // Use passive listener for better scroll performance
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Listen to scroll events (use visualViewport on mobile for better accuracy)
+    window.addEventListener('scroll', handleViewportChange, { passive: true });
+    
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('scroll', handleViewportChange);
+    }
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleViewportChange);
+      
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('scroll', handleViewportChange);
+      }
+      
       if (rafId.current) {
         cancelAnimationFrame(rafId.current);
       }
     };
   }, [navHeight, enabled, scrollThreshold]);
 
-  return { translateY, isFullyHidden: translateY >= navHeight };
+  // Return scroll-based offset only
+  // Note: viewportCompensation is calculated but not used - it was part of an earlier
+  // approach to handle iOS Chrome toolbar. The real fix was locking the hero height.
+  return { 
+    visualViewportOffset: 0,  // Not used anymore
+    scrollHideOffset,         // Our scroll-driven hide/show
+    translateY: scrollHideOffset, // Only use scroll offset, not compensation
+    isFullyHidden: scrollHideOffset >= navHeight 
+  };
 }
