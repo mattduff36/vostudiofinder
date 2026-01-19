@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { colors } from '../home/HomePage';
 import { SITE_NAME } from '@/lib/seo/site';
 import { DashboardDropdownMenu } from './DashboardDropdownMenu';
-import { useScrollDirection } from '@/hooks/useScrollDirection';
+import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
 
 interface NavbarProps {
   session: Session | null;
@@ -24,7 +24,24 @@ export function Navbar({ session }: NavbarProps) {
   const [isLogoLoading, setIsLogoLoading] = useState(false);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
-  const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check if we're on mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Mobile-only: Smooth scroll-driven animation for top navbar
+  const { translateY: navTranslateY } = useScrollDrivenNav({ 
+    navHeight: 80, // Approximate height of navbar
+    scrollThreshold: 3,
+    enabled: isMobile // Only enable on mobile
+  });
 
   // Listen for profile edit handler events
   useEffect(() => {
@@ -132,13 +149,15 @@ export function Navbar({ session }: NavbarProps) {
   return (
     <>
     <nav
-      className={`fixed top-0 left-0 right-0 z-[100] transition-transform duration-300 ease-in-out w-full max-w-full [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${
+      className={`fixed top-0 left-0 right-0 z-[100] w-full max-w-full [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${
         isScrolled || !isHomePage
           ? 'bg-white/70 md:bg-white backdrop-blur-lg shadow-lg'
           : 'bg-transparent'
-      } ${isMapFullscreen ? 'md:block hidden' : ''} ${
-        scrollDirection === 'down' && !isAtTop ? 'md:translate-y-0 -translate-y-full' : 'translate-y-0'
-      }`}
+      } ${isMapFullscreen ? 'md:block hidden' : ''}`}
+      style={{
+        transform: `translateY(-${navTranslateY}px)`,
+        transition: 'none', // No CSS transitions on mobile - let scroll drive the animation
+      }}
     >
       <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4 w-full">
         <div className="flex items-center justify-between">
