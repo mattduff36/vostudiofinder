@@ -66,9 +66,9 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
 
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Top Charts Grid - Studio Types and Locations */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         
         {/* Studio Types - Same height as Studio Locations */}
         <div className="bg-white rounded-lg shadow p-6 flex flex-col">
@@ -167,8 +167,8 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
         </div>
       </div>
 
-      {/* Bottom Charts Grid - All three charts on one line */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Bottom Charts Grid - Responsive: stack on mobile, 3 columns on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         
         {/* Custom Connection Methods */}
         <div className="bg-white rounded-lg shadow p-6">

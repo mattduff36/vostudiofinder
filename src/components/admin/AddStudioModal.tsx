@@ -239,22 +239,22 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-8">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full h-[85vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-50 p-0 md:p-8">
+      <div className="bg-white md:rounded-lg shadow-xl max-w-6xl w-full h-full md:h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">Add New Studio Profile</h2>
+        <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Add New Studio Profile</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-2"
             disabled={isLoading}
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 md:w-6 md:h-6" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6 overflow-y-auto flex-1">
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto flex-1">
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
               <p className="text-sm text-red-800">{error}</p>
@@ -488,10 +488,10 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 p-4 md:p-6 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
+            className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors order-2 md:order-1"
             disabled={isLoading}
           >
             Cancel
@@ -499,7 +499,7 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 order-1 md:order-2"
           >
             {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
             {isLoading ? 'Creating...' : 'Create Studio'}

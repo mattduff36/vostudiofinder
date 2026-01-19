@@ -22,18 +22,18 @@ export default async function AdminWaitlistPage() {
   return (
     <>
       <AdminTabs activeTab="waitlist" />
-      <div className="p-8 min-h-screen">
+      <div className="px-4 py-4 md:p-8 min-h-screen">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Waitlist Management</h1>
-            <p className="text-gray-600 mt-2">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Waitlist Management</h1>
+            <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
               View and manage users who have joined the waitlist
             </p>
           </div>
 
           {/* Stats Card */}
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-4 md:mb-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

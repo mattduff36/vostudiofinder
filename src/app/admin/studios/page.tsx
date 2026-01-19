@@ -596,8 +596,8 @@ export default function AdminStudiosPage() {
         }
       `}</style>
       <AdminTabs activeTab="studios" />
-      <div className="p-8 min-h-screen">
-        <div className="max-w-full mx-auto px-4">
+      <div className="px-4 py-4 md:p-8 min-h-screen">
+        <div className="max-w-full mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
@@ -682,7 +682,147 @@ export default function AdminStudiosPage() {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          {/* Mobile Card List - Hidden on desktop */}
+          <div className="md:hidden space-y-4">
+            {studios.map((studio) => (
+              <div key={studio.id} className="bg-white rounded-lg shadow border border-gray-200 p-4">
+                {/* Studio Name and Avatar */}
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="h-12 w-12 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                    <span className="text-white text-lg font-bold">
+                      {studio.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base font-semibold text-gray-900 break-words">
+                      {studio.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">@{studio.users.username}</p>
+                    <p className="text-xs text-gray-500">{studio.users.email}</p>
+                  </div>
+                </div>
+
+                {/* Status Badges Row */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {/* Status */}
+                  <button
+                    onClick={() => handleToggleStatus(studio, studio.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                      studio.status === 'ACTIVE' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {studio.status === 'ACTIVE' ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                    {studio.status}
+                  </button>
+
+                  {/* Visibility */}
+                  <button
+                    onClick={() => handleToggleVisibility(studio, !studio.is_profile_visible)}
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      studio.is_profile_visible ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {studio.is_profile_visible ? 'Visible' : 'Hidden'}
+                  </button>
+
+                  {/* Verified */}
+                  <button
+                    onClick={() => handleToggleVerified(studio, !studio.is_verified)}
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      studio.is_verified ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {studio.is_verified ? '✓ Verified' : 'Unverified'}
+                  </button>
+
+                  {/* Featured */}
+                  <button
+                    onClick={() => handleToggleFeatured(studio, !studio.is_featured)}
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      studio.is_featured ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {studio.is_featured ? '⭐ Featured' : 'Not Featured'}
+                  </button>
+                </div>
+
+                {/* Completion & Membership */}
+                <div className="flex items-center justify-between mb-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600">Complete:</span>
+                    <div className="bg-gray-200 rounded-full h-2 w-20">
+                      <div
+                        className={`h-2 rounded-full ${getCompletionBgColor(studio.profile_completion || 0)}`}
+                        style={{ width: `${studio.profile_completion || 0}%` }}
+                      />
+                    </div>
+                    <span className="font-medium text-gray-700">{studio.profile_completion || 0}%</span>
+                  </div>
+                </div>
+
+                {/* Membership Expiry */}
+                {studio.membership_expires_at && (
+                  <div className="text-xs text-gray-600 mb-3">
+                    <span className="font-medium">Expires:</span>{' '}
+                    <span className={
+                      new Date(studio.membership_expires_at) < new Date()
+                        ? 'text-red-600 font-medium'
+                        : new Date(studio.membership_expires_at) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                        ? 'text-orange-600 font-medium'
+                        : ''
+                    }>
+                      {formatDate(studio.membership_expires_at)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => window.open(`/${studio.users.username}`, '_blank')}
+                    className="flex-1 px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    View
+                  </button>
+                  <button 
+                    onClick={() => handleEditStudio(studio)}
+                    className="flex-1 px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteStudio(studio)}
+                    className="px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {/* Mobile Load More */}
+            {pagination.hasMore && (
+              <button
+                onClick={loadMore}
+                disabled={loading}
+                className="w-full py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                {loading ? 'Loading...' : 'Load More Studios'}
+              </button>
+            )}
+
+            {/* Mobile No Results */}
+            {studios.length === 0 && (
+              <div className="bg-white rounded-lg shadow border border-gray-200 p-8 text-center">
+                <p className="text-gray-600">No studios found</p>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Table - Hidden on mobile */}
+          <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
             <div 
               ref={tableContainerRef} 
               className="overflow-x-auto hide-scrollbar"
@@ -963,46 +1103,45 @@ export default function AdminStudiosPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Desktop Load More Button */}
+            {pagination.hasMore && (
+              <div className="px-6 py-4 border-t border-gray-200 text-center">
+                <button
+                  onClick={loadMore}
+                  disabled={loading}
+                  className="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin -ml-1 mr-3 h-5 w-5 border-2 border-gray-300 border-t-gray-600 rounded-full"></div>
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      Load More Studios
+                      <svg className="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Desktop No Results */}
+            {studios.length === 0 && !loading && (
+              <div className="px-6 py-12 text-center">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No studios found</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Try adjusting your search criteria or filters.
+                </p>
+              </div>
+            )}
           </div>
-
-
-          {/* Load More Button */}
-          {pagination.hasMore && (
-            <div className="px-6 py-4 border-t border-gray-200 text-center">
-              <button
-                onClick={loadMore}
-                disabled={loading}
-                className="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin -ml-1 mr-3 h-5 w-5 border-2 border-gray-300 border-t-gray-600 rounded-full"></div>
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    Load More Studios
-                    <svg className="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-
-          {/* No Results */}
-          {studios.length === 0 && !loading && (
-            <div className="px-6 py-12 text-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No studios found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Try adjusting your search criteria or filters.
-              </p>
-            </div>
-          )}
         </>
       )}
 

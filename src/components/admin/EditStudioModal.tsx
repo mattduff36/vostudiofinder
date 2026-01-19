@@ -1132,40 +1132,42 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       <div className="fixed inset-0 bg-black bg-opacity-60 transition-opacity z-[100]" />
       
       {/* Modal container */}
-      <div className="flex min-h-full items-center justify-center p-4 relative z-[101]">
-        <div className="relative w-full max-w-7xl mx-auto z-[101]">
-          {/* Modal content */}
-          <div className="bg-white rounded-xl shadow-2xl max-h-[95vh] overflow-hidden">
+      <div className="flex min-h-full items-start md:items-center justify-center p-0 md:p-4 relative z-[101]">
+        <div className="relative w-full max-w-7xl mx-auto z-[101] h-full md:h-auto">
+          {/* Modal content - Full screen on mobile, windowed on desktop */}
+          <div className="bg-white md:rounded-xl shadow-2xl h-full md:h-auto md:max-h-[95vh] overflow-hidden">
             {/* Modal header with close button */}
-            <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 border-b border-red-800 flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                {/* Avatar */}
-                <AvatarUpload
-                  currentAvatar={profile?.avatar_image}
-                  onAvatarChange={(url) => handleBasicChange('avatar_image', url)}
-                  size="medium"
-                  editable={true}
-                  userName={profile?.display_name || profile?.username || 'User'}
-                  variant="light"
-                />
+            <div className="bg-gradient-to-r from-red-600 to-red-700 px-4 py-3 md:px-6 md:py-4 border-b border-red-800 flex justify-between items-center">
+              <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                {/* Avatar - Hidden on very small screens */}
+                <div className="hidden sm:block">
+                  <AvatarUpload
+                    currentAvatar={profile?.avatar_image}
+                    onAvatarChange={(url) => handleBasicChange('avatar_image', url)}
+                    size="medium"
+                    editable={true}
+                    userName={profile?.display_name || profile?.username || 'User'}
+                    variant="light"
+                  />
+                </div>
                 
                 {/* Title */}
-                <div className="flex flex-col">
-                  <h2 className="text-xl font-bold text-white" style={{ color: '#ffffff' }}>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <h2 className="text-lg md:text-xl font-bold text-white truncate" style={{ color: '#ffffff' }}>
                     Edit Studio Profile
                   </h2>
                   {(profile?.username || studio?.users?.username) && (
-                    <p className="text-lg font-semibold text-white mt-0.5" style={{ color: '#ffffff' }}>
+                    <p className="text-sm md:text-lg font-semibold text-white mt-0.5 truncate" style={{ color: '#ffffff' }}>
                       {profile?.username || studio?.users?.username}
                     </p>
                   )}
                 </div>
               </div>
               
-              {/* Progress Indicators (right side) */}
-              <div className="flex items-center gap-4">
+              {/* Progress Indicators & Close (right side) */}
+              <div className="flex items-center gap-2 md:gap-4">
                 {completionStats && (
-                  <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+                  <div className="hidden lg:block bg-white rounded-lg px-3 md:px-4 py-1.5 md:py-2 shadow-sm">
                     <ProgressIndicators 
                       requiredFieldsCompleted={completionStats.required.completed}
                       totalRequiredFields={completionStats.required.total}
@@ -1178,7 +1180,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                 <button
                   onClick={onClose}
                   className="text-white hover:text-red-100 hover:bg-red-800 rounded-full flex items-center justify-center font-bold transition-colors duration-200"
-                  style={{ width: '64px', height: '64px', fontSize: '48px' }}
+                  style={{ width: '44px', height: '44px', fontSize: '32px' }}
                   title="Close modal (Esc)"
                 >
                   ×
@@ -1187,7 +1189,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </div>
             
             {/* Modal body with scrollable content */}
-            <div className="overflow-y-auto max-h-[calc(95vh-220px)]">
+            <div className="overflow-y-auto h-[calc(100vh-180px)] md:h-auto md:max-h-[calc(95vh-220px)]">
               {/* Tab Navigation - Matches Edit Profile styling (text-only) */}
               <div className="border-b border-gray-100 bg-white sticky top-0 z-10 overflow-hidden">
                 <nav className="flex space-x-4 px-6 overflow-x-auto" aria-label="Tabs">
@@ -1210,7 +1212,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               </div>
 
               {/* Tab Content - Matches Edit Profile wrapper structure */}
-              <div className="px-6 py-6">
+              <div className="px-4 py-4 md:px-6 md:py-6">
                 <div className="w-full max-w-5xl mx-auto">
                   {activeTab === 'basic' && renderBasicTab()}
                   {activeTab === 'contact' && renderContactTab()}

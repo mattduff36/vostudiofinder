@@ -360,13 +360,13 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
     <>
       <AdminTabs activeTab="overview" />
 
-      <div className="p-8 min-h-screen">
+      <div className="px-4 py-4 md:p-8 min-h-screen">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8 flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600 mt-2">
+          <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
                 Overview of platform statistics and recent activity
               </p>
             </div>
@@ -374,7 +374,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
             {/* Sticky Notes Button */}
             <button
               onClick={() => setIsStickyNotesOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+              className="flex items-center justify-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm w-full md:w-auto"
               aria-label="Open sticky notes"
             >
               <StickyNote className="w-5 h-5 text-gray-600" />
@@ -384,7 +384,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
 
           <div className="space-y-8">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {statCards.map((stat, index) => (
                 <div
                   key={index}

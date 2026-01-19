@@ -245,10 +245,10 @@ export default function AdminAuditUsersPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="px-4 py-4 md:p-6">
       <AdminTabs activeTab="audit" />
 
-      <div className="max-w-7xl mx-auto mt-6">
+      <div className="max-w-7xl mx-auto mt-4 md:mt-6">
         {/* Under Construction Warning */}
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
           <div className="flex items-start">
@@ -267,18 +267,18 @@ export default function AdminAuditUsersPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">User Profile Audit</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">User Profile Audit</h1>
               <p className="text-sm text-gray-600 mt-1">
                 Review and enrich user profiles based on automated classification
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full md:w-auto">
               <button
                 onClick={() => setViewMode('findings')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`flex-1 md:flex-none px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                   viewMode === 'findings'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -288,7 +288,7 @@ export default function AdminAuditUsersPage() {
               </button>
               <button
                 onClick={() => setViewMode('suggestions')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`flex-1 md:flex-none px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                   viewMode === 'suggestions'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -299,8 +299,8 @@ export default function AdminAuditUsersPage() {
             </div>
           </div>
 
-          {/* Summary Stats */}
-          <div className="grid grid-cols-5 gap-4 mb-6">
+          {/* Summary Stats - Responsive Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
             <div className="bg-green-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
                 <CheckCircle className="w-5 h-5 text-green-600" />
@@ -427,7 +427,7 @@ export default function AdminAuditUsersPage() {
                           setViewMode('suggestions');
                           fetchSuggestions(finding.id);
                         }}
-                        className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                        className="ml-0 md:ml-4 mt-3 md:mt-0 w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
                       >
                         <Eye className="w-4 h-4" />
                         View Details
@@ -482,22 +482,22 @@ export default function AdminAuditUsersPage() {
               )}
 
               {selectedSuggestions.size > 0 && (
-                <div className="mb-4 flex gap-2">
+                <div className="mb-4 flex flex-col md:flex-row gap-2">
                   <button
                     onClick={handleApproveSuggestions}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm w-full md:w-auto"
                   >
                     Approve Selected ({selectedSuggestions.size})
                   </button>
                   <button
                     onClick={handleRejectSuggestions}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm w-full md:w-auto"
                   >
                     Reject Selected ({selectedSuggestions.size})
                   </button>
                   <button
                     onClick={handleApplySuggestions}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm w-full md:w-auto"
                   >
                     Apply Approved ({selectedSuggestions.size})
                   </button>

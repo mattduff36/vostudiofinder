@@ -173,20 +173,20 @@ export default function PaymentDetailPage() {
   const canRefund = maxRefundable > 0 && details.payment.status !== 'FAILED';
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-4 md:py-8">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6 md:mb-8">
         <Button
           onClick={() => router.push('/admin/payments')}
           variant="outline"
-          className="mb-4"
+          className="mb-4 w-full md:w-auto"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Payments
         </Button>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Payment Details</h1>
-        <p className="text-gray-600">ID: {details.payment.id}</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Payment Details</h1>
+        <p className="text-gray-600 text-sm break-all">ID: {details.payment.id}</p>
       </div>
 
       {/* Success Message */}
@@ -197,7 +197,7 @@ export default function PaymentDetailPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Main Details */}
         <div className="lg:col-span-2 space-y-6">
           {/* Payment Info */}
@@ -325,13 +325,13 @@ export default function PaymentDetailPage() {
               {!refundModalOpen ? (
                 <Button
                   onClick={() => setRefundModalOpen(true)}
-                  className="w-full bg-red-600 hover:bg-red-700"
+                  className="w-full bg-red-600 hover:bg-red-700 text-sm"
                 >
                   <DollarSign className="w-4 h-4 mr-2" />
                   Issue Refund
                 </Button>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Amount ({details.payment.currency.toUpperCase()})

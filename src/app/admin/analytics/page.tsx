@@ -7,13 +7,13 @@ export default function AnalyticsPage() {
   return (
     <>
       <AdminTabs activeTab="analytics" />
-      <div className="p-8 min-h-screen">
+      <div className="px-4 py-4 md:p-8 min-h-screen">
         <div className="max-w-7xl mx-auto">
           
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
-            <p className="text-gray-600 mt-2">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Analytics</h1>
+            <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
               Advanced analytics and insights powered by Google Analytics
             </p>
           </div>

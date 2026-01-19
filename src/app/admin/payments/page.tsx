@@ -4,6 +4,7 @@ import { useState, useEffect, Fragment } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
+import { AdminDrawer } from '@/components/admin/AdminDrawer';
 import { Button } from '@/components/ui/Button';
 import { Search, RefreshCw, Filter, ChevronDown, ChevronUp, Banknote, AlertCircle, Check } from 'lucide-react';
 import { formatDate, formatDateTime } from '@/lib/date-format';
@@ -64,6 +65,9 @@ export default function AdminPaymentsPage() {
     total: 0,
     totalPages: 0,
   });
+  
+  // Mobile drawer state
+  const [mobileSelectedPayment, setMobileSelectedPayment] = useState<Payment | null>(null);
 
   // Redirect if not admin
   useEffect(() => {
@@ -264,21 +268,21 @@ export default function AdminPaymentsPage() {
       {/* Admin Tabs */}
       <AdminTabs activeTab="payments" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 md:py-8">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Payment Management</h1>
+        <div className="mb-4 md:mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Payment Management</h1>
           <p className="mt-1 text-sm text-gray-600">View and manage all membership payments</p>
         </div>
 
         {/* Filters Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6">
           <div className="flex items-center mb-4">
             <Filter className="w-5 h-5 text-gray-400 mr-2" />
             <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             {/* Search */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -338,8 +342,72 @@ export default function AdminPaymentsPage() {
           </div>
         </div>
 
-        {/* Payments Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        {/* Mobile Payments List - Hidden on desktop */}
+        <div className="md:hidden space-y-3">
+          {payments.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+              <p className="text-gray-500">
+                {searchTerm || statusFilter ? 'No payments found matching your filters' : 'No payments found'}
+              </p>
+            </div>
+          ) : (
+            payments.map((payment) => {
+              const maxRefundable = payment.amount - payment.refunded_amount;
+              const canRefund = maxRefundable > 0 && payment.status !== 'FAILED';
+              
+              return (
+                <div
+                  key={payment.id}
+                  onClick={() => setMobileSelectedPayment(payment)}
+                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 active:bg-gray-50 transition-colors"
+                >
+                  {refundSuccess === payment.id && (
+                    <div className="flex items-center mb-3 p-2 bg-green-50 border border-green-200 rounded">
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                      <span className="text-sm text-green-800">Refund issued successfully</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-gray-900 truncate">
+                        {payment.users.display_name}
+                      </h3>
+                      <p className="text-sm text-gray-600">{payment.users.email}</p>
+                      <p className="text-xs text-gray-500">@{payment.users.username}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-gray-900">
+                        {formatAmount(payment.amount, payment.currency)}
+                      </p>
+                      {canRefund && (
+                        <p className="text-xs text-green-600 font-medium">Can refund</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-3">
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(payment.status)}`}>
+                      {payment.status.replace(/_/g, ' ')}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(payment.created_at)}
+                    </span>
+                  </div>
+
+                  {payment.refunded_amount > 0 && (
+                    <div className="mt-2 text-sm text-red-600">
+                      Refunded: {formatAmount(payment.refunded_amount, payment.currency)}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Payments Table - Hidden on mobile */}
+        <div className="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -666,6 +734,240 @@ export default function AdminPaymentsPage() {
           </div>
         )}
       </div>
+
+      {/* Mobile Payment Details Drawer */}
+      {mobileSelectedPayment && (
+        <AdminDrawer
+          isOpen={!!mobileSelectedPayment}
+          onClose={() => {
+            setMobileSelectedPayment(null);
+            setRefundModalPaymentId(null);
+            setRefundAmount('');
+            setRefundReason(null);
+            setRefundComment('');
+            setRefundError('');
+          }}
+          title="Payment Details"
+          showBackButton
+        >
+          <div className="p-4 space-y-4">
+            {/* Success Message */}
+            {refundSuccess === mobileSelectedPayment.id && (
+              <div className="flex items-center p-3 bg-green-50 border border-green-200 rounded-lg">
+                <Check className="w-5 h-5 text-green-600 mr-2" />
+                <span className="text-sm text-green-800">Refund issued successfully</span>
+              </div>
+            )}
+
+            {/* Payment Information */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Payment Information</h3>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-gray-500">Payment ID:</span>
+                  <p className="text-gray-900 font-mono text-xs break-all">{mobileSelectedPayment.id}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Amount:</span>
+                  <p className="text-lg font-bold text-gray-900">
+                    {formatAmount(mobileSelectedPayment.amount, mobileSelectedPayment.currency)}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Status:</span>
+                  <div className="mt-1">
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(mobileSelectedPayment.status)}`}>
+                      {mobileSelectedPayment.status.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                </div>
+                {mobileSelectedPayment.refunded_amount > 0 && (
+                  <div>
+                    <span className="text-gray-500">Refunded:</span>
+                    <p className="text-red-600 font-semibold">
+                      {formatAmount(mobileSelectedPayment.refunded_amount, mobileSelectedPayment.currency)}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <span className="text-gray-500">Date:</span>
+                  <p className="text-gray-900">{formatDateTime(mobileSelectedPayment.created_at)}</p>
+                </div>
+                {mobileSelectedPayment.stripe_payment_intent_id && (
+                  <div>
+                    <span className="text-gray-500">Stripe Payment Intent:</span>
+                    <p className="text-gray-900 font-mono text-xs break-all">
+                      {mobileSelectedPayment.stripe_payment_intent_id}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Customer Information */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Customer Information</h3>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-gray-500">Name:</span>
+                  <p className="text-gray-900">{mobileSelectedPayment.users.display_name}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Email:</span>
+                  <p className="text-gray-900">{mobileSelectedPayment.users.email}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Username:</span>
+                  <p className="text-gray-900">@{mobileSelectedPayment.users.username}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Refund Section */}
+            {(() => {
+              const maxRefundable = mobileSelectedPayment.amount - mobileSelectedPayment.refunded_amount;
+              const canRefund = maxRefundable > 0 && mobileSelectedPayment.status !== 'FAILED';
+              const isRefundModalOpen = refundModalPaymentId === mobileSelectedPayment.id;
+
+              return canRefund ? (
+                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Issue Refund</h3>
+                  
+                  {!isRefundModalOpen ? (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Available to refund: <span className="font-semibold">{formatAmount(maxRefundable, mobileSelectedPayment.currency)}</span>
+                      </p>
+                      <Button
+                        onClick={() => {
+                          setRefundAmount('');
+                          setRefundReason(null);
+                          setRefundComment('');
+                          setRefundError('');
+                          setRefundModalPaymentId(mobileSelectedPayment.id);
+                        }}
+                        className="w-full bg-red-600 hover:bg-red-700"
+                      >
+                        <Banknote className="w-4 h-4 mr-2" />
+                        Issue Refund
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Amount ({mobileSelectedPayment.currency.toUpperCase()})
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max={maxRefundable / 100}
+                          value={refundAmount}
+                          onChange={(e) => setRefundAmount(e.target.value)}
+                          placeholder="0.00"
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Reason
+                        </label>
+                        <select
+                          value={refundReason || ''}
+                          onChange={(e) => setRefundReason(e.target.value ? (e.target.value as 'duplicate' | 'fraudulent' | 'requested_by_customer') : null)}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                          <option value="">Select a reason...</option>
+                          <option value="requested_by_customer">Requested by customer</option>
+                          <option value="duplicate">Duplicate payment</option>
+                          <option value="fraudulent">Fraudulent transaction</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Comment (Optional)
+                        </label>
+                        <textarea
+                          value={refundComment}
+                          onChange={(e) => setRefundComment(e.target.value)}
+                          placeholder="Add a note or comment about this refund..."
+                          rows={3}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                        />
+                      </div>
+
+                      {refundError && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-start">
+                          <AlertCircle className="w-4 h-4 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
+                          <span className="text-xs text-red-800">{refundError}</span>
+                        </div>
+                      )}
+
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={() => handleRefund(mobileSelectedPayment)}
+                          disabled={refunding}
+                          loading={refunding}
+                          className="flex-1 bg-red-600 hover:bg-red-700"
+                        >
+                          Confirm
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setRefundModalPaymentId(null);
+                            setRefundAmount('');
+                            setRefundReason(null);
+                            setRefundComment('');
+                            setRefundError('');
+                          }}
+                          variant="outline"
+                          disabled={refunding}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null;
+            })()}
+
+            {/* Refund History */}
+            {mobileSelectedPayment.refunds.length > 0 && (
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Refund History</h3>
+                <div className="space-y-2">
+                  {mobileSelectedPayment.refunds.map((refund) => (
+                    <div key={refund.id} className="border border-gray-200 rounded-lg p-3 text-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-red-600">
+                          {formatAmount(refund.amount, refund.currency)}
+                        </span>
+                        <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${refund.status === 'SUCCEEDED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                          {refund.status}
+                        </span>
+                      </div>
+                      {refund.reason && (
+                        <p className="text-gray-600 text-xs mb-1">Reason: {refund.reason}</p>
+                      )}
+                      {refund.comment && (
+                        <p className="text-gray-600 text-xs mb-1">Comment: {refund.comment}</p>
+                      )}
+                      <p className="text-gray-500 text-xs">
+                        Processed by {refund.users_refunds_processed_byTousers?.display_name || 'System'} on{' '}
+                        {formatDateTime(refund.created_at)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </AdminDrawer>
+      )}
     </div>
   );
 }

@@ -25,6 +25,7 @@ import {
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
 import { AdminTabs } from './AdminTabs';
+import { AdminDrawer } from './AdminDrawer';
 
 interface ErrorLogGroup {
   id: string;
@@ -104,6 +105,7 @@ export function ErrorLog() {
   const [page] = useState(1); // Pagination controls to be added in future enhancement
   const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const fetchErrorLogs = useCallback(async () => {
     setLoading(true);
@@ -196,8 +198,10 @@ export function ErrorLog() {
       setSentryIssue(null);
       setSentryEvent(null);
       setSentryError(null);
+      setMobileDrawerOpen(false);
     } else {
       fetchErrorDetails(errorId);
+      setMobileDrawerOpen(true);
     }
   };
 
@@ -303,13 +307,13 @@ export function ErrorLog() {
     <>
       <AdminTabs activeTab="error_log" />
 
-      <div className="p-8 min-h-screen bg-gray-50">
+      <div className="px-4 py-4 md:p-8 min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-6 flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Error Log</h1>
-              <p className="text-gray-600 mt-2">
+          <div className="mb-4 md:mb-6 flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-0">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Error Log</h1>
+              <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
                 Monitor and review site-wide errors captured by Sentry
               </p>
             </div>
@@ -317,7 +321,7 @@ export function ErrorLog() {
               <button
                 onClick={handleSyncNow}
                 disabled={syncing}
-                className="px-4 py-2 bg-[#d42027] hover:bg-[#b01a20] text-white rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-[#d42027] hover:bg-[#b01a20] text-white rounded-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto text-sm"
               >
                 <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
                 {syncing ? 'Syncing...' : 'Sync Now'}
@@ -326,7 +330,7 @@ export function ErrorLog() {
           </div>
 
           {/* Filters */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4 mb-4 md:mb-6">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center space-x-2">
                 <Filter className="w-4 h-4 text-gray-400" />
@@ -387,7 +391,7 @@ export function ErrorLog() {
                   key={error.id}
                   className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all"
                 >
-                  {/* Error Summary - Clickable to expand */}
+                  {/* Error Summary - Clickable to expand (desktop inline, mobile drawer) */}
                   <div 
                     className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                     onClick={() => toggleErrorDetails(error.id)}
@@ -433,9 +437,9 @@ export function ErrorLog() {
                     </div>
                   </div>
 
-                  {/* Expanded Details */}
+                  {/* Expanded Details - Desktop only */}
                   {expandedErrorId === error.id && selectedError && (
-                    <div className="border-t border-gray-200 bg-gray-50 p-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="hidden md:block border-t border-gray-200 bg-gray-50 p-4" onClick={(e) => e.stopPropagation()}>
                       {/* Header with Status Control */}
                       <div className="mb-4 flex items-center justify-between">
                         <h4 className="text-sm font-semibold text-gray-900">Error Details</h4>
@@ -730,6 +734,208 @@ export function ErrorLog() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Error Details Drawer */}
+      <AdminDrawer
+        isOpen={mobileDrawerOpen && !!selectedError}
+        onClose={() => {
+          setMobileDrawerOpen(false);
+          setExpandedErrorId(null);
+          setSelectedError(null);
+          setSentryIssue(null);
+          setSentryEvent(null);
+          setSentryError(null);
+        }}
+        title="Error Details"
+        showBackButton
+      >
+        {selectedError && (
+          <div className="p-4 space-y-4">
+            {/* Header with Status Control */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                {getLevelBadge(selectedError.level)}
+                {getStatusBadge(selectedError.status)}
+              </div>
+              {sentryIssue?.permalink && (
+                <a
+                  href={sentryIssue.permalink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Open in Sentry
+                </a>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status:</label>
+                <select
+                  value={selectedError.status}
+                  onChange={(e) => handleUpdateStatus(selectedError.id, e.target.value)}
+                  disabled={updatingStatus}
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                >
+                  <option value="OPEN">Open</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="IGNORED">Ignored</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Sentry Error Warning */}
+            {sentryError && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                <AlertTriangle className="w-4 h-4 inline mr-2" />
+                Could not fetch live Sentry data: {sentryError}. Showing DB-cached data only.
+              </div>
+            )}
+
+            {/* Error Title */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h3 className="text-base font-medium text-gray-900 break-words">
+                {selectedError.title}
+              </h3>
+            </div>
+
+            {/* Overview Section */}
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Info className="w-4 h-4" />
+                Overview
+              </h5>
+              <div className="space-y-3 text-sm">
+                <div>
+                  <span className="font-medium text-gray-700 block mb-1">Sentry Issue ID</span>
+                  <div className="flex items-center gap-2">
+                    <p className="text-gray-900 font-mono text-xs break-all flex-1">{selectedError.sentry_issue_id}</p>
+                    <button
+                      onClick={() => copyToClipboard(selectedError.sentry_issue_id, 'Issue ID')}
+                      className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                      title="Copy to clipboard"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700 block mb-1">Occurrences</span>
+                  <p className="text-gray-900 font-semibold">
+                    {sentryIssue?.count || selectedError.event_count.toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <span>First: {formatDate(selectedError.first_seen_at)}</span>
+                  <span>Last: {formatDate(selectedError.last_seen_at)}</span>
+                </div>
+                {selectedError.environment && (
+                  <div>
+                    <span className="font-medium text-gray-700 block mb-1">Environment</span>
+                    <p className="text-gray-900">{selectedError.environment}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* What Happened Section */}
+            {(sentryEvent?.message || sentryEvent?.exception || selectedError.sample_event_json?.message) && (
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  What Happened
+                </h5>
+                <div className="space-y-2">
+                  {(sentryEvent?.message || selectedError.sample_event_json?.message) && (
+                    <div>
+                      <span className="text-xs font-medium text-gray-700 block mb-1">Message:</span>
+                      <p className="text-sm text-gray-900 font-mono bg-gray-50 p-2 rounded break-words">
+                        {sentryEvent?.message || selectedError.sample_event_json?.message}
+                      </p>
+                    </div>
+                  )}
+                  {(sentryEvent?.exception?.values?.[0] || selectedError.sample_event_json?.exception?.values?.[0]) && (
+                    <div>
+                      <span className="text-xs font-medium text-gray-700 block mb-1">Exception:</span>
+                      <p className="text-sm text-red-700 font-mono break-words">
+                        {sentryEvent?.exception?.values?.[0]?.type || selectedError.sample_event_json?.exception?.values?.[0]?.type}
+                        {': '}
+                        {sentryEvent?.exception?.values?.[0]?.value || selectedError.sample_event_json?.exception?.values?.[0]?.value}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Stack Trace Section */}
+            {(sentryEvent?.exception?.values?.[0]?.stacktrace || selectedError.sample_event_json?.exception?.values?.[0]?.stacktrace) && (
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Code className="w-4 h-4" />
+                  Stack Trace
+                </h5>
+                <div className="max-h-80 overflow-y-auto">
+                  <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto">
+                    {JSON.stringify(
+                      sentryEvent?.exception?.values?.[0]?.stacktrace || selectedError.sample_event_json?.exception?.values?.[0]?.stacktrace,
+                      null,
+                      2
+                    )}
+                  </pre>
+                </div>
+              </div>
+            )}
+
+            {/* Request Section */}
+            {(sentryEvent?.request || selectedError.sample_event_json?.request) && (
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Globe className="w-4 h-4" />
+                  Request
+                </h5>
+                <div className="space-y-3 text-sm">
+                  {(sentryEvent?.request?.url || selectedError.sample_event_json?.request?.url) && (
+                    <div>
+                      <span className="font-medium text-gray-700 block mb-1">URL:</span>
+                      <p className="text-gray-900 font-mono text-xs break-all">
+                        {sentryEvent?.request?.url || selectedError.sample_event_json?.request?.url}
+                      </p>
+                    </div>
+                  )}
+                  {(sentryEvent?.request?.method || selectedError.sample_event_json?.request?.method) && (
+                    <div>
+                      <span className="font-medium text-gray-700 block mb-1">Method:</span>
+                      <p className="text-gray-900 font-mono">
+                        {sentryEvent?.request?.method || selectedError.sample_event_json?.request?.method}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Raw Event JSON - Collapsible */}
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <details>
+                <summary className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-gray-700 flex items-center gap-2">
+                  <FileJson className="w-4 h-4" />
+                  Raw Event JSON (Click to expand)
+                </summary>
+                <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded mt-3 overflow-x-auto max-h-96 overflow-y-auto">
+                  {JSON.stringify(sentryEvent || selectedError.sample_event_json, null, 2)}
+                </pre>
+              </details>
+            </div>
+
+            {/* No Data Message */}
+            {!sentryEvent && !selectedError.sample_event_json && (
+              <div className="bg-white rounded-lg p-4 border border-gray-200 text-center text-sm text-gray-500">
+                No detailed event data available for this error group.
+              </div>
+            )}
+          </div>
+        )}
+      </AdminDrawer>
     </>
   );
 }

@@ -40,7 +40,7 @@ export function DashboardContent({ dashboardData, initialProfileData, activeTab 
   
   // Mobile-only: Smooth scroll-driven animation to sync with top navbar
   const { translateY: navTranslateY } = useScrollDrivenNav({ 
-    navHeight: 80,
+    navHeight: 64, // Mobile navbar height (matches top-16 = 4rem = 64px)
     scrollThreshold: 3,
     enabled: isMobile
   });

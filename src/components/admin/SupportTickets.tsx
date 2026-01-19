@@ -15,6 +15,7 @@ import {
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
 import { AdminTabs } from './AdminTabs';
+import { AdminDrawer } from './AdminDrawer';
 
 interface Ticket {
   id: string;
@@ -45,6 +46,7 @@ export function SupportTickets() {
   const [replyMessage, setReplyMessage] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const fetchTickets = useCallback(async () => {
     setLoading(true);
@@ -193,18 +195,18 @@ export function SupportTickets() {
     <>
       <AdminTabs activeTab="support" />
 
-      <div className="p-8 min-h-screen bg-gray-50">
+      <div className="px-4 py-4 md:p-8 min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Support Tickets</h1>
-            <p className="text-gray-600 mt-2">
+          <div className="mb-4 md:mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Support Tickets</h1>
+            <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
               Manage user-reported issues and suggestions
             </p>
           </div>
 
           {/* Filters */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4 mb-4 md:mb-6">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center space-x-2">
                 <Filter className="w-4 h-4 text-gray-400" />
@@ -254,7 +256,10 @@ export function SupportTickets() {
                 filteredTickets.map((ticket) => (
                   <div
                     key={ticket.id}
-                    onClick={() => setSelectedTicket(ticket)}
+                    onClick={() => {
+                      setSelectedTicket(ticket);
+                      setMobileDrawerOpen(true);
+                    }}
                     className={`bg-white rounded-lg border cursor-pointer transition-all ${
                       selectedTicket?.id === ticket.id
                         ? 'border-[#d42027] shadow-md'
@@ -292,8 +297,8 @@ export function SupportTickets() {
               )}
             </div>
 
-            {/* Ticket Detail & Reply Panel */}
-            <div className="lg:col-span-1">
+            {/* Desktop Ticket Detail & Reply Panel - Hidden on mobile */}
+            <div className="hidden lg:block lg:col-span-1">
               {selectedTicket ? (
                 <div className="bg-white rounded-lg border border-gray-200 shadow-sm sticky top-4">
                   <div className="p-4 border-b border-gray-200">
@@ -395,6 +400,117 @@ export function SupportTickets() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Ticket Details Drawer */}
+      <AdminDrawer
+        isOpen={mobileDrawerOpen && !!selectedTicket}
+        onClose={() => {
+          setMobileDrawerOpen(false);
+          setReplyMessage('');
+          setUpdatingStatus(false);
+        }}
+        title={selectedTicket ? `${selectedTicket.type === 'ISSUE' ? 'Issue' : 'Suggestion'} Details` : 'Ticket Details'}
+        showBackButton
+      >
+        {selectedTicket && (
+          <div className="p-4 space-y-4">
+            {/* Status Badge */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {getTypeIcon(selectedTicket.type)}
+                <span className="font-medium text-gray-900">
+                  {selectedTicket.type === 'ISSUE' ? 'Issue' : 'Suggestion'}
+                </span>
+              </div>
+              {getStatusBadge(selectedTicket.status)}
+            </div>
+
+            {/* Ticket Details */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="space-y-3 text-sm">
+                <div>
+                  <span className="font-medium text-gray-700">Category:</span>
+                  <span className="ml-2 text-gray-900">{selectedTicket.category}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">From:</span>
+                  <span className="ml-2 text-gray-900">{selectedTicket.users.display_name}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Email:</span>
+                  <span className="ml-2 text-gray-900 break-words">{selectedTicket.users.email}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Priority:</span>
+                  <span className="ml-2">{getPriorityBadge(selectedTicket.priority)}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Submitted:</span>
+                  <span className="ml-2 text-gray-900 text-xs">
+                    {new Date(selectedTicket.created_at).toLocaleString('en-GB')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Message */}
+            <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">Message:</p>
+              <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedTicket.message}</p>
+            </div>
+
+            {/* Change Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Change Status
+              </label>
+              <select
+                value={selectedTicket.status}
+                onChange={(e) => handleUpdateStatus(selectedTicket.id, e.target.value)}
+                disabled={updatingStatus}
+                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+              >
+                <option value="OPEN">Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="RESOLVED">Resolved</option>
+                <option value="CLOSED">Closed</option>
+              </select>
+            </div>
+
+            {/* Reply Form */}
+            <form onSubmit={handleSendReply} className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Reply via Email
+              </label>
+              <textarea
+                value={replyMessage}
+                onChange={(e) => setReplyMessage(e.target.value)}
+                rows={6}
+                placeholder="Type your reply message..."
+                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                disabled={sendingReply}
+              />
+              <button
+                type="submit"
+                disabled={sendingReply || !replyMessage.trim()}
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                {sendingReply ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4" />
+                    <span>Send Reply</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        )}
+      </AdminDrawer>
     </>
   );
 }

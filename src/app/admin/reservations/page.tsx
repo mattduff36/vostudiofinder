@@ -186,17 +186,17 @@ export default function AdminReservationsPage() {
       {/* Admin Tabs */}
       <AdminTabs activeTab="reservations" />
 
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8" style={{ minWidth: '1024px' }}>
+      <div className="mx-auto px-4 py-4 sm:px-6 lg:px-8 md:py-8">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Username Reservations</h1>
+        <div className="mb-4 md:mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Username Reservations</h1>
           <p className="mt-1 text-sm text-gray-600">
             Manage pending user signups and username reservations
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center">
               <Clock className="w-8 h-8 text-yellow-500 mr-3" />
@@ -239,13 +239,13 @@ export default function AdminReservationsPage() {
         </div>
 
         {/* Filters Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6">
           <div className="flex items-center mb-4">
             <Filter className="w-5 h-5 text-gray-400 mr-2" />
             <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             {/* Search */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -302,8 +302,76 @@ export default function AdminReservationsPage() {
           </div>
         </div>
 
-        {/* Users Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        {/* Mobile Card List - Hidden on desktop */}
+        <div className="md:hidden space-y-4">
+          {users.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+              <p className="text-gray-500">
+                {searchTerm || statusFilter ? 'No reservations found matching your filters' : 'No reservations found'}
+              </p>
+            </div>
+          ) : (
+            users.map((user) => (
+              <div key={user.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                {/* User Info */}
+                <div className="mb-3">
+                  <h3 className="text-base font-semibold text-gray-900">
+                    {user.display_name}
+                  </h3>
+                  <p className="text-sm text-gray-600">@{user.username}</p>
+                  <p className="text-sm text-gray-500 break-words">{user.email}</p>
+                </div>
+
+                {/* Status Badge */}
+                <div className="flex items-center gap-2 mb-3">
+                  {getStatusBadge(user.status)}
+                  {user.payment_retry_count > 0 && (
+                    <span className="text-xs text-red-600 font-semibold">
+                      {user.payment_retry_count} failed payment{user.payment_retry_count > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                  <div>
+                    <span className="text-gray-500 block">Created:</span>
+                    <span className="text-gray-900">{formatDate(user.created_at)}</span>
+                  </div>
+                  {user.reservation_expires_at && (
+                    <div>
+                      <span className="text-gray-500 block">Expires:</span>
+                      <div className="text-gray-900">
+                        {formatDate(user.reservation_expires_at)}
+                        <div className="text-xs mt-1">
+                          {getExpiryStatus(user.reservation_expires_at)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Delete Button */}
+                <Button
+                  onClick={() => handleDeleteReservation(user.id, user.email, user.username)}
+                  disabled={deletingUserId === user.id}
+                  variant="outline"
+                  className="w-full border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 disabled:opacity-50"
+                >
+                  {deletingUserId === user.id ? (
+                    <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-2" />
+                  )}
+                  Delete Permanently
+                </Button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table - Hidden on mobile */}
+        <div className="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full divide-y divide-gray-200" style={{ tableLayout: 'fixed' }}>
               <thead className="bg-gray-50">
