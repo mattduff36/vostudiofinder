@@ -26,6 +26,7 @@ export function Navbar({ session }: NavbarProps) {
   const navContainerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
+  const lastWidthRef = useRef<number | null>(null);
   
   // Check if we're on mobile viewport
   useEffect(() => {
@@ -37,11 +38,26 @@ export function Navbar({ session }: NavbarProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Lock hero height on mount to use as scroll threshold (matches HeroSection height)
+  // Lock hero height on mount and update on width changes (matches HeroSection behavior)
   useEffect(() => {
-    if (heroHeight === null) {
-      setHeroHeight(window.innerHeight);
-    }
+    const updateHeight = () => {
+      const currentWidth = window.innerWidth;
+      const currentHeight = window.innerHeight;
+      
+      // Only update if:
+      // 1. Initial mount (heroHeight is null)
+      // 2. Width changed (rotation/resize), but NOT just height change (browser UI)
+      if (heroHeight === null || (lastWidthRef.current !== null && currentWidth !== lastWidthRef.current)) {
+        setHeroHeight(currentHeight);
+        lastWidthRef.current = currentWidth;
+      }
+    };
+
+    updateHeight();
+    
+    // Listen for resize events
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
   }, [heroHeight]);
   
   // Mobile-only: Smooth scroll-driven animation for top navbar
