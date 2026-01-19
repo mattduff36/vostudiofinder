@@ -1,7 +1,7 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { colors } from './HomePage';
 import { EnhancedSearchBar } from '../search/EnhancedSearchBar';
@@ -13,9 +13,35 @@ export function HeroSection() {
   logger.log('🏠 HeroSection component rendered');
   const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [heroHeight, setHeroHeight] = useState<number | null>(null);
+  const lastWidthRef = useRef<number | null>(null);
 
   useEffect(() => {
     setIsLoaded(true);
+  }, []);
+
+  // Lock hero height on mount and only update on width changes (rotation)
+  useEffect(() => {
+    const updateHeight = () => {
+      const currentWidth = window.innerWidth;
+      const currentHeight = window.innerHeight;
+      
+      // Only update if:
+      // 1. Initial mount (heroHeight is null)
+      // 2. Width changed (rotation/resize), but NOT just height change (browser UI)
+      if (heroHeight === null || (lastWidthRef.current !== null && currentWidth !== lastWidthRef.current)) {
+        setHeroHeight(currentHeight);
+        lastWidthRef.current = currentWidth;
+        logger.log('🏠 Hero height locked:', currentHeight, 'width:', currentWidth);
+      }
+    };
+
+    updateHeight();
+    
+    // Listen for resize events
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = (location: string, coordinates?: { lat: number; lng: number }, radius?: number) => {
@@ -43,7 +69,7 @@ export function HeroSection() {
   };
 
   return (
-    <div className="relative text-white overflow-visible min-h-screen flex items-center justify-center w-full max-w-full" style={{ minHeight: '100dvh' }}>
+    <div className="relative text-white overflow-visible min-h-screen flex items-center justify-center w-full max-w-full" style={{ minHeight: heroHeight ? `${heroHeight}px` : '100vh' }}>
         {/* Background Image */}
         <div className="absolute inset-0 overflow-hidden">
           <Image

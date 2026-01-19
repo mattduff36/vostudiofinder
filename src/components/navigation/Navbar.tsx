@@ -58,7 +58,8 @@ export function Navbar({ session }: NavbarProps) {
     // Listen for resize events
     window.addEventListener('resize', updateHeight);
     return () => window.removeEventListener('resize', updateHeight);
-  }, [heroHeight]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   // Mobile-only: Smooth scroll-driven animation for top navbar
   const { translateY: navTranslateY } = useScrollDrivenNav({ 
