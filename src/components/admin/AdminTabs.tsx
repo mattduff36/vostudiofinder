@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useScrollDirection } from '@/hooks/useScrollDirection';
+import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
 import { 
   TrendingUp, 
   Building, 
@@ -44,15 +44,30 @@ const tabs: TabConfig[] = [
 
 export function AdminTabs({ activeTab }: AdminTabsProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
-  const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
+  
+  // Check if we're on mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Mobile-only: Smooth scroll-driven animation to sync with top navbar
+  const { translateY: navTranslateY } = useScrollDrivenNav({ 
+    navHeight: 80,
+    scrollThreshold: 3,
+    enabled: isMobile
+  });
 
   return (
     <>
-      {/* Desktop Tabs */}
-      <div className={`hidden md:block sticky top-20 -mt-1 z-50 bg-red-600 border-b border-red-700 transition-transform duration-300 ease-in-out ${
-        scrollDirection === 'down' && !isAtTop ? '-translate-y-20' : 'translate-y-0'
-      }`}>
+      {/* Desktop Tabs - Static on desktop, no scroll animation */}
+      <div className="hidden md:block sticky top-20 -mt-1 z-50 bg-red-600 border-b border-red-700">
         <nav className="flex justify-center space-x-8 px-6" aria-label="Admin tabs">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -79,10 +94,14 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
         </nav>
       </div>
 
-      {/* Mobile Tabs */}
-      <div className={`md:hidden sticky top-16 -mt-[4px] z-50 bg-red-600 border-b border-red-700 transition-transform duration-300 ease-in-out ${
-        scrollDirection === 'down' && !isAtTop ? '-translate-y-16' : 'translate-y-0'
-      }`}>
+      {/* Mobile Tabs - Syncs with navbar scroll animation */}
+      <div 
+        className="md:hidden sticky top-16 -mt-[4px] z-50 bg-red-600 border-b border-red-700"
+        style={isMobile ? {
+          transform: `translateY(-${navTranslateY}px)`,
+          transition: 'none', // Let scroll drive the animation
+        } : undefined}
+      >
         <div className="px-4 py-3">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

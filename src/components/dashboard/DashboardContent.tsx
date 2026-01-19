@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,7 +8,7 @@ import { ChevronDown } from 'lucide-react';
 import { UserDashboard } from './UserDashboard';
 import { ProfileEditForm } from './ProfileEditForm';
 import { Settings } from './Settings';
-import { useScrollDirection } from '@/hooks/useScrollDirection';
+import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
 import type { ProfileData } from '@/types/profile';
 
 // Dashboard tab type for navigation
@@ -25,8 +25,25 @@ interface DashboardContentProps {
 
 export function DashboardContent({ dashboardData, initialProfileData, activeTab }: DashboardContentProps) {
   const [isFooterExpanded, setIsFooterExpanded] = useState(false);
-  const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
+  
+  // Check if we're on mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Mobile-only: Smooth scroll-driven animation to sync with top navbar
+  const { translateY: navTranslateY } = useScrollDrivenNav({ 
+    navHeight: 80,
+    scrollThreshold: 3,
+    enabled: isMobile
+  });
 
   const handleQuickAction = (action: QuickAction) => {
     const routeMap: Record<'edit-profile' | 'settings', string> = {
@@ -79,9 +96,13 @@ export function DashboardContent({ dashboardData, initialProfileData, activeTab 
 
       {/* Mobile Back Button - Only for sub-pages - Slides up with navbar on scroll */}
       {activeTab !== 'overview' && (
-        <div className={`md:hidden fixed top-16 left-0 right-0 z-30 bg-white border-b border-gray-200 px-4 py-3 transition-transform duration-300 ease-in-out ${
-          scrollDirection === 'down' && !isAtTop ? '-translate-y-16' : 'translate-y-0'
-        }`}>
+        <div 
+          className="md:hidden fixed top-16 left-0 right-0 z-30 bg-white border-b border-gray-200 px-4 py-3"
+          style={isMobile ? {
+            transform: `translateY(-${navTranslateY}px)`,
+            transition: 'none', // Let scroll drive the animation
+          } : undefined}
+        >
           <button
             onClick={() => router.push('/dashboard')}
             className="flex items-center space-x-2 text-[#d42027] hover:text-[#a1181d] transition-colors"

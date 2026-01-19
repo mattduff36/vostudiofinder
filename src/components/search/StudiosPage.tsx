@@ -16,6 +16,7 @@ import { SelectedStudioDetails } from './SelectedStudioDetails';
 import { Button } from '@/components/ui/Button';
 import { showWarning } from '@/lib/toast';
 import { formatStudioTypeLabel } from '@/lib/utils/studio-types';
+import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
 
 interface Studio {
   id: string;
@@ -89,6 +90,7 @@ export function StudiosPage() {
   const [isFilteringByMapArea, setIsFilteringByMapArea] = useState(false);
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   
   // Studio marker modal state
   const [modalStudio, setModalStudio] = useState<{
@@ -98,6 +100,23 @@ export function StudiosPage() {
     studio_images?: Array<{ image_url: string; alt_text?: string }>;
     position: { x: number; y: number };
   } | null>(null);
+  
+  // Check if we're on mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Mobile-only: Smooth scroll-driven animation to sync with top navbar
+  const { translateY: navTranslateY } = useScrollDrivenNav({ 
+    navHeight: 80,
+    scrollThreshold: 3,
+    enabled: isMobile
+  });
 
   // Generate dynamic H1 text based on location and studio type
   const dynamicH1Text = useMemo(() => {
@@ -726,7 +745,13 @@ export function StudiosPage() {
 
 
       {/* Mobile Controls */}
-      <div className={`lg:hidden sticky top-20 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 shadow-sm ${isMapFullscreen ? 'hidden' : 'z-30'}`}>
+      <div 
+        className={`lg:hidden sticky top-20 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 shadow-sm ${isMapFullscreen ? 'hidden' : 'z-30'}`}
+        style={isMobile ? {
+          transform: `translateY(-${navTranslateY}px)`,
+          transition: 'none', // Let scroll drive the animation
+        } : undefined}
+      >
         <div className="flex space-x-2 sm:space-x-3">
           {/* Filter Button - changes to "Filter by Visible Studios" on Map tab with no filters */}
           {(() => {
