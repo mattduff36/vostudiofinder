@@ -806,17 +806,12 @@ export function StudiosPage() {
               <button
                 onClick={handleClick}
                 className="flex items-center justify-center flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-gray-300 rounded-lg font-medium text-sm sm:text-base text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 relative"
-                aria-label={`Open filters${getActiveFilterCount() > 0 ? ` (${getActiveFilterCount()} active)` : ''}`}
+                aria-label="Open filters"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
                 </svg>
                 Filters
-                {getActiveFilterCount() > 0 && (
-                  <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center">
-                    {getActiveFilterCount()}
-                  </span>
-                )}
               </button>
             );
           })()}
