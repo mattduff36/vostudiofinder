@@ -136,6 +136,7 @@ export function FilterDrawer({
           ref={filtersRef}
           initialFilters={initialFilters}
           onSearch={onSearch}
+          onApplyFilter={onClose}
           {...(onFilterByMapArea ? { onFilterByMapArea } : {})}
           {...(isFilteringByMapArea !== undefined ? { isFilteringByMapArea } : {})}
           {...(visibleMarkerCount !== undefined ? { visibleMarkerCount } : {})}

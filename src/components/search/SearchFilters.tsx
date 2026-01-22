@@ -25,13 +25,14 @@ interface SearchFiltersProps {
   visibleMarkerCount?: number;
   filterByMapAreaMaxMarkers?: number;
   isMapReady?: boolean;
+  onApplyFilter?: () => void; // Optional callback for when Apply Filter is clicked (e.g., to close mobile modal)
 }
 
 export interface SearchFiltersRef {
   applyFilters: () => void;
 }
 
-export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount, filterByMapAreaMaxMarkers = 30, isMapReady = true }, ref) {
+export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount, filterByMapAreaMaxMarkers = 30, isMapReady = true, onApplyFilter }, ref) {
   // Studio types are unchecked by default - users must select what they want
   const filtersWithDefaults = {
     ...initialFilters,
@@ -459,43 +460,55 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
 
       {/* Apply Filter + New Search Buttons - Show after 4s inactivity with pending changes */}
       {showActionButtons && hasPendingChanges && (
-        <div className="flex gap-2 lg:gap-2">
-          <Button
-            onClick={() => {
-              logger.log('✅ Apply Filter clicked');
-              setHasPendingChanges(false);
-              setShowActionButtons(false);
-              if (filters.location && filters.location.trim() !== '') {
-                onSearch(filters);
-              }
-            }}
-            variant="primary"
-            className="flex-1"
-            size="sm"
-          >
-            Apply Filter
-          </Button>
-          <Button
-            onClick={clearFilters}
-            variant="outline"
-            className="flex-1"
-            size="sm"
-          >
-            New Search
-          </Button>
-        </div>
+        <>
+          {/* Subtle divider */}
+          <div className="border-t border-gray-200 my-4" />
+          <div className="flex gap-2 lg:gap-2">
+            <Button
+              onClick={() => {
+                logger.log('✅ Apply Filter clicked');
+                setHasPendingChanges(false);
+                setShowActionButtons(false);
+                if (filters.location && filters.location.trim() !== '') {
+                  onSearch(filters);
+                }
+                // Call optional callback (e.g., to close mobile modal)
+                if (onApplyFilter) {
+                  onApplyFilter();
+                }
+              }}
+              variant="primary"
+              className="flex-1"
+              size="sm"
+            >
+              Apply Filter
+            </Button>
+            <Button
+              onClick={clearFilters}
+              variant="outline"
+              className="flex-1"
+              size="sm"
+            >
+              New Search
+            </Button>
+          </div>
+        </>
       )}
 
       {/* New Search Button - Show when filters active but no pending changes */}
       {showActionButtons && !hasPendingChanges && hasActiveFilters && (
-        <Button
-          onClick={clearFilters}
-          variant="outline"
-          className="w-full"
-          size="sm"
-        >
-          New Search
-        </Button>
+        <>
+          {/* Subtle divider */}
+          <div className="border-t border-gray-200 my-4" />
+          <Button
+            onClick={clearFilters}
+            variant="outline"
+            className="w-full"
+            size="sm"
+          >
+            New Search
+          </Button>
+        </>
       )}
 
     </div>
