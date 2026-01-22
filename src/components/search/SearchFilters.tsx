@@ -93,11 +93,11 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
       clearTimeout(inactivityTimerRef.current);
     }
     
-    // Start 4-second countdown
+    // Start 2-second countdown
     inactivityTimerRef.current = setTimeout(() => {
-      logger.log('⏰ 4s inactivity - showing action buttons');
+      logger.log('⏰ 2s inactivity - showing action buttons');
       setShowActionButtons(true);
-    }, 4000);
+    }, 2000);
   };
 
   const handleFilterChange = (key: string, value: any) => {
@@ -208,7 +208,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
     
     // Both mobile and desktop: set pending changes and start timer (no auto-search)
     setHasPendingChanges(true);
-    setShowActionButtons(false); // Hide buttons immediately, will show after 4s
+    setShowActionButtons(false); // Hide buttons immediately, will show after 2s
     startInactivityTimer();
     logger.log('Studio type toggled - pending changes set, timer started');
   };
@@ -248,9 +248,12 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                 logger.log('Location selected - coordinates extracted:', { lat, lng });
                 logger.log('New filters with coordinates:', newFilters);
                 
-                // Set state first, then immediately trigger search
+                // Set state but don't auto-search - user must click Apply Filter or press Enter
                 setFilters(newFilters);
-                onSearch(newFilters);
+                // Mark as pending change and start timer
+                setHasPendingChanges(true);
+                setShowActionButtons(false);
+                startInactivityTimer();
               } else {
                 logger.log('Just typing location, no coordinates - not searching yet');
                 // Just typing, update state but don't search until Enter/button pressed
@@ -458,7 +461,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
         </div>
       )}
 
-      {/* Apply Filter + New Search Buttons - Show after 4s inactivity with pending changes */}
+      {/* Apply Filter + New Search Buttons - Show after 2s inactivity with pending changes */}
       {showActionButtons && hasPendingChanges && (
         <>
           {/* Subtle divider */}

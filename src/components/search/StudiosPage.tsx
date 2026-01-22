@@ -975,7 +975,13 @@ export function StudiosPage() {
 
                 {/* Active Filters Display - Below map, above cards */}
                 {(searchParams.get('location') || searchParams.get('studio_type') || searchParams.get('services') || searchParams.get('radius')) && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {/* Studios Found Badge */}
+                    {searchResults && searchResults.pagination && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-50 text-red-700 border border-red-200">
+                        {searchResults.pagination.totalCount} {searchResults.pagination.totalCount === 1 ? 'Studio' : 'Studios'} Found
+                      </span>
+                    )}
                     {searchParams.get('location') && (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black">
                         📍 {abbreviateAddress(searchParams.get('location')!)}

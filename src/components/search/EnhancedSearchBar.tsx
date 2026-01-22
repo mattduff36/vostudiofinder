@@ -487,11 +487,8 @@ export function EnhancedSearchBar({
     setIsOpen(false);
     setSelectedIndex(-1);
     
-    // If shouldSearch is true, perform the search immediately with the selected location
-    if (shouldSearch && locationToSearch) {
-      // Pass the location directly to avoid state update timing issues
-      handleSearch(locationToSearch);
-    }
+    // Auto-search disabled - user must click search button or press Enter
+    // Removed auto-search on autocomplete selection per client request
   };
 
   // Handle search submission
@@ -700,7 +697,7 @@ export function EnhancedSearchBar({
                   : 'hover:bg-gray-50 text-gray-900'
               }`}
               onClick={() => {
-                handleSelect(suggestion, true);
+                handleSelect(suggestion, false);
               }}
             >
               {getSuggestionIcon(suggestion.type)}
