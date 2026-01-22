@@ -753,21 +753,12 @@ export function StudiosPage() {
         } : undefined}
       >
         <div className="flex space-x-2 sm:space-x-3">
-          {/* Filter Button - changes to "Filter by Visible Studios" on Map tab with no filters */}
+          {/* Filter Button - changes to "Filter by Visible Studios" on Map tab when ≤30 markers visible */}
           {(() => {
-            // Compute "no other filters selected"
-            const noOtherFiltersSelected = 
-              !searchParams.get('location') &&
-              !searchParams.get('studioTypes') &&
-              !searchParams.get('studio_type') &&
-              !searchParams.get('services') &&
-              (!searchParams.get('radius') || searchParams.get('radius') === '10');
-            
             const canFilterByVisibleStudios = !loading && !!mapBounds && visibleMarkerCount <= 30;
             
             const showFilterByVisibleStudios = 
               mobileView === 'map' && 
-              noOtherFiltersSelected && 
               canFilterByVisibleStudios && 
               !isFilteringByMapArea;
             
