@@ -275,6 +275,7 @@ export async function GET(request: NextRequest) {
 
     // Enhanced location search with radius support using Google Maps API
     let searchCoordinates: { lat: number; lng: number } | null = null;
+    let geocodingFailed = false;
     if (validatedParams.location) {
       if (validatedParams.radius && validatedParams.radius > 0) {
         // First check if we already have coordinates from URL parameters
@@ -290,6 +291,7 @@ export async function GET(request: NextRequest) {
               logger.log(`Geocoded "${validatedParams.location}" to:`, searchCoordinates);
             } else {
               logger.warn(`Failed to geocode location: ${validatedParams.location}`);
+              geocodingFailed = true;
               // Fall back to text-based address search
               (where.AND as Prisma.studio_profilesWhereInput[]).push({
                 full_address: { contains: validatedParams.location, mode: 'insensitive' },
@@ -297,6 +299,7 @@ export async function GET(request: NextRequest) {
             }
           } catch (error) {
             console.error('Geocoding error:', error);
+            geocodingFailed = true;
             // Fall back to text-based address search
             (where.AND as Prisma.studio_profilesWhereInput[]).push({
               full_address: { contains: validatedParams.location, mode: 'insensitive' },
@@ -522,6 +525,18 @@ export async function GET(request: NextRequest) {
       logger.log(`Found ${allStudios.length} studios within ${validatedParams.radius} miles of ${validatedParams.location}`);
     } else {
       allStudios = fetchedStudios;
+      
+      // If geocoding failed but we have studios, calculate approximate center from results for map display
+      if (geocodingFailed && allStudios.length > 0 && validatedParams.radius) {
+        const studiosWithCoords = allStudios.filter(s => s.latitude && s.longitude);
+        if (studiosWithCoords.length > 0) {
+          // Calculate center point from all found studios
+          const avgLat = studiosWithCoords.reduce((sum, s) => sum + Number(s.latitude), 0) / studiosWithCoords.length;
+          const avgLng = studiosWithCoords.reduce((sum, s) => sum + Number(s.longitude), 0) / studiosWithCoords.length;
+          searchCoordinates = { lat: avgLat, lng: avgLng };
+          logger.log(`Geocoding failed, but calculated center from ${studiosWithCoords.length} found studios:`, searchCoordinates);
+        }
+      }
     }
 
     // const prioStartTime = Date.now();

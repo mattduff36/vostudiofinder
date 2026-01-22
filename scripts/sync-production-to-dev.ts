@@ -218,6 +218,7 @@ async function main() {
               location: studio.location,
               latitude: studio.latitude,
               longitude: studio.longitude,
+              show_exact_location: studio.show_exact_location,
               phone: studio.phone,
               website_url: studio.website_url,
               show_email: studio.show_email,
