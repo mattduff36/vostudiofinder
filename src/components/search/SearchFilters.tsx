@@ -26,13 +26,14 @@ interface SearchFiltersProps {
   filterByMapAreaMaxMarkers?: number;
   isMapReady?: boolean;
   onApplyFilter?: () => void; // Optional callback for when Apply Filter is clicked (e.g., to close mobile modal)
+  isMobileModalOpen?: boolean; // Track if mobile filter modal is open
 }
 
 export interface SearchFiltersRef {
   applyFilters: () => void;
 }
 
-export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount, filterByMapAreaMaxMarkers = 30, isMapReady = true, onApplyFilter }, ref) {
+export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount, filterByMapAreaMaxMarkers = 30, isMapReady = true, onApplyFilter, isMobileModalOpen }, ref) {
   // Studio types are unchecked by default - users must select what they want
   const filtersWithDefaults = {
     ...initialFilters,
@@ -218,8 +219,28 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
     return typeof window !== 'undefined' && window.innerWidth < 768;
   };
 
+  // Trigger timer when mobile modal opens with existing filters
+  useEffect(() => {
+    if (isMobileModalOpen && hasActiveFilters && !hasPendingChanges) {
+      logger.log('📱 Mobile modal opened with existing filters - starting timer');
+      setShowActionButtons(false);
+      startInactivityTimer();
+    }
+  }, [isMobileModalOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle click inside filter box (desktop) - trigger timer if filters exist
+  const handleFilterBoxClick = () => {
+    if (!isMobileDevice() && hasActiveFilters && !hasPendingChanges && !showActionButtons) {
+      logger.log('🖱️ Desktop filter box clicked with existing filters - starting timer');
+      startInactivityTimer();
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-4 lg:px-6 py-2 lg:py-3 space-y-4 lg:space-y-6">
+    <div 
+      className="bg-white rounded-lg border border-gray-200 shadow-lg px-4 lg:px-6 py-2 lg:py-3 space-y-4 lg:space-y-6"
+      onClick={handleFilterBoxClick}
+    >
       {/* Location */}
       <div>
         <label className="hidden lg:block text-sm font-medium text-black mb-2">

@@ -137,6 +137,7 @@ export function FilterDrawer({
           initialFilters={initialFilters}
           onSearch={onSearch}
           onApplyFilter={onClose}
+          isMobileModalOpen={isOpen}
           {...(onFilterByMapArea ? { onFilterByMapArea } : {})}
           {...(isFilteringByMapArea !== undefined ? { isFilteringByMapArea } : {})}
           {...(visibleMarkerCount !== undefined ? { visibleMarkerCount } : {})}
