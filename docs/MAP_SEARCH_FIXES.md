@@ -37,24 +37,35 @@
 - Geocoding failed during server-side location search
 - When geocoding failed, `searchCoordinates` remained null
 - Without `searchCoordinates`, the map couldn't center on Leeds
+- **CRITICAL BUG**: When geocoding failed but calculated center was created, studios were NOT filtered by distance
+
+**Original Bug Flow:**
+1. Geocoding fails → text-based search returns ALL studios with "Leeds" in address
+2. Code calculates center from results for map display
+3. BUT studios list was never filtered by distance from this calculated center
+4. Result: List shows 50+ studios, but map might show only 2 nearby
+5. User sees mismatched counts and incorrect results
 
 **Solution Implemented:**
-- Modified `/src/app/api/studios/search/route.ts` (lines 276-531)
+- Modified `/src/app/api/studios/search/route.ts` (lines 501-540)
 - Added `geocodingFailed` flag to track when geocoding fails
-- When geocoding fails but text-based search finds studios:
-  - Calculate the center point from all found studios with coordinates
-  - Use this calculated center as `searchCoordinates` for map display
-- This ensures the map centers on the search results even without geocoding
+- **CRITICAL FIX**: Moved center calculation BEFORE distance filtering
+- Now the flow is:
+  1. If geocoding fails, calculate center from text search results
+  2. THEN filter all studios by distance from this calculated center
+  3. Return only studios within the specified radius
 
 **Changes Made:**
 1. Track geocoding failures with a flag
 2. Calculate approximate center from found studios when geocoding fails
-3. Provide `searchCoordinates` to frontend for proper map centering
+3. **Filter studios by distance from calculated center (FIX for Bug #1)**
+4. Provide `searchCoordinates` to frontend for proper map centering
 
 **Test Results:**
-- ✅ Leeds search returns 2 studios (Imagesound Studios, VTR North)
-- ✅ Map markers show correctly (2 markers in Leeds area)
+- ✅ Leeds search returns only studios within 10 mile radius
+- ✅ List count matches map marker count (no mismatch)
 - ✅ Map centers on calculated coordinates: (53.796, -1.546)
+- ✅ All returned studios have distance property calculated
 
 ## Testing
 

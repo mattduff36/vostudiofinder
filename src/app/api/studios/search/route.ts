@@ -440,8 +440,8 @@ export async function GET(request: NextRequest) {
     let hasMore: boolean;
 
     // Fetch matching studios with a reasonable limit to prevent performance issues
-    // Cap at 200 studios max to avoid loading entire database into memory
-    const MAX_STUDIOS_TO_FETCH = 200;
+    // Cap at 500 studios max to accommodate all active studios (~483 currently)
+    const MAX_STUDIOS_TO_FETCH = 500;
     
     const fetchedStudios = await db.studio_profiles.findMany({
       where,
@@ -498,6 +498,18 @@ export async function GET(request: NextRequest) {
 
     // const dbQueryEndTime = Date.now();
 
+    // If geocoding failed but we have studios and a radius, calculate approximate center from results
+    if (geocodingFailed && fetchedStudios.length > 0 && validatedParams.radius) {
+      const studiosWithCoords = fetchedStudios.filter(s => s.latitude && s.longitude);
+      if (studiosWithCoords.length > 0) {
+        // Calculate center point from all found studios
+        const avgLat = studiosWithCoords.reduce((sum, s) => sum + Number(s.latitude), 0) / studiosWithCoords.length;
+        const avgLng = studiosWithCoords.reduce((sum, s) => sum + Number(s.longitude), 0) / studiosWithCoords.length;
+        searchCoordinates = { lat: avgLat, lng: avgLng };
+        logger.log(`Geocoding failed, calculated center from ${studiosWithCoords.length} found studios:`, searchCoordinates);
+      }
+    }
+    
     // Filter by geographic distance if applicable
     if (searchCoordinates && validatedParams.radius) {
       allStudios = fetchedStudios
@@ -525,18 +537,6 @@ export async function GET(request: NextRequest) {
       logger.log(`Found ${allStudios.length} studios within ${validatedParams.radius} miles of ${validatedParams.location}`);
     } else {
       allStudios = fetchedStudios;
-      
-      // If geocoding failed but we have studios, calculate approximate center from results for map display
-      if (geocodingFailed && allStudios.length > 0 && validatedParams.radius) {
-        const studiosWithCoords = allStudios.filter(s => s.latitude && s.longitude);
-        if (studiosWithCoords.length > 0) {
-          // Calculate center point from all found studios
-          const avgLat = studiosWithCoords.reduce((sum, s) => sum + Number(s.latitude), 0) / studiosWithCoords.length;
-          const avgLng = studiosWithCoords.reduce((sum, s) => sum + Number(s.longitude), 0) / studiosWithCoords.length;
-          searchCoordinates = { lat: avgLat, lng: avgLng };
-          logger.log(`Geocoding failed, but calculated center from ${studiosWithCoords.length} found studios:`, searchCoordinates);
-        }
-      }
     }
 
     // const prioStartTime = Date.now();
