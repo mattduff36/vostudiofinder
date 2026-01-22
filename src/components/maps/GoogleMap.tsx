@@ -393,10 +393,8 @@ export function GoogleMap({
         if (mapInstance && !hasUserInteractedRef.current) {
           const bounds = new (window.google.maps as any).LatLngBounds();
           
-          // Center the map on the search location
-          bounds.extend(new (window.google.maps as any).LatLng(searchCenter.lat, searchCenter.lng));
-          
-          // Include ALL studio markers to ensure they're all visible (this is the priority)
+          // ONLY include studio markers (NOT search center) to maximize zoom on results
+          // The search radius circle can extend off-screen
           markerData.forEach(marker => {
             bounds.extend(new (window.google.maps as any).LatLng(marker.position.lat, marker.position.lng));
           });
@@ -863,15 +861,13 @@ export function GoogleMap({
     });
 
     // RULE 1 & 2: When location search is performed, show all studios within search radius, zoomed as close as possible
-    // Center the search location on the map, don't worry about fitting the entire circle
+    // PRIORITY: Fit all studio markers on screen, even if search circle goes off-screen
     // IMPORTANT: Only auto-zoom when there's actually a search center (location search performed) AND user hasn't interacted AND markers are ready
     if (searchCenter && searchRadius && markers.length > 0 && !hasUserInteractedRef.current && markersReady) {
       const bounds = new (window.google.maps as any).LatLngBounds();
       
-      // Center the map on the search location
-      bounds.extend(new (window.google.maps as any).LatLng(searchCenter.lat, searchCenter.lng));
-      
-      // Include ALL studio markers to ensure they're all visible (this is the priority)
+      // ONLY include studio markers (NOT search center) - this maximizes zoom on actual results
+      // The search radius circle can go off-screen, as long as all markers are visible
       markers.forEach(marker => {
         bounds.extend(new (window.google.maps as any).LatLng(marker.position.lat, marker.position.lng));
       });

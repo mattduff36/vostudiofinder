@@ -5,39 +5,44 @@
 ## Issues Addressed
 
 ### 1. Map Zoom Issue - FIXED ✅
-**Problem**: When the search radius was changed, the map would zoom in TOO MUCH, not showing all studio markers properly.
+**Problem**: When the search radius was changed, the map was showing the entire search radius circle instead of zooming in as much as possible to show the studio markers.
 
-**Root Cause**: After `fitBounds()` calculated the optimal zoom level to show all markers, the code was artificially capping it at zoom level 13. This caused problems when:
-- Studios were far apart (zoom should be lower, but was forced to 13)
-- Results needed a wider view (zoom 8-10 would be optimal, but forced to 13)
+**Root Cause**: The bounds calculation included BOTH the search center point AND all studio markers. This forced the map to show the entire radius circle, wasting screen space when markers were clustered together.
 
 **Solution**: 
-- Changed zoom limits from `6-13` to `3-16`
-- Now trust Google Maps' `fitBounds()` algorithm to calculate optimal zoom
-- Only cap at extreme values (>16 for privacy, <3 for global view)
-- This allows the map to properly zoom out to show all markers when they're spread apart
+- **Changed zoom limits** from `6-13` to `3-16` (trust fitBounds algorithm)
+- **Removed search center from bounds** - now ONLY includes studio markers
+- The search radius circle can now extend off-screen
+- Map zooms in as close as possible while showing ALL studio markers
+- This maximizes the use of screen space to show actual results
+
+**Result**: Map now zooms in much closer on clustered results (see London 15mi example), matching expected behavior from user screenshots.
 
 **Files Modified**:
 - `src/components/maps/GoogleMap.tsx` (3 locations where zoom was capped)
 
 **Code Changes**:
 ```typescript
-// BEFORE (too restrictive)
-if (currentZoom && currentZoom > 13) {
-  mapInstanceRef.current?.setZoom(13); // Don't zoom in too much
-} else if (currentZoom && currentZoom < 6) {
-  mapInstanceRef.current?.setZoom(6); // Don't zoom out too much
-}
+// BEFORE (included search center - showed entire circle)
+const bounds = new google.maps.LatLngBounds();
+bounds.extend(new google.maps.LatLng(searchCenter.lat, searchCenter.lng)); // ← Problem!
+markers.forEach(marker => {
+  bounds.extend(new google.maps.LatLng(marker.position.lat, marker.position.lng));
+});
 
-// AFTER (trust fitBounds, only cap at extremes)
+// AFTER (only studio markers - maximizes zoom on results)
+const bounds = new google.maps.LatLngBounds();
+// NO search center - only markers!
+markers.forEach(marker => {
+  bounds.extend(new google.maps.LatLng(marker.position.lat, marker.position.lng));
+});
+// Circle can go off-screen, markers always visible
+
+// ALSO: Changed zoom limits from 6-13 to 3-16
 if (currentZoom && currentZoom > 16) {
   mapInstanceRef.current?.setZoom(16); // Cap at 16 for privacy
-  logger.log('🔒 Zoom capped at 16');
 } else if (currentZoom && currentZoom < 3) {
   mapInstanceRef.current?.setZoom(3); // Minimum reasonable zoom
-  logger.log('🌍 Zoom raised to 3');
-} else {
-  logger.log(`✅ Zoom optimal at level ${currentZoom}`);
 }
 ```
 
