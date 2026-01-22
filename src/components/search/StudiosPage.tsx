@@ -656,16 +656,6 @@ export function StudiosPage() {
   };
 
 
-  // Count active filters for mobile badge
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (searchParams.get('location')) count++;
-    if (searchParams.get('studio_type')) count++;
-    if (searchParams.get('services')) count++;
-    if (searchParams.get('radius') && searchParams.get('radius') !== '10') count++;
-    return count;
-  };
-
   // Move useMemo outside conditional render to maintain hook order
   const mobileFiltersInitialState = useMemo(() => ({
     location: searchParams.get('location') || '',

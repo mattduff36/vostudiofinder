@@ -4,7 +4,6 @@ import { logger } from '@/lib/logger';
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Button } from '@/components/ui/Button';
 
-import { X } from 'lucide-react';
 import { EnhancedLocationFilter } from './EnhancedLocationFilter';
 import { studio_type } from '@/types/prisma';
 
@@ -491,14 +490,16 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
             <Button
               onClick={() => {
                 logger.log('✅ Apply Filter clicked');
-                setHasPendingChanges(false);
-                setShowActionButtons(false);
                 if (filters.location && filters.location.trim() !== '') {
+                  setHasPendingChanges(false);
+                  setShowActionButtons(false);
                   onSearch(filters);
-                }
-                // Call optional callback (e.g., to close mobile modal)
-                if (onApplyFilter) {
-                  onApplyFilter();
+                  // Call optional callback (e.g., to close mobile modal)
+                  if (onApplyFilter) {
+                    onApplyFilter();
+                  }
+                } else {
+                  logger.log('🚫 Skipping search - no location provided');
                 }
               }}
               variant="primary"

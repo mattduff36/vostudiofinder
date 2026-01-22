@@ -305,9 +305,14 @@ export async function GET(request: NextRequest) {
           } catch (error) {
             console.error('Geocoding error:', error);
             geocodingFailed = true;
-            // Fall back to text-based address search
+            // Fall back to text-based location search across multiple fields
             (where.AND as Prisma.studio_profilesWhereInput[]).push({
-              full_address: { contains: validatedParams.location, mode: 'insensitive' },
+              OR: [
+                { full_address: { contains: validatedParams.location, mode: 'insensitive' } },
+                { city: { contains: validatedParams.location, mode: 'insensitive' } },
+                { location: { contains: validatedParams.location, mode: 'insensitive' } },
+                { abbreviated_address: { contains: validatedParams.location, mode: 'insensitive' } },
+              ],
             });
           }
         }

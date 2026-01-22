@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { Search, MapPin, Building } from 'lucide-react';
 import { colors } from '../home/HomePage';
 import { formatUserSuggestion, calculateDistance } from '@/lib/utils/address';
-import { getCurrentLocation } from '@/lib/maps';
 
 interface SearchSuggestion {
   id: string;
@@ -49,32 +48,16 @@ export function EnhancedSearchBar({
     name: string;
     coordinates?: { lat: number; lng: number };
   } | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  // User location for distance calculations - currently disabled (always null)
+  // since auto-search on autocomplete selection is disabled
+  // Kept for future use if we want to re-enable location-based sorting
+  const userLocation = null as { lat: number; lng: number } | null;
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const radiusDebounceRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Get user's current location for distance calculations
-  // Only request when user actually searches (not on page load)
-  const [locationRequested, setLocationRequested] = React.useState(false);
-  
-  // Request location only when needed (when search is performed)
-  const requestUserLocation = async () => {
-    if (locationRequested) return; // Already requested
-    
-    setLocationRequested(true);
-    try {
-      const location = await getCurrentLocation();
-      setUserLocation(location);
-      logger.log('🌍 User location obtained:', location);
-    } catch (error) {
-      logger.warn('Could not get user location for distance sorting:', error);
-      // Don't show error to user - location is optional for search
-    }
-  };
 
   // Cleanup timeouts on unmount
   React.useEffect(() => {
@@ -125,11 +108,6 @@ export function EnhancedSearchBar({
       setSuggestions([]);
       setIsOpen(false);
       return;
-    }
-
-    // Request user location on first search (lazy loading for faster initial render)
-    if (!locationRequested) {
-      setLocationRequested(true);
     }
 
     try {
@@ -426,8 +404,8 @@ export function EnhancedSearchBar({
     if (e.key === 'Enter') {
       e.preventDefault();
       if (isOpen && suggestions.length > 0 && selectedIndex >= 0 && suggestions[selectedIndex]) {
-        // If dropdown is open and a suggestion is selected, select it and search
-        handleSelect(suggestions[selectedIndex], true);
+        // If dropdown is open and a suggestion is selected, select it (but don't auto-search)
+        handleSelect(suggestions[selectedIndex]);
       } else {
         // Otherwise, perform search with current typed query (even if no autocomplete selected)
         const typedQuery = query.trim();
@@ -461,7 +439,7 @@ export function EnhancedSearchBar({
   };
 
   // Handle suggestion selection
-  const handleSelect = (suggestion: SearchSuggestion, shouldSearch: boolean = false) => {
+  const handleSelect = (suggestion: SearchSuggestion) => {
     let locationToSearch: { name: string; coordinates?: { lat: number; lng: number } } | null = null;
     
     if (suggestion.type === 'location') {
@@ -491,28 +469,6 @@ export function EnhancedSearchBar({
     // Removed auto-search on autocomplete selection per client request
   };
 
-  // Handle search submission
-  const handleSearch = async (locationOverride?: { name: string; coordinates?: { lat: number; lng: number } }) => {
-    // Close dropdown if open
-    setIsOpen(false);
-    setSelectedIndex(-1);
-    
-    // Request location permission when user actually searches (for distance sorting)
-    // This is less intrusive than asking on page load
-    await requestUserLocation();
-    
-    // Use the provided location override (from suggestion click) or fall back to state
-    const locationToUse = locationOverride || selectedLocation;
-    const searchQuery = query.trim();
-    
-    if (locationToUse) {
-      // Use the selected/provided location (which is the actual address for users)
-      performLocationSearch(locationToUse.name, locationToUse.coordinates);
-    } else if (searchQuery) {
-      // Try to geocode the query
-      performLocationSearch(searchQuery);
-    }
-  };
 
   // Perform location-based search
   const performLocationSearch = async (locationName: string, coordinates?: { lat: number; lng: number }) => {
@@ -697,7 +653,7 @@ export function EnhancedSearchBar({
                   : 'hover:bg-gray-50 text-gray-900'
               }`}
               onClick={() => {
-                handleSelect(suggestion, false);
+                handleSelect(suggestion);
               }}
             >
               {getSuggestionIcon(suggestion.type)}

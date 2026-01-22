@@ -441,7 +441,14 @@ export function EnhancedLocationFilter({
         if (selectedIndex >= 0 && suggestions[selectedIndex]) {
           handleSelect(suggestions[selectedIndex]);
         } else if (onEnterKey) {
-          onEnterKey();
+          // User pressed Enter without selecting a suggestion - use typed value
+          const typedValue = query.trim();
+          if (typedValue) {
+            onChange(typedValue);
+            onEnterKey(typedValue);
+          } else {
+            onEnterKey();
+          }
         }
         break;
       case 'Escape':

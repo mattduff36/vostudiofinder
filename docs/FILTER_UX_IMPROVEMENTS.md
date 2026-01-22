@@ -24,12 +24,12 @@ Enhanced the filter experience on `/studios` page with smarter search triggers, 
 
 **Behavior**:
 - User toggles checkbox → UI updates, no search
-- After 4 seconds idle → Action buttons appear
+- After 2 seconds idle → Action buttons appear
 - User clicks "Apply Filter" → Search executes
 
 ### 3. Smart Action Buttons Replace "Clear All"
 **Before**: Simple "Clear All" button at top
-**After**: Two buttons appear after 4s inactivity
+**After**: Two buttons appear after 2s inactivity
 
 **New Buttons**:
 1. **Apply Filter** - Triggers search with current filter selections
@@ -48,18 +48,20 @@ Enhanced the filter experience on `/studios` page with smarter search triggers, 
 - Desktop only (hidden on mobile)
 
 **Inactivity Timer**:
-- Starts when filter changed (studio type, service)
+- Starts when filter changed (studio type, service, location selection)
 - Resets on each filter change
-- After 4s of no changes → Buttons appear
+- After 2s of no changes → Buttons appear
 - Clears when search triggered or filters reset
 
 ### 4. Auto-Search Logic Simplified
 **Only auto-search for**:
-- Location changes (autocomplete selection or Enter press)
-- Radius changes (after 1s debounce)
+- Location Enter key press (when user explicitly submits)
+- Radius changes on desktop (after 1s debounce)
 
 **Wait for Apply Filter**:
+- Location autocomplete selection (sets pending changes, shows buttons after 2s)
 - Studio type/service toggles
+- Radius changes on mobile
 - Any other filter changes
 
 ## Mobile Changes
@@ -135,7 +137,7 @@ const startInactivityTimer = () => {
   }
   inactivityTimerRef.current = setTimeout(() => {
     setShowActionButtons(true);
-  }, 4000);
+  }, 2000); // 2 seconds
 };
 ```
 
@@ -155,10 +157,11 @@ useEffect(() => {
 ### Desktop
 - [x] Change radius slider slowly → Search triggers after 1s
 - [x] Toggle studio type → No immediate search
-- [x] Wait 4s after toggle → Action buttons appear
+- [x] Wait 2s after toggle → Action buttons appear
 - [x] Click "Apply Filter" → Search executes, buttons disappear
 - [x] Click "New Search" → All filters clear, new search
-- [x] Location change still auto-searches
+- [x] Location Enter key still auto-searches
+- [x] Location autocomplete selection → Sets pending changes, shows buttons after 2s
 
 ### Mobile
 - [x] Open filter modal
@@ -166,8 +169,9 @@ useEffect(() => {
 - [x] Change radius → No auto-search
 - [x] Scroll page → Modal closes and applies filters
 - [x] Toggle studio type → Pending changes set
-- [x] Wait 4s → Action buttons appear in modal
+- [x] Wait 2s → Action buttons appear in modal
 - [x] Click outside modal → Closes and applies
+- [x] Select location from autocomplete → Sets pending changes
 
 ### Homepage
 - [x] Type location without autocomplete
@@ -179,10 +183,11 @@ useEffect(() => {
 
 1. **src/components/search/SearchFilters.tsx**
    - Added pending changes state management
-   - Added inactivity timer (4s)
+   - Added inactivity timer (2s)
    - Removed Clear All button
    - Added Apply Filter + New Search buttons
    - Modified handleStudioTypeToggle to not auto-search
+   - Modified location autocomplete selection to not auto-search (sets pending changes)
    - Increased radius debounce to 1000ms
    - Mobile buttons now wrap with flex-wrap
 
@@ -206,11 +211,11 @@ ffd5c34 - Improve filter UX with delayed actions and better mobile experience
 
 ## Benefits
 
-1. **Fewer Unnecessary Searches**: Users can adjust multiple filters without triggering search on each change
-2. **Better Perceived Performance**: UI updates instantly, search happens when user is ready
+1. **Fewer Unnecessary Searches**: Users can adjust multiple filters (including location selection) without triggering search on each change
+2. **Better Perceived Performance**: UI updates instantly, search happens when user is ready (after 2s or when clicking Apply)
 3. **Clearer Intent**: Action buttons make it obvious when/how to apply changes
 4. **Mobile Optimized**: Wrapping buttons and scroll-to-close feel natural on mobile
-5. **Consistent Behavior**: Homepage and studios page both handle typed searches correctly
+5. **Consistent Behavior**: Enter key still auto-searches, but autocomplete selections wait for user confirmation
 
 ## Status
 
