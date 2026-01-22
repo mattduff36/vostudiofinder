@@ -89,6 +89,21 @@ export function FilterDrawer({
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Close on scroll (same behavior as backdrop click)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleScroll = () => {
+      // Only close if modal is open
+      if (isOpen) {
+        handleClose();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Don't render if map is in fullscreen mode
   if (isMapFullscreen) {
     return null;

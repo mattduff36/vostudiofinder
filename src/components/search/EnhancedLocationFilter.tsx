@@ -24,7 +24,7 @@ interface SearchSuggestion {
 interface EnhancedLocationFilterProps {
   value: string;
   onChange: (value: string, placeDetails?: any) => void;
-  onEnterKey?: () => void;
+  onEnterKey?: (typedValue?: string) => void;
   placeholder?: string;
   className?: string;
 }
@@ -414,7 +414,15 @@ export function EnhancedLocationFilter({
     if (!isOpen || suggestions.length === 0) {
       if (e.key === 'Enter' && onEnterKey) {
         e.preventDefault();
-        onEnterKey();
+        // Pass the typed value directly to onEnterKey so it can use it immediately
+        // without waiting for async state updates
+        const typedValue = query.trim();
+        if (typedValue) {
+          onChange(typedValue);
+          onEnterKey(typedValue);
+        } else {
+          onEnterKey();
+        }
       }
       return;
     }
@@ -530,7 +538,14 @@ export function EnhancedLocationFilter({
       <button
         type="button"
         onClick={() => {
-          if (onEnterKey) {
+          // Pass the typed value directly to onEnterKey so it can use it immediately
+          const typedValue = query.trim();
+          if (typedValue) {
+            onChange(typedValue);
+            if (onEnterKey) {
+              onEnterKey(typedValue);
+            }
+          } else if (onEnterKey) {
             onEnterKey();
           }
         }}

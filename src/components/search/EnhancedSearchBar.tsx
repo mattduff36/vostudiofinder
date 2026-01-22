@@ -429,8 +429,11 @@ export function EnhancedSearchBar({
         // If dropdown is open and a suggestion is selected, select it and search
         handleSelect(suggestions[selectedIndex], true);
       } else {
-        // Otherwise, perform search with current query
-        handleSearch();
+        // Otherwise, perform search with current typed query (even if no autocomplete selected)
+        const typedQuery = query.trim();
+        if (typedQuery) {
+          performLocationSearch(typedQuery);
+        }
       }
       return;
     }
@@ -657,7 +660,11 @@ export function EnhancedSearchBar({
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
             onClick={(e) => {
               e.preventDefault();
-              handleSearch();
+              // Use typed query directly to avoid async state issues
+              const typedQuery = query.trim();
+              if (typedQuery) {
+                performLocationSearch(typedQuery);
+              }
             }}
           >
             Search

@@ -39,7 +39,10 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
   };
   
   const [filters, setFilters] = useState(filtersWithDefaults);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
+  const [showActionButtons, setShowActionButtons] = useState(false);
   const radiusDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Expose applyFilters method to parent component via ref
   useImperativeHandle(ref, () => ({
@@ -48,6 +51,8 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
       // Only trigger search if there's a location
       if (filters.location && filters.location.trim() !== '') {
         logger.log('✅ Triggering search from Apply button');
+        setHasPendingChanges(false);
+        setShowActionButtons(false);
         onSearch(filters);
       } else {
         logger.log('🚫 Skipping search - no location provided');
@@ -63,16 +68,36 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
       studio_studio_types: initialFilters.studio_studio_types || []
     };
     setFilters(updatedFilters);
+    // Clear pending changes when initialFilters change (new search performed)
+    setHasPendingChanges(false);
+    setShowActionButtons(false);
   }, [initialFilters]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (radiusDebounceRef.current) {
         clearTimeout(radiusDebounceRef.current);
       }
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
     };
   }, []);
+
+  // Start inactivity timer when pending changes exist
+  const startInactivityTimer = () => {
+    // Clear existing timer
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    // Start 4-second countdown
+    inactivityTimerRef.current = setTimeout(() => {
+      logger.log('⏰ 4s inactivity - showing action buttons');
+      setShowActionButtons(true);
+    }, 4000);
+  };
 
   const handleFilterChange = (key: string, value: any) => {
     logger.log(`HandleFilterChange called - key: ${key}, value: ${value}`);
@@ -180,15 +205,11 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
     
     setFilters(newFilters);
     
-    // On mobile: only update state, don't trigger search
-    // User will click "Apply" button to search
-    // On desktop: trigger search immediately
-    if (!isMobileDevice()) {
-      logger.log('Desktop: Studio type toggled - triggering immediate search');
-      onSearch(newFilters);
-    } else {
-      logger.log('Mobile: Studio type toggled - waiting for user to click Apply');
-    }
+    // Both mobile and desktop: set pending changes and start timer (no auto-search)
+    setHasPendingChanges(true);
+    setShowActionButtons(false); // Hide buttons immediately, will show after 4s
+    startInactivityTimer();
+    logger.log('Studio type toggled - pending changes set, timer started');
   };
 
   // Helper function to detect if device is mobile
@@ -198,22 +219,6 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-4 lg:px-6 py-2 lg:py-3 space-y-4 lg:space-y-6">
-      {/* Optional Clear All button */}
-      {hasActiveFilters && (
-        <div className="flex justify-end mb-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearFilters}
-            className="text-sm"
-          >
-            <X className="w-4 h-4 mr-1" />
-            Clear All
-          </Button>
-        </div>
-      )}
-
-
       {/* Location */}
       <div>
         <label className="hidden lg:block text-sm font-medium text-black mb-2">
@@ -246,21 +251,32 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                 setFilters(newFilters);
                 onSearch(newFilters);
               } else {
-                logger.log('Just typing location, no coordinates - not searching');
-                // Just typing, update state but don't search
+                logger.log('Just typing location, no coordinates - not searching yet');
+                // Just typing, update state but don't search until Enter/button pressed
                 setFilters(newFilters);
               }
             }}
-            onEnterKey={() => {
+            onEnterKey={(typedValue) => {
               // Trigger search when Enter is pressed
+              // typedValue is passed from the input component to avoid async state issues
               const newFilters = { ...filters };
-              // Preserve coordinates if they exist
-              if (filters.lat && filters.lng) {
+              
+              // If a typed value was passed, use it (user pressed Enter without selecting autocomplete)
+              if (typedValue) {
+                newFilters.location = typedValue;
+                // Clear coordinates since this is a text-based search
+                // Backend will use fallback coordinates or text search
+                delete newFilters.lat;
+                delete newFilters.lng;
+                logger.log('Enter pressed with typed value:', typedValue);
+              } else if (filters.lat && filters.lng) {
+                // If we have coordinates from a previous autocomplete selection, keep them
                 newFilters.lat = filters.lat;
                 newFilters.lng = filters.lng;
+                logger.log('Enter pressed with existing coordinates:', { lat: filters.lat, lng: filters.lng });
               }
-              logger.log('Enter key pressed - triggering search with coordinates:', 
-                          filters.lat && filters.lng ? { lat: filters.lat, lng: filters.lng } : 'none');
+              
+              logger.log('Triggering search with filters:', newFilters);
               onSearch(newFilters);
             }}
             placeholder="Search..."
@@ -306,6 +322,10 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                 
                 if (isMobile) {
                   logger.log(`Mobile: Radius changed to ${newRadius} - waiting for user to click Apply`);
+                  // Mark as pending change and start timer
+                  setHasPendingChanges(true);
+                  setShowActionButtons(false);
+                  startInactivityTimer();
                   // Clear any existing timeout to prevent accidental search
                   if (radiusDebounceRef.current) {
                     clearTimeout(radiusDebounceRef.current);
@@ -313,16 +333,17 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                   return; // Exit early - don't trigger search
                 }
                 
-                // Desktop: Debounce the search with 500ms delay
+                // Desktop: Debounce the search with 1000ms delay (increased from 500ms)
                 if (radiusDebounceRef.current) {
                   clearTimeout(radiusDebounceRef.current);
                 }
                 
-                const delay = 500;
+                const delay = 1000;
                 logger.log(`Desktop: Radius changed to ${newRadius} - will trigger search after ${delay}ms`);
                 
                 radiusDebounceRef.current = setTimeout(() => {
                   logger.log(`Radius search triggered after ${delay}ms delay: ${newRadius} miles`);
+                  // Auto-search for radius on desktop (no pending changes needed)
                   handleFilterChange('radius', newRadius);
                 }, delay);
               }}
@@ -358,8 +379,8 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
         <label className="block text-sm font-medium text-black mb-2">
           Studio Type / Service
         </label>
-        {/* Mobile: Compact toggle buttons in a row */}
-        <div className="flex gap-2 lg:hidden">
+        {/* Mobile: Compact toggle buttons with wrapping */}
+        <div className="flex flex-wrap gap-2 lg:hidden">
           {studioTypeOptions.map(option => {
             const isSelected = filters.studio_studio_types.includes(option.value);
             return (
@@ -367,11 +388,12 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                 key={option.value}
                 type="button"
                 onClick={() => handleStudioTypeToggle(option.value)}
-                className={`flex-1 px-3 py-2.5 rounded-lg border-2 transition-all text-sm font-medium ${
+                className={`px-3 py-2.5 rounded-lg border-2 transition-all text-sm font-medium ${
                   isSelected
                     ? 'border-red-600 bg-red-50 text-red-600'
                     : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 active:bg-gray-50'
                 }`}
+                style={{ minWidth: 'calc(50% - 4px)' }}
               >
                 {option.label}
               </button>
@@ -435,6 +457,46 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
         </div>
       )}
 
+      {/* Apply Filter + New Search Buttons - Show after 4s inactivity with pending changes */}
+      {showActionButtons && hasPendingChanges && (
+        <div className="flex gap-2 lg:gap-2">
+          <Button
+            onClick={() => {
+              logger.log('✅ Apply Filter clicked');
+              setHasPendingChanges(false);
+              setShowActionButtons(false);
+              if (filters.location && filters.location.trim() !== '') {
+                onSearch(filters);
+              }
+            }}
+            variant="primary"
+            className="flex-1"
+            size="sm"
+          >
+            Apply Filter
+          </Button>
+          <Button
+            onClick={clearFilters}
+            variant="outline"
+            className="flex-1"
+            size="sm"
+          >
+            New Search
+          </Button>
+        </div>
+      )}
+
+      {/* New Search Button - Show when filters active but no pending changes */}
+      {showActionButtons && !hasPendingChanges && hasActiveFilters && (
+        <Button
+          onClick={clearFilters}
+          variant="outline"
+          className="w-full"
+          size="sm"
+        >
+          New Search
+        </Button>
+      )}
 
     </div>
   );
