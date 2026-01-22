@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { getProfileVisibilityEligibility } from '@/lib/utils/profile-visibility';
 
 /**
  * PATCH /api/user/profile/visibility
@@ -22,6 +23,22 @@ export async function PATCH(request: NextRequest) {
     const userId = session.user.id;
     const { isVisible } = await request.json();
 
+    // Prevent enabling visibility unless required fields are complete
+    if (isVisible === true) {
+      const eligibility = await getProfileVisibilityEligibility(userId);
+      if (!eligibility.allRequiredComplete) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Complete all required profile fields before making your profile visible.',
+            isVisible: false,
+            required: eligibility.stats.required,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update the studio profile visibility
     const updatedProfile = await db.studio_profiles.update({
       where: { user_id: userId },
@@ -39,7 +56,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       success: true,
       isVisible: updatedProfile.is_profile_visible,
-      message: `Profile is now ${isVisible ? 'visible' : 'hidden'}`
+      message: `Profile is now ${updatedProfile.is_profile_visible ? 'visible' : 'hidden'}`
     });
 
   } catch (error) {

@@ -349,6 +349,21 @@ export function StudiosPage() {
     }).length;
   }, [memoizedMarkers, mapBounds]);
 
+  // Calculate studio type counts from all map markers (for filter result counts)
+  const studioTypeCounts = useMemo(() => {
+    if (!searchResults?.mapMarkers) return {};
+    
+    const counts: Record<string, number> = {};
+    
+    searchResults.mapMarkers.forEach(marker => {
+      marker.studio_studio_types.forEach(({ studio_type }) => {
+        counts[studio_type] = (counts[studio_type] || 0) + 1;
+      });
+    });
+    
+    return counts;
+  }, [searchResults?.mapMarkers]);
+
   // Studios filtered by map area - fetched separately
   const [mapAreaStudios, setMapAreaStudios] = useState<Studio[]>([]);
   const [loadingMapArea, setLoadingMapArea] = useState(false);
@@ -479,8 +494,6 @@ export function StudiosPage() {
       if (response.ok) {
         const data = await response.json();
         setSearchResults(data);
-        // Track which params these results correspond to (use the actual params from this API call)
-        setCurrentResultsParams(params.toString());
       } else {
         logger.error('Search failed:', response.status, response.statusText);
       }
@@ -532,9 +545,6 @@ export function StudiosPage() {
       setLoadingMore(false);
     }
   };
-
-  // Track the search params that the current results correspond to
-  const [currentResultsParams, setCurrentResultsParams] = useState<string>('');
 
   // Initial search on component mount
   useEffect(() => {
@@ -883,6 +893,7 @@ export function StudiosPage() {
               visibleMarkerCount={visibleMarkerCount}
               filterByMapAreaMaxMarkers={30}
               isMapReady={!loading && !!mapBounds}
+              studioTypeCounts={studioTypeCounts}
             />
 
               {/* Selected Studio Card - Shows when a map marker is clicked */}
@@ -960,26 +971,22 @@ export function StudiosPage() {
                 }
 
                 {/* Active Filters Display - Below map, above cards */}
-                {(searchParams.get('location') || searchParams.get('studio_type') || searchParams.get('services') || searchParams.get('radius')) && (
-                  <div className="flex flex-wrap gap-2 items-center">
-                    {/* Studios Found Badge - Only show when filters are applied, not loading, and results match current URL */}
-                    {!loading && 
-                     searchResults && 
-                     searchResults.pagination && 
-                     searchParams.toString() === currentResultsParams && (
-                      searchParams.get('location') || 
-                      searchParams.get('studioTypes') || 
-                      searchParams.get('studio_type') || 
-                      searchParams.get('services') ||
-                      (searchParams.get('radius') && searchParams.get('radius') !== '10')
-                    ) && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-50 text-red-700 border border-red-200">
-                        {isFilteringByMapArea && mapAreaStudios.length > 0 
-                          ? `${mapAreaStudios.length} ${mapAreaStudios.length === 1 ? 'Studio' : 'Studios'} Found`
-                          : `${searchResults.pagination.totalCount} ${searchResults.pagination.totalCount === 1 ? 'Studio' : 'Studios'} Found`
-                        }
-                      </span>
-                    )}
+                <div className="flex flex-wrap gap-2 items-center">
+                  {/* Studios Found Badge - Show when we have results and not loading */}
+                  {!loading && 
+                   searchResults && 
+                   searchResults.pagination && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-50 text-red-700 border border-red-200">
+                      {isFilteringByMapArea && mapAreaStudios.length > 0 
+                        ? `${mapAreaStudios.length} ${mapAreaStudios.length === 1 ? 'Studio' : 'Studios'} Found`
+                        : `${searchResults.pagination.totalCount} ${searchResults.pagination.totalCount === 1 ? 'Studio' : 'Studios'} Found`
+                      }
+                    </span>
+                  )}
+                  
+                  {/* Filter badges - Only show when filters are applied */}
+                  {(searchParams.get('location') || searchParams.get('studioTypes') || searchParams.get('studio_type') || searchParams.get('services') || searchParams.get('radius')) && (
+                    <>
                     {searchParams.get('location') && (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black">
                         📍 {abbreviateAddress(searchParams.get('location')!)}
@@ -1000,8 +1007,9 @@ export function StudiosPage() {
                         📏 {searchParams.get('radius')} miles
                       </span>
                     )}
-                  </div>
-                )}
+                    </>
+                  )}
+                </div>
 
                 {/* Studios List - Desktop: Always shown, Mobile: Only in list view */}
                 <div className={`${mobileView === 'map' ? 'hidden lg:block' : 'block'}`}>

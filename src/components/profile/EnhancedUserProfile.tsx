@@ -229,120 +229,122 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Main Content Column */}
-          <div className="lg:col-span-2 space-y-8">
+      {!isHidden && (
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {/* About Section */}
-            {profile?.about && (
-              <div className="bg-white rounded-lg border border-gray-200 shadow-md p-6">
-                <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.textPrimary }}>
-                  About
-                </h2>
-                <div className="prose max-w-none">
-                  <p className="text-base leading-relaxed" style={{ color: colors.textSecondary }}>
-                    {profile.about}
-                  </p>
+            {/* Main Content Column */}
+            <div className="lg:col-span-2 space-y-8">
+              
+              {/* About Section */}
+              {profile?.about && (
+                <div className="bg-white rounded-lg border border-gray-200 shadow-md p-6">
+                  <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.textPrimary }}>
+                    About
+                  </h2>
+                  <div className="prose max-w-none">
+                    <p className="text-base leading-relaxed" style={{ color: colors.textSecondary }}>
+                      {profile.about}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Pricing Information */}
-            {profile?.show_rates && (profile?.rate_tier_1 || profile?.rate_tier_2 || profile?.rate_tier_3) && (
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.textPrimary }}>
-                  Pricing
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {profile.rate_tier_1 && (
-                    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-                      <div className="flex items-center mb-3">
-                        <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
-                        <span className="font-semibold" style={{ color: colors.textPrimary }}>15 minutes</span>
+              {/* Pricing Information */}
+              {profile?.show_rates && (profile?.rate_tier_1 || profile?.rate_tier_2 || profile?.rate_tier_3) && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.textPrimary }}>
+                    Pricing
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {profile.rate_tier_1 && (
+                      <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                        <div className="flex items-center mb-3">
+                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
+                          <span className="font-semibold" style={{ color: colors.textPrimary }}>15 minutes</span>
+                        </div>
+                        <p style={{ color: colors.textSecondary }}>{formatRateWithCurrency(profile.rate_tier_1, profile.location)}</p>
                       </div>
-                      <p style={{ color: colors.textSecondary }}>{formatRateWithCurrency(profile.rate_tier_1, profile.location)}</p>
-                    </div>
-                  )}
-                  {profile.rate_tier_2 && (
-                    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-                      <div className="flex items-center mb-3">
-                        <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
-                        <span className="font-semibold" style={{ color: colors.textPrimary }}>30 minutes</span>
+                    )}
+                    {profile.rate_tier_2 && (
+                      <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                        <div className="flex items-center mb-3">
+                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
+                          <span className="font-semibold" style={{ color: colors.textPrimary }}>30 minutes</span>
+                        </div>
+                        <p style={{ color: colors.textSecondary }}>{formatRateWithCurrency(profile.rate_tier_2, profile.location)}</p>
                       </div>
-                      <p style={{ color: colors.textSecondary }}>{formatRateWithCurrency(profile.rate_tier_2, profile.location)}</p>
-                    </div>
-                  )}
-                  {profile.rate_tier_3 && (
-                    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-                      <div className="flex items-center mb-3">
-                        <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
-                        <span className="font-semibold" style={{ color: colors.textPrimary }}>60 minutes</span>
+                    )}
+                    {profile.rate_tier_3 && (
+                      <div className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                        <div className="flex items-center mb-3">
+                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors.primary }}></div>
+                          <span className="font-semibold" style={{ color: colors.textPrimary }}>60 minutes</span>
+                        </div>
+                        <p style={{ color: colors.textSecondary }}>{formatRateWithCurrency(profile.rate_tier_3, profile.location)}</p>
                       </div>
-                      <p style={{ color: colors.textSecondary }}>{formatRateWithCurrency(profile.rate_tier_3, profile.location)}</p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Additional Information from Metadata */}
-            {metadata.length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.textPrimary }}>
-                  Professional Details
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {metadata.map((meta) => (
-                    <div key={meta.id} className="border-l-4 pl-4 py-2" style={{ borderColor: colors.primary }}>
-                      <div className="font-medium mb-1" style={{ color: colors.textPrimary }}>
-                        {meta.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              {/* Additional Information from Metadata */}
+              {metadata.length > 0 && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.textPrimary }}>
+                    Professional Details
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {metadata.map((meta) => (
+                      <div key={meta.id} className="border-l-4 pl-4 py-2" style={{ borderColor: colors.primary }}>
+                        <div className="font-medium mb-1" style={{ color: colors.textPrimary }}>
+                          {meta.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </div>
+                        <div className="text-sm" style={{ color: colors.textSecondary }}>{meta.value}</div>
                       </div>
-                      <div className="text-sm" style={{ color: colors.textSecondary }}>{meta.value}</div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            
+            {/* Sidebar */}
+            <div className="space-y-6">
+              
 
-            {/* Social Media Links */}
-            {socialLinks.length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-200 shadow-md p-6">
-                <h3 className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
-                  Connect
-                </h3>
-                <div className="space-y-2">
-                  {socialLinks
-                    .filter((link) => link.url) // Only show links that have URLs
-                    .map((link) => {
-                      const IconComponent = link.icon;
-                      return (
-                        <a
-                          key={link.platform}
-                          href={link.url || undefined}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex items-center p-3 rounded-lg border transition-all ${link.color}`}
-                        >
-                          <IconComponent className="w-4 h-4 mr-3" />
-                          <span className="text-sm font-medium">{link.platform}</span>
-                          <ExternalLink className="w-3 h-3 ml-auto" />
-                        </a>
-                      );
-                    })}
+              {/* Social Media Links */}
+              {socialLinks.length > 0 && (
+                <div className="bg-white rounded-lg border border-gray-200 shadow-md p-6">
+                  <h3 className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
+                    Connect
+                  </h3>
+                  <div className="space-y-2">
+                    {socialLinks
+                      .filter((link) => link.url) // Only show links that have URLs
+                      .map((link) => {
+                        const IconComponent = link.icon;
+                        return (
+                          <a
+                            key={link.platform}
+                            href={link.url || undefined}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`flex items-center p-3 rounded-lg border transition-all ${link.color}`}
+                          >
+                            <IconComponent className="w-4 h-4 mr-3" />
+                            <span className="text-sm font-medium">{link.platform}</span>
+                            <ExternalLink className="w-3 h-3 ml-auto" />
+                          </a>
+                        );
+                      })}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

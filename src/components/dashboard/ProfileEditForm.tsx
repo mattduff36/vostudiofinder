@@ -20,7 +20,7 @@ import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { useAutosizeTextarea } from '@/hooks/useAutosizeTextarea';
-import { showSuccess, showError } from '@/lib/toast';
+import { showSuccess, showError, showInfo } from '@/lib/toast';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -444,7 +444,13 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         throw new Error(errorData.error || 'Failed to save profile');
       }
 
+      const result = await response.json().catch(() => ({} as any));
       showSuccess('Profile updated successfully!');
+      sessionStorage.setItem('invalidateProfileCache', '1');
+
+      if ((result as any)?.visibilityAutoDisabled) {
+        showInfo('Profile visibility was turned off because required fields are incomplete.');
+      }
       
       // Refresh profile data
       await fetchProfile();

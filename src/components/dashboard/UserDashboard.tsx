@@ -262,6 +262,16 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
     };
 
     const loadProfile = async () => {
+      // If another page updated the profile, force a refetch (bypass 5m cache)
+      try {
+        if (sessionStorage.getItem('invalidateProfileCache') === '1') {
+          sessionStorage.removeItem('invalidateProfileCache');
+          invalidateProfileCache();
+        }
+      } catch {
+        // ignore (e.g. SSR / restricted environments)
+      }
+
       const cacheAgeMs = getCachedProfileAgeMs();
       const isCacheFresh = !!cachedProfileData && cacheAgeMs < 5 * 60 * 1000; // 5 minutes
 
@@ -308,6 +318,21 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
   // Use allRequiredComplete from completionStats (single source of truth)
   const allRequiredComplete = completionStats.allRequiredComplete;
 
+  // If required fields become incomplete while visible, force visibility OFF.
+  useEffect(() => {
+    if (!allRequiredComplete && isProfileVisible) {
+      setIsProfileVisible(false);
+      window.dispatchEvent(new CustomEvent('profile-visibility-changed', { detail: { isVisible: false } }));
+
+      // Best-effort backend sync (don't block UI)
+      void fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studio: { is_profile_visible: false } }),
+      }).catch(() => undefined);
+    }
+  }, [allRequiredComplete, isProfileVisible]);
+
   // Handle profile visibility toggle
   const handleVisibilityToggle = async (visible: boolean) => {
     setSaving(true);
@@ -324,6 +349,13 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
 
       if (response.ok) {
         setIsProfileVisible(visible);
+        if (cachedProfileData?.studio) {
+          cachedProfileData = {
+            ...cachedProfileData,
+            studio: { ...cachedProfileData.studio, is_profile_visible: visible },
+          } as any;
+          cachedProfileFetchedAt = Date.now();
+        }
         // Broadcast visibility change to other components
         window.dispatchEvent(new CustomEvent('profile-visibility-changed', { 
           detail: { isVisible: visible } 

@@ -10,6 +10,7 @@
 
 import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { showError } from '@/lib/toast';
 
 interface VisibilityToggleMobileProps {
   initialVisibility: boolean;
@@ -44,18 +45,21 @@ export function VisibilityToggleMobile({
         body: JSON.stringify({ isVisible: !isVisible }),
       });
 
+      const result = await response.json().catch(() => null);
+
       if (response.ok) {
-        const newVisibility = !isVisible;
+        const newVisibility = !!result?.isVisible;
         setIsVisible(newVisibility);
         // Broadcast visibility change to other components
         window.dispatchEvent(new CustomEvent('profile-visibility-changed', { 
           detail: { isVisible: newVisibility } 
         }));
       } else {
-        console.error('Failed to update visibility');
+        showError(result?.error || 'Failed to update profile visibility');
       }
     } catch (error) {
       console.error('Error updating visibility:', error);
+      showError('Error updating profile visibility');
     } finally {
       setSaving(false);
     }

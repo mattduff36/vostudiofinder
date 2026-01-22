@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { getProfileVisibilityEligibility } from '@/lib/utils/profile-visibility';
 
 /**
  * GET /api/user/profile
@@ -402,6 +403,19 @@ export async function PUT(request: NextRequest) {
 
     const userId = session.user.id;
     const body = await request.json();
+    
+    // Strict check: A visibility toggle request must have ONLY is_profile_visible in body.studio
+    // and no other top-level properties. This prevents malicious requests from modifying
+    // profile fields alongside a visibility toggle that might fail eligibility validation.
+    const isVisibilityToggleRequest =
+      typeof body?.studio?.is_profile_visible === 'boolean' &&
+      !body?.profile &&
+      !body?.user &&
+      !body?.studio_types &&
+      !body?.services &&
+      body?.studio &&
+      Object.keys(body.studio).length === 1 &&
+      Object.keys(body.studio)[0] === 'is_profile_visible';
 
     // Update users table if needed
     // Note: username cannot be changed after signup, only display_name and avatar_url
@@ -617,6 +631,36 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Enforce: if required profile fields are incomplete, visibility must be OFF.
+    // - If this request is a direct visibility toggle attempt to ON, reject it (and ensure it remains OFF).
+    // - If this request updated profile data and made it incomplete, auto-disable visibility.
+    let visibilityAutoDisabled = false;
+    const eligibility = await getProfileVisibilityEligibility(userId);
+
+    if (!eligibility.allRequiredComplete) {
+      // Always ensure visibility is OFF when requirements are not met
+      if (eligibility.currentVisibility) {
+        await db.studio_profiles.update({
+          where: { user_id: userId },
+          data: { is_profile_visible: false, updated_at: new Date() },
+        });
+        visibilityAutoDisabled = true;
+      }
+
+      // If user attempted to explicitly enable visibility, return an error so the UI won't flip ON.
+      if (isVisibilityToggleRequest && body?.studio?.is_profile_visible === true) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Complete all required profile fields before making your profile visible.',
+            isVisible: false,
+            required: eligibility.stats.required,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Fetch updated profile
     const updatedUser = await db.users.findUnique({
       where: { id: userId },
@@ -635,6 +679,8 @@ export async function PUT(request: NextRequest) {
       success: true,
       message: 'Profile updated successfully',
       data: updatedUser,
+      allRequiredComplete: eligibility.allRequiredComplete,
+      visibilityAutoDisabled,
     });
   } catch (error) {
     console.error('Error updating user profile:', error);

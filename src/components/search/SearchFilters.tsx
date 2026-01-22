@@ -26,13 +26,14 @@ interface SearchFiltersProps {
   isMapReady?: boolean;
   onApplyFilter?: () => void; // Optional callback for when Apply Filter is clicked (e.g., to close mobile modal)
   isMobileModalOpen?: boolean; // Track if mobile filter modal is open
+  studioTypeCounts?: Record<string, number>; // Count of studios for each type in the current search area
 }
 
 export interface SearchFiltersRef {
   applyFilters: () => void;
 }
 
-export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount, filterByMapAreaMaxMarkers = 30, isMapReady = true, onApplyFilter, isMobileModalOpen }, ref) {
+export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount, filterByMapAreaMaxMarkers = 30, isMapReady = true, onApplyFilter, isMobileModalOpen, studioTypeCounts = {} }, ref) {
   // Normalize filters for comparison (stable, comparable shape)
   const normalizeFilters = (f: typeof initialFilters) => ({
     location: (f.location || '').trim(),
@@ -262,7 +263,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
       {/* Location */}
       <div>
         <label className="hidden lg:block text-sm font-medium text-black mb-2">
-          Location
+          Filter by:
         </label>
         <div className="space-y-2">
           <EnhancedLocationFilter
@@ -441,22 +442,28 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
             );
           })}
         </div>
-        {/* Desktop: Original checkbox style */}
+        {/* Desktop: Original checkbox style with result counts */}
         <div className="hidden lg:block space-y-2">
-          {studioTypeOptions.map(option => (
-            <label
-              key={option.value}
-              className="flex items-center space-x-2 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={filters.studio_studio_types.includes(option.value)}
-                onChange={() => handleStudioTypeToggle(option.value)}
-                className="rounded"
-              />
-              <span className="text-sm text-black">{option.fullLabel}</span>
-            </label>
-          ))}
+          {studioTypeOptions.map(option => {
+            const count = studioTypeCounts[option.value] || 0;
+            return (
+              <label
+                key={option.value}
+                className="flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={filters.studio_studio_types.includes(option.value)}
+                    onChange={() => handleStudioTypeToggle(option.value)}
+                    className="rounded"
+                  />
+                  <span className="text-sm text-black">{option.fullLabel}</span>
+                </div>
+                <span className="text-sm text-gray-500 font-medium">{count}</span>
+              </label>
+            );
+          })}
         </div>
       </div>
 

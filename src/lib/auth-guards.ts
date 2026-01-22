@@ -1,8 +1,9 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
+import { randomBytes } from 'crypto';
 import { authOptions } from './auth';
 import { db } from './db';
-import { Role } from '@prisma/client';
+import { Role, UserStatus } from '@prisma/client';
 
 /**
  * Server-side authentication guard
@@ -15,6 +16,92 @@ export async function requireAuth(callbackUrl?: string) {
     redirect(`/auth/signin${redirectUrl}`);
   }
   
+  return session;
+}
+
+/**
+ * Server-side guard: require active (paid) account for member areas
+ */
+export async function requireActiveAccount(callbackUrl?: string) {
+  const session = await requireAuth(callbackUrl);
+
+  const user = await db.users.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      display_name: true,
+      username: true,
+      role: true,
+      email_verified: true,
+      status: true,
+    },
+  });
+
+  if (!user) {
+    redirect('/auth/signin');
+  }
+
+  if (user.role === Role.ADMIN) {
+    return session;
+  }
+
+  if (!user.email_verified) {
+    redirect(`/auth/verify-email?email=${encodeURIComponent(user.email)}&flow=signup`);
+  }
+
+  if (user.status === UserStatus.ACTIVE) {
+    return session;
+  }
+
+  if (user.status === UserStatus.EXPIRED) {
+    redirect('/auth/signup?error=reservation_expired');
+  }
+
+  const payment = await db.payments.findFirst({
+    where: { user_id: user.id, status: 'SUCCEEDED' },
+    orderBy: { created_at: 'desc' },
+  });
+
+  if (!payment) {
+    const paymentParams = new URLSearchParams();
+    paymentParams.set('userId', user.id);
+    paymentParams.set('email', user.email);
+    paymentParams.set('name', user.display_name);
+    if (user.username && !user.username.startsWith('temp_')) {
+      paymentParams.set('username', user.username);
+    }
+    redirect(`/auth/membership?${paymentParams.toString()}`);
+  }
+
+  await db.users.update({
+    where: { id: user.id },
+    data: { status: UserStatus.ACTIVE, updated_at: new Date() },
+  });
+
+  const existingSubscription = await db.subscriptions.findFirst({
+    where: { user_id: user.id, status: 'ACTIVE' },
+  });
+
+  if (!existingSubscription) {
+    const now = new Date();
+    const oneYearFromNow = new Date(now);
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+    await db.subscriptions.create({
+      data: {
+        id: randomBytes(12).toString('base64url'),
+        user_id: user.id,
+        status: 'ACTIVE',
+        payment_method: 'STRIPE',
+        current_period_start: now,
+        current_period_end: oneYearFromNow,
+        created_at: now,
+        updated_at: now,
+      },
+    });
+  }
+
   return session;
 }
 
