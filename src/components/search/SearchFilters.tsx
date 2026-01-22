@@ -33,6 +33,18 @@ export interface SearchFiltersRef {
 }
 
 export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount, filterByMapAreaMaxMarkers = 30, isMapReady = true, onApplyFilter, isMobileModalOpen }, ref) {
+  // Normalize filters for comparison (stable, comparable shape)
+  const normalizeFilters = (f: typeof initialFilters) => ({
+    location: (f.location || '').trim(),
+    studio_studio_types: [...(f.studio_studio_types || [])].sort(),
+    studio_services: [...(f.studio_services || [])].sort(),
+    radius: f.radius || 10,
+    sortBy: f.sortBy || 'name',
+    sort_order: f.sort_order || 'asc',
+    lat: f.lat,
+    lng: f.lng,
+  });
+
   // Studio types are unchecked by default - users must select what they want
   const filtersWithDefaults = {
     ...initialFilters,
@@ -40,26 +52,33 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
   };
   
   const [filters, setFilters] = useState(filtersWithDefaults);
-  const [hasPendingChanges, setHasPendingChanges] = useState(false);
   const [showActionButtons, setShowActionButtons] = useState(false);
   const radiusDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastAppliedRef = useRef(normalizeFilters(filtersWithDefaults));
+  
+  // Derive hasPendingChanges from real comparison
+  const hasPendingChanges = JSON.stringify(normalizeFilters(filters)) !== JSON.stringify(lastAppliedRef.current);
 
   // Expose applyFilters method to parent component via ref
+  // Used when mobile drawer closes (backdrop/scroll/Escape)
   useImperativeHandle(ref, () => ({
     applyFilters: () => {
-      logger.log('🔍 Apply button clicked - triggering search with current filters:', filters);
-      // Only trigger search if there's a location
-      if (filters.location && filters.location.trim() !== '') {
-        logger.log('✅ Triggering search from Apply button');
-        setHasPendingChanges(false);
-        setShowActionButtons(false);
+      logger.log('🔍 Imperative applyFilters called (mobile drawer close)');
+      const isDirty = JSON.stringify(normalizeFilters(filters)) !== JSON.stringify(lastAppliedRef.current);
+      
+      if (isDirty) {
+        logger.log('✅ Filters changed since last search - triggering search');
+        lastAppliedRef.current = normalizeFilters(filters);
         onSearch(filters);
       } else {
-        logger.log('🚫 Skipping search - no location provided');
+        logger.log('ℹ️ No changes since last search - just closing drawer');
       }
+      
+      // Always hide buttons (drawer is closing)
+      setShowActionButtons(false);
     }
-  }), [filters, onSearch]);
+  }), [filters, onSearch]); // normalizeFilters is stable, doesn't need to be in deps
 
   useEffect(() => {
     logger.log('Updating filters with initialFilters:', initialFilters);
@@ -69,10 +88,10 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
       studio_studio_types: initialFilters.studio_studio_types || []
     };
     setFilters(updatedFilters);
-    // Clear pending changes when initialFilters change (new search performed)
-    setHasPendingChanges(false);
+    // Update last applied filters (this represents the current search state from URL)
+    lastAppliedRef.current = normalizeFilters(updatedFilters);
     setShowActionButtons(false);
-  }, [initialFilters]);
+  }, [initialFilters]); // normalizeFilters is stable, doesn't need to be in deps
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -206,11 +225,11 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
     
     setFilters(newFilters);
     
-    // Both mobile and desktop: set pending changes and start timer (no auto-search)
-    setHasPendingChanges(true);
+    // Both mobile and desktop: start timer (no auto-search)
+    // hasPendingChanges will be derived from comparison automatically
     setShowActionButtons(false); // Hide buttons immediately, will show after 2s
     startInactivityTimer();
-    logger.log('Studio type toggled - pending changes set, timer started');
+    logger.log('Studio type toggled - timer started');
   };
 
   // Helper function to detect if device is mobile
@@ -270,8 +289,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                 
                 // Set state but don't auto-search - user must click Apply Filter or press Enter
                 setFilters(newFilters);
-                // Mark as pending change and start timer
-                setHasPendingChanges(true);
+                // Start timer - hasPendingChanges will be derived from comparison
                 setShowActionButtons(false);
                 startInactivityTimer();
               } else {
@@ -346,8 +364,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                 
                 if (isMobile) {
                   logger.log(`Mobile: Radius changed to ${newRadius} - waiting for user to click Apply`);
-                  // Mark as pending change and start timer
-                  setHasPendingChanges(true);
+                  // Start timer - hasPendingChanges will be derived from comparison
                   setShowActionButtons(false);
                   startInactivityTimer();
                   // Clear any existing timeout to prevent accidental search
@@ -489,17 +506,14 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
           <div className="flex gap-2 lg:gap-2">
             <Button
               onClick={() => {
-                logger.log('✅ Apply Filter clicked');
-                if (filters.location && filters.location.trim() !== '') {
-                  setHasPendingChanges(false);
-                  setShowActionButtons(false);
-                  onSearch(filters);
-                  // Call optional callback (e.g., to close mobile modal)
-                  if (onApplyFilter) {
-                    onApplyFilter();
-                  }
-                } else {
-                  logger.log('🚫 Skipping search - no location provided');
+                logger.log('✅ Apply Filter clicked - always triggering search');
+                // Always trigger search (even with no location - global filtered results)
+                lastAppliedRef.current = normalizeFilters(filters);
+                setShowActionButtons(false);
+                onSearch(filters);
+                // Call optional callback (e.g., to close mobile modal)
+                if (onApplyFilter) {
+                  onApplyFilter();
                 }
               }}
               variant="primary"

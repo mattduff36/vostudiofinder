@@ -125,7 +125,7 @@ export function FilterDrawer({
 
       {/* Compact Filter Dropdown */}
       <div
-        className={`fixed top-[249px] left-4 w-[calc(100vw-2rem)] max-w-md transform transition-all duration-300 ease-out md:hidden z-[70] ${
+        className={`fixed top-[249px] left-8 w-[calc(100vw-4rem)] max-w-md transform transition-all duration-300 ease-out md:hidden z-[70] ${
           isOpen ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95 pointer-events-none'
         }`}
         role="dialog"
@@ -146,7 +146,7 @@ export function FilterDrawer({
         />
 
         {/* Arrow pointing up to Filters button */}
-        <div className="absolute top-[-8px] left-6 w-4 h-4 bg-white border-l border-t border-gray-200 transform rotate-45" />
+        <div className="absolute top-[-8px] left-2 w-4 h-4 bg-white border-l border-t border-gray-200 transform rotate-45" />
       </div>
     </>
   );

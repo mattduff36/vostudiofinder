@@ -479,6 +479,8 @@ export function StudiosPage() {
       if (response.ok) {
         const data = await response.json();
         setSearchResults(data);
+        // Track which params these results correspond to (use the actual params from this API call)
+        setCurrentResultsParams(params.toString());
       } else {
         logger.error('Search failed:', response.status, response.statusText);
       }
@@ -530,6 +532,9 @@ export function StudiosPage() {
       setLoadingMore(false);
     }
   };
+
+  // Track the search params that the current results correspond to
+  const [currentResultsParams, setCurrentResultsParams] = useState<string>('');
 
   // Initial search on component mount
   useEffect(() => {
@@ -957,8 +962,17 @@ export function StudiosPage() {
                 {/* Active Filters Display - Below map, above cards */}
                 {(searchParams.get('location') || searchParams.get('studio_type') || searchParams.get('services') || searchParams.get('radius')) && (
                   <div className="flex flex-wrap gap-2 items-center">
-                    {/* Studios Found Badge */}
-                    {searchResults && searchResults.pagination && (
+                    {/* Studios Found Badge - Only show when filters are applied, not loading, and results match current URL */}
+                    {!loading && 
+                     searchResults && 
+                     searchResults.pagination && 
+                     searchParams.toString() === currentResultsParams && (
+                      searchParams.get('location') || 
+                      searchParams.get('studioTypes') || 
+                      searchParams.get('studio_type') || 
+                      searchParams.get('services') ||
+                      (searchParams.get('radius') && searchParams.get('radius') !== '10')
+                    ) && (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-50 text-red-700 border border-red-200">
                         {isFilteringByMapArea && mapAreaStudios.length > 0 
                           ? `${mapAreaStudios.length} ${mapAreaStudios.length === 1 ? 'Studio' : 'Studios'} Found`

@@ -29,8 +29,11 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const [showAdminEditButton, setShowAdminEditButton] = useState(false);
   const { isInitialLoad } = useLoading();
   
-  // Original iOS-style scroll visibility behavior (800ms delay)
-  const isScrollVisible = useScrollVisibility({ showDelay: 800 });
+  // Two-phase scroll visibility: position at 150ms (invisible), show at 500ms
+  const { isPositioned, isVisible: isScrollVisible } = useScrollVisibility({ 
+    showDelay: 500,
+    positionDelay: 150 
+  });
 
   // Close menu when scrolling starts (buttons hide)
   useEffect(() => {
@@ -183,7 +186,8 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           <AdaptiveGlassBubblesNav
             items={navItems}
             config={DEFAULT_CONFIG}
-            debugSensors={false}
+            debugSensors={true}
+            isPositioned={isPositioned}
             isVisible={isScrollVisible}
           />
         </div>

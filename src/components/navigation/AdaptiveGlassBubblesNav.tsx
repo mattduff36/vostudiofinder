@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import type { GlassCustomization } from '@/types/glass-customization';
@@ -45,7 +45,8 @@ interface AdaptiveGlassBubblesNavProps {
   onBackgroundChange?: (isDark: boolean) => void;
   config?: GlassCustomization;
   debugSensors?: boolean;
-  isVisible?: boolean;
+  isPositioned?: boolean; // Buttons positioned (may be invisible) for detection
+  isVisible?: boolean; // Buttons visible to user
 }
 
 export function AdaptiveGlassBubblesNav({
@@ -54,9 +55,12 @@ export function AdaptiveGlassBubblesNav({
   onBackgroundChange,
   config = DEFAULT_CONFIG,
   debugSensors = false,
+  isPositioned = true,
   isVisible = true,
 }: AdaptiveGlassBubblesNavProps) {
   const [internalIsDarkBackground, setInternalIsDarkBackground] = useState(false);
+  // Track dark/light state per button
+  const [buttonBackgrounds, setButtonBackgrounds] = useState<Map<string, boolean>>(new Map());
   const navRef = useRef<HTMLDivElement>(null);
   const hasAnimated = useRef(false);
 
@@ -72,10 +76,48 @@ export function AdaptiveGlassBubblesNav({
   const shouldDetectBackground =
     config.adaptiveEnabled && (externalIsDarkBackground === undefined || Boolean(onBackgroundChange));
 
+  // Create ONE sensor per button at its center
+  const getSamplePointsPerButton = useMemo(() => {
+    return () => {
+      if (!navRef.current) return new Map<string, Array<{ x: number; y: number; color: string; label: string }>>();
+      const buttons = navRef.current.querySelectorAll('.adaptive-circle-glass, .adaptive-pill-glass');
+      if (buttons.length === 0) return new Map();
+
+      const pointsMap = new Map<string, Array<{ x: number; y: number; color: string; label: string }>>();
+      
+      buttons.forEach((button, index) => {
+        const rect = button.getBoundingClientRect();
+        
+        // Skip buttons with invalid (zero) dimensions - not laid out yet
+        if (rect.width === 0 || rect.height === 0) {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getSamplePointsPerButton:skipped',message:'SKIPPED button with zero dimensions (not laid out yet)',data:{buttonId:button.getAttribute('data-button-id')||`button-${index}`,rect:{width:rect.width,height:rect.height}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H9'})}).catch(()=>{});
+          // #endregion
+          return;
+        }
+        
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const buttonId = button.getAttribute('data-button-id') || `button-${index}`;
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getSamplePointsPerButton',message:'Generated CENTER sensor for button',data:{buttonId,rect:{left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom,width:rect.width,height:rect.height},center:{x:centerX,y:centerY}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
+        // Single sensor at button center
+        pointsMap.set(buttonId, [
+          { x: centerX, y: centerY, color: '#00ff00', label: 'C' },
+        ]);
+      });
+
+      return pointsMap;
+    };
+  }, []);
+
+  // Legacy hook for backward compatibility (averages all buttons)
   const getSamplePoints = useMemo(() => {
     return () => {
       if (!navRef.current) return [];
-      const buttons = navRef.current.querySelectorAll('.adaptive-circle-glass');
+      const buttons = navRef.current.querySelectorAll('.adaptive-circle-glass, .adaptive-pill-glass');
       if (buttons.length === 0) return [];
 
       const points: Array<{ x: number; y: number; color: string; label: string }> = [];
@@ -96,12 +138,13 @@ export function AdaptiveGlassBubblesNav({
     };
   }, []);
 
+  // Use the legacy hook for global state (for onBackgroundChange callback)
   useAdaptiveGlassBackground({
     enabled: shouldDetectBackground,
     luminanceThreshold: config.luminanceThreshold,
     getSamplePoints,
     ignoreElement: () => navRef.current,
-    debugSensors,
+    debugSensors: false, // Disable debug for global hook
     onChange: (nextIsDark) => {
       if (externalIsDarkBackground === undefined) {
         setInternalIsDarkBackground(nextIsDark);
@@ -109,6 +152,304 @@ export function AdaptiveGlassBubblesNav({
       onBackgroundChange?.(nextIsDark);
     },
   });
+
+  // New per-button detection effect
+  useEffect(() => {
+    if (!shouldDetectBackground) return;
+
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let rafId: number | null = null;
+
+    const parseCssColorToRgba = (color: string): { r: number; g: number; b: number; a: number } | null => {
+      const normalized = color.trim().toLowerCase();
+      if (normalized === 'transparent') return null;
+
+      const rgbMatch = normalized.match(/^rgba?\((.+)\)$/);
+      if (!rgbMatch || !rgbMatch[1]) return null;
+
+      const parts = rgbMatch[1]
+        .split(',')
+        .map((p) => p.trim())
+        .filter(Boolean);
+
+      if (parts.length < 3) return null;
+
+      const r = Number(parts[0]);
+      const g = Number(parts[1]);
+      const b = Number(parts[2]);
+      const a = parts.length >= 4 ? Number(parts[3]) : 1;
+
+      if (![r, g, b, a].every((n) => Number.isFinite(n))) return null;
+
+      return { r, g, b, a };
+    };
+
+    const luminanceFromRgb = (r: number, g: number, b: number) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    const getLuminanceAtPoint = (x: number, y: number): number | null => {
+      if (x < 0 || y < 0 || x > window.innerWidth - 1 || y > window.innerHeight - 1) return null;
+
+      const stack = document.elementsFromPoint(x, y);
+      const ignore = navRef.current;
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint',message:'Elements at point',data:{x,y,stackLength:stack.length,topElements:Array.from(stack).slice(0,5).map(el=>({tagName:el.tagName,className:el.className,isNav:ignore?.contains(el)||el.contains(ignore)}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+
+      // Collect ALL images at this point, then sample from the LARGEST one (backgrounds are larger than thumbnails)
+      const images: Array<{el: HTMLImageElement, size: number, opacity: number}> = [];
+      
+      for (const el of stack) {
+        // Skip nav elements AND their parent containers
+        if (ignore && (ignore.contains(el) || el.contains(ignore))) continue;
+
+        const computedStyle = window.getComputedStyle(el);
+        const elementOpacity = Number(computedStyle.opacity || '1');
+        const opacity = Number.isFinite(elementOpacity) ? elementOpacity : 1;
+
+        // Collect images for later sampling
+        if (el instanceof HTMLImageElement && opacity > 0.25 && el.complete && el.naturalWidth > 0) {
+          const size = el.naturalWidth * el.naturalHeight;
+          images.push({el, size, opacity});
+        }
+
+        // Also check for solid background colors as fallback
+        const bgColor = computedStyle.backgroundColor;
+        const rgba = parseCssColorToRgba(bgColor);
+        if (rgba && rgba.a * opacity > 0.1 && images.length === 0) {
+          const lum = luminanceFromRgb(rgba.r, rgba.g, rgba.b);
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint:bgcolor',message:'Detected background color (no images found)',data:{x,y,element:{tagName:el.tagName,className:el.className},bgColor,rgba,opacity,luminance:lum},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
+          // #endregion
+          return lum;
+        }
+      }
+
+      // Sample from LARGEST image (prefer backgrounds over thumbnails)
+      if (images.length > 0) {
+        images.sort((a, b) => b.size - a.size); // Largest first
+        const largestImage = images[0];
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint:imageCollection',message:'Found multiple images, sampling LARGEST',data:{x,y,numImages:images.length,allSizes:images.map(img=>({size:img.size,naturalSize:{w:img.el.naturalWidth,h:img.el.naturalHeight},src:img.el.src.substring(0,80)})),selectedSize:largestImage.size},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
+        // #endregion
+        
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1;
+          canvas.height = 1;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          if (ctx) {
+            const rect = largestImage.el.getBoundingClientRect();
+            const imgX = Math.max(0, Math.min(x - rect.left, rect.width - 1));
+            const imgY = Math.max(0, Math.min(y - rect.top, rect.height - 1));
+            const scaleX = largestImage.el.naturalWidth / rect.width;
+            const scaleY = largestImage.el.naturalHeight / rect.height;
+            const sourceX = Math.floor(imgX * scaleX);
+            const sourceY = Math.floor(imgY * scaleY);
+            ctx.drawImage(largestImage.el, sourceX, sourceY, 1, 1, 0, 0, 1, 1);
+            const pixelData = ctx.getImageData(0, 0, 1, 1).data;
+            const lum = luminanceFromRgb(pixelData[0], pixelData[1], pixelData[2]);
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint:sampledLargest',message:'Sampled LARGEST image',data:{x,y,imgSrc:largestImage.el.src.substring(0,100),naturalSize:{w:largestImage.el.naturalWidth,h:largestImage.el.naturalHeight},displayRect:{left:rect.left,top:rect.top,width:rect.width,height:rect.height},imgX,imgY,sourceX,sourceY,rgb:{r:pixelData[0],g:pixelData[1],b:pixelData[2]},luminance:lum},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6'})}).catch(()=>{});
+            // #endregion
+            return lum;
+          }
+        } catch (e) {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint:imageError',message:'Failed to sample largest image (CORS?)',data:{x,y,error:String(e)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H7'})}).catch(()=>{});
+          // #endregion
+        }
+      }
+
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint:null',message:'No valid background found',data:{x,y},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H8'})}).catch(()=>{});
+      // #endregion
+      return null;
+    };
+
+    const clearDebugMarkers = () => {
+      if (!debugSensors) return;
+      document.querySelectorAll('.sensor-debug-marker-per-button').forEach((el) => el.remove());
+    };
+
+    const createDebugMarker = (point: { x: number; y: number; color: string; label: string }, luminance: number | null) => {
+      if (!debugSensors) return;
+
+      const marker = document.createElement('div');
+      marker.className = 'sensor-debug-marker-per-button';
+      marker.style.cssText = `
+        position: fixed;
+        left: ${point.x - 6}px;
+        top: ${point.y - 6}px;
+        width: 12px;
+        height: 12px;
+        background: ${point.color};
+        border: 2px solid ${luminance !== null ? (luminance < config.luminanceThreshold ? 'white' : 'black') : 'red'};
+        border-radius: 50%;
+        z-index: 10000;
+        pointer-events: none;
+        box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 0 0 2px black;
+      `;
+      marker.textContent = luminance !== null ? `${point.label}:${luminance.toFixed(2)}` : `${point.label}:X`;
+      document.body.appendChild(marker);
+    };
+
+    const detectPerButton = () => {
+      clearDebugMarkers();
+      
+      const pointsMap = getSamplePointsPerButton();
+      
+      // If buttons have zero dimensions (not laid out yet), retry after a short delay
+      if (pointsMap.size === 0) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:detectPerButton:retryScheduled',message:'No valid buttons found (zero dimensions), scheduling retry',data:{retryDelayMs:50},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H10'})}).catch(()=>{});
+        // #endregion
+        setTimeout(detectPerButton, 50);
+        return;
+      }
+      
+      const newBackgrounds = new Map<string, boolean>();
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:detectPerButton:start',message:'Starting per-button detection',data:{numButtons:pointsMap.size,threshold:config.luminanceThreshold},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
+
+      pointsMap.forEach((points, buttonId) => {
+        const luminances: number[] = [];
+        
+        for (const point of points) {
+          if (point.x >= 0 && point.y >= 0 && point.x <= window.innerWidth - 1 && point.y <= window.innerHeight - 1) {
+            const lum = getLuminanceAtPoint(point.x, point.y);
+            createDebugMarker(point, lum);
+            if (lum !== null) luminances.push(lum);
+          }
+        }
+
+        if (luminances.length > 0) {
+          const avg = luminances.reduce((a, b) => a + b, 0) / luminances.length;
+          const isDark = avg < config.luminanceThreshold;
+          newBackgrounds.set(buttonId, isDark);
+          
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:detectPerButton:calculated',message:'Calculated button background',data:{buttonId,luminances,avg,isDark,threshold:config.luminanceThreshold},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2,H5'})}).catch(()=>{});
+          // #endregion
+          
+          if (debugSensors) {
+            console.log(`Button ${buttonId}: avg luminance=${avg.toFixed(3)}, isDark=${isDark}, threshold=${config.luminanceThreshold}`);
+          }
+        } else {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:detectPerButton:noLuminances',message:'No valid luminances for button',data:{buttonId,numPoints:points.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
+          // #endregion
+        }
+      });
+
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:detectPerButton:beforeSetState',message:'About to update buttonBackgrounds state',data:{mapSize:newBackgrounds.size,entries:Array.from(newBackgrounds.entries())},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
+
+      if (newBackgrounds.size > 0) {
+        setButtonBackgrounds(newBackgrounds);
+      }
+    };
+
+    const scheduleDetect = (delayMs: number) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          detectPerButton();
+        });
+      }, delayMs);
+    };
+
+    // Initial detection
+    scheduleDetect(100);
+
+    const onScroll = () => scheduleDetect(150);
+    const onResize = () => scheduleDetect(200);
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+    const interval = window.setInterval(detectPerButton, 2000);
+
+    return () => {
+      clearDebugMarkers();
+      if (timeoutId) clearTimeout(timeoutId);
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      window.clearInterval(interval);
+    };
+  }, [shouldDetectBackground, config.luminanceThreshold, getSamplePointsPerButton, debugSensors]);
+
+  // Trigger detection when buttons become positioned (even if invisible)
+  // This allows detection to run BEFORE buttons are shown to users
+  const prevPositioned = useRef(isPositioned);
+  useEffect(() => {
+    if (isPositioned && !prevPositioned.current && shouldDetectBackground && navRef.current) {
+      // Buttons just became positioned - trigger detection after a microtask to ensure layout is complete
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:positionedDetection',message:'Buttons positioned, triggering detection',data:{isPositioned,isVisible,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H11'})}).catch(()=>{});
+      // #endregion
+      
+      // Use requestAnimationFrame to ensure buttons are fully laid out
+      requestAnimationFrame(() => {
+        const pointsMap = getSamplePointsPerButton();
+        if (pointsMap.size > 0) {
+          // Buttons are positioned, run detection
+          const newBackgrounds = new Map<string, boolean>();
+          pointsMap.forEach((points, buttonId) => {
+            const luminances: number[] = [];
+            for (const point of points) {
+              if (point.x >= 0 && point.y >= 0 && point.x <= window.innerWidth - 1 && point.y <= window.innerHeight - 1) {
+                const stack = document.elementsFromPoint(point.x, point.y);
+                const ignore = navRef.current;
+                // Simplified detection for positioned phase
+                for (const el of stack) {
+                  if (ignore && (ignore.contains(el) || el.contains(ignore))) continue;
+                  const computedStyle = window.getComputedStyle(el);
+                  const bgColor = computedStyle.backgroundColor;
+                  if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
+                    // Quick luminance check (simplified)
+                    const match = bgColor.match(/\d+/g);
+                    if (match && match.length >= 3) {
+                      const r = Number.parseInt(match[0], 10);
+                      const g = Number.parseInt(match[1], 10);
+                      const b = Number.parseInt(match[2], 10);
+                      const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+                      luminances.push(lum);
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+            if (luminances.length > 0) {
+              const avg = luminances.reduce((a, b) => a + b, 0) / luminances.length;
+              newBackgrounds.set(buttonId, avg < config.luminanceThreshold);
+            }
+          });
+          if (newBackgrounds.size > 0) {
+            setButtonBackgrounds(newBackgrounds);
+          }
+          
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:positionedDetection:complete',message:'Detection completed while positioned',data:{numButtons:newBackgrounds.size,backgrounds:Array.from(newBackgrounds.entries())},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H12'})}).catch(()=>{});
+          // #endregion
+        }
+      });
+    }
+    prevPositioned.current = isPositioned;
+  }, [isPositioned, shouldDetectBackground, getSamplePointsPerButton, config.luminanceThreshold, isVisible]);
 
   return (
     <>
@@ -129,14 +470,24 @@ export function AdaptiveGlassBubblesNav({
           '--glass-hover-scale': String(config.hoverScale),
         } as React.CSSProperties}
       >
-        {items.map((item) => {
+        {items.map((item, index) => {
           const Icon = item.icon;
-          const buttonId = item.id || item.href || item.label;
+          const buttonId = item.id || item.href || item.label || `button-${index}`;
           const isPill = item.showLabel;
+          
+          // Use individual button's background state if available, otherwise fall back to global state
+          const isButtonDark = externalIsDarkBackground !== undefined 
+            ? externalIsDarkBackground 
+            : (buttonBackgrounds.get(buttonId) ?? isDarkBackground);
+          
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:render',message:'Rendering button',data:{buttonId,label:item.label,hasExternalBg:externalIsDarkBackground!==undefined,mapValue:buttonBackgrounds.get(buttonId),globalValue:isDarkBackground,finalValue:isButtonDark},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3,H2'})}).catch(()=>{});
+          // #endregion
           
           const bubble = (
             <div 
-              className={`${isPill ? 'adaptive-pill-glass' : 'adaptive-circle-glass'} ${hasAnimated.current ? (isVisible ? 'glass-show' : 'glass-hide') : ''} ${item.active ? 'active' : ''} ${isDarkBackground ? 'dark-bg' : 'light-bg'}`}
+              data-button-id={buttonId}
+              className={`${isPill ? 'adaptive-pill-glass' : 'adaptive-circle-glass'} ${hasAnimated.current ? (isVisible ? 'glass-show' : 'glass-hide') : ''} ${isPositioned && !isVisible ? 'glass-positioning' : ''} ${item.active ? 'active' : ''} ${isButtonDark ? 'dark-bg' : 'light-bg'}`}
               style={{
                 width: isPill ? 'auto' : `${config.circleSize}px`,
                 height: `${config.circleSize}px`,
@@ -146,13 +497,13 @@ export function AdaptiveGlassBubblesNav({
                 paddingBottom: isPill ? `${config.pillPaddingY}px` : undefined,
                 backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                 WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
-                color: isDarkBackground ? '#ffffff' : '#000000',
-                borderColor: isDarkBackground ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.12)',
+                color: isButtonDark ? '#ffffff' : '#000000',
+                borderColor: isButtonDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.12)',
                 borderWidth: `${config.borderWidth}px`,
                 borderStyle: 'solid',
                 borderRadius: '9999px',
-                background: isDarkBackground ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
-                boxShadow: isDarkBackground
+                background: isButtonDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                boxShadow: isButtonDark
                   ? `0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 3px rgba(255,255,255,0.25)`
                   : `0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05), inset 0 1px 3px rgba(0,0,0,0.05)`,
                 transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -565,6 +916,13 @@ export function AdaptiveGlassBubblesNav({
           100% {
             opacity: 1;
           }
+        }
+
+        /* Positioning phase - buttons positioned but invisible (for detection) */
+        .adaptive-circle-glass.glass-positioning,
+        .adaptive-pill-glass.glass-positioning {
+          opacity: 0;
+          pointer-events: none;
         }
 
         /* Apply hide animation */
