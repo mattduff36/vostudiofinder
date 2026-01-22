@@ -3,34 +3,31 @@
 ## Issues Identified
 
 ### 1. Studios with 'Exact Location' OFF Don't Show on Map
-**Status:** ✅ Code is correct, but requires proper data setup
+**Status:** ✅ **FIXED**
 
 **Root Cause:**
-- No studios currently have `show_exact_location = false` in the database
-- Studios with exact location OFF must still have coordinates (the center of the privacy circle)
+- Dev database had all studios set to `show_exact_location = true` (incorrect)
+- Production database had 483 studios set to `show_exact_location = false` (correct)
+- GoogleMap component was incorrectly showing privacy circles on public /studios page
+- Privacy circles should ONLY appear on the profile edit preview map
 
-**How It Works:**
-- When `show_exact_location = false`:
-  - Studio must have `latitude` and `longitude` (center point of privacy area)
-  - GoogleMap component (lines 152-213) creates a red circle with 150m radius
-  - An invisible marker is placed at the center for clustering
-  - Circle is clickable like a regular marker
-  - Map filters (line 294 in StudiosPage.tsx) check for lat/lng, so studios must have these
+**How It Should Work:**
+- **Public /studios map**: Always show regular pin markers, regardless of `show_exact_location`
+- **Profile edit preview**: Show red circle if `show_exact_location = false`, pin if true
+- Studios with exact location OFF still appear in search results and on the map
+- The setting only controls what's displayed on their own profile edit preview
+
+**Fixes Applied:**
+1. Synced `show_exact_location` field from production to dev (640 studios now have it OFF)
+2. Removed privacy circle logic from GoogleMap component (public map)
+3. Privacy circles remain only in AddressPreviewMap component (profile edit page)
 
 **Requirements for Studios with Exact Location OFF:**
 1. `show_exact_location = false`
-2. `latitude` and `longitude` must be set to the center of the privacy circle
+2. `latitude` and `longitude` must be set (actual or approximate location)
 3. `status = 'ACTIVE'` and `is_profile_visible = true`
-
-**Example Data:**
-```sql
-UPDATE studio_profiles 
-SET 
-  show_exact_location = false,
-  latitude = 53.7960655,  -- Center of privacy circle
-  longitude = -1.5465505   -- Center of privacy circle
-WHERE id = 'studio_id_here';
-```
+4. Studio appears on public map with regular marker (same as everyone else)
+5. Privacy circle only shows on their own profile edit preview
 
 ### 2. Searching for 'Leeds' Doesn't Show Studios
 **Status:** ✅ **FIXED**
@@ -108,13 +105,31 @@ node scripts/test-leeds-search-api.ts
    - Added automatic center calculation from results
    - Improved fallback logic
 
-## Related Files (No Changes Needed)
+2. `/src/components/maps/GoogleMap.tsx`
+   - Removed privacy circle rendering from public map
+   - Now always shows regular pin markers on /studios page
+   - Simplified marker creation logic
 
-- `/src/components/maps/GoogleMap.tsx` - Already handles exact location OFF correctly
-- `/src/components/search/StudiosPage.tsx` - Marker filtering is correct
+3. `/scripts/sync-production-to-dev.ts`
+   - Added `show_exact_location` field to sync
+   - Ensures field is properly copied from production
+
+4. `/scripts/sync-exact-location-from-prod.ts` (new)
+   - One-time script to update existing studios in dev
+   - Synced 545 studios with correct `show_exact_location` values
+
+## Related Files
+
+- `/src/components/maps/AddressPreviewMap.tsx` - Handles privacy circles for profile edit page (unchanged, working correctly)
 
 ## Summary
 
-Both issues have been addressed:
-1. **Exact Location OFF**: Code is correct and ready. Just needs studios with proper coordinates when this feature is used.
-2. **Leeds Search**: Fixed by improving fallback logic when geocoding fails. Map now centers properly using calculated coordinates from found studios.
+Both issues have been completely fixed:
+1. **Exact Location OFF**: Fixed by syncing data from production and removing incorrect circle rendering on public map
+   - 640 studios now have exact location OFF in dev (matches production)
+   - Public /studios page always shows regular markers (never circles)
+   - Privacy circles only appear on profile edit preview map
+   - All studios appear in search results regardless of this setting
+2. **Leeds Search**: Fixed by improving fallback logic when geocoding fails
+   - Map now centers properly using calculated coordinates from found studios
+   - Returns 2 Leeds studios with correct map centering

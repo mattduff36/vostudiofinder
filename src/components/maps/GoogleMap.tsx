@@ -145,72 +145,26 @@ export function GoogleMap({
     
     const googleMaps = window.google.maps as any;
     
-    const AREA_RADIUS_M = 150; // Radius for privacy circles
+    // NOTE: On the public /studios page, we ALWAYS show regular map markers (pins)
+    // regardless of the show_exact_location setting. The privacy circles are ONLY
+    // shown on the AddressPreviewMap component (profile edit page).
+    // This ensures studios with privacy enabled still appear on the public map
+    // with the same marker style as everyone else.
     
-    // Create new markers with custom marker image OR circles for privacy
+    // Create new markers - always show regular pin markers
     const newMarkers = markerData.map(data => {
-      // Check if studio has privacy enabled (show_exact_location === false)
-      const showExactLocation = data.show_exact_location ?? true;
-      
-      let marker;
-      
-      if (showExactLocation) {
-        // Show exact pin location
-        marker = new googleMaps.Marker({
-          position: { lat: data.position.lat, lng: data.position.lng },
-          // No title for privacy protection
-          icon: {
-            url: '/images/marker.png',
-            scaledSize: new googleMaps.Size(32, 32),
-            anchor: new googleMaps.Point(16, 32),
-          },
-          map: mapInstance,
-          optimized: false,
-        });
-      } else {
-        // Show approximate area circle
-        const circle = new googleMaps.Circle({
-          strokeColor: '#DC2626',
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
-          fillColor: '#DC2626',
-          fillOpacity: 0.25,
-          map: mapInstance,
-          center: { lat: data.position.lat, lng: data.position.lng },
-          radius: AREA_RADIUS_M,
-          clickable: true,
-        });
-        
-        // Create an invisible marker at the center for clustering purposes
-        // NO TITLE - user specifically chose to hide exact location for privacy
-        marker = new googleMaps.Marker({
-          position: { lat: data.position.lat, lng: data.position.lng },
-          map: mapInstance,
-          opacity: 0, // Invisible marker
-          optimized: false,
-        });
-        
-        // Store circle reference on marker for later cleanup
-        (marker as any).privacyCircle = circle;
-        
-        // Add click listener to circle for the same interactions as marker
-        if (data.onClick) {
-          circle.addListener('click', (e: any) => {
-            if (e.stop) {
-              e.stop();
-            }
-            if (!hasUserInteractedRef.current) {
-              logger.log('👤 User clicked privacy circle - disabling auto-zoom');
-              hasUserInteractedRef.current = true;
-            }
-            const clickEvent = {
-              clientX: e.domEvent?.clientX || window.innerWidth / 2,
-              clientY: e.domEvent?.clientY || window.innerHeight / 2,
-            };
-            data.onClick!(clickEvent);
-          });
-        }
-      }
+      // Always show regular pin marker on public map
+      const marker = new googleMaps.Marker({
+        position: { lat: data.position.lat, lng: data.position.lng },
+        // No title for privacy protection
+        icon: {
+          url: '/images/marker.png',
+          scaledSize: new googleMaps.Size(32, 32),
+          anchor: new googleMaps.Point(16, 32),
+        },
+        map: mapInstance,
+        optimized: false,
+      });
 
       // Add click listener for card selection
       if (data.onClick) {
@@ -236,7 +190,7 @@ export function GoogleMap({
       }
 
       // Add click listener for info window (only if no onClick handler is provided)
-      // This prevents conflict between modal and info window
+      // This prevents conflict between modal and info window  
       if (data.studio && !data.onClick) {
         const infoWindowClickHandler = () => {
           // Close existing info window
@@ -279,11 +233,6 @@ export function GoogleMap({
         };
         
         marker.addListener('click', infoWindowClickHandler);
-        
-        // Also add to circle if privacy is enabled
-        if (!showExactLocation && (marker as any).privacyCircle) {
-          (marker as any).privacyCircle.addListener('click', infoWindowClickHandler);
-        }
       }
 
       return marker;
@@ -807,10 +756,6 @@ export function GoogleMap({
               markerClustererRef.current = null;
             }
             markersRef.current.forEach(marker => {
-              // Clean up privacy circle if it exists
-              if ((marker as any).privacyCircle) {
-                (marker as any).privacyCircle.setMap(null);
-              }
               marker.setMap(null);
             });
             markersRef.current = [];
@@ -834,10 +779,6 @@ export function GoogleMap({
       markerClustererRef.current = null;
     }
     markersRef.current.forEach(marker => {
-      // Clean up privacy circle if it exists
-      if ((marker as any).privacyCircle) {
-        (marker as any).privacyCircle.setMap(null);
-      }
       marker.setMap(null);
     });
     markersRef.current = [];
