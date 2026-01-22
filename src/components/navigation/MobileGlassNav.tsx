@@ -186,7 +186,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           <AdaptiveGlassBubblesNav
             items={navItems}
             config={DEFAULT_CONFIG}
-            debugSensors={true}
+            debugSensors={false}
             isPositioned={isPositioned}
             isVisible={isScrollVisible}
           />

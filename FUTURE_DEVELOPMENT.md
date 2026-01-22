@@ -110,6 +110,31 @@ The renewal system code is fully implemented and production-built. Requires real
 - Progressive Web App (PWA) features
 - Improved offline functionality
 
+### Adaptive Glass Navigation - Per-Button Background Detection
+**Priority**: Low  
+**Status**: Partially Implemented, Deferred  
+**Location**: `src/components/navigation/AdaptiveGlassBubblesNav.tsx`
+
+**Current Status**:
+- Two-phase rendering system implemented (position at 150ms, show at 500ms)
+- Per-button background detection logic in place
+- System detects largest image at sensor location
+- Ignores navigation bar elements for accurate detection
+
+**Remaining Work**:
+- [ ] Investigate why detection picks up studio card thumbnails instead of larger background images on `/studios` page
+- [ ] Clarify where user's test images should appear in studio listings vs profile pages
+- [ ] Consider if CSS `background-image` detection is needed (currently only detects `<img>` elements and `backgroundColor`)
+- [ ] Optimize detection performance if multiple images exist at same location
+- [ ] Add fallback for CORS-blocked images
+
+**Technical Notes**:
+- JavaScript cannot directly read screen pixels for security reasons
+- Current approach uses `document.elementsFromPoint(x, y)` to find elements
+- Images are sampled via canvas pixel sampling
+- Background colors are read from computed styles
+- System successfully "looks through" fixed navigation bar to content below
+
 ---
 
 ## 📋 How to Use This Document

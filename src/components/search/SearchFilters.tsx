@@ -105,18 +105,18 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
     };
   }, []);
 
-  // Start inactivity timer when pending changes exist
+  // Show action buttons immediately (no delay)
   const startInactivityTimer = () => {
     // Clear existing timer
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
     }
     
-    // Start 2-second countdown
+    // Show buttons immediately (0ms delay)
     inactivityTimerRef.current = setTimeout(() => {
-      logger.log('⏰ 2s inactivity - showing action buttons');
+      logger.log('⏰ Showing action buttons immediately');
       setShowActionButtons(true);
-    }, 2000);
+    }, 0);
   };
 
   const handleFilterChange = (key: string, value: any) => {
@@ -225,11 +225,11 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
     
     setFilters(newFilters);
     
-    // Both mobile and desktop: start timer (no auto-search)
+    // Both mobile and desktop: show buttons immediately (no auto-search)
     // hasPendingChanges will be derived from comparison automatically
-    setShowActionButtons(false); // Hide buttons immediately, will show after 2s
+    setShowActionButtons(false); // Hide buttons immediately, will show instantly
     startInactivityTimer();
-    logger.log('Studio type toggled - timer started');
+    logger.log('Studio type toggled - buttons will appear immediately');
   };
 
   // Helper function to detect if device is mobile
@@ -498,7 +498,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
         </div>
       )}
 
-      {/* Apply Filter + New Search Buttons - Show after 2s inactivity with pending changes */}
+      {/* Apply Filter + New Search Buttons - Show immediately when pending changes exist */}
       {showActionButtons && hasPendingChanges && (
         <>
           {/* Subtle divider */}

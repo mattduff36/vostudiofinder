@@ -24,12 +24,12 @@ Enhanced the filter experience on `/studios` page with smarter search triggers, 
 
 **Behavior**:
 - User toggles checkbox → UI updates, no search
-- After 2 seconds idle → Action buttons appear
+- Action buttons appear immediately
 - User clicks "Apply Filter" → Search executes
 
 ### 3. Smart Action Buttons Replace "Clear All"
 **Before**: Simple "Clear All" button at top
-**After**: Two buttons appear after 2s inactivity
+**After**: Two buttons appear immediately when filters change
 
 **New Buttons**:
 1. **Apply Filter** - Triggers search with current filter selections
@@ -47,11 +47,11 @@ Enhanced the filter experience on `/studios` page with smarter search triggers, 
 - Appear below "Filter by Map Area" button
 - Desktop only (hidden on mobile)
 
-**Inactivity Timer**:
-- Starts when filter changed (studio type, service, location selection)
+**Button Display Logic**:
+- Triggers when filter changed (studio type, service, location selection)
 - Resets on each filter change
-- After 2s of no changes → Buttons appear
-- Clears when search triggered or filters reset
+- Buttons appear immediately (no delay)
+- Hides when search triggered or filters reset
 
 ### 4. Auto-Search Logic Simplified
 **Only auto-search for**:
@@ -59,7 +59,7 @@ Enhanced the filter experience on `/studios` page with smarter search triggers, 
 - Radius changes on desktop (after 1s debounce)
 
 **Wait for Apply Filter**:
-- Location autocomplete selection (sets pending changes, shows buttons after 2s)
+- Location autocomplete selection (sets pending changes, shows buttons immediately)
 - Studio type/service toggles
 - Radius changes on mobile
 - Any other filter changes
@@ -137,7 +137,7 @@ const startInactivityTimer = () => {
   }
   inactivityTimerRef.current = setTimeout(() => {
     setShowActionButtons(true);
-  }, 2000); // 2 seconds
+  }, 0); // Immediate (no delay)
 };
 ```
 
@@ -157,11 +157,11 @@ useEffect(() => {
 ### Desktop
 - [x] Change radius slider slowly → Search triggers after 1s
 - [x] Toggle studio type → No immediate search
-- [x] Wait 2s after toggle → Action buttons appear
+- [x] Action buttons appear immediately after toggle
 - [x] Click "Apply Filter" → Search executes, buttons disappear
 - [x] Click "New Search" → All filters clear, new search
 - [x] Location Enter key still auto-searches
-- [x] Location autocomplete selection → Sets pending changes, shows buttons after 2s
+- [x] Location autocomplete selection → Sets pending changes, shows buttons immediately
 
 ### Mobile
 - [x] Open filter modal
@@ -169,7 +169,7 @@ useEffect(() => {
 - [x] Change radius → No auto-search
 - [x] Scroll page → Modal closes and applies filters
 - [x] Toggle studio type → Pending changes set
-- [x] Wait 2s → Action buttons appear in modal
+- [x] Action buttons appear immediately in modal
 - [x] Click outside modal → Closes and applies
 - [x] Select location from autocomplete → Sets pending changes
 
@@ -183,7 +183,7 @@ useEffect(() => {
 
 1. **src/components/search/SearchFilters.tsx**
    - Added pending changes state management
-   - Added inactivity timer (2s)
+   - Buttons now appear immediately (no delay)
    - Removed Clear All button
    - Added Apply Filter + New Search buttons
    - Modified handleStudioTypeToggle to not auto-search
@@ -212,7 +212,7 @@ ffd5c34 - Improve filter UX with delayed actions and better mobile experience
 ## Benefits
 
 1. **Fewer Unnecessary Searches**: Users can adjust multiple filters (including location selection) without triggering search on each change
-2. **Better Perceived Performance**: UI updates instantly, search happens when user is ready (after 2s or when clicking Apply)
+2. **Better Perceived Performance**: UI updates instantly, action buttons appear immediately, search happens when user is ready
 3. **Clearer Intent**: Action buttons make it obvious when/how to apply changes
 4. **Mobile Optimized**: Wrapping buttons and scroll-to-close feel natural on mobile
 5. **Consistent Behavior**: Enter key still auto-searches, but autocomplete selections wait for user confirmation

@@ -123,14 +123,14 @@ Since `hasPendingChanges` is now derived, it updates automatically when `filters
 ### Desktop Behavior
 1. **Search with just Studio Type:**
    - Select "Home Studio"
-   - Wait 2 seconds → Apply Filter + New Search buttons appear
+   - Apply Filter + New Search buttons appear immediately
    - Click "Apply Filter" → Search executes with `/studios?studioTypes=HOME`
    - ✅ Works now (previously blocked without location)
 
 2. **Open filters without changing:**
    - Perform a search
    - Click filter box
-   - Wait 2 seconds → Only "New Search" button appears
+   - "New Search" button appears immediately
    - ✅ No Apply Filter button (nothing to apply)
 
 3. **Change and apply:**

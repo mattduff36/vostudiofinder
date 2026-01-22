@@ -90,9 +90,6 @@ export function AdaptiveGlassBubblesNav({
         
         // Skip buttons with invalid (zero) dimensions - not laid out yet
         if (rect.width === 0 || rect.height === 0) {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getSamplePointsPerButton:skipped',message:'SKIPPED button with zero dimensions (not laid out yet)',data:{buttonId:button.getAttribute('data-button-id')||`button-${index}`,rect:{width:rect.width,height:rect.height}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H9'})}).catch(()=>{});
-          // #endregion
           return;
         }
         
@@ -100,9 +97,6 @@ export function AdaptiveGlassBubblesNav({
         const centerY = rect.top + rect.height / 2;
 
         const buttonId = button.getAttribute('data-button-id') || `button-${index}`;
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getSamplePointsPerButton',message:'Generated CENTER sensor for button',data:{buttonId,rect:{left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom,width:rect.width,height:rect.height},center:{x:centerX,y:centerY}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-        // #endregion
         // Single sensor at button center
         pointsMap.set(buttonId, [
           { x: centerX, y: centerY, color: '#00ff00', label: 'C' },
@@ -191,10 +185,6 @@ export function AdaptiveGlassBubblesNav({
 
       const stack = document.elementsFromPoint(x, y);
       const ignore = navRef.current;
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint',message:'Elements at point',data:{x,y,stackLength:stack.length,topElements:Array.from(stack).slice(0,5).map(el=>({tagName:el.tagName,className:el.className,isNav:ignore?.contains(el)||el.contains(ignore)}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
 
       // Collect ALL images at this point, then sample from the LARGEST one (backgrounds are larger than thumbnails)
       const images: Array<{el: HTMLImageElement, size: number, opacity: number}> = [];
@@ -218,9 +208,6 @@ export function AdaptiveGlassBubblesNav({
         const rgba = parseCssColorToRgba(bgColor);
         if (rgba && rgba.a * opacity > 0.1 && images.length === 0) {
           const lum = luminanceFromRgb(rgba.r, rgba.g, rgba.b);
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint:bgcolor',message:'Detected background color (no images found)',data:{x,y,element:{tagName:el.tagName,className:el.className},bgColor,rgba,opacity,luminance:lum},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-          // #endregion
           return lum;
         }
       }
@@ -230,9 +217,7 @@ export function AdaptiveGlassBubblesNav({
         images.sort((a, b) => b.size - a.size); // Largest first
         const largestImage = images[0];
         
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint:imageCollection',message:'Found multiple images, sampling LARGEST',data:{x,y,numImages:images.length,allSizes:images.map(img=>({size:img.size,naturalSize:{w:img.el.naturalWidth,h:img.el.naturalHeight},src:img.el.src.substring(0,80)})),selectedSize:largestImage.size},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-        // #endregion
+        if (!largestImage) return null; // TypeScript safety check
         
         try {
           const canvas = document.createElement('canvas');
@@ -249,22 +234,14 @@ export function AdaptiveGlassBubblesNav({
             const sourceY = Math.floor(imgY * scaleY);
             ctx.drawImage(largestImage.el, sourceX, sourceY, 1, 1, 0, 0, 1, 1);
             const pixelData = ctx.getImageData(0, 0, 1, 1).data;
-            const lum = luminanceFromRgb(pixelData[0], pixelData[1], pixelData[2]);
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint:sampledLargest',message:'Sampled LARGEST image',data:{x,y,imgSrc:largestImage.el.src.substring(0,100),naturalSize:{w:largestImage.el.naturalWidth,h:largestImage.el.naturalHeight},displayRect:{left:rect.left,top:rect.top,width:rect.width,height:rect.height},imgX,imgY,sourceX,sourceY,rgb:{r:pixelData[0],g:pixelData[1],b:pixelData[2]},luminance:lum},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6'})}).catch(()=>{});
-            // #endregion
+            const lum = luminanceFromRgb(pixelData[0] ?? 0, pixelData[1] ?? 0, pixelData[2] ?? 0);
             return lum;
           }
         } catch (e) {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint:imageError',message:'Failed to sample largest image (CORS?)',data:{x,y,error:String(e)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H7'})}).catch(()=>{});
-          // #endregion
+          // CORS error - continue
         }
       }
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:getLuminanceAtPoint:null',message:'No valid background found',data:{x,y},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H8'})}).catch(()=>{});
-      // #endregion
       return null;
     };
 
@@ -309,18 +286,11 @@ export function AdaptiveGlassBubblesNav({
       
       // If buttons have zero dimensions (not laid out yet), retry after a short delay
       if (pointsMap.size === 0) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:detectPerButton:retryScheduled',message:'No valid buttons found (zero dimensions), scheduling retry',data:{retryDelayMs:50},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H10'})}).catch(()=>{});
-        // #endregion
         setTimeout(detectPerButton, 50);
         return;
       }
       
       const newBackgrounds = new Map<string, boolean>();
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:detectPerButton:start',message:'Starting per-button detection',data:{numButtons:pointsMap.size,threshold:config.luminanceThreshold},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
 
       pointsMap.forEach((points, buttonId) => {
         const luminances: number[] = [];
@@ -338,23 +308,11 @@ export function AdaptiveGlassBubblesNav({
           const isDark = avg < config.luminanceThreshold;
           newBackgrounds.set(buttonId, isDark);
           
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:detectPerButton:calculated',message:'Calculated button background',data:{buttonId,luminances,avg,isDark,threshold:config.luminanceThreshold},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2,H5'})}).catch(()=>{});
-          // #endregion
-          
           if (debugSensors) {
             console.log(`Button ${buttonId}: avg luminance=${avg.toFixed(3)}, isDark=${isDark}, threshold=${config.luminanceThreshold}`);
           }
-        } else {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:detectPerButton:noLuminances',message:'No valid luminances for button',data:{buttonId,numPoints:points.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-          // #endregion
         }
       });
-
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:detectPerButton:beforeSetState',message:'About to update buttonBackgrounds state',data:{mapSize:newBackgrounds.size,entries:Array.from(newBackgrounds.entries())},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
 
       if (newBackgrounds.size > 0) {
         setButtonBackgrounds(newBackgrounds);
@@ -397,10 +355,6 @@ export function AdaptiveGlassBubblesNav({
   useEffect(() => {
     if (isPositioned && !prevPositioned.current && shouldDetectBackground && navRef.current) {
       // Buttons just became positioned - trigger detection after a microtask to ensure layout is complete
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:positionedDetection',message:'Buttons positioned, triggering detection',data:{isPositioned,isVisible,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H11'})}).catch(()=>{});
-      // #endregion
-      
       // Use requestAnimationFrame to ensure buttons are fully laid out
       requestAnimationFrame(() => {
         const pointsMap = getSamplePointsPerButton();
@@ -421,7 +375,7 @@ export function AdaptiveGlassBubblesNav({
                   if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
                     // Quick luminance check (simplified)
                     const match = bgColor.match(/\d+/g);
-                    if (match && match.length >= 3) {
+                    if (match && match.length >= 3 && match[0] && match[1] && match[2]) {
                       const r = Number.parseInt(match[0], 10);
                       const g = Number.parseInt(match[1], 10);
                       const b = Number.parseInt(match[2], 10);
@@ -441,10 +395,6 @@ export function AdaptiveGlassBubblesNav({
           if (newBackgrounds.size > 0) {
             setButtonBackgrounds(newBackgrounds);
           }
-          
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:positionedDetection:complete',message:'Detection completed while positioned',data:{numButtons:newBackgrounds.size,backgrounds:Array.from(newBackgrounds.entries())},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H12'})}).catch(()=>{});
-          // #endregion
         }
       });
     }
@@ -479,10 +429,6 @@ export function AdaptiveGlassBubblesNav({
           const isButtonDark = externalIsDarkBackground !== undefined 
             ? externalIsDarkBackground 
             : (buttonBackgrounds.get(buttonId) ?? isDarkBackground);
-          
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/560a9e1e-7b53-4ba6-b284-58a46ea417c6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AdaptiveGlassBubblesNav.tsx:render',message:'Rendering button',data:{buttonId,label:item.label,hasExternalBg:externalIsDarkBackground!==undefined,mapValue:buttonBackgrounds.get(buttonId),globalValue:isDarkBackground,finalValue:isButtonDark},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3,H2'})}).catch(()=>{});
-          // #endregion
           
           const bubble = (
             <div 
