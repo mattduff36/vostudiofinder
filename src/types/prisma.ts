@@ -24,9 +24,9 @@ export enum MembershipTier {
 export enum studio_type {
   HOME = 'HOME',
   RECORDING = 'RECORDING',
-  PODCAST = 'PODCAST',
-  EDITING = 'EDITING',
   VO_COACH = 'VO_COACH',
+  AUDIO_PRODUCER = 'AUDIO_PRODUCER',
+  PODCAST = 'PODCAST',
   VOICEOVER = 'VOICEOVER'
 }
 

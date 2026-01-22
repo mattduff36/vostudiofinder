@@ -409,16 +409,21 @@ export function GoogleMap({
             left: 50
           });
           
-          // Force map refresh and ensure reasonable zoom levels
+          // Force map refresh and trust fitBounds to show all markers optimally
           setTimeout(() => {
             if (mapInstance) {
               (window.google.maps as any).event.trigger(mapInstance, 'resize');
               
               const currentZoom = mapInstance?.getZoom();
-              if (currentZoom && currentZoom > 15) {
-                mapInstance?.setZoom(15); // Don't zoom in too much for privacy
-              } else if (currentZoom && currentZoom < 6) {
-                mapInstance?.setZoom(6); // Don't zoom out too much
+              // Only cap at extremes - let fitBounds do its job
+              if (currentZoom && currentZoom > 16) {
+                mapInstance?.setZoom(16); // Cap at 16 for privacy
+                logger.log('🔒 Zoom capped at 16');
+              } else if (currentZoom && currentZoom < 3) {
+                mapInstance?.setZoom(3); // Minimum reasonable zoom
+                logger.log('🌍 Zoom raised to 3');
+              } else {
+                logger.log(`✅ Zoom optimal at level ${currentZoom}`);
               }
             }
           }, 100);
@@ -880,19 +885,25 @@ export function GoogleMap({
       });
       
       // Force map refresh and ensure reasonable zoom levels
+      // Trust fitBounds() to calculate the optimal zoom to show all markers
       setTimeout(() => {
         if (mapInstanceRef.current) {
           // Force map refresh to prevent scroll-to-update issue
           (window.google.maps as any).event.trigger(mapInstanceRef.current, 'resize');
           
           const currentZoom = mapInstanceRef.current?.getZoom();
-          if (currentZoom && currentZoom > 13) {
-            mapInstanceRef.current?.setZoom(13); // Don't zoom in too much for privacy
-          } else if (currentZoom && currentZoom < 6) {
-            mapInstanceRef.current?.setZoom(6); // Don't zoom out too much
+          // Only apply zoom limits at extremes - let fitBounds do its job for normal cases
+          if (currentZoom && currentZoom > 16) {
+            // Only cap if zoom is extremely close (> 16)
+            mapInstanceRef.current?.setZoom(16);
+            logger.log('🔒 Zoom capped at 16 for privacy');
+          } else if (currentZoom && currentZoom < 3) {
+            // Only enforce minimum if zoomed out globally (< 3)
+            mapInstanceRef.current?.setZoom(3);
+            logger.log('🌍 Zoom raised to minimum of 3');
+          } else {
+            logger.log(`✅ Auto-zoom complete at level ${currentZoom} (optimal for showing all markers)`);
           }
-          
-          // Auto-zoom completed
         }
       }, 100);
       
@@ -919,6 +930,7 @@ export function GoogleMap({
           (window.google.maps as any).event.trigger(mapInstanceRef.current, 'resize');
           
           const currentZoom = mapInstanceRef.current?.getZoom();
+          // Only apply minimum zoom if extremely zoomed out
           if (currentZoom && currentZoom < 2) {
             mapInstanceRef.current?.setZoom(2);
           }

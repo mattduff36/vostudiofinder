@@ -148,6 +148,8 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
     { value: studio_type.HOME, label: 'Home', fullLabel: 'Home Studio' },
     { value: studio_type.RECORDING, label: 'Recording', fullLabel: 'Recording Studio' },
     { value: studio_type.PODCAST, label: 'Podcast', fullLabel: 'Podcast Studio' },
+    { value: studio_type.AUDIO_PRODUCER, label: 'Audio Producer', fullLabel: 'Audio Producer' },
+    { value: studio_type.VO_COACH, label: 'VO Coach', fullLabel: 'VO Coach' },
   ];
 
   // Disabled for now - not currently used in the UI
@@ -351,10 +353,10 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
         </div>
       </div>
 
-      {/* Studio Types */}
+      {/* Studio Types / Services */}
       <div>
         <label className="block text-sm font-medium text-black mb-2">
-          Studio Types
+          Studio Type / Service
         </label>
         {/* Mobile: Compact toggle buttons in a row */}
         <div className="flex gap-2 lg:hidden">
