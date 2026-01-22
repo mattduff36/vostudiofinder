@@ -970,7 +970,10 @@ export function StudiosPage() {
                     {/* Studios Found Badge */}
                     {searchResults && searchResults.pagination && (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-50 text-red-700 border border-red-200">
-                        {searchResults.pagination.totalCount} {searchResults.pagination.totalCount === 1 ? 'Studio' : 'Studios'} Found
+                        {isFilteringByMapArea && mapAreaStudios.length > 0 
+                          ? `${mapAreaStudios.length} ${mapAreaStudios.length === 1 ? 'Studio' : 'Studios'} Found`
+                          : `${searchResults.pagination.totalCount} ${searchResults.pagination.totalCount === 1 ? 'Studio' : 'Studios'} Found`
+                        }
                       </span>
                     )}
                     {searchParams.get('location') && (
