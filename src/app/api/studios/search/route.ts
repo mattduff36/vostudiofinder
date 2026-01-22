@@ -292,9 +292,14 @@ export async function GET(request: NextRequest) {
             } else {
               logger.warn(`Failed to geocode location: ${validatedParams.location}`);
               geocodingFailed = true;
-              // Fall back to text-based address search
+              // Fall back to text-based location search across multiple fields
               (where.AND as Prisma.studio_profilesWhereInput[]).push({
-                full_address: { contains: validatedParams.location, mode: 'insensitive' },
+                OR: [
+                  { full_address: { contains: validatedParams.location, mode: 'insensitive' } },
+                  { city: { contains: validatedParams.location, mode: 'insensitive' } },
+                  { location: { contains: validatedParams.location, mode: 'insensitive' } },
+                  { abbreviated_address: { contains: validatedParams.location, mode: 'insensitive' } },
+                ],
               });
             }
           } catch (error) {
@@ -311,9 +316,14 @@ export async function GET(request: NextRequest) {
         // This allows us to calculate precise distances
         // Note: For better performance with large datasets, consider using PostGIS or similar
       } else {
-        // Standard address search without radius
+        // Standard location search without radius - search across all location fields
         (where.AND as Prisma.studio_profilesWhereInput[]).push({
-          full_address: { contains: validatedParams.location, mode: 'insensitive' },
+          OR: [
+            { full_address: { contains: validatedParams.location, mode: 'insensitive' } },
+            { city: { contains: validatedParams.location, mode: 'insensitive' } },
+            { location: { contains: validatedParams.location, mode: 'insensitive' } },
+            { abbreviated_address: { contains: validatedParams.location, mode: 'insensitive' } },
+          ],
         });
       }
     }

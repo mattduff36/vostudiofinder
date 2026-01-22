@@ -14,6 +14,28 @@ export interface GeocodeResult {
   country?: string;
 }
 
+// Fallback coordinates for common UK cities (when geocoding fails)
+const CITY_COORDINATES: Record<string, { lat: number; lng: number; name: string }> = {
+  'london': { lat: 51.5074, lng: -0.1278, name: 'London, UK' },
+  'manchester': { lat: 53.4808, lng: -2.2426, name: 'Manchester, UK' },
+  'birmingham': { lat: 52.4862, lng: -1.8904, name: 'Birmingham, UK' },
+  'leeds': { lat: 53.8008, lng: -1.5491, name: 'Leeds, UK' },
+  'glasgow': { lat: 55.8642, lng: -4.2518, name: 'Glasgow, UK' },
+  'edinburgh': { lat: 55.9533, lng: -3.1883, name: 'Edinburgh, UK' },
+  'liverpool': { lat: 53.4084, lng: -2.9916, name: 'Liverpool, UK' },
+  'bristol': { lat: 51.4545, lng: -2.5879, name: 'Bristol, UK' },
+  'sheffield': { lat: 53.3811, lng: -1.4701, name: 'Sheffield, UK' },
+  'cardiff': { lat: 51.4816, lng: -3.1791, name: 'Cardiff, UK' },
+  'belfast': { lat: 54.5973, lng: -5.9301, name: 'Belfast, UK' },
+  'newcastle': { lat: 54.9783, lng: -1.6178, name: 'Newcastle upon Tyne, UK' },
+  'nottingham': { lat: 52.9548, lng: -1.1581, name: 'Nottingham, UK' },
+  'plymouth': { lat: 50.3755, lng: -4.1427, name: 'Plymouth, UK' },
+  'southampton': { lat: 50.9097, lng: -1.4044, name: 'Southampton, UK' },
+  'oxford': { lat: 51.7520, lng: -1.2577, name: 'Oxford, UK' },
+  'cambridge': { lat: 52.2053, lng: 0.1218, name: 'Cambridge, UK' },
+  'brighton': { lat: 50.8225, lng: -0.1372, name: 'Brighton, UK' },
+};
+
 /**
  * Geocode an address to coordinates using Google Maps API
  */
@@ -42,6 +64,20 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
   }
 
   try {
+    // First, check if this is a known city in our fallback database
+    const normalizedAddress = address.toLowerCase().trim();
+    if (CITY_COORDINATES[normalizedAddress]) {
+      const coords = CITY_COORDINATES[normalizedAddress];
+      console.log(`[Geocoding] Using fallback coordinates for "${address}":`, coords);
+      return {
+        lat: coords.lat,
+        lng: coords.lng,
+        address: coords.name,
+        city: address,
+        country: 'United Kingdom',
+      };
+    }
+
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`
     );
