@@ -255,7 +255,7 @@ export function DashboardDropdownMenu({
       {/* Backdrop with blur - Outside relative container to cover entire page */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-[99] bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[105] bg-black/50 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
       )}
