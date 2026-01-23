@@ -210,10 +210,10 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
         </div>
       </nav>
 
-      {/* Expanding Menu with Backdrop Blur */}
+      {/* Expanding Menu with Backdrop Overlay */}
       {isMenuOpen && (
         <div
-          className="fixed inset-0 z-[200] md:hidden pointer-events-auto bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] md:hidden pointer-events-auto bg-black/30"
           onClick={() => setIsMenuOpen(false)}
           style={{ touchAction: 'none' }}
         >

@@ -381,12 +381,12 @@ export function Navbar({ session }: NavbarProps) {
       </div>
     </nav>
 
-    {/* Public User Mobile Menu (Tablet only) - With backdrop blur */}
+    {/* Public User Mobile Menu (Tablet only) */}
     {isMobileMenuOpen && !session && (
       <>
-        {/* Backdrop with blur */}
+        {/* Backdrop overlay (no blur) */}
         <div 
-          className="fixed inset-0 z-[99] bg-black/50 backdrop-blur-sm md:block lg:hidden hidden"
+          className="fixed inset-0 z-[99] bg-black/30 md:block lg:hidden hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
         {/* Menu Panel */}
