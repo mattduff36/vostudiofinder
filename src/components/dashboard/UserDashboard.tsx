@@ -646,7 +646,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                   </p>
                   <div className="mb-6">
                     <ShareProfileButton
-                      profileUrl={profileUrl}
+                      profileUrl={profileData?.user?.username ? `${getBaseUrl()}/${profileData.user.username}` : ''}
                       profileName={profileData?.user?.display_name || profileData?.user?.username || 'your studio'}
                       variant="primary"
                       size="lg"
