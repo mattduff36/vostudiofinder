@@ -629,22 +629,27 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="bg-gradient-to-br from-red-50 to-white border border-gray-100 rounded-2xl p-8 text-center"
+                className="bg-gradient-to-br from-red-50 to-white border border-gray-100 rounded-2xl p-8"
                 style={{
                   boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
                 }}
               >
-                <div className="flex flex-col items-center max-w-2xl mx-auto">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                    <Share2 className="w-8 h-8 text-[#d42027]" aria-hidden="true" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-4xl mx-auto">
+                  {/* Left Column - Content */}
+                  <div className="flex flex-col items-start text-left">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                      <Share2 className="w-8 h-8 text-[#d42027]" aria-hidden="true" />
+                    </div>
+                    <h3 className="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">
+                      Promote your studio. Get rewarded!
+                    </h3>
+                    <p className="text-base text-gray-700 leading-relaxed">
+                      Share your profile on social media and receive a free month of membership! Submit the public post link to us to claim.
+                    </p>
                   </div>
-                  <h3 className="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">
-                    Promote your studio. Get rewarded!
-                  </h3>
-                  <p className="text-base text-gray-700 mb-4 leading-relaxed">
-                    Share your profile on social media and receive a free month of membership! Submit the public post link to us to claim.
-                  </p>
-                  <div className="mb-6">
+                  
+                  {/* Right Column - CTA and Fine Print */}
+                  <div className="flex flex-col items-center justify-center space-y-4">
                     <ShareProfileButton
                       profileUrl={profileData?.user?.username ? `${getBaseUrl()}/${profileData.user.username}` : ''}
                       profileName={profileData?.user?.display_name || profileData?.user?.username || 'your studio'}
@@ -652,17 +657,17 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                       size="lg"
                       className="px-8 py-3"
                     />
+                    <p className="text-sm text-gray-500 text-center">
+                      One reward per membership period.<br />
+                      Submit your link for verification to{' '}
+                      <a 
+                        href="mailto:support@voiceoverstudiofinder.com" 
+                        className="underline hover:text-[#d42027] transition-colors"
+                      >
+                        support@voiceoverstudiofinder.com
+                      </a>
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-500">
-                    One reward per membership period.<br />
-                    Submit your link for verification to{' '}
-                    <a 
-                      href="mailto:support@voiceoverstudiofinder.com" 
-                      className="underline hover:text-[#d42027] transition-colors"
-                    >
-                      support@voiceoverstudiofinder.com
-                    </a>
-                  </p>
                 </div>
               </motion.div>
             </>
