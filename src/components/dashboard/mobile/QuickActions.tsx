@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { User, Settings, Loader2, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
+import { User, Settings, Loader2, ChevronDown, ChevronUp, Eye, EyeOff, Check } from 'lucide-react';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
@@ -286,8 +286,16 @@ export function QuickActions({
     <div className="md:hidden py-6 space-y-3">
       {/* Welcome Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">
-          Welcome back{displayName ? `, ${displayName}` : ''}!
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <span>Welcome back{displayName ? `, ${displayName}` : ''}!</span>
+          {profileData?.studio?.is_verified && (
+            <span
+              className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-600 flex-shrink-0"
+              title="Verified studio — approved by our team"
+            >
+              <Check className="w-3 h-3 text-white" strokeWidth={3} />
+            </span>
+          )}
         </h2>
       </div>
 

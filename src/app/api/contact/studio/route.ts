@@ -127,7 +127,7 @@ Questions? support@voiceoverstudiofinder.com
       from: process.env.RESEND_BOOKING_FROM_EMAIL || 'booking-enquiry@voiceoverstudiofinder.com',
       to: ownerEmail,
       replyTo: senderEmail, // Allow studio owner to reply directly
-      subject: `New Booking Enquiry for ${studioName} from ${senderName}`,
+      subject: `Enquiry for ${studioName} from Voiceover Studio Finder`,
       html: htmlContent,
       text: textContent,
     });

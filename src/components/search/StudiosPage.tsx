@@ -859,6 +859,7 @@ export function StudiosPage() {
         visibleMarkerCount={visibleMarkerCount}
         filterByMapAreaMaxMarkers={30}
         isMapReady={!loading && !!mapBounds}
+        studioTypeCounts={studioTypeCounts}
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8">

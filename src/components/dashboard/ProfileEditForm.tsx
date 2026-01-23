@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Save, Eye, EyeOff, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, Settings } from 'lucide-react';
+import { Save, Eye, EyeOff, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, Settings, Copy, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -480,6 +480,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       if ((result as any)?.visibilityAutoDisabled) {
         showInfo('Profile visibility was turned off because required fields are incomplete.');
       }
+
+      // Show voiceover artist warning if detected (non-blocking)
+      if ((result as any)?.warnings && Array.isArray((result as any).warnings) && (result as any).warnings.length > 0) {
+        const warningMessage = (result as any).warnings[0];
+        showInfo(warningMessage, true); // Use persistent toast for important warning
+      }
       
       // Refresh profile data
       await fetchProfile();
@@ -681,25 +687,11 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
             </div>
 
-            {/* Row 3: Short About (single line input, full width) */}
-            <div>
-              <Input
-                label="Short About"
-                value={profile.profile.short_about || ''}
-                onChange={(e) => updateProfile('short_about', e.target.value)}
-                maxLength={150}
-              />
-              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                <span>Shown on studio cards and used by search engines. Make the most of the 150 characters</span>
-                <span>{(profile.profile.short_about || '').length}/150 characters</span>
-              </div>
-            </div>
-
-            {/* Row 4: Full About (textarea, full width) */}
+            {/* Row 3: Full Description (textarea, full width) - SWAPPED ORDER */}
             <div>
               <Textarea
                 ref={fullAboutRef}
-                label="Full About"
+                label="Full Description"
                 value={profile.profile.about || ''}
                 onChange={(e) => updateProfile('about', e.target.value)}
                 maxLength={1500}
@@ -719,6 +711,33 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 >
                   {(profile.profile.about || '').length}/1500 characters
                 </span>
+              </div>
+            </div>
+
+            {/* Row 4: Short Description (single line input, full width) - SWAPPED ORDER */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Short Description
+                </label>
+                <button
+                  type="button"
+                  disabled
+                  className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-400 bg-gray-100 border border-gray-200 rounded-md cursor-not-allowed"
+                  title="Coming soon!"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Auto Generate</span>
+                </button>
+              </div>
+              <Input
+                value={profile.profile.short_about || ''}
+                onChange={(e) => updateProfile('short_about', e.target.value)}
+                maxLength={150}
+              />
+              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                <span>Shown on studio cards and used by search engines. Make the most of the 150 characters</span>
+                <span>{(profile.profile.short_about || '').length}/150 characters</span>
               </div>
             </div>
           </div>
@@ -1147,7 +1166,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="space-y-3">
                 <Toggle
-                  label="Show Email"
+                  label="Enable Messages"
                   description="Display 'Message Studio' button on public profile"
                   checked={profile.profile.show_email || false}
                   onChange={(checked) => updateProfile('show_email', checked)}
@@ -1176,97 +1195,142 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         );
 
       case 'advanced':
+        const studioName = profile.studio?.name || 'Your Studio';
+        const city = profile.studio?.city || null;
+        const studioTypes = profile.studio_types || [];
+        
+        const primaryTypePriority = ['RECORDING', 'HOME', 'PODCAST', 'VO_COACH', 'AUDIO_PRODUCER', 'VOICEOVER'];
+        const primaryStudioType =
+          primaryTypePriority.find((p) => studioTypes.includes(p)) ||
+          studioTypes[0] ||
+          null;
+
+        // Compute current meta title (custom if exists, else auto-generated)
+        const autoGeneratedTitle = buildProfileMetaTitle({
+          studioName,
+          primaryStudioType,
+          city,
+        });
+        const currentMetaTitle = profile.metadata?.custom_meta_title?.trim() 
+          ? profile.metadata.custom_meta_title.trim() 
+          : autoGeneratedTitle;
+
+        const handleCopyMetaTitle = async () => {
+          try {
+            await navigator.clipboard.writeText(currentMetaTitle);
+            showSuccess('Meta title copied to clipboard!');
+          } catch (err) {
+            showError('Failed to copy to clipboard');
+          }
+        };
+
         return (
           <div className="space-y-6">
-            {/* Under Construction Notice - Subtle */}
-            <p className="text-xs text-gray-400 italic">
-              This section is under development. Some features may not work as expected.
-            </p>
-
-            <div>
-              <p className="text-sm text-gray-600 mb-4">
-                Customize how your studio appears in search engine results and social media shares.
-              </p>
+            {/* Section Introduction */}
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                    <Settings className="w-5 h-5 text-[#d42027]" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">SEO & Meta Title</h3>
+                    <p className="text-xs text-gray-500">Optimize how your profile appears in search results</p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Customize how your studio appears in search engine results and social media shares.
+                </p>
+              </div>
             </div>
 
-            {/* Recommended Title Preview */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Recommended Title</h4>
-              <p className="text-sm text-gray-900 mb-1">
-                {(() => {
-                  const studioName = profile.studio?.name || 'Your Studio';
-                  const city = profile.studio?.city || null;
-                  const studioTypes = profile.studio_types || [];
-                  
-                  const primaryTypePriority = ['RECORDING', 'HOME', 'PODCAST', 'VO_COACH', 'AUDIO_PRODUCER', 'VOICEOVER'];
-                  const primaryStudioType =
-                    primaryTypePriority.find((p) => studioTypes.includes(p)) ||
-                    studioTypes[0] ||
-                    null;
-
-                  return buildProfileMetaTitle({
-                    studioName,
-                    primaryStudioType,
-                    city,
-                  });
-                })()}
-              </p>
-              <p className="text-xs text-gray-500">
-                Auto-generated from your studio name, type, and location.
-              </p>
+            {/* Current Meta Title Display */}
+            <div className="relative overflow-hidden rounded-xl border-2 border-red-100 bg-gradient-to-br from-red-50 to-white shadow-sm">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-semibold text-gray-900">Current Meta Title</h4>
+                  <button
+                    onClick={handleCopyMetaTitle}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#d42027] bg-white hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
+                    title="Copy to clipboard"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy</span>
+                  </button>
+                </div>
+                <div className="bg-white border border-red-200 rounded-lg p-4">
+                  <p className="text-base font-bold text-gray-900 leading-relaxed">
+                    {currentMetaTitle}
+                  </p>
+                </div>
+                <p className="text-xs text-gray-600 mt-3">
+                  {profile.metadata?.custom_meta_title?.trim() 
+                    ? 'Using your custom title' 
+                    : 'Auto-generated from your studio name, type, and location'}
+                </p>
+              </div>
             </div>
 
             {/* Custom Title Input */}
-            <div>
-              <Input
-                label="Custom Meta Title (Optional)"
-                value={profile.metadata?.custom_meta_title || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setProfile(prev => prev ? {
-                    ...prev,
-                    metadata: { ...prev.metadata, custom_meta_title: value },
-                  } : null);
-                }}
-                maxLength={60}
-                placeholder="Leave empty to use the recommended title"
-                helperText="Override the automatic title with your own (max 60 characters)"
-              />
-              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                <span>
-                  {profile.metadata?.custom_meta_title && profile.metadata.custom_meta_title.trim() 
-                    ? 'Custom title will be used' 
-                    : 'Using recommended title'}
-                </span>
-                <span className={
-                  (profile.metadata?.custom_meta_title?.length || 0) > 60 
-                    ? 'text-red-600 font-semibold' 
-                    : (profile.metadata?.custom_meta_title?.length || 0) >= 50 
-                    ? 'text-amber-600 font-semibold'
-                    : ''
-                }>
-                  {profile.metadata?.custom_meta_title?.length || 0}/60 characters
-                </span>
-              </div>
-              
-              {/* Preview of what will be used */}
-              {profile.metadata?.custom_meta_title && profile.metadata.custom_meta_title.trim() && (
-                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                  <p className="text-xs font-semibold text-gray-700 mb-1">Preview:</p>
-                  <p className="text-sm text-gray-900">{profile.metadata.custom_meta_title}</p>
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+              <div className="p-6">
+                <h4 className="text-sm font-semibold text-gray-900 mb-4">Customize Meta Title</h4>
+                <Input
+                  label="Custom Meta Title (Optional)"
+                  value={profile.metadata?.custom_meta_title || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setProfile(prev => prev ? {
+                      ...prev,
+                      metadata: { ...prev.metadata, custom_meta_title: value },
+                    } : null);
+                  }}
+                  maxLength={60}
+                  placeholder="Leave empty to use the auto-generated title"
+                  helperText="Override the automatic title with your own (max 60 characters)"
+                />
+                <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                  <span>
+                    {profile.metadata?.custom_meta_title && profile.metadata.custom_meta_title.trim() 
+                      ? 'Custom title will be used' 
+                      : 'Using auto-generated title'}
+                  </span>
+                  <span className={
+                    (profile.metadata?.custom_meta_title?.length || 0) > 60 
+                      ? 'text-red-600 font-semibold' 
+                      : (profile.metadata?.custom_meta_title?.length || 0) >= 50 
+                      ? 'text-amber-600 font-semibold'
+                      : ''
+                  }>
+                    {profile.metadata?.custom_meta_title?.length || 0}/60 characters
+                  </span>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Best Practices */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Best Practices</h4>
-              <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
-                <li>Keep it between 50-60 characters for best display</li>
-                <li>Include your studio name and primary service</li>
-                <li>Add your location if space permits</li>
-                <li>Make it natural and readable for humans</li>
-              </ul>
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+              <div className="p-6">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">Best Practices</h4>
+                <ul className="text-sm text-gray-700 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#d42027] font-bold">•</span>
+                    <span>Keep it between 50-60 characters for best display</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#d42027] font-bold">•</span>
+                    <span>Include your studio name and primary service</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#d42027] font-bold">•</span>
+                    <span>Add your location if space permits</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#d42027] font-bold">•</span>
+                    <span>Make it natural and readable for humans</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         );

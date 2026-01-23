@@ -128,26 +128,9 @@ export function MapFullscreen({
         fullAddress={fullAddress || ''}
         useCoordinates={useCoordinates}
         showExactLocation={showExactLocation}
-        height={
-          !supportsNativeFullscreen && isFullscreen && viewportHeight
-            ? `${viewportHeight}px`
-            : '100%'
-        }
+        height="100%"
         className="w-full h-full"
       />
-
-      {/* Custom Fullscreen Button */}
-      <button
-        onClick={toggleFullscreen}
-        className="absolute top-2 right-2 z-10 p-2 bg-white rounded-md shadow-md hover:bg-gray-50 transition-colors"
-        aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-      >
-        {isFullscreen ? (
-          <Minimize2 className="w-5 h-5 text-gray-700" />
-        ) : (
-          <Maximize2 className="w-5 h-5 text-gray-700" />
-        )}
-      </button>
     </div>
   );
 }

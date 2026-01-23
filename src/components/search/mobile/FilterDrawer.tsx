@@ -30,6 +30,7 @@ interface FilterDrawerProps {
   visibleMarkerCount?: number | undefined;
   filterByMapAreaMaxMarkers?: number;
   isMapReady?: boolean;
+  studioTypeCounts?: Record<string, number>;
 }
 
 export function FilterDrawer({
@@ -42,6 +43,7 @@ export function FilterDrawer({
   visibleMarkerCount,
   filterByMapAreaMaxMarkers,
   isMapReady,
+  studioTypeCounts = {},
 }: FilterDrawerProps) {
   const filtersRef = useRef<SearchFiltersRef>(null);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
@@ -172,6 +174,7 @@ export function FilterDrawer({
           onSearch={onSearch}
           onApplyFilter={onClose}
           isMobileModalOpen={isOpen}
+          studioTypeCounts={studioTypeCounts}
           {...(onFilterByMapArea ? { onFilterByMapArea } : {})}
           {...(isFilteringByMapArea !== undefined ? { isFilteringByMapArea } : {})}
           {...(visibleMarkerCount !== undefined ? { visibleMarkerCount } : {})}

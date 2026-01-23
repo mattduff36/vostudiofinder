@@ -16,7 +16,8 @@ import {
   Star,
   Globe,
   Target,
-  MessageSquare
+  MessageSquare,
+  Check
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
@@ -408,8 +409,19 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                 />
               )}
               <div>
-                <h1 className="text-3xl font-bold text-text-primary md:font-extrabold md:tracking-tight">
-                  Welcome back, {user.display_name}!
+                <h1 className="text-3xl font-bold text-text-primary md:font-extrabold md:tracking-tight flex items-center gap-2">
+                  <span>Welcome back, {user.display_name}!</span>
+                  {profileData?.studio?.is_verified && (
+                    <span className="group relative inline-flex items-center">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-600 transition-colors">
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      </span>
+                      {/* Hover expand text - desktop only */}
+                      <span className="hidden md:inline-flex absolute left-full ml-1 items-center px-2 py-0.5 bg-green-600 text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        Verified
+                      </span>
+                    </span>
+                  )}
                 </h1>
                 <p className="text-text-secondary">
                   <a

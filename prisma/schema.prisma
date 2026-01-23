@@ -271,7 +271,7 @@ model studio_profiles {
   // Contact
   phone                   String?
   website_url             String?
-  show_email              Boolean                 @default(false)
+  show_email              Boolean                 @default(true)
   show_phone              Boolean                 @default(false)
   show_address            Boolean                 @default(false)
   show_directions         Boolean                 @default(false)
