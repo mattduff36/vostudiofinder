@@ -9,13 +9,15 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { User, Settings, Loader2, ChevronDown, ChevronUp, Eye, EyeOff, Check } from 'lucide-react';
+import { User, Settings, Loader2, ChevronDown, ChevronUp, Eye, EyeOff, Check, Share2 } from 'lucide-react';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { Toggle } from '@/components/ui/Toggle';
+import { ShareProfileButton } from '@/components/profile/ShareProfileButton';
 import { logger } from '@/lib/logger';
 import { showError } from '@/lib/toast';
+import { getBaseUrl } from '@/lib/seo/site';
 
 export type QuickAction = 'edit-profile' | 'settings';
 
@@ -427,6 +429,35 @@ export function QuickActions({
                 disabled={saving || !allRequiredComplete}
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Promotional Card - Mobile */}
+      {!loading && (
+        <div className="!bg-gradient-to-br from-red-50 to-white border border-gray-100 rounded-lg overflow-hidden shadow-sm p-6">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-3">
+              <Share2 className="w-7 h-7 text-[#d42027]" aria-hidden="true" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              Share Your Studio, Earn an Extra Month FREE!
+            </h3>
+            <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+              Share your profile on social media and receive 30 days of free membership. Post your profile link publicly on any platform, then send us the link to claim your reward.
+            </p>
+            <div className="mb-3 w-full">
+              <ShareProfileButton
+                profileUrl={profileData?.user?.username ? `${getBaseUrl()}/${profileData.user.username}` : ''}
+                profileName={profileData?.user?.display_name || profileData?.user?.username || 'your studio'}
+                variant="primary"
+                size="md"
+                className="w-full"
+              />
+            </div>
+            <p className="text-xs text-gray-500">
+              Tag us or share the public post link with us to verify. One reward per membership period.
+            </p>
           </div>
         </div>
       )}

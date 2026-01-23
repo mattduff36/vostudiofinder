@@ -17,15 +17,18 @@ import {
   Globe,
   Target,
   MessageSquare,
-  Check
+  Check,
+  Share2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
 import { ProfileCompletionAnimation } from '@/components/dashboard/ProfileCompletionAnimation';
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
 import { Toggle } from '@/components/ui/Toggle';
+import { Button } from '@/components/ui/Button';
+import { ShareProfileButton } from '@/components/profile/ShareProfileButton';
 import { logger } from '@/lib/logger';
-import { showError } from '@/lib/toast';
+import { showError, showSuccess } from '@/lib/toast';
 import { getBaseUrl } from '@/lib/seo/site';
 import { useProfileAnimation } from '@/hooks/useProfileAnimation';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
@@ -620,6 +623,41 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                   </ul>
                 </motion.div>
               </div>
+
+              {/* Share Promotional Card - Full Width */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="bg-gradient-to-br from-red-50 to-white border border-gray-100 rounded-2xl p-8 text-center"
+                style={{
+                  boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
+                }}
+              >
+                <div className="flex flex-col items-center max-w-2xl mx-auto">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                    <Share2 className="w-8 h-8 text-[#d42027]" aria-hidden="true" />
+                  </div>
+                  <h3 className="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">
+                    Share Your Studio, Earn an Extra Month FREE!
+                  </h3>
+                  <p className="text-base text-gray-700 mb-4 leading-relaxed">
+                    Share your profile on social media and receive 30 days of free membership. Post your profile link publicly on any platform, then send us the link to claim your reward.
+                  </p>
+                  <div className="mb-6">
+                    <ShareProfileButton
+                      profileUrl={profileUrl}
+                      profileName={profileData?.user?.display_name || profileData?.user?.username || 'your studio'}
+                      variant="primary"
+                      size="lg"
+                      className="px-8 py-3"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Tag us or share the public post link with us to verify. One reward per membership period.
+                  </p>
+                </div>
+              </motion.div>
             </>
           ) : (
             <motion.div
