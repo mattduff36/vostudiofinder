@@ -9,7 +9,7 @@ const contactSchema = z.object({
   ownerEmail: z.string().email(),
   senderName: z.string().min(1, 'Name is required'),
   senderEmail: z.string().email('Valid email is required'),
-  message: z.string().min(10, 'Message must be at least 10 characters'),
+  message: z.string().min(75, 'Message must be at least 75 characters'),
 });
 
 export async function POST(request: NextRequest) {
