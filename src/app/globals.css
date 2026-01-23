@@ -384,3 +384,10 @@ input[type="checkbox"]:focus {
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
 }
+
+/* iOS Safari bottom gap fix - Remove main bottom padding when mobile nav is hidden */
+@media (max-width: 767px) {
+  html.vsf-mobile-nav-hidden main {
+    padding-bottom: 0 !important;
+  }
+}

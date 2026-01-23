@@ -71,7 +71,7 @@ export function HeroSection() {
   };
 
   return (
-    <div className="relative text-white overflow-visible min-h-screen flex items-center justify-center w-full max-w-full" style={{ minHeight: heroHeight ? `${heroHeight}px` : '100vh' }}>
+    <div className="relative text-white overflow-visible min-h-screen flex items-center justify-center w-full max-w-full" style={{ minHeight: heroHeight ? `${heroHeight}px` : '100dvh' }}>
         {/* Background Image */}
         <div className="absolute inset-0 overflow-hidden">
           <Image

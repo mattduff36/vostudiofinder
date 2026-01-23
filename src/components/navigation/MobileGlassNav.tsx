@@ -89,6 +89,23 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     };
   }, [isAdminUser]);
 
+  // Toggle class on html element to conditionally remove main bottom padding when nav is hidden
+  // This prevents the white gap that appears on iOS Safari when the toolbar and nav both hide
+  useEffect(() => {
+    const shouldHidePadding = !isScrollVisible && !isMenuOpen && !isMapFullscreen;
+    
+    if (shouldHidePadding) {
+      document.documentElement.classList.add('vsf-mobile-nav-hidden');
+    } else {
+      document.documentElement.classList.remove('vsf-mobile-nav-hidden');
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.documentElement.classList.remove('vsf-mobile-nav-hidden');
+    };
+  }, [isScrollVisible, isMenuOpen, isMapFullscreen]);
+
   // Hide on specific pages
   // Hide on payment success page to maintain focused onboarding flow.
   if (pathname === '/auth/membership/success') {

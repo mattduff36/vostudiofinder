@@ -172,7 +172,7 @@ export function MapCollapsible({
   const mapHeight = useMemo(() => {
     return viewportHeight 
       ? `${viewportHeight - 180 - 67 - 64 - 32}px` // Use measured viewport height
-      : 'calc(100vh - 343px)'; // Fallback for SSR/initial render
+      : 'calc(100dvh - 343px)'; // Fallback for SSR/initial render
   }, [viewportHeight]);
 
   return (
@@ -183,7 +183,7 @@ export function MapCollapsible({
         // In fullscreen (CSS or native): Fill entire viewport
         // Normal mode: Calculate height minus other elements
         height: isFullscreen 
-          ? (viewportHeight ? `${viewportHeight}px` : '100vh')
+          ? (viewportHeight ? `${viewportHeight}px` : '100dvh')
           : mapHeight,
         minHeight: isFullscreen ? undefined : '300px',
         width: isFullscreen ? '100vw' : undefined,

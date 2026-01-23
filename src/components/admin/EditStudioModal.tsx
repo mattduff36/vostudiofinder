@@ -1189,7 +1189,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </div>
             
             {/* Modal body with scrollable content */}
-            <div className="overflow-y-auto h-[calc(100vh-180px)] md:h-auto md:max-h-[calc(95vh-220px)]">
+            <div className="overflow-y-auto h-[calc(100dvh-180px)] md:h-auto md:max-h-[calc(95dvh-220px)]">
               {/* Tab Navigation - Matches Edit Profile styling (text-only) */}
               <div className="border-b border-gray-100 bg-white sticky top-0 z-10 overflow-hidden">
                 <nav className="flex space-x-4 px-6 overflow-x-auto" aria-label="Tabs">
