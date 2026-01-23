@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Menu, Loader2 } from 'lucide-react';
@@ -31,9 +32,33 @@ export function DashboardDropdownMenu({
   const [isVisible, setIsVisible] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
   const [loadingVisibility, setLoadingVisibility] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+  const [buttonPosition, setButtonPosition] = useState({ top: 0, right: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  // Track mount state for portal rendering
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Calculate menu and button positions when opening
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 8, // 8px gap (mt-2)
+        right: window.innerWidth - rect.right,
+      });
+      setButtonPosition({
+        top: rect.top,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, [isOpen]);
 
   // Fetch profile visibility immediately on mount (single source of truth from database)
   useEffect(() => {
@@ -159,6 +184,7 @@ export function DashboardDropdownMenu({
     <>
       <div className="relative" ref={dropdownRef}>
         <Button
+          ref={buttonRef}
           type="button"
           onClick={() => {
             setIsOpen(!isOpen);
@@ -168,7 +194,7 @@ export function DashboardDropdownMenu({
             isScrolled || !isHomePage 
               ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white' 
               : 'text-white border-white hover:bg-white hover:text-primary-800'
-          } flex items-center justify-center p-2 aspect-square w-10 h-10`}
+          } flex items-center justify-center p-2 aspect-square w-10 h-10 ${isOpen ? 'invisible' : ''}`}
           aria-haspopup="menu"
           aria-expanded={isOpen}
           aria-label="Dashboard menu"
@@ -178,13 +204,16 @@ export function DashboardDropdownMenu({
             aria-hidden="true"
           />
         </Button>
+      </div>
 
-        {isOpen && (
-          <div 
-            className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[110]"
-            role="menu"
-            aria-orientation="vertical"
-          >
+      {/* Menu panel - Rendered via Portal to escape navbar's stacking context */}
+      {isOpen && isMounted && createPortal(
+        <div 
+          className="fixed w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[110]"
+          style={{ top: menuPosition.top, right: menuPosition.right }}
+          role="menu"
+          aria-orientation="vertical"
+        >
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = item.href === pathname;
@@ -248,16 +277,32 @@ export function DashboardDropdownMenu({
               </div>
             );
           })}
-          </div>
-        )}
-      </div>
+        </div>,
+        document.body
+      )}
 
-      {/* Backdrop with blur - Outside relative container to cover entire page */}
-      {isOpen && (
+      {/* Backdrop with blur - Rendered via Portal to escape navbar's containing block */}
+      {isOpen && isMounted && createPortal(
         <div 
           className="fixed inset-0 z-[105] bg-black/50 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
-        />
+        />,
+        document.body
+      )}
+
+      {/* Portaled burger button - Appears above backdrop when menu is open */}
+      {isOpen && isMounted && createPortal(
+        <Button
+          type="button"
+          onClick={() => setIsOpen(false)}
+          variant="outline"
+          className="fixed z-[106] border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white flex items-center justify-center p-2 aspect-square w-10 h-10"
+          style={{ top: buttonPosition.top, right: buttonPosition.right }}
+          aria-label="Close menu"
+        >
+          <Menu className="w-5 h-5" aria-hidden="true" />
+        </Button>,
+        document.body
       )}
     </>
   );
