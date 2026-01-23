@@ -90,18 +90,52 @@ export function FilterDrawer({
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close on scroll (same behavior as backdrop click)
+  // BUT: Don't close if an input is focused (keyboard is open)
   useEffect(() => {
     if (!isOpen) return;
 
+    let lastScrollY = window.scrollY;
+    let scrollTimeout: NodeJS.Timeout | null = null;
+
     const handleScroll = () => {
-      // Only close if modal is open
-      if (isOpen) {
-        handleClose();
+      // Check if any input/textarea is currently focused (keyboard is open)
+      const activeElement = document.activeElement;
+      const isInputFocused = 
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement;
+
+      // Don't close if:
+      // 1. An input is focused (keyboard is open)
+      // 2. The scroll amount is very small (< 50px) - likely just keyboard adjustment
+      const currentScrollY = window.scrollY;
+      const scrollDelta = Math.abs(currentScrollY - lastScrollY);
+      
+      if (isInputFocused || scrollDelta < 50) {
+        // Update last scroll position but don't close
+        lastScrollY = currentScrollY;
+        return;
       }
+
+      // Clear existing timeout
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+
+      // Debounce the close action to avoid closing on minor adjustments
+      scrollTimeout = setTimeout(() => {
+        if (isOpen) {
+          handleClose();
+        }
+      }, 100);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+    };
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Don't render if map is in fullscreen mode
