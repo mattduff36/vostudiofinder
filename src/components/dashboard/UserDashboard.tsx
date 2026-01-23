@@ -657,16 +657,18 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                       size="lg"
                       className="px-8 py-3"
                     />
-                    <p className="text-sm text-gray-500 text-center leading-relaxed">
-                      One reward per membership period.<br />
-                      Submit your link for verification to{' '}
-                      <a 
-                        href="mailto:support@voiceoverstudiofinder.com" 
-                        className="underline hover:text-[#d42027] transition-colors"
-                      >
-                        support@voiceoverstudiofinder.com
-                      </a>
-                    </p>
+                    <div className="text-sm text-gray-500 text-center space-y-2">
+                      <p>One reward per membership period.</p>
+                      <p>
+                        Submit your link for verification to{' '}
+                        <a 
+                          href="mailto:support@voiceoverstudiofinder.com" 
+                          className="underline hover:text-[#d42027] transition-colors"
+                        >
+                          support@voiceoverstudiofinder.com
+                        </a>
+                      </p>
+                    </div>
                   </div>
                 </div>
               </motion.div>
