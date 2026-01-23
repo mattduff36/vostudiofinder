@@ -1251,7 +1251,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   }}
                   maxLength={60}
                   placeholder="Auto-generated from your studio name, type, and location"
-                  className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 pr-10 text-sm text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
                 <button
                   type="button"
