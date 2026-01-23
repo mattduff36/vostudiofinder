@@ -639,10 +639,10 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                     <Share2 className="w-8 h-8 text-[#d42027]" aria-hidden="true" />
                   </div>
                   <h3 className="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">
-                    Share Your Studio, Earn an Extra Month FREE!
+                    Promote your studio. Get rewarded!
                   </h3>
                   <p className="text-base text-gray-700 mb-4 leading-relaxed">
-                    Share your profile on social media and receive 30 days of free membership. Post your profile link publicly on any platform, then send us the link to claim your reward.
+                    Share your profile on social media and receive a free month of membership! Submit the public post link to us to claim.
                   </p>
                   <div className="mb-6">
                     <ShareProfileButton
@@ -654,7 +654,8 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                     />
                   </div>
                   <p className="text-sm text-gray-500">
-                    Tag us or share the public post link with us to verify. One reward per membership period.
+                    One reward per membership period.<br />
+                    Submit your link for verification to support@voiceoverstudiofinder.com
                   </p>
                 </div>
               </motion.div>
