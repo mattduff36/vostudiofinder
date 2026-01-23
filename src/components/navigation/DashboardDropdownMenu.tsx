@@ -179,11 +179,18 @@ export function DashboardDropdownMenu({
       </Button>
 
       {isOpen && (
-        <div 
-          className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[110]"
-          role="menu"
-          aria-orientation="vertical"
-        >
+        <>
+          {/* Backdrop with blur */}
+          <div 
+            className="fixed inset-0 z-[99] bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+          />
+          {/* Menu Panel */}
+          <div 
+            className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[110]"
+            role="menu"
+            aria-orientation="vertical"
+          >
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = item.href === pathname;
@@ -247,7 +254,8 @@ export function DashboardDropdownMenu({
               </div>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

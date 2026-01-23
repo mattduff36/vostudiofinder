@@ -270,17 +270,19 @@ export function Navbar({ session }: NavbarProps) {
           
           {/* Tablet/Desktop Burger Menu for Public Users - Only shown when NOT logged in */}
           {!session && (
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`hidden md:flex lg:hidden items-center justify-center p-2 rounded-lg transition-colors ${
-                isScrolled || !isHomePage
-                  ? 'text-gray-600 hover:bg-gray-100'
-                  : 'text-white hover:bg-white/20'
-              }`}
-              aria-label="Menu"
-            >
-              <Menu size={24} />
-            </button>
+            <div className="hidden md:flex lg:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className={`flex items-center justify-center p-2 rounded-lg border-2 transition-all duration-300 aspect-square w-10 h-10 ${
+                  isScrolled || !isHomePage
+                    ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white'
+                    : 'text-white border-white hover:bg-white hover:text-primary-800'
+                }`}
+                aria-label="Menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            </div>
           )}
 
           {/* Desktop Auth Buttons */}
@@ -379,54 +381,50 @@ export function Navbar({ session }: NavbarProps) {
       </div>
     </nav>
 
-    {/* Public User Mobile Menu (Tablet only) */}
+    {/* Public User Mobile Menu (Tablet only) - With backdrop blur */}
     {isMobileMenuOpen && !session && (
-      <div className="fixed inset-0 z-[99] md:block lg:hidden hidden">
-        {/* Backdrop */}
+      <>
+        {/* Backdrop with blur */}
         <div 
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[99] bg-black/50 backdrop-blur-sm md:block lg:hidden hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
         {/* Menu Panel */}
         <div 
           ref={mobileMenuRef}
-          className={`absolute top-[72px] right-0 w-64 bg-white rounded-bl-lg shadow-2xl ${
-            isScrolled || !isHomePage ? '' : 'border-t border-white/20'
-          }`}
+          className="fixed top-[72px] right-6 z-[110] w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 md:block lg:hidden hidden"
         >
-          <div className="py-2">
-            <Link
-              href="/studios"
-              className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Browse Studios
-            </Link>
-            <Link
-              href="/about"
-              className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              About Us
-            </Link>
-            <div className="border-t border-gray-200 my-2" />
-            <Link
-              href="/auth/signin"
-              className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/auth/signup"
-              className="block px-4 py-3 text-sm font-medium text-[#d42027] hover:bg-red-50 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              List Your Studio
-            </Link>
-          </div>
+          <Link
+            href="/studios"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Browse Studios
+          </Link>
+          <Link
+            href="/about"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            About Us
+          </Link>
+          <div className="my-2 border-t border-gray-200" />
+          <Link
+            href="/auth/signin"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/auth/signup"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#d42027] hover:bg-red-50 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            List Your Studio
+          </Link>
         </div>
-      </div>
+      </>
     )}
     
     {/* Admin Buttons - Positioned below nav bar on right side */}
