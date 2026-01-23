@@ -1178,34 +1178,21 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       case 'advanced':
         return (
           <div className="space-y-6">
-            {/* Under Construction Notice */}
-            <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center">
-                    <Settings className="w-5 h-5 text-amber-700" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-sm font-bold text-amber-900 mb-1">🚧 Under Construction</h4>
-                  <p className="text-sm text-amber-800">
-                    This section is currently being developed. Some features may not work as expected. We appreciate your patience while we complete this feature.
-                  </p>
-                </div>
-              </div>
-            </div>
+            {/* Under Construction Notice - Subtle */}
+            <p className="text-xs text-gray-400 italic">
+              This section is under development. Some features may not work as expected.
+            </p>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">SEO Meta Title</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Customize how your studio appears in search engine results and social media shares. The meta title should be 50-60 characters for optimal display.
+                Customize how your studio appears in search engine results and social media shares.
               </p>
             </div>
 
             {/* Recommended Title Preview */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-blue-900 mb-2">Recommended Title</h4>
-              <p className="text-sm text-gray-700 mb-1">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">Recommended Title</h4>
+              <p className="text-sm text-gray-900 mb-1">
                 {(() => {
                   const studioName = profile.studio?.name || 'Your Studio';
                   const city = profile.studio?.city || null;
@@ -1224,8 +1211,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   });
                 })()}
               </p>
-              <p className="text-xs text-blue-700">
-                This title is automatically generated from your studio name, type, and location.
+              <p className="text-xs text-gray-500">
+                Auto-generated from your studio name, type, and location.
               </p>
             </div>
 
@@ -1271,14 +1258,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               )}
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-amber-900 mb-2">💡 Best Practices</h4>
-              <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
+            {/* Best Practices */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">Best Practices</h4>
+              <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
                 <li>Keep it between 50-60 characters for best display</li>
                 <li>Include your studio name and primary service</li>
                 <li>Add your location if space permits</li>
                 <li>Make it natural and readable for humans</li>
-                <li>Avoid keyword stuffing or ALL CAPS</li>
               </ul>
             </div>
           </div>
@@ -1305,8 +1292,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         {/* Sticky Header + Tabs Container */}
         <div className="flex-shrink-0 bg-white/95 backdrop-blur-md rounded-t-2xl">
           {/* Desktop Header with Progress Indicators */}
-          <div className="flex border-b border-gray-100 px-6 py-5 items-start justify-between gap-6">
-            <div className="flex items-start gap-4 flex-1">
+          <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
+            <div className="flex items-center gap-4 flex-1">
               {/* Avatar */}
               <AvatarUpload
                 currentAvatar={profile.user.avatar_url}
@@ -1322,37 +1309,38 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Edit Profile</h2>
                 
                 {/* Profile URL - Clickable link */}
-                <a
-                  href={`${getBaseUrl()}/${profile.user.username}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center mt-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-sm hover:bg-gray-100 transition-colors"
-                >
-                  <span className="text-gray-500">{getBaseUrl()}/</span>
-                  <span className="text-red-600 font-medium">{profile.user.username}</span>
-                </a>
+                <div className="flex items-center mt-1">
+                  <a
+                    href={`${getBaseUrl()}/${profile.user.username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {getBaseUrl()}/<span className="text-[#d42027] font-medium">{profile.user.username}</span>
+                  </a>
+                </div>
               </div>
             </div>
 
-            {/* Profile Visibility Toggle and Required Progress */}
-            <div className="flex-shrink-0 flex flex-col items-end gap-3">
+            {/* Right Side - Profile Visibility and Required Progress */}
+            <div className="flex items-center gap-6">
               {/* Profile Visibility Toggle */}
               <div 
-                className="flex items-center gap-3 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md"
+                className="flex items-center gap-3 pl-6 border-l border-gray-100"
                 title={completionStats.required.completed !== completionStats.required.total ? 'Complete all required profile fields before making your profile visible' : ''}
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   {completionStats.required.completed !== completionStats.required.total ? (
-                    <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <EyeOff className="w-3.5 h-3.5 text-gray-600" />
+                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <EyeOff className="w-5 h-5 text-gray-600" />
                     </div>
                   ) : isProfileVisible ? (
-                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Eye className="w-3.5 h-3.5 text-green-600" />
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Eye className="w-5 h-5 text-green-600" />
                     </div>
                   ) : (
-                    <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <EyeOff className="w-3.5 h-3.5 text-red-600" />
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <EyeOff className="w-5 h-5 text-red-600" />
                     </div>
                   )}
                   <div>
@@ -1367,9 +1355,9 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                   />
                 </div>
               </div>
-              
-              {/* Required Fields Progress - Styled like URL pill */}
-              <div className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
+
+              {/* Required Fields Progress */}
+              <div className="pl-6 border-l border-gray-100">
                 <ProgressIndicators
                   requiredFieldsCompleted={completionStats.required.completed}
                   totalRequiredFields={completionStats.required.total}
