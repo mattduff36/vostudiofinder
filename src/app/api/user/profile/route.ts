@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -388,6 +389,7 @@ export async function GET() {
  * - profile: { all studio_profiles fields merged from former profile + studio }
  * - studio_types: string[]
  * - services: string[]
+ * - metadata: { custom_meta_title? }
  */
 export async function PUT(request: NextRequest) {
   try {
@@ -631,6 +633,46 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Handle user metadata updates (e.g., custom_meta_title)
+    if (body.metadata) {
+      // Update custom_meta_title if provided
+      if (body.metadata.custom_meta_title !== undefined) {
+        const customMetaTitle = body.metadata.custom_meta_title?.trim() || '';
+        
+        if (customMetaTitle) {
+          // Upsert the custom_meta_title metadata
+          await db.user_metadata.upsert({
+            where: {
+              user_id_key: {
+                user_id: userId,
+                key: 'custom_meta_title',
+              },
+            },
+            update: {
+              value: customMetaTitle.substring(0, 60), // Enforce 60 char limit
+              updated_at: new Date(),
+            },
+            create: {
+              id: (await import('crypto')).randomBytes(12).toString('base64url'),
+              user_id: userId,
+              key: 'custom_meta_title',
+              value: customMetaTitle.substring(0, 60),
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          });
+        } else {
+          // If empty string, delete the metadata entry
+          await db.user_metadata.deleteMany({
+            where: {
+              user_id: userId,
+              key: 'custom_meta_title',
+            },
+          });
+        }
+      }
+    }
+
     // Enforce: if required profile fields are incomplete, visibility must be OFF.
     // - If this request is a direct visibility toggle attempt to ON, reject it (and ensure it remains OFF).
     // - If this request updated profile data and made it incomplete, auto-disable visibility.
@@ -674,6 +716,16 @@ export async function PUT(request: NextRequest) {
         },
       },
     });
+
+    // Ensure the public profile page (and its metadata) updates immediately after edits.
+    // This is important because the profile page uses ISR (`revalidate`) by default.
+    try {
+      if (updatedUser?.username) {
+        revalidatePath(`/${updatedUser.username}`);
+      }
+    } catch {
+      // best-effort; don't fail the API request if revalidation is unavailable
+    }
 
     return NextResponse.json({
       success: true,

@@ -473,7 +473,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           maxLength={150}
         />
         <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-          <span>Brief description shown on the Studios page</span>
+          <span>Shown on studio cards and used by search engines. Make the most of the 150 characters</span>
           <span>{(profile?._meta?.short_about || '').length}/150 characters</span>
         </div>
       </div>

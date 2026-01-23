@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { ModernStudioProfileV3 } from '@/components/studio/profile/ModernStudioProfileV3';
 import { EnhancedUserProfile } from '@/components/profile/EnhancedUserProfile';
 import { getBaseUrl, SITE_NAME } from '@/lib/seo/site';
+import { buildProfileMetaTitle } from '@/lib/seo/profile-title';
 
 interface UsernamePageProps {
   params: Promise<{ username: string }>;
@@ -50,6 +51,12 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     select: {
       username: true,
       display_name: true,
+      user_metadata: {
+        where: { key: 'custom_meta_title' },
+        select: {
+          value: true,
+        },
+      },
       studio_profiles: {
         where: { status: 'ACTIVE' },
         select: {
@@ -60,6 +67,11 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
           city: true,
           phone: true,
           twitter_url: true,
+          studio_studio_types: {
+            select: {
+              studio_type: true,
+            },
+          },
           studio_images: {
             take: 1,
             orderBy: { sort_order: 'asc' },
@@ -120,8 +132,26 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const locationKeywords = studio.city ? `${studio.city} recording studio, ${studio.city} voiceover studio, ` : '';
   const keywords = `${locationKeywords}recording studio, ${studio.name}, voiceover, audio production, professional studio, ${studio.city || studio.full_address || ''}`;
 
+  const studioTypes = (studio as any)?.studio_studio_types
+    ?.map((t: any) => t?.studio_type)
+    .filter(Boolean) as string[] | undefined;
+
+  const primaryTypePriority = ['RECORDING', 'HOME', 'PODCAST', 'VO_COACH', 'AUDIO_PRODUCER', 'VOICEOVER'];
+  const primaryStudioType =
+    (studioTypes && primaryTypePriority.find((p) => studioTypes.includes(p))) ||
+    (studioTypes && studioTypes[0]) ||
+    null;
+
+  // Check for custom meta title from user metadata, otherwise use auto-generated
+  const customMetaTitle = user.user_metadata?.[0]?.value?.trim();
+  const metaTitle = customMetaTitle || buildProfileMetaTitle({
+    studioName: studio.name,
+    primaryStudioType,
+    city: studio.city,
+  });
+
   const metadata: Metadata = {
-    title: `${studio.name}${locationSuffix} - Recording Studio | ${SITE_NAME}`,
+    title: metaTitle,
     description: seoDescription.substring(0, 160),
     keywords: keywords,
     authors: [{ name: studio.name }],
@@ -142,7 +172,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
       canonical: pageUrl,
     },
     openGraph: {
-      title: `${studio.name}${locationSuffix}`,
+      title: metaTitle,
       description: seoDescription.substring(0, 160),
       type: 'website',
       url: pageUrl,
@@ -163,7 +193,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   if (hasTwitter && studio.twitter_url) {
     metadata.twitter = {
       card: 'summary_large_image',
-      title: `${studio.name}${locationSuffix}`,
+      title: metaTitle,
       description: seoDescription.substring(0, 160),
       images: [ogImage],
       creator: studio.twitter_url,

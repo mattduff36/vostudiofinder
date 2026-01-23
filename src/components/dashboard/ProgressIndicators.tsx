@@ -7,7 +7,7 @@ interface ProgressIndicatorsProps {
   requiredFieldsCompleted: number;
   totalRequiredFields: number;
   overallCompletionPercentage: number;
-  variant?: 'compact' | 'full' | 'minimal';
+  variant?: 'compact' | 'full' | 'minimal' | 'requiredOnly';
 }
 
 export function ProgressIndicators({
@@ -39,6 +39,35 @@ export function ProgressIndicators({
     if (percentage >= 75) return 'bg-amber-600';
     return 'bg-gray-600';
   };
+
+  if (variant === 'requiredOnly') {
+    return (
+      <div className="flex items-center gap-2">
+        {/* Required Fields Indicator Only */}
+        <div className="flex items-center gap-1.5">
+          <CheckCircle2 
+            className={`w-4 h-4 ${allRequiredComplete ? 'text-green-600' : 'text-gray-400'}`}
+            aria-hidden="true"
+          />
+          <span className="text-xs md:text-sm font-semibold text-gray-700">
+            Required:
+          </span>
+        </div>
+        <span className={`text-sm md:text-base font-bold ${allRequiredComplete ? 'text-green-600' : 'text-red-600'}`}>
+          {requiredFieldsCompleted}/{totalRequiredFields}
+        </span>
+        <div className="w-16 md:w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${allRequiredComplete ? 'bg-green-600' : 'bg-red-600'}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${requiredPercentage}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            aria-label={`Required fields: ${requiredFieldsCompleted} of ${totalRequiredFields} completed`}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (variant === 'minimal') {
     return (

@@ -104,8 +104,7 @@ export function SelectedStudioDetails({ studio }: SelectedStudioDetailsProps) {
         onClick={handleCardClick}
         className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col w-full ${studio.owner?.username ? 'cursor-pointer' : 'cursor-default'} ${!hasAnimated ? 'animate-expand-center' : ''}`}
         style={{
-          border: '3px solid #EF4444', // Red border directly on edge
-          minHeight: '360px'
+          border: '3px solid #EF4444' // Red border directly on edge
         }}
       >
         {/* Studio Image */}

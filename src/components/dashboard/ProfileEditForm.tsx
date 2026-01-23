@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Save, Eye, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Save, Eye, EyeOff, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -21,6 +20,8 @@ import { extractCity } from '@/lib/utils/address';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { useAutosizeTextarea } from '@/hooks/useAutosizeTextarea';
 import { showSuccess, showError, showInfo } from '@/lib/toast';
+import { getBaseUrl } from '@/lib/seo/site';
+import { buildProfileMetaTitle } from '@/lib/seo/profile-title';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -83,8 +84,12 @@ interface ProfileData {
     website_url?: string;
     phone?: string;
     images?: any[];
+    is_profile_visible?: boolean;
   };
   studio_types: string[];
+  metadata?: {
+    custom_meta_title?: string;
+  };
 }
 
 const STUDIO_TYPES = [
@@ -114,7 +119,6 @@ const CONNECTION_TYPES = [
 ];
 
 export function ProfileEditForm({ userId }: ProfileEditFormProps) {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -122,6 +126,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [activeSection, setActiveSection] = useState('basic');
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const [socialMediaErrors, setSocialMediaErrors] = useState<{ [key: string]: string }>({});
+  const [isProfileVisible, setIsProfileVisible] = useState(false);
+  const [visibilitySaving, setVisibilitySaving] = useState(false);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -219,6 +225,18 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     fetchProfile();
   }, [userId]);
 
+  // Listen for visibility changes from other components (e.g., Overview page, burger menu)
+  useEffect(() => {
+    const handleVisibilityChange = (event: CustomEvent<{ isVisible: boolean }>) => {
+      setIsProfileVisible(event.detail.isVisible);
+    };
+    
+    window.addEventListener('profile-visibility-changed', handleVisibilityChange as EventListener);
+    return () => {
+      window.removeEventListener('profile-visibility-changed', handleVisibilityChange as EventListener);
+    };
+  }, []);
+
   // Check for sessionStorage to open specific section (e.g., from Settings page)
   useEffect(() => {
     const targetSection = sessionStorage.getItem('openProfileSection');
@@ -261,9 +279,17 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         profile: data.data.profile || {},
         studio: data.data.studio,
         studio_types: data.data.studio?.studio_types || [],
+        metadata: {
+          custom_meta_title: data.data.metadata?.custom_meta_title || '',
+        },
       };
       setProfile(profileData);
       setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
+      
+      // Set initial visibility state
+      if (profileData.studio) {
+        setIsProfileVisible(profileData.studio.is_profile_visible !== false);
+      }
     } catch (err) {
       showError(err instanceof Error ? err.message : 'Failed to load profile', true);
     } finally {
@@ -314,6 +340,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         social: 'incomplete',
         images: 'incomplete',
         privacy: 'neutral',
+        advanced: 'neutral',
       };
     }
 
@@ -385,6 +412,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       social: isSocialComplete ? 'complete' : 'incomplete',
       images: isImagesComplete ? 'complete' : 'incomplete',
       privacy: 'neutral',
+      advanced: 'neutral',
     };
   }, [profile]);
 
@@ -431,6 +459,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         },
         studio: profile!.studio,
         studio_types: profile!.studio_types,
+        metadata: profile!.metadata,
       };
 
       const response = await fetch('/api/user/profile', {
@@ -461,9 +490,48 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     }
   };
 
-  const handlePreview = () => {
-    if (profile?.user.username) {
-      window.open(`/${profile.user.username}`, '_blank');
+  const handleVisibilityToggle = async (visible: boolean) => {
+    setVisibilitySaving(true);
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studio: {
+            is_profile_visible: visible
+          }
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setIsProfileVisible(visible);
+        // Update the profile state to reflect the change
+        setProfile(prev => prev ? {
+          ...prev,
+          studio: { ...prev.studio, is_profile_visible: visible } as any,
+        } : null);
+        // Also update originalProfile to prevent false "unsaved changes" detection
+        setOriginalProfile(prev => prev ? {
+          ...prev,
+          studio: { ...prev.studio, is_profile_visible: visible } as any,
+        } : null);
+        // Broadcast visibility change to other components
+        window.dispatchEvent(new CustomEvent('profile-visibility-changed', { 
+          detail: { isVisible: visible } 
+        }));
+      } else {
+        showError(result.error || 'Failed to update profile visibility');
+        // Revert on error
+        setIsProfileVisible(!visible);
+      }
+    } catch (err) {
+      showError('Error updating profile visibility');
+      // Revert on error
+      setIsProfileVisible(!visible);
+    } finally {
+      setVisibilitySaving(false);
     }
   };
 
@@ -528,6 +596,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     { id: 'connections', label: 'Connections', icon: Wifi, description: 'Remote session connections' },
     { id: 'images', label: 'Images', icon: ImageIcon, description: 'Studio photos and gallery' },
     { id: 'privacy', label: 'Privacy Settings', icon: Eye, description: 'Display preferences' },
+    { id: 'advanced', label: 'Advanced Settings', icon: Settings, description: 'SEO and advanced options' },
   ];
 
   const handleMobileSectionClick = (sectionId: string) => {
@@ -621,7 +690,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 maxLength={150}
               />
               <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                <span>Brief description shown on the Studios page</span>
+                <span>Shown on studio cards and used by search engines. Make the most of the 150 characters</span>
                 <span>{(profile.profile.short_about || '').length}/150 characters</span>
               </div>
             </div>
@@ -1106,6 +1175,115 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           </div>
         );
 
+      case 'advanced':
+        return (
+          <div className="space-y-6">
+            {/* Under Construction Notice */}
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center">
+                    <Settings className="w-5 h-5 text-amber-700" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold text-amber-900 mb-1">🚧 Under Construction</h4>
+                  <p className="text-sm text-amber-800">
+                    This section is currently being developed. Some features may not work as expected. We appreciate your patience while we complete this feature.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">SEO Meta Title</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Customize how your studio appears in search engine results and social media shares. The meta title should be 50-60 characters for optimal display.
+              </p>
+            </div>
+
+            {/* Recommended Title Preview */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-blue-900 mb-2">Recommended Title</h4>
+              <p className="text-sm text-gray-700 mb-1">
+                {(() => {
+                  const studioName = profile.studio?.name || 'Your Studio';
+                  const city = profile.studio?.city || null;
+                  const studioTypes = profile.studio_types || [];
+                  
+                  const primaryTypePriority = ['RECORDING', 'HOME', 'PODCAST', 'VO_COACH', 'AUDIO_PRODUCER', 'VOICEOVER'];
+                  const primaryStudioType =
+                    primaryTypePriority.find((p) => studioTypes.includes(p)) ||
+                    studioTypes[0] ||
+                    null;
+
+                  return buildProfileMetaTitle({
+                    studioName,
+                    primaryStudioType,
+                    city,
+                  });
+                })()}
+              </p>
+              <p className="text-xs text-blue-700">
+                This title is automatically generated from your studio name, type, and location.
+              </p>
+            </div>
+
+            {/* Custom Title Input */}
+            <div>
+              <Input
+                label="Custom Meta Title (Optional)"
+                value={profile.metadata?.custom_meta_title || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setProfile(prev => prev ? {
+                    ...prev,
+                    metadata: { ...prev.metadata, custom_meta_title: value },
+                  } : null);
+                }}
+                maxLength={60}
+                placeholder="Leave empty to use the recommended title"
+                helperText="Override the automatic title with your own (max 60 characters)"
+              />
+              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                <span>
+                  {profile.metadata?.custom_meta_title && profile.metadata.custom_meta_title.trim() 
+                    ? 'Custom title will be used' 
+                    : 'Using recommended title'}
+                </span>
+                <span className={
+                  (profile.metadata?.custom_meta_title?.length || 0) > 60 
+                    ? 'text-red-600 font-semibold' 
+                    : (profile.metadata?.custom_meta_title?.length || 0) >= 50 
+                    ? 'text-amber-600 font-semibold'
+                    : ''
+                }>
+                  {profile.metadata?.custom_meta_title?.length || 0}/60 characters
+                </span>
+              </div>
+              
+              {/* Preview of what will be used */}
+              {profile.metadata?.custom_meta_title && profile.metadata.custom_meta_title.trim() && (
+                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p className="text-xs font-semibold text-gray-700 mb-1">Preview:</p>
+                  <p className="text-sm text-gray-900">{profile.metadata.custom_meta_title}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-amber-900 mb-2">💡 Best Practices</h4>
+              <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
+                <li>Keep it between 50-60 characters for best display</li>
+                <li>Include your studio name and primary service</li>
+                <li>Add your location if space permits</li>
+                <li>Make it natural and readable for humans</li>
+                <li>Avoid keyword stuffing or ALL CAPS</li>
+              </ul>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -1127,8 +1305,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         {/* Sticky Header + Tabs Container */}
         <div className="flex-shrink-0 bg-white/95 backdrop-blur-md rounded-t-2xl">
           {/* Desktop Header with Progress Indicators */}
-          <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
-            <div className="flex items-center gap-4 flex-1">
+          <div className="flex border-b border-gray-100 px-6 py-5 items-start justify-between gap-6">
+            <div className="flex items-start gap-4 flex-1">
               {/* Avatar */}
               <AvatarUpload
                 currentAvatar={profile.user.avatar_url}
@@ -1139,43 +1317,65 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 variant="user"
               />
               
-              {/* Title and description */}
-              <div>
+              {/* Title and profile URL */}
+              <div className="flex-1 flex flex-col">
                 <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Edit Profile</h2>
-                <p className="text-sm md:text-base text-gray-600 mt-1">
-                  Update your studio information and settings
-                </p>
+                
+                {/* Profile URL - Clickable link */}
+                <a
+                  href={`${getBaseUrl()}/${profile.user.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center mt-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-sm hover:bg-gray-100 transition-colors"
+                >
+                  <span className="text-gray-500">{getBaseUrl()}/</span>
+                  <span className="text-red-600 font-medium">{profile.user.username}</span>
+                </a>
               </div>
             </div>
 
-            {/* Progress Indicators and Action Buttons */}
+            {/* Profile Visibility Toggle and Required Progress */}
             <div className="flex-shrink-0 flex flex-col items-end gap-3">
-              <ProgressIndicators
-                requiredFieldsCompleted={completionStats.required.completed}
-                totalRequiredFields={completionStats.required.total}
-                overallCompletionPercentage={completionStats.overall.percentage}
-                variant="compact"
-              />
+              {/* Profile Visibility Toggle */}
+              <div 
+                className="flex items-center gap-3 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md"
+                title={completionStats.required.completed !== completionStats.required.total ? 'Complete all required profile fields before making your profile visible' : ''}
+              >
+                <div className="flex items-center space-x-2">
+                  {completionStats.required.completed !== completionStats.required.total ? (
+                    <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <EyeOff className="w-3.5 h-3.5 text-gray-600" />
+                    </div>
+                  ) : isProfileVisible ? (
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Eye className="w-3.5 h-3.5 text-green-600" />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <EyeOff className="w-3.5 h-3.5 text-red-600" />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900">Profile Visibility</h3>
+                  </div>
+                </div>
+                <div className="relative">
+                  <Toggle
+                    checked={isProfileVisible}
+                    onChange={handleVisibilityToggle}
+                    disabled={visibilitySaving || completionStats.required.completed !== completionStats.required.total}
+                  />
+                </div>
+              </div>
               
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    router.push('/dashboard');
-                  }}
-                  className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group"
-                >
-                  <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                  Overview
-                </button>
-                
-                <button
-                  onClick={handlePreview}
-                  className="py-1.5 px-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors group"
-                >
-                  <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                  View My Profile
-                </button>
+              {/* Required Fields Progress - Styled like URL pill */}
+              <div className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
+                <ProgressIndicators
+                  requiredFieldsCompleted={completionStats.required.completed}
+                  totalRequiredFields={completionStats.required.total}
+                  overallCompletionPercentage={completionStats.overall.percentage}
+                  variant="requiredOnly"
+                />
               </div>
             </div>
           </div>
