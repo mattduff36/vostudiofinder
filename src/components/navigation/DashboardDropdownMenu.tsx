@@ -156,36 +156,30 @@ export function DashboardDropdownMenu({
   });
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <Button
-        type="button"
-        onClick={() => {
-          setIsOpen(!isOpen);
-        }}
-        variant={isScrolled || !isHomePage ? 'outline' : 'outline'}
-        className={`${
-          isScrolled || !isHomePage 
-            ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white' 
-            : 'text-white border-white hover:bg-white hover:text-primary-800'
-        } flex items-center justify-center p-2 aspect-square w-10 h-10`}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        aria-label="Dashboard menu"
-      >
-        <Menu 
-          className="w-5 h-5"
-          aria-hidden="true"
-        />
-      </Button>
-
-      {isOpen && (
-        <>
-          {/* Backdrop with blur */}
-          <div 
-            className="fixed inset-0 z-[99] bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsOpen(false)}
+    <>
+      <div className="relative" ref={dropdownRef}>
+        <Button
+          type="button"
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+          variant={isScrolled || !isHomePage ? 'outline' : 'outline'}
+          className={`${
+            isScrolled || !isHomePage 
+              ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white' 
+              : 'text-white border-white hover:bg-white hover:text-primary-800'
+          } flex items-center justify-center p-2 aspect-square w-10 h-10`}
+          aria-haspopup="menu"
+          aria-expanded={isOpen}
+          aria-label="Dashboard menu"
+        >
+          <Menu 
+            className="w-5 h-5"
+            aria-hidden="true"
           />
-          {/* Menu Panel */}
+        </Button>
+
+        {isOpen && (
           <div 
             className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[110]"
             role="menu"
@@ -255,8 +249,16 @@ export function DashboardDropdownMenu({
             );
           })}
           </div>
-        </>
+        )}
+      </div>
+
+      {/* Backdrop with blur - Outside relative container to cover entire page */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-[99] bg-black/50 backdrop-blur-sm"
+          onClick={() => setIsOpen(false)}
+        />
       )}
-    </div>
+    </>
   );
 }
