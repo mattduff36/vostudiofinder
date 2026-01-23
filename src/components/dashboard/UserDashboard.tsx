@@ -657,7 +657,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                       size="lg"
                       className="px-8 py-3"
                     />
-                    <p className="text-sm text-gray-500 text-center">
+                    <p className="text-sm text-gray-500 text-center leading-relaxed">
                       One reward per membership period.<br />
                       Submit your link for verification to{' '}
                       <a 
