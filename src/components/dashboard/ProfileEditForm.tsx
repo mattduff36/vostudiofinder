@@ -19,7 +19,7 @@ import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { useAutosizeTextarea } from '@/hooks/useAutosizeTextarea';
-import { showSuccess, showError, showInfo } from '@/lib/toast';
+import { showSuccess, showError, showInfo, showWarning } from '@/lib/toast';
 import { getBaseUrl } from '@/lib/seo/site';
 import { buildProfileMetaTitle } from '@/lib/seo/profile-title';
 
@@ -484,7 +484,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       // Show voiceover artist warning if detected (non-blocking)
       if ((result as any)?.warnings && Array.isArray((result as any).warnings) && (result as any).warnings.length > 0) {
         const warningMessage = (result as any).warnings[0];
-        showInfo(warningMessage, true); // Use persistent toast for important warning
+        showWarning(warningMessage, 6000); // Show warning for 6 seconds
       }
       
       // Refresh profile data
@@ -1226,58 +1226,22 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
         return (
           <div className="space-y-6">
-            {/* Section Introduction */}
-            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-3">
-                  <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                    <Settings className="w-5 h-5 text-[#d42027]" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-gray-900">SEO & Meta Title</h3>
-                    <p className="text-xs text-gray-500">Optimize how your profile appears in search results</p>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600">
-                  Customize how your studio appears in search engine results and social media shares.
-                </p>
-              </div>
+            {/* Section Description */}
+            <div>
+              <p className="text-sm text-gray-600 mb-4">
+                Customize how your studio appears in search engine results and social media shares.
+              </p>
             </div>
 
-            {/* Current Meta Title Display */}
-            <div className="relative overflow-hidden rounded-xl border-2 border-red-100 bg-gradient-to-br from-red-50 to-white shadow-sm">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-semibold text-gray-900">Current Meta Title</h4>
-                  <button
-                    onClick={handleCopyMetaTitle}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#d42027] bg-white hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
-                    title="Copy to clipboard"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy</span>
-                  </button>
-                </div>
-                <div className="bg-white border border-red-200 rounded-lg p-4">
-                  <p className="text-base font-bold text-gray-900 leading-relaxed">
-                    {currentMetaTitle}
-                  </p>
-                </div>
-                <p className="text-xs text-gray-600 mt-3">
-                  {profile.metadata?.custom_meta_title?.trim() 
-                    ? 'Using your custom title' 
-                    : 'Auto-generated from your studio name, type, and location'}
-                </p>
-              </div>
-            </div>
-
-            {/* Custom Title Input */}
-            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
-              <div className="p-6">
-                <h4 className="text-sm font-semibold text-gray-900 mb-4">Customize Meta Title</h4>
-                <Input
-                  label="Custom Meta Title (Optional)"
-                  value={profile.metadata?.custom_meta_title || ''}
+            {/* Meta Title Input with Copy Icon Inside */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Meta Title
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={currentMetaTitle}
                   onChange={(e) => {
                     const value = e.target.value;
                     setProfile(prev => prev ? {
@@ -1286,51 +1250,45 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                     } : null);
                   }}
                   maxLength={60}
-                  placeholder="Leave empty to use the auto-generated title"
-                  helperText="Override the automatic title with your own (max 60 characters)"
+                  placeholder="Auto-generated from your studio name, type, and location"
+                  className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
-                <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                  <span>
-                    {profile.metadata?.custom_meta_title && profile.metadata.custom_meta_title.trim() 
-                      ? 'Custom title will be used' 
-                      : 'Using auto-generated title'}
-                  </span>
-                  <span className={
-                    (profile.metadata?.custom_meta_title?.length || 0) > 60 
-                      ? 'text-red-600 font-semibold' 
-                      : (profile.metadata?.custom_meta_title?.length || 0) >= 50 
-                      ? 'text-amber-600 font-semibold'
-                      : ''
-                  }>
-                    {profile.metadata?.custom_meta_title?.length || 0}/60 characters
-                  </span>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyMetaTitle}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-[#d42027] transition-colors"
+                  title="Copy to clipboard"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                <span>
+                  {profile.metadata?.custom_meta_title?.trim() 
+                    ? 'Using custom title - clear field to use auto-generated' 
+                    : 'Auto-generated from your studio name, type, and location'}
+                </span>
+                <span className={
+                  currentMetaTitle.length > 60 
+                    ? 'text-red-600 font-semibold' 
+                    : currentMetaTitle.length >= 50 
+                    ? 'text-amber-600 font-semibold'
+                    : ''
+                }>
+                  {currentMetaTitle.length}/60 characters
+                </span>
               </div>
             </div>
 
             {/* Best Practices */}
-            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
-              <div className="p-6">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">Best Practices</h4>
-                <ul className="text-sm text-gray-700 space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#d42027] font-bold">•</span>
-                    <span>Keep it between 50-60 characters for best display</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#d42027] font-bold">•</span>
-                    <span>Include your studio name and primary service</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#d42027] font-bold">•</span>
-                    <span>Add your location if space permits</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#d42027] font-bold">•</span>
-                    <span>Make it natural and readable for humans</span>
-                  </li>
-                </ul>
-              </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">Best Practices</h4>
+              <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                <li>Keep it between 50-60 characters for best display</li>
+                <li>Include your studio name and primary service</li>
+                <li>Add your location if space permits</li>
+                <li>Make it natural and readable for humans</li>
+              </ul>
             </div>
           </div>
         );

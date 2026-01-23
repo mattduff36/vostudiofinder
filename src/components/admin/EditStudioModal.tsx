@@ -2,7 +2,7 @@
 import { logger } from '@/lib/logger';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Loader2, Eye, Save, X, AlertTriangle, Copy } from 'lucide-react';
+import { Loader2, Eye, Save, X, AlertTriangle, Copy, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';

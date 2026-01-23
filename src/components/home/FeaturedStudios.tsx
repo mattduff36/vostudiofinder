@@ -308,7 +308,7 @@ export function FeaturedStudios({ studios, session }: FeaturedStudiosProps) {
           {placeholders.map((_, index) => (
             <div
               key={`placeholder-${index}`}
-              onClick={() => router.push(session ? '/auth/membership' : '/auth/signup')}
+              onClick={() => router.push(session ? '/dashboard/settings?section=membership' : '/auth/signup')}
               className="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-300 hover:scale-[1.02] transition-all duration-300 flex flex-col h-full cursor-pointer group"
             >
               {/* Placeholder Image Area */}

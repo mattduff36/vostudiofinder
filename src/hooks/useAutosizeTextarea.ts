@@ -12,9 +12,16 @@ export function useAutosizeTextarea({ value, isEnabled = true }: UseAutosizeText
     if (!isEnabled) return;
     if (!ref.current) return;
 
+    // Store current scroll position
+    const scrollPos = ref.current.scrollTop;
+    
     // Reset height to get accurate scrollHeight, then match content.
     ref.current.style.height = 'auto';
-    ref.current.style.height = `${ref.current.scrollHeight}px`;
+    const newHeight = ref.current.scrollHeight;
+    ref.current.style.height = `${newHeight}px`;
+    
+    // Restore scroll position
+    ref.current.scrollTop = scrollPos;
   }, [value, isEnabled]);
 
   return ref;

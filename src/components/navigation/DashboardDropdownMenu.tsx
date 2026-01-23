@@ -26,6 +26,7 @@ export function DashboardDropdownMenu({
   isAdminUser = false,
   showEditButton = false,
 }: DashboardDropdownMenuProps) {
+  const isTablet = typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1024;
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
