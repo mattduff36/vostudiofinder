@@ -457,7 +457,13 @@ export function QuickActions({
             </div>
             <p className="text-xs text-gray-500">
               One reward per membership period.<br />
-              Submit your link for verification to support@voiceoverstudiofinder.com
+              Submit your link for verification to{' '}
+              <a 
+                href="mailto:support@voiceoverstudiofinder.com" 
+                className="underline hover:text-[#d42027] transition-colors"
+              >
+                support@voiceoverstudiofinder.com
+              </a>
             </p>
           </div>
         </div>
