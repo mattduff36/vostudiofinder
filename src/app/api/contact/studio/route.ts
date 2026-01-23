@@ -124,7 +124,7 @@ Questions? support@voiceoverstudiofinder.com
 
     // Send email using Resend
     const emailSent = await sendEmail({
-      from: process.env.RESEND_BOOKING_FROM_EMAIL || 'booking-enquiry@voiceoverstudiofinder.com',
+      from: `Voiceover Studio Finder <${process.env.RESEND_BOOKING_FROM_EMAIL || 'booking-enquiry@voiceoverstudiofinder.com'}>`,
       to: ownerEmail,
       replyTo: senderEmail, // Allow studio owner to reply directly
       subject: `Enquiry for ${studioName} from Voiceover Studio Finder`,
