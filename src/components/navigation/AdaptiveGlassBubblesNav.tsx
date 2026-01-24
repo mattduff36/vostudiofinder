@@ -47,6 +47,10 @@ interface AdaptiveGlassBubblesNavProps {
   debugSensors?: boolean;
   isPositioned?: boolean; // Buttons positioned (may be invisible) for detection
   isVisible?: boolean; // Buttons visible to user
+  // Reveal animation props (for logged-in menu expand/collapse)
+  revealExpanded?: boolean; // undefined = no reveal logic, true = expanded, false = collapsed
+  revealMenuId?: string; // ID of the menu button (always visible) - default 'menu'
+  revealStaggerMs?: number; // Stagger delay between each button reveal - default 100
 }
 
 export function AdaptiveGlassBubblesNav({
@@ -57,6 +61,9 @@ export function AdaptiveGlassBubblesNav({
   debugSensors = false,
   isPositioned = true,
   isVisible = true,
+  revealExpanded,
+  revealMenuId = 'menu',
+  revealStaggerMs = 100,
 }: AdaptiveGlassBubblesNavProps) {
   const [internalIsDarkBackground, setInternalIsDarkBackground] = useState(false);
   // Track dark/light state per button
@@ -430,6 +437,18 @@ export function AdaptiveGlassBubblesNav({
             ? externalIsDarkBackground 
             : (buttonBackgrounds.get(buttonId) ?? isDarkBackground);
           
+          // Reveal animation logic (for logged-in menu expand/collapse)
+          const isMenuButton = buttonId === revealMenuId;
+          const hasRevealLogic = revealExpanded !== undefined;
+          // Calculate stagger delay: rightmost non-menu button appears first (0ms), then leftward
+          // items.length - 2 gives us the index of the last non-menu button
+          // Subtract current index to get reverse order delay
+          const revealDelayMs = hasRevealLogic && !isMenuButton 
+            ? (items.length - 2 - index) * revealStaggerMs 
+            : 0;
+          // Determine if this button should be revealed
+          const isRevealed = !hasRevealLogic || isMenuButton || revealExpanded;
+          
           const bubble = (
             <div 
               data-button-id={buttonId}
@@ -462,31 +481,48 @@ export function AdaptiveGlassBubblesNav({
             </div>
           );
 
-          if (item.href) {
+          const linkOrButton = item.href ? (
+            <Link
+              href={item.href}
+              {...(item.onClick ? { onClick: item.onClick } : {})}
+              className="flex flex-col items-center group touch-manipulation"
+              aria-label={item.label}
+              aria-current={item.active ? 'page' : undefined}
+            >
+              {bubble}
+            </Link>
+          ) : (
+            <button
+              onClick={item.onClick}
+              className="flex flex-col items-center group touch-manipulation"
+              aria-label={item.label}
+            >
+              {bubble}
+            </button>
+          );
+
+          // Wrap content in reveal wrapper for stagger animation (logged-in only)
+          if (hasRevealLogic && !isMenuButton) {
             return (
-              <Link
+              <div
                 key={buttonId}
-                href={item.href}
-                {...(item.onClick ? { onClick: item.onClick } : {})}
-                className="flex flex-col items-center group touch-manipulation"
-                aria-label={item.label}
-                aria-current={item.active ? 'page' : undefined}
+                className={`glass-reveal-wrapper ${isRevealed ? 'revealed' : 'collapsed'}`}
+                style={{
+                  // Apply stagger delay only when expanding (not collapsing)
+                  transitionDelay: isRevealed ? `${revealDelayMs}ms` : '0ms',
+                }}
               >
-                {bubble}
-              </Link>
-            );
-          } else {
-            return (
-              <button
-                key={buttonId}
-                onClick={item.onClick}
-                className="flex flex-col items-center group touch-manipulation"
-                aria-label={item.label}
-              >
-                {bubble}
-              </button>
+                {linkOrButton}
+              </div>
             );
           }
+
+          // No reveal logic or is menu button - render directly with key
+          return (
+            <div key={buttonId} className="glass-reveal-always-visible">
+              {linkOrButton}
+            </div>
+          );
         })}
       </div>
       <style jsx global>{`
@@ -941,6 +977,57 @@ export function AdaptiveGlassBubblesNav({
           .adaptive-circle-glass.glass-show,
           .adaptive-pill-glass.glass-show {
             opacity: 1;
+          }
+        }
+
+        /* ========================================
+           REVEAL WRAPPER - Menu expand/collapse stagger
+           Separate layer from scroll hide/show to avoid conflicts
+           ======================================== */
+        
+        .glass-reveal-wrapper {
+          /* GPU-accelerated properties for smooth animation */
+          will-change: opacity, transform;
+          /* Spring-like easing for premium feel */
+          transition: 
+            opacity 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+            transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Collapsed state - hidden with slight translate */
+        .glass-reveal-wrapper.collapsed {
+          opacity: 0;
+          transform: translate3d(10px, 0, 0);
+          pointer-events: none;
+        }
+
+        /* Revealed state - fully visible */
+        .glass-reveal-wrapper.revealed {
+          opacity: 1;
+          transform: translate3d(0, 0, 0);
+          pointer-events: auto;
+        }
+
+        /* Always-visible wrapper (menu button, non-logged-in) */
+        .glass-reveal-always-visible {
+          /* No special styles needed, just a wrapper for consistent key handling */
+        }
+
+        /* Reduced motion: instant show/hide, no transition */
+        @media (prefers-reduced-motion: reduce) {
+          .glass-reveal-wrapper {
+            transition: none;
+          }
+          
+          .glass-reveal-wrapper.collapsed {
+            opacity: 0;
+            transform: none;
+            pointer-events: none;
+          }
+          
+          .glass-reveal-wrapper.revealed {
+            opacity: 1;
+            transform: none;
           }
         }
       `}</style>

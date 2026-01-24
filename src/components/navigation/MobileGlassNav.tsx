@@ -112,15 +112,17 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     return null;
   }
 
-  // Build navigation items
+  // Build navigation items with stable ids for reveal animation
   const navItems: NavItem[] = [
     {
+      id: 'home',
       label: 'Home',
       icon: Home,
       href: '/',
       active: pathname === '/',
     },
     {
+      id: 'studios',
       label: 'Browse Studios',
       icon: Search,
       href: '/studios',
@@ -132,12 +134,14 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   if (session) {
     const username = session.user.username;
     navItems.push({
+      id: 'myProfile',
       label: 'Profile',
       icon: User,
       href: `/${username}`,
       active: pathname === `/${username}`,
     });
     navItems.push({
+      id: 'overview',
       label: 'Dashboard',
       icon: LayoutDashboard,
       href: '/dashboard',
@@ -145,7 +149,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     });
   }
 
-  // Add menu button
+  // Add menu button (always last, always visible)
   navItems.push({
     id: 'menu',
     label: isMenuOpen ? 'Close' : 'Menu',
@@ -199,13 +203,16 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           animation: 'fadeIn 0.3s ease-in',
         }}
       >
-        <div className="mx-auto max-w-lg mb-4">
+        <div className="mx-auto max-w-lg mb-[84px]">
           <AdaptiveGlassBubblesNav
             items={navItems}
             config={DEFAULT_CONFIG}
             debugSensors={false}
             isPositioned={isPositioned}
             isVisible={isScrollVisible}
+            revealExpanded={session ? isMenuOpen : undefined}
+            revealMenuId="menu"
+            revealStaggerMs={100}
           />
         </div>
       </nav>
@@ -218,7 +225,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           style={{ touchAction: 'none' }}
         >
           <AdaptiveGlassMenu
-            className="absolute bottom-[calc(env(safe-area-inset-bottom)+88px)] right-4 w-64 max-h-[70vh] overflow-y-auto pointer-events-auto"
+            className="absolute bottom-[calc(env(safe-area-inset-bottom)+168px)] right-4 w-64 max-h-[70vh] overflow-y-auto pointer-events-auto"
             config={DEFAULT_CONFIG}
             debugSensors={false}
             isVisible={isScrollVisible}
