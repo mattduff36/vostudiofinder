@@ -42,8 +42,8 @@ export function ContactStudioModal({
       return;
     }
 
-    if (trimmedMessage.length < 75) {
-      setError('Message must be at least 75 characters long');
+    if (trimmedMessage.length < 40) {
+      setError('Message must be at least 40 characters long');
       return;
     }
 
@@ -165,11 +165,11 @@ export function ContactStudioModal({
                   disabled={isSubmitting}
                 />
                 <div className="flex justify-between items-center text-xs mt-1">
-                  <span className={message.trim().length < 75 ? 'text-amber-600 font-medium' : 'text-gray-500'}>
-                    {message.trim().length < 75 ? `${75 - message.trim().length} more characters needed` : 'Message requirement met'}
+                  <span className={message.trim().length < 40 ? 'text-amber-600 font-medium' : 'text-gray-500'}>
+                    {message.trim().length < 40 ? `${40 - message.trim().length} more characters needed` : 'Message requirement met'}
                   </span>
-                  <span className={message.trim().length < 75 ? 'text-amber-600 font-semibold' : 'text-gray-500'}>
-                    {message.trim().length}/75 characters minimum
+                  <span className={message.trim().length < 40 ? 'text-amber-600 font-semibold' : 'text-gray-500'}>
+                    {message.trim().length}/40 characters minimum
                   </span>
                 </div>
               </div>
@@ -186,7 +186,7 @@ export function ContactStudioModal({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isSubmitting || message.trim().length < 75}
+                  disabled={isSubmitting || message.trim().length < 40}
                   loading={isSubmitting}
                   className="flex-1"
                 >

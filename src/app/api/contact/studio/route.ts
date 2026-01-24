@@ -12,7 +12,7 @@ const contactSchema = z.object({
   message: z.string()
     .min(1, 'Message is required')
     .transform(val => val.trim())
-    .pipe(z.string().min(75, 'Message must be at least 75 characters')),
+    .pipe(z.string().min(40, 'Message must be at least 40 characters')),
 });
 
 export async function POST(request: NextRequest) {
@@ -45,8 +45,7 @@ export async function POST(request: NextRequest) {
               <div style="margin-bottom: 32px;">
                 <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
               </div>
-              <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">New enquiry received</h1>
-              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">You've received a new enquiry for <strong>${studioName}</strong>.</p>
+              <h1 style="margin: 0 0 24px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">New enquiry received for ${studioName}</h1>
             </td>
           </tr>
           <tr>
@@ -54,8 +53,8 @@ export async function POST(request: NextRequest) {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f9f9f9; border-radius: 4px;">
                 <tr>
                   <td style="padding: 24px;">
-                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Message</p>
-                    <p style="margin: 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</p>
+                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">From</p>
+                    <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 500; color: #1a1a1a; line-height: 1.6;">${senderName} &lt;<a href="mailto:${senderEmail}" style="color: #d42027; text-decoration: none;">${senderEmail}</a>&gt;</p>
                   </td>
                 </tr>
               </table>
@@ -66,20 +65,8 @@ export async function POST(request: NextRequest) {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f9f9f9; border-radius: 4px;">
                 <tr>
                   <td style="padding: 24px;">
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <td style="padding: 0 0 12px 0;">
-                          <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">From</p>
-                          <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 500; color: #1a1a1a; line-height: 1.6;">${senderName}</p>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 12px 0 0 0; border-top: 1px solid #e5e5e5;">
-                          <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Email</p>
-                          <p style="margin: 4px 0 0 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;"><a href="mailto:${senderEmail}" style="color: #d42027; text-decoration: underline;">${senderEmail}</a></p>
-                        </td>
-                      </tr>
-                    </table>
+                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Message</p>
+                    <p style="margin: 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</p>
                   </td>
                 </tr>
               </table>
@@ -107,15 +94,12 @@ export async function POST(request: NextRequest) {
 
     // Create plain text version
     const textContent = `
-New Enquiry Received
+New enquiry received for ${studioName}
 
-You've received a new enquiry for ${studioName}.
+FROM: ${senderName} <${senderEmail}>
 
 MESSAGE:
 ${message}
-
-FROM: ${senderName}
-EMAIL: ${senderEmail}
 
 To reply, simply respond to this email or contact ${senderName} directly at ${senderEmail}.
 

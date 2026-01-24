@@ -128,9 +128,9 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
             </div>
           </div>
           {insights.locationStats.length > 0 ? (
-            <div className="flex items-center justify-center px-4 py-2">
+            <div className="flex items-center justify-center">
               <ResponsiveContainer width="100%" height={350}>
-                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <PieChart>
                   <Pie
                     data={insights.locationStats.map(item => ({
                       name: item.name,
@@ -142,6 +142,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                     label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
                       if (midAngle === undefined) return null;
                       const RADIAN = Math.PI / 180;
+                      // Position label in the middle of the slice
                       const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
                       const x = cx + radius * Math.cos(-midAngle * RADIAN);
                       const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -150,17 +151,17 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                         <text 
                           x={x} 
                           y={y} 
-                          fill="white" 
+                          fill="#000" 
                           textAnchor={x > cx ? 'start' : 'end'} 
                           dominantBaseline="central"
-                          fontSize={12}
+                          fontSize={13}
                           fontWeight="600"
                         >
                           {`${name} ${percent ? (percent * 100).toFixed(0) : '0'}%`}
                         </text>
                       );
                     }}
-                    outerRadius={100}
+                    outerRadius="70%"
                     fill="#8884d8"
                     dataKey="value"
                   >

@@ -15,7 +15,7 @@ Fixed two UI/integration bugs and clarified one intentional API change that appe
 The background image div was changed from conditionally having `bottom-16` on mobile list view to always having `bottom-0`. This caused the background to extend beneath and cover the mobile navigation bar when users were viewing the list, breaking the UI layout and making the navigation bar appear transparent/broken.
 
 ### Root Cause
-An overly aggressive simplification removed the conditional bottom positioning that accounts for the mobile navigation bar height (64px = 4rem = `bottom-16`).
+An overly aggressive simplification removed the conditional bottom positioning that accounts for the mobile navigation bar height (56px = 3.5rem = `top-14`).
 
 ### Impact
 - **Mobile list view**: Background image extended under the navigation bar, making it appear broken
@@ -37,7 +37,7 @@ An overly aggressive simplification removed the conditional bottom positioning t
 ```
 
 **Why This Works**:
-- **List view (mobile)**: `bottom-16` leaves space for navigation bar (64px)
+- **List view (mobile)**: `bottom-16` leaves space for navigation bar (56px mobile navbar + buffer)
 - **Map view (mobile)**: `bottom-0` fills entire screen (map hides navigation)
 - **Desktop**: `md:bottom-0` always fills screen (navigation is in header)
 

@@ -17,8 +17,8 @@
 ```
 
 **Result:** The mobile sections now have `pt-20` (80px) of top padding, which accounts for:
-- Navbar: 64px (`top-16`)
-- Additional buffer: 16px
+- Navbar: 56px (`top-14` = 3.5rem)
+- Additional buffer: 24px
 - This prevents content from being hidden behind the "Back to Dashboard" button
 
 ### Issue 2: Renewal Modal Mobile Optimization

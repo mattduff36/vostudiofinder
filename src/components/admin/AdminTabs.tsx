@@ -67,7 +67,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
   return (
     <>
       {/* Desktop Tabs - Static on desktop, no scroll animation */}
-      <div className="hidden md:block sticky top-20 -mt-1 z-50 bg-red-600 border-b border-red-700">
+      <div className="hidden md:block sticky top-[72px] -mt-1 z-50 bg-red-600 border-b border-red-700">
         <nav className="flex justify-center space-x-8 px-6" aria-label="Admin tabs">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -96,7 +96,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
 
       {/* Mobile Tabs - Syncs with navbar scroll animation */}
       <div 
-        className="md:hidden sticky top-16 -mt-[4px] z-50 bg-red-600 border-b border-red-700"
+        className="md:hidden sticky top-14 -mt-[4px] z-50 bg-red-600 border-b border-red-700"
         style={isMobile ? {
           transform: `translateY(-${navTranslateY}px)`,
           transition: 'none', // Let scroll drive the animation

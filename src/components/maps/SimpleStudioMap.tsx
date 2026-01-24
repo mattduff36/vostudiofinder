@@ -15,8 +15,6 @@ interface SimpleStudioMapProps {
   className?: string;
 }
 
-const AREA_RADIUS_M = 150; // Radius in meters for approximate location circle
-
 export function SimpleStudioMap({
   latitude,
   longitude,
@@ -65,8 +63,12 @@ export function SimpleStudioMap({
   }, []);
 
   // Determine whether to use address or coordinates
+  // IMPORTANT: When privacy mode is enabled (showExactLocation = false),
+  // we must use the provided coordinates (which are the manually adjusted
+  // privacy circle center), NOT geocode the address (which would reveal exact location).
   const addressToUse = fullAddress || address;
   const shouldUseAddress = !useCoordinates && 
+                          showExactLocation && // Only geocode address when showing exact location
                           addressToUse && 
                           isCompleteAddress(addressToUse);
 
@@ -165,27 +167,15 @@ export function SimpleStudioMap({
         // No title to protect privacy
       });
     } else {
-      // Show approximate area circle
-      new googleMaps.Circle({
-        strokeColor: '#DC2626',
-        strokeOpacity: 0.8,
-        strokeWeight: 2,
-        fillColor: '#DC2626',
-        fillOpacity: 0.25,
-        map: map,
-        center: { lat: finalLat, lng: finalLng },
-        radius: AREA_RADIUS_M,
-        clickable: false,
-      });
-      
-      // Add custom marker at center (same as /studios page)
+      // Show approximate location marker centered on the stored coordinates
+      // (which may have been manually adjusted by the user in the profile editor)
       // NO TITLE for privacy - user specifically chose to hide exact location
       new googleMaps.Marker({
         position: { lat: finalLat, lng: finalLng },
         icon: {
           url: '/images/marker.png',
           scaledSize: new googleMaps.Size(32, 32),
-          anchor: new googleMaps.Point(16, 32),
+          anchor: new googleMaps.Point(16, 16), // Center the marker image on the coordinates (not bottom-center)
         },
         map: map,
         optimized: false,

@@ -92,7 +92,7 @@ Mobile: Modal filters + View toggle (List/Map) + Cards
 **Issues Identified:**
 1. **Filter Modal:** Full-screen takeover feels heavy, blocks exploration
 2. **View Toggle:** List/Map mutually exclusive - can't reference map while browsing
-3. **Sticky Header:** Takes ~80px on mobile (nav 80px + controls 60px = 140px total)
+3. **Sticky Header:** Takes ~116px on mobile (nav 56px + controls 60px = 116px total)
 4. **Selected Studio Card:** Desktop sidebar pattern doesn't translate to mobile
 5. **Map Markers:** Clicking pin opens modal, but navigating back loses context
 6. **Load More:** Infinite scroll on mobile could cause "pogo-sticking"
@@ -246,7 +246,7 @@ VoiceoverStudioFinder connects voice artists with professional recording studios
 - **Impact:** Users can't reference map while browsing cards
 
 **Problem:** Sticky headers stack
-- **Why:** Navbar (80px) + Controls (60px) = 140px lost
+- **Why:** Navbar (56px) + Controls (60px) = 116px lost
 - **Where:** Navbar + Mobile controls
 - **Impact:** Only ~520px content on 360px iPhone SE
 
@@ -383,7 +383,7 @@ Mobile Type Scale:
 - **Map height:** 300px on mobile (vs 400px desktop)
 
 #### Sticky Behavior
-- **Top nav:** Always sticky, 60px height (down from 80px)
+- **Top nav:** Always sticky, 56px height on mobile, 72px height on desktop
 - **Page-specific controls:** NOT sticky on mobile (scroll away)
 - **Bottom nav:** Always sticky, 60px height
 - **Filter drawers:** Slide up from bottom (not full-screen modal)

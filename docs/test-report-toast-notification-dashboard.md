@@ -63,7 +63,7 @@ All features have been successfully tested and verified. The new toast notificat
 **Verification:**
 - ✅ `ToastProvider` properly included in `layout.tsx`
 - ✅ z-index set to 9999 to ensure toasts appear above all elements
-- ✅ Position set to top-center (80px from top, below navbar)
+- ✅ Position set to top-center (80px from top, below navbar - accounts for 72px desktop navbar + 8px buffer)
 - ✅ Toast styling matches site design system
 - ✅ Auto-dismiss timing working correctly (3 seconds for success)
 

@@ -35,6 +35,7 @@ export function QuickActions({
   const [isCompletionExpanded, setIsCompletionExpanded] = useState(false);
   const [isProfileVisible, setIsProfileVisible] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isPromotionExpanded, setIsPromotionExpanded] = useState(false);
 
   // Fetch profile data for completion stats
   useEffect(() => {
@@ -433,42 +434,6 @@ export function QuickActions({
         </div>
       )}
 
-      {/* Share Promotional Card - Mobile */}
-      {!loading && (
-        <div className="!bg-gradient-to-br from-red-50 to-white border border-gray-100 rounded-lg overflow-hidden shadow-sm p-6">
-          <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-3">
-              <Share2 className="w-7 h-7 text-[#d42027]" aria-hidden="true" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
-              Promote your studio. Get rewarded!
-            </h3>
-            <p className="text-sm text-gray-700 mb-4 leading-relaxed">
-              Share your profile on social media and receive a free month of membership! Submit the public post link to us to claim.
-            </p>
-            <div className="mb-3 w-full">
-              <ShareProfileButton
-                profileUrl={profileData?.user?.username ? `${getBaseUrl()}/${profileData.user.username}` : ''}
-                profileName={profileData?.user?.display_name || profileData?.user?.username || 'your studio'}
-                variant="primary"
-                size="md"
-                className="w-full"
-              />
-            </div>
-            <p className="text-xs text-gray-500">
-              One reward per membership period.<br />
-              Submit your link for verification to{' '}
-              <a 
-                href="mailto:support@voiceoverstudiofinder.com" 
-                className="underline hover:text-[#d42027] transition-colors"
-              >
-                support@voiceoverstudiofinder.com
-              </a>
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Accordion Cards */}
       {actions.map((action) => {
         const Icon = action.icon;
@@ -510,6 +475,65 @@ export function QuickActions({
           </div>
         );
       })}
+
+      {/* Share Promotional Accordion Card - Mobile (after Settings) */}
+      {!loading && (
+        <div className="!bg-gradient-to-br from-red-50 to-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          {/* Collapsed Header */}
+          <button
+            onClick={() => setIsPromotionExpanded(!isPromotionExpanded)}
+            className="w-full flex items-center p-4 hover:opacity-90 transition-opacity active:opacity-80"
+            aria-expanded={isPromotionExpanded}
+            aria-label="Promotion details"
+          >
+            <div className="flex-1 flex justify-center items-center space-x-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <Share2 className="w-5 h-5 text-[#d42027]" />
+              </div>
+              <p className="font-semibold text-gray-900 text-base leading-none m-0 !pb-0">
+                Promote your studio. Get rewarded!
+              </p>
+            </div>
+            <div className="ml-2 flex-shrink-0">
+              {isPromotionExpanded ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </div>
+          </button>
+
+          {/* Expanded Content */}
+          {isPromotionExpanded && (
+            <div className="border-t border-red-100 p-4">
+              <div className="flex flex-col items-center text-center">
+                <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                  Share your profile on social media and receive a free month of membership! Submit the public post link to us to claim.
+                </p>
+                <div className="mb-3 w-full">
+                  <ShareProfileButton
+                    profileUrl={profileData?.user?.username ? `${getBaseUrl()}/${profileData.user.username}` : ''}
+                    profileName={profileData?.user?.display_name || profileData?.user?.username || 'your studio'}
+                    variant="primary"
+                    size="md"
+                    className="w-full"
+                  />
+                </div>
+                <p className="text-xs text-gray-500">
+                  One reward per membership period.<br />
+                  Submit your link for verification to{' '}
+                  <a 
+                    href="mailto:support@voiceoverstudiofinder.com" 
+                    className="underline hover:text-[#d42027] transition-colors"
+                  >
+                    support@voiceoverstudiofinder.com
+                  </a>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -149,19 +149,18 @@ export function GoogleMap({
     // NOTE: On the public /studios page, we ALWAYS show regular map markers (pins)
     // regardless of the show_exact_location setting. The privacy circles are ONLY
     // shown on the AddressPreviewMap component (profile edit page).
-    // This ensures studios with privacy enabled still appear on the public map
-    // with the same marker style as everyone else.
+    // All custom markers on the /studios page use center-aligned anchors (16, 16)
+    // for consistent visual appearance, regardless of privacy mode.
     
     // Create new markers - always show regular pin markers
     const newMarkers = markerData.map(data => {
-      // Always show regular pin marker on public map
       const marker = new googleMaps.Marker({
         position: { lat: data.position.lat, lng: data.position.lng },
         // No title for privacy protection
         icon: {
           url: '/images/marker.png',
           scaledSize: new googleMaps.Size(32, 32),
-          anchor: new googleMaps.Point(16, 32),
+          anchor: new googleMaps.Point(16, 16), // Always center-aligned for custom markers
         },
         map: mapInstance,
         optimized: false,
