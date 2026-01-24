@@ -48,6 +48,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const [showMenuHint, setShowMenuHint] = useState(false);
   const [isMorphing, setIsMorphing] = useState(false);
   const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const morphTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Track if menu has been opened at least once (to avoid hiding buttons on initial load)
   const [hasMenuBeenOpened, setHasMenuBeenOpened] = useState(false);
@@ -107,6 +108,9 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       });
       if (activityTimeoutRef.current) {
         clearTimeout(activityTimeoutRef.current);
+      }
+      if (morphTimeoutRef.current) {
+        clearTimeout(morphTimeoutRef.current);
       }
     };
   }, [updateActivity]);
@@ -235,17 +239,33 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       // Sequence: text fades (200ms) -> morph (400ms) -> pause (150ms) -> menu opens
       setIsMorphing(true);
       
+      // Clear any existing morph timeout (prevents stale callbacks)
+      if (morphTimeoutRef.current) {
+        clearTimeout(morphTimeoutRef.current);
+      }
+      
       // After full sequence completes, hide hint and open menu
-      setTimeout(() => {
+      morphTimeoutRef.current = setTimeout(() => {
         setIsMorphing(false);
         setShowMenuHint(false);
         // Update activity timestamp since they've now used the menu
         localStorage.setItem(MENU_ACTIVITY_KEY, Date.now().toString());
         setHasMenuBeenOpened(true);
         setIsMenuOpen(true);
+        morphTimeoutRef.current = null; // Clear ref after execution
       }, TOTAL_MORPH_SEQUENCE_MS);
     } else {
-      // Normal toggle behavior
+      // Normal toggle behavior - clear any pending morph timeout
+      if (morphTimeoutRef.current) {
+        clearTimeout(morphTimeoutRef.current);
+        morphTimeoutRef.current = null;
+      }
+      
+      // If user clicks during morphing, reset morph state immediately
+      if (isMorphing) {
+        setIsMorphing(false);
+      }
+      
       if (!isMenuOpen) {
         setHasMenuBeenOpened(true);
       }
