@@ -113,6 +113,10 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   }
 
   // Build navigation items with stable ids for reveal animation
+  // On /studios page: Home shows text, Studios shows icon only (hints user where they can go)
+  // On other pages: Studios shows text when logged out, Home is icon only
+  const isOnStudiosPage = pathname === '/studios';
+  
   const navItems: NavItem[] = [
     {
       id: 'home',
@@ -120,14 +124,15 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       icon: Home,
       href: '/',
       active: pathname === '/',
+      showLabel: isOnStudiosPage, // Show "Home" text on studios page
     },
     {
       id: 'studios',
       label: 'Browse Studios',
       icon: Search,
       href: '/studios',
-      active: pathname === '/studios',
-      showLabel: !session, // Show text label when logged out
+      active: isOnStudiosPage,
+      showLabel: !session && !isOnStudiosPage, // Show text when logged out AND not on studios page
     },
   ];
 

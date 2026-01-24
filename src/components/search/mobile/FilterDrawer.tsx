@@ -150,7 +150,7 @@ export function FilterDrawer({
       {/* Semi-transparent backdrop for outside clicks */}
       {isOpen && (
         <div
-          className="fixed inset-0 md:hidden z-[60]"
+          className="fixed inset-0 md:hidden z-[60] bg-black/30"
           onClick={(e) => {
             e.stopPropagation();
             handleClose();
