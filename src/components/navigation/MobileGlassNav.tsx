@@ -12,6 +12,14 @@ import { signOut } from 'next-auth/react';
 import { Home, Search, LayoutDashboard, Menu, User, X } from 'lucide-react';
 import { Session } from 'next-auth';
 import { AdaptiveGlassBubblesNav, DEFAULT_CONFIG, type NavItem } from './AdaptiveGlassBubblesNav';
+
+// Smaller button config for mobile nav
+const MOBILE_NAV_CONFIG = {
+  ...DEFAULT_CONFIG,
+  circleSize: 48,      // Smaller buttons (was 56)
+  pillPaddingX: 10,    // Tighter horizontal padding (was 12)
+  pillPaddingY: 5,     // Slightly tighter vertical (was 6)
+};
 import { AdaptiveGlassMenu } from './AdaptiveGlassMenu';
 import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
 import { useScrollVisibility } from '@/hooks/useScrollVisibility';
@@ -113,13 +121,8 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   }
 
   // Build navigation items with stable ids for reveal animation
-  // On /studios page: Home shows text, Studios shows icon only (hints user where they can go)
-  // On other pages: Studios shows text when logged out, Home is icon only
-  const isOnStudiosPage = pathname === '/studios';
-  
-  // Consistent pill width for both buttons when showing text (matches "Browse Studios" width)
-  const pillMinWidth = 145;
-  
+  // Signed-out: Both Home and Browse Studios show text labels (smaller buttons fit both)
+  // Signed-in: All buttons are icon-only circles
   const navItems: NavItem[] = [
     {
       id: 'home',
@@ -127,17 +130,15 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       icon: Home,
       href: '/',
       active: pathname === '/',
-      showLabel: isOnStudiosPage, // Show "Home" text on studios page
-      pillMinWidth: isOnStudiosPage ? pillMinWidth : undefined,
+      showLabel: !session, // Show text when signed out
     },
     {
       id: 'studios',
-      label: 'Browse Studios',
+      label: 'Studios',
       icon: Search,
       href: '/studios',
-      active: isOnStudiosPage,
-      showLabel: !session && !isOnStudiosPage, // Show text when logged out AND not on studios page
-      pillMinWidth: !session && !isOnStudiosPage ? pillMinWidth : undefined,
+      active: pathname === '/studios',
+      showLabel: !session, // Show text when signed out
     },
   ];
 
@@ -216,7 +217,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
         <div className="mx-auto max-w-lg mb-[84px]">
           <AdaptiveGlassBubblesNav
             items={navItems}
-            config={DEFAULT_CONFIG}
+            config={MOBILE_NAV_CONFIG}
             debugSensors={false}
             isPositioned={isPositioned}
             isVisible={isScrollVisible}
