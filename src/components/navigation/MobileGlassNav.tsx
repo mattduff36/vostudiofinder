@@ -329,11 +329,11 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           padding: '0 max(env(safe-area-inset-left), 1rem) env(safe-area-inset-bottom) max(env(safe-area-inset-right), 1rem)',
           opacity: 1,
           animation: 'fadeIn 0.3s ease-in',
-          // Fix: Disable pointer events on container when buttons are hidden
-          pointerEvents: isScrollVisible ? 'auto' : 'none',
+          // Fix: Always disable pointer events on container - buttons will re-enable their own
+          pointerEvents: 'none',
         }}
       >
-        <div className="mx-auto max-w-lg mb-[84px]">
+        <div className="mx-auto max-w-lg mb-[84px]" style={{ pointerEvents: 'none' }}>
           <AdaptiveGlassBubblesNav
             items={navItems}
             config={MOBILE_NAV_CONFIG}

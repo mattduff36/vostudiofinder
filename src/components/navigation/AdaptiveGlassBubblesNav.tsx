@@ -443,6 +443,8 @@ export function AdaptiveGlassBubblesNav({
           '--glass-shadow-spread': `${config.shadowSpread}px`,
           '--glass-hover-lift': `${config.hoverLift}px`,
           '--glass-hover-scale': String(config.hoverScale),
+          // Allow clicks to pass through container to content below
+          pointerEvents: 'none',
         } as React.CSSProperties}
       >
         {items.map((item, index) => {
@@ -520,6 +522,7 @@ export function AdaptiveGlassBubblesNav({
               href={item.href}
               {...(item.onClick ? { onClick: item.onClick } : {})}
               className="flex flex-col items-center group touch-manipulation"
+              style={{ pointerEvents: 'auto' }}
               aria-label={item.label}
               aria-current={item.active ? 'page' : undefined}
             >
@@ -529,6 +532,7 @@ export function AdaptiveGlassBubblesNav({
             <button
               onClick={item.onClick}
               className="flex flex-col items-center group touch-manipulation"
+              style={{ pointerEvents: 'auto' }}
               aria-label={item.label}
             >
               {bubble}
@@ -544,6 +548,8 @@ export function AdaptiveGlassBubblesNav({
                 style={{
                   // Apply stagger delay only when expanding (not collapsing)
                   transitionDelay: isRevealed ? `${revealDelayMs}ms` : '0ms',
+                  // Re-enable pointer events for button wrapper
+                  pointerEvents: 'auto',
                 }}
               >
                 {linkOrButton}
@@ -553,7 +559,7 @@ export function AdaptiveGlassBubblesNav({
 
           // No reveal logic or is menu button - render directly with key
           return (
-            <div key={buttonId} className="glass-reveal-always-visible">
+            <div key={buttonId} className="glass-reveal-always-visible" style={{ pointerEvents: 'auto' }}>
               {linkOrButton}
             </div>
           );
