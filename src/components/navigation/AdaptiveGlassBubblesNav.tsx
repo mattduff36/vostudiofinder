@@ -37,6 +37,7 @@ export interface NavItem {
   active?: boolean;
   onClick?: () => void;
   showLabel?: boolean; // Show text label next to icon (pill shape)
+  pillMinWidth?: number; // Minimum width in pixels for pill buttons (ensures consistent sizing)
 }
 
 interface AdaptiveGlassBubblesNavProps {
@@ -458,6 +459,7 @@ export function AdaptiveGlassBubblesNav({
               className={`${isPill ? 'adaptive-pill-glass' : 'adaptive-circle-glass'} ${hasAnimated.current ? (isVisible ? 'glass-show' : 'glass-hide') : ''} ${isPositioned && !isVisible ? 'glass-positioning' : ''} ${item.active ? 'active' : ''} ${isButtonDark ? 'dark-bg' : 'light-bg'}`}
               style={{
                 width: isPill ? 'auto' : `${config.circleSize}px`,
+                minWidth: isPill && item.pillMinWidth ? `${item.pillMinWidth}px` : undefined,
                 height: `${config.circleSize}px`,
                 paddingLeft: isPill ? `${config.pillPaddingX}px` : undefined,
                 paddingRight: isPill ? `${config.pillPaddingX}px` : undefined,

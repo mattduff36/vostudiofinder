@@ -117,6 +117,9 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   // On other pages: Studios shows text when logged out, Home is icon only
   const isOnStudiosPage = pathname === '/studios';
   
+  // Consistent pill width for both buttons when showing text (matches "Browse Studios" width)
+  const pillMinWidth = 145;
+  
   const navItems: NavItem[] = [
     {
       id: 'home',
@@ -125,6 +128,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       href: '/',
       active: pathname === '/',
       showLabel: isOnStudiosPage, // Show "Home" text on studios page
+      pillMinWidth: isOnStudiosPage ? pillMinWidth : undefined,
     },
     {
       id: 'studios',
@@ -133,6 +137,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       href: '/studios',
       active: isOnStudiosPage,
       showLabel: !session && !isOnStudiosPage, // Show text when logged out AND not on studios page
+      pillMinWidth: !session && !isOnStudiosPage ? pillMinWidth : undefined,
     },
   ];
 
