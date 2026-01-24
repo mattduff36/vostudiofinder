@@ -385,6 +385,12 @@ input[type="checkbox"]:focus {
   padding-left: env(safe-area-inset-left);
 }
 
+/* 
+ * Mobile Bottom Navigation Spacing
+ * The liquid glass nav is 72px tall (56px bubbles + 16px margin)
+ * Main content has 88px bottom padding (72px nav + 16px safe space)
+ * This ensures content like the Share Profile button is always visible
+ */
 /* iOS Safari bottom gap fix - Remove main bottom padding when mobile nav is hidden */
 @media (max-width: 767px) {
   html.vsf-mobile-nav-hidden main {

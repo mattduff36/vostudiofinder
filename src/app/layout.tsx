@@ -98,7 +98,7 @@ export default async function RootLayout({
             <ToastProvider />
             <ConfirmDialog />
             <Navbar session={session} />
-            <main className="pt-16 pb-16 md:pt-20 md:pb-0">{children}</main>
+            <main className="pt-16 pb-[88px] md:pt-20 md:pb-0">{children}</main>
             <MobileShell session={session} />
           </LoadingProvider>
         </SessionProvider>

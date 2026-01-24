@@ -73,7 +73,7 @@ export function GoogleMap({
       hasUserInteractedRef.current = false;
       setMarkersReady(false); // Reset markers ready state for new search
     }
-  }, [searchCenter, searchRadius]);
+  }, [searchCenter, searchRadius]); // Only reset on NEW search, not when filters change marker count
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -82,6 +82,7 @@ export function GoogleMap({
   const centerMarkerRef = useRef<any>(null);
   const clusterRenderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const activeInfoWindowRef = useRef<any>(null);
+  const isAutoZoomingRef = useRef(false); // Track if auto-zoom is in progress
   const [isLoaded, setIsLoaded] = useState(false);
   // Track if user has interacted with the map (use ref for synchronous updates)
   const hasUserInteractedRef = useRef(false);
@@ -389,6 +390,7 @@ export function GoogleMap({
     // Trigger auto-zoom after markers are created
     if (searchCenter && searchRadius && markerData.length > 0 && !hasUserInteractedRef.current) {
       logger.log('🔍 Triggering auto-zoom from marker creation');
+      isAutoZoomingRef.current = true; // Set flag to prevent center override
       setTimeout(() => {
         if (mapInstance && !hasUserInteractedRef.current) {
           const bounds = new (window.google.maps as any).LatLngBounds();
@@ -423,6 +425,9 @@ export function GoogleMap({
               } else {
                 logger.log(`✅ Zoom optimal at level ${currentZoom}`);
               }
+              
+              // Clear auto-zoom flag after all zoom operations complete
+              isAutoZoomingRef.current = false;
             }
           }, 100);
         }
@@ -936,17 +941,27 @@ export function GoogleMap({
     
     // No cleanup needed for this effect
     return;
-  }, [searchCenter, searchRadius, markers, circleRef.current, markersRef.current, markersReady]);
+  }, [searchCenter, searchRadius, markers, markersReady]); // Remove circleRef.current and markersRef.current - refs don't trigger re-renders!
 
-  // Update center when prop changes (only if user hasn't interacted)
+  // Update center when prop changes (only if user hasn't interacted AND not auto-zooming AND no active search with markers)
   useEffect(() => {
-    if (mapInstanceRef.current && !hasUserInteractedRef.current) {
+    // Don't update center if:
+    // 1. User has interacted with map
+    // 2. Auto-zoom is in progress
+    // 3. We have a search center (meaning we're showing search results and should use fitBounds, not setCenter)
+    const shouldSkipCenterUpdate = hasUserInteractedRef.current || isAutoZoomingRef.current || searchCenter;
+    
+    if (mapInstanceRef.current && !shouldSkipCenterUpdate) {
       logger.log('🎯 Updating map center to:', center);
       mapInstanceRef.current.setCenter({ lat: center.lat, lng: center.lng });
     } else if (hasUserInteractedRef.current) {
       logger.log('🚫 Skipping center update - user has interacted with map');
+    } else if (isAutoZoomingRef.current) {
+      logger.log('🚫 Skipping center update - auto-zoom in progress');
+    } else if (searchCenter) {
+      logger.log('🚫 Skipping center update - search results active, using fitBounds instead');
     }
-  }, [center]);
+  }, [center, searchCenter]);
 
   if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
     return (

@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
-import { LogOut, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
@@ -354,21 +353,8 @@ export function Navbar({ session }: NavbarProps) {
             </div>
           )}
 
-          {/* Mobile Sign In/Out Button */}
-          {session ? (
-            <button
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className={`md:hidden p-2 rounded-lg transition-all duration-300 ${
-                isScrolled || !isHomePage 
-                  ? 'text-gray-600 hover:bg-gray-100' 
-                  : 'text-white hover:bg-white/20'
-              }`}
-              aria-label="Sign out"
-              title="Sign out"
-            >
-              <LogOut size={20} />
-            </button>
-          ) : (
+          {/* Mobile Sign In Button (not logged in) */}
+          {!session && (
             <button
               onClick={() => router.push('/auth/signin')}
               className="md:hidden px-3 py-1.5 rounded-lg transition-all duration-300 bg-[#d42027] hover:bg-[#b91c23] text-white text-sm font-medium"

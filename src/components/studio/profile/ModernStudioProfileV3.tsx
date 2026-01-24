@@ -412,27 +412,17 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
           </div>
 
           {/* Contact Info */}
-          {((profile?.show_phone !== false && (profile?.phone || studio.phone)) || 
-            (profile?.show_email !== false && studio.owner.email)) && (
+          {(profile?.show_phone !== false && (profile?.phone || studio.phone)) && (
             <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
               <h3 className="text-sm font-semibold text-gray-900 mb-3">Contact</h3>
               <div className="space-y-2">
-                {profile?.show_phone !== false && (profile?.phone || studio.phone) && (
+                {(profile?.phone || studio.phone) && (
                   <a
                     href={`tel:${profile?.phone || studio.phone}`}
                     className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <Phone className="w-5 h-5 text-[#d42027]" aria-hidden="true" />
                     <span className="text-sm text-gray-700">{profile?.phone || studio.phone}</span>
-                  </a>
-                )}
-                {profile?.show_email !== false && studio.owner.email && (
-                  <a
-                    href={`mailto:${studio.owner.email}?subject=Enquiry about ${studio.name}`}
-                    className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <Mail className="w-5 h-5 text-[#d42027]" aria-hidden="true" />
-                    <span className="text-sm text-gray-700">{studio.owner.email}</span>
                   </a>
                 )}
               </div>

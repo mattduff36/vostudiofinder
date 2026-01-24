@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
               <div style="margin-bottom: 32px;">
                 <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
               </div>
-              <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">New booking enquiry</h1>
-              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">You have received a new enquiry for <strong>${studioName}</strong> through Voiceover Studio Finder.</p>
+              <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">New enquiry received</h1>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">You've received a new enquiry for <strong>${studioName}</strong>.</p>
             </td>
           </tr>
           <tr>
@@ -107,9 +107,9 @@ export async function POST(request: NextRequest) {
 
     // Create plain text version
     const textContent = `
-New Booking Enquiry
+New Enquiry Received
 
-You have received a new enquiry for ${studioName} through Voiceover Studio Finder.
+You've received a new enquiry for ${studioName}.
 
 MESSAGE:
 ${message}
@@ -130,7 +130,7 @@ Questions? support@voiceoverstudiofinder.com
       from: `Voiceover Studio Finder <${process.env.RESEND_BOOKING_FROM_EMAIL || 'booking-enquiry@voiceoverstudiofinder.com'}>`,
       to: ownerEmail,
       replyTo: senderEmail, // Allow studio owner to reply directly
-      subject: `Enquiry for ${studioName} from Voiceover Studio Finder`,
+      subject: `New enquiry via Voiceover Studio Finder`,
       html: htmlContent,
       text: textContent,
     });

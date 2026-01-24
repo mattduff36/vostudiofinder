@@ -406,7 +406,7 @@ export function EnhancedLocationFilter({
     // Debounce the suggestion fetching
     debounceRef.current = setTimeout(() => {
       fetchSuggestions(newValue);
-    }, 300);
+    }, 200);
   };
 
   // Handle keyboard navigation
@@ -414,6 +414,11 @@ export function EnhancedLocationFilter({
     if (!isOpen || suggestions.length === 0) {
       if (e.key === 'Enter' && onEnterKey) {
         e.preventDefault();
+        // Cancel any pending suggestion fetch
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+          debounceRef.current = null;
+        }
         // Pass the typed value directly to onEnterKey so it can use it immediately
         // without waiting for async state updates
         const typedValue = query.trim();
@@ -438,6 +443,11 @@ export function EnhancedLocationFilter({
         break;
       case 'Enter':
         e.preventDefault();
+        // Cancel any pending suggestion fetch
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+          debounceRef.current = null;
+        }
         if (selectedIndex >= 0 && suggestions[selectedIndex]) {
           handleSelect(suggestions[selectedIndex]);
         } else if (onEnterKey) {
@@ -449,6 +459,9 @@ export function EnhancedLocationFilter({
           } else {
             onEnterKey();
           }
+          // Close the suggestion dropdown after triggering search
+          setIsOpen(false);
+          setSelectedIndex(-1);
         }
         break;
       case 'Escape':
@@ -545,6 +558,11 @@ export function EnhancedLocationFilter({
       <button
         type="button"
         onClick={() => {
+          // Cancel any pending suggestion fetch
+          if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+            debounceRef.current = null;
+          }
           // Pass the typed value directly to onEnterKey so it can use it immediately
           const typedValue = query.trim();
           if (typedValue) {
@@ -555,6 +573,9 @@ export function EnhancedLocationFilter({
           } else if (onEnterKey) {
             onEnterKey();
           }
+          // Close the suggestion dropdown after triggering search
+          setIsOpen(false);
+          setSelectedIndex(-1);
         }}
         className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white rounded-md p-1.5 transition-colors"
         style={{ 

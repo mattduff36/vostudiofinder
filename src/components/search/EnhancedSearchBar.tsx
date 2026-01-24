@@ -591,7 +591,7 @@ export function EnhancedSearchBar({
                   
                   debounceRef.current = setTimeout(() => {
                     fetchSuggestions(newValue);
-                  }, 300);
+                  }, 200);
                 }}
                 onKeyDown={handleKeyDown}
                 autoComplete="off"

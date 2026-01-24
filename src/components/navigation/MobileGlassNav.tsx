@@ -285,6 +285,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           </AdaptiveGlassMenu>
         </div>
       )}
+
     </>
   );
 }
