@@ -6,12 +6,16 @@
  */
 'use client';
 
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useState, useRef, useCallback, type MouseEvent } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Home, Search, LayoutDashboard, Menu, User, X } from 'lucide-react';
 import { Session } from 'next-auth';
 import { AdaptiveGlassBubblesNav, DEFAULT_CONFIG, type NavItem } from './AdaptiveGlassBubblesNav';
+import { AdaptiveGlassMenu } from './AdaptiveGlassMenu';
+import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
+import { useScrollVisibility } from '@/hooks/useScrollVisibility';
+import { useLoading } from '@/providers/LoadingProvider';
 
 // Smaller button config for mobile nav
 const MOBILE_NAV_CONFIG = {
@@ -20,10 +24,11 @@ const MOBILE_NAV_CONFIG = {
   pillPaddingX: 10,    // Tighter horizontal padding (was 12)
   pillPaddingY: 5,     // Slightly tighter vertical (was 6)
 };
-import { AdaptiveGlassMenu } from './AdaptiveGlassMenu';
-import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
-import { useScrollVisibility } from '@/hooks/useScrollVisibility';
-import { useLoading } from '@/providers/LoadingProvider';
+
+// Menu hint constants
+const MENU_ACTIVITY_KEY = 'vsf_menu_last_active';
+const INACTIVITY_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 hours
+const MORPH_ANIMATION_MS = 300;
 
 interface MobileGlassNavProps {
   session: Session | null;
@@ -37,11 +42,69 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const [showAdminEditButton, setShowAdminEditButton] = useState(false);
   const { isInitialLoad } = useLoading();
   
+  // Menu hint state - shows "Open Menu" text for new/returning users
+  const [showMenuHint, setShowMenuHint] = useState(false);
+  const [isMorphing, setIsMorphing] = useState(false);
+  const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   // Two-phase scroll visibility: position at 150ms (invisible), show at 500ms
   const { isPositioned, isVisible: isScrollVisible } = useScrollVisibility({ 
     showDelay: 500,
     positionDelay: 150 
   });
+
+  // Check if menu hint should be shown (first visit or 2h+ inactive)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const lastActive = localStorage.getItem(MENU_ACTIVITY_KEY);
+    const now = Date.now();
+    
+    if (!lastActive) {
+      // First visit ever
+      setShowMenuHint(true);
+    } else {
+      const elapsed = now - parseInt(lastActive, 10);
+      if (elapsed >= INACTIVITY_THRESHOLD_MS) {
+        // Been inactive for 2+ hours
+        setShowMenuHint(true);
+      }
+    }
+  }, []);
+
+  // Update activity timestamp on any user interaction (debounced)
+  const updateActivity = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Debounce updates to avoid excessive writes
+    if (activityTimeoutRef.current) {
+      clearTimeout(activityTimeoutRef.current);
+    }
+    
+    activityTimeoutRef.current = setTimeout(() => {
+      localStorage.setItem(MENU_ACTIVITY_KEY, Date.now().toString());
+    }, 1000); // Update at most once per second
+  }, []);
+
+  // Listen for user activity to update timestamp
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const events = ['click', 'scroll', 'keydown', 'touchstart'];
+    
+    events.forEach(event => {
+      window.addEventListener(event, updateActivity, { passive: true });
+    });
+    
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, updateActivity);
+      });
+      if (activityTimeoutRef.current) {
+        clearTimeout(activityTimeoutRef.current);
+      }
+    };
+  }, [updateActivity]);
 
   // Close menu when scrolling starts (buttons hide)
   useEffect(() => {
@@ -160,12 +223,35 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
     });
   }
 
+  // Handle menu button click with optional morph animation
+  const handleMenuClick = () => {
+    if (showMenuHint && !isMorphing) {
+      // First click with hint showing - start morph animation
+      setIsMorphing(true);
+      
+      // After morph completes, hide hint and open menu
+      setTimeout(() => {
+        setIsMorphing(false);
+        setShowMenuHint(false);
+        // Update activity timestamp since they've now used the menu
+        localStorage.setItem(MENU_ACTIVITY_KEY, Date.now().toString());
+        setIsMenuOpen(true);
+      }, MORPH_ANIMATION_MS);
+    } else {
+      // Normal toggle behavior
+      setIsMenuOpen(!isMenuOpen);
+    }
+  };
+
   // Add menu button (always last, always visible)
+  // Shows "Open Menu" hint for new/returning users
   navItems.push({
     id: 'menu',
-    label: isMenuOpen ? 'Close' : 'Menu',
+    label: isMorphing ? '' : (showMenuHint ? 'Open Menu' : (isMenuOpen ? 'Close' : 'Menu')),
     icon: isMenuOpen ? X : Menu,
-    onClick: () => setIsMenuOpen(!isMenuOpen),
+    showLabel: showMenuHint && !isMorphing, // Pill shape when showing hint
+    isMorphing: isMorphing, // Pass morphing state for animation
+    onClick: handleMenuClick,
   });
 
   const handleAction = (action: string) => {

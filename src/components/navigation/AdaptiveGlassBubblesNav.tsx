@@ -39,6 +39,7 @@ export interface NavItem {
   onClick?: () => void;
   showLabel?: boolean; // Show text label next to icon (pill shape)
   pillMinWidth?: number; // Minimum width in pixels for pill buttons (ensures consistent sizing)
+  isMorphing?: boolean; // True during pill-to-circle morph animation
 }
 
 interface AdaptiveGlassBubblesNavProps {
@@ -467,18 +468,21 @@ export function AdaptiveGlassBubblesNav({
           // Determine if this button should be revealed
           const isRevealed = !hasRevealLogic || isMenuButton || revealExpanded;
           
+          // Handle morphing state - transitioning from pill to circle
+          const isMorphingButton = item.isMorphing === true;
+          
           const bubble = (
             <div 
               data-button-id={buttonId}
-              className={`${isPill ? 'adaptive-pill-glass' : 'adaptive-circle-glass'} ${hasAnimated.current ? (isVisible ? 'glass-show' : 'glass-hide') : ''} ${isPositioned && !isVisible ? 'glass-positioning' : ''} ${item.active ? 'active' : ''} ${isButtonDark ? 'dark-bg' : 'light-bg'}`}
+              className={`${isPill && !isMorphingButton ? 'adaptive-pill-glass' : 'adaptive-circle-glass'} ${isMorphingButton ? 'glass-morphing' : ''} ${hasAnimated.current ? (isVisible ? 'glass-show' : 'glass-hide') : ''} ${isPositioned && !isVisible ? 'glass-positioning' : ''} ${item.active ? 'active' : ''} ${isButtonDark ? 'dark-bg' : 'light-bg'}`}
               style={{
-                width: isPill ? 'auto' : `${config.circleSize}px`,
-                minWidth: isPill && item.pillMinWidth ? `${item.pillMinWidth}px` : undefined,
+                width: isPill && !isMorphingButton ? 'auto' : `${config.circleSize}px`,
+                minWidth: isPill && !isMorphingButton && item.pillMinWidth ? `${item.pillMinWidth}px` : undefined,
                 height: `${config.circleSize}px`,
-                paddingLeft: isPill ? `${config.pillPaddingX}px` : undefined,
-                paddingRight: isPill ? `${config.pillPaddingX}px` : undefined,
-                paddingTop: isPill ? `${config.pillPaddingY}px` : undefined,
-                paddingBottom: isPill ? `${config.pillPaddingY}px` : undefined,
+                paddingLeft: isPill && !isMorphingButton ? `${config.pillPaddingX}px` : undefined,
+                paddingRight: isPill && !isMorphingButton ? `${config.pillPaddingX}px` : undefined,
+                paddingTop: isPill && !isMorphingButton ? `${config.pillPaddingY}px` : undefined,
+                paddingBottom: isPill && !isMorphingButton ? `${config.pillPaddingY}px` : undefined,
                 backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                 WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                 color: isButtonDark ? '#ffffff' : '#000000',
@@ -490,13 +494,20 @@ export function AdaptiveGlassBubblesNav({
                 boxShadow: isButtonDark
                   ? `0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 3px rgba(255,255,255,0.25)`
                   : `0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05), inset 0 1px 3px rgba(0,0,0,0.05)`,
-                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transition: isMorphingButton 
+                  ? 'all 300ms cubic-bezier(0.34, 1.56, 0.64, 1)' 
+                  : 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 position: 'relative',
                 overflow: 'hidden',
               }}
             >
               <Icon className="w-6 h-6" />
-              {isPill && <span className="ml-2 text-sm font-medium whitespace-nowrap">{item.label}</span>}
+              {isPill && !isMorphingButton && <span className="ml-2 text-sm font-medium whitespace-nowrap">{item.label}</span>}
+              {isMorphingButton && (
+                <span className="ml-2 text-sm font-medium whitespace-nowrap glass-morph-text">
+                  {item.label}
+                </span>
+              )}
             </div>
           );
 
@@ -1047,6 +1058,50 @@ export function AdaptiveGlassBubblesNav({
           .glass-reveal-wrapper.revealed {
             opacity: 1;
             transform: none;
+          }
+        }
+
+        /* ========================================
+           PILL-TO-CIRCLE MORPH ANIMATION
+           Used for menu button onboarding hint
+           ======================================== */
+        
+        .glass-morphing {
+          /* Smooth transition for the morph */
+          transition: 
+            width 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+            padding 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+            min-width 300ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+
+        /* Text fades out during morph */
+        .glass-morph-text {
+          animation: glassMorphTextFade 200ms ease-out forwards;
+        }
+
+        @keyframes glassMorphTextFade {
+          0% {
+            opacity: 1;
+            transform: translateX(0);
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(8px);
+            width: 0;
+            margin: 0;
+            padding: 0;
+          }
+        }
+
+        /* Reduced motion: instant transition */
+        @media (prefers-reduced-motion: reduce) {
+          .glass-morphing {
+            transition: none !important;
+          }
+          
+          .glass-morph-text {
+            animation: none;
+            opacity: 0;
           }
         }
       `}</style>
