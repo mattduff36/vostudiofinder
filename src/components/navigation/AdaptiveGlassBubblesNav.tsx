@@ -548,8 +548,8 @@ export function AdaptiveGlassBubblesNav({
                 style={{
                   // Apply stagger delay only when expanding (not collapsing)
                   transitionDelay: isRevealed ? `${revealDelayMs}ms` : '0ms',
-                  // Re-enable pointer events for button wrapper
-                  pointerEvents: 'auto',
+                  // Only enable pointer events when revealed - let CSS class control collapsed state
+                  pointerEvents: isRevealed ? 'auto' : undefined,
                 }}
               >
                 {linkOrButton}
