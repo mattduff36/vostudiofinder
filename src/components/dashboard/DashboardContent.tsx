@@ -97,7 +97,7 @@ export function DashboardContent({ dashboardData, initialProfileData, activeTab 
       {/* Mobile Back Button - Only for sub-pages - Slides up with navbar on scroll */}
       {activeTab !== 'overview' && (
         <div 
-          className="md:hidden fixed top-16 left-0 right-0 z-30 bg-white border-b border-gray-200 px-4 py-3"
+          className="md:hidden fixed top-14 left-0 right-0 z-30 bg-white border-b border-gray-200 px-4 py-3"
           style={isMobile ? {
             transform: `translateY(-${navTranslateY}px)`,
             transition: 'none', // Let scroll drive the animation
