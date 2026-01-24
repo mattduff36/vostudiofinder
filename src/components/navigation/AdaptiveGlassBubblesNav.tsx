@@ -51,7 +51,7 @@ interface AdaptiveGlassBubblesNavProps {
   isPositioned?: boolean; // Buttons positioned (may be invisible) for detection
   isVisible?: boolean; // Buttons visible to user
   // Reveal animation props (for logged-in menu expand/collapse)
-  revealExpanded?: boolean; // undefined = no reveal logic, true = expanded, false = collapsed
+  revealExpanded?: boolean | undefined; // undefined = no reveal logic, true = expanded, false = collapsed
   revealMenuId?: string; // ID of the menu button (always visible) - default 'menu'
   revealStaggerMs?: number; // Stagger delay between each button reveal - default 100
   revealBaseDelayMs?: number; // Base delay before first button appears - default 0

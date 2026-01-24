@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Lightbulb, Check, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Lightbulb, Check, X, Columns, ChevronDown, RotateCcw } from 'lucide-react';
 import EditStudioModal from '@/components/admin/EditStudioModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
@@ -62,235 +62,152 @@ export default function AdminStudiosPage() {
   const [sortBy, setSortBy] = useState<string>('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Dynamic column hiding to prevent horizontal scroll
-  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
+  // Table container ref for scaling
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const stickyScrollbarRef = useRef<HTMLDivElement>(null);
-  const stickyScrollbarContentRef = useRef<HTMLDivElement>(null);
-  const [showStickyScrollbar, setShowStickyScrollbar] = useState(false);
-  const HIDE_ORDER = useMemo(() => ['type', 'lastLogin', 'updated', 'owner', 'select'], []);
-
-  const computeHiddenColumns = useCallback(() => {
+  const tableRef = useRef<HTMLTableElement>(null);
+  
+  // Table scaling state
+  const [tableScale, setTableScale] = useState(1);
+  
+  // Column visibility configuration
+  // Protected columns: 'studio' and 'actions' (always visible)
+  const COLUMN_CONFIG = [
+    { id: 'select', label: 'Select', protected: false },
+    { id: 'studio', label: 'Studio', protected: true },
+    { id: 'type', label: 'Type', protected: false },
+    { id: 'owner', label: 'Owner', protected: false },
+    { id: 'status', label: 'Status', protected: false },
+    { id: 'visible', label: 'Visible', protected: false },
+    { id: 'complete', label: 'Complete', protected: false },
+    { id: 'verified', label: 'Verified', protected: false },
+    { id: 'featured', label: 'Featured', protected: false },
+    { id: 'lastLogin', label: 'Last Login', protected: false },
+    { id: 'membershipExpires', label: 'Membership Expires', protected: false },
+    { id: 'updated', label: 'Updated', protected: false },
+    { id: 'actions', label: 'Actions', protected: true },
+  ];
+  
+  const STORAGE_KEY = 'admin-studios-hidden-columns';
+  
+  // User-controlled hidden columns (loaded from localStorage)
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
+  const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
+  const columnMenuRef = useRef<HTMLDivElement>(null);
+  
+  // Load column preferences from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Filter out any protected columns that might have been saved
+          const validHidden = parsed.filter(
+            (col: string) => COLUMN_CONFIG.find(c => c.id === col && !c.protected)
+          );
+          setHiddenColumns(validHidden);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load column preferences:', err);
+    }
+  }, []);
+  
+  // Save column preferences to localStorage when changed
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(hiddenColumns));
+    } catch (err) {
+      console.error('Failed to save column preferences:', err);
+    }
+  }, [hiddenColumns]);
+  
+  // Close column menu when clicking outside
+  useEffect(() => {
+    if (!isColumnMenuOpen) return;
+    
+    const handleClickOutside = (event: MouseEvent) => {
+      if (columnMenuRef.current && !columnMenuRef.current.contains(event.target as Node)) {
+        setIsColumnMenuOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isColumnMenuOpen]);
+  
+  // Compute table scale based on container vs table width
+  const computeTableScale = useCallback(() => {
     const container = tableContainerRef.current;
-    if (!container) {
-      console.log('[COLUMN-HIDE] No container ref');
-      return;
-    }
-
-    const table = container.querySelector('table');
-    if (!table) {
-      console.log('[COLUMN-HIDE] No table found');
-      return;
-    }
-
-    // CRITICAL: Temporarily show ALL columns to measure true table width
-    console.log('[COLUMN-HIDE] Temporarily showing all columns for measurement');
-    HIDE_ORDER.forEach(col => {
-      const cells = table.querySelectorAll(`[data-column="${col}"]`);
-      cells.forEach(cell => ((cell as HTMLElement).classList.remove('hidden')));
-    });
-
+    const table = tableRef.current;
+    if (!container || !table) return;
+    
     // Force layout recalculation
     void table.offsetWidth;
-
+    
     const containerWidth = container.clientWidth;
-    const fullTableWidth = table.scrollWidth;
-    const overflowAmount = fullTableWidth - containerWidth;
+    const tableWidth = table.scrollWidth;
     
-    console.log('[COLUMN-HIDE] Measurement (all columns visible):', {
-      containerWidth,
-      fullTableWidth,
-      overflowAmount,
-      hasOverflow: overflowAmount > 5
-    });
-    
-    if (overflowAmount <= 5) {
-      // No significant overflow, show all columns
-      console.log('[COLUMN-HIDE] No overflow, keeping all columns visible');
-      setHiddenColumns(prev => {
-        if (prev.length === 0) {
-          console.log('[COLUMN-HIDE] Already empty, no state update');
-          return prev;
-        }
-        console.log('[COLUMN-HIDE] Setting to empty array');
-        return [];
-      });
-      return;
+    if (tableWidth > containerWidth) {
+      const scale = containerWidth / tableWidth;
+      // Minimum scale of 0.5 (50%) to keep content readable
+      setTableScale(Math.max(scale, 0.5));
+    } else {
+      setTableScale(1);
     }
-
-    // Progressive hiding: hide columns one by one until it fits
-    // Estimate ~120px per column (conservative estimate)
-    const columnsToHide = Math.min(
-      Math.ceil(overflowAmount / 120),
-      HIDE_ORDER.length
-    );
-
-    const newHidden = HIDE_ORDER.slice(0, columnsToHide);
-    
-    console.log('[COLUMN-HIDE] Calculated columns to hide:', {
-      overflowAmount,
-      columnsToHide,
-      newHidden
-    });
-    
-    // Apply hiding immediately (before state update to prevent flash)
-    newHidden.forEach(col => {
-      const cells = table.querySelectorAll(`[data-column="${col}"]`);
-      cells.forEach(cell => ((cell as HTMLElement).classList.add('hidden')));
-    });
-    
-    // Only update if actually different
-    setHiddenColumns(prev => {
-      const isSame = prev.length === newHidden.length && 
-                     prev.every((col, i) => col === newHidden[i]);
-      
-      console.log('[COLUMN-HIDE] State comparison:', {
-        prev,
-        newHidden,
-        isSame,
-        willUpdate: !isSame
-      });
-      
-      if (isSame) {
-        console.log('[COLUMN-HIDE] No change needed, returning prev');
-        return prev; // Don't trigger re-render
-      }
-      
-      console.log('[COLUMN-HIDE] Updating state from', prev, 'to', newHidden);
-      return newHidden;
-    });
-  }, [HIDE_ORDER]);
-
+  }, []);
+  
+  // Compute scale when data loads or hiddenColumns change
   useEffect(() => {
-    console.log('[EFFECT-1] Studios/loading changed:', { loading, studiosCount: studios.length });
+    if (loading || studios.length === 0) return;
     
-    if (loading || studios.length === 0) {
-      console.log('[EFFECT-1] Skipping - still loading or no studios');
-      return;
-    }
-    
-    console.log('[EFFECT-1] Scheduling column computation in 100ms');
-    // Wait for DOM to render, then compute
     const timer = setTimeout(() => {
-      console.log('[EFFECT-1] Timer fired, calling computeHiddenColumns');
-      computeHiddenColumns();
+      computeTableScale();
     }, 100);
-
-    return () => {
-      console.log('[EFFECT-1] Cleanup - clearing timer');
-      clearTimeout(timer);
-    };
-  }, [loading, studios.length, computeHiddenColumns]);
-
+    
+    return () => clearTimeout(timer);
+  }, [loading, studios.length, hiddenColumns, computeTableScale]);
+  
+  // Compute scale on window resize
   useEffect(() => {
-    console.log('[EFFECT-2] Setting up resize listener');
-    // Only respond to window resize, not container resize
     let timeoutId: NodeJS.Timeout;
     
     const handleResize = () => {
-      console.log('[RESIZE-EVENT] Window resize fired, viewport:', {
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-      // Clear any pending computation
       clearTimeout(timeoutId);
-      // Debounce to handle window snapping and animations
       timeoutId = setTimeout(() => {
-        console.log('[RESIZE-EVENT] Debounce timer fired (150ms), calling computeHiddenColumns');
-        computeHiddenColumns();
+        computeTableScale();
       }, 150);
     };
-
+    
     window.addEventListener('resize', handleResize);
     return () => {
-      console.log('[EFFECT-2] Cleanup - removing resize listener');
       window.removeEventListener('resize', handleResize);
       clearTimeout(timeoutId);
     };
-  }, [computeHiddenColumns]);
-
-  useEffect(() => {
-    console.log('[STATE-CHANGE] hiddenColumns changed:', hiddenColumns);
-  }, [hiddenColumns]);
-
-  // Sync scrolling between table and sticky scrollbar
-  useEffect(() => {
-    if (!showStickyScrollbar) return;
-
-    const tableContainer = tableContainerRef.current;
-    const stickyScrollbar = stickyScrollbarRef.current;
+  }, [computeTableScale]);
+  
+  // Toggle column visibility
+  const toggleColumn = (columnId: string) => {
+    const column = COLUMN_CONFIG.find(c => c.id === columnId);
+    if (!column || column.protected) return;
     
-    if (!tableContainer || !stickyScrollbar) return;
-
-    const handleTableScroll = () => {
-      if (stickyScrollbar.scrollLeft !== tableContainer.scrollLeft) {
-        stickyScrollbar.scrollLeft = tableContainer.scrollLeft;
-      }
-    };
-
-    const handleStickyScroll = () => {
-      if (tableContainer.scrollLeft !== stickyScrollbar.scrollLeft) {
-        tableContainer.scrollLeft = stickyScrollbar.scrollLeft;
-      }
-    };
-
-    tableContainer.addEventListener('scroll', handleTableScroll);
-    stickyScrollbar.addEventListener('scroll', handleStickyScroll);
-
-    return () => {
-      tableContainer.removeEventListener('scroll', handleTableScroll);
-      stickyScrollbar.removeEventListener('scroll', handleStickyScroll);
-    };
-  }, [showStickyScrollbar]);
-
-  // Update sticky scrollbar width and visibility
-  useEffect(() => {
-    const updateStickyScrollbar = () => {
-      const tableContainer = tableContainerRef.current;
-      const stickyScrollbar = stickyScrollbarRef.current;
-      const stickyScrollbarContent = stickyScrollbarContentRef.current;
-      
-      if (!tableContainer || !stickyScrollbar || !stickyScrollbarContent) return;
-
-      const table = tableContainer.querySelector('table');
-      if (!table) return;
-
-      const containerRect = tableContainer.getBoundingClientRect();
-      const containerWidth = tableContainer.clientWidth;
-      const tableWidth = table.scrollWidth;
-      const hasOverflow = tableWidth > containerWidth;
-
-      setShowStickyScrollbar(hasOverflow);
-
-      if (hasOverflow) {
-        // Position and size the sticky scrollbar to match the table container
-        stickyScrollbar.style.left = `${containerRect.left}px`;
-        stickyScrollbar.style.width = `${containerWidth}px`;
-        stickyScrollbar.style.right = 'auto';
-        
-        // Set the content width to match the table's scroll width
-        stickyScrollbarContent.style.width = `${tableWidth}px`;
-      }
-    };
-
-    // Initial update with delay to ensure DOM is ready
-    const timer = setTimeout(updateStickyScrollbar, 150);
-
-    // Update on window resize (debounced)
-    let resizeTimeout: NodeJS.Timeout;
-    const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(updateStickyScrollbar, 100);
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(resizeTimeout);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [loading, studios.length, hiddenColumns]);
+    setHiddenColumns(prev => 
+      prev.includes(columnId)
+        ? prev.filter(id => id !== columnId)
+        : [...prev, columnId]
+    );
+  };
+  
+  // Reset columns to show all
+  const resetColumns = () => {
+    setHiddenColumns([]);
+  };
+  
+  // Check if column is visible
+  const isColumnVisible = (columnId: string) => !hiddenColumns.includes(columnId);
+  
+  // Count visible columns
+  const visibleColumnCount = COLUMN_CONFIG.filter(c => !hiddenColumns.includes(c.id)).length;
 
   const fetchStudios = useCallback(async () => {
     try {
@@ -590,11 +507,6 @@ export default function AdminStudiosPage() {
 
   return (
     <>
-      <style jsx>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
       <AdminTabs activeTab="studios" />
       <div className="px-4 py-4 md:p-8 min-h-screen">
         <div className="max-w-full mx-auto">
@@ -665,15 +577,70 @@ export default function AdminStudiosPage() {
               <option value="PENDING">Pending Only</option>
             </select>
           </div>
+          
+          {/* Column Visibility Filter */}
+          <div className="sm:w-auto hidden md:block" ref={columnMenuRef}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Visible Columns
+            </label>
+            <div className="relative">
+              <button
+                onClick={() => setIsColumnMenuOpen(!isColumnMenuOpen)}
+                className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <Columns className="w-4 h-4 text-gray-500" />
+                <span className="text-sm text-gray-700">{visibleColumnCount}/{COLUMN_CONFIG.length}</span>
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isColumnMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isColumnMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <div className="p-2 border-b border-gray-100">
+                    <button
+                      onClick={resetColumns}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Reset to Default
+                    </button>
+                  </div>
+                  <div className="p-2 max-h-64 overflow-y-auto">
+                    {COLUMN_CONFIG.map(column => (
+                      <label
+                        key={column.id}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md cursor-pointer ${
+                          column.protected 
+                            ? 'text-gray-400 cursor-not-allowed' 
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isColumnVisible(column.id)}
+                          onChange={() => toggleColumn(column.id)}
+                          disabled={column.protected}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                        />
+                        <span>{column.label}</span>
+                        {column.protected && (
+                          <span className="text-xs text-gray-400 ml-auto">(required)</span>
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+        
+        {/* Scale indicator (shown when table is scaled) */}
+        {tableScale < 1 && (
+          <div className="mt-3 text-xs text-gray-500 text-center">
+            Table scaled to {Math.round(tableScale * 100)}% to fit screen. Hide columns above to increase size.
+          </div>
+        )}
       </div>
-
-      {/* Column visibility warning */}
-      {hiddenColumns.length > 0 && (
-        <div className="text-sm text-red-600 text-center py-2">
-          Some columns are hidden due to window width. Maximize your browser or use a resolution of 1920×1080 or higher for optimal viewing.
-        </div>
-      )}
 
       {/* Studios Table */}
       {loading && pagination.offset === 0 ? (
@@ -825,283 +792,339 @@ export default function AdminStudiosPage() {
           <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
             <div 
               ref={tableContainerRef} 
-              className="overflow-x-auto hide-scrollbar"
-              style={{
-                scrollbarWidth: 'none', // Firefox
-                msOverflowStyle: 'none', // IE/Edge
-              }}
+              className="overflow-hidden"
             >
-              <table className="min-w-full divide-y divide-gray-200">
+              <div
+                style={{
+                  transform: `scale(${tableScale})`,
+                  transformOrigin: 'top left',
+                  width: tableScale < 1 ? `${100 / tableScale}%` : '100%',
+                }}
+              >
+              <table ref={tableRef} className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th data-column="select" className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${hiddenColumns.includes('select') ? 'hidden' : ''}`}>
-                      Select
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                      onClick={() => handleSort('name')}
-                      title="Click to sort by studio name"
-                    >
-                      Studio{getSortIcon('name')}
-                    </th>
-                    <th data-column="type" className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${hiddenColumns.includes('type') ? 'hidden' : ''}`}>
-                      Type
-                    </th>
-                    <th 
-                      data-column="owner"
-                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${hiddenColumns.includes('owner') ? 'hidden' : ''}`}
-                      onClick={() => handleSort('owner')}
-                      title="Click to sort by owner name"
-                    >
-                      Owner{getSortIcon('owner')}
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                      onClick={() => handleSort('status')}
-                      title="Click to sort by status (Active/Inactive)"
-                    >
-                      Status{getSortIcon('status')}
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                      onClick={() => handleSort('is_profile_visible')}
-                      title="Click to sort by visibility status"
-                    >
-                      Visible{getSortIcon('is_profile_visible')}
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                      onClick={() => handleSort('profile_completion')}
-                      title="Click to sort by profile completion percentage"
-                    >
-                      Complete{getSortIcon('profile_completion')}
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                      onClick={() => handleSort('is_verified')}
-                      title="Click to sort by verified status"
-                    >
-                      Verified{getSortIcon('is_verified')}
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                      onClick={() => handleSort('is_featured')}
-                      title="Click to sort by featured status"
-                    >
-                      Featured{getSortIcon('is_featured')}
-                    </th>
-                    <th 
-                      data-column="lastLogin"
-                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${hiddenColumns.includes('lastLogin') ? 'hidden' : ''}`}
-                      onClick={() => handleSort('last_login')}
-                      title="Click to sort by last login date"
-                    >
-                      Last Login{getSortIcon('last_login')}
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      title="Membership expiry date"
-                    >
-                      Membership Expires
-                    </th>
-                    <th 
-                      data-column="updated"
-                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${hiddenColumns.includes('updated') ? 'hidden' : ''}`}
-                      onClick={() => handleSort('updated_at')}
-                    >
-                      Updated{getSortIcon('updated_at')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    {isColumnVisible('select') && (
+                      <th data-column="select" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Select
+                      </th>
+                    )}
+                    {isColumnVisible('studio') && (
+                      <th 
+                        data-column="studio"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('name')}
+                        title="Click to sort by studio name"
+                      >
+                        Studio{getSortIcon('name')}
+                      </th>
+                    )}
+                    {isColumnVisible('type') && (
+                      <th data-column="type" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Type
+                      </th>
+                    )}
+                    {isColumnVisible('owner') && (
+                      <th 
+                        data-column="owner"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('owner')}
+                        title="Click to sort by owner name"
+                      >
+                        Owner{getSortIcon('owner')}
+                      </th>
+                    )}
+                    {isColumnVisible('status') && (
+                      <th 
+                        data-column="status"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('status')}
+                        title="Click to sort by status (Active/Inactive)"
+                      >
+                        Status{getSortIcon('status')}
+                      </th>
+                    )}
+                    {isColumnVisible('visible') && (
+                      <th 
+                        data-column="visible"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('is_profile_visible')}
+                        title="Click to sort by visibility status"
+                      >
+                        Visible{getSortIcon('is_profile_visible')}
+                      </th>
+                    )}
+                    {isColumnVisible('complete') && (
+                      <th 
+                        data-column="complete"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('profile_completion')}
+                        title="Click to sort by profile completion percentage"
+                      >
+                        Complete{getSortIcon('profile_completion')}
+                      </th>
+                    )}
+                    {isColumnVisible('verified') && (
+                      <th 
+                        data-column="verified"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('is_verified')}
+                        title="Click to sort by verified status"
+                      >
+                        Verified{getSortIcon('is_verified')}
+                      </th>
+                    )}
+                    {isColumnVisible('featured') && (
+                      <th 
+                        data-column="featured"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('is_featured')}
+                        title="Click to sort by featured status"
+                      >
+                        Featured{getSortIcon('is_featured')}
+                      </th>
+                    )}
+                    {isColumnVisible('lastLogin') && (
+                      <th 
+                        data-column="lastLogin"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('last_login')}
+                        title="Click to sort by last login date"
+                      >
+                        Last Login{getSortIcon('last_login')}
+                      </th>
+                    )}
+                    {isColumnVisible('membershipExpires') && (
+                      <th 
+                        data-column="membershipExpires"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        title="Membership expiry date"
+                      >
+                        Membership Expires
+                      </th>
+                    )}
+                    {isColumnVisible('updated') && (
+                      <th 
+                        data-column="updated"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('updated_at')}
+                      >
+                        Updated{getSortIcon('updated_at')}
+                      </th>
+                    )}
+                    {isColumnVisible('actions') && (
+                      <th data-column="actions" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {studios.map((studio) => (
                     <tr key={studio.id} className={`hover:bg-gray-50 ${selectedStudios.includes(studio.id) ? 'bg-blue-50' : ''}`}>
-                      <td data-column="select" className={`px-6 py-4 whitespace-nowrap ${hiddenColumns.includes('select') ? 'hidden' : ''}`}>
-                        <input
-                          type="checkbox"
-                          checked={selectedStudios.includes(studio.id)}
-                          onChange={(e) => handleSelectStudio(studio.id, e.target.checked)}
-                          className="rounded border-gray-300"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center mr-3">
-                            <span className="text-white text-sm font-bold">
-                              {studio.name.charAt(0).toUpperCase()}
+                      {isColumnVisible('select') && (
+                        <td data-column="select" className="px-6 py-4 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={selectedStudios.includes(studio.id)}
+                            onChange={(e) => handleSelectStudio(studio.id, e.target.checked)}
+                            className="rounded border-gray-300"
+                          />
+                        </td>
+                      )}
+                      {isColumnVisible('studio') && (
+                        <td data-column="studio" className="px-6 py-4">
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center mr-3">
+                              <span className="text-white text-sm font-bold">
+                                {studio.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium text-gray-900 line-clamp-2">
+                                {studio.name}
+                              </div>
+                              <div className="text-sm text-gray-500 max-w-xs truncate">
+                                {studio.users.username}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      )}
+                      {isColumnVisible('type') && (
+                        <td data-column="type" className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">
+                            {studio.studio_studio_types && studio.studio_studio_types.length > 0 
+                              ? studio.studio_studio_types
+                                  .map(st => {
+                                    const type = st.studio_type;
+                                    if (type === 'VO_COACH') return 'C';
+                                    return type.charAt(0);
+                                  })
+                                  .join('')
+                              : '-'
+                            }
+                          </span>
+                        </td>
+                      )}
+                      {isColumnVisible('owner') && (
+                        <td data-column="owner" className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{studio.users.display_name}</div>
+                          <div className="text-sm text-gray-500">{studio.users.email}</div>
+                        </td>
+                      )}
+                      {isColumnVisible('status') && (
+                        <td data-column="status" className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => handleToggleStatus(studio, studio.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
+                            className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                              studio.status === 'ACTIVE' 
+                                ? 'bg-green-600 text-white focus:ring-green-500' 
+                                : 'bg-red-600 text-white focus:ring-red-500'
+                            }`}
+                            title={`Click to toggle status (currently ${studio.status})`}
+                          >
+                            {studio.status === 'ACTIVE' ? (
+                              <Check className="w-4 h-4" />
+                            ) : (
+                              <X className="w-4 h-4" />
+                            )}
+                          </button>
+                          {studio.is_spotlight && (
+                            <span 
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800 cursor-help mt-1" 
+                              title="Spotlight Studio – highlighted in network"
+                            >
+                              <Lightbulb className="w-3 h-3" aria-hidden="true" />
+                              <span>Spotlight</span>
+                            </span>
+                          )}
+                        </td>
+                      )}
+                      {isColumnVisible('visible') && (
+                        <td data-column="visible" className="px-6 py-4 whitespace-nowrap text-center">
+                          <button
+                            onClick={() => handleToggleVisibility(studio, !studio.is_profile_visible)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                              studio.is_profile_visible ? 'bg-blue-600' : 'bg-gray-300'
+                            }`}
+                            title={studio.is_profile_visible ? 'Profile is visible - click to hide' : 'Profile is hidden - click to show'}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                studio.is_profile_visible ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                        </td>
+                      )}
+                      {isColumnVisible('complete') && (
+                        <td data-column="complete" className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-2">
+                            <div className="bg-gray-200 rounded-full h-2 w-16">
+                              <div
+                                className={`h-2 rounded-full transition-all ${getCompletionBgColor(studio.profile_completion || 0)}`}
+                                style={{ width: `${studio.profile_completion || 0}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-gray-700 w-8">
+                              {studio.profile_completion || 0}%
                             </span>
                           </div>
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium text-gray-900 line-clamp-2">
-                              {studio.name}
-                            </div>
-                            <div className="text-sm text-gray-500 max-w-xs truncate">
-                              {studio.users.username}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td data-column="type" className={`px-6 py-4 whitespace-nowrap ${hiddenColumns.includes('type') ? 'hidden' : ''}`}>
-                        <span className="text-sm font-medium text-gray-900">
-                          {studio.studio_studio_types && studio.studio_studio_types.length > 0 
-                            ? studio.studio_studio_types
-                                .map(st => {
-                                  const type = st.studio_type;
-                                  if (type === 'VO_COACH') return 'C';
-                                  return type.charAt(0);
-                                })
-                                .join('')
-                            : '-'
-                          }
-                        </span>
-                      </td>
-                      <td data-column="owner" className={`px-6 py-4 whitespace-nowrap ${hiddenColumns.includes('owner') ? 'hidden' : ''}`}>
-                        <div className="text-sm text-gray-900">{studio.users.display_name}</div>
-                        <div className="text-sm text-gray-500">{studio.users.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleToggleStatus(studio, studio.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
-                          className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                            studio.status === 'ACTIVE' 
-                              ? 'bg-green-600 text-white focus:ring-green-500' 
-                              : 'bg-red-600 text-white focus:ring-red-500'
-                          }`}
-                          title={`Click to toggle status (currently ${studio.status})`}
-                        >
-                          {studio.status === 'ACTIVE' ? (
-                            <Check className="w-4 h-4" />
-                          ) : (
-                            <X className="w-4 h-4" />
-                          )}
-                        </button>
-                        {studio.is_spotlight && (
-                          <span 
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800 cursor-help mt-1" 
-                            title="Spotlight Studio – highlighted in network"
-                          >
-                            <Lightbulb className="w-3 h-3" aria-hidden="true" />
-                            <span>Spotlight</span>
-                          </span>
-                        )}
-                      </td>
-                      {/* Profile Visible Toggle */}
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <button
-                          onClick={() => handleToggleVisibility(studio, !studio.is_profile_visible)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                            studio.is_profile_visible ? 'bg-blue-600' : 'bg-gray-300'
-                          }`}
-                          title={studio.is_profile_visible ? 'Profile is visible - click to hide' : 'Profile is hidden - click to show'}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              studio.is_profile_visible ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </td>
-                      {/* Profile Completion */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <div className="bg-gray-200 rounded-full h-2 w-16">
-                            <div
-                              className={`h-2 rounded-full transition-all ${getCompletionBgColor(studio.profile_completion || 0)}`}
-                              style={{ width: `${studio.profile_completion || 0}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-medium text-gray-700 w-8">
-                            {studio.profile_completion || 0}%
-                          </span>
-                        </div>
-                      </td>
-                      {/* Verified Toggle */}
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <button
-                          onClick={() => handleToggleVerified(studio, !studio.is_verified)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-                            studio.is_verified ? 'bg-green-600' : 'bg-gray-300'
-                          }`}
-                          title={studio.is_verified ? 'Studio is verified - click to unverify' : 'Studio is not verified - click to verify'}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              studio.is_verified ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </td>
-                      {/* Featured Toggle */}
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <button
-                          onClick={() => handleToggleFeatured(studio, !studio.is_featured)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 ${
-                            studio.is_featured ? 'bg-yellow-500' : 'bg-gray-300'
-                          }`}
-                          title={studio.is_featured ? 'Studio is featured - click to unfeature' : 'Studio is not featured - click to feature'}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              studio.is_featured ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </td>
-                      {/* Last Login */}
-                      <td data-column="lastLogin" className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${hiddenColumns.includes('lastLogin') ? 'hidden' : ''}`}>
-                        {studio.last_login ? formatRelativeDate(studio.last_login) : (
-                          <span className="text-gray-400 italic">No data</span>
-                        )}
-                      </td>
-                      {/* Membership Expires */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {studio.membership_expires_at ? (
-                          <span className={
-                            new Date(studio.membership_expires_at) < new Date()
-                              ? 'text-red-600 font-medium'
-                              : new Date(studio.membership_expires_at) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                              ? 'text-orange-600 font-medium'
-                              : ''
-                          }>
-                            {formatDate(studio.membership_expires_at)}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400 italic">—</span>
-                        )}
-                      </td>
-                      {/* Updated Date */}
-                      <td data-column="updated" className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${hiddenColumns.includes('updated') ? 'hidden' : ''}`}>
-                        {formatDate(studio.updated_at)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
+                        </td>
+                      )}
+                      {isColumnVisible('verified') && (
+                        <td data-column="verified" className="px-6 py-4 whitespace-nowrap text-center">
                           <button
-                            onClick={() => window.open(`/${studio.users.username}`, '_blank')}
-                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            onClick={() => handleToggleVerified(studio, !studio.is_verified)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
+                              studio.is_verified ? 'bg-green-600' : 'bg-gray-300'
+                            }`}
+                            title={studio.is_verified ? 'Studio is verified - click to unverify' : 'Studio is not verified - click to verify'}
                           >
-                            View
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                studio.is_verified ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
                           </button>
-                          <button 
-                            onClick={() => handleEditStudio(studio)}
-                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        </td>
+                      )}
+                      {isColumnVisible('featured') && (
+                        <td data-column="featured" className="px-6 py-4 whitespace-nowrap text-center">
+                          <button
+                            onClick={() => handleToggleFeatured(studio, !studio.is_featured)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 ${
+                              studio.is_featured ? 'bg-yellow-500' : 'bg-gray-300'
+                            }`}
+                            title={studio.is_featured ? 'Studio is featured - click to unfeature' : 'Studio is not featured - click to feature'}
                           >
-                            Edit
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                studio.is_featured ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
                           </button>
-                          <button 
-                            onClick={() => handleDeleteStudio(studio)}
-                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                        </td>
+                      )}
+                      {isColumnVisible('lastLogin') && (
+                        <td data-column="lastLogin" className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {studio.last_login ? formatRelativeDate(studio.last_login) : (
+                            <span className="text-gray-400 italic">No data</span>
+                          )}
+                        </td>
+                      )}
+                      {isColumnVisible('membershipExpires') && (
+                        <td data-column="membershipExpires" className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {studio.membership_expires_at ? (
+                            <span className={
+                              new Date(studio.membership_expires_at) < new Date()
+                                ? 'text-red-600 font-medium'
+                                : new Date(studio.membership_expires_at) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                                ? 'text-orange-600 font-medium'
+                                : ''
+                            }>
+                              {formatDate(studio.membership_expires_at)}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 italic">—</span>
+                          )}
+                        </td>
+                      )}
+                      {isColumnVisible('updated') && (
+                        <td data-column="updated" className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDate(studio.updated_at)}
+                        </td>
+                      )}
+                      {isColumnVisible('actions') && (
+                        <td data-column="actions" className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => window.open(`/${studio.users.username}`, '_blank')}
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                              View
+                            </button>
+                            <button 
+                              onClick={() => handleEditStudio(studio)}
+                              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteStudio(studio)}
+                              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
 
             {/* Desktop Load More Button */}
@@ -1163,24 +1186,6 @@ export default function AdminStudiosPage() {
         }}
       />
         </div>
-      </div>
-
-      {/* Sticky Horizontal Scrollbar - Always rendered but hidden when not needed */}
-      <div
-        ref={stickyScrollbarRef}
-        className="fixed bottom-0 overflow-x-auto overflow-y-hidden bg-white/95 backdrop-blur-sm border-t-2 border-gray-300 shadow-lg z-[9999] transition-opacity"
-        style={{
-          height: '16px',
-          opacity: showStickyScrollbar ? 1 : 0,
-          pointerEvents: showStickyScrollbar ? 'auto' : 'none',
-        }}
-      >
-        <div
-          ref={stickyScrollbarContentRef}
-          style={{ 
-            height: '1px',
-          }}
-        />
       </div>
     </>
   );
