@@ -329,6 +329,8 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
           padding: '0 max(env(safe-area-inset-left), 1rem) env(safe-area-inset-bottom) max(env(safe-area-inset-right), 1rem)',
           opacity: 1,
           animation: 'fadeIn 0.3s ease-in',
+          // Fix: Disable pointer events on container when buttons are hidden
+          pointerEvents: isScrollVisible ? 'auto' : 'none',
         }}
       >
         <div className="mx-auto max-w-lg mb-[84px]">
@@ -349,12 +351,12 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       {/* Expanding Menu with Backdrop Overlay */}
       {isMenuOpen && (
         <div
-          className="fixed inset-0 z-[300] md:hidden pointer-events-auto bg-black/30"
+          className="fixed inset-0 z-[240] md:hidden pointer-events-auto bg-black/30"
           onClick={() => setIsMenuOpen(false)}
           style={{ touchAction: 'none' }}
         >
           <AdaptiveGlassMenu
-            className="absolute bottom-[calc(env(safe-area-inset-bottom)+168px)] right-4 w-64 max-h-[70vh] overflow-y-auto pointer-events-auto"
+            className="absolute bottom-[calc(env(safe-area-inset-bottom)+168px)] right-4 w-64 max-h-[70vh] overflow-y-auto pointer-events-auto z-10"
             config={DEFAULT_CONFIG}
             debugSensors={false}
             isVisible={isScrollVisible}
