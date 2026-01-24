@@ -106,8 +106,11 @@ export function AdaptiveGlassMenu({
             inset 0 1px 3px rgba(255, 255, 255, 0.1),
             inset 0 0 60px rgba(255, 255, 255, 0.05);
 
+          /* Origin from bottom-right (near Menu button) */
           transform-origin: 100% 100%;
-          animation: adaptiveMenuPop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          /* Initial entrance - elegant fade in */
+          animation: liquidGlassMenuEntrance 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          animation-delay: 40ms;
         }
 
         .adaptive-menu-glass::before {
@@ -148,61 +151,67 @@ export function AdaptiveGlassMenu({
             inset 0 0 60px rgba(0, 0, 0, 0.03);
         }
 
-        @keyframes adaptiveMenuPop {
+        /* ========================================
+           LIQUID GLASS MENU ANIMATIONS
+           Designed to complement button reveal stagger
+           ======================================== */
+
+        /* Initial entrance - smooth emergence from bottom-right */
+        @keyframes liquidGlassMenuEntrance {
           0% {
             opacity: 0;
-            transform: translateY(10px) scale(0.96);
-          }
-          60% {
-            opacity: 1;
-            transform: translateY(-2px) scale(1.03);
+            transform: translate3d(8px, 6px, 0) scale(0.96);
+            filter: blur(4px);
           }
           100% {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translate3d(0, 0, 0) scale(1);
+            filter: blur(0px);
           }
         }
 
-        /* Menu hide animation - matches button timing */
-        @keyframes liquidMenuHide {
-          0% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-          100% {
-            opacity: 0;
-            transform: translateY(10px) scale(0.85);
-          }
-        }
-
-        /* Menu show animation - matches button timing with bounce */
-        @keyframes liquidMenuShow {
+        /* Menu show - synced with button reveal timing */
+        @keyframes liquidGlassMenuShow {
           0% {
             opacity: 0;
-            transform: translateY(10px) scale(0.85);
-          }
-          60% {
-            opacity: 1;
-            transform: translateY(-4px) scale(1.08);
+            transform: translate3d(8px, 6px, 0) scale(0.96);
+            filter: blur(4px);
           }
           100% {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translate3d(0, 0, 0) scale(1);
+            filter: blur(0px);
           }
         }
 
-        .adaptive-menu-glass.menu-hide {
-          animation: liquidMenuHide 250ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
-          pointer-events: none;
+        /* Menu hide - quick, elegant exit */
+        @keyframes liquidGlassMenuHide {
+          0% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+            filter: blur(0px);
+          }
+          100% {
+            opacity: 0;
+            transform: translate3d(6px, 4px, 0) scale(0.97);
+            filter: blur(2px);
+          }
         }
 
         .adaptive-menu-glass.menu-show {
-          animation: liquidMenuShow 250ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+          animation: liquidGlassMenuShow 240ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          animation-delay: 40ms;
+        }
+
+        .adaptive-menu-glass.menu-hide {
+          animation: liquidGlassMenuHide 180ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+          pointer-events: none;
         }
 
         @media (prefers-reduced-motion: reduce) {
           .adaptive-menu-glass {
             animation: none;
+            filter: none;
           }
           
           .adaptive-menu-glass.menu-hide {
