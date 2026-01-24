@@ -110,6 +110,35 @@ The renewal system code is fully implemented and production-built. Requires real
 - Progressive Web App (PWA) features
 - Improved offline functionality
 
+### Map Fullscreen Button
+**Priority**: Low  
+**Status**: Intentionally Removed, Pending Review  
+**Location**: `src/components/studio/profile/mobile/MapFullscreen.tsx`
+
+**Context**:
+The fullscreen toggle button was intentionally removed from the mobile map component on user profile pages as part of bug fix task #4 (iPhone map full-screen button not working on iOS devices).
+
+**Current State**:
+- Fullscreen button UI removed (lines 109-136)
+- `toggleFullscreen` function still exists but is unused
+- Unused imports: `Maximize2` and `Minimize2` from lucide-react (line 14)
+- Map still supports fullscreen programmatically, just no UI trigger
+
+**Reason for Removal**:
+The fullscreen feature was not functioning correctly on iPhone devices, and the immediate fix was to remove the non-working button to avoid user confusion.
+
+**Future Considerations**:
+- [ ] Investigate iOS-specific fullscreen API limitations and workarounds
+- [ ] Consider alternative fullscreen implementations (CSS-based, viewport-based)
+- [ ] Decide whether to restore the feature with a working implementation
+- [ ] If restoring: Ensure cross-device compatibility (iOS Safari, Android Chrome, etc.)
+- [ ] If not restoring: Clean up unused code (`toggleFullscreen`, icon imports, fullscreen state management)
+
+**Technical Notes**:
+- iOS Safari has restrictions on the Fullscreen API
+- CSS-based fullscreen (using viewport units) may be more reliable on iOS
+- Component still manages fullscreen state internally, infrastructure is in place
+
 ### Adaptive Glass Navigation - Per-Button Background Detection
 **Priority**: Low  
 **Status**: Partially Implemented, Deferred  

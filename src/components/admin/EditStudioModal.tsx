@@ -2,7 +2,7 @@
 import { logger } from '@/lib/logger';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Loader2, Eye, Save, X, AlertTriangle } from 'lucide-react';
+import { Loader2, Eye, Save, X, AlertTriangle, Copy } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -19,6 +19,7 @@ import { extractCity } from '@/lib/utils/address';
 import { showError, showSuccess } from '@/lib/toast';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { useAutosizeTextarea } from '@/hooks/useAutosizeTextarea';
+import { buildProfileMetaTitle } from '@/lib/seo/profile-title';
 
 interface Studio {
   id: string;
@@ -55,7 +56,7 @@ const STUDIO_TYPES = [
   { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
   // Bottom row - Future types
   { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services', disabled: true },
-  { value: 'VO_COACH', label: 'VO-Coach', description: 'Voiceover coaching and training services', disabled: true },
+  { value: 'VO_COACH', label: 'VO Coach', description: 'Voiceover coaching and training services', disabled: false },
   { value: 'AUDIO_PRODUCER', label: 'Audio Producer', description: 'Audio production and post-production services', disabled: false },
 ];
 
@@ -389,6 +390,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
     { id: 'connections', name: 'Connections' },
     { id: 'images', name: 'Images' },
     { id: 'privacy', name: 'Privacy Settings' },
+    { id: 'advanced', name: 'Advanced Settings' },
     { id: 'admin', name: 'Admin Settings' }
   ];
 
@@ -464,25 +466,11 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         </div>
       </div>
 
-      {/* Row 3: Short About (single line input, full width) */}
-      <div>
-        <Input
-          label="Short About"
-          value={profile?._meta?.short_about || ''}
-          onChange={(e) => handleMetaChange('short_about', e.target.value)}
-          maxLength={150}
-        />
-        <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-          <span>Shown on studio cards and used by search engines. Make the most of the 150 characters</span>
-          <span>{(profile?._meta?.short_about || '').length}/150 characters</span>
-        </div>
-      </div>
-
-      {/* Row 4: Full About (textarea, full width) */}
+      {/* Row 3: Full Description (textarea, full width) - SWAPPED ORDER */}
       <div>
         <Textarea
           ref={fullAboutRef}
-          label="Full About"
+          label="Full Description"
           value={decodeHtmlEntities(profile?._meta?.about) || ''}
           onChange={(e) => handleMetaChange('about', e.target.value)}
           maxLength={1500}
@@ -502,6 +490,20 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
           >
             {(decodeHtmlEntities(profile?._meta?.about) || '').length}/1500 characters
           </span>
+        </div>
+      </div>
+
+      {/* Row 4: Short Description (single line input, full width) - SWAPPED ORDER */}
+      <div>
+        <Input
+          label="Short Description"
+          value={profile?._meta?.short_about || ''}
+          onChange={(e) => handleMetaChange('short_about', e.target.value)}
+          maxLength={150}
+        />
+        <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+          <span>Shown on studio cards and used by search engines. Make the most of the 150 characters</span>
+          <span>{(profile?._meta?.short_about || '').length}/150 characters</span>
         </div>
       </div>
     </div>
@@ -845,7 +847,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <div className="space-y-3">
           <Toggle
-            label="Show Email"
+            label="Enable Messages"
             description="Display 'Message Studio' button on public profile"
             checked={profile?._meta?.showemail === '1'}
             onChange={(checked) => handleMetaChange('showemail', checked ? '1' : '0')}
@@ -872,6 +874,103 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
       </div>
     </div>
   );
+
+  const renderAdvancedTab = () => {
+    const studioName = profile?._meta?.studio_name || profile?.name || 'Your Studio';
+    const city = profile?._meta?.city || null;
+    const studioTypes = profile?.studioTypes?.map((st: any) => st.studio_type) || [];
+    
+    const primaryTypePriority = ['RECORDING', 'HOME', 'PODCAST', 'VO_COACH', 'AUDIO_PRODUCER', 'VOICEOVER'];
+    const primaryStudioType =
+      primaryTypePriority.find((p) => studioTypes.includes(p)) ||
+      studioTypes[0] ||
+      null;
+
+    // Compute current meta title (custom if exists, else auto-generated)
+    const autoGeneratedTitle = buildProfileMetaTitle({
+      studioName,
+      primaryStudioType,
+      city,
+    });
+    const currentMetaTitle = profile?._meta?.custom_meta_title?.trim() 
+      ? profile._meta.custom_meta_title.trim() 
+      : autoGeneratedTitle;
+
+    const handleCopyMetaTitle = async () => {
+      try {
+        await navigator.clipboard.writeText(currentMetaTitle);
+        showSuccess('Meta title copied to clipboard!');
+      } catch (err) {
+        showError('Failed to copy to clipboard');
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Section Description */}
+        <div>
+          <p className="text-sm text-gray-600 mb-4">
+            Customize how this studio appears in search engine results and social media shares.
+          </p>
+        </div>
+
+        {/* Meta Title Input with Copy Icon Inside */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Meta Title
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              value={currentMetaTitle}
+              onChange={(e) => {
+                const value = e.target.value;
+                handleMetaChange('custom_meta_title', value);
+              }}
+              maxLength={60}
+              placeholder="Auto-generated from studio name, type, and location"
+              className="w-full px-3 py-2 pr-10 text-sm text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+            <button
+              type="button"
+              onClick={handleCopyMetaTitle}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-[#d42027] transition-colors"
+              title="Copy to clipboard"
+            >
+              <Copy className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+            <span>
+              {profile?._meta?.custom_meta_title?.trim() 
+                ? 'Using custom title - clear field to use auto-generated' 
+                : 'Auto-generated from studio name, type, and location'}
+            </span>
+            <span className={
+              currentMetaTitle.length > 60 
+                ? 'text-red-600 font-semibold' 
+                : currentMetaTitle.length >= 50 
+                ? 'text-amber-600 font-semibold'
+                : ''
+            }>
+              {currentMetaTitle.length}/60 characters
+            </span>
+          </div>
+        </div>
+
+        {/* Best Practices */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 mb-2">Best Practices</h4>
+          <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+            <li>Keep it between 50-60 characters for best display</li>
+            <li>Include studio name and primary service</li>
+            <li>Add location if space permits</li>
+            <li>Make it natural and readable for humans</li>
+          </ul>
+        </div>
+      </div>
+    );
+  };
 
   const renderAdminTab = () => (
     <div className="space-y-6">
@@ -1189,7 +1288,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
             </div>
             
             {/* Modal body with scrollable content */}
-            <div className="overflow-y-auto h-[calc(100vh-180px)] md:h-auto md:max-h-[calc(95vh-220px)]">
+            <div className="overflow-y-auto h-[calc(100dvh-180px)] md:h-auto md:max-h-[calc(95dvh-220px)]">
               {/* Tab Navigation - Matches Edit Profile styling (text-only) */}
               <div className="border-b border-gray-100 bg-white sticky top-0 z-10 overflow-hidden">
                 <nav className="flex space-x-4 px-6 overflow-x-auto" aria-label="Tabs">
@@ -1221,6 +1320,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
                   {activeTab === 'connections' && renderConnectionsTab()}
                   {activeTab === 'images' && renderImagesTab()}
                   {activeTab === 'privacy' && renderPrivacyTab()}
+                  {activeTab === 'advanced' && renderAdvancedTab()}
                   {activeTab === 'admin' && renderAdminTab()}
                 </div>
               </div>

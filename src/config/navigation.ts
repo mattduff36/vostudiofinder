@@ -236,13 +236,19 @@ export interface MenuContext {
  * Get menu items for desktop burger menu (authenticated users)
  */
 export function getDesktopBurgerMenuItems(context: MenuContext & { includeSiteLinks?: boolean }): NavItem[] {
-  const { session, username } = context;
+  const { session, username, includeSiteLinks = false } = context;
 
   if (!session) {
     return [];
   }
 
   const items: NavItem[] = [];
+
+  // If includeSiteLinks is true (tablet view), add site navigation first
+  if (includeSiteLinks) {
+    items.push(NAV_ITEMS.studios!);
+    items.push(NAV_ITEMS.about!);
+  }
 
   // Account links
   items.push(NAV_ITEMS.overview!);

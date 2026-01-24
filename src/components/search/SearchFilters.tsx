@@ -425,19 +425,23 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
         <div className="flex flex-wrap gap-2 lg:hidden">
           {studioTypeOptions.map(option => {
             const isSelected = filters.studio_studio_types.includes(option.value);
+            const count = studioTypeCounts[option.value] || 0;
             return (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => handleStudioTypeToggle(option.value)}
-                className={`px-3 py-2.5 rounded-lg border-2 transition-all text-sm font-medium ${
+                className={`px-3 py-2.5 rounded-lg border-2 transition-all text-sm font-medium flex items-center justify-between ${
                   isSelected
                     ? 'border-red-600 bg-red-50 text-red-600'
                     : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 active:bg-gray-50'
                 }`}
                 style={{ minWidth: 'calc(50% - 4px)' }}
               >
-                {option.label}
+                <span>{option.label}</span>
+                <span className="ml-2 text-xs font-semibold text-[#d42027] bg-white px-1.5 py-0.5 rounded">
+                  {count}
+                </span>
               </button>
             );
           })}

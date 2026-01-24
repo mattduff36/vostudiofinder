@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import * as Sentry from '@sentry/nextjs';
 
 export default function Error({
   error,
@@ -11,8 +10,11 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to Sentry
-    Sentry.captureException(error);
+    // Log error to console
+    console.error('[Error Page]', error.message);
+    if (error.stack) {
+      console.error(error.stack);
+    }
   }, [error]);
 
   return (
@@ -38,7 +40,7 @@ export default function Error({
             Something went wrong
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            We apologise for the inconvenience. An error has occurred and our team has been notified.
+            We apologise for the inconvenience. An error has occurred.
           </p>
           {process.env.NODE_ENV === 'development' && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8 text-left">

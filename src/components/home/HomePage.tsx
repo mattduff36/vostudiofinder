@@ -35,7 +35,7 @@ export function HomePage({ session, featuredStudios, stats }: HomePageProps) {
         <HeroSection />
         
         {/* Featured Studios */}
-        <FeaturedStudios studios={featuredStudios} />
+        <FeaturedStudios studios={featuredStudios} session={session} />
         
         {/* Combined Stats and CTA Section */}
         <CombinedCTASection session={session} stats={stats} />

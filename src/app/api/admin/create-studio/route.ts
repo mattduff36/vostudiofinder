@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { nanoid } from 'nanoid';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 
 /**
  * Admin-only endpoint to create studio profiles manually
@@ -158,6 +158,7 @@ export async function POST(request: NextRequest) {
         city: city || '',
         location,
         website_url,
+        show_email: true, // Enable messages by default (matching schema default)
         status: 'ACTIVE', // Admin-created profiles are immediately active
         created_at: new Date(),
         updated_at: new Date(),

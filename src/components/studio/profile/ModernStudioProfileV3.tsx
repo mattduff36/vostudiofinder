@@ -409,14 +409,6 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                 <span>Contact Studio</span>
               </button>
             )}
-            {/* Share Profile Button - Mobile */}
-            <ShareProfileButton
-              profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
-              profileName={studio.name}
-              variant="outline"
-              size="md"
-              className="w-full"
-            />
           </div>
 
           {/* Contact Info */}
@@ -569,6 +561,17 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
               </div>
             </div>
           )}
+
+          {/* Share Profile Section - Mobile Bottom */}
+          <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
+            <ShareProfileButton
+              profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
+              profileName={studio.name}
+              variant="outline"
+              size="md"
+              className="w-full"
+            />
+          </div>
         </>
 
       {/* Main Content */}
@@ -629,33 +632,43 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
 
             {/* Studio Header */}
             <div className="mb-6 w-full">
-              <h1 className="text-3xl font-bold text-gray-900 mb-3 flex items-center gap-3 w-full">
-                {/* Profile Avatar */}
-                {studio.owner.avatar_url && (
-                  <AvatarUpload
-                    currentAvatar={studio.owner.avatar_url}
-                    onAvatarChange={() => {}}
-                    size="small"
-                    editable={false}
-                    userName={studio.owner.display_name || studio.owner.username}
-                    variant="profile"
-                  />
-                )}
-                <span>{studio.name}</span>
-                {studio.is_verified && (
-                  <span className="group relative inline-flex items-center">
-                    <span 
-                      className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 transition-colors" 
-                    >
-                      <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+              <div className="flex items-center justify-between gap-3 mb-3 w-full">
+                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                  {/* Profile Avatar */}
+                  {studio.owner.avatar_url && (
+                    <AvatarUpload
+                      currentAvatar={studio.owner.avatar_url}
+                      onAvatarChange={() => {}}
+                      size="small"
+                      editable={false}
+                      userName={studio.owner.display_name || studio.owner.username}
+                      variant="profile"
+                    />
+                  )}
+                  <span>{studio.name}</span>
+                  {studio.is_verified && (
+                    <span className="group relative inline-flex items-center">
+                      <span 
+                        className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 transition-colors" 
+                      >
+                        <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                      </span>
+                      {/* Hover expand text - desktop only */}
+                      <span className="hidden md:inline-flex absolute left-full ml-1 items-center px-2 py-0.5 bg-green-600 text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        Verified
+                      </span>
                     </span>
-                    {/* Hover expand text - desktop only */}
-                    <span className="hidden md:inline-flex absolute left-full ml-1 items-center px-2 py-0.5 bg-green-600 text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Verified
-                    </span>
-                  </span>
-                )}
-              </h1>
+                  )}
+                </h1>
+                {/* Share Profile Button - Desktop Header */}
+                <ShareProfileButton
+                  profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
+                  profileName={studio.name}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900"
+                />
+              </div>
 
               {/* Rating and Reviews */}
               {studio.reviews.length > 0 && (
@@ -897,14 +910,6 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                       Message Studio
                     </Button>
                   )}
-                  {/* Share Profile Button - Desktop */}
-                  <ShareProfileButton
-                    profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
-                    profileName={studio.name}
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  />
                 </div>
               </div>
 

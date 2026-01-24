@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { LogOut } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
@@ -23,7 +23,9 @@ export function Navbar({ session }: NavbarProps) {
   const [showEditButton, setShowEditButton] = useState(false);
   const [isLogoLoading, setIsLogoLoading] = useState(false);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const lastWidthRef = useRef<number | null>(null);
@@ -216,8 +218,8 @@ export function Navbar({ session }: NavbarProps) {
             </div>
           </Link>
           
-          {/* Desktop Navigation - Flex centered */}
-          <div className="hidden md:flex items-center space-x-8 flex-1 justify-center">
+          {/* Desktop Navigation - Flex centered - Hidden on tablet, shown on desktop */}
+          <div className="hidden lg:flex items-center space-x-8 flex-1 justify-center">
             <Link 
               href="/studios" 
               className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
@@ -266,8 +268,25 @@ export function Navbar({ session }: NavbarProps) {
             </div>
           </div>
           
+          {/* Tablet/Desktop Burger Menu for Public Users - Only shown when NOT logged in */}
+          {!session && (
+            <div className="hidden md:flex lg:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className={`flex items-center justify-center p-2 rounded-lg border-2 transition-all duration-300 aspect-square w-10 h-10 ${
+                  isScrolled || !isHomePage
+                    ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white'
+                    : 'text-white border-white hover:bg-white hover:text-primary-800'
+                }`}
+                aria-label="Menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4 flex-shrink-0">
+          <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
             {session ? (
               <>
                 <span className={`text-sm ${
@@ -320,6 +339,21 @@ export function Navbar({ session }: NavbarProps) {
             )}
           </div>
 
+          {/* Tablet Burger Menu for Logged-In Users */}
+          {session && (
+            <div className="hidden md:flex lg:hidden">
+              <DashboardDropdownMenu
+                username={session.user.username || ''}
+                isScrolled={isScrolled}
+                isHomePage={isHomePage}
+                session={session}
+                isAdminUser={session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN'}
+                showEditButton={showEditButton}
+                includeSiteLinks={true}
+              />
+            </div>
+          )}
+
           {/* Mobile Sign In/Out Button */}
           {session ? (
             <button
@@ -346,6 +380,52 @@ export function Navbar({ session }: NavbarProps) {
         </div>
       </div>
     </nav>
+
+    {/* Public User Mobile Menu (Tablet only) */}
+    {isMobileMenuOpen && !session && (
+      <>
+        {/* Backdrop overlay (no blur) */}
+        <div 
+          className="fixed inset-0 z-[99] bg-black/30 hidden md:block lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+        {/* Menu Panel */}
+        <div 
+          ref={mobileMenuRef}
+          className="fixed top-[72px] right-6 z-[110] w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 hidden md:block lg:hidden"
+        >
+          <Link
+            href="/studios"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Browse Studios
+          </Link>
+          <Link
+            href="/about"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            About Us
+          </Link>
+          <div className="my-2 border-t border-gray-200" />
+          <Link
+            href="/auth/signin"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/auth/signup"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#d42027] hover:bg-red-50 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            List Your Studio
+          </Link>
+        </div>
+      </>
+    )}
     
     {/* Admin Buttons - Positioned below nav bar on right side */}
     {(session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN') && (

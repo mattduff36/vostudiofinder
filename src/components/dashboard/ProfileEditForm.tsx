@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Save, Eye, EyeOff, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, Settings } from 'lucide-react';
+import { Save, Eye, EyeOff, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, Settings, Copy, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -19,7 +19,7 @@ import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { useAutosizeTextarea } from '@/hooks/useAutosizeTextarea';
-import { showSuccess, showError, showInfo } from '@/lib/toast';
+import { showSuccess, showError, showInfo, showWarning } from '@/lib/toast';
 import { getBaseUrl } from '@/lib/seo/site';
 import { buildProfileMetaTitle } from '@/lib/seo/profile-title';
 
@@ -480,6 +480,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       if ((result as any)?.visibilityAutoDisabled) {
         showInfo('Profile visibility was turned off because required fields are incomplete.');
       }
+
+      // Show voiceover artist warning if detected (non-blocking)
+      if ((result as any)?.warnings && Array.isArray((result as any).warnings) && (result as any).warnings.length > 0) {
+        const warningMessage = (result as any).warnings[0];
+        showWarning(warningMessage, 6000); // Show warning for 6 seconds
+      }
       
       // Refresh profile data
       await fetchProfile();
@@ -681,29 +687,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
             </div>
 
-            {/* Row 3: Short About (single line input, full width) */}
-            <div>
-              <Input
-                label="Short About"
-                value={profile.profile.short_about || ''}
-                onChange={(e) => updateProfile('short_about', e.target.value)}
-                maxLength={150}
-              />
-              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                <span>Shown on studio cards and used by search engines. Make the most of the 150 characters</span>
-                <span>{(profile.profile.short_about || '').length}/150 characters</span>
-              </div>
-            </div>
-
-            {/* Row 4: Full About (textarea, full width) */}
+            {/* Row 3: Full Description (textarea, full width) - SWAPPED ORDER */}
             <div>
               <Textarea
                 ref={fullAboutRef}
-                label="Full About"
+                label="Full Description"
                 value={profile.profile.about || ''}
                 onChange={(e) => updateProfile('about', e.target.value)}
                 maxLength={1500}
-                rows={6}
                 className="min-h-[150px] resize-none overflow-hidden"
               />
               <div className="flex justify-between items-center text-xs mt-1">
@@ -719,6 +710,33 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 >
                   {(profile.profile.about || '').length}/1500 characters
                 </span>
+              </div>
+            </div>
+
+            {/* Row 4: Short Description (single line input, full width) - SWAPPED ORDER */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Short Description
+                </label>
+                <button
+                  type="button"
+                  disabled
+                  className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-400 bg-gray-100 border border-gray-200 rounded-md cursor-not-allowed"
+                  title="Coming soon!"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Auto Generate</span>
+                </button>
+              </div>
+              <Input
+                value={profile.profile.short_about || ''}
+                onChange={(e) => updateProfile('short_about', e.target.value)}
+                maxLength={150}
+              />
+              <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                <span>Shown on studio cards and used by search engines. Make the most of the 150 characters</span>
+                <span>{(profile.profile.short_about || '').length}/150 characters</span>
               </div>
             </div>
           </div>
@@ -878,7 +896,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               label="Equipment List"
               value={profile.profile.equipment_list || ''}
               onChange={(e) => updateProfile('equipment_list', e.target.value)}
-              rows={4}
               helperText="List your microphones, interfaces, and other equipment"
               placeholder="e.g., Neumann U87, Universal Audio Apollo, etc."
               className="min-h-[120px] resize-none overflow-hidden"
@@ -889,7 +906,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               label="Services Offered"
               value={profile.profile.services_offered || ''}
               onChange={(e) => updateProfile('services_offered', e.target.value)}
-              rows={4}
               helperText="Describe the services you provide"
               placeholder="e.g., Voice recording, audio editing, mixing, mastering..."
               className="min-h-[120px] resize-none overflow-hidden"
@@ -1147,7 +1163,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="space-y-3">
                 <Toggle
-                  label="Show Email"
+                  label="Enable Messages"
                   description="Display 'Message Studio' button on public profile"
                   checked={profile.profile.show_email || false}
                   onChange={(checked) => updateProfile('show_email', checked)}
@@ -1176,92 +1192,95 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         );
 
       case 'advanced':
+        const studioName = profile.studio?.name || 'Your Studio';
+        const city = profile.studio?.city || null;
+        const studioTypes = profile.studio_types || [];
+        
+        const primaryTypePriority = ['RECORDING', 'HOME', 'PODCAST', 'VO_COACH', 'AUDIO_PRODUCER', 'VOICEOVER'];
+        const primaryStudioType =
+          primaryTypePriority.find((p) => studioTypes.includes(p)) ||
+          studioTypes[0] ||
+          null;
+
+        // Compute current meta title (custom if exists, else auto-generated)
+        const autoGeneratedTitle = buildProfileMetaTitle({
+          studioName,
+          primaryStudioType,
+          city,
+        });
+        const currentMetaTitle = profile.metadata?.custom_meta_title?.trim() 
+          ? profile.metadata.custom_meta_title.trim() 
+          : autoGeneratedTitle;
+
+        const handleCopyMetaTitle = async () => {
+          try {
+            await navigator.clipboard.writeText(currentMetaTitle);
+            showSuccess('Meta title copied to clipboard!');
+          } catch (err) {
+            showError('Failed to copy to clipboard');
+          }
+        };
+
         return (
           <div className="space-y-6">
-            {/* Under Construction Notice - Subtle */}
-            <p className="text-xs text-gray-400 italic">
-              This section is under development. Some features may not work as expected.
-            </p>
-
+            {/* Section Description */}
             <div>
               <p className="text-sm text-gray-600 mb-4">
                 Customize how your studio appears in search engine results and social media shares.
               </p>
             </div>
 
-            {/* Recommended Title Preview */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Recommended Title</h4>
-              <p className="text-sm text-gray-900 mb-1">
-                {(() => {
-                  const studioName = profile.studio?.name || 'Your Studio';
-                  const city = profile.studio?.city || null;
-                  const studioTypes = profile.studio_types || [];
-                  
-                  const primaryTypePriority = ['RECORDING', 'HOME', 'PODCAST', 'VO_COACH', 'AUDIO_PRODUCER', 'VOICEOVER'];
-                  const primaryStudioType =
-                    primaryTypePriority.find((p) => studioTypes.includes(p)) ||
-                    studioTypes[0] ||
-                    null;
-
-                  return buildProfileMetaTitle({
-                    studioName,
-                    primaryStudioType,
-                    city,
-                  });
-                })()}
-              </p>
-              <p className="text-xs text-gray-500">
-                Auto-generated from your studio name, type, and location.
-              </p>
-            </div>
-
-            {/* Custom Title Input */}
+            {/* Meta Title Input with Copy Icon Inside */}
             <div>
-              <Input
-                label="Custom Meta Title (Optional)"
-                value={profile.metadata?.custom_meta_title || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setProfile(prev => prev ? {
-                    ...prev,
-                    metadata: { ...prev.metadata, custom_meta_title: value },
-                  } : null);
-                }}
-                maxLength={60}
-                placeholder="Leave empty to use the recommended title"
-                helperText="Override the automatic title with your own (max 60 characters)"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Meta Title
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={currentMetaTitle}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setProfile(prev => prev ? {
+                      ...prev,
+                      metadata: { ...prev.metadata, custom_meta_title: value },
+                    } : null);
+                  }}
+                  maxLength={60}
+                  placeholder="Auto-generated from your studio name, type, and location"
+                  className="w-full px-3 py-2 pr-10 text-sm text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={handleCopyMetaTitle}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-[#d42027] transition-colors"
+                  title="Copy to clipboard"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
               <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
                 <span>
-                  {profile.metadata?.custom_meta_title && profile.metadata.custom_meta_title.trim() 
-                    ? 'Custom title will be used' 
-                    : 'Using recommended title'}
+                  {profile.metadata?.custom_meta_title?.trim() 
+                    ? 'Using custom title - clear field to use auto-generated' 
+                    : 'Auto-generated from your studio name, type, and location'}
                 </span>
                 <span className={
-                  (profile.metadata?.custom_meta_title?.length || 0) > 60 
+                  currentMetaTitle.length > 60 
                     ? 'text-red-600 font-semibold' 
-                    : (profile.metadata?.custom_meta_title?.length || 0) >= 50 
+                    : currentMetaTitle.length >= 50 
                     ? 'text-amber-600 font-semibold'
                     : ''
                 }>
-                  {profile.metadata?.custom_meta_title?.length || 0}/60 characters
+                  {currentMetaTitle.length}/60 characters
                 </span>
               </div>
-              
-              {/* Preview of what will be used */}
-              {profile.metadata?.custom_meta_title && profile.metadata.custom_meta_title.trim() && (
-                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                  <p className="text-xs font-semibold text-gray-700 mb-1">Preview:</p>
-                  <p className="text-sm text-gray-900">{profile.metadata.custom_meta_title}</p>
-                </div>
-              )}
             </div>
 
             {/* Best Practices */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div>
               <h4 className="text-sm font-semibold text-gray-700 mb-2">Best Practices</h4>
-              <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
+              <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
                 <li>Keep it between 50-60 characters for best display</li>
                 <li>Include your studio name and primary service</li>
                 <li>Add your location if space permits</li>
@@ -1286,7 +1305,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 hidden md:flex flex-col overflow-hidden"
         style={{
           boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)',
-          maxHeight: 'calc(100vh - 8rem)' // Leave space for padding
+          maxHeight: 'calc(100dvh - 8rem)' // Leave space for padding
         }}
       >
         {/* Sticky Header + Tabs Container */}

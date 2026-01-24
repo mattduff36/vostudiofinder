@@ -86,7 +86,10 @@ export interface Studio {
   studio_type?: string;
   status: string;
   is_premium: boolean;
+  is_verified?: boolean;
   is_profile_visible?: boolean;
+  is_featured?: boolean;
+  featured_until?: Date | string | null;
   images?: StudioImage[];
   studio_images?: StudioImage[];
   studio_types?: StudioType[];

@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { createCheckoutSession, SubscriptionPlan } from '@/lib/stripe';
 import { db } from '@/lib/db';
 // import { VATService } from '@/lib/vat';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 import { getBaseUrl } from '@/lib/seo/site';
 
 const checkoutSchema = z.object({

@@ -22,6 +22,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { RenewalModal } from '@/components/dashboard/RenewalModal';
+import { FeaturedUpgradeModal } from '@/components/dashboard/FeaturedUpgradeModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { calculateFinalExpiryForDisplay, isEligibleForEarlyRenewal, isEligibleForStandardRenewal } from '@/lib/membership-renewal';
@@ -61,6 +62,14 @@ export function Settings({ data }: SettingsProps) {
   const [showCloseAccountModal, setShowCloseAccountModal] = useState(false);
   const [renewalModalOpen, setRenewalModalOpen] = useState(false);
   const [renewalType, setRenewalType] = useState<'early' | 'standard' | '5year'>('early');
+  const [featuredUpgradeModalOpen, setFeaturedUpgradeModalOpen] = useState(false);
+  
+  // Featured availability
+  const [featuredAvailability, setFeaturedAvailability] = useState<{
+    maxFeatured: number;
+    featuredCount: number;
+    remaining: number;
+  } | null>(null);
   
   // Support forms
   const [issueFormOpen, setIssueFormOpen] = useState(false);
@@ -121,6 +130,23 @@ export function Settings({ data }: SettingsProps) {
       }
     };
     fetchProfile();
+  }, []);
+
+  // Fetch featured availability
+  useEffect(() => {
+    const fetchFeaturedAvailability = async () => {
+      try {
+        const response = await fetch('/api/featured/availability');
+        if (response.ok) {
+          const result = await response.json();
+          setFeaturedAvailability(result);
+          logger.log('[Settings] Featured availability loaded:', result);
+        }
+      } catch (err) {
+        logger.error('[Settings] Failed to fetch featured availability:', err);
+      }
+    };
+    fetchFeaturedAvailability();
   }, []);
 
   // Calculate completion stats
@@ -581,13 +607,13 @@ export function Settings({ data }: SettingsProps) {
                   </div>
                 </div>
 
-                {/* Renewal Options */}
+                {/* Membership & Upgrade Options */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-gray-900 flex items-center space-x-2">
-                    <span>Renewal Options</span>
+                    <span>Membership & Upgrade Options</span>
                   </h4>
                   
-                  <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Early Renewal Card (6+ months remaining) */}
                     {membership?.daysUntilExpiry != null && isEligibleForEarlyRenewal(membership.daysUntilExpiry) && (
                       <motion.button
@@ -710,7 +736,7 @@ export function Settings({ data }: SettingsProps) {
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex-1 relative overflow-hidden rounded-xl border-2 border-gray-300 hover:border-[#d42027] bg-gradient-to-br from-gray-50 to-white p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md group"
+                      className="relative overflow-hidden rounded-xl border-2 border-gray-300 hover:border-[#d42027] bg-gradient-to-br from-gray-50 to-white p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md group"
                     >
                     {/* Best Value Badge */}
                     <div className="absolute top-2 sm:top-3 right-2 sm:right-3 px-2 py-0.5 sm:py-1 bg-gradient-to-r from-amber-400 to-amber-500 text-gray-900 text-xs font-bold rounded-full shadow-sm">
@@ -757,6 +783,114 @@ export function Settings({ data }: SettingsProps) {
                       </div>
                     </div>
                     </motion.button>
+
+                    {/* Featured Profile Upgrade Card */}
+                    {(() => {
+                      const isProfileComplete = completionStats.overall.percentage === 100;
+                      const isMembershipActive = membership?.state === 'ACTIVE';
+                      const isFeatured = profileData?.studio?.is_featured;
+                      const featuredUntil = profileData?.studio?.featured_until;
+                      
+                      // Check if featured status is active (not expired)
+                      const isFeaturedActive = isFeatured && (!featuredUntil || new Date(featuredUntil) >= new Date());
+                      
+                      // Check if slots are available
+                      const slotsAvailable = featuredAvailability ? featuredAvailability.remaining > 0 : true;
+                      
+                      const isEligible = isProfileComplete && isMembershipActive && !isFeaturedActive && slotsAvailable;
+                      
+                      return (
+                        <motion.button
+                          onClick={() => {
+                            if (isEligible) {
+                              setFeaturedUpgradeModalOpen(true);
+                            }
+                          }}
+                          disabled={!isEligible}
+                          whileHover={isEligible ? { scale: 1.02 } : {}}
+                          whileTap={isEligible ? { scale: 0.98 } : {}}
+                          className={`relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left transition-all duration-200 shadow-sm ${
+                            isEligible
+                              ? 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-400 hover:border-amber-600 cursor-pointer hover:shadow-md'
+                              : 'bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed'
+                          }`}
+                        >
+                          {/* Featured Badge */}
+                          {isEligible && featuredAvailability && (
+                            <div className="absolute top-2 sm:top-3 right-2 sm:right-3 px-2 py-0.5 sm:py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-bold rounded-full shadow-sm">
+                              {featuredAvailability.remaining} OF 6 LEFT
+                            </div>
+                          )}
+                          
+                          <div className="space-y-1.5 sm:space-y-2">
+                            <div className={`flex items-center justify-between ${isEligible ? 'pr-20 sm:pr-24' : ''}`}>
+                              <h5 className={`text-sm sm:text-base font-bold ${isEligible ? 'text-gray-900' : 'text-gray-500'}`}>
+                                Featured Studio Upgrade
+                              </h5>
+                              <span className={`text-lg sm:text-xl font-extrabold ${isEligible ? 'text-[#d42027]' : 'text-gray-400'}`}>
+                                £100
+                              </span>
+                            </div>
+                            
+                            {isFeaturedActive ? (
+                              <p className="text-xs sm:text-sm text-gray-600">
+                                Your studio is currently featured until {featuredUntil ? new Date(featuredUntil).toLocaleDateString('en-GB', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric'
+                                }) : 'indefinitely'}
+                              </p>
+                            ) : !isProfileComplete ? (
+                              <p className="text-xs sm:text-sm text-gray-500">
+                                Complete your profile (currently {completionStats.overall.percentage}%) to unlock featured status
+                              </p>
+                            ) : !isMembershipActive ? (
+                              <p className="text-xs sm:text-sm text-gray-500">
+                                Active membership required to become a featured studio
+                              </p>
+                            ) : !slotsAvailable ? (
+                              <p className="text-xs sm:text-sm text-gray-500">
+                                All featured studio slots are currently taken. Please check back later.
+                              </p>
+                            ) : (
+                              <>
+                                <p className="text-xs sm:text-sm leading-relaxed text-gray-700">
+                                  Get featured on the homepage for 6 months with priority search placement
+                                </p>
+                                <div className="flex items-center space-x-2 pt-0.5 sm:pt-1">
+                                  <span className="text-xs font-semibold text-amber-600">
+                                    ✓ Homepage placement • ✓ Priority search • ✓ Increased visibility
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </motion.button>
+                      );
+                    })()}
+
+                    {/* Request to become Verified - Placeholder Card */}
+                    <div className="relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 shadow-sm">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-sm sm:text-base font-bold text-gray-900 flex items-center space-x-2">
+                            <span>Request Verified Badge</span>
+                            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 flex-shrink-0">
+                              <svg className="w-2.5 h-2.5 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M5 13l4 4L19 7"></path>
+                              </svg>
+                            </span>
+                          </h5>
+                          <span className="text-lg sm:text-xl font-extrabold text-gray-400">
+                            Coming Soon
+                          </span>
+                        </div>
+                        
+                        <p className="text-xs sm:text-sm leading-relaxed text-gray-600">
+                          Apply for verified status to show clients your studio has been approved by our team
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </>
@@ -1240,6 +1374,11 @@ export function Settings({ data }: SettingsProps) {
           currentExpiry: new Date(profileData.membership.expiresAt)
         } : {})}
         daysRemaining={profileData?.membership?.daysUntilExpiry || 0}
+      />
+      
+      <FeaturedUpgradeModal
+        isOpen={featuredUpgradeModalOpen}
+        onClose={() => setFeaturedUpgradeModalOpen(false)}
       />
     </>
   );

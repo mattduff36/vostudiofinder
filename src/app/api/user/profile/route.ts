@@ -6,6 +6,88 @@ import { db } from '@/lib/db';
 import { getProfileVisibilityEligibility } from '@/lib/utils/profile-visibility';
 
 /**
+ * Detect if profile content suggests user is listing themselves as a voiceover artist
+ * Returns array of warning messages if suspicious phrases detected
+ */
+function detectVoiceoverArtistMisuse(fields: {
+  name?: string;
+  short_about?: string;
+  about?: string;
+  services_offered?: string;
+  equipment_list?: string;
+}): string[] {
+  const warnings: string[] = [];
+  
+  // Strong signals that user is a voiceover artist (not a studio owner)
+  const voArtistPhrases = [
+    { pattern: /\bvoice actor\b/gi, weight: 10, name: 'voice actor' },
+    { pattern: /\bvoice actress\b/gi, weight: 10, name: 'voice actress' },
+    { pattern: /\bvoice talent\b/gi, weight: 10, name: 'voice talent' },
+    { pattern: /\bvoiceover artist\b/gi, weight: 10, name: 'voiceover artist' },
+    { pattern: /\boffer voiceover work\b/gi, weight: 10, name: 'offer voiceover work' },
+    { pattern: /\bvoiceover services\b/gi, weight: 8, name: 'voiceover services' },
+    { pattern: /\bcommercial voice\b/gi, weight: 8, name: 'commercial voice' },
+    { pattern: /\bcharacter voices?\b/gi, weight: 8, name: 'character voice(s)' },
+    { pattern: /\bIVR voice\b/gi, weight: 8, name: 'IVR' },
+    { pattern: /\baudiobook narrator\b/gi, weight: 9, name: 'audiobook narrator' },
+    { pattern: /\bnarration services?\b/gi, weight: 7, name: 'narration' },
+    { pattern: /\bdemo reels?\b/gi, weight: 10, name: 'demo reel' },
+    { pattern: /\bvoice reels?\b/gi, weight: 10, name: 'voice reel' },
+    { pattern: /\bshowreels?\b/gi, weight: 9, name: 'showreel' },
+    { pattern: /\bagent representation\b/gi, weight: 9, name: 'agent representation' },
+    { pattern: /\bbroadcast quality voice\b/gi, weight: 7, name: 'broadcast quality voice' },
+    { pattern: /\blisten to my demos?\b/gi, weight: 10, name: 'listen to my demo(s)' },
+    { pattern: /\bmy voice\b/gi, weight: 6, name: 'my voice' },
+    { pattern: /\bI am a voice\b/gi, weight: 9, name: 'I am a voice' },
+    { pattern: /\bI\'m a voice\b/gi, weight: 9, name: "I'm a voice" },
+    { pattern: /\bvoice artist\b/gi, weight: 10, name: 'voice artist' },
+    { pattern: /\bvoice over talent\b/gi, weight: 10, name: 'voice over talent' },
+    { pattern: /\bcontact me for voiceover\b/gi, weight: 10, name: 'contact me for voiceover' },
+  ];
+  
+  // Combine all text fields for scanning
+  const combinedText = [
+    fields.name || '',
+    fields.short_about || '',
+    fields.about || '',
+    fields.services_offered || '',
+    fields.equipment_list || '',
+  ].join(' ').toLowerCase();
+  
+  console.log('[VO Artist Detection] Combined text:', combinedText.substring(0, 200));
+  
+  // Score based on phrase matches
+  let totalScore = 0;
+  const matchedPhrases: string[] = [];
+  
+  voArtistPhrases.forEach(({ pattern, weight, name }) => {
+    const matches = combinedText.match(pattern);
+    if (matches && matches.length > 0) {
+      console.log('[VO Artist Detection] Matched phrase:', name, 'weight:', weight, 'count:', matches.length);
+      totalScore += weight * matches.length;
+      if (!matchedPhrases.includes(name)) {
+        matchedPhrases.push(name);
+      }
+    }
+  });
+  
+  console.log('[VO Artist Detection] Total score:', totalScore, 'Matched phrases:', matchedPhrases);
+  
+  // If score exceeds threshold, add warning (regardless of studio-owner language)
+  // Someone could be trying to bypass detection by including both types of phrases
+  if (totalScore >= 10) {
+    console.log('[VO Artist Detection] WARNING TRIGGERED');
+    warnings.push(
+      'Your profile contains phrases typically used by voiceover artists. ' +
+      'Voiceover Studio Finder is currently for Studio Owners, Audio Producers, and Voiceover Coaches only. ' +
+      'Individual voiceover artist listings will be available in a future update.'
+    );
+  }
+  
+  return warnings;
+}
+
+/**
  * GET /api/user/profile
  * Fetch complete profile data for the authenticated user
  * 
@@ -101,6 +183,7 @@ export async function GET() {
             name: '',
             city: '',
             is_profile_visible: false,
+            show_email: true, // Enable messages by default (matching schema default)
             created_at: now,
             updated_at: now,
           },
@@ -573,6 +656,7 @@ export async function PUT(request: NextRequest) {
               name: updates.name || 'My Studio', // Required field
               city: updates.city || '', // Required field with default
               is_profile_visible: false, // Hidden by default, user can manually enable when ready
+              show_email: true, // Enable messages by default (matching schema default)
               ...profileUpdates,
               updated_at: new Date(),
             },
@@ -673,6 +757,20 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Check for voiceover artist misuse (warn only, non-blocking)
+    const voArtistWarnings: string[] = [];
+    if (body.profile || body.studio) {
+      const fieldsToCheck = {
+        name: body.studio?.name || body.profile?.name,
+        short_about: body.profile?.short_about,
+        about: body.profile?.about,
+        services_offered: body.profile?.services_offered,
+        equipment_list: body.profile?.equipment_list,
+      };
+      const warnings = detectVoiceoverArtistMisuse(fieldsToCheck);
+      voArtistWarnings.push(...warnings);
+    }
+
     // Enforce: if required profile fields are incomplete, visibility must be OFF.
     // - If this request is a direct visibility toggle attempt to ON, reject it (and ensure it remains OFF).
     // - If this request updated profile data and made it incomplete, auto-disable visibility.
@@ -733,6 +831,7 @@ export async function PUT(request: NextRequest) {
       data: updatedUser,
       allRequiredComplete: eligibility.allRequiredComplete,
       visibilityAutoDisabled,
+      warnings: voArtistWarnings.length > 0 ? voArtistWarnings : undefined,
     });
   } catch (error) {
     console.error('Error updating user profile:', error);

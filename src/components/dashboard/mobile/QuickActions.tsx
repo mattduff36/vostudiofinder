@@ -9,13 +9,15 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { User, Settings, Loader2, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
+import { User, Settings, Loader2, ChevronDown, ChevronUp, Eye, EyeOff, Check, Share2 } from 'lucide-react';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletionProgress';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { Toggle } from '@/components/ui/Toggle';
+import { ShareProfileButton } from '@/components/profile/ShareProfileButton';
 import { logger } from '@/lib/logger';
 import { showError } from '@/lib/toast';
+import { getBaseUrl } from '@/lib/seo/site';
 
 export type QuickAction = 'edit-profile' | 'settings';
 
@@ -286,8 +288,16 @@ export function QuickActions({
     <div className="md:hidden py-6 space-y-3">
       {/* Welcome Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">
-          Welcome back{displayName ? `, ${displayName}` : ''}!
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <span>Welcome back{displayName ? `, ${displayName}` : ''}!</span>
+          {profileData?.studio?.is_verified && (
+            <span
+              className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-600 flex-shrink-0"
+              title="Verified studio — approved by our team"
+            >
+              <Check className="w-3 h-3 text-white" strokeWidth={3} />
+            </span>
+          )}
         </h2>
       </div>
 
@@ -419,6 +429,42 @@ export function QuickActions({
                 disabled={saving || !allRequiredComplete}
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Promotional Card - Mobile */}
+      {!loading && (
+        <div className="!bg-gradient-to-br from-red-50 to-white border border-gray-100 rounded-lg overflow-hidden shadow-sm p-6">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-3">
+              <Share2 className="w-7 h-7 text-[#d42027]" aria-hidden="true" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              Promote your studio. Get rewarded!
+            </h3>
+            <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+              Share your profile on social media and receive a free month of membership! Submit the public post link to us to claim.
+            </p>
+            <div className="mb-3 w-full">
+              <ShareProfileButton
+                profileUrl={profileData?.user?.username ? `${getBaseUrl()}/${profileData.user.username}` : ''}
+                profileName={profileData?.user?.display_name || profileData?.user?.username || 'your studio'}
+                variant="primary"
+                size="md"
+                className="w-full"
+              />
+            </div>
+            <p className="text-xs text-gray-500">
+              One reward per membership period.<br />
+              Submit your link for verification to{' '}
+              <a 
+                href="mailto:support@voiceoverstudiofinder.com" 
+                className="underline hover:text-[#d42027] transition-colors"
+              >
+                support@voiceoverstudiofinder.com
+              </a>
+            </p>
           </div>
         </div>
       )}

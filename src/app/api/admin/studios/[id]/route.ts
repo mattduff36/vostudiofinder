@@ -61,6 +61,11 @@ export async function GET(
                 current_period_end: true,
                 status: true,
               }
+            },
+            user_metadata: {
+              where: {
+                key: 'custom_meta_title'
+              }
             }
           }
         },
@@ -80,6 +85,9 @@ export async function GET(
     if (!studio) {
       return NextResponse.json({ error: 'Studio not found' }, { status: 404 });
     }
+
+    // Get custom meta title from user_metadata
+    const customMetaTitle = studio.users?.user_metadata?.[0]?.value || '';
 
     // Transform to match expected format for the frontend
     const studioData = {
@@ -215,7 +223,9 @@ export async function GET(
         connection12: studioData.connection12 || '0',
         custom_connection_methods: studioData.custom_connection_methods || [],
         // Membership
-        membership_expires_at: studio.users?.subscriptions[0]?.current_period_end?.toISOString() || null
+        membership_expires_at: studio.users?.subscriptions[0]?.current_period_end?.toISOString() || null,
+        // Meta Title
+        custom_meta_title: customMetaTitle
       },
       images: studio.studio_images?.map(img => ({
         id: img.id,
@@ -611,6 +621,43 @@ export async function PUT(
               }
             });
           }
+        }
+      }
+
+      // Handle custom_meta_title metadata (outside main studio_profiles table)
+      if (body._meta?.custom_meta_title !== undefined) {
+        const customMetaTitle = body._meta.custom_meta_title?.trim() || '';
+        
+        if (customMetaTitle) {
+          // Upsert the custom_meta_title metadata
+          await tx.user_metadata.upsert({
+            where: {
+              user_id_key: {
+                user_id: existingStudio.user_id,
+                key: 'custom_meta_title',
+              },
+            },
+            update: {
+              value: customMetaTitle.substring(0, 60), // Enforce 60 char limit
+              updated_at: new Date(),
+            },
+            create: {
+              id: randomBytes(12).toString('base64url'),
+              user_id: existingStudio.user_id,
+              key: 'custom_meta_title',
+              value: customMetaTitle.substring(0, 60),
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          });
+        } else {
+          // If empty string, delete the metadata entry
+          await tx.user_metadata.deleteMany({
+            where: {
+              user_id: existingStudio.user_id,
+              key: 'custom_meta_title',
+            },
+          });
         }
       }
     });

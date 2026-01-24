@@ -32,8 +32,18 @@ export function ContactStudioModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !email.trim() || !message.trim()) {
+    // Trim values for validation (matching server-side behavior)
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedMessage = message.trim();
+    
+    if (!trimmedName || !trimmedEmail || !trimmedMessage) {
       setError('Please fill in all fields');
+      return;
+    }
+
+    if (trimmedMessage.length < 75) {
+      setError('Message must be at least 75 characters long');
       return;
     }
 
@@ -94,8 +104,7 @@ export function ContactStudioModal({
           <div className="flex items-center gap-3">
             <Mail className="w-6 h-6 text-red-600" />
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Contact Studio</h2>
-              <p className="text-sm text-gray-600">{studioName}</p>
+              <h2 className="text-xl font-bold text-gray-900">Message {studioName}</h2>
             </div>
           </div>
           <button
@@ -145,15 +154,25 @@ export function ContactStudioModal({
                 disabled={isSubmitting}
               />
 
-              <Textarea
-                label="Message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Hi, I'm interested in booking your studio..."
-                rows={6}
-                required
-                disabled={isSubmitting}
-              />
+              <div>
+                <Textarea
+                  label="Message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Hi, I'm interested in booking your studio..."
+                  rows={6}
+                  required
+                  disabled={isSubmitting}
+                />
+                <div className="flex justify-between items-center text-xs mt-1">
+                  <span className={message.trim().length < 75 ? 'text-amber-600 font-medium' : 'text-gray-500'}>
+                    {message.trim().length < 75 ? `${75 - message.trim().length} more characters needed` : 'Message requirement met'}
+                  </span>
+                  <span className={message.trim().length < 75 ? 'text-amber-600 font-semibold' : 'text-gray-500'}>
+                    {message.trim().length}/75 characters minimum
+                  </span>
+                </div>
+              </div>
 
               <div className="flex gap-3 pt-4">
                 <Button
@@ -167,7 +186,7 @@ export function ContactStudioModal({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || message.trim().length < 75}
                   loading={isSubmitting}
                   className="flex-1"
                 >

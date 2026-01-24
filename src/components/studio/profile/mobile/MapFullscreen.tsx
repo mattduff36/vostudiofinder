@@ -10,8 +10,7 @@
  */
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Maximize2, Minimize2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { SimpleStudioMap } from '@/components/maps/SimpleStudioMap';
 
 interface MapFullscreenProps {
@@ -83,24 +82,24 @@ export function MapFullscreen({
     return undefined;
   }, [supportsNativeFullscreen, isFullscreen]);
 
-  // Fullscreen toggle function
-  const toggleFullscreen = useCallback(async () => {
-    if (supportsNativeFullscreen) {
-      // Use native Fullscreen API (Android/Desktop)
-      try {
-        if (!document.fullscreenElement) {
-          await mapContainerRef.current?.requestFullscreen();
-        } else {
-          await document.exitFullscreen();
-        }
-      } catch (err) {
-        console.error('Error toggling fullscreen:', err);
-      }
-    } else {
-      // Use CSS-based fullscreen (iOS)
-      setIsFullscreen(!isFullscreen);
-    }
-  }, [supportsNativeFullscreen, isFullscreen]);
+  // Fullscreen toggle function (currently unused - functionality to be implemented)
+  // const toggleFullscreen = useCallback(async () => {
+  //   if (supportsNativeFullscreen) {
+  //     // Use native Fullscreen API (Android/Desktop)
+  //     try {
+  //       if (!document.fullscreenElement) {
+  //         await mapContainerRef.current?.requestFullscreen();
+  //       } else {
+  //         await document.exitFullscreen();
+  //       }
+  //     } catch (err) {
+  //       console.error('Error toggling fullscreen:', err);
+  //     }
+  //   } else {
+  //     // Use CSS-based fullscreen (iOS)
+  //     setIsFullscreen(!isFullscreen);
+  //   }
+  // }, [supportsNativeFullscreen, isFullscreen]);
 
   // Calculate height for fullscreen
   const containerHeight = !supportsNativeFullscreen && isFullscreen && viewportHeight
@@ -128,26 +127,9 @@ export function MapFullscreen({
         fullAddress={fullAddress || ''}
         useCoordinates={useCoordinates}
         showExactLocation={showExactLocation}
-        height={
-          !supportsNativeFullscreen && isFullscreen && viewportHeight
-            ? `${viewportHeight}px`
-            : '100%'
-        }
+        height="100%"
         className="w-full h-full"
       />
-
-      {/* Custom Fullscreen Button */}
-      <button
-        onClick={toggleFullscreen}
-        className="absolute top-2 right-2 z-10 p-2 bg-white rounded-md shadow-md hover:bg-gray-50 transition-colors"
-        aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-      >
-        {isFullscreen ? (
-          <Minimize2 className="w-5 h-5 text-gray-700" />
-        ) : (
-          <Maximize2 className="w-5 h-5 text-gray-700" />
-        )}
-      </button>
     </div>
   );
 }
