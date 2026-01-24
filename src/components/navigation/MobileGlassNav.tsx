@@ -192,7 +192,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   return (
     <>
       <nav
-        className={`fixed bottom-0 left-0 right-0 md:hidden z-50 ${
+        className={`fixed bottom-0 left-0 right-0 md:hidden z-[250] ${
           isMapFullscreen ? 'hidden' : ''
         } [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden`}
         role="navigation"
@@ -213,6 +213,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
             revealExpanded={session ? isMenuOpen : undefined}
             revealMenuId="menu"
             revealStaggerMs={60}
+            revealBaseDelayMs={200}
           />
         </div>
       </nav>

@@ -51,6 +51,7 @@ interface AdaptiveGlassBubblesNavProps {
   revealExpanded?: boolean; // undefined = no reveal logic, true = expanded, false = collapsed
   revealMenuId?: string; // ID of the menu button (always visible) - default 'menu'
   revealStaggerMs?: number; // Stagger delay between each button reveal - default 100
+  revealBaseDelayMs?: number; // Base delay before first button appears - default 0
 }
 
 export function AdaptiveGlassBubblesNav({
@@ -64,6 +65,7 @@ export function AdaptiveGlassBubblesNav({
   revealExpanded,
   revealMenuId = 'menu',
   revealStaggerMs = 100,
+  revealBaseDelayMs = 0,
 }: AdaptiveGlassBubblesNavProps) {
   const [internalIsDarkBackground, setInternalIsDarkBackground] = useState(false);
   // Track dark/light state per button
@@ -440,11 +442,12 @@ export function AdaptiveGlassBubblesNav({
           // Reveal animation logic (for logged-in menu expand/collapse)
           const isMenuButton = buttonId === revealMenuId;
           const hasRevealLogic = revealExpanded !== undefined;
-          // Calculate stagger delay: rightmost non-menu button appears first (0ms), then leftward
+          // Calculate stagger delay: rightmost non-menu button appears first, then leftward
           // items.length - 2 gives us the index of the last non-menu button
           // Subtract current index to get reverse order delay
+          // Add base delay so menu appears first, then buttons follow
           const revealDelayMs = hasRevealLogic && !isMenuButton 
-            ? (items.length - 2 - index) * revealStaggerMs 
+            ? revealBaseDelayMs + (items.length - 2 - index) * revealStaggerMs 
             : 0;
           // Determine if this button should be revealed
           const isRevealed = !hasRevealLogic || isMenuButton || revealExpanded;
