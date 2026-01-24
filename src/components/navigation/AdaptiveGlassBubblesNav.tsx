@@ -495,7 +495,7 @@ export function AdaptiveGlassBubblesNav({
                   ? `0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 3px rgba(255,255,255,0.25)`
                   : `0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05), inset 0 1px 3px rgba(0,0,0,0.05)`,
                 transition: isMorphingButton 
-                  ? 'all 300ms cubic-bezier(0.34, 1.56, 0.64, 1)' 
+                  ? 'width 400ms ease-out 200ms, padding 400ms ease-out 200ms, min-width 400ms ease-out 200ms' 
                   : 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 position: 'relative',
                 overflow: 'hidden',
@@ -1064,17 +1064,19 @@ export function AdaptiveGlassBubblesNav({
         /* ========================================
            PILL-TO-CIRCLE MORPH ANIMATION
            Used for menu button onboarding hint
+           Sequence: text fade (200ms) -> morph (400ms) -> pause (150ms)
            ======================================== */
         
         .glass-morphing {
-          /* Smooth transition for the morph */
+          /* Smooth transition for the morph - starts after text fades (200ms delay)
+             Uses ease-out for smooth deceleration, no bounce */
           transition: 
-            width 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
-            padding 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
-            min-width 300ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+            width 400ms ease-out 200ms,
+            padding 400ms ease-out 200ms,
+            min-width 400ms ease-out 200ms !important;
         }
 
-        /* Text fades out during morph */
+        /* Text fades out first (200ms) */
         .glass-morph-text {
           animation: glassMorphTextFade 200ms ease-out forwards;
         }
@@ -1086,7 +1088,7 @@ export function AdaptiveGlassBubblesNav({
           }
           100% {
             opacity: 0;
-            transform: translateX(8px);
+            transform: translateX(4px);
             width: 0;
             margin: 0;
             padding: 0;

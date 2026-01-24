@@ -28,7 +28,10 @@ const MOBILE_NAV_CONFIG = {
 // Menu hint constants
 const MENU_ACTIVITY_KEY = 'vsf_menu_last_active';
 const INACTIVITY_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 hours
-const MORPH_ANIMATION_MS = 300;
+const TEXT_FADE_MS = 200;      // Text disappears
+const MORPH_ANIMATION_MS = 400; // Pill morphs to circle
+const PAUSE_BEFORE_MENU_MS = 150; // Pause before menu opens
+const TOTAL_MORPH_SEQUENCE_MS = TEXT_FADE_MS + MORPH_ANIMATION_MS + PAUSE_BEFORE_MENU_MS;
 
 interface MobileGlassNavProps {
   session: Session | null;
@@ -226,17 +229,18 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   // Handle menu button click with optional morph animation
   const handleMenuClick = () => {
     if (showMenuHint && !isMorphing) {
-      // First click with hint showing - start morph animation
+      // First click with hint showing - start morph animation sequence
+      // Sequence: text fades (200ms) -> morph (400ms) -> pause (150ms) -> menu opens
       setIsMorphing(true);
       
-      // After morph completes, hide hint and open menu
+      // After full sequence completes, hide hint and open menu
       setTimeout(() => {
         setIsMorphing(false);
         setShowMenuHint(false);
         // Update activity timestamp since they've now used the menu
         localStorage.setItem(MENU_ACTIVITY_KEY, Date.now().toString());
         setIsMenuOpen(true);
-      }, MORPH_ANIMATION_MS);
+      }, TOTAL_MORPH_SEQUENCE_MS);
     } else {
       // Normal toggle behavior
       setIsMenuOpen(!isMenuOpen);
