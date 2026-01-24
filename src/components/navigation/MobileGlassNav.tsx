@@ -212,7 +212,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
             isVisible={isScrollVisible}
             revealExpanded={session ? isMenuOpen : undefined}
             revealMenuId="menu"
-            revealStaggerMs={100}
+            revealStaggerMs={60}
           />
         </div>
       </nav>
