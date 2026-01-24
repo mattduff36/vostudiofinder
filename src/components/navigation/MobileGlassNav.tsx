@@ -49,6 +49,9 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
   const [isMorphing, setIsMorphing] = useState(false);
   const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Track if menu has been opened at least once (to avoid hiding buttons on initial load)
+  const [hasMenuBeenOpened, setHasMenuBeenOpened] = useState(false);
+  
   // Two-phase scroll visibility: position at 150ms (invisible), show at 500ms
   const { isPositioned, isVisible: isScrollVisible } = useScrollVisibility({ 
     showDelay: 500,
@@ -238,10 +241,14 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
         setShowMenuHint(false);
         // Update activity timestamp since they've now used the menu
         localStorage.setItem(MENU_ACTIVITY_KEY, Date.now().toString());
+        setHasMenuBeenOpened(true);
         setIsMenuOpen(true);
       }, TOTAL_MORPH_SEQUENCE_MS);
     } else {
       // Normal toggle behavior
+      if (!isMenuOpen) {
+        setHasMenuBeenOpened(true);
+      }
       setIsMenuOpen(!isMenuOpen);
     }
   };
@@ -311,7 +318,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
             debugSensors={false}
             isPositioned={isPositioned}
             isVisible={isScrollVisible}
-            revealExpanded={session ? isMenuOpen : undefined}
+            revealExpanded={session && hasMenuBeenOpened ? isMenuOpen : undefined}
             revealMenuId="menu"
             revealStaggerMs={60}
             revealBaseDelayMs={200}
