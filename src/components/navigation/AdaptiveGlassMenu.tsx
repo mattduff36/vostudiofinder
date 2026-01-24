@@ -110,7 +110,7 @@ export function AdaptiveGlassMenu({
           transform-origin: 100% 100%;
           /* Initial entrance - elegant fade in */
           animation: liquidGlassMenuEntrance 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-          animation-delay: 40ms;
+          animation-delay: 50ms;
         }
 
         .adaptive-menu-glass::before {
@@ -161,7 +161,7 @@ export function AdaptiveGlassMenu({
           0% {
             opacity: 0;
             transform: translate3d(8px, 6px, 0) scale(0.96);
-            filter: blur(4px);
+            filter: blur(5px);
           }
           100% {
             opacity: 1;
@@ -175,7 +175,7 @@ export function AdaptiveGlassMenu({
           0% {
             opacity: 0;
             transform: translate3d(8px, 6px, 0) scale(0.96);
-            filter: blur(4px);
+            filter: blur(5px);
           }
           100% {
             opacity: 1;
@@ -184,7 +184,7 @@ export function AdaptiveGlassMenu({
           }
         }
 
-        /* Menu hide - quick, elegant exit */
+        /* Menu hide - elegant exit */
         @keyframes liquidGlassMenuHide {
           0% {
             opacity: 1;
@@ -193,18 +193,18 @@ export function AdaptiveGlassMenu({
           }
           100% {
             opacity: 0;
-            transform: translate3d(6px, 4px, 0) scale(0.97);
-            filter: blur(2px);
+            transform: translate3d(8px, 6px, 0) scale(0.96);
+            filter: blur(5px);
           }
         }
 
         .adaptive-menu-glass.menu-show {
-          animation: liquidGlassMenuShow 240ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-          animation-delay: 40ms;
+          animation: liquidGlassMenuShow 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          animation-delay: 50ms;
         }
 
         .adaptive-menu-glass.menu-hide {
-          animation: liquidGlassMenuHide 180ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+          animation: liquidGlassMenuHide 280ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
           pointer-events: none;
         }
 
