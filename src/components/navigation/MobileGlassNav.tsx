@@ -349,7 +349,7 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
       {/* Expanding Menu with Backdrop Overlay */}
       {isMenuOpen && (
         <div
-          className="fixed inset-0 z-[200] md:hidden pointer-events-auto bg-black/30"
+          className="fixed inset-0 z-[300] md:hidden pointer-events-auto bg-black/30"
           onClick={() => setIsMenuOpen(false)}
           style={{ touchAction: 'none' }}
         >
