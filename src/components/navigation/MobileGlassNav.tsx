@@ -28,10 +28,9 @@ const MOBILE_NAV_CONFIG = {
 // Menu hint constants
 const MENU_ACTIVITY_KEY = 'vsf_menu_last_active';
 const INACTIVITY_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 hours
-const TEXT_FADE_MS = 200;      // Text disappears
-const MORPH_ANIMATION_MS = 400; // Pill morphs to circle
+const MORPH_ANIMATION_MS = 600; // Text fade (200ms) + width collapse (400ms)
 const PAUSE_BEFORE_MENU_MS = 150; // Pause before menu opens
-const TOTAL_MORPH_SEQUENCE_MS = TEXT_FADE_MS + MORPH_ANIMATION_MS + PAUSE_BEFORE_MENU_MS;
+const TOTAL_MORPH_SEQUENCE_MS = MORPH_ANIMATION_MS + PAUSE_BEFORE_MENU_MS;
 
 interface MobileGlassNavProps {
   session: Session | null;
@@ -249,12 +248,13 @@ export function MobileGlassNav({ session }: MobileGlassNavProps) {
 
   // Add menu button (always last, always visible)
   // Shows "Open Menu" hint for new/returning users
+  // Keep label and showLabel during morphing so text can animate out
   navItems.push({
     id: 'menu',
-    label: isMorphing ? '' : (showMenuHint ? 'Open Menu' : (isMenuOpen ? 'Close' : 'Menu')),
+    label: showMenuHint ? 'Open Menu' : (isMenuOpen ? 'Close' : 'Menu'),
     icon: isMenuOpen ? X : Menu,
-    showLabel: showMenuHint && !isMorphing, // Pill shape when showing hint
-    isMorphing: isMorphing, // Pass morphing state for animation
+    showLabel: showMenuHint || isMorphing, // Keep pill shape during morph
+    isMorphing: isMorphing,
     onClick: handleMenuClick,
   });
 

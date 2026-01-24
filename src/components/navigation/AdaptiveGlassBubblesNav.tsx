@@ -448,7 +448,8 @@ export function AdaptiveGlassBubblesNav({
         {items.map((item, index) => {
           const Icon = item.icon;
           const buttonId = item.id || item.href || item.label || `button-${index}`;
-          const isPill = item.showLabel;
+          // During morphing, keep pill structure so CSS transition can animate dimensions
+          const isPill = item.showLabel || item.isMorphing;
           
           // Use individual button's background state if available, otherwise fall back to global state
           const isButtonDark = externalIsDarkBackground !== undefined 
@@ -470,19 +471,25 @@ export function AdaptiveGlassBubblesNav({
           
           // Handle morphing state - transitioning from pill to circle
           const isMorphingButton = item.isMorphing === true;
+          // During morphing, KEEP pill structure so dimensions stay auto
+          // The CSS animation on the text will shrink the content, naturally shrinking the button
+          const effectiveIsPill = isPill;
           
           const bubble = (
             <div 
               data-button-id={buttonId}
-              className={`${isPill && !isMorphingButton ? 'adaptive-pill-glass' : 'adaptive-circle-glass'} ${isMorphingButton ? 'glass-morphing' : ''} ${hasAnimated.current ? (isVisible ? 'glass-show' : 'glass-hide') : ''} ${isPositioned && !isVisible ? 'glass-positioning' : ''} ${item.active ? 'active' : ''} ${isButtonDark ? 'dark-bg' : 'light-bg'}`}
+              data-morphing={isMorphingButton ? 'true' : undefined}
+              data-circle-size={config.circleSize}
+              className={`${effectiveIsPill ? 'adaptive-pill-glass' : 'adaptive-circle-glass'} ${isMorphingButton ? 'glass-morphing' : ''} ${hasAnimated.current ? (isVisible ? 'glass-show' : 'glass-hide') : ''} ${isPositioned && !isVisible ? 'glass-positioning' : ''} ${item.active ? 'active' : ''} ${isButtonDark ? 'dark-bg' : 'light-bg'}`}
               style={{
-                width: isPill && !isMorphingButton ? 'auto' : `${config.circleSize}px`,
-                minWidth: isPill && !isMorphingButton && item.pillMinWidth ? `${item.pillMinWidth}px` : undefined,
+                // When morphing, keep auto width initially - the animation will handle the shrink
+                width: effectiveIsPill ? 'auto' : `${config.circleSize}px`,
+                minWidth: effectiveIsPill && item.pillMinWidth ? `${item.pillMinWidth}px` : undefined,
                 height: `${config.circleSize}px`,
-                paddingLeft: isPill && !isMorphingButton ? `${config.pillPaddingX}px` : undefined,
-                paddingRight: isPill && !isMorphingButton ? `${config.pillPaddingX}px` : undefined,
-                paddingTop: isPill && !isMorphingButton ? `${config.pillPaddingY}px` : undefined,
-                paddingBottom: isPill && !isMorphingButton ? `${config.pillPaddingY}px` : undefined,
+                paddingLeft: effectiveIsPill ? `${config.pillPaddingX}px` : undefined,
+                paddingRight: effectiveIsPill ? `${config.pillPaddingX}px` : undefined,
+                paddingTop: effectiveIsPill ? `${config.pillPaddingY}px` : undefined,
+                paddingBottom: effectiveIsPill ? `${config.pillPaddingY}px` : undefined,
                 backdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                 WebkitBackdropFilter: `blur(${config.blur}px) saturate(${config.saturation}%) brightness(${config.brightness}) contrast(${config.contrast})`,
                 color: isButtonDark ? '#ffffff' : '#000000',
@@ -494,17 +501,14 @@ export function AdaptiveGlassBubblesNav({
                 boxShadow: isButtonDark
                   ? `0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 3px rgba(255,255,255,0.25)`
                   : `0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05), inset 0 1px 3px rgba(0,0,0,0.05)`,
-                transition: isMorphingButton 
-                  ? 'width 400ms ease-out 200ms, padding 400ms ease-out 200ms, min-width 400ms ease-out 200ms' 
-                  : 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 position: 'relative',
                 overflow: 'hidden',
               }}
             >
-              <Icon className="w-6 h-6" />
-              {isPill && !isMorphingButton && <span className="ml-2 text-sm font-medium whitespace-nowrap">{item.label}</span>}
-              {isMorphingButton && (
-                <span className="ml-2 text-sm font-medium whitespace-nowrap glass-morph-text">
+              <Icon className="w-6 h-6 flex-shrink-0" />
+              {isPill && (
+                <span className={`ml-2 text-sm font-medium whitespace-nowrap ${isMorphingButton ? 'glass-morph-text' : ''}`}>
                   {item.label}
                 </span>
               )}
@@ -1064,46 +1068,51 @@ export function AdaptiveGlassBubblesNav({
         /* ========================================
            PILL-TO-CIRCLE MORPH ANIMATION
            Used for menu button onboarding hint
-           Sequence: text fade (200ms) -> morph (400ms) -> pause (150ms)
+           Sequence: text collapses (600ms total) causing button to shrink naturally
            ======================================== */
         
         .glass-morphing {
-          /* Smooth transition for the morph - starts after text fades (200ms delay)
-             Uses ease-out for smooth deceleration, no bounce */
-          transition: 
-            width 400ms ease-out 200ms,
-            padding 400ms ease-out 200ms,
-            min-width 400ms ease-out 200ms !important;
+          /* Container needs to allow shrinking */
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
 
-        /* Text fades out first (200ms) */
+        /* Text collapses - this drives the entire morph animation
+           The button shrinks naturally as text content disappears */
         .glass-morph-text {
-          animation: glassMorphTextFade 200ms ease-out forwards;
+          display: inline-block;
+          overflow: hidden;
+          animation: glassMorphTextCollapse 600ms ease-out forwards;
         }
 
-        @keyframes glassMorphTextFade {
+        @keyframes glassMorphTextCollapse {
+          /* Phase 1: 0-33% (200ms) - Fade out text */
           0% {
             opacity: 1;
-            transform: translateX(0);
+            max-width: 100px;
+            margin-left: 0.5rem;
           }
+          33% {
+            opacity: 0;
+            max-width: 100px;
+            margin-left: 0.5rem;
+          }
+          /* Phase 2: 33%-100% (400ms) - Collapse width */
           100% {
             opacity: 0;
-            transform: translateX(4px);
-            width: 0;
-            margin: 0;
-            padding: 0;
+            max-width: 0;
+            margin-left: 0;
           }
         }
 
         /* Reduced motion: instant transition */
         @media (prefers-reduced-motion: reduce) {
-          .glass-morphing {
-            transition: none !important;
-          }
-          
           .glass-morph-text {
             animation: none;
             opacity: 0;
+            max-width: 0;
+            margin-left: 0;
           }
         }
       `}</style>
