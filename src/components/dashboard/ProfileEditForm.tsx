@@ -695,7 +695,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
                 value={profile.profile.about || ''}
                 onChange={(e) => updateProfile('about', e.target.value)}
                 maxLength={1500}
-                rows={6}
                 className="min-h-[150px] resize-none overflow-hidden"
               />
               <div className="flex justify-between items-center text-xs mt-1">
@@ -897,7 +896,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               label="Equipment List"
               value={profile.profile.equipment_list || ''}
               onChange={(e) => updateProfile('equipment_list', e.target.value)}
-              rows={4}
               helperText="List your microphones, interfaces, and other equipment"
               placeholder="e.g., Neumann U87, Universal Audio Apollo, etc."
               className="min-h-[120px] resize-none overflow-hidden"
@@ -908,7 +906,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               label="Services Offered"
               value={profile.profile.services_offered || ''}
               onChange={(e) => updateProfile('services_offered', e.target.value)}
-              rows={4}
               helperText="Describe the services you provide"
               placeholder="e.g., Voice recording, audio editing, mixing, mastering..."
               className="min-h-[120px] resize-none overflow-hidden"

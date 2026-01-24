@@ -24,6 +24,8 @@ function detectVoiceoverArtistMisuse(fields: {
     { pattern: /\bvoice actress\b/gi, weight: 10, name: 'voice actress' },
     { pattern: /\bvoice talent\b/gi, weight: 10, name: 'voice talent' },
     { pattern: /\bvoiceover artist\b/gi, weight: 10, name: 'voiceover artist' },
+    { pattern: /\boffer voiceover work\b/gi, weight: 10, name: 'offer voiceover work' },
+    { pattern: /\bvoiceover services\b/gi, weight: 8, name: 'voiceover services' },
     { pattern: /\bcommercial voice\b/gi, weight: 8, name: 'commercial voice' },
     { pattern: /\bcharacter voices?\b/gi, weight: 8, name: 'character voice(s)' },
     { pattern: /\bIVR voice\b/gi, weight: 8, name: 'IVR' },
@@ -40,21 +42,7 @@ function detectVoiceoverArtistMisuse(fields: {
     { pattern: /\bI\'m a voice\b/gi, weight: 9, name: "I'm a voice" },
     { pattern: /\bvoice artist\b/gi, weight: 10, name: 'voice artist' },
     { pattern: /\bvoice over talent\b/gi, weight: 10, name: 'voice over talent' },
-  ];
-  
-  // Studio-owner-friendly patterns that should NOT trigger warnings
-  const studioAllowlist = [
-    /\bvoiceover studio\b/gi,
-    /\bvoiceover recording studio\b/gi,
-    /\bstudio hire\b/gi,
-    /\bstudio rental\b/gi,
-    /\bstudio owner\b/gi,
-    /\brecording studio\b/gi,
-    /\bpodcast studio\b/gi,
-    /\bhome studio\b/gi,
-    /\baudio producer\b/gi,
-    /\bVO coach\b/gi,
-    /\bvoiceover coach\b/gi,
+    { pattern: /\bcontact me for voiceover\b/gi, weight: 10, name: 'contact me for voiceover' },
   ];
   
   // Combine all text fields for scanning
@@ -66,11 +54,7 @@ function detectVoiceoverArtistMisuse(fields: {
     fields.equipment_list || '',
   ].join(' ').toLowerCase();
   
-  // Check if any allowlisted phrases exist (skip warning if studio-owner language present)
-  const hasStudioLanguage = studioAllowlist.some(pattern => pattern.test(combinedText));
-  if (hasStudioLanguage) {
-    return []; // No warnings if studio-owner language detected
-  }
+  console.log('[VO Artist Detection] Combined text:', combinedText.substring(0, 200));
   
   // Score based on phrase matches
   let totalScore = 0;
@@ -79,6 +63,7 @@ function detectVoiceoverArtistMisuse(fields: {
   voArtistPhrases.forEach(({ pattern, weight, name }) => {
     const matches = combinedText.match(pattern);
     if (matches && matches.length > 0) {
+      console.log('[VO Artist Detection] Matched phrase:', name, 'weight:', weight, 'count:', matches.length);
       totalScore += weight * matches.length;
       if (!matchedPhrases.includes(name)) {
         matchedPhrases.push(name);
@@ -86,8 +71,12 @@ function detectVoiceoverArtistMisuse(fields: {
     }
   });
   
-  // If score exceeds threshold, add warning
+  console.log('[VO Artist Detection] Total score:', totalScore, 'Matched phrases:', matchedPhrases);
+  
+  // If score exceeds threshold, add warning (regardless of studio-owner language)
+  // Someone could be trying to bypass detection by including both types of phrases
   if (totalScore >= 10) {
+    console.log('[VO Artist Detection] WARNING TRIGGERED');
     warnings.push(
       'Your profile contains phrases typically used by voiceover artists. ' +
       'Voiceover Studio Finder is currently for Studio Owners, Audio Producers, and Voiceover Coaches only. ' +
@@ -194,6 +183,7 @@ export async function GET() {
             name: '',
             city: '',
             is_profile_visible: false,
+            show_email: true, // Enable messages by default (matching schema default)
             created_at: now,
             updated_at: now,
           },
@@ -666,6 +656,7 @@ export async function PUT(request: NextRequest) {
               name: updates.name || 'My Studio', // Required field
               city: updates.city || '', // Required field with default
               is_profile_visible: false, // Hidden by default, user can manually enable when ready
+              show_email: true, // Enable messages by default (matching schema default)
               ...profileUpdates,
               updated_at: new Date(),
             },

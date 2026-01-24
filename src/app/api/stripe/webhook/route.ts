@@ -72,6 +72,168 @@ async function markEventProcessed(eventId: string, success: boolean, error?: str
 }
 
 /**
+ * Handle Featured Studio Upgrade payment completion (6 months)
+ */
+async function handleFeaturedUpgradePaymentSuccess(session: Stripe.Checkout.Session) {
+  const timestamp = new Date().toISOString();
+  console.log(`[DEBUG ${timestamp}] ========== WEBHOOK: handleFeaturedUpgradePaymentSuccess START ==========`);
+  console.log(`[DEBUG ${timestamp}] Session ID: ${session.id}`);
+  console.log(`[DEBUG ${timestamp}] Session metadata:`, JSON.stringify(session.metadata || {}, null, 2));
+  
+  const { user_id, user_email, studio_id, purpose } = session.metadata || {};
+
+  if (purpose !== 'featured_upgrade') {
+    console.log(`[DEBUG ${timestamp}] ❌ Session ${session.id} is not a featured upgrade (purpose: ${purpose}), skipping`);
+    return;
+  }
+
+  if (!user_id || !user_email || !studio_id) {
+    console.error(`[DEBUG ${timestamp}] ❌ ERROR: Missing required metadata`);
+    console.error(`[DEBUG ${timestamp}] user_id: ${user_id}, studio_id: ${studio_id}, user_email: ${user_email}`);
+    throw new Error('Missing required metadata for featured upgrade');
+  }
+
+  console.log(`[DEBUG ${timestamp}] ✅ Metadata validation passed`);
+  console.log(`💳 Processing featured upgrade for user ${user_id}, studio ${studio_id}`);
+
+  // Expand session to get payment_intent
+  console.log(`[DEBUG ${timestamp}] Retrieving expanded session from Stripe...`);
+  const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
+    expand: ['payment_intent'],
+  });
+
+  const paymentIntent = expandedSession.payment_intent as Stripe.PaymentIntent | null;
+
+  // Handle 100% discount (no payment_intent created by Stripe)
+  if (!paymentIntent && expandedSession.amount_total === 0) {
+    console.log(`[DEBUG ${timestamp}] 💰 Zero-amount checkout (100% discount applied)`);
+    
+    const zeroPaymentId = randomBytes(12).toString('base64url');
+    await db.payments.create({
+      data: {
+        id: zeroPaymentId,
+        user_id: user_id,
+        stripe_checkout_session_id: session.id,
+        stripe_payment_intent_id: null,
+        stripe_charge_id: null,
+        amount: 0,
+        currency: expandedSession.currency || 'gbp',
+        status: 'SUCCEEDED',
+        refunded_amount: 0,
+        metadata: session.metadata || {},
+        created_at: new Date(session.created * 1000),
+        updated_at: new Date(),
+      },
+    });
+    console.log(`[DEBUG ${timestamp}] ✅ Created zero-amount payment record: ${zeroPaymentId}`);
+  } else if (!paymentIntent) {
+    console.error(`[DEBUG ${timestamp}] ❌ ERROR: No payment_intent found for session ${session.id}`);
+    throw new Error('No payment_intent found for session');
+  }
+
+  // Check if payment already recorded
+  const existingPayment = await db.payments.findUnique({
+    where: { stripe_checkout_session_id: session.id },
+  });
+
+  if (existingPayment) {
+    console.log(`[DEBUG ${timestamp}] ⚠️ Payment record already exists for session ${session.id}`);
+    console.log(`💳 Payment record already exists, skipping payment creation`);
+  } else if (paymentIntent) {
+    // Record payment
+    console.log(`[DEBUG ${timestamp}] Creating payment record...`);
+    const paymentId = randomBytes(12).toString('base64url');
+    
+    await db.payments.create({
+      data: {
+        id: paymentId,
+        user_id: user_id,
+        stripe_checkout_session_id: session.id,
+        stripe_payment_intent_id: paymentIntent.id,
+        stripe_charge_id: (paymentIntent as any).latest_charge as string || null,
+        amount: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        status: 'SUCCEEDED',
+        refunded_amount: 0,
+        metadata: session.metadata || {},
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+    });
+
+    console.log(`[DEBUG ${timestamp}] ✅ Payment record created: ${paymentId}`);
+    console.log(`[SUCCESS] Payment recorded: ${paymentId}`);
+  }
+
+  // Grant featured status for 6 months
+  console.log(`[DEBUG ${timestamp}] Granting featured status to studio ${studio_id}...`);
+  
+  const now = new Date();
+  const featuredUntil = new Date(now);
+  featuredUntil.setMonth(featuredUntil.getMonth() + 6);
+
+  // Defensive check: ensure featured slots available
+  const featuredCount = await db.studio_profiles.count({
+    where: {
+      is_featured: true,
+      id: { not: studio_id }, // Exclude this studio from count
+      OR: [
+        { featured_until: null },
+        { featured_until: { gte: now } }
+      ]
+    }
+  });
+
+  if (featuredCount >= 6) {
+    console.error(`[DEBUG ${timestamp}] ❌ ERROR: All featured slots taken (${featuredCount}/6)`);
+    console.error(`[DEBUG ${timestamp}] Payment was recorded but featured status NOT granted`);
+    throw new Error('All featured studio slots are taken');
+  }
+
+  // Update studio to featured
+  await db.studio_profiles.update({
+    where: { id: studio_id },
+    data: {
+      is_featured: true,
+      featured_until: featuredUntil,
+      updated_at: now,
+    },
+  });
+
+  console.log(`[DEBUG ${timestamp}] ✅ Studio ${studio_id} marked as featured until ${featuredUntil.toISOString()}`);
+  console.log(`[SUCCESS] Featured status granted to studio ${studio_id} until ${featuredUntil.toISOString()}`);
+
+  // Send confirmation email
+  try {
+    await sendEmail({
+      to: user_email,
+      subject: 'Featured Studio Upgrade Confirmed - VoiceoverStudioFinder',
+      html: `
+        <h2>Featured Studio Upgrade Confirmed</h2>
+        <p>Congratulations! Your studio has been upgraded to Featured status.</p>
+        <p><strong>Featured Until:</strong> ${featuredUntil.toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        })}</p>
+        <p><strong>Benefits:</strong></p>
+        <ul>
+          <li>Prominent placement on the homepage</li>
+          <li>Priority in search results</li>
+          <li>Increased visibility to potential clients</li>
+        </ul>
+        <p>Thank you for your support!</p>
+      `,
+    });
+    console.log(`[EMAIL] Featured upgrade confirmation sent to ${user_email}`);
+  } catch (emailError) {
+    console.warn(`[WARNING] Failed to send featured upgrade confirmation email: ${emailError}`);
+  }
+
+  console.log(`[DEBUG ${timestamp}] ========== WEBHOOK: handleFeaturedUpgradePaymentSuccess END ==========`);
+}
+
+/**
  * Handle one-time membership payment completion
  */
 async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) {
@@ -943,7 +1105,19 @@ export async function POST(request: NextRequest) {
           // Only handle payment mode sessions (not subscription mode)
           if (session.mode === 'payment') {
             console.log(`[DEBUG ${eventTimestamp}] ✅ Session is payment mode, processing...`);
-            await handleMembershipPaymentSuccess(session);
+            
+            // Route based on purpose metadata
+            const purpose = session.metadata?.purpose;
+            
+            if (purpose === 'featured_upgrade') {
+              console.log(`[DEBUG ${eventTimestamp}] Routing to featured upgrade handler`);
+              await handleFeaturedUpgradePaymentSuccess(session);
+            } else {
+              // membership or membership_renewal
+              console.log(`[DEBUG ${eventTimestamp}] Routing to membership handler`);
+              await handleMembershipPaymentSuccess(session);
+            }
+            
             console.log(`[DEBUG ${eventTimestamp}] ✅ Payment processing completed`);
           } else {
             console.log(`[DEBUG ${eventTimestamp}] ⚠️ Session ${session.id} is subscription mode (${session.mode}), skipping`);

@@ -10,8 +10,7 @@
  */
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Maximize2, Minimize2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { SimpleStudioMap } from '@/components/maps/SimpleStudioMap';
 
 interface MapFullscreenProps {
@@ -83,24 +82,24 @@ export function MapFullscreen({
     return undefined;
   }, [supportsNativeFullscreen, isFullscreen]);
 
-  // Fullscreen toggle function
-  const toggleFullscreen = useCallback(async () => {
-    if (supportsNativeFullscreen) {
-      // Use native Fullscreen API (Android/Desktop)
-      try {
-        if (!document.fullscreenElement) {
-          await mapContainerRef.current?.requestFullscreen();
-        } else {
-          await document.exitFullscreen();
-        }
-      } catch (err) {
-        console.error('Error toggling fullscreen:', err);
-      }
-    } else {
-      // Use CSS-based fullscreen (iOS)
-      setIsFullscreen(!isFullscreen);
-    }
-  }, [supportsNativeFullscreen, isFullscreen]);
+  // Fullscreen toggle function (currently unused - functionality to be implemented)
+  // const toggleFullscreen = useCallback(async () => {
+  //   if (supportsNativeFullscreen) {
+  //     // Use native Fullscreen API (Android/Desktop)
+  //     try {
+  //       if (!document.fullscreenElement) {
+  //         await mapContainerRef.current?.requestFullscreen();
+  //       } else {
+  //         await document.exitFullscreen();
+  //       }
+  //     } catch (err) {
+  //       console.error('Error toggling fullscreen:', err);
+  //     }
+  //   } else {
+  //     // Use CSS-based fullscreen (iOS)
+  //     setIsFullscreen(!isFullscreen);
+  //   }
+  // }, [supportsNativeFullscreen, isFullscreen]);
 
   // Calculate height for fullscreen
   const containerHeight = !supportsNativeFullscreen && isFullscreen && viewportHeight

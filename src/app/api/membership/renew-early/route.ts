@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import Stripe from 'stripe';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 import { getBaseUrl } from '@/lib/seo/site';
 import {
   calculateDaysUntilExpiry,

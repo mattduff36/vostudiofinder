@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { forgotPasswordSchema } from '@/lib/validations/auth';
 import { generateResetToken } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 import { sendEmail } from '@/lib/email/email-service';
 import { generatePasswordResetEmail } from '@/lib/email/templates/password-reset';
 import { getBaseUrl } from '@/lib/seo/site';

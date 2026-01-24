@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { registerSchema } from '@/lib/validations/auth';
 import { hashPassword } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 import { sendVerificationEmail } from '@/lib/email/email-service';
 import { UserStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { studioSearchSchema } from '@/lib/validations/studio';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 import { cache } from '@/lib/cache';
 import { Prisma, ServiceType } from '@prisma/client';
 import { geocodeAddress, calculateDistance } from '@/lib/maps';

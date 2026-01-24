@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 import { db } from '@/lib/db';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {

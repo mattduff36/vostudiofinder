@@ -25,10 +25,9 @@ import { ProfileCompletionProgress } from '@/components/profile/ProfileCompletio
 import { ProfileCompletionAnimation } from '@/components/dashboard/ProfileCompletionAnimation';
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
 import { Toggle } from '@/components/ui/Toggle';
-import { Button } from '@/components/ui/Button';
 import { ShareProfileButton } from '@/components/profile/ShareProfileButton';
 import { logger } from '@/lib/logger';
-import { showError, showSuccess } from '@/lib/toast';
+import { showError } from '@/lib/toast';
 import { getBaseUrl } from '@/lib/seo/site';
 import { useProfileAnimation } from '@/hooks/useProfileAnimation';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';

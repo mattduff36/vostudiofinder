@@ -386,13 +386,13 @@ export function Navbar({ session }: NavbarProps) {
       <>
         {/* Backdrop overlay (no blur) */}
         <div 
-          className="fixed inset-0 z-[99] bg-black/30 md:block lg:hidden hidden"
+          className="fixed inset-0 z-[99] bg-black/30 hidden md:block lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
         {/* Menu Panel */}
         <div 
           ref={mobileMenuRef}
-          className="fixed top-[72px] right-6 z-[110] w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 md:block lg:hidden hidden"
+          className="fixed top-[72px] right-6 z-[110] w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 hidden md:block lg:hidden"
         >
           <Link
             href="/studios"

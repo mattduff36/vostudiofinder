@@ -55,9 +55,9 @@ async function runProductionMigration() {
     console.log(`   - Changing default for new profiles to enabled`);
     console.log('');
 
-    // Read and execute the migration SQL
-    const migrationPath = path.join(process.cwd(), 'prisma', 'migrations', '20260123_enable_messages_default_true', 'migration.sql');
-    const migrationSql = fs.readFileSync(migrationPath, 'utf-8');
+    // Read and execute the standalone SQL script (not a Prisma migration)
+    const sqlPath = path.join(process.cwd(), 'scripts', 'sql', 'enable-messages-default-true.sql');
+    const migrationSql = fs.readFileSync(sqlPath, 'utf-8');
     
     // Split SQL into individual statements
     const statements = migrationSql

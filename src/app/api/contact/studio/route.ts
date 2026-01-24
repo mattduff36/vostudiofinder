@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email/email-service';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 import { z } from 'zod';
 
 const contactSchema = z.object({
   studioId: z.string().min(1),
   studioName: z.string().min(1),
   ownerEmail: z.string().email(),
-  senderName: z.string().min(1, 'Name is required'),
-  senderEmail: z.string().email('Valid email is required'),
-  message: z.string().min(75, 'Message must be at least 75 characters'),
+  senderName: z.string().min(1, 'Name is required').transform(val => val.trim()),
+  senderEmail: z.string().email('Valid email is required').transform(val => val.trim()),
+  message: z.string()
+    .min(1, 'Message is required')
+    .transform(val => val.trim())
+    .pipe(z.string().min(75, 'Message must be at least 75 characters')),
 });
 
 export async function POST(request: NextRequest) {

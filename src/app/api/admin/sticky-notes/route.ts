@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { nanoid } from 'nanoid';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 
 const MAX_CONTENT_LENGTH = 10000; // 10k chars limit
 

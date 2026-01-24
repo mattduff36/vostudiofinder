@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 
 export async function DELETE(request: NextRequest) {
   try {

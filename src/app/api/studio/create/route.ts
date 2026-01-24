@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { createStudioSchema } from '@/lib/validations/studio';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 import { randomBytes } from 'crypto';
 import { requireActiveMembership } from '@/lib/membership';
 
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
           website_url: validatedData.website_url || null,
           phone: validatedData.phone || null,
           is_profile_visible: false, // Hidden by default, user can manually enable when ready
+          show_email: true, // Enable messages by default (matching schema default)
           status: 'ACTIVE',
           updated_at: new Date(), // Add required timestamp
         },

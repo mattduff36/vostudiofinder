@@ -1,5 +1,6 @@
--- Enable 'Enable Messages' (show_email) for all existing profiles
--- Also change the default to true for new profiles
+-- AlterTable
+-- Change default value of show_email from false to true
+-- Also update existing profiles to enable messages
 
 -- Update all existing profiles to enable messages
 UPDATE studio_profiles 

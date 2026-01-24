@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { hashPassword, isResetTokenValid } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 import { resetPasswordSchema } from '@/lib/validations/auth';
 import { ZodError } from 'zod';
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 interface UseAutosizeTextareaOptions {
   value: string;
@@ -8,7 +8,7 @@ interface UseAutosizeTextareaOptions {
 export function useAutosizeTextarea({ value, isEnabled = true }: UseAutosizeTextareaOptions) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
+  const resize = useCallback(() => {
     if (!isEnabled) return;
     if (!ref.current) return;
 
@@ -22,7 +22,24 @@ export function useAutosizeTextarea({ value, isEnabled = true }: UseAutosizeText
     
     // Restore scroll position
     ref.current.scrollTop = scrollPos;
-  }, [value, isEnabled]);
+  }, [isEnabled]);
+
+  // Run resize whenever value changes
+  useEffect(() => {
+    resize();
+  }, [value, resize]);
+
+  // Also resize when ref is first attached or component mounts
+  useEffect(() => {
+    if (!ref.current) return;
+    
+    // Use requestAnimationFrame to ensure DOM has fully updated
+    const rafId = requestAnimationFrame(() => {
+      resize();
+    });
+    
+    return () => cancelAnimationFrame(rafId);
+  }, [resize]);
 
   return ref;
 }

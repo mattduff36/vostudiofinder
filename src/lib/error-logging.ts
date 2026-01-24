@@ -1,52 +1,57 @@
-import * as Sentry from '@sentry/nextjs';
-
 /**
- * Utility functions for error tracking with Sentry
+ * Error Logging Utilities
+ * 
+ * Simple console-based error logging (Sentry removed)
+ * All functions maintain the same API for backward compatibility
  */
 
 /**
- * Capture an exception with additional context
+ * Log an exception with additional context
  */
 export function captureException(error: Error, context?: Record<string, any>) {
-  Sentry.captureException(error, {
-    contexts: {
-      additional: context,
-    },
-  });
+  console.error('[Error]', error.message, context || {});
+  if (error.stack) {
+    console.error(error.stack);
+  }
 }
 
 /**
- * Capture a message with level
+ * Log a message with level
  */
 export function captureMessage(
   message: string,
   level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug' = 'info',
   context?: Record<string, any>
 ) {
-  Sentry.captureMessage(message, level);
+  const levelMap = {
+    fatal: console.error,
+    error: console.error,
+    warning: console.warn,
+    log: console.log,
+    info: console.info,
+    debug: console.debug,
+  };
   
-  if (context) {
-    Sentry.setContext('additional', context);
-  }
+  levelMap[level](`[${level.toUpperCase()}]`, message, context || {});
 }
 
 /**
- * Set user context for error tracking
+ * Set user context for error tracking (no-op, kept for compatibility)
  */
-export function setUserContext(user: {
+export function setUserContext(_user: {
   id?: string;
   email?: string;
   username?: string;
   role?: string;
 }) {
-  Sentry.setUser(user);
+  // No-op: User context logging removed with Sentry
 }
 
 /**
- * Set additional tags for filtering
+ * Set additional tags for filtering (no-op, kept for compatibility)
  */
-export function setTags(tags: Record<string, string>) {
-  Sentry.setTags(tags);
+export function setTags(_tags: Record<string, string>) {
+  // No-op: Tag tracking removed with Sentry
 }
 
 /**
@@ -55,28 +60,18 @@ export function setTags(tags: Record<string, string>) {
 export function addBreadcrumb(
   message: string,
   category: string = 'custom',
-  level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug' = 'info',
+  _level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug' = 'info',
   data?: Record<string, any>
 ) {
-  Sentry.addBreadcrumb({
-    message,
-    category,
-    level,
-    data: data || {},
-    timestamp: Date.now() / 1000,
-  });
+  console.debug(`[Breadcrumb][${category}]`, message, data || {});
 }
 
 /**
- * Create a performance transaction
+ * Create a performance transaction (no-op, kept for compatibility)
  */
-export function startTransaction(name: string, op: string) {
-  return Sentry.startSpan({
-    name,
-    op,
-  }, () => {
-    // Transaction started
-  });
+export function startTransaction(_name: string, _op: string) {
+  // No-op: Performance tracking removed with Sentry
+  return null;
 }
 
 /**
@@ -112,15 +107,14 @@ export async function withErrorTracking<T>(
 /**
  * API route error handler
  */
-export function handleApiError(error: unknown, req: any) {
+export function handleApiError(error: unknown, context?: string | any) {
   const errorMessage = error instanceof Error ? error.message : 'Unknown API error';
+  const errorContext = typeof context === 'string' ? { context } : context;
   
-  captureException(error instanceof Error ? error : new Error(errorMessage), {
-    url: req.url,
-    method: req.method,
-    headers: req.headers,
-    body: req.body,
-  });
+  captureException(
+    error instanceof Error ? error : new Error(errorMessage),
+    errorContext
+  );
   
   return {
     error: errorMessage,

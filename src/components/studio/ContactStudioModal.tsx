@@ -32,12 +32,17 @@ export function ContactStudioModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !email.trim() || !message.trim()) {
+    // Trim values for validation (matching server-side behavior)
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedMessage = message.trim();
+    
+    if (!trimmedName || !trimmedEmail || !trimmedMessage) {
       setError('Please fill in all fields');
       return;
     }
 
-    if (message.trim().length < 75) {
+    if (trimmedMessage.length < 75) {
       setError('Message must be at least 75 characters long');
       return;
     }

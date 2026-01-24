@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/sentry';
+import { handleApiError } from '@/lib/error-logging';
 import { sendVerificationEmail } from '@/lib/email/email-service';
 import { getBaseUrl } from '@/lib/seo/site';
 
