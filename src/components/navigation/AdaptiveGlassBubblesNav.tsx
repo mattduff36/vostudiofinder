@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import type { GlassCustomization } from '@/types/glass-customization';
@@ -68,11 +69,24 @@ export function AdaptiveGlassBubblesNav({
   revealStaggerMs = 100,
   revealBaseDelayMs = 0,
 }: AdaptiveGlassBubblesNavProps) {
+  const pathname = usePathname();
   const [internalIsDarkBackground, setInternalIsDarkBackground] = useState(false);
   // Track dark/light state per button
   const [buttonBackgrounds, setButtonBackgrounds] = useState<Map<string, boolean>>(new Map());
   const navRef = useRef<HTMLDivElement>(null);
   const hasAnimated = useRef(false);
+  const prevPathname = useRef(pathname);
+
+  // Reset background detection when navigating to a new page
+  // This prevents white-on-white buttons when going from dark hero to light page
+  useEffect(() => {
+    if (prevPathname.current !== pathname) {
+      // Reset to default (light background assumption - black text)
+      setInternalIsDarkBackground(false);
+      setButtonBackgrounds(new Map());
+      prevPathname.current = pathname;
+    }
+  }, [pathname]);
 
   const isDarkBackground = externalIsDarkBackground ?? internalIsDarkBackground;
 
