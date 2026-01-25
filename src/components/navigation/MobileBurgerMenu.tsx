@@ -204,12 +204,12 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
           >
             {/* Action Buttons (Signed-out only) */}
             {!session && (
-              <div className="px-4 py-3 border-b border-gray-100 space-y-2">
+              <div className="px-4 py-3 border-b border-gray-100 flex flex-col items-center space-y-2">
                 {/* Sign In - Outline Button */}
                 <button
                   type="button"
                   onClick={() => handleNavigation('/auth/signin')}
-                  className="w-full px-4 py-2.5 rounded-lg border-2 border-[#d42027] text-[#d42027] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
+                  className="w-[220px] px-4 py-2.5 rounded-lg border-2 border-[#d42027] text-[#d42027] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
                   role="menuitem"
                 >
                   Sign In
@@ -218,7 +218,7 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
                 <button
                   type="button"
                   onClick={() => handleNavigation('/register')}
-                  className="w-full px-4 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#b91c23] active:bg-[#a01820] text-sm font-medium transition-all"
+                  className="w-[220px] px-4 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#b91c23] active:bg-[#a01820] text-sm font-medium transition-all"
                   role="menuitem"
                 >
                   List Your Studio
