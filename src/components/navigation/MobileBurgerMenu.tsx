@@ -172,10 +172,10 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
     bottomNavIds,
   });
 
-  // Build quick nav items (just Home and Browse Studios in the grid)
+  // Build quick nav items (just Home and Studios in the grid)
   const quickNavItems = [
     { id: 'home', label: 'Home', icon: Home, href: '/', active: pathname === '/' },
-    { id: 'studios', label: 'Browse Studios', icon: Search, href: '/studios', active: pathname === '/studios' },
+    { id: 'studios', label: 'Studios', icon: Search, href: '/studios', active: pathname === '/studios' },
   ];
 
   // Profile nav items (Overview, My Profile) - shown below Welcome for logged-in users
@@ -195,38 +195,14 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
             onClick={() => setIsOpen(false)}
           />
           
-          {/* Menu Panel - Positioned below navbar, wider for better readability */}
+          {/* Menu Panel - Positioned below navbar, narrower width */}
           <div 
             ref={menuRef}
-            className="absolute top-16 right-4 w-[352px] bg-white rounded-lg shadow-xl border border-gray-200 max-h-[80vh] overflow-y-auto"
+            className="absolute top-16 right-4 w-64 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[80vh] overflow-y-auto"
             role="menu"
             aria-orientation="vertical"
           >
-            {/* Action Buttons (Signed-out only) */}
-            {!session && (
-              <div className="px-4 py-3 border-b border-gray-100 flex flex-col items-center space-y-2">
-                {/* Sign In - Outline Button */}
-                <button
-                  type="button"
-                  onClick={() => handleNavigation('/auth/signin')}
-                  className="w-[220px] px-4 py-2.5 rounded-lg border-2 border-[#d42027] text-[#d42027] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
-                  role="menuitem"
-                >
-                  Sign In
-                </button>
-                {/* List Your Studio - Filled Red Button */}
-                <button
-                  type="button"
-                  onClick={() => handleNavigation('/register')}
-                  className="w-[220px] px-4 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#b91c23] active:bg-[#a01820] text-sm font-medium transition-all"
-                  role="menuitem"
-                >
-                  List Your Studio
-                </button>
-              </div>
-            )}
-
-            {/* Quick Nav Grid (Home, Browse Studios) */}
+            {/* Quick Nav Grid (Home, Studios) */}
             <div className="px-4 py-3 border-b border-gray-100">
               <div className="grid grid-cols-2 gap-2">
                 {quickNavItems.map((item) => {
@@ -236,7 +212,7 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
                       key={item.id}
                       type="button"
                       onClick={() => handleNavigation(item.href)}
-                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                         item.active
                           ? 'bg-red-50 text-red-600'
                           : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
@@ -260,6 +236,30 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
                 }
               </p>
             </div>
+
+            {/* Action Buttons (Signed-out only) */}
+            {!session && (
+              <div className="px-4 py-3 border-b border-gray-100 flex flex-col items-center space-y-2">
+                {/* Sign In - Outline Button */}
+                <button
+                  type="button"
+                  onClick={() => handleNavigation('/auth/signin')}
+                  className="w-[220px] px-4 py-2.5 rounded-lg border-2 border-[#d42027] text-[#d42027] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
+                  role="menuitem"
+                >
+                  Sign In
+                </button>
+                {/* List Your Studio - Filled Red Button */}
+                <button
+                  type="button"
+                  onClick={() => handleNavigation('/register')}
+                  className="w-[220px] px-4 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#b91c23] active:bg-[#a01820] text-sm font-medium transition-all"
+                  role="menuitem"
+                >
+                  List Your Studio
+                </button>
+              </div>
+            )}
 
             {/* All Menu Items in one container */}
             <div className="py-2">
@@ -350,12 +350,24 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
                         ) : null}
                         <span>{loadingVisibility ? 'Checking...' : isVisible ? 'Hide Profile' : 'Make Profile Visible'}</span>
                       </button>
+                    ) : isLogoutItem ? (
+                      // Logout as centered button with outline styling (like Sign In)
+                      <div className="px-4 py-3 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => handleAction(item.action!)}
+                          className="w-[220px] px-4 py-2.5 rounded-lg border-2 border-[#d42027] text-[#d42027] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
+                          role="menuitem"
+                        >
+                          {item.label}
+                        </button>
+                      </div>
                     ) : item.type === 'action' && item.action ? (
                       <button
                         type="button"
                         onClick={() => handleAction(item.action!)}
                         className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors ${
-                          isAdminItem || isLogoutItem
+                          isAdminItem
                             ? 'text-red-600 hover:bg-red-50 active:bg-red-100'
                             : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
                         }`}

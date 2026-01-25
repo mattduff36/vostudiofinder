@@ -159,7 +159,7 @@ export const NAV_ITEMS: Record<string, NavItem> = {
   },
   logout: {
     id: 'logout',
-    label: 'Logout',
+    label: 'Log Out',
     icon: LogOut,
     type: 'action',
     action: 'logout',
