@@ -96,7 +96,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
 
       {/* Mobile Tabs - Syncs with navbar scroll animation */}
       <div 
-        className="md:hidden sticky top-14 -mt-[4px] z-50 bg-red-600 border-b border-red-700"
+        className="md:hidden sticky top-18 -mt-[4px] z-50 bg-red-600 border-b border-red-700"
         style={isMobile ? {
           transform: `translateY(-${navTranslateY}px)`,
           transition: 'none', // Let scroll drive the animation
