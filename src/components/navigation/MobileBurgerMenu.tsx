@@ -9,7 +9,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { Home, Search, User, LayoutDashboard, Loader2, LogIn } from 'lucide-react';
+import { Home, Search, User, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Session } from 'next-auth';
 import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
 
@@ -202,6 +202,30 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
             role="menu"
             aria-orientation="vertical"
           >
+            {/* Action Buttons (Signed-out only) */}
+            {!session && (
+              <div className="px-4 py-3 border-b border-gray-100 space-y-2">
+                {/* Sign In - Outline Button */}
+                <button
+                  type="button"
+                  onClick={() => handleNavigation('/auth/signin')}
+                  className="w-full px-4 py-2.5 rounded-lg border-2 border-[#d42027] text-[#d42027] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
+                  role="menuitem"
+                >
+                  Sign In
+                </button>
+                {/* List Your Studio - Filled Red Button */}
+                <button
+                  type="button"
+                  onClick={() => handleNavigation('/register')}
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#b91c23] active:bg-[#a01820] text-sm font-medium transition-all"
+                  role="menuitem"
+                >
+                  List Your Studio
+                </button>
+              </div>
+            )}
+
             {/* Quick Nav Grid (Home, Browse Studios) */}
             <div className="px-4 py-3 border-b border-gray-100">
               <div className="grid grid-cols-2 gap-2">
@@ -266,29 +290,17 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
                   // Skip welcome-user for logged-in users (shown at top now)
                   .filter(item => !(session && item.id === 'welcome-user'))
                   // Skip welcome-guest for logged-out users
-                  .filter(item => !(!session && item.id === 'welcome-guest'));
+                  .filter(item => !(!session && item.id === 'welcome-guest'))
+                  // Skip signup for signed-out users (now at top)
+                  .filter(item => !(!session && item.id === 'signup'));
                 
                 if (!session) {
-                  // For signed-out: About, Help, Privacy, Cookies, then List Your Studio, then Sign In at bottom
+                  // For signed-out: About, Help, Privacy, Cookies only (Sign In and List Your Studio are at top)
                   const about = items.find(i => i.id === 'about');
                   const help = items.find(i => i.id === 'help');
                   const privacy = items.find(i => i.id === 'privacy');
                   const cookies = items.find(i => i.id === 'cookies');
-                  const signup = items.find(i => i.id === 'signup');
                   items = [about, help, privacy, cookies].filter(Boolean) as typeof items;
-                  // Add List Your Studio before Sign In
-                  if (signup) {
-                    items.push(signup);
-                  }
-                  // Add Sign In at the end
-                  items.push({
-                    id: 'signin',
-                    label: 'Sign In',
-                    icon: LogIn,
-                    href: '/auth/signin',
-                    type: 'link' as const,
-                    section: 'auth' as const,
-                  });
                 }
                 
                 return items;
@@ -298,8 +310,6 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
                 const isActive = item.href === pathname;
                 const isAdminItem = item.section === 'admin';
                 const isLogoutItem = item.id === 'logout';
-                const isSignupItem = item.id === 'signup';
-                const isSigninItem = item.id === 'signin';
                 const isVisibilityToggle = item.type === 'visibility-toggle';
                 
                 // Determine if we need a divider before this item
@@ -309,9 +319,7 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
                   // Divider before Admin section (after Cookie Settings) - signed in
                   (session && isAdminItem && index > 0 && filteredItems[index - 1]?.section !== 'admin') ||
                   // Divider before Logout - signed in
-                  (session && isLogoutItem) ||
-                  // Divider before List Your Studio (after Cookie Settings) - signed out
-                  (!session && isSignupItem)
+                  (session && isLogoutItem)
                 );
                 const needsSeparatorBefore = showDividerBefore;
 
@@ -363,7 +371,7 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
                         className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors ${
                           isActive
                             ? 'bg-red-50 text-red-600'
-                            : isAdminItem || isSigninItem
+                            : isAdminItem
                             ? 'text-red-600 hover:bg-red-50 active:bg-red-100'
                             : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
                         }`}
