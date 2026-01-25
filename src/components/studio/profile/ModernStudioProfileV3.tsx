@@ -557,6 +557,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
             <ShareProfileButton
               profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
               profileName={studio.name}
+              {...(studio.city && { region: studio.city })}
               variant="outline"
               size="md"
               className="w-full"
@@ -654,6 +655,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                 <ShareProfileButton
                   profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
                   profileName={studio.name}
+                  {...(studio.city && { region: studio.city })}
                   variant="ghost"
                   size="sm"
                   className="text-gray-600 hover:text-gray-900"

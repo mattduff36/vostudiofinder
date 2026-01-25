@@ -8,6 +8,7 @@ import { showSuccess, showError } from '@/lib/toast';
 interface ShareProfileButtonProps {
   profileUrl: string;
   profileName: string;
+  region?: string; // City or location for the caption
   className?: string;
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
@@ -16,20 +17,32 @@ interface ShareProfileButtonProps {
 export function ShareProfileButton({
   profileUrl,
   profileName,
+  region,
   className = '',
   variant = 'outline',
   size = 'sm',
 }: ShareProfileButtonProps) {
   const [copied, setCopied] = useState(false);
 
+  // Create a suggested caption that users can edit
+  const createCaption = () => {
+    const baseCaption = "Just listed our studio on Voiceover Studio Finder.";
+    if (region) {
+      return `${baseCaption}\nIf you're looking for a studio near ${region}, check us out!\n\n${profileUrl}`;
+    }
+    return `${baseCaption}\nCheck us out!\n\n${profileUrl}`;
+  };
+
   const handleShare = async () => {
+    const caption = createCaption();
+    
     // Check if native share is available (primarily mobile)
     if (navigator.share) {
       try {
         await navigator.share({
           title: profileName,
-          text: `Check out ${profileName} on Voiceover Studio Finder`,
-          url: profileUrl,
+          text: caption,
+          url: '', // URL already included in caption for better control
         });
       } catch (error) {
         // User cancelled or share failed
@@ -46,14 +59,15 @@ export function ShareProfileButton({
   };
 
   const copyToClipboard = async () => {
+    const caption = createCaption();
     try {
-      await navigator.clipboard.writeText(profileUrl);
+      await navigator.clipboard.writeText(caption);
       setCopied(true);
-      showSuccess('Profile link copied to clipboard!');
+      showSuccess('Caption and link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Copy failed:', error);
-      showError('Failed to copy link');
+      showError('Failed to copy');
     }
   };
 

@@ -24,6 +24,20 @@ export function CookieConsentBanner({ initialLevel }: CookieConsentBannerProps) 
   const animationTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const errorOccurredRef = React.useRef<boolean>(false);
 
+  // Manage body class for conditional mobile padding
+  // Keep class active during both visible state AND exit animation
+  useEffect(() => {
+    if (showBanner || isAnimatingOut) {
+      document.body.classList.add('cookie-banner-visible');
+    } else {
+      document.body.classList.remove('cookie-banner-visible');
+    }
+    
+    return () => {
+      document.body.classList.remove('cookie-banner-visible');
+    };
+  }, [showBanner, isAnimatingOut]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {

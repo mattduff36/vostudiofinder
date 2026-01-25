@@ -386,14 +386,19 @@ input[type="checkbox"]:focus {
 }
 
 /* 
- * Mobile Bottom Navigation Spacing
- * The liquid glass nav is 72px tall (56px bubbles + 16px margin)
- * Main content has 88px bottom padding (72px nav + 16px safe space)
- * This ensures content like the Share Profile button is always visible
+ * Mobile Navigation & Cookie Banner
+ * The mobile burger menu button is now in the top navbar (top-right corner),
+ * matching the desktop burger menu style.
+ * 
+ * Mobile bottom padding (pb-40 = 160px) accounts for the CookieConsentBanner
+ * which is fixed at bottom-0. This prevents content from being hidden behind
+ * the banner on mobile devices before users accept/decline cookies.
+ * 
+ * The padding is dynamically removed once the banner is dismissed to prevent
+ * wasting valuable mobile screen space.
  */
-/* iOS Safari bottom gap fix - Remove main bottom padding when mobile nav is hidden */
 @media (max-width: 767px) {
-  html.vsf-mobile-nav-hidden main {
+  body:not(.cookie-banner-visible) main {
     padding-bottom: 0 !important;
   }
 }

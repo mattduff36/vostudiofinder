@@ -353,16 +353,14 @@ export function Navbar({ session }: NavbarProps) {
             </div>
           )}
 
-          {/* Mobile Sign In Button (not logged in) */}
-          {!session && (
-            <button
-              onClick={() => router.push('/auth/signin')}
-              className="md:hidden px-3 py-1.5 rounded-lg transition-all duration-300 bg-[#d42027] hover:bg-[#b91c23] text-white text-sm font-medium"
-              aria-label="Sign in"
-            >
-              Sign In
-            </button>
-          )}
+          {/* Mobile Burger Menu Button - styled like desktop, sits in navbar */}
+          <button
+            onClick={() => window.dispatchEvent(new Event('toggleMobileBurgerMenu'))}
+            className="md:hidden flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10 mobile-burger-btn"
+            aria-label="Toggle menu"
+          >
+            <Menu className="w-5 h-5 mobile-burger-icon" />
+          </button>
         </div>
       </div>
     </nav>

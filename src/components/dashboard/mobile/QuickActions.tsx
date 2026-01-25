@@ -476,6 +476,13 @@ export function QuickActions({
         );
       })}
 
+      {/* Promotions Section */}
+      <div className="mt-4 mb-2">
+        <p className="text-sm text-gray-600">
+          Promotions
+        </p>
+      </div>
+
       {/* Share Promotional Accordion Card - Mobile (after Settings) */}
       {!loading && (
         <div className="!bg-gradient-to-br from-red-50 to-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
@@ -491,7 +498,7 @@ export function QuickActions({
                 <Share2 className="w-5 h-5 text-[#d42027]" />
               </div>
               <p className="font-semibold text-gray-900 text-base leading-none m-0 !pb-0">
-                Promote your studio. Get rewarded!
+                Share your studio. Get a free month!
               </p>
             </div>
             <div className="ml-2 flex-shrink-0">
@@ -508,20 +515,24 @@ export function QuickActions({
             <div className="border-t border-red-100 p-4">
               <div className="flex flex-col items-center text-center">
                 <p className="text-sm text-gray-700 mb-4 leading-relaxed">
-                  Share your profile on social media and receive a free month of membership! Submit the public post link to us to claim.
+                  Post your profile publicly on social media and send us the link.
                 </p>
                 <div className="mb-3 w-full">
                   <ShareProfileButton
                     profileUrl={profileData?.user?.username ? `${getBaseUrl()}/${profileData.user.username}` : ''}
                     profileName={profileData?.user?.display_name || profileData?.user?.username || 'your studio'}
+                    {...(() => {
+                      const region = profileData?.studio?.city || profileData?.profile?.location;
+                      return region ? { region } : {};
+                    })()}
                     variant="primary"
                     size="md"
                     className="w-full"
                   />
                 </div>
                 <p className="text-xs text-gray-500">
-                  One reward per membership period.<br />
-                  Submit your link for verification to{' '}
+                  One free month per membership.<br />
+                  Email the link to{' '}
                   <a 
                     href="mailto:support@voiceoverstudiofinder.com" 
                     className="underline hover:text-[#d42027] transition-colors"

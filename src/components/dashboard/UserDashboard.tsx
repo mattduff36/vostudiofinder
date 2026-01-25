@@ -640,10 +640,10 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                       <Share2 className="w-8 h-8 text-[#d42027]" aria-hidden="true" />
                     </div>
                     <h3 className="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">
-                      Promote your studio. Get rewarded!
+                      Share your studio. Get a free month!
                     </h3>
                     <p className="text-base text-gray-700 leading-relaxed">
-                      Share your profile on social media and receive a free month of membership! Submit the public post link to us to claim.
+                      Post your profile publicly on social media and send us the link.
                     </p>
                   </div>
                   
@@ -652,14 +652,18 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                     <ShareProfileButton
                       profileUrl={profileData?.user?.username ? `${getBaseUrl()}/${profileData.user.username}` : ''}
                       profileName={profileData?.user?.display_name || profileData?.user?.username || 'your studio'}
+                      {...(() => {
+                        const region = profileData?.studio?.city || profileData?.profile?.location;
+                        return region ? { region } : {};
+                      })()}
                       variant="primary"
                       size="lg"
                       className="px-8 py-3"
                     />
                     <div className="text-sm text-gray-500 text-center space-y-2">
-                      <p>One reward per membership period.</p>
+                      <p>One free month per membership.</p>
                       <p>
-                        Submit your link for verification to{' '}
+                        Email the link to{' '}
                         <a 
                           href="mailto:support@voiceoverstudiofinder.com" 
                           className="underline hover:text-[#d42027] transition-colors"
