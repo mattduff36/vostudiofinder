@@ -103,6 +103,7 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   const [adminNeverExpires, setAdminNeverExpires] = useState(true);
+  const [verifyingEmail, setVerifyingEmail] = useState(false);
   
   const isBasicTabActive = activeTab === 'basic';
   const isRatesTabActive = activeTab === 'rates';
@@ -381,6 +382,31 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
   };
 
   if (!isOpen || !studio) return null;
+
+  const handleVerifyEmailNow = async () => {
+    if (!studio?.id) return;
+    setVerifyingEmail(true);
+    try {
+      const response = await fetch(`/api/admin/studios/${studio.id}/verify-email`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Failed to verify email');
+      }
+
+      showSuccess(result?.alreadyVerified ? 'Email is already verified.' : 'Email marked as verified.');
+      await fetchProfile();
+      onSave();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to verify email.';
+      showError(errorMessage);
+    } finally {
+      setVerifyingEmail(false);
+    }
+  };
 
   const tabs = [
     { id: 'basic', name: 'Basic Info' },
@@ -1061,6 +1087,34 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
               <option value="pending">Pending</option>
             </select>
             <p className="text-xs text-gray-500 mt-1">Account status (controls login access). This is separate from Profile Visibility (toggle at bottom).</p>
+
+            {/* Email verification */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Email verification</p>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Current: <span className={profile?.email_verified ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold'}>
+                      {profile?.email_verified ? 'Verified' : 'Not verified'}
+                    </span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleVerifyEmailNow}
+                  disabled={verifyingEmail || !!profile?.email_verified}
+                  className="inline-flex items-center px-3 py-2 text-xs font-medium rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={profile?.email_verified ? 'Already verified' : 'Force-verify this user email'}
+                >
+                  {verifyingEmail ? 'Verifying...' : 'Verify email now'}
+                </button>
+              </div>
+              {!profile?.email_verified && (
+                <p className="text-[11px] text-gray-500 mt-2">
+                  This marks the account’s email as verified immediately (no email is sent).
+                </p>
+              )}
+            </div>
           </div>
           
           <div className="space-y-3">

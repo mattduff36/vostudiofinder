@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { randomBytes } from 'crypto';
+import { sendVerificationEmail } from '@/lib/email/email-service';
+import { getBaseUrl } from '@/lib/seo/site';
 
 // Helper function to decode HTML entities
 function decodeHtmlEntities(str: string) {
@@ -52,6 +54,7 @@ export async function GET(
             display_name: true,
             username: true,
             email: true,
+            email_verified: true,
             avatar_url: true,
             subscriptions: {
               orderBy: { created_at: 'desc' },
@@ -95,6 +98,7 @@ export async function GET(
       username: studio.users?.username, // Use actual username for URLs
       display_name: studio.users?.display_name, // Use actual display name
       email: studio.users?.email,
+      email_verified: studio.users?.email_verified ?? false,
       status: studio.status?.toLowerCase(),
       joined: studio.created_at,
       last_name: decodeHtmlEntities(studio.last_name || ''),
@@ -159,6 +163,7 @@ export async function GET(
       username: studioData.username,
       display_name: studioData.display_name,
       email: studioData.email,
+      email_verified: studioData.email_verified,
       status: studioData.status,
       joined: studioData.joined,
       avatar_image: studioData.avatar_image, // Add at root level for modal
@@ -286,9 +291,20 @@ export async function PUT(
     if (body.username !== undefined) userUpdateData.username = body.username; // Username field updates actual username
     
     // Check if email is being changed and if it's already taken
-    if (body.email !== undefined && body.email !== existingStudio.users?.email) {
+    const normalizedNewEmail =
+      body.email !== undefined && body.email !== null ? String(body.email).toLowerCase().trim() : undefined;
+    const normalizedCurrentEmail = existingStudio.users?.email ? existingStudio.users.email.toLowerCase().trim() : undefined;
+
+    const isEmailChanging =
+      normalizedNewEmail !== undefined &&
+      normalizedNewEmail.length > 0 &&
+      normalizedNewEmail !== normalizedCurrentEmail;
+
+    let verificationEmailToSend: { email: string; displayName: string; verificationUrl: string } | null = null;
+
+    if (isEmailChanging) {
       const existingEmailUser = await prisma.users.findUnique({
-        where: { email: body.email }
+        where: { email: normalizedNewEmail }
       });
       
       if (existingEmailUser && existingEmailUser.id !== existingStudio.user_id) {
@@ -297,7 +313,22 @@ export async function PUT(
         }, { status: 400 });
       }
       
-      userUpdateData.email = body.email;
+      const verificationToken = randomBytes(32).toString('hex');
+      const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const postVerifyRedirect = `/auth/signin?callbackUrl=${encodeURIComponent('/dashboard')}`;
+      const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${verificationToken}&redirect=${encodeURIComponent(postVerifyRedirect)}`;
+
+      userUpdateData.email = normalizedNewEmail;
+      // Force re-verification on email change
+      userUpdateData.email_verified = false;
+      userUpdateData.verification_token = verificationToken;
+      userUpdateData.verification_token_expiry = verificationTokenExpiry;
+
+      verificationEmailToSend = {
+        email: normalizedNewEmail,
+        displayName: body.display_name ?? existingStudio.users?.display_name ?? 'User',
+        verificationUrl,
+      };
     }
     
     if (body.avatar_image !== undefined) userUpdateData.avatar_url = body.avatar_image; // Avatar image
@@ -661,6 +692,19 @@ export async function PUT(
         }
       }
     });
+
+    // If admin changed email, send verification email (best-effort)
+    if (verificationEmailToSend) {
+      try {
+        await sendVerificationEmail(
+          verificationEmailToSend.email,
+          verificationEmailToSend.displayName,
+          verificationEmailToSend.verificationUrl
+        );
+      } catch (emailError) {
+        console.warn('[Admin Update] Failed to send verification email after email change:', emailError);
+      }
+    }
 
     // Fetch the updated studio to return updated coordinates
     const updatedStudio = await prisma.studio_profiles.findUnique({

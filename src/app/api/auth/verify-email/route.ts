@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
 
+function sanitizeRedirectPath(raw: string | null): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  // Only allow same-site relative redirects.
+  if (!trimmed.startsWith('/')) return null;
+  // Disallow protocol-relative URLs ("//evil.com").
+  if (trimmed.startsWith('//')) return null;
+  return trimmed;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
-    const redirect = searchParams.get('redirect'); // Optional redirect after verification
+    const redirect = sanitizeRedirectPath(searchParams.get('redirect')); // Optional redirect after verification
 
     if (!token) {
       console.warn('[WARNING] No verification token provided');

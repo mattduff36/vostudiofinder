@@ -9,12 +9,22 @@ interface VerifyEmailContentProps {
   flow: 'account' | 'profile' | 'signup';
   email?: string;
   error?: string;
+  redirectTo?: string;
 }
 
-export default function VerifyEmailContent({ flow, email: emailProp, error }: VerifyEmailContentProps) {
+function sanitizeRedirectPath(raw?: string): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith('/')) return null;
+  if (trimmed.startsWith('//')) return null;
+  return trimmed;
+}
+
+export default function VerifyEmailContent({ flow, email: emailProp, error, redirectTo }: VerifyEmailContentProps) {
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const safeRedirect = sanitizeRedirectPath(redirectTo);
 
   const handleResendEmail = async () => {
     // Use email from props (passed via URL param)
@@ -32,7 +42,7 @@ export default function VerifyEmailContent({ flow, email: emailProp, error }: Ve
       const response = await fetch('/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, redirect: safeRedirect }),
       });
 
       const result = await response.json();
@@ -71,20 +81,26 @@ export default function VerifyEmailContent({ flow, email: emailProp, error }: Ve
       const result = await response.json();
 
       if (response.ok && result.verified) {
-        // User is verified, redirect to payment
-        setResendMessage({ type: 'success', text: 'Email verified! Redirecting to payment...' });
-        
-        // Build payment URL
-        const paymentParams = new URLSearchParams();
-        paymentParams.set('userId', result.userId);
-        paymentParams.set('email', email);
-        paymentParams.set('name', result.displayName);
-        if (result.username) {
-          paymentParams.set('username', result.username);
-        }
-        
+        // User is verified, redirect based on flow / redirect param
+        const target =
+          safeRedirect ||
+          (flow === 'signup' || flow === 'profile'
+            ? (() => {
+                const paymentParams = new URLSearchParams();
+                paymentParams.set('userId', result.userId);
+                paymentParams.set('email', email);
+                paymentParams.set('name', result.displayName);
+                if (result.username) {
+                  paymentParams.set('username', result.username);
+                }
+                return `/auth/membership?${paymentParams.toString()}`;
+              })()
+            : '/dashboard');
+
+        setResendMessage({ type: 'success', text: 'Email verified! Redirecting…' });
+
         setTimeout(() => {
-          window.location.href = `/auth/membership?${paymentParams.toString()}`;
+          window.location.href = target;
         }, 1000);
       } else {
         setResendMessage({ type: 'error', text: 'Email not yet verified. Please check your inbox and click the verification link.' });
@@ -169,13 +185,13 @@ export default function VerifyEmailContent({ flow, email: emailProp, error }: Ve
               ) : (
                 <div className="mt-4 space-y-3">
                   <p className="text-gray-700 font-medium">
-                    Your account has been created successfully!
+                    Please verify your email to continue.
                   </p>
                   <p className="text-gray-600">
-                    We've sent a verification email to your inbox. Please click the verification link to verify your email address.
+                    We've sent (or can resend) a verification email to your inbox. Click the verification link to unlock your dashboard.
                   </p>
                   <p className="text-gray-600">
-                    After verification, sign in to complete your studio profile from your dashboard and turn visibility on when you're ready to go live.
+                    After verification, you may be asked to sign in again.
                   </p>
                 </div>
               )}
@@ -259,7 +275,11 @@ export default function VerifyEmailContent({ flow, email: emailProp, error }: Ve
                 className="w-full bg-red-600 hover:bg-red-700"
                 disabled={isCheckingStatus}
               >
-                {isCheckingStatus ? 'Checking...' : 'I\'ve Verified My Email - Continue to Payment'}
+                {isCheckingStatus
+                  ? 'Checking...'
+                  : flow === 'signup' || flow === 'profile'
+                    ? 'I\'ve Verified My Email - Continue to Payment'
+                    : 'I\'ve Verified My Email - Continue'}
               </Button>
 
               <Button

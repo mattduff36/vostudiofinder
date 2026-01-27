@@ -5,9 +5,17 @@ import { handleApiError } from '@/lib/error-logging';
 import { sendVerificationEmail } from '@/lib/email/email-service';
 import { getBaseUrl } from '@/lib/seo/site';
 
+function sanitizeRedirectPath(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith('/')) return null;
+  if (trimmed.startsWith('//')) return null;
+  return trimmed;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { email, redirect } = await request.json();
 
     if (!email) {
       return NextResponse.json(
@@ -16,11 +24,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('📧 Resend verification request for:', email);
+    const normalizedEmail = String(email).toLowerCase().trim();
+    const safeRedirect = sanitizeRedirectPath(redirect);
+
+    console.log('📧 Resend verification request for:', normalizedEmail);
 
     // Find user
     const user = await db.users.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (!user) {
@@ -56,7 +67,9 @@ export async function POST(request: NextRequest) {
     });
 
     // Send verification email
-    const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = safeRedirect
+      ? `${getBaseUrl(request)}/api/auth/verify-email?token=${verificationToken}&redirect=${encodeURIComponent(safeRedirect)}`
+      : `${getBaseUrl(request)}/api/auth/verify-email?token=${verificationToken}`;
     
     const emailSent = await sendVerificationEmail(
       user.email,

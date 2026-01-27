@@ -4,6 +4,8 @@ import { randomBytes } from 'crypto';
 import { authOptions } from './auth';
 import { db } from './db';
 import { Role, UserStatus } from '@prisma/client';
+import { sendVerificationEmail } from '@/lib/email/email-service';
+import { getBaseUrl } from '@/lib/seo/site';
 
 /**
  * Server-side authentication guard
@@ -34,6 +36,8 @@ export async function requireActiveAccount(callbackUrl?: string) {
       username: true,
       role: true,
       email_verified: true,
+      verification_token: true,
+      verification_token_expiry: true,
       status: true,
     },
   });
@@ -47,7 +51,45 @@ export async function requireActiveAccount(callbackUrl?: string) {
   }
 
   if (!user.email_verified) {
-    redirect(`/auth/verify-email?email=${encodeURIComponent(user.email)}&flow=signup`);
+    const safeCallback =
+      callbackUrl && callbackUrl.startsWith('/') && !callbackUrl.startsWith('//')
+        ? callbackUrl
+        : '/dashboard';
+
+    const postVerifyRedirect = `/auth/signin?callbackUrl=${encodeURIComponent(safeCallback)}`;
+
+    // Safety net: if there's no token (or it's expired), generate one and send email
+    // so users can't get trapped in a "verify" loop with no way to actually verify.
+    const tokenExpired =
+      user.verification_token_expiry ? user.verification_token_expiry < new Date() : true;
+    const missingOrExpiredToken = !user.verification_token || tokenExpired;
+
+    if (missingOrExpiredToken) {
+      const verificationToken = randomBytes(32).toString('hex');
+      const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await db.users.update({
+        where: { id: user.id },
+        data: {
+          verification_token: verificationToken,
+          verification_token_expiry: verificationTokenExpiry,
+          updated_at: new Date(),
+        },
+      });
+
+      const verificationUrl = `${getBaseUrl()}/api/auth/verify-email?token=${verificationToken}&redirect=${encodeURIComponent(postVerifyRedirect)}`;
+
+      // Best-effort; even if email fails, we still redirect to the verify page
+      try {
+        await sendVerificationEmail(user.email, user.display_name, verificationUrl);
+      } catch (e) {
+        console.warn('[WARNING] Failed to auto-send verification email:', e);
+      }
+    }
+
+    redirect(
+      `/auth/verify-email?email=${encodeURIComponent(user.email)}&flow=account&redirect=${encodeURIComponent(postVerifyRedirect)}`
+    );
   }
 
   if (user.status === UserStatus.ACTIVE) {

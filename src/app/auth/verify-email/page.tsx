@@ -8,8 +8,16 @@ export const metadata: Metadata = {
   description: 'Please check your email to verify your account',
 };
 
+function sanitizeRedirectPath(raw?: string): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith('/')) return null;
+  if (trimmed.startsWith('//')) return null;
+  return trimmed;
+}
+
 interface VerifyEmailPageProps {
-  searchParams: Promise<{ new?: string; flow?: string; email?: string; error?: string }>;
+  searchParams: Promise<{ new?: string; flow?: string; email?: string; error?: string; redirect?: string }>;
 }
 
 export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageProps) {
@@ -20,6 +28,7 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
   const flow = params?.flow || (params?.new === 'true' ? 'profile' : 'account');
   const email = params?.email;
   const error = params?.error;
+  const redirectTo = sanitizeRedirectPath(params?.redirect);
 
   // If email is provided, check if user is already verified
   if (email && !error) {
@@ -34,8 +43,12 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
         },
       });
 
-      // If user is verified, redirect to payment page
+      // If user is verified, redirect based on flow
       if (user && user.email_verified) {
+        if (flow === 'account') {
+          redirect(redirectTo || '/dashboard');
+        }
+        
         console.log(`[SUCCESS] User ${email} already verified, redirecting to payment`);
         
         // Build payment URL with user data
@@ -58,12 +71,12 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
   const flowValue = flow as 'account' | 'profile' | 'signup';
   
   if (email && error) {
-    return <VerifyEmailContent flow={flowValue} email={email} error={error} />;
+    return <VerifyEmailContent flow={flowValue} email={email} error={error} redirectTo={redirectTo} />;
   } else if (email) {
-    return <VerifyEmailContent flow={flowValue} email={email} />;
+    return <VerifyEmailContent flow={flowValue} email={email} redirectTo={redirectTo} />;
   } else if (error) {
-    return <VerifyEmailContent flow={flowValue} error={error} />;
+    return <VerifyEmailContent flow={flowValue} error={error} redirectTo={redirectTo} />;
   } else {
-    return <VerifyEmailContent flow={flowValue} />;
+    return <VerifyEmailContent flow={flowValue} redirectTo={redirectTo} />;
   }
 }
