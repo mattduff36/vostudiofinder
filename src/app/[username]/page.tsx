@@ -207,12 +207,16 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
   const { username: rawUsername } = await params;
   const username = rawUsername.trim();
 
+  // Get session first to check if viewer is owner or admin
+  const session = await getServerSession(authOptions);
+
   // Find user by username and get their studio profile with metadata
+  // Don't filter by status yet - we'll handle that after checking permissions
   const user = await db.users.findFirst({
     where: { username: { equals: username, mode: 'insensitive' } },
     include: {
       studio_profiles: {
-        where: { status: 'ACTIVE' },
+        // Remove status filter - load all profiles for permission check
         include: {
           users: {
             select: {
@@ -289,10 +293,17 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       return <div>Studio not found</div>;
     }
 
-    // Get current session to check if the viewer is the owner or an admin
-    const session = await getServerSession(authOptions);
+    // Check if viewer is the owner or an admin
     const isOwner = session?.user?.id === user.id;
     const isAdmin = session?.user?.role === 'ADMIN';
+
+    // If profile status is INACTIVE, only allow owner or admin to view
+    if (studio.status !== 'ACTIVE') {
+      if (!isOwner && !isAdmin) {
+        notFound();
+      }
+      // If owner or admin, continue to show profile in preview mode
+    }
 
     // If profile is hidden, show the simplified user profile with hidden message
     // UNLESS the viewer is the owner or an admin - then show full profile in preview mode
@@ -518,7 +529,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(cleanedBreadcrumbSchema) }}
         />
         <ModernStudioProfileV3 
-          previewMode={!studio.is_profile_visible}
+          previewMode={!studio.is_profile_visible || studio.status !== 'ACTIVE'}
           studio={({
             ...((): Omit<typeof studio, 'website_url' | 'phone' | 'latitude' | 'longitude' | 'studio_images' | 'reviews' | 'users' | 'studio_studio_types'> => {
               const { website_url: _, phone: __, latitude: ___, longitude: ____, studio_images: _____, reviews: ______, users: _______, studio_studio_types: ________, ...rest } = studio;
