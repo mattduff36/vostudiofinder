@@ -51,11 +51,16 @@ export default async function Home() {
   let featuredStudiosRaw: any[] = [];
 
   try {
+    const now = new Date();
     featuredStudiosRaw = await db.studio_profiles.findMany({
       where: {
         status: 'ACTIVE',
         is_featured: true,
         is_profile_visible: true,
+        OR: [
+          { featured_until: null },
+          { featured_until: { gte: now } }
+        ]
       },
       include: {
         users: {

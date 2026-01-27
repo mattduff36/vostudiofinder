@@ -8,6 +8,7 @@ import { handleApiError } from '@/lib/error-logging';
  * - maxFeatured: 6 (system-wide limit)
  * - featuredCount: number of currently featured studios (not expired)
  * - remaining: slots available
+ * - nextAvailableAt: earliest featured_until date (if all slots taken)
  */
 export async function GET() {
   try {
@@ -30,10 +31,28 @@ export async function GET() {
     const maxFeatured = 6;
     const remaining = Math.max(0, maxFeatured - featuredCount);
     
+    // If all slots are taken, find the earliest expiry date
+    let nextAvailableAt: string | null = null;
+    if (remaining === 0) {
+      const earliestExpiry = await db.studio_profiles.findFirst({
+        where: {
+          is_featured: true,
+          featured_until: { gte: now }
+        },
+        orderBy: { featured_until: 'asc' },
+        select: { featured_until: true }
+      });
+      
+      if (earliestExpiry?.featured_until) {
+        nextAvailableAt = earliestExpiry.featured_until.toISOString();
+      }
+    }
+    
     return NextResponse.json({
       maxFeatured,
       featuredCount,
       remaining,
+      nextAvailableAt,
     });
   } catch (error) {
     console.error('Featured availability error:', error);

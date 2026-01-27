@@ -69,7 +69,12 @@ export function Settings({ data }: SettingsProps) {
     maxFeatured: number;
     featuredCount: number;
     remaining: number;
+    nextAvailableAt: string | null;
   } | null>(null);
+  
+  // Featured waitlist state
+  const [featuredWaitlistChecked, setFeaturedWaitlistChecked] = useState(false);
+  const [joiningFeaturedWaitlist, setJoiningFeaturedWaitlist] = useState(false);
   
   // Support forms
   const [issueFormOpen, setIssueFormOpen] = useState(false);
@@ -80,6 +85,9 @@ export function Settings({ data }: SettingsProps) {
   const [suggestionMessage, setSuggestionMessage] = useState('');
   const [submittingIssue, setSubmittingIssue] = useState(false);
   const [submittingSuggestion, setSubmittingSuggestion] = useState(false);
+  
+  // Verification request
+  const [submittingVerification, setSubmittingVerification] = useState(false);
   
   // Download data
   const [downloadingData, setDownloadingData] = useState(false);
@@ -759,7 +767,7 @@ export function Settings({ data }: SettingsProps) {
                       
                       <div className="flex items-center space-x-2 pt-0.5 sm:pt-1">
                         <span className="text-xs font-semibold text-gray-600">
-                          New expiry: {profileData?.membership?.expiresAt 
+                          Extend to: {profileData?.membership?.expiresAt 
                             ? calculateFinalExpiryForDisplay(
                                 new Date(profileData.membership.expiresAt),
                                 '5year'
@@ -849,12 +857,73 @@ export function Settings({ data }: SettingsProps) {
                                 Active membership required to become a featured studio
                               </p>
                             ) : !slotsAvailable ? (
-                              <p className="text-xs sm:text-sm text-gray-500">
-                                All featured studio slots are currently taken. Please check back later.
-                              </p>
+                              <>
+                                <p className="text-xs sm:text-sm text-gray-600 font-medium">
+                                  All Featured slots are taken. 
+                                  {featuredAvailability?.nextAvailableAt && (
+                                    <> Next slot available on {new Date(featuredAvailability.nextAvailableAt).toLocaleDateString('en-GB', {
+                                      day: 'numeric',
+                                      month: 'long',
+                                      year: 'numeric'
+                                    })}.</>
+                                  )}
+                                </p>
+                                <div className="mt-3 pt-3 border-t border-gray-300" onClick={(e) => e.stopPropagation()}>
+                                  <label className="flex items-start cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={featuredWaitlistChecked}
+                                      disabled={joiningFeaturedWaitlist}
+                                      onChange={async (e) => {
+                                        const isChecked = e.target.checked;
+                                        setFeaturedWaitlistChecked(isChecked);
+                                        
+                                        if (isChecked && !joiningFeaturedWaitlist) {
+                                          setJoiningFeaturedWaitlist(true);
+                                          try {
+                                            const response = await fetch('/api/waitlist', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ 
+                                                name: profileData?.user?.display_name || 'User',
+                                                email: profileData?.user?.email || '',
+                                                type: 'FEATURED'
+                                              }),
+                                            });
+                                            
+                                            if (response.ok || response.status === 400) {
+                                              // Success or already on list
+                                              showSuccess('Added to Featured Studios waitlist! We\'ll notify you when a slot opens.');
+                                            } else {
+                                              throw new Error('Failed to join waitlist');
+                                            }
+                                          } catch (error) {
+                                            showError('Failed to join waitlist. Please try again.');
+                                            setFeaturedWaitlistChecked(false);
+                                          } finally {
+                                            setJoiningFeaturedWaitlist(false);
+                                          }
+                                        }
+                                      }}
+                                      className="mt-0.5 h-4 w-4 text-amber-600 accent-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 focus:ring-offset-0 transition-colors"
+                                    />
+                                    <div className="ml-3 flex-1">
+                                      <span className="text-xs sm:text-sm font-medium text-gray-700 block">
+                                        Join the Featured Studios waitlist
+                                      </span>
+                                      <span className="text-xs text-gray-500 block mt-0.5">
+                                        We'll email you when a Featured slot becomes available
+                                      </span>
+                                    </div>
+                                  </label>
+                                </div>
+                              </>
                             ) : (
                               <>
-                                <p className="text-xs sm:text-sm leading-relaxed text-gray-700">
+                                <p className="text-xs sm:text-sm leading-relaxed text-gray-700 font-medium">
+                                  Only {featuredAvailability?.remaining || 0} out of 6 Featured slots available — secure yours before they're gone!
+                                </p>
+                                <p className="text-xs sm:text-sm leading-relaxed text-gray-600">
                                   Get featured on the homepage for 6 months with priority search placement
                                 </p>
                                 <div className="flex items-center space-x-2 pt-0.5 sm:pt-1">
@@ -869,28 +938,104 @@ export function Settings({ data }: SettingsProps) {
                       );
                     })()}
 
-                    {/* Request to become Verified - Placeholder Card */}
-                    <div className="relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 shadow-sm">
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h5 className="text-sm sm:text-base font-bold text-gray-900 flex items-center space-x-2">
-                            <span>Request Verified Badge</span>
-                            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 flex-shrink-0">
-                              <svg className="w-2.5 h-2.5 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
-                                <path d="M5 13l4 4L19 7"></path>
-                              </svg>
-                            </span>
-                          </h5>
-                          <span className="text-lg sm:text-xl font-extrabold text-gray-400">
-                            Coming Soon
-                          </span>
-                        </div>
-                        
-                        <p className="text-xs sm:text-sm leading-relaxed text-gray-600">
-                          Apply for verified status to show clients your studio has been approved by our team
-                        </p>
-                      </div>
-                    </div>
+                    {/* Request Verified Badge Card */}
+                    {(() => {
+                      const isVerified = profileData?.studio?.is_verified;
+                      const isMembershipActive = membership?.state === 'ACTIVE';
+                      const profileCompletion = completionStats.overall.percentage;
+                      const isEligible = !isVerified && isMembershipActive && profileCompletion >= 85;
+                      const needsCompletion = !isVerified && profileCompletion < 85;
+                      
+                      return (
+                        <motion.button
+                          onClick={() => {
+                            if (submittingVerification) return;
+                            
+                            if (isVerified) {
+                              // Already verified - do nothing
+                              return;
+                            } else if (!isMembershipActive) {
+                              showError('Active membership required to request verification');
+                              return;
+                            } else if (needsCompletion) {
+                              showError('Complete your profile to at least 85% to request verification');
+                              // Scroll to profile section to help user
+                              const profileSection = document.querySelector('[data-section="profile"]');
+                              if (profileSection) {
+                                profileSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }
+                              return;
+                            } else if (isEligible) {
+                              handleVerificationRequest();
+                            }
+                          }}
+                          disabled={isVerified || !isMembershipActive || submittingVerification}
+                          whileHover={isEligible && !submittingVerification ? { scale: 1.02 } : {}}
+                          whileTap={isEligible && !submittingVerification ? { scale: 0.98 } : {}}
+                          className={`relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left transition-all duration-200 shadow-sm ${
+                            isVerified
+                              ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-400 cursor-default'
+                              : isEligible && !submittingVerification
+                              ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-400 hover:border-green-600 cursor-pointer hover:shadow-md'
+                              : 'bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed'
+                          }`}
+                        >
+                          <div className="space-y-1.5 sm:space-y-2">
+                            <div className="flex items-center justify-between">
+                              <h5 className="text-sm sm:text-base font-bold flex items-center space-x-2"
+                                  style={{ color: isVerified || isEligible ? '#1a1a1a' : '#6b7280' }}>
+                                <span>Request Verified Badge</span>
+                                {submittingVerification ? (
+                                  <Loader2 className="w-4 h-4 animate-spin text-green-600" />
+                                ) : (
+                                  <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full flex-shrink-0 ${
+                                    isVerified || isEligible ? 'bg-green-600' : 'bg-gray-400'
+                                  }`}>
+                                    <svg className="w-2.5 h-2.5 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                  </span>
+                                )}
+                              </h5>
+                              {isVerified && (
+                                <span className="text-sm font-semibold text-green-600">
+                                  ✓ Verified
+                                </span>
+                              )}
+                            </div>
+                            
+                            {isVerified ? (
+                              <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                                Your studio profile has been verified. The verified badge is displayed on your public profile page.
+                              </p>
+                            ) : needsCompletion ? (
+                              <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+                                Complete your profile to at least 85% to request your studio be verified. Currently at {profileCompletion}%.
+                              </p>
+                            ) : !isMembershipActive ? (
+                              <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+                                Active membership required to request verified status
+                              </p>
+                            ) : submittingVerification ? (
+                              <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                                Submitting verification request...
+                              </p>
+                            ) : (
+                              <>
+                                <p className="text-xs sm:text-sm leading-relaxed text-gray-700">
+                                  Apply for verified status to show clients your studio has been approved by our team
+                                </p>
+                                <div className="flex items-center space-x-2 pt-0.5 sm:pt-1">
+                                  <span className="text-xs font-semibold text-green-600">
+                                    ✓ Profile complete • ✓ Ready to apply
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </motion.button>
+                      );
+                    })()}
                   </div>
                 </div>
               </>
@@ -1062,6 +1207,42 @@ export function Settings({ data }: SettingsProps) {
         return null;
     }
   };
+
+  // Handle verification request
+  const handleVerificationRequest = useCallback(async () => {
+    if (submittingVerification) return;
+    
+    setSubmittingVerification(true);
+    
+    try {
+      const response = await fetch('/api/membership/request-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit verification request');
+      }
+
+      showSuccess('Verification request submitted! Our team will review your profile and get back to you shortly.');
+      logger.log('[SUCCESS] Verification request submitted');
+
+      // Refresh profile data to update UI
+      const profileResponse = await fetch('/api/user/profile');
+      if (profileResponse.ok) {
+        const profileResult = await profileResponse.json();
+        setProfileData(profileResult.data);
+      }
+
+    } catch (err: any) {
+      logger.error('Error submitting verification request:', err);
+      showError(err.message || 'Failed to submit verification request');
+    } finally {
+      setSubmittingVerification(false);
+    }
+  }, [submittingVerification]);
 
   const handleDownloadData = useCallback(async () => {
     setDownloadingData(true);

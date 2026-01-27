@@ -453,12 +453,20 @@ model users {
 }
 
 model waitlist {
-  id         String   @id
+  id         String       @id
   name       String
   email      String
-  created_at DateTime @default(now())
+  type       WaitlistType @default(GENERAL)
+  created_at DateTime     @default(now())
 
+  @@unique([email, type])
   @@index([created_at])
+  @@index([type])
+}
+
+enum WaitlistType {
+  GENERAL
+  FEATURED
 }
 
 model support_tickets {

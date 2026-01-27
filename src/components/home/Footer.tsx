@@ -47,8 +47,17 @@ export function Footer() {
             <ul className="space-y-2 text-sm" style={{ color: '#cccccc' }}>
               <li><Link href="/studios" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Browse Studios</Link></li>
               <li><Link href="/auth/signup" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>List Your Studio</Link></li>
-              {/* Blog link hidden until page is fully developed */}
-              {/* <li><a href="/blog" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Blog</a></li> */}
+              {/* Blog - Coming Soon */}
+              <li>
+                <span className="cursor-not-allowed opacity-50 relative group inline-block">
+                  Blog
+                  {/* Tooltip */}
+                  <span className="absolute left-0 bottom-full mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                    Coming soon!
+                    <span className="absolute left-4 top-full w-2 h-2 bg-gray-900 rotate-45 -mt-1"></span>
+                  </span>
+                </span>
+              </li>
             </ul>
           </div>
         </div>

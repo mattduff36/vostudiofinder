@@ -61,6 +61,11 @@ export default function AdminStudiosPage() {
   const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  // Featured expiry modal state
+  const [featuredExpiryModalOpen, setFeaturedExpiryModalOpen] = useState(false);
+  const [featuredStudioId, setFeaturedStudioId] = useState<string | null>(null);
+  const [featuredExpiryDate, setFeaturedExpiryDate] = useState('');
 
   // Table container ref for scaling
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -362,25 +367,73 @@ export default function AdminStudiosPage() {
 
   const handleToggleFeatured = async (studio: Studio, isFeatured: boolean) => {
     try {
-      const response = await fetch(`/api/admin/studios/${studio.id}/featured`, {
+      if (isFeatured) {
+        // Show modal to get expiry date
+        setFeaturedStudioId(studio.id);
+        // Set default to 6 months from now
+        const sixMonthsFromNow = new Date();
+        sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+        setFeaturedExpiryDate(sixMonthsFromNow.toISOString().split('T')[0]);
+        setFeaturedExpiryModalOpen(true);
+      } else {
+        // Unfeature directly
+        const response = await fetch(`/api/admin/studios/${studio.id}/featured`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isFeatured: false }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to update featured status');
+        }
+
+        // Update the local state
+        setStudios(prev => prev.map(s => 
+          s.id === studio.id ? { ...s, is_featured: false } : s
+        ));
+
+        showSuccess(`Studio unfeatured: ${studio.name}`);
+      }
+    } catch (error) {
+      console.error('Error toggling featured status:', error);
+      showError(error instanceof Error ? error.message : 'Failed to update featured status. Please try again.');
+    }
+  };
+  
+  const handleConfirmFeatured = async () => {
+    if (!featuredStudioId || !featuredExpiryDate) return;
+    
+    try {
+      const response = await fetch(`/api/admin/studios/${featuredStudioId}/featured`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isFeatured }),
+        body: JSON.stringify({ 
+          isFeatured: true,
+          featuredUntil: new Date(featuredExpiryDate).toISOString()
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update featured status');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to update featured status');
       }
 
       // Update the local state
       setStudios(prev => prev.map(s => 
-        s.id === studio.id ? { ...s, is_featured: isFeatured } : s
+        s.id === featuredStudioId ? { ...s, is_featured: true } : s
       ));
 
-      showSuccess(`Studio ${isFeatured ? 'featured' : 'unfeatured'}: ${studio.name}`);
+      const studio = studios.find(s => s.id === featuredStudioId);
+      showSuccess(`Studio featured: ${studio?.name}`);
+      
+      // Close modal
+      setFeaturedExpiryModalOpen(false);
+      setFeaturedStudioId(null);
+      setFeaturedExpiryDate('');
     } catch (error) {
-      console.error('Error toggling featured status:', error);
-      showError('Failed to update featured status. Please try again.');
+      console.error('Error featuring studio:', error);
+      showError(error instanceof Error ? error.message : 'Failed to feature studio. Please try again.');
     }
   };
 
@@ -1185,6 +1238,63 @@ export default function AdminStudiosPage() {
           setPagination(prev => ({ ...prev, offset: 0 }));
         }}
       />
+
+      {/* Featured Expiry Modal */}
+      {featuredExpiryModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setFeaturedExpiryModalOpen(false)} />
+            
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div>
+                <div className="mt-3 text-center sm:mt-5">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Set Featured Expiry Date
+                  </h3>
+                  <div className="mt-4">
+                    <label htmlFor="featuredExpiry" className="block text-sm font-medium text-gray-700 text-left mb-2">
+                      Featured Until <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      id="featuredExpiry"
+                      value={featuredExpiryDate}
+                      onChange={(e) => setFeaturedExpiryDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                    <p className="mt-2 text-sm text-gray-500 text-left">
+                      This studio will remain featured until the selected date
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                <button
+                  type="button"
+                  onClick={handleConfirmFeatured}
+                  disabled={!featuredExpiryDate}
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Confirm
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeaturedExpiryModalOpen(false);
+                    setFeaturedStudioId(null);
+                    setFeaturedExpiryDate('');
+                  }}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
         </div>
       </div>
     </>

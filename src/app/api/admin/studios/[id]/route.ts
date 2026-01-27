@@ -456,10 +456,32 @@ export async function PUT(
     if (body._meta?.featured !== undefined) {
       const isFeatured = body._meta.featured === '1' || body._meta.featured === true || body._meta.featured === 1;
       
-      // If trying to feature this studio, check if limit is reached
+      // If trying to feature this studio, validate expiry and check if limit is reached
       if (isFeatured && !existingStudio.is_featured) {
+        // Require expiry date when featuring
+        if (!body._meta?.featured_expires_at) {
+          return NextResponse.json({
+            error: 'Featured expiry date is required when featuring a studio'
+          }, { status: 400 });
+        }
+        
+        // Validate expiry date is in the future
+        const expiryDate = new Date(body._meta.featured_expires_at);
+        if (isNaN(expiryDate.getTime()) || expiryDate <= new Date()) {
+          return NextResponse.json({
+            error: 'Featured expiry date must be a valid future date'
+          }, { status: 400 });
+        }
+        
+        const now = new Date();
         const featuredCount = await prisma.studio_profiles.count({
-          where: { is_featured: true }
+          where: { 
+            is_featured: true,
+            OR: [
+              { featured_until: null },
+              { featured_until: { gte: now } }
+            ]
+          }
         });
         
         if (featuredCount >= 6) {
@@ -470,6 +492,11 @@ export async function PUT(
       }
       
       profileUpdateData.is_featured = isFeatured;
+      
+      // Clear expiry when unfeaturing
+      if (!isFeatured) {
+        profileUpdateData.featured_until = null;
+      }
     }
     
     // Handle featured expiry date

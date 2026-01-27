@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email } = body;
+    const { name, email, type = 'GENERAL' } = body;
 
     // Validate required fields
     if (!name || !email) {
@@ -24,9 +24,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email already exists in waitlist
-    const existingEntry = await db.waitlist.findFirst({
-      where: { email: email.toLowerCase() },
+    // Validate type
+    const validTypes = ['GENERAL', 'FEATURED'];
+    if (!validTypes.includes(type)) {
+      return NextResponse.json(
+        { error: 'Invalid waitlist type' },
+        { status: 400 }
+      );
+    }
+
+    // Check if email already exists in this waitlist type
+    const existingEntry = await db.waitlist.findUnique({
+      where: { 
+        email_type: {
+          email: email.toLowerCase(),
+          type: type
+        }
+      },
     });
 
     if (existingEntry) {
@@ -42,6 +56,7 @@ export async function POST(request: NextRequest) {
         id: nanoid(),
         name: name.trim(),
         email: email.toLowerCase().trim(),
+        type: type,
       },
     });
 
