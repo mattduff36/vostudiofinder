@@ -280,21 +280,6 @@ export function Navbar({ session }: NavbarProps) {
             >
               Browse Studios
             </Link>
-            <Link 
-              href="/about" 
-              className={`transition-colors ${pathname === '/about' ? 'font-semibold' : ''}`}
-              style={{ 
-                color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-              }}
-            >
-              About Us
-            </Link>
           </div>
           
           {/* Tablet/Desktop Burger Menu for Public Users - Only shown when NOT logged in */}
