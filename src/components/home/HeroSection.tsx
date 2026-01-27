@@ -104,7 +104,7 @@ export function HeroSection() {
             Professional Voiceover, Podcast & Recording Studios Worldwide
           </h2>
           
-          <h3 className={`hp3 text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-center transition-all duration-1000 ease-out px-4 mb-4 sm:mb-0 ${
+          <h3 className={`hp3 font-semibold text-center transition-all duration-1000 ease-out px-4 mb-4 sm:mb-0 ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.5s', color: colors.primary, maxWidth: '768px', margin: '0 auto 1rem auto' }}>
             Got a studio? Get it listed!
