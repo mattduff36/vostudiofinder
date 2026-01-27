@@ -68,6 +68,8 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
           city: true,
           phone: true,
           twitter_url: true,
+          status: true, // Need to check status for robots indexing control
+          is_profile_visible: true, // Need to check visibility for robots indexing control
           studio_studio_types: {
             select: {
               studio_type: true,
@@ -109,6 +111,10 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
       },
     };
   }
+
+  // Determine if profile should be indexed by search engines
+  // Only index if profile is ACTIVE and visible to public
+  const shouldIndex = studio.status === 'ACTIVE' && studio.is_profile_visible === true;
 
   // Construct the full page URL
   const baseUrl = getBaseUrl();
@@ -159,11 +165,11 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     creator: studio.name,
     publisher: SITE_NAME,
     robots: {
-      index: true,
-      follow: true,
+      index: shouldIndex,
+      follow: shouldIndex,
       googleBot: {
-        index: true,
-        follow: true,
+        index: shouldIndex,
+        follow: shouldIndex,
         'max-video-preview': -1,
         'max-image-preview': 'large',
         'max-snippet': -1,
