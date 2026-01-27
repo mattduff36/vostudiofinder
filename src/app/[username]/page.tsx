@@ -289,15 +289,16 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       return <div>Studio not found</div>;
     }
 
-    // Get current session to check if the viewer is the owner
+    // Get current session to check if the viewer is the owner or an admin
     const session = await getServerSession(authOptions);
     const isOwner = session?.user?.id === user.id;
+    const isAdmin = session?.user?.role === 'ADMIN';
 
     // If profile is hidden, show the simplified user profile with hidden message
-    // UNLESS the viewer is the owner - then show full profile in preview mode
+    // UNLESS the viewer is the owner or an admin - then show full profile in preview mode
     if (studio.is_profile_visible === false) {
-      // If the viewer is NOT the owner, show the hidden profile message
-      if (!isOwner) {
+      // If the viewer is NOT the owner AND NOT an admin, show the hidden profile message
+      if (!isOwner && !isAdmin) {
         // Serialize user data to avoid Decimal serialization issues
         const serializedUser = {
           ...user,
@@ -318,7 +319,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
           </div>
         );
       }
-      // If the viewer IS the owner, continue rendering the full profile
+      // If the viewer IS the owner or IS an admin, continue rendering the full profile
       // with previewMode flag below
     }
 
