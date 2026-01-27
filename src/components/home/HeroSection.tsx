@@ -104,11 +104,11 @@ export function HeroSection() {
             Professional Voiceover, Podcast & Recording Studios Worldwide
           </h2>
           
-          <p className={`text-sm sm:text-base md:text-lg text-center transition-all duration-1000 ease-out px-4 mb-4 sm:mb-0 ${
+          <h3 className={`text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-center transition-all duration-1000 ease-out px-4 mb-4 sm:mb-0 ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.5s', color: '#ffffff', maxWidth: '768px', margin: '0 auto 1rem auto' }}>
+          }`} style={{ transitionDelay: '0.5s', color: colors.primary, maxWidth: '768px', margin: '0 auto 1rem auto' }}>
             Got a studio? Get it listed!
-          </p>
+          </h3>
 
           {/* Enhanced Search Form */}
           <div className={`max-w-4xl mx-auto mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 transition-all duration-700 w-full ${
