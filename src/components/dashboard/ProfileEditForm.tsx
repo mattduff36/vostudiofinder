@@ -304,6 +304,19 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     return JSON.stringify(profile) !== JSON.stringify(originalProfile);
   }, [profile, originalProfile]);
 
+  // Warn user before leaving page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // Chrome requires returnValue to be set
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasChanges]);
+
   // Calculate completion stats for progress indicators
   const completionStats: CompletionStats = useMemo(() => {
     if (!profile) {
@@ -607,12 +620,32 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   ];
 
   const handleMobileSectionClick = (sectionId: string) => {
+    // Check for unsaved changes before navigation
+    if (hasChanges && expandedMobileSection !== sectionId) {
+      const confirmNavigation = window.confirm(
+        'You have unsaved changes. Are you sure you want to leave this section? Your changes will be lost.'
+      );
+      if (!confirmNavigation) {
+        return;
+      }
+    }
+
     if (expandedMobileSection === sectionId) {
       setExpandedMobileSection(null);
     } else {
       setExpandedMobileSection(sectionId);
       setActiveSection(sectionId);
     }
+  };
+
+  // Handle desktop tab navigation with unsaved changes check
+  const handleTabNavigation = (sectionId: string) => {
+    // Check for unsaved changes before navigation
+    if (hasChanges && activeSection !== sectionId) {
+      showWarning('You have unsaved changes. Please save or discard them before switching tabs.');
+      return;
+    }
+    setActiveSection(sectionId);
   };
 
   // Render content for a specific section
@@ -1148,6 +1181,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
             <ImageGalleryManager 
               embedded={true}
               onImagesChanged={fetchProfile}
+              hasUnsavedChanges={hasChanges}
             />
           </div>
         );
@@ -1387,7 +1421,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               {sections.map((section) => (
                 <motion.button
                   key={section.id}
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={() => handleTabNavigation(section.id)}
                   data-section={section.id}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

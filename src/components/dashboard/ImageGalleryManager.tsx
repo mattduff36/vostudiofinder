@@ -24,13 +24,15 @@ interface ImageGalleryManagerProps {
   isAdminMode?: boolean; // Optional: to use admin API endpoints
   embedded?: boolean; // Optional: hide header/progress when embedded in edit profile
   onImagesChanged?: () => void; // Optional: callback when images change (for parent to refresh)
+  hasUnsavedChanges?: boolean; // Optional: warn user about unsaved changes before upload
 }
 
 export function ImageGalleryManager({ 
   studioId, 
   isAdminMode = false,
   embedded = false,
-  onImagesChanged
+  onImagesChanged,
+  hasUnsavedChanges = false
 }: ImageGalleryManagerProps = {}) {
   const [images, setImages] = useState<StudioImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,6 +100,20 @@ export function ImageGalleryManager({
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+
+    // Warn about unsaved changes before uploading
+    if (hasUnsavedChanges) {
+      const confirmUpload = window.confirm(
+        'You have unsaved changes in other fields. Uploading an image now will discard those changes. Would you like to continue?'
+      );
+      if (!confirmUpload) {
+        // Clear the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        return;
+      }
+    }
 
     const file = files[0];
     if (!file) return;
