@@ -693,7 +693,8 @@ export async function PUT(
       }
     });
 
-    // If admin changed email, send verification email (best-effort)
+    // If admin changed email, send verification email
+    let emailSendResult: { sent: boolean; error?: string } | null = null;
     if (verificationEmailToSend) {
       try {
         await sendVerificationEmail(
@@ -701,8 +702,11 @@ export async function PUT(
           verificationEmailToSend.displayName,
           verificationEmailToSend.verificationUrl
         );
+        emailSendResult = { sent: true };
       } catch (emailError) {
-        console.warn('[Admin Update] Failed to send verification email after email change:', emailError);
+        const errorMessage = emailError instanceof Error ? emailError.message : 'Unknown error';
+        console.error('[Admin Update] Failed to send verification email after email change:', emailError);
+        emailSendResult = { sent: false, error: errorMessage };
       }
     }
 
@@ -717,7 +721,7 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json({ 
+    const response: any = { 
       success: true,
       message: 'Studio profile updated successfully',
       coordinates: {
@@ -726,7 +730,14 @@ export async function PUT(
       },
       full_address: updatedStudio?.full_address || null,
       city: updatedStudio?.city || null,
-    });
+    };
+
+    // Include email send status if email was changed
+    if (emailSendResult) {
+      response.verificationEmail = emailSendResult;
+    }
+
+    return NextResponse.json(response);
 
   } catch (error: any) {
     console.error('Update studio error:', error);

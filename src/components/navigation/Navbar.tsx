@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
 import { SITE_NAME } from '@/lib/seo/site';
 import { DashboardDropdownMenu } from './DashboardDropdownMenu';
+import { DesktopBurgerMenu } from './DesktopBurgerMenu';
 import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
 
 interface NavbarProps {
@@ -23,8 +24,11 @@ export function Navbar({ session }: NavbarProps) {
   const [isLogoLoading, setIsLogoLoading] = useState(false);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopBurgerOpen, setIsDesktopBurgerOpen] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const desktopBurgerRef = useRef<HTMLDivElement>(null);
+  const desktopBurgerBtnRef = useRef<HTMLButtonElement>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const lastWidthRef = useRef<number | null>(null);
@@ -108,6 +112,48 @@ export function Navbar({ session }: NavbarProps) {
 
     return () => observer.disconnect();
   }, []);
+
+  // Close desktop burger menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      // Don't close if clicking the button or inside the menu
+      if (
+        desktopBurgerRef.current && 
+        !desktopBurgerRef.current.contains(target) &&
+        desktopBurgerBtnRef.current &&
+        !desktopBurgerBtnRef.current.contains(target)
+      ) {
+        setIsDesktopBurgerOpen(false);
+      }
+    };
+
+    if (isDesktopBurgerOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDesktopBurgerOpen]);
+
+  // Close desktop burger menu on Escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsDesktopBurgerOpen(false);
+      }
+    };
+
+    if (isDesktopBurgerOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isDesktopBurgerOpen]);
+
 
   const handleEditClick = () => {
     window.dispatchEvent(new Event('profileEditClick'));
@@ -249,22 +295,6 @@ export function Navbar({ session }: NavbarProps) {
             >
               About Us
             </Link>
-            {/* Blog - Coming Soon */}
-            <div className="relative group">
-              <span 
-                className="cursor-not-allowed opacity-50 transition-opacity"
-                style={{ 
-                  color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-                }}
-              >
-                Blog
-              </span>
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                Coming soon!
-                <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 bg-gray-900 rotate-45"></div>
-              </div>
-            </div>
           </div>
           
           {/* Tablet/Desktop Burger Menu for Public Users - Only shown when NOT logged in */}
@@ -293,15 +323,18 @@ export function Navbar({ session }: NavbarProps) {
                 }`}>
                   Welcome, {session.user.display_name}
                 </span>
-                <DashboardDropdownMenu
-                  username={session.user.username || ''}
-                  isScrolled={isScrolled}
-                  isHomePage={isHomePage}
-                  session={session}
-                  isAdminUser={session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN'}
-                  showEditButton={showEditButton}
-                  includeSiteLinks={false}
-                />
+                <button
+                  ref={desktopBurgerBtnRef}
+                  onClick={() => setIsDesktopBurgerOpen(!isDesktopBurgerOpen)}
+                  className="flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10"
+                  aria-label="Menu"
+                >
+                  {isDesktopBurgerOpen ? (
+                    <X className="w-5 h-5" />
+                  ) : (
+                    <Menu className="w-5 h-5" />
+                  )}
+                </button>
               </>
             ) : (
               <>
@@ -364,6 +397,20 @@ export function Navbar({ session }: NavbarProps) {
         </div>
       </div>
     </nav>
+
+    {/* Desktop Burger Menu for Logged-In Users */}
+    {session && (
+      <div ref={desktopBurgerRef} className="hidden lg:block">
+        <DesktopBurgerMenu
+          session={session}
+          isAdminUser={session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN'}
+          showEditButton={showEditButton}
+          isOpen={isDesktopBurgerOpen}
+          onClose={() => setIsDesktopBurgerOpen(false)}
+          menuRef={desktopBurgerRef}
+        />
+      </div>
+    )}
 
     {/* Public User Mobile Menu (Tablet only) */}
     {isMobileMenuOpen && !session && (

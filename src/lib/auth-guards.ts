@@ -1,5 +1,6 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { randomBytes } from 'crypto';
 import { authOptions } from './auth';
 import { db } from './db';
@@ -77,7 +78,27 @@ export async function requireActiveAccount(callbackUrl?: string) {
         },
       });
 
-      const verificationUrl = `${getBaseUrl()}/api/auth/verify-email?token=${verificationToken}&redirect=${encodeURIComponent(postVerifyRedirect)}`;
+      // Extract host info from Next.js headers for correct base URL
+      const headersList = await headers();
+      const host = headersList.get('host');
+      const protocol = headersList.get('x-forwarded-proto') || 'https';
+      
+      // Create a mock Request object for getBaseUrl if we have host info
+      let baseUrl: string;
+      if (host) {
+        const mockRequest = new Request(`${protocol}://${host}`, {
+          headers: new Headers({
+            'host': host,
+            'x-forwarded-proto': protocol,
+          }),
+        });
+        baseUrl = getBaseUrl(mockRequest);
+      } else {
+        // Fallback to environment-based URL
+        baseUrl = getBaseUrl();
+      }
+
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}&redirect=${encodeURIComponent(postVerifyRedirect)}`;
 
       // Best-effort; even if email fails, we still redirect to the verify page
       try {

@@ -301,7 +301,14 @@ export default function EditStudioModal({ studio, isOpen, onClose, onSave }: Edi
         throw new Error(errorData.error || 'Failed to save profile');
       }
 
-      await response.json();
+      const result = await response.json();
+      
+      // Check if verification email failed to send
+      if (result.verificationEmail && !result.verificationEmail.sent) {
+        showError(
+          `Profile updated, but verification email failed to send: ${result.verificationEmail.error || 'Unknown error'}. Please manually verify the user's email or ask them to resend.`
+        );
+      }
       
       // Always refetch to get latest data (including avatar_url)
       await fetchProfile();
