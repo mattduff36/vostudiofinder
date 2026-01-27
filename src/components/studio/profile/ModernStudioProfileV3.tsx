@@ -624,7 +624,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
             {/* Studio Header */}
             <div className="mb-6 w-full">
               <div className="flex items-center justify-between gap-3 mb-3 w-full">
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3" style={{ fontWeight: 700 }}>
                   {/* Profile Avatar */}
                   {studio.owner.avatar_url && (
                     <AvatarUpload
