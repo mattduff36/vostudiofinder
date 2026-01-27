@@ -219,17 +219,27 @@ h6,
   }
 }
 
+/* Homepage hero h2 - override global h2 styles, let Tailwind classes control size */
+.hp2 {
+  font-size: inherit !important;
+}
+
 /* Mobile-specific adjustment for homepage hero h2 */
 @media (max-width: 640px) {
   .hp2 {
-    font-size: 18px;
+    font-size: 18px !important;
   }
 }
 
-/* Homepage hero h3 - match h2 sizing exactly */
+/* Homepage hero h3 - match h2 sizing exactly, override global h3 styles */
+.hp3 {
+  font-size: inherit !important;
+}
+
+/* Mobile-specific adjustment for homepage hero h3 */
 @media (max-width: 640px) {
   .hp3 {
-    font-size: 18px;
+    font-size: 18px !important;
   }
 }
 
