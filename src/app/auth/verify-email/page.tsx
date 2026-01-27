@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   description: 'Please check your email to verify your account',
 };
 
-function sanitizeRedirectPath(raw?: string): string | null {
-  if (!raw) return null;
+function sanitizeRedirectPath(raw?: string): string | undefined {
+  if (!raw) return undefined;
   const trimmed = raw.trim();
-  if (!trimmed.startsWith('/')) return null;
-  if (trimmed.startsWith('//')) return null;
+  if (!trimmed.startsWith('/')) return undefined;
+  if (trimmed.startsWith('//')) return undefined;
   return trimmed;
 }
 
@@ -69,14 +69,15 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
   }
 
   const flowValue = flow as 'account' | 'profile' | 'signup';
+  const redirectProps = redirectTo ? { redirectTo } : {};
   
   if (email && error) {
-    return <VerifyEmailContent flow={flowValue} email={email} error={error} redirectTo={redirectTo} />;
+    return <VerifyEmailContent flow={flowValue} email={email} error={error} {...redirectProps} />;
   } else if (email) {
-    return <VerifyEmailContent flow={flowValue} email={email} redirectTo={redirectTo} />;
+    return <VerifyEmailContent flow={flowValue} email={email} {...redirectProps} />;
   } else if (error) {
-    return <VerifyEmailContent flow={flowValue} error={error} redirectTo={redirectTo} />;
+    return <VerifyEmailContent flow={flowValue} error={error} {...redirectProps} />;
   } else {
-    return <VerifyEmailContent flow={flowValue} redirectTo={redirectTo} />;
+    return <VerifyEmailContent flow={flowValue} {...redirectProps} />;
   }
 }
