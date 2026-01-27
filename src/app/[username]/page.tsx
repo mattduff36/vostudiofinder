@@ -46,6 +46,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const username = rawUsername.trim();
   
   // Find user by username and get their studio profile data
+  // Don't filter by status - let the main component handle permission checks
   const user = await db.users.findFirst({
     where: { username: { equals: username, mode: 'insensitive' } },
     select: {
@@ -58,7 +59,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
         },
       },
       studio_profiles: {
-        where: { status: 'ACTIVE' },
+        // Remove status filter - load all profiles for metadata generation
         select: {
           name: true,
           description: true,
