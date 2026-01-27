@@ -13,6 +13,7 @@ const contactSchema = z.object({
     .min(1, 'Message is required')
     .transform(val => val.trim())
     .pipe(z.string().min(40, 'Message must be at least 40 characters')),
+  sendCopyToSelf: z.boolean().optional().default(false),
 });
 
 export async function POST(request: NextRequest) {
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     // Validate input
     const validatedData = contactSchema.parse(body);
     
-    const { studioName, ownerEmail, senderName, senderEmail, message } = validatedData;
+    const { studioName, ownerEmail, senderName, senderEmail, message, sendCopyToSelf } = validatedData;
 
     // Create HTML email content
     const htmlContent = `
@@ -124,6 +125,88 @@ Questions? support@voiceoverstudiofinder.com
     }
 
     console.log(`✅ Contact email sent to ${ownerEmail} for studio ${studioName}`);
+
+    // Send copy to sender if requested
+    if (sendCopyToSelf) {
+      const copyHtmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>Copy of Your Message</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; line-height: 1.6;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 4px;">
+          <tr>
+            <td style="padding: 40px 40px 32px 40px;">
+              <div style="margin-bottom: 32px;">
+                <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
+              </div>
+              <h1 style="margin: 0 0 24px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Copy of your message to ${studioName}</h1>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #6a6a6a; line-height: 1.6;">This is a copy of the message you sent to ${studioName}. They will reply to you directly at ${senderEmail}.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f9f9f9; border-radius: 4px;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">Your message</p>
+                    <p style="margin: 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `.trim();
+
+      const copyTextContent = `
+Copy of your message to ${studioName}
+
+This is a copy of the message you sent to ${studioName}. They will reply to you directly at ${senderEmail}.
+
+YOUR MESSAGE:
+${message}
+
+---
+Voiceover Studio Finder
+© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.
+Questions? support@voiceoverstudiofinder.com
+      `.trim();
+
+      const copySent = await sendEmail({
+        from: `Voiceover Studio Finder <${process.env.RESEND_BOOKING_FROM_EMAIL || 'booking-enquiry@voiceoverstudiofinder.com'}>`,
+        to: senderEmail,
+        subject: `Copy of your message to ${studioName}`,
+        html: copyHtmlContent,
+        text: copyTextContent,
+      });
+
+      if (copySent) {
+        console.log(`✅ Copy sent to sender ${senderEmail}`);
+      } else {
+        console.warn(`⚠️ Failed to send copy to sender ${senderEmail}`);
+      }
+    }
 
     return NextResponse.json(
       {

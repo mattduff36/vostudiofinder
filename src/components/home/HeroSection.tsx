@@ -107,7 +107,7 @@ export function HeroSection() {
           <p className={`text-sm sm:text-base md:text-lg text-center transition-all duration-1000 ease-out px-4 mb-4 sm:mb-0 ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
           }`} style={{ transitionDelay: '0.5s', color: '#ffffff', maxWidth: '768px', margin: '0 auto 1rem auto' }}>
-            Verified locations. No commission. Direct studio contact.
+            Got a studio? Get it listed!
           </p>
 
           {/* Enhanced Search Form */}

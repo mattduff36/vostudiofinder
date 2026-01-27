@@ -20,6 +20,7 @@ interface DesktopBurgerMenuProps {
   isOpen: boolean;
   onClose: () => void;
   menuRef: React.RefObject<HTMLDivElement | null>;
+  buttonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 export function DesktopBurgerMenu({ 
@@ -28,11 +29,13 @@ export function DesktopBurgerMenu({
   showEditButton,
   isOpen,
   onClose,
-  menuRef
+  menuRef,
+  buttonRef
 }: DesktopBurgerMenuProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
   const [loadingVisibility, setLoadingVisibility] = useState(true);
+  const [menuPosition, setMenuPosition] = useState({ top: 72, right: 16 });
   const router = useRouter();
   const pathname = usePathname();
 
@@ -72,6 +75,36 @@ export function DesktopBurgerMenu({
     window.addEventListener('profile-visibility-changed', handler as EventListener);
     return () => window.removeEventListener('profile-visibility-changed', handler as EventListener);
   }, []);
+
+  // Calculate menu position based on button position
+  useEffect(() => {
+    if (isOpen && buttonRef?.current) {
+      const updatePosition = () => {
+        if (buttonRef.current) {
+          const buttonRect = buttonRef.current.getBoundingClientRect();
+          
+          // Position menu below button with right edge aligned to button's right edge
+          setMenuPosition({
+            top: buttonRect.bottom + 8, // 8px gap below button
+            right: window.innerWidth - buttonRect.right, // Align right edges
+          });
+        }
+      };
+
+      updatePosition();
+      
+      // Update position on window resize
+      window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition);
+      
+      return () => {
+        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('scroll', updatePosition);
+      };
+    }
+    
+    return undefined;
+  }, [isOpen, buttonRef]);
 
   const handleToggleVisibility = async () => {
     setTogglingVisibility(true);
@@ -145,10 +178,14 @@ export function DesktopBurgerMenu({
         onClick={onClose}
       />
       
-      {/* Menu Panel - Positioned below navbar */}
+      {/* Menu Panel - Positioned below button, right-aligned */}
       <div 
         ref={menuRef}
-        className="absolute top-[72px] right-6 z-[110] w-56 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[80vh] overflow-y-auto"
+        className="fixed z-[110] w-56 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[80vh] overflow-y-auto"
+        style={{
+          top: `${menuPosition.top}px`,
+          right: `${menuPosition.right}px`,
+        }}
         role="menu"
         aria-orientation="vertical"
       >

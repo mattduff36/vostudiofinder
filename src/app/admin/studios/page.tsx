@@ -21,6 +21,7 @@ interface Studio {
   is_verified: boolean;
   is_premium: boolean;
   is_featured?: boolean;
+  featured_until?: string | null;
   is_spotlight?: boolean;
   is_profile_visible?: boolean;
   profile_completion?: number;
@@ -373,7 +374,7 @@ export default function AdminStudiosPage() {
         // Set default to 6 months from now
         const sixMonthsFromNow = new Date();
         sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-        setFeaturedExpiryDate(sixMonthsFromNow.toISOString().split('T')[0]);
+        setFeaturedExpiryDate(sixMonthsFromNow.toISOString().slice(0, 10));
         setFeaturedExpiryModalOpen(true);
       } else {
         // Unfeature directly
@@ -419,13 +420,24 @@ export default function AdminStudiosPage() {
         throw new Error(data.error || 'Failed to update featured status');
       }
 
-      // Update the local state
-      setStudios(prev => prev.map(s => 
-        s.id === featuredStudioId ? { ...s, is_featured: true } : s
-      ));
-
-      const studio = studios.find(s => s.id === featuredStudioId);
-      showSuccess(`Studio featured: ${studio?.name}`);
+      // Update the local state and get studio name from updated state
+      setStudios(prev => {
+        const updatedStudios = prev.map(s => 
+          s.id === featuredStudioId ? { 
+            ...s, 
+            is_featured: true,
+            featured_until: featuredExpiryDate 
+          } : s
+        );
+        
+        // Get studio name from the updated array
+        const studio = updatedStudios.find(s => s.id === featuredStudioId);
+        if (studio) {
+          showSuccess(`Studio featured: ${studio.name}`);
+        }
+        
+        return updatedStudios;
+      });
       
       // Close modal
       setFeaturedExpiryModalOpen(false);

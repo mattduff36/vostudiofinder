@@ -408,6 +408,7 @@ export function Navbar({ session }: NavbarProps) {
           isOpen={isDesktopBurgerOpen}
           onClose={() => setIsDesktopBurgerOpen(false)}
           menuRef={desktopBurgerRef}
+          buttonRef={desktopBurgerBtnRef}
         />
       </div>
     )}

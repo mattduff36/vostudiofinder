@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { sendEmail } from '@/lib/email/email-service';
 import { generateVerificationRequestEmail } from '@/lib/email/templates/verification-request';
 import { getBaseUrl } from '@/lib/seo/site';
+import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
 /**
  * POST /api/membership/request-verification
@@ -15,7 +16,7 @@ import { getBaseUrl } from '@/lib/seo/site';
  * - User must have an active membership
  * - Studio must not already be verified
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     // Verify authentication
     const session = await getServerSession(authOptions);
@@ -28,23 +29,21 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id;
 
-    // Fetch user with studio and profile data
+    // Fetch user with studio profile and membership data
     const user = await db.users.findUnique({
       where: { id: userId },
       include: {
-        studios: {
-          select: {
-            id: true,
-            studio_name: true,
-            is_verified: true,
-          },
-        },
         subscriptions: {
-          where: {
-            status: 'ACTIVE',
-          },
           orderBy: { created_at: 'desc' },
           take: 1,
+        },
+        studio_profiles: {
+          include: {
+            studio_studio_types: {
+              select: { studio_type: true },
+            },
+            studio_images: true,
+          },
         },
       },
     });
@@ -56,8 +55,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user has a studio
-    if (!user.studios) {
+    const studio = user.studio_profiles;
+    if (!studio) {
       return NextResponse.json(
         { error: 'No studio found for this user' },
         { status: 400 }
@@ -65,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if studio is already verified
-    if (user.studios.is_verified) {
+    if (studio.is_verified) {
       return NextResponse.json(
         { error: 'Studio is already verified' },
         { status: 400 }
@@ -73,63 +72,69 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has an active membership
-    if (!user.subscriptions || user.subscriptions.length === 0) {
+    const latestSubscription = user.subscriptions[0];
+    if (!latestSubscription?.current_period_end) {
       return NextResponse.json(
         { error: 'Active membership required to request verification' },
         { status: 403 }
       );
     }
 
-    // Calculate profile completion percentage
-    // This logic should match the completion calculation in Settings.tsx
-    const studio = user.studios;
-    let completedFields = 0;
-    let totalFields = 0;
-
-    // Basic Info (6 fields)
-    totalFields += 6;
-    if (studio.studio_name) completedFields++;
-    if (user.display_name) completedFields++;
-    if (user.bio) completedFields++;
-    if (user.location) completedFields++;
-    if (user.website) completedFields++;
-    if (user.email) completedFields++;
-
-    // Get additional studio data for better completion check
-    const fullStudio = await db.studios.findUnique({
-      where: { id: studio.id },
-      include: {
-        studio_images: true,
-        studio_equipment: true,
-      },
-    });
-
-    if (!fullStudio) {
+    const now = new Date();
+    if (latestSubscription.current_period_end < now) {
       return NextResponse.json(
-        { error: 'Studio data not found' },
-        { status: 404 }
+        { error: 'Active membership required to request verification' },
+        { status: 403 }
       );
     }
 
-    // Equipment (estimate 5 fields)
-    totalFields += 5;
-    if (fullStudio.studio_equipment && fullStudio.studio_equipment.length > 0) {
-      completedFields += Math.min(fullStudio.studio_equipment.length, 5);
-    }
+    // Calculate profile completion percentage (shared logic)
+    const completionStats = calculateCompletionStats({
+      user: {
+        username: user.username || '',
+        display_name: user.display_name || '',
+        email: user.email,
+        avatar_url: user.avatar_url,
+      },
+      profile: {
+        short_about: studio.short_about,
+        about: studio.about,
+        phone: studio.phone,
+        location: studio.location,
+        website_url: studio.website_url,
+        connection1: studio.connection1,
+        connection2: studio.connection2,
+        connection3: studio.connection3,
+        connection4: studio.connection4,
+        connection5: studio.connection5,
+        connection6: studio.connection6,
+        connection7: studio.connection7,
+        connection8: studio.connection8,
+        connection9: studio.connection9,
+        connection10: studio.connection10,
+        connection11: studio.connection11,
+        connection12: studio.connection12,
+        rate_tier_1: studio.rate_tier_1,
+        equipment_list: studio.equipment_list,
+        services_offered: studio.services_offered,
+        facebook_url: studio.facebook_url,
+        x_url: studio.x_url,
+        linkedin_url: studio.linkedin_url,
+        instagram_url: studio.instagram_url,
+        youtube_url: studio.youtube_url,
+        tiktok_url: studio.tiktok_url,
+        threads_url: studio.threads_url,
+        soundcloud_url: studio.soundcloud_url,
+      },
+      studio: {
+        name: studio.name,
+        studio_types: studio.studio_studio_types?.map((st) => st.studio_type) || [],
+        images: studio.studio_images || [],
+        website_url: studio.website_url,
+      },
+    });
 
-    // Images (at least 1 image)
-    totalFields += 1;
-    if (fullStudio.studio_images && fullStudio.studio_images.length > 0) {
-      completedFields++;
-    }
-
-    // Additional fields
-    totalFields += 3;
-    if (fullStudio.description) completedFields++;
-    if (fullStudio.services) completedFields++;
-    if (fullStudio.address) completedFields++;
-
-    const completionPercentage = Math.round((completedFields / totalFields) * 100);
+    const completionPercentage = completionStats.overall.percentage;
 
     // Check if profile is at least 85% complete
     if (completionPercentage < 85) {
@@ -165,7 +170,7 @@ export async function POST(request: NextRequest) {
     const baseUrl = getBaseUrl();
     const { html, text, subject } = generateVerificationRequestEmail({
       studioOwnerName: user.display_name || user.username || 'Studio Owner',
-      studioName: studio.studio_name,
+      studioName: studio.name,
       username: user.username,
       email: user.email,
       profileCompletion: completionPercentage,
@@ -198,20 +203,6 @@ export async function POST(request: NextRequest) {
         emailsFailed++;
         console.error(`❌ Error sending verification request email to ${recipientEmail}:`, error);
       }
-    }
-
-    // Also send a copy to admin@mpdee.co.uk for review (per user's request)
-    try {
-      await sendEmail({
-        to: 'admin@mpdee.co.uk',
-        subject: `[Review Required] ${subject}`,
-        html,
-        text,
-        replyTo: user.email,
-      });
-      console.log('✅ Verification request email sent to admin@mpdee.co.uk for review');
-    } catch (error) {
-      console.error('❌ Failed to send verification request email to admin@mpdee.co.uk:', error);
     }
 
     if (emailsSent === 0) {

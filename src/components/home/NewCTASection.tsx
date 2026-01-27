@@ -80,6 +80,16 @@ export function NewCTASection() {
             }}>
               A simple, no-commission platform built by people who work in the business.
             </p>
+            <p className={`text-sm sm:text-base md:text-lg text-center transition-all duration-1000 ease-out px-2 mt-2 ${
+              isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+            }`} style={{ 
+              transitionDelay: '0.3s', 
+              color: colors.textSecondary, 
+              maxWidth: '768px', 
+              margin: '0 auto' 
+            }}>
+              Verified locations. No commission. Direct studio contact.
+            </p>
           </div>
 
           {/* Three Column Layout */}

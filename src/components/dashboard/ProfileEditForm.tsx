@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Toggle } from '@/components/ui/Toggle';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { PrivacySettingsToggles } from '@/components/dashboard/PrivacySettingsToggles';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
@@ -1160,34 +1161,27 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </p>
             </div>
 
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <div className="space-y-3">
-                <Toggle
-                  label="Enable Messages"
-                  description="Display 'Message Studio' button on public profile"
-                  checked={profile.profile.show_email || false}
-                  onChange={(checked) => updateProfile('show_email', checked)}
-                />
-                <Toggle
-                  label="Show Phone"
-                  description="Display phone number on public profile"
-                  checked={profile.profile.show_phone || false}
-                  onChange={(checked) => updateProfile('show_phone', checked)}
-                />
-                <Toggle
-                  label="Show Address"
-                  description="Display address on public profile page"
-                  checked={profile.profile.show_address || false}
-                  onChange={(checked) => updateProfile('show_address', checked)}
-                />
-                <Toggle
-                  label="Show Directions"
-                  description="Display 'Get Directions' button on public profile"
-                  checked={profile.profile.show_directions !== false}
-                  onChange={(checked) => updateProfile('show_directions', checked)}
-                />
-              </div>
-            </div>
+            <PrivacySettingsToggles
+              initialSettings={{
+                show_email: profile.profile.show_email || false,
+                show_phone: profile.profile.show_phone || false,
+                show_address: profile.profile.show_address || false,
+                show_directions: profile.profile.show_directions !== false,
+              }}
+              onUpdate={(updatedSettings) => {
+                // Update local profile state
+                setProfile(prev => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    profile: {
+                      ...prev.profile,
+                      ...updatedSettings,
+                    },
+                  };
+                });
+              }}
+            />
           </div>
         );
 

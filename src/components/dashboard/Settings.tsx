@@ -29,6 +29,8 @@ import { calculateFinalExpiryForDisplay, isEligibleForEarlyRenewal, isEligibleFo
 import { formatDaysAsYearsMonthsDays } from '@/lib/date-format';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
+import { Toggle } from '@/components/ui/Toggle';
+import { PrivacySettingsToggles } from '@/components/dashboard/PrivacySettingsToggles';
 
 interface SettingsProps {
   data: any; // dashboardData
@@ -75,7 +77,7 @@ export function Settings({ data }: SettingsProps) {
   // Featured waitlist state
   const [featuredWaitlistChecked, setFeaturedWaitlistChecked] = useState(false);
   const [joiningFeaturedWaitlist, setJoiningFeaturedWaitlist] = useState(false);
-  
+
   // Support forms
   const [issueFormOpen, setIssueFormOpen] = useState(false);
   const [suggestionFormOpen, setSuggestionFormOpen] = useState(false);
@@ -89,6 +91,9 @@ export function Settings({ data }: SettingsProps) {
   // Verification request
   const [submittingVerification, setSubmittingVerification] = useState(false);
   
+  // Preview email (admin only)
+  const [sendingPreviewEmail, setSendingPreviewEmail] = useState(false);
+  
   // Download data
   const [downloadingData, setDownloadingData] = useState(false);
   
@@ -98,6 +103,20 @@ export function Settings({ data }: SettingsProps) {
   // Mobile accordion
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Admin sandbox / test overrides (client-side only)
+  const [sandboxEnabled, setSandboxEnabled] = useState(false);
+  const [sandboxProfileCompletion, setSandboxProfileCompletion] = useState<number>(100);
+  const [sandboxIsVerified, setSandboxIsVerified] = useState(false);
+  const [sandboxMembershipActive, setSandboxMembershipActive] = useState(true);
+  const [sandboxStudioIsFeatured, setSandboxStudioIsFeatured] = useState(false);
+  const [sandboxFeaturedRemaining, setSandboxFeaturedRemaining] = useState<number>(6);
+  const [sandboxNextAvailableDate, setSandboxNextAvailableDate] = useState<string>('');
+
+  // Compute isAdminUser from profileData or data
+  const isAdminUser = useMemo(() => {
+    return (profileData?.user?.role || data?.user?.role) === 'ADMIN';
+  }, [profileData?.user?.role, data?.user?.role]);
 
   // Read section from URL parameters and set active section
   useEffect(() => {
@@ -208,6 +227,9 @@ export function Settings({ data }: SettingsProps) {
     { id: 'membership', label: 'Membership', icon: CreditCard, description: 'Subscription and billing' },
     { id: 'privacy', label: 'Privacy & Security', icon: Shield, description: 'Privacy settings, security, and data' },
     { id: 'support', label: 'Support', icon: MessageCircle, description: 'Report issues, make suggestions' },
+    ...(isAdminUser
+      ? [{ id: 'admin_test', label: 'ADMIN TEST', icon: Lightbulb, description: 'Simulate membership card states' }]
+      : []),
   ];
 
   const handleMobileSectionClick = (sectionId: string) => {
@@ -222,6 +244,163 @@ export function Settings({ data }: SettingsProps) {
   // Render content for a specific section (mobile)
   const renderSectionContent = (sectionId: string) => {
     switch (sectionId) {
+      case 'admin_test':
+        if (!isAdminUser) return null;
+
+        return (
+          <div className="space-y-5">
+            <div className="relative overflow-hidden rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white shadow-sm">
+              <div className="p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                      <Lightbulb className="w-5 h-5 text-amber-700" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-900">Admin Test Sandbox</h3>
+                      <p className="text-xs text-gray-600 mt-0.5">
+                        Client-side-only overrides to preview how the Membership cards behave in different states.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  <Toggle
+                    label="Enable sandbox overrides"
+                    description="When enabled, the Membership cards will use the values below (UI simulation only)."
+                    checked={sandboxEnabled}
+                    onChange={setSandboxEnabled}
+                  />
+
+                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${sandboxEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
+                    <div className="bg-white rounded-lg border border-amber-100 p-4">
+                      <p className="text-sm font-semibold text-gray-900 mb-3">Verified badge card</p>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">Profile completion (%)</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={sandboxProfileCompletion}
+                            onChange={(e) => setSandboxProfileCompletion(Math.max(0, Math.min(100, Number(e.target.value))))}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          />
+                        </div>
+                        <Toggle
+                          label="Already verified"
+                          description="Simulate the studio already having a verified badge."
+                          checked={sandboxIsVerified}
+                          onChange={setSandboxIsVerified}
+                        />
+                        <Toggle
+                          label="Membership active"
+                          description="Simulate membership state for verification eligibility messaging."
+                          checked={sandboxMembershipActive}
+                          onChange={setSandboxMembershipActive}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg border border-amber-100 p-4">
+                      <p className="text-sm font-semibold text-gray-900 mb-3">Featured upgrade card</p>
+                      <div className="space-y-3">
+                        <Toggle
+                          label="Studio is currently featured"
+                          description="Simulate your studio already being featured (card becomes unavailable)."
+                          checked={sandboxStudioIsFeatured}
+                          onChange={setSandboxStudioIsFeatured}
+                        />
+
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">Featured slots remaining (0–6)</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={6}
+                            value={sandboxFeaturedRemaining}
+                            onChange={(e) => setSandboxFeaturedRemaining(Math.max(0, Math.min(6, Number(e.target.value))))}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">Next available date (only used when remaining = 0)</label>
+                          <input
+                            type="date"
+                            value={sandboxNextAvailableDate}
+                            onChange={(e) => setSandboxNextAvailableDate(e.target.value)}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Leave blank to hide the “next available” date.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Email Preview Section */}
+                  <div className="mt-6 pt-6 border-t border-amber-200">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Email Preview (Admin Only)</h4>
+                    <p className="text-xs text-gray-600 mb-4">
+                      Send a sample verification request email to admin@mpdee.co.uk for review before it goes live.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (sendingPreviewEmail) return;
+                        
+                        setSendingPreviewEmail(true);
+                        try {
+                          const response = await fetch('/api/admin/test/send-verification-email-preview', {
+                            method: 'POST',
+                          });
+                          
+                          if (response.ok) {
+                            showSuccess('Preview email sent to admin@mpdee.co.uk! Check your inbox.');
+                          } else {
+                            const error = await response.json();
+                            showError(error.error || 'Failed to send preview email');
+                          }
+                        } catch (error) {
+                          showError('Failed to send preview email');
+                        } finally {
+                          setSendingPreviewEmail(false);
+                        }
+                      }}
+                      disabled={sendingPreviewEmail}
+                      className="w-full px-4 py-2.5 text-sm font-semibold rounded-lg border-2 border-blue-400 text-blue-900 bg-blue-50 hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    >
+                      {sendingPreviewEmail && <Loader2 className="w-4 h-4 animate-spin" />}
+                      <span>{sendingPreviewEmail ? 'Sending...' : 'Send Verification Email Preview'}</span>
+                    </button>
+                  </div>
+
+                  <div className="flex justify-end mt-6">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSandboxEnabled(false);
+                        setSandboxProfileCompletion(100);
+                        setSandboxIsVerified(false);
+                        setSandboxMembershipActive(true);
+                        setSandboxStudioIsFeatured(false);
+                        setSandboxFeaturedRemaining(6);
+                        setSandboxNextAvailableDate('');
+                      }}
+                      className="px-4 py-2 text-sm font-semibold rounded-lg border border-amber-200 text-amber-900 bg-white hover:bg-amber-50 transition-colors"
+                    >
+                      Reset sandbox
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       case 'privacy':
         return (
           <div className="space-y-5">
@@ -238,69 +417,36 @@ export function Settings({ data }: SettingsProps) {
                       <p className="text-xs text-gray-500">Control public profile visibility</p>
                     </div>
                   </div>
-                  <motion.button
-                    onClick={() => {
-                      sessionStorage.setItem('openProfileSection', 'privacy');
-                      router.push('/dashboard/edit-profile');
-                    }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-3 py-1.5 text-xs font-semibold text-[#d42027] hover:text-white bg-red-50 hover:bg-[#d42027] border border-[#d42027] rounded-lg transition-all flex items-center space-x-1"
-                  >
-                    <span>Manage</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </motion.button>
                 </div>
                 
-                <div className="space-y-2">
-                  {loadingProfile ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-white border border-gray-100">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">Email Address</p>
-                          <p className="text-xs text-gray-500 mt-0.5 truncate">{profileData?.user?.email || data.user.email}</p>
-                        </div>
-                        <span className={`ml-3 px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${
-                          profileData?.profile?.show_email 
-                            ? 'text-green-700 bg-green-100 border border-green-200' 
-                            : 'text-gray-500 bg-gray-100 border border-gray-200'
-                        }`}>
-                          {profileData?.profile?.show_email ? '👁 Visible' : '🔒 Hidden'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-white border border-gray-100">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">Phone Number</p>
-                          <p className="text-xs text-gray-500 mt-0.5 truncate">{profileData?.studio?.phone || 'No phone number set'}</p>
-                        </div>
-                        <span className={`ml-3 px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${
-                          profileData?.profile?.show_phone 
-                            ? 'text-green-700 bg-green-100 border border-green-200' 
-                            : 'text-gray-500 bg-gray-100 border border-gray-200'
-                        }`}>
-                          {profileData?.profile?.show_phone ? '👁 Visible' : '🔒 Hidden'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-white border border-gray-100">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">Studio Address</p>
-                          <p className="text-xs text-gray-500 mt-0.5 truncate">{profileData?.studio?.full_address || 'No address set'}</p>
-                        </div>
-                        <span className={`ml-3 px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${
-                          profileData?.profile?.show_address 
-                            ? 'text-green-700 bg-green-100 border border-green-200' 
-                            : 'text-gray-500 bg-gray-100 border border-gray-200'
-                        }`}>
-                          {profileData?.profile?.show_address ? '👁 Visible' : '🔒 Hidden'}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
+                {loadingProfile ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                  </div>
+                ) : profileData?.profile ? (
+                  <PrivacySettingsToggles
+                    initialSettings={{
+                      show_email: profileData.profile.show_email || false,
+                      show_phone: profileData.profile.show_phone || false,
+                      show_address: profileData.profile.show_address || false,
+                      show_directions: profileData.profile.show_directions !== false,
+                    }}
+                    onUpdate={(updatedSettings) => {
+                      // Update local profile data state
+                      setProfileData((prev: any) => ({
+                        ...prev,
+                        profile: {
+                          ...prev.profile,
+                          ...updatedSettings,
+                        },
+                      }));
+                    }}
+                  />
+                ) : (
+                  <div className="text-sm text-gray-500 py-4">
+                    Unable to load privacy settings
+                  </div>
+                )}
               </div>
             </div>
 
@@ -527,8 +673,6 @@ export function Settings({ data }: SettingsProps) {
         );
 
       case 'membership':
-        const isAdminUser = profileData?.user?.role === 'ADMIN';
-
         return (
           <div className="space-y-3">
             {loadingProfile ? (
@@ -794,16 +938,29 @@ export function Settings({ data }: SettingsProps) {
 
                     {/* Featured Profile Upgrade Card */}
                     {(() => {
-                      const isProfileComplete = completionStats.overall.percentage === 100;
-                      const isMembershipActive = membership?.state === 'ACTIVE';
-                      const isFeatured = profileData?.studio?.is_featured;
+                      const effectiveCompletion = sandboxEnabled ? sandboxProfileCompletion : completionStats.overall.percentage;
+                      const isProfileComplete = effectiveCompletion === 100;
+                      const isMembershipActive = sandboxEnabled ? sandboxMembershipActive : membership?.state === 'ACTIVE';
+
+                      const isFeatured = sandboxEnabled ? sandboxStudioIsFeatured : profileData?.studio?.is_featured;
                       const featuredUntil = profileData?.studio?.featured_until;
                       
                       // Check if featured status is active (not expired)
                       const isFeaturedActive = isFeatured && (!featuredUntil || new Date(featuredUntil) >= new Date());
                       
                       // Check if slots are available
-                      const slotsAvailable = featuredAvailability ? featuredAvailability.remaining > 0 : true;
+                      const effectiveFeaturedAvailability = sandboxEnabled
+                        ? {
+                            maxFeatured: 6,
+                            featuredCount: Math.max(0, 6 - sandboxFeaturedRemaining),
+                            remaining: sandboxFeaturedRemaining,
+                            nextAvailableAt: sandboxNextAvailableDate
+                              ? new Date(`${sandboxNextAvailableDate}T00:00:00.000Z`).toISOString()
+                              : null,
+                          }
+                        : featuredAvailability;
+
+                      const slotsAvailable = effectiveFeaturedAvailability ? effectiveFeaturedAvailability.remaining > 0 : true;
                       
                       const isEligible = isProfileComplete && isMembershipActive && !isFeaturedActive && slotsAvailable;
                       
@@ -824,9 +981,9 @@ export function Settings({ data }: SettingsProps) {
                           }`}
                         >
                           {/* Featured Badge */}
-                          {isEligible && featuredAvailability && (
+                          {isEligible && effectiveFeaturedAvailability && (
                             <div className="absolute top-2 sm:top-3 right-2 sm:right-3 px-2 py-0.5 sm:py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-bold rounded-full shadow-sm">
-                              {featuredAvailability.remaining} OF 6 LEFT
+                              {effectiveFeaturedAvailability.remaining} OF 6 LEFT
                             </div>
                           )}
                           
@@ -860,8 +1017,8 @@ export function Settings({ data }: SettingsProps) {
                               <>
                                 <p className="text-xs sm:text-sm text-gray-600 font-medium">
                                   All Featured slots are taken. 
-                                  {featuredAvailability?.nextAvailableAt && (
-                                    <> Next slot available on {new Date(featuredAvailability.nextAvailableAt).toLocaleDateString('en-GB', {
+                                  {effectiveFeaturedAvailability?.nextAvailableAt && (
+                                    <> Next slot available on {new Date(effectiveFeaturedAvailability.nextAvailableAt).toLocaleDateString('en-GB', {
                                       day: 'numeric',
                                       month: 'long',
                                       year: 'numeric'
@@ -921,7 +1078,7 @@ export function Settings({ data }: SettingsProps) {
                             ) : (
                               <>
                                 <p className="text-xs sm:text-sm leading-relaxed text-gray-700 font-medium">
-                                  Only {featuredAvailability?.remaining || 0} out of 6 Featured slots available — secure yours before they're gone!
+                                  Only {effectiveFeaturedAvailability?.remaining || 0} out of 6 Featured slots available — secure yours before they're gone!
                                 </p>
                                 <p className="text-xs sm:text-sm leading-relaxed text-gray-600">
                                   Get featured on the homepage for 6 months with priority search placement
@@ -940,11 +1097,11 @@ export function Settings({ data }: SettingsProps) {
 
                     {/* Request Verified Badge Card */}
                     {(() => {
-                      const isVerified = profileData?.studio?.is_verified;
-                      const isMembershipActive = membership?.state === 'ACTIVE';
-                      const profileCompletion = completionStats.overall.percentage;
-                      const isEligible = !isVerified && isMembershipActive && profileCompletion >= 85;
-                      const needsCompletion = !isVerified && profileCompletion < 85;
+                      const isVerified = sandboxEnabled ? sandboxIsVerified : profileData?.studio?.is_verified;
+                      const isMembershipActive = sandboxEnabled ? sandboxMembershipActive : membership?.state === 'ACTIVE';
+                      const profileCompletion = sandboxEnabled ? sandboxProfileCompletion : completionStats.overall.percentage;
+                      const meetsCompletion = profileCompletion >= 85;
+                      const isEligible = !isVerified && isMembershipActive && meetsCompletion;
                       
                       return (
                         <motion.button
@@ -954,22 +1111,11 @@ export function Settings({ data }: SettingsProps) {
                             if (isVerified) {
                               // Already verified - do nothing
                               return;
-                            } else if (!isMembershipActive) {
-                              showError('Active membership required to request verification');
-                              return;
-                            } else if (needsCompletion) {
-                              showError('Complete your profile to at least 85% to request verification');
-                              // Scroll to profile section to help user
-                              const profileSection = document.querySelector('[data-section="profile"]');
-                              if (profileSection) {
-                                profileSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                              }
-                              return;
                             } else if (isEligible) {
                               handleVerificationRequest();
                             }
                           }}
-                          disabled={isVerified || !isMembershipActive || submittingVerification}
+                          disabled={isVerified || !isEligible || submittingVerification}
                           whileHover={isEligible && !submittingVerification ? { scale: 1.02 } : {}}
                           whileTap={isEligible && !submittingVerification ? { scale: 0.98 } : {}}
                           className={`relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left transition-all duration-200 shadow-sm ${
@@ -984,7 +1130,7 @@ export function Settings({ data }: SettingsProps) {
                             <div className="flex items-center justify-between">
                               <h5 className="text-sm sm:text-base font-bold flex items-center space-x-2"
                                   style={{ color: isVerified || isEligible ? '#1a1a1a' : '#6b7280' }}>
-                                <span>Request Verified Badge</span>
+                                <span>{isVerified ? "You're already verified!" : 'Request Verified Badge'}</span>
                                 {submittingVerification ? (
                                   <Loader2 className="w-4 h-4 animate-spin text-green-600" />
                                 ) : (
@@ -1006,28 +1152,28 @@ export function Settings({ data }: SettingsProps) {
                             
                             {isVerified ? (
                               <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
-                                Your studio profile has been verified. The verified badge is displayed on your public profile page.
+                                Your studio is verified! The verified badge is now visible on your public profile, helping build trust with potential clients.
                               </p>
-                            ) : needsCompletion ? (
+                            ) : !meetsCompletion ? (
                               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                                Complete your profile to at least 85% to request your studio be verified. Currently at {profileCompletion}%.
+                                Complete your profile to at least <span className="font-semibold">85%</span> to request verification. You're currently at <span className="font-semibold">{profileCompletion}%</span>. {!isMembershipActive && <span className="block mt-1">An active membership is also required.</span>}
                               </p>
                             ) : !isMembershipActive ? (
                               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                                Active membership required to request verified status
+                                An active membership is required to request verification. Complete your profile to <span className="font-semibold">85%</span> as well ({profileCompletion}% currently).
                               </p>
                             ) : submittingVerification ? (
                               <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
-                                Submitting verification request...
+                                Submitting your verification request…
                               </p>
                             ) : (
                               <>
                                 <p className="text-xs sm:text-sm leading-relaxed text-gray-700">
-                                  Apply for verified status to show clients your studio has been approved by our team
+                                  Apply for a verified badge to stand out and build trust. Our team will review your studio and get back to you shortly.
                                 </p>
                                 <div className="flex items-center space-x-2 pt-0.5 sm:pt-1">
                                   <span className="text-xs font-semibold text-green-600">
-                                    ✓ Profile complete • ✓ Ready to apply
+                                    ✓ Ready to apply
                                   </span>
                                 </div>
                               </>
@@ -1054,6 +1200,7 @@ export function Settings({ data }: SettingsProps) {
   // Desktop-specific content renderer (Support section has always-visible forms)
   const renderDesktopSectionContent = (sectionId: string) => {
     switch (sectionId) {
+      case 'admin_test':
       case 'privacy':
       case 'membership':
         // Reuse mobile content for these sections
@@ -1242,7 +1389,7 @@ export function Settings({ data }: SettingsProps) {
     } finally {
       setSubmittingVerification(false);
     }
-  }, [submittingVerification]);
+  }, [submittingVerification, showSuccess, showError]);
 
   const handleDownloadData = useCallback(async () => {
     setDownloadingData(true);

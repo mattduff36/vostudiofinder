@@ -32,12 +32,17 @@ export async function GET() {
     const remaining = Math.max(0, maxFeatured - featuredCount);
     
     // If all slots are taken, find the earliest expiry date
+    // Note: Studios with featured_until = null have perpetual featured status
+    // so we only look for studios with actual expiry dates
     let nextAvailableAt: string | null = null;
     if (remaining === 0) {
       const earliestExpiry = await db.studio_profiles.findFirst({
         where: {
           is_featured: true,
-          featured_until: { gte: now }
+          featured_until: { 
+            not: null,
+            gte: now 
+          }
         },
         orderBy: { featured_until: 'asc' },
         select: { featured_until: true }

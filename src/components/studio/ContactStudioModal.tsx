@@ -25,6 +25,7 @@ export function ContactStudioModal({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [sendCopyToSelf, setSendCopyToSelf] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -63,6 +64,7 @@ export function ContactStudioModal({
           senderName: name,
           senderEmail: email,
           message,
+          sendCopyToSelf,
         }),
       });
 
@@ -74,10 +76,10 @@ export function ContactStudioModal({
 
       setSuccess(true);
       
-      // Close modal after 2 seconds
+      // Close modal after 4 seconds (2 seconds longer than before)
       setTimeout(() => {
         handleClose();
-      }, 2000);
+      }, 4000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send message');
     } finally {
@@ -89,6 +91,7 @@ export function ContactStudioModal({
     setName('');
     setEmail('');
     setMessage('');
+    setSendCopyToSelf(false);
     setError(null);
     setSuccess(false);
     onClose();
@@ -153,6 +156,24 @@ export function ContactStudioModal({
                 required
                 disabled={isSubmitting}
               />
+
+              {/* Send copy to self checkbox */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="sendCopyToSelf"
+                  checked={sendCopyToSelf}
+                  onChange={(e) => setSendCopyToSelf(e.target.checked)}
+                  disabled={isSubmitting}
+                  className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label
+                  htmlFor="sendCopyToSelf"
+                  className="text-sm text-gray-700 cursor-pointer select-none"
+                >
+                  Send me a copy of this message
+                </label>
+              </div>
 
               <div>
                 <Textarea
