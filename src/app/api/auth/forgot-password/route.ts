@@ -3,8 +3,7 @@ import { forgotPasswordSchema } from '@/lib/validations/auth';
 import { generateResetToken } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
-import { sendEmail } from '@/lib/email/email-service';
-import { generatePasswordResetEmail } from '@/lib/email/templates/password-reset';
+import { sendTemplatedEmail } from '@/lib/email/send-templated';
 import { getBaseUrl } from '@/lib/seo/site';
 
 export async function POST(request: NextRequest) {
@@ -47,17 +46,14 @@ export async function POST(request: NextRequest) {
     // Build reset URL
     const resetUrl = `${getBaseUrl(request)}/auth/reset-password?token=${resetToken}`;
     
-    // Generate and send password reset email
-    const { html, text } = generatePasswordResetEmail({
-      resetUrl,
-      userEmail: user.email,
-    });
-    
-    const emailSent = await sendEmail({
+    // Send password reset email using template
+    const emailSent = await sendTemplatedEmail({
       to: user.email,
-      subject: 'Reset Your Password - VoiceoverStudioFinder',
-      html,
-      text,
+      templateKey: 'password-reset',
+      variables: {
+        userEmail: user.email,
+        resetUrl,
+      },
     });
     
     if (!emailSent) {

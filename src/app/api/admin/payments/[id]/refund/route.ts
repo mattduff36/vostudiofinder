@@ -4,8 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { stripe } from '@/lib/stripe';
 import { randomBytes } from 'crypto';
-import { generateRefundProcessedEmail } from '@/lib/email/templates/refund-processed';
-import { sendEmail } from '@/lib/email/email-service';
+import { sendTemplatedEmail } from '@/lib/email/send-templated';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -171,21 +170,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           year: 'numeric',
         });
 
-        const { html, text } = generateRefundProcessedEmail({
-          displayName: user.display_name || user.username,
-          refundAmount: refundAmountFormatted,
-          currency: payment.currency,
-          paymentAmount: paymentAmountFormatted,
-          isFullRefund,
-          comment: comment || null,
-          refundDate,
-        });
-
-        await sendEmail({
+        await sendTemplatedEmail({
           to: user.email,
-          subject: 'Refund processed - Voiceover Studio Finder',
-          html,
-          text,
+          templateKey: 'refund-processed',
+          variables: {
+            displayName: user.display_name || user.username,
+            refundAmount: refundAmountFormatted,
+            currency: payment.currency.toUpperCase(),
+            paymentAmount: paymentAmountFormatted,
+            refundType: isFullRefund ? 'full' : 'partial',
+            isFullRefund: isFullRefund ? 'yes' : 'no',
+            comment: comment || '',
+            refundDate,
+          },
         });
 
         console.log(`✅ Refund notification email sent to ${user.email}`);

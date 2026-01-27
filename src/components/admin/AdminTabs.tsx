@@ -15,10 +15,11 @@ import {
   AlertTriangle,
   Search,
   Menu,
-  X
+  X,
+  Mail
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support' | 'payments' | 'reservations' | 'error_log' | 'audit';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support' | 'payments' | 'reservations' | 'error_log' | 'audit' | 'emails';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -44,6 +45,7 @@ const mainTabs: TabConfig[] = [
 
 // Secondary tabs that go in the burger menu
 const secondaryTabs: TabConfig[] = [
+  { id: 'emails', label: 'Emails', icon: Mail, href: '/admin/emails' },
   { id: 'audit', label: 'User Audit', icon: Search, href: '/admin/audit/users' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'error_log', label: 'Error Log', icon: AlertTriangle, href: '/admin/error-log' },

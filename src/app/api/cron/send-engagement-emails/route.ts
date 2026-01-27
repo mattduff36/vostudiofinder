@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { UserStatus } from '@prisma/client';
-import { sendEmail } from '@/lib/email/email-service';
-import { 
-  reservationReminderDay2Template,
-  reservationUrgencyDay5Template,
-  paymentFailedReservationTemplate
-} from '@/lib/email/templates/username-reservation';
+import { sendTemplatedEmail } from '@/lib/email/send-templated';
 import { getBaseUrl } from '@/lib/seo/site';
 
 /**
@@ -113,10 +108,10 @@ export async function GET(request: NextRequest) {
           (user.reservation_expires_at.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
         );
 
-        await sendEmail({
+        await sendTemplatedEmail({
           to: user.email,
-          subject: `Complete Your Signup - @${user.username} is Reserved for You`,
-          html: reservationReminderDay2Template({
+          templateKey: 'reservation-reminder-day2',
+          variables: {
             displayName: user.display_name,
             username: user.username,
             reservationExpiresAt: user.reservation_expires_at.toLocaleDateString('en-GB', {
@@ -126,7 +121,7 @@ export async function GET(request: NextRequest) {
             }),
             daysRemaining,
             signupUrl: `${baseUrl}/api/auth/retry-payment?userId=${user.id}`,
-          }),
+          },
         });
 
         // Mark Day 2 reminder as sent to prevent duplicates
@@ -181,10 +176,10 @@ export async function GET(request: NextRequest) {
           (user.reservation_expires_at.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
         );
 
-        await sendEmail({
+        await sendTemplatedEmail({
           to: user.email,
-          subject: `⏰ Only ${daysRemaining} Days Left to Claim @${user.username}`,
-          html: reservationUrgencyDay5Template({
+          templateKey: 'reservation-urgency-day5',
+          variables: {
             displayName: user.display_name,
             username: user.username,
             reservationExpiresAt: user.reservation_expires_at.toLocaleDateString('en-GB', {
@@ -194,7 +189,7 @@ export async function GET(request: NextRequest) {
             }),
             daysRemaining,
             signupUrl: `${baseUrl}/api/auth/retry-payment?userId=${user.id}`,
-          }),
+          },
         });
 
         // Mark Day 5 reminder as sent to prevent duplicates
@@ -268,10 +263,10 @@ export async function GET(request: NextRequest) {
         const amount = (failedPayment.amount / 100).toFixed(2);
         const currency = failedPayment.currency.toUpperCase();
 
-        await sendEmail({
+        await sendTemplatedEmail({
           to: user.email,
-          subject: `Payment Issue - Complete Your Signup to Claim @${user.username}`,
-          html: paymentFailedReservationTemplate({
+          templateKey: 'payment-failed-reservation',
+          variables: {
             displayName: user.display_name,
             username: user.username,
             amount,
@@ -283,7 +278,7 @@ export async function GET(request: NextRequest) {
               year: 'numeric'
             }),
             retryUrl: `${baseUrl}/api/auth/retry-payment?userId=${user.id}`,
-          }),
+          },
         });
 
         // Mark failed payment email as sent to prevent duplicates

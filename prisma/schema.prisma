@@ -450,6 +450,14 @@ model users {
   profile_enrichment_suggestions_reviewed                    profile_enrichment_suggestions[] @relation("suggestions_reviewed_by")
   profile_audit_log_user                                     profile_audit_log[]     @relation("audit_log_user")
   profile_audit_log_performer                                profile_audit_log[]     @relation("audit_log_performer")
+  
+  // Email system relations
+  email_templates_created                                    email_templates[]       @relation("email_templates_created_by")
+  email_templates_updated                                    email_templates[]       @relation("email_templates_updated_by")
+  email_template_versions                                    email_template_versions[]
+  email_campaigns                                            email_campaigns[]
+  email_deliveries                                           email_deliveries[]
+  email_preferences                                          email_preferences?
 }
 
 model waitlist {
@@ -759,4 +767,183 @@ enum ErrorLogStatus {
   OPEN
   RESOLVED
   IGNORED
+}
+
+// ============================================
+// EMAIL SYSTEM MODELS
+// ============================================
+
+model email_templates {
+  id              String   @id @default(cuid())
+  key             String   @unique // e.g. 'welcome', 'password-reset', 'payment-success'
+  name            String   // Display name e.g. 'Welcome Email'
+  description     String?  // Optional description for admins
+  layout          EmailLayout @default(STANDARD)
+  is_marketing    Boolean  @default(false) // If true, enforces opt-in + unsubscribe
+  is_system       Boolean  @default(false) // System templates (cannot be deleted)
+  
+  // Sender configuration
+  from_name       String?  // e.g. 'Voiceover Studio Finder'
+  from_email      String?  // Must be in allowlist; falls back to env default
+  reply_to_email  String?  // Optional reply-to override
+  
+  // Editable copy fields (plain text; renderer escapes + formats)
+  subject         String
+  preheader       String?  // Preview text (hidden in email body)
+  heading         String   // Main H1
+  body_paragraphs String[] // Array of paragraphs (plain text)
+  bullet_items    String[] // Array of bullet points
+  cta_primary_label   String?  // Primary button text
+  cta_primary_url     String?  // Primary button URL (can include {{placeholders}})
+  cta_secondary_label String?  // Secondary button text
+  cta_secondary_url   String?  // Secondary button URL
+  footer_text         String?  // Custom footer signature
+  
+  // Variable schema (JSON describing allowed placeholders)
+  variable_schema Json     // e.g. { "display_name": "string", "resetUrl": "url" }
+  
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  created_by_id   String?
+  updated_by_id   String?
+  
+  created_by      users?   @relation("email_templates_created_by", fields: [created_by_id], references: [id], onDelete: SetNull)
+  updated_by      users?   @relation("email_templates_updated_by", fields: [updated_by_id], references: [id], onDelete: SetNull)
+  
+  versions        email_template_versions[]
+  campaigns       email_campaigns[]
+  
+  @@index([key])
+  @@index([is_marketing])
+  @@index([is_system])
+  @@index([created_at])
+}
+
+model email_template_versions {
+  id              String   @id @default(cuid())
+  template_id     String
+  version_number  Int      // Incremental version
+  
+  // Snapshot of all editable fields at this version
+  subject         String
+  preheader       String?
+  heading         String
+  body_paragraphs String[]
+  bullet_items    String[]
+  cta_primary_label   String?
+  cta_primary_url     String?
+  cta_secondary_label String?
+  cta_secondary_url   String?
+  footer_text         String?
+  
+  from_name       String?
+  from_email      String?
+  reply_to_email  String?
+  
+  created_at      DateTime @default(now())
+  created_by_id   String?
+  
+  template        email_templates @relation(fields: [template_id], references: [id], onDelete: Cascade)
+  created_by      users?          @relation(fields: [created_by_id], references: [id], onDelete: SetNull)
+  
+  @@unique([template_id, version_number])
+  @@index([template_id])
+  @@index([created_at])
+}
+
+model email_campaigns {
+  id              String   @id @default(cuid())
+  name            String   // Campaign name for admin reference
+  template_key    String   // Which template to use
+  status          CampaignStatus @default(DRAFT)
+  
+  // Recipient filters (JSON)
+  filters         Json     // { status: 'ACTIVE', email_verified: true, ... }
+  recipient_count Int      @default(0) // Cached count
+  
+  // Delivery tracking
+  sent_count      Int      @default(0)
+  failed_count    Int      @default(0)
+  
+  // Metadata
+  scheduled_at    DateTime? // When to send (null = send immediately)
+  started_at      DateTime? // When sending started
+  completed_at    DateTime? // When sending finished
+  
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  created_by_id   String
+  
+  template        email_templates @relation(fields: [template_key], references: [key], onDelete: Restrict)
+  created_by      users           @relation(fields: [created_by_id], references: [id], onDelete: Cascade)
+  
+  deliveries      email_deliveries[]
+  
+  @@index([status])
+  @@index([created_by_id])
+  @@index([created_at])
+  @@index([scheduled_at])
+}
+
+model email_deliveries {
+  id              String   @id @default(cuid())
+  campaign_id     String?  // Null for one-off sends
+  user_id         String?  // Null if recipient is not a user
+  to_email        String   // Actual recipient email
+  
+  status          DeliveryStatus @default(PENDING)
+  resend_id       String?  // Resend email ID (from API response)
+  error_message   String?  // Error details if failed
+  
+  sent_at         DateTime?
+  failed_at       DateTime?
+  
+  created_at      DateTime @default(now())
+  
+  campaign        email_campaigns? @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  user            users?           @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  
+  @@index([campaign_id])
+  @@index([user_id])
+  @@index([to_email])
+  @@index([status])
+  @@index([created_at])
+}
+
+model email_preferences {
+  id                String   @id @default(cuid())
+  user_id           String   @unique
+  marketing_opt_in  Boolean  @default(true) // Default ON per your selection
+  unsubscribed_at   DateTime?
+  unsubscribe_token String?  @unique // For unsubscribe link verification
+  
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  
+  user              users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([marketing_opt_in])
+  @@index([user_id])
+}
+
+enum EmailLayout {
+  STANDARD
+  HERO
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENDING
+  SENT
+  FAILED
+  BOUNCED
 }

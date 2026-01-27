@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { UserStatus } from '@prisma/client';
-import { sendEmail } from '@/lib/email/email-service';
-import { reservationExpiredTemplate } from '@/lib/email/templates/username-reservation';
+import { sendTemplatedEmail } from '@/lib/email/send-templated';
 import { getBaseUrl } from '@/lib/seo/site';
 
 /**
@@ -89,14 +88,14 @@ export async function GET(request: NextRequest) {
 
         // Send expiration notification email
         try {
-          await sendEmail({
+          await sendTemplatedEmail({
             to: user.email,
-            subject: `Your @${user.username} Reservation Has Expired`,
-            html: reservationExpiredTemplate({
+            templateKey: 'reservation-expired',
+            variables: {
               displayName: user.display_name,
               username: user.username,
               signupUrl: `${baseUrl}/auth/signup`,
-            }),
+            },
           });
 
           console.log(`📧 [CRON] Expiration email sent to ${user.email}`);

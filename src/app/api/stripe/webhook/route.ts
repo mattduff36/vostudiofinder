@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { db } from '@/lib/db';
 import { headers } from 'next/headers';
-import { sendEmail } from '@/lib/email/email-service';
-import { paymentSuccessTemplate } from '@/lib/email/templates/payment-success';
+import { sendTemplatedEmail } from '@/lib/email/send-templated';
 import { randomBytes } from 'crypto';
 import type Stripe from 'stripe';
 import { UserStatus } from '@prisma/client';
@@ -615,10 +614,10 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
         }
       }
       
-      await sendEmail({
+      await sendTemplatedEmail({
         to: customer?.email || user_email,
-        subject: isRenewal ? 'Membership Renewed - VoiceoverStudioFinder' : 'Membership Confirmed - VoiceoverStudioFinder',
-        html: paymentSuccessTemplate({
+        templateKey: 'payment-success',
+        variables: {
           customerName: user_name || customer?.name || user.display_name || 'Valued Member',
           amount: (payment.amount / 100).toFixed(2),
           currency: payment.currency.toUpperCase(),
@@ -629,7 +628,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
             month: 'long', 
             year: 'numeric' 
           }),
-        }),
+        },
       });
       console.log(`[EMAIL] Confirmation email sent to ${customer?.email || user_email} with expiry: ${actualExpiryDate.toISOString()}`);
     } catch (emailError) {

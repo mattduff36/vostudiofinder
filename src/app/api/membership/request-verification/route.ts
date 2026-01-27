@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { sendEmail } from '@/lib/email/email-service';
-import { generateVerificationRequestEmail } from '@/lib/email/templates/verification-request';
+import { sendTemplatedEmail } from '@/lib/email/send-templated';
 import { getBaseUrl } from '@/lib/seo/site';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
@@ -168,28 +167,26 @@ export async function POST(_request: NextRequest) {
 
     // Generate email content
     const baseUrl = getBaseUrl();
-    const { html, text, subject } = generateVerificationRequestEmail({
-      studioOwnerName: user.display_name || user.username || 'Studio Owner',
-      studioName: studio.name,
-      username: user.username,
-      email: user.email,
-      profileCompletion: completionPercentage,
-      studioUrl: `${baseUrl}/${user.username}`,
-      adminDashboardUrl: `${baseUrl}/admin`,
-    });
-
+    
     // Send email to all recipients
     let emailsSent = 0;
     let emailsFailed = 0;
 
     for (const recipientEmail of recipientEmails) {
       try {
-        const success = await sendEmail({
+        const success = await sendTemplatedEmail({
           to: recipientEmail,
-          subject,
-          html,
-          text,
-          replyTo: user.email, // Allow admins to reply directly to the user
+          templateKey: 'verification-request',
+          variables: {
+            studioOwnerName: user.display_name || user.username || 'Studio Owner',
+            studioName: studio.name,
+            username: user.username,
+            email: user.email,
+            profileCompletion: completionPercentage,
+            studioUrl: `${baseUrl}/${user.username}`,
+            adminDashboardUrl: `${baseUrl}/admin`,
+          },
+          replyToOverride: user.email, // Allow admins to reply directly to the user
         });
 
         if (success) {
