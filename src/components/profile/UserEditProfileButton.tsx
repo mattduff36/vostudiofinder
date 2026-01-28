@@ -24,8 +24,8 @@ export function UserEditProfileButton({ username }: UserEditProfileButtonProps) 
   // Check if user is admin
   const isAdmin = session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN';
 
-  // Show button for owners or admins
-  const showButton = isOwner || isAdmin;
+  // Show button ONLY for admins (not for owners)
+  const showButton = isAdmin;
 
   // Determine edit mode
   const editMode = isOwner ? 'owner' : 'admin';
