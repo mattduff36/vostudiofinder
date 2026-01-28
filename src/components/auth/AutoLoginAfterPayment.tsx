@@ -90,7 +90,7 @@ export function AutoLoginAfterPayment({ children }: AutoLoginAfterPaymentProps) 
           
           // Clear password from sessionStorage for security
           console.log(`[AutoLogin ${timestamp}] 🔒 Clearing stored password...`);
-          const { password, ...dataWithoutPassword } = signupData;
+          const { password: _password, ...dataWithoutPassword } = signupData;
           try {
             sessionStorage.setItem('signupData', JSON.stringify(dataWithoutPassword));
             console.log(`[AutoLogin ${timestamp}] ✅ Password cleared from sessionStorage`);

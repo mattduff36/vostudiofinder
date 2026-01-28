@@ -16,6 +16,7 @@ const eslintConfig = [
       '*.config.js',
       '*.config.mjs',
       'scripts/**',
+      'scripts-private/**',
       'tests/**',
       'prisma/migrations/**',
       'public/legacy-images/**',
