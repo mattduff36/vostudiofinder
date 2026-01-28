@@ -13,14 +13,10 @@ export function UserEditProfileFloatingButton({ onClick }: UserEditProfileFloati
   const [isPulsing, setIsPulsing] = useState(false);
 
   useEffect(() => {
-    // Show button after 1 second
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-      // Start pulsing after it appears
-      setTimeout(() => setIsPulsing(true), 500);
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    // Show button immediately (no delay)
+    setIsVisible(true);
+    // Start pulsing after it appears
+    setTimeout(() => setIsPulsing(true), 500);
   }, []);
 
   return (
