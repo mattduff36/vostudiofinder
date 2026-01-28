@@ -1635,22 +1635,17 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                       {(profile.user.email === 'admin@mpdee.co.uk' || profile.user.email === 'guy@voiceoverguy.co.uk') ? (
                         <>
                           {/* Admin Account Toggle */}
-                          <div className="flex items-center space-x-3 mb-3 p-3 bg-blue-50 rounded-md border border-blue-200">
-                            <span className="text-lg">👑</span>
+                          <div className="flex items-center space-x-3 mb-3 p-1.5 bg-blue-50 rounded-md border border-blue-200">
+                            <span className="text-lg ml-2">👑</span>
                             <div className="flex-1">
                               <p className="text-sm font-semibold text-blue-900">Admin Account</p>
                               <p className="text-xs text-blue-700">Toggle to set expiry for testing renewal features</p>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={adminNeverExpires}
-                                onChange={(e) => setAdminNeverExpires(e.target.checked)}
-                                className="sr-only peer"
-                              />
-                              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
-                              <span className="ml-3 text-xs font-medium text-gray-700">Never Expires</span>
-                            </label>
+                            <Toggle
+                              checked={adminNeverExpires}
+                              onChange={(checked) => setAdminNeverExpires(checked)}
+                              label="Never Expires"
+                            />
                           </div>
                           
                           {/* Date input (shown when "Never Expires" is OFF) */}
