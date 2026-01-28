@@ -2,8 +2,6 @@
 
 import { useMemo, type ReactNode } from 'react';
 import { CheckCircle, Circle, Pencil } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
 interface ProfileCompletionProgressProps {
@@ -64,7 +62,6 @@ export function ProfileCompletionProgress({
   mobileVariant = false,
   renderWidget
 }: ProfileCompletionProgressProps) {
-  const router = useRouter();
 
   // Use the single source of truth for calculation
   const completionStats = useMemo(() => {
@@ -180,15 +177,21 @@ export function ProfileCompletionProgress({
   // Count completed optional fields
   const completedOptionalCount = optionalFields.filter(field => field.completed).length;
 
-  // Handler for field clicks (desktop only) - navigates to Edit Profile with section selection
+  // Handler for field clicks (desktop only) - opens Edit Profile Modal with section selection
   const handleFieldClick = (sectionId?: string) => {
     if (!sectionId || mobileVariant) return;
     
     // Set the target section in sessionStorage for ProfileEditForm to pick up
     sessionStorage.setItem('openProfileSection', sectionId);
     
-    // Navigate to edit-profile page
-    router.push('/dashboard/edit-profile');
+    // Open Edit Profile Modal
+    window.dispatchEvent(new CustomEvent('openEditProfileModal'));
+  };
+
+  // Handler for widget click - opens Edit Profile Modal
+  const handleWidgetClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.dispatchEvent(new CustomEvent('openEditProfileModal'));
   };
 
   // Check if all required fields are complete
@@ -351,10 +354,10 @@ export function ProfileCompletionProgress({
             </div>
           </div>
         ) : (
-          <Link
-            href="/dashboard/edit-profile"
+          <button
+            onClick={handleWidgetClick}
             aria-label="Edit your profile"
-            className="group relative flex items-center justify-center flex-shrink-0 mx-auto md:mx-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="group relative flex items-center justify-center flex-shrink-0 mx-auto md:mx-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 cursor-pointer bg-transparent border-0"
             title="Edit profile"
           >
             <svg
@@ -398,7 +401,7 @@ export function ProfileCompletionProgress({
             <div className="absolute -top-2 -right-2 bg-primary-600 text-white rounded-full p-2 shadow-md group-hover:bg-primary-700 transition-colors">
               <Pencil className="w-4 h-4" aria-hidden="true" />
             </div>
-          </Link>
+          </button>
         )}
 
         {/* Completion checklist */}

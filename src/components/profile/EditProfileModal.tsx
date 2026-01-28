@@ -130,6 +130,11 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
   }
 
   const effectiveUserId = isAdminMode ? (userId || session?.user?.id || '') : userId || '';
+  
+  // Determine if we should show admin UI:
+  // - When in admin mode editing another user's profile, OR
+  // - When admin is editing their own profile (even in owner mode)
+  const showAdminUI = isAdmin && (isAdminMode || effectiveUserId === session?.user?.id);
 
   return (
     <div 
@@ -166,7 +171,7 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
             onSaveSuccess={handleSaveSuccess}
             dataSource={isAdminMode ? 'admin' : 'user'}
             adminStudioId={isAdminMode && adminStudioId ? adminStudioId : undefined}
-            isAdminUI={isAdminMode && isAdmin}
+            isAdminUI={showAdminUI}
           />
         </div>
       </div>
