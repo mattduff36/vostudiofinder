@@ -1506,7 +1506,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         return (
           <div className="space-y-6">
             {/* Warning Banner - Compact 2-column layout */}
-            <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 flex gap-3 items-center">
+            <div className="bg-red-50 border border-red-200 rounded-lg pt-2 pb-2.5 px-2.5 flex gap-3 items-center">
               <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0" aria-hidden="true" />
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-red-900 leading-tight">Admin Only Section</h3>
