@@ -229,6 +229,7 @@ h6,
 /* Homepage hero h3 - match h2 sizing exactly (24px desktop, 18px mobile) */
 .hp3 {
   font-size: 24px;
+  font-weight: bold;
 }
 
 @media (max-width: 640px) {
