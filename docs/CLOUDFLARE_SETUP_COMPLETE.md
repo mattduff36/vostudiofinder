@@ -207,15 +207,19 @@ After Vercel redeployment, test the following:
 ## 🔑 Important Credentials
 
 **Cloudflare Account**:
-- Email: Mattduff36@gmail.com
-- Zone ID: `a3317139e3c208a303b821fa72b32b53`
-- Account ID: `f1ea6e0f1a3263b3a67e1b92b7ea82cd`
+- Email: [Your Cloudflare email]
+- Zone ID: [Found in Cloudflare Dashboard → Overview]
+- Account ID: [Found in Cloudflare Dashboard → Overview]
 
 **Turnstile Keys** (stored in Vercel + `.env.local`):
-- Site Key: `0x4AAAAAACU70LF3yUfOCCmF`
-- Secret Key: `0x4AAAAAACU70C8NSNRDsdgEqwyZ6qSB8tU`
+- Site Key: [Found in Cloudflare Dashboard → Security → Turnstile]
+- Secret Key: [Found in Cloudflare Dashboard → Security → Turnstile]
 
-⚠️ **Note**: Do NOT commit `.env.local` to GitHub (already in `.gitignore`)
+⚠️ **CRITICAL SECURITY NOTE**: 
+- **NEVER commit API keys, secrets, or credentials to GitHub**
+- Keys are stored in Vercel environment variables and `.env.local` only
+- `.env.local` is in `.gitignore` and should never be committed
+- If keys are exposed, rotate them immediately in Cloudflare Dashboard
 
 ---
 
