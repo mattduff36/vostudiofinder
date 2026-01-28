@@ -142,59 +142,16 @@ export async function GET(request: NextRequest) {
       db.studio_profiles.count({ where })
     ]);
 
-    // Apply lazy enforcement and serialize Decimal fields (skip for admin accounts)
-    const now = new Date();
-    const studiosToUpdate: { id: string; status: 'ACTIVE' | 'INACTIVE' }[] = [];
-    const studiosToUnfeature: string[] = [];
-
-    // First pass: identify studios that need status updates (exclude admins)
-    studios.forEach(studio => {
-      const isAdminAccount = studio.users.email === 'admin@mpdee.co.uk' || studio.users.email === 'guy@voiceoverguy.co.uk';
-      
-      if (isAdminAccount) {
-        // Ensure admin studios are always ACTIVE
-        if (studio.status !== 'ACTIVE') {
-          studiosToUpdate.push({ id: studio.id, status: 'ACTIVE' });
-        }
-      } else {
-        // For non-admin accounts, enforce based on membership expiry
-        const latestSubscription = studio.users.subscriptions[0];
-        if (latestSubscription?.current_period_end) {
-          const isExpired = latestSubscription.current_period_end < now;
-          const desiredStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
-          
-          if (studio.status !== desiredStatus) {
-            studiosToUpdate.push({ id: studio.id, status: desiredStatus });
-          }
-        }
-      }
-      
-      // Check for expired featured status
-      if (studio.is_featured && studio.featured_until && studio.featured_until < now) {
-        studiosToUnfeature.push(studio.id);
-      }
-    });
-
-    // Batch update studios that need status changes
-    if (studiosToUpdate.length > 0) {
-      await Promise.all(
-        studiosToUpdate.map(({ id, status }) =>
-          db.studio_profiles.update({
-            where: { id },
-            data: { status, updated_at: now }
-          })
-        )
-      );
-      console.log(`🔄 Updated ${studiosToUpdate.length} studio statuses based on membership expiry`);
-    }
+    // Apply lazy enforcement using shared enforcement logic
+    const { computeEnforcementDecisions, applyEnforcementDecisions } = await import('@/lib/subscriptions/enforcement');
+    const decisions = computeEnforcementDecisions(studios);
+    const { statusUpdates, unfeaturedUpdates } = await applyEnforcementDecisions(decisions);
     
-    // Batch unfeature expired featured studios
-    if (studiosToUnfeature.length > 0) {
-      await db.studio_profiles.updateMany({
-        where: { id: { in: studiosToUnfeature } },
-        data: { is_featured: false, updated_at: now }
-      });
-      console.log(`🔄 Unfeatured ${studiosToUnfeature.length} expired featured studios`);
+    if (statusUpdates > 0) {
+      console.log(`🔄 Updated ${statusUpdates} studio statuses based on membership expiry`);
+    }
+    if (unfeaturedUpdates > 0) {
+      console.log(`🔄 Unfeatured ${unfeaturedUpdates} expired featured studios`);
     }
 
     // Serialize Decimal fields and calculate profile completion
@@ -241,13 +198,9 @@ export async function GET(request: NextRequest) {
       const latestSubscription = studio.users.subscriptions[0];
       const membershipExpiresAt = latestSubscription?.current_period_end || null;
       
-      // Apply status update from enforcement
-      const statusUpdate = studiosToUpdate.find(s => s.id === studio.id);
-      const effectiveStatus = statusUpdate ? statusUpdate.status : studio.status;
-      
       return {
         ...studio,
-        status: effectiveStatus,
+        status: studio.status,
         latitude: studio.latitude ? Number(studio.latitude) : null,
         longitude: studio.longitude ? Number(studio.longitude) : null,
         profile_completion: profileCompletion,

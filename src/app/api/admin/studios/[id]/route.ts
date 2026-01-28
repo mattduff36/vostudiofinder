@@ -3,7 +3,6 @@ import { logger } from '@/lib/logger';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { randomBytes } from 'crypto';
 import { sendVerificationEmail } from '@/lib/email/email-service';
 import { getBaseUrl } from '@/lib/seo/site';
 
@@ -258,24 +257,21 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    // 1. Authenticate
     const session = await getServerSession(authOptions);
-    
-    // Check if user is admin using multiple criteria
     const isAdmin = session?.user?.email === 'admin@mpdee.co.uk' || 
                     session?.user?.username === 'VoiceoverGuy' || 
                     session?.user?.role === 'ADMIN';
     
     if (!session || !isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // 2. Parse request
     const studioId = (await params).id;
     const body = await request.json();
 
-    // Check if studio exists
+    // 3. Verify studio exists
     const existingStudio = await prisma.studio_profiles.findUnique({
       where: { id: studioId },
       include: {
@@ -295,284 +291,64 @@ export async function PUT(
       return NextResponse.json({ error: 'Studio not found' }, { status: 404 });
     }
 
-    // Prepare user updates
-    const userUpdateData: any = {};
-    if (body.display_name !== undefined) userUpdateData.display_name = body.display_name; // Display name field
-    if (body.username !== undefined) userUpdateData.username = body.username; // Username field updates actual username
+    // 4. Build user updates (simple fields)
+    const { buildUserUpdate, buildStudioUpdate, buildProfileUpdate } = await import('@/lib/admin/studios/update/field-mapping');
+    let userUpdateData = buildUserUpdate(body);
     
-    // Check if email is being changed and if it's already taken
-    const normalizedNewEmail =
-      body.email !== undefined && body.email !== null ? String(body.email).toLowerCase().trim() : undefined;
-    const normalizedCurrentEmail = existingStudio.users?.email ? existingStudio.users.email.toLowerCase().trim() : undefined;
-
-    const isEmailChanging =
-      normalizedNewEmail !== undefined &&
-      normalizedNewEmail.length > 0 &&
-      normalizedNewEmail !== normalizedCurrentEmail;
-
-    let verificationEmailToSend: { email: string; displayName: string; verificationUrl: string } | null = null;
-
-    if (isEmailChanging) {
-      const existingEmailUser = await prisma.users.findUnique({
-        where: { email: normalizedNewEmail }
-      });
-      
-      if (existingEmailUser && existingEmailUser.id !== existingStudio.user_id) {
-        return NextResponse.json({ 
-          error: 'Email address is already in use by another account' 
-        }, { status: 400 });
-      }
-      
-      const verificationToken = randomBytes(32).toString('hex');
-      const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      const postVerifyRedirect = `/auth/signin?callbackUrl=${encodeURIComponent('/dashboard')}`;
-      const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${verificationToken}&redirect=${encodeURIComponent(postVerifyRedirect)}`;
-
-      userUpdateData.email = normalizedNewEmail;
-      // Force re-verification on email change
-      userUpdateData.email_verified = false;
-      userUpdateData.verification_token = verificationToken;
-      userUpdateData.verification_token_expiry = verificationTokenExpiry;
-
-      verificationEmailToSend = {
-        email: normalizedNewEmail,
-        displayName: body.display_name ?? existingStudio.users?.display_name ?? 'User',
-        verificationUrl,
-      };
-    }
+    // 5. Handle email change (complex validation + verification flow)
+    const { prepareEmailChange } = await import('@/lib/admin/studios/update/email');
+    const { userUpdates: emailUpdates, verificationData } = await prepareEmailChange(
+      body,
+      existingStudio.users?.email,
+      existingStudio.user_id,
+      body.display_name ?? existingStudio.users?.display_name ?? 'User',
+      getBaseUrl(request)
+    );
+    userUpdateData = { ...userUpdateData, ...emailUpdates };
     
-    if (body.avatar_image !== undefined) userUpdateData.avatar_url = body.avatar_image; // Avatar image
-
-    // Prepare studio updates
-    const studioUpdateData: any = {};
-    if (body._meta?.studio_name !== undefined) studioUpdateData.name = body._meta.studio_name; // Studio name field
-    if (body._meta?.address !== undefined) studioUpdateData.address = body._meta.address; // Legacy field
-    if (body._meta?.full_address !== undefined) studioUpdateData.full_address = body._meta.full_address;
-    if (body._meta?.city !== undefined) studioUpdateData.city = body._meta.city;
-    if (body._meta?.phone !== undefined) studioUpdateData.phone = body._meta.phone;
-    if (body._meta?.url !== undefined) studioUpdateData.website_url = body._meta.url;
-    if (body._meta?.latitude !== undefined) studioUpdateData.latitude = parseFloat(body._meta.latitude) || null;
-    if (body._meta?.longitude !== undefined) studioUpdateData.longitude = parseFloat(body._meta.longitude) || null;
-    if (body._meta?.show_exact_location !== undefined) studioUpdateData.show_exact_location = body._meta.show_exact_location === '1' || body._meta.show_exact_location === true || body._meta.show_exact_location === 1;
-    if (body._meta?.verified !== undefined) studioUpdateData.is_verified = body._meta.verified === '1' || body._meta.verified === true || body._meta.verified === 1;
-    if (body._meta?.is_profile_visible !== undefined) studioUpdateData.is_profile_visible = body._meta.is_profile_visible === '1' || body._meta.is_profile_visible === true || body._meta.is_profile_visible === 1;
+    // 6. Build studio & profile updates
+    let studioUpdateData = buildStudioUpdate(body);
+    const profileUpdateData = buildProfileUpdate(body);
     
-    // Geocode full_address if it's being updated
-    // Always geocode when full_address changes, unless coordinates are explicitly being set to different values
-    if (body._meta?.full_address !== undefined && body._meta.full_address) {
-      const fullAddressChanged = body._meta.full_address !== existingStudio.full_address;
-      
-      if (fullAddressChanged) {
-        // Check if coordinates are being manually changed in this request
-        const existingLat = existingStudio.latitude ? parseFloat(existingStudio.latitude.toString()) : null;
-        const existingLng = existingStudio.longitude ? parseFloat(existingStudio.longitude.toString()) : null;
-        
-        // Parse request coordinates, handling both string and number types
-        let requestLat: number | null = null;
-        let requestLng: number | null = null;
-        if (body._meta?.latitude !== undefined && body._meta.latitude !== null && body._meta.latitude !== '') {
-          requestLat = typeof body._meta.latitude === 'string' ? parseFloat(body._meta.latitude) : body._meta.latitude;
-        }
-        if (body._meta?.longitude !== undefined && body._meta.longitude !== null && body._meta.longitude !== '') {
-          requestLng = typeof body._meta.longitude === 'string' ? parseFloat(body._meta.longitude) : body._meta.longitude;
-        }
-        
-        // Check if coordinates are being manually changed (different from existing)
-        // Use a small epsilon for floating point comparison
-        const epsilon = 0.000001;
-        const latChanged = requestLat !== null && existingLat !== null && Math.abs(requestLat - existingLat) > epsilon;
-        const lngChanged = requestLng !== null && existingLng !== null && Math.abs(requestLng - existingLng) > epsilon;
-        const coordinatesManuallyChanged = latChanged || lngChanged;
-        
-        // Only geocode if coordinates aren't being manually changed
-        if (!coordinatesManuallyChanged) {
-          logger.log(`[Geocoding] Full address changed, geocoding: ${body._meta.full_address}`);
-          const { geocodeAddress } = await import('@/lib/maps');
-          const geocodeResult = await geocodeAddress(body._meta.full_address);
-          if (geocodeResult) {
-            logger.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}, city=${geocodeResult.city}, country=${geocodeResult.country}`);
-            // Set coordinates
-            studioUpdateData.latitude = geocodeResult.lat;
-            studioUpdateData.longitude = geocodeResult.lng;
-            // Auto-populate city and location (country) if not explicitly being changed
-            if (body._meta?.city === undefined && geocodeResult.city) {
-              studioUpdateData.city = geocodeResult.city;
-            }
-            if (body._meta?.location === undefined && geocodeResult.country) {
-              studioUpdateData.location = geocodeResult.country;
-            }
-          } else {
-            logger.log(`[Geocoding] Failed to geocode address: ${body._meta.full_address} - clearing coordinates`);
-            // Clear coordinates on geocode failure
-            studioUpdateData.latitude = null;
-            studioUpdateData.longitude = null;
-          }
-        } else {
-          logger.log(`[Geocoding] Skipped - coordinates manually changed`);
-        }
-      } else if (!existingStudio.latitude || !existingStudio.longitude) {
-        // Address hasn't changed but coordinates are empty - geocode anyway
-        logger.log(`[Geocoding] Coordinates empty, geocoding existing address: ${body._meta.full_address}`);
-        const { geocodeAddress } = await import('@/lib/maps');
-        const geocodeResult = await geocodeAddress(body._meta.full_address);
-        if (geocodeResult) {
-          logger.log(`[Geocoding] Success: lat=${geocodeResult.lat}, lng=${geocodeResult.lng}, city=${geocodeResult.city}, country=${geocodeResult.country}`);
-          studioUpdateData.latitude = geocodeResult.lat;
-          studioUpdateData.longitude = geocodeResult.lng;
-          // Auto-populate city and location (country) if not explicitly being changed
-          if (body._meta?.city === undefined && geocodeResult.city) {
-            studioUpdateData.city = geocodeResult.city;
-          }
-          if (body._meta?.location === undefined && geocodeResult.country) {
-            studioUpdateData.location = geocodeResult.country;
-          }
-        } else {
-          logger.log(`[Geocoding] Failed to geocode address: ${body._meta.full_address}`);
-          // Clear coordinates on failure
-          studioUpdateData.latitude = null;
-          studioUpdateData.longitude = null;
-        }
-      }
-    }
+    // 7. Handle geocoding (complex conditional logic)
+    const { maybeGeocodeStudioAddress } = await import('@/lib/admin/studios/update/geocoding');
+    const geocodeUpdates = await maybeGeocodeStudioAddress(existingStudio, body);
+    studioUpdateData = { ...studioUpdateData, ...geocodeUpdates };
     
-    // Handle status updates
-    if (body.status !== undefined) {
-      studioUpdateData.status = body.status.toUpperCase();
-    }
-
-    // Prepare profile updates
-    const profileUpdateData: any = {};
-    if (body._meta?.last_name !== undefined) profileUpdateData.last_name = body._meta.last_name;
-    if (body._meta?.location !== undefined) profileUpdateData.location = body._meta.location;
-    if (body._meta?.about !== undefined) profileUpdateData.about = body._meta.about;
-    if (body._meta?.short_about !== undefined) profileUpdateData.short_about = body._meta.short_about;
-    if (body._meta?.shortabout !== undefined) profileUpdateData.short_about = body._meta.shortabout; // Legacy support
-    if (body._meta?.facebook !== undefined) profileUpdateData.facebook_url = body._meta.facebook;
-    if (body._meta?.twitter !== undefined) profileUpdateData.twitter_url = body._meta.twitter;
-    // When updating X/Twitter, update both fields to ensure removal works correctly
-    if (body._meta?.x !== undefined) {
-      profileUpdateData.x_url = body._meta.x;
-      profileUpdateData.twitter_url = body._meta.x; // Also update twitter_url to keep them in sync
-    }
-    if (body._meta?.linkedin !== undefined) profileUpdateData.linkedin_url = body._meta.linkedin;
-    if (body._meta?.instagram !== undefined) profileUpdateData.instagram_url = body._meta.instagram;
-    if (body._meta?.youtubepage !== undefined) profileUpdateData.youtube_url = body._meta.youtubepage;
-    if (body._meta?.tiktok !== undefined) profileUpdateData.tiktok_url = body._meta.tiktok;
-    if (body._meta?.threads !== undefined) profileUpdateData.threads_url = body._meta.threads;
-    if (body._meta?.soundcloud !== undefined) profileUpdateData.soundcloud_url = body._meta.soundcloud;
-    if (body._meta?.vimeo !== undefined) profileUpdateData.vimeo_url = body._meta.vimeo;
-    
-    // Handle featured status with validation (max 6 featured studios)
+    // 8. Validate featured status transition (max 6 limit)
     if (body._meta?.featured !== undefined) {
       const isFeatured = body._meta.featured === '1' || body._meta.featured === true || body._meta.featured === 1;
+      const { validateFeaturedTransition } = await import('@/lib/admin/studios/update/featured');
+      const validation = await validateFeaturedTransition(
+        studioId,
+        isFeatured,
+        existingStudio.is_featured || false,
+        body._meta?.featured_expires_at
+      );
       
-      // If trying to feature this studio, validate expiry and check if limit is reached
-      if (isFeatured && !existingStudio.is_featured) {
-        // Require expiry date when featuring
-        if (!body._meta?.featured_expires_at) {
-          return NextResponse.json({
-            error: 'Featured expiry date is required when featuring a studio'
-          }, { status: 400 });
-        }
-        
-        // Validate expiry date is in the future
-        const expiryDate = new Date(body._meta.featured_expires_at);
-        if (isNaN(expiryDate.getTime()) || expiryDate <= new Date()) {
-          return NextResponse.json({
-            error: 'Featured expiry date must be a valid future date'
-          }, { status: 400 });
-        }
-        
-        const now = new Date();
-        const featuredCount = await prisma.studio_profiles.count({
-          where: { 
-            is_featured: true,
-            OR: [
-              { featured_until: null },
-              { featured_until: { gte: now } }
-            ]
-          }
-        });
-        
-        if (featuredCount >= 6) {
-          return NextResponse.json({
-            error: 'Maximum of 6 featured studios reached. Please unfeature another studio first.'
-          }, { status: 400 });
-        }
-      }
-      
-      profileUpdateData.is_featured = isFeatured;
-      
-      // Clear expiry when unfeaturing
-      if (!isFeatured) {
-        profileUpdateData.featured_until = null;
+      if (!validation.valid) {
+        return NextResponse.json({ error: validation.error }, { status: validation.status });
       }
     }
-    
-    // Handle featured expiry date
-    if (body._meta?.featured_expires_at !== undefined) {
-      profileUpdateData.featured_until = body._meta.featured_expires_at ? new Date(body._meta.featured_expires_at) : null;
-    }
-    // Rate updates
-    if (body._meta?.rates1 !== undefined) profileUpdateData.rate_tier_1 = body._meta.rates1;
-    if (body._meta?.rates2 !== undefined) profileUpdateData.rate_tier_2 = body._meta.rates2;
-    if (body._meta?.rates3 !== undefined) profileUpdateData.rate_tier_3 = body._meta.rates3;
-    if (body._meta?.showrates !== undefined) profileUpdateData.show_rates = body._meta.showrates === '1' || body._meta.showrates === true || body._meta.showrates === 1;
-    
-    // Contact preferences
-    if (body._meta?.showemail !== undefined) profileUpdateData.show_email = body._meta.showemail === '1' || body._meta.showemail === true || body._meta.showemail === 1;
-    if (body._meta?.showphone !== undefined) profileUpdateData.show_phone = body._meta.showphone === '1' || body._meta.showphone === true || body._meta.showphone === 1;
-    if (body._meta?.showaddress !== undefined) profileUpdateData.show_address = body._meta.showaddress === '1' || body._meta.showaddress === true || body._meta.showaddress === 1;
-    if (body._meta?.showdirections !== undefined) profileUpdateData.show_directions = body._meta.showdirections === '1' || body._meta.showdirections === true || body._meta.showdirections === 1;
-    if (body._meta?.use_coordinates_for_map !== undefined) profileUpdateData.use_coordinates_for_map = body._meta.use_coordinates_for_map === '1' || body._meta.use_coordinates_for_map === true || body._meta.use_coordinates_for_map === 1;
-    
-    // Connection types
-    if (body._meta?.connection1 !== undefined) profileUpdateData.connection1 = body._meta.connection1;
-    if (body._meta?.connection2 !== undefined) profileUpdateData.connection2 = body._meta.connection2;
-    if (body._meta?.connection3 !== undefined) profileUpdateData.connection3 = body._meta.connection3;
-    if (body._meta?.connection4 !== undefined) profileUpdateData.connection4 = body._meta.connection4;
-    if (body._meta?.connection5 !== undefined) profileUpdateData.connection5 = body._meta.connection5;
-    if (body._meta?.connection6 !== undefined) profileUpdateData.connection6 = body._meta.connection6;
-    if (body._meta?.connection7 !== undefined) profileUpdateData.connection7 = body._meta.connection7;
-    if (body._meta?.connection8 !== undefined) profileUpdateData.connection8 = body._meta.connection8;
-    if (body._meta?.connection9 !== undefined) profileUpdateData.connection9 = body._meta.connection9;
-    if (body._meta?.connection10 !== undefined) profileUpdateData.connection10 = body._meta.connection10;
-    if (body._meta?.connection11 !== undefined) profileUpdateData.connection11 = body._meta.connection11;
-    if (body._meta?.connection12 !== undefined) profileUpdateData.connection12 = body._meta.connection12;
-    
-    // Custom connection methods
-    if (body._meta?.custom_connection_methods !== undefined) {
-      profileUpdateData.custom_connection_methods = Array.isArray(body._meta.custom_connection_methods)
-        ? body._meta.custom_connection_methods.filter((m: string) => m && m.trim()).slice(0, 2)
-        : [];
-    }
-    
-    // Equipment and Services
-    if (body._meta?.equipment_list !== undefined) profileUpdateData.equipment_list = body._meta.equipment_list;
-    if (body._meta?.services_offered !== undefined) profileUpdateData.services_offered = body._meta.services_offered;
-    
-    // Also support profile.* format for compatibility
-    if (body.profile?.equipment_list !== undefined) profileUpdateData.equipment_list = body.profile.equipment_list;
-    if (body.profile?.services_offered !== undefined) profileUpdateData.services_offered = body.profile.services_offered;
-    if (body.profile?.x_url !== undefined) profileUpdateData.x_url = body.profile.x_url;
 
-    // Merge all studio_profiles updates into one object
+    // 9. Merge all studio_profiles updates
     const allStudioProfileUpdates = {
       ...studioUpdateData,
       ...profileUpdateData
     };
 
-    // Add updated_at timestamp for studio_profiles updates
     if (Object.keys(allStudioProfileUpdates).length > 0) {
       allStudioProfileUpdates.updated_at = new Date();
     }
 
-    // Log what we're trying to update for debugging
     logger.log('[Admin Update] Studio updates:', JSON.stringify(allStudioProfileUpdates, null, 2));
 
-    // Perform updates using Prisma transactions
+    // 10. Execute transaction
+    const { handleMembershipExpiryUpdate, handleStudioTypesUpdate, handleCustomMetaTitleUpdate } = 
+      await import('@/lib/admin/studios/update/transaction');
+    
     await prisma.$transaction(async (tx) => {
-      // Update user if there are user changes
+      // Update user
       if (Object.keys(userUpdateData).length > 0) {
         await tx.users.update({
           where: { id: existingStudio.user_id },
@@ -580,7 +356,7 @@ export async function PUT(
         });
       }
 
-      // Update studio_profiles if there are any changes (merged from studioUpdateData and profileUpdateData)
+      // Update studio_profiles
       if (Object.keys(allStudioProfileUpdates).length > 0) {
         await tx.studio_profiles.update({
           where: { id: studioId },
@@ -588,166 +364,45 @@ export async function PUT(
         });
       }
 
-      // Update studio types if provided
-      if (body.studioTypes !== undefined) {
-        // Delete existing studio types
-        await tx.studio_studio_types.deleteMany({
-          where: { studio_id: studioId }
-        });
+      // Update studio types
+      await handleStudioTypesUpdate(tx, studioId, body.studioTypes);
 
-        // Create new studio types
-        if (Array.isArray(body.studioTypes) && body.studioTypes.length > 0) {
-          // Generate IDs manually since schema doesn't have @default
-          for (const st of body.studioTypes) {
-            const id = randomBytes(12).toString('base64url'); // Generate unique ID
-            await tx.studio_studio_types.create({
-              data: {
-                id,
-                studio_id: studioId,
-                studio_type: st.studio_type || st.studioType // Accept both formats
-              }
-            });
-          }
-        }
-      }
-
-      // Handle membership expiry updates
-      // Only process if membership_expires_at is explicitly being changed
-      // Check if it's different from the current value or if it's being explicitly set/cleared
+      // Handle membership expiry
       const currentSubscription = await tx.subscriptions.findFirst({
         where: { user_id: existingStudio.user_id },
         orderBy: { created_at: 'desc' }
       });
       
-      const currentExpiryDate = currentSubscription?.current_period_end?.toISOString() || null;
-      const newExpiryValue = body._meta?.membership_expires_at || null;
-      
-      // Only process membership changes if the value has actually changed
-      const membershipExpiryChanged = body._meta?.membership_expires_at !== undefined && 
-        (newExpiryValue !== currentExpiryDate);
-      
-      if (membershipExpiryChanged) {
-        const now = new Date();
-        
-        if (body._meta.membership_expires_at) {
-          // Parse the date
-          const expiryDate = new Date(body._meta.membership_expires_at);
-          
-          if (currentSubscription) {
-            // Update existing subscription
-            await tx.subscriptions.update({
-              where: { id: currentSubscription.id },
-              data: {
-                current_period_end: expiryDate,
-                status: 'ACTIVE',
-                updated_at: now
-              }
-            });
-          } else {
-            // Create new subscription
-            await tx.subscriptions.create({
-              data: {
-                id: randomBytes(12).toString('base64url'),
-                user_id: existingStudio.user_id,
-                status: 'ACTIVE',
-                payment_method: 'STRIPE',
-                current_period_start: now,
-                current_period_end: expiryDate,
-                created_at: now,
-                updated_at: now
-              }
-            });
-          }
+      await handleMembershipExpiryUpdate(tx, {
+        userId: existingStudio.user_id,
+        studioId,
+        newExpiryValue: body._meta?.membership_expires_at,
+        currentSubscription,
+        skipStatusUpdate: body.status !== undefined,
+      });
 
-          // Update studio status based on expiry date
-          // Only change status if it's not already explicitly being set in this request
-          if (body.status === undefined) {
-            const isExpired = expiryDate < now;
-            const newStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
-            
-            await tx.studio_profiles.update({
-              where: { id: studioId },
-              data: { 
-                status: newStatus,
-                updated_at: now
-              }
-            });
-          }
-        } else {
-          // If being explicitly cleared (empty string), delete subscription and set studio to INACTIVE
-          await tx.subscriptions.deleteMany({
-            where: { user_id: existingStudio.user_id }
-          });
-          
-          // Only change status if it's not already explicitly being set in this request
-          if (body.status === undefined) {
-            await tx.studio_profiles.update({
-              where: { id: studioId },
-              data: { 
-                status: 'INACTIVE',
-                updated_at: now
-              }
-            });
-          }
-        }
-      }
-
-      // Handle custom_meta_title metadata (outside main studio_profiles table)
-      if (body._meta?.custom_meta_title !== undefined) {
-        const customMetaTitle = body._meta.custom_meta_title?.trim() || '';
-        
-        if (customMetaTitle) {
-          // Upsert the custom_meta_title metadata
-          await tx.user_metadata.upsert({
-            where: {
-              user_id_key: {
-                user_id: existingStudio.user_id,
-                key: 'custom_meta_title',
-              },
-            },
-            update: {
-              value: customMetaTitle.substring(0, 60), // Enforce 60 char limit
-              updated_at: new Date(),
-            },
-            create: {
-              id: randomBytes(12).toString('base64url'),
-              user_id: existingStudio.user_id,
-              key: 'custom_meta_title',
-              value: customMetaTitle.substring(0, 60),
-              created_at: new Date(),
-              updated_at: new Date(),
-            },
-          });
-        } else {
-          // If empty string, delete the metadata entry
-          await tx.user_metadata.deleteMany({
-            where: {
-              user_id: existingStudio.user_id,
-              key: 'custom_meta_title',
-            },
-          });
-        }
-      }
+      // Handle custom meta title
+      await handleCustomMetaTitleUpdate(tx, existingStudio.user_id, body._meta?.custom_meta_title);
     });
 
-    // If admin changed email, send verification email
+    // 11. Send verification email if needed
     let emailSendResult: { sent: boolean; error?: string } | null = null;
-    if (verificationEmailToSend) {
+    if (verificationData) {
       try {
         await sendVerificationEmail(
-          verificationEmailToSend.email,
-          verificationEmailToSend.displayName,
-          verificationEmailToSend.verificationUrl
+          verificationData.email,
+          verificationData.displayName,
+          verificationData.verificationUrl
         );
         emailSendResult = { sent: true };
       } catch (emailError) {
         const errorMessage = emailError instanceof Error ? emailError.message : 'Unknown error';
-        console.error('[Admin Update] Failed to send verification email after email change:', emailError);
+        console.error('[Admin Update] Failed to send verification email:', emailError);
         emailSendResult = { sent: false, error: errorMessage };
       }
     }
 
-    // Fetch the updated studio to return updated coordinates
+    // 12. Fetch updated coordinates and build response
     const updatedStudio = await prisma.studio_profiles.findUnique({
       where: { id: studioId },
       select: {
@@ -769,7 +424,6 @@ export async function PUT(
       city: updatedStudio?.city || null,
     };
 
-    // Include email send status if email was changed
     if (emailSendResult) {
       response.verificationEmail = emailSendResult;
     }
@@ -778,6 +432,13 @@ export async function PUT(
 
   } catch (error: any) {
     console.error('Update studio error:', error);
+    
+    // Handle special error codes
+    if (error.message === 'EMAIL_IN_USE') {
+      return NextResponse.json({ 
+        error: 'Email address is already in use by another account' 
+      }, { status: 400 });
+    }
     
     // Handle Prisma unique constraint violations
     if (error.code === 'P2002') {
