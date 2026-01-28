@@ -638,14 +638,14 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                   )}
                   <span>{studio.name}</span>
                   {studio.is_verified && (
-                    <span className="group relative inline-flex items-center">
+                    <span className="group relative inline-flex items-center cursor-default">
                       <span 
-                        className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 transition-colors" 
+                        className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 transition-all duration-200 group-hover:scale-110" 
                       >
                         <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                       </span>
                       {/* Hover expand text - desktop only */}
-                      <span className="hidden md:inline-flex absolute left-full ml-1 items-center px-2 py-0.5 bg-green-600 text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      <span className="hidden md:inline-flex absolute left-full ml-1 items-center px-2 py-0.5 bg-green-600 text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none">
                         Verified
                       </span>
                     </span>
