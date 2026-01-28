@@ -260,14 +260,18 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     };
   }, []);
 
-  // Check for sessionStorage to open specific section (e.g., from Settings page)
+  // Check for sessionStorage to open specific section (e.g., from ProfileCompletionProgress)
+  // Run this whenever the modal opens (isOpen state would be ideal, but we use loading as proxy)
   useEffect(() => {
+    // Only check when profile has loaded (not on initial mount while loading)
+    if (loading) return;
+    
     const targetSection = sessionStorage.getItem('openProfileSection');
     if (targetSection) {
       setActiveSection(targetSection);
       sessionStorage.removeItem('openProfileSection'); // Clean up after use
     }
-  }, []);
+  }, [loading]); // Re-run when loading completes (modal opened and data loaded)
 
   // Scroll to expanded card on mobile
   useEffect(() => {

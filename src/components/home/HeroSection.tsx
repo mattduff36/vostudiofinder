@@ -1,6 +1,6 @@
 'use client';
 import { logger } from '@/lib/logger';
-
+import { motion } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { colors } from './HomePage';
@@ -104,11 +104,66 @@ export function HeroSection() {
             Professional Voiceover, Podcast & Recording Studios Worldwide
           </h2>
           
-          <h3 className={`hp3 font-semibold text-center transition-all duration-1000 ease-out px-4 mb-4 sm:mb-0 ${
-            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
-          }`} style={{ transitionDelay: '0.5s', color: colors.primary, maxWidth: '768px', margin: '0 auto 1rem auto' }}>
-            Got a studio? Get it listed!
-          </h3>
+          <motion.h3 
+            className="hp3 font-semibold text-center px-4 mb-4 sm:mb-0 text-lg md:text-2xl"
+            style={{ maxWidth: '768px', margin: '0 auto 1rem auto' }}
+            initial={{ color: '#ffffff', scale: 1, opacity: 0, x: 80 }}
+            animate={{ 
+              color: colors.primary,
+              scale: 1,
+              opacity: 1,
+              x: 0
+            }}
+            transition={{
+              color: {
+                duration: 1.5,
+                delay: 5.7, // 3.2s (wave end) + 2.5s pause
+                ease: 'easeOut'
+              },
+              opacity: {
+                duration: 1,
+                delay: 0.5,
+                ease: 'easeOut'
+              },
+              x: {
+                duration: 1,
+                delay: 0.5,
+                ease: 'easeOut'
+              }
+            }}
+          >
+            {/* Wave effect animation with 1s initial delay, 200ms pause, then ultra-slow fade */}
+            {'Got a studio? '.split('').map((char, i) => (
+              <motion.span
+                key={`part1-${i}`}
+                initial={{ y: 0 }}
+                animate={{ y: [0, -12, 0] }}
+                transition={{ 
+                  duration: 0.6,
+                  delay: 1.0 + (i * 0.05), // 1s initial delay
+                  ease: 'easeInOut'
+                }}
+                className="inline-block"
+              >
+                {char === ' ' ? '\u00A0' : char}
+              </motion.span>
+            ))}
+            {'Get it listed!'.split('').map((char, i) => (
+              <motion.span
+                key={`part2-${i}`}
+                initial={{ y: 0 }}
+                animate={{ y: [0, -12, 0] }}
+                transition={{ 
+                  duration: 0.6,
+                  delay: 1.0 + ('Got a studio? '.length * 0.05) + 0.6 + 0.2 + (i * 0.05), // 1s + first part wave time + 200ms pause
+                  ease: 'easeInOut'
+                }}
+                className="inline-block"
+              >
+                {char === ' ' ? '\u00A0' : char}
+              </motion.span>
+            ))}
+          </motion.h3>
 
           {/* Enhanced Search Form */}
           <div className={`max-w-4xl mx-auto mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 transition-all duration-700 w-full ${

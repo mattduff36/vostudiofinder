@@ -1246,6 +1246,7 @@ export default function AdminStudiosPage() {
         onClose={handleCloseEditModal}
         onSaveSuccess={handleSaveSuccess}
         mode="admin"
+        {...(editingStudio?.users?.username && { targetUsername: editingStudio.users.username })}
         studioId={editingStudio?.id}
       />
 

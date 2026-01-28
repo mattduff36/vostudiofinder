@@ -76,9 +76,28 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
     if (isClosing) return;
     
     setIsClosing(true);
+    
+    const savePromise = profileFormRef.current?.saveIfDirty();
+    if (savePromise === undefined) {
+      // Ref not mounted or form not ready - don't close without attempting save (avoid data loss)
+      setIsClosing(false);
+      return;
+    }
+    
+    let timeoutId: NodeJS.Timeout | null = null;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('MODAL_CLOSE_TIMEOUT: Save operation timed out after 30 seconds'));
+      }, 30000);
+    });
+    
     try {
-      // Attempt to save any unsaved changes
-      const saveSuccess = await profileFormRef.current?.saveIfDirty();
+      const saveSuccess = await Promise.race([savePromise, timeoutPromise]);
+      
+      // Clean up timeout if save completed first (prevent unhandled rejection)
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
       
       if (saveSuccess === false) {
         // Save failed, block closing
@@ -90,8 +109,34 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
       // Don't refresh - just close the modal and stay on current page
       onClose();
     } catch (error) {
-      console.error('Error during modal close:', error);
-      setIsClosing(false);
+      // Clean up timeout on error too
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Check if it's a timeout error
+      if (errorMessage.includes('MODAL_CLOSE_TIMEOUT')) {
+        console.error('❌ CRITICAL ERROR: Modal close operation timed out', {
+          timestamp: new Date().toISOString(),
+          userId: session?.user?.id,
+          username: session?.user?.username,
+          mode: mode,
+          targetUsername: targetUsername,
+          error: errorMessage
+        });
+        
+        showError('Save operation timed out. Forcing modal close.');
+        
+        // Force close the modal after timeout
+        setIsClosing(false);
+        onClose();
+      } else {
+        // Regular error during save
+        console.error('Error during modal close:', error);
+        setIsClosing(false);
+      }
     }
   };
 
@@ -115,7 +160,7 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
   // Show loading spinner while fetching studioId
   if (loadingStudioId || (isAdminMode && !adminStudioId)) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md">
         <div className="bg-white rounded-lg p-8">
           <div className="flex items-center">
             <Loader2 className="w-8 h-8 animate-spin text-red-600" />
@@ -138,8 +183,8 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
       className="fixed inset-0 z-[100] overflow-y-auto"
       onClick={handleBackdropClick}
     >
-      {/* Modal backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-60 transition-opacity z-[100]" />
+      {/* Modal backdrop with blur effect */}
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-md transition-opacity z-[100]" />
       
       {/* Modal container - centers the form */}
       <div className="flex min-h-full items-start md:items-center justify-center p-0 md:p-8 relative z-[101]">
