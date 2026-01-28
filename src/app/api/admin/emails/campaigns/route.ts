@@ -278,11 +278,22 @@ function buildUserWhereClause(filters: any): Prisma.usersWhereInput {
   }
   
   if (filters.search) {
-    where.OR = [
-      { email: { contains: filters.search, mode: 'insensitive' } },
-      { username: { contains: filters.search, mode: 'insensitive' } },
-      { display_name: { contains: filters.search, mode: 'insensitive' } },
+    const searchConditions = [
+      { email: { contains: filters.search, mode: 'insensitive' as const } },
+      { username: { contains: filters.search, mode: 'insensitive' as const } },
+      { display_name: { contains: filters.search, mode: 'insensitive' as const } },
     ];
+    
+    // If there's already an OR clause (e.g., from marketing opt-in filter), wrap both in AND
+    if (where.OR) {
+      where.AND = [
+        { OR: where.OR }, // Existing OR clause
+        { OR: searchConditions }, // Search filter
+      ];
+      delete where.OR;
+    } else {
+      where.OR = searchConditions;
+    }
   }
   
   return where;
