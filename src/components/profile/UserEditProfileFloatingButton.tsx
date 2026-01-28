@@ -57,11 +57,11 @@ export function UserEditProfileFloatingButton({ onClick }: UserEditProfileFloati
           whileTap={{ scale: 0.95 }}
           onClick={onClick}
           onMouseEnter={() => setIsPulsing(false)}
-          className="hidden md:flex fixed top-20 right-6 z-50 items-center gap-2 px-6 py-3 bg-[#d42027] text-white rounded-full font-medium shadow-lg hover:bg-[#a1181d] transition-colors focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:ring-offset-2"
-          aria-label="Edit your profile"
+          className="hidden md:flex fixed top-20 right-6 z-50 items-center gap-2 px-4 py-2 bg-[#d42027] text-white text-sm rounded-full font-medium shadow-lg hover:bg-[#a1181d] transition-colors focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:ring-offset-2"
+          aria-label="Edit as admin"
         >
-          <Pencil className="w-5 h-5" />
-          <span>Edit Profile</span>
+          <Pencil className="w-4 h-4" />
+          <span>Edit As Admin</span>
         </motion.button>
       )}
     </AnimatePresence>
