@@ -11,7 +11,7 @@ import { z } from 'zod';
 
 const previewSchema = z.object({
   templateKey: z.string(),
-  variables: z.record(z.any()),
+  variables: z.record(z.string(), z.any()),
 });
 
 export async function POST(request: NextRequest) {
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }

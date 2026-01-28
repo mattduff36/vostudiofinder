@@ -64,15 +64,11 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
     bodyParagraphs: [
       'Hi {{displayName}},',
       'We received a request to create an account for {{userEmail}}. Verify your email to activate your account.',
-    ],
-    ctaPrimaryLabel: 'Verify email address',
-    ctaPrimaryUrl: '{{verificationUrl}}',
-    bodyParagraphs: [
-      'Hi {{displayName}},',
-      'We received a request to create an account for {{userEmail}}. Verify your email to activate your account.',
       'If the button doesn\'t work, copy and paste this link:\n{{verificationUrl}}',
       'This link expires in 24 hours. If you didn\'t create an account, you can ignore this email.',
     ],
+    ctaPrimaryLabel: 'Verify email address',
+    ctaPrimaryUrl: '{{verificationUrl}}',
     variableSchema: {
       displayName: 'string',
       userEmail: 'email',
@@ -143,7 +139,7 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
       'Hi {{displayName}},',
       'We\'ve processed a {{refundType}} refund of {{refundAmount}} {{currency}} for your payment of {{paymentAmount}} {{currency}}.',
       'Refund Details:\nAmount: {{refundAmount}} {{currency}}\nDate: {{refundDate}}\nType: {{refundType}}',
-      '{{#comment}}Note:\n{{comment}}{{/comment}}',
+      '{{comment}}',
       'The refund will appear in your account within 5-10 business days, depending on your bank or card issuer.',
     ],
     ctaPrimaryLabel: 'View Dashboard',

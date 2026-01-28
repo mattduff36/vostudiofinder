@@ -33,7 +33,7 @@ const createTemplateSchema = z.object({
   ctaSecondaryLabel: z.string().optional(),
   ctaSecondaryUrl: z.string().optional(),
   footerText: z.string().optional(),
-  variableSchema: z.record(z.enum(['string', 'url', 'email', 'number', 'date'])),
+  variableSchema: z.record(z.string(), z.enum(['string', 'url', 'email', 'number', 'date'])),
 });
 
 export async function GET() {
@@ -104,25 +104,25 @@ export async function GET() {
       templates.push({
         key: t.key,
         name: t.name,
-        description: t.description || undefined,
+        description: t.description || '',
         layout: t.layout,
         isMarketing: t.is_marketing,
         isSystem: false,
         hasDbOverride: true,
-        fromName: t.from_name || undefined,
-        fromEmail: t.from_email || undefined,
-        replyToEmail: t.reply_to_email || undefined,
+        fromName: t.from_name ?? undefined,
+        fromEmail: t.from_email ?? undefined,
+        replyToEmail: t.reply_to_email ?? undefined,
         subject: t.subject,
-        preheader: t.preheader || undefined,
-        heading: t.heading,
+        preheader: t.preheader ?? undefined,
+        heading: t.heading || '',
         bodyParagraphs: t.body_paragraphs,
         bulletItems: t.bullet_items.length > 0 ? t.bullet_items : undefined,
-        ctaPrimaryLabel: t.cta_primary_label || undefined,
-        ctaPrimaryUrl: t.cta_primary_url || undefined,
-        ctaSecondaryLabel: t.cta_secondary_label || undefined,
-        ctaSecondaryUrl: t.cta_secondary_url || undefined,
-        footerText: t.footer_text || undefined,
-        variableSchema: t.variable_schema,
+        ctaPrimaryLabel: t.cta_primary_label ?? undefined,
+        ctaPrimaryUrl: t.cta_primary_url ?? undefined,
+        ctaSecondaryLabel: t.cta_secondary_label ?? undefined,
+        ctaSecondaryUrl: t.cta_secondary_url ?? undefined,
+        footerText: t.footer_text ?? undefined,
+        variableSchema: t.variable_schema || {},
         createdBy: t.created_by,
         updatedBy: t.updated_by,
         updatedAt: t.updated_at,
@@ -163,18 +163,23 @@ export async function POST(request: NextRequest) {
     }
     
     // Validate placeholders
+    // Build template copy object with only defined properties
+    const templateCopy: any = {
+      subject: validated.subject,
+      heading: validated.heading,
+      bodyParagraphs: validated.bodyParagraphs,
+    };
+    
+    if (validated.preheader) templateCopy.preheader = validated.preheader;
+    if (validated.bulletItems) templateCopy.bulletItems = validated.bulletItems;
+    if (validated.ctaPrimaryLabel) templateCopy.ctaPrimaryLabel = validated.ctaPrimaryLabel;
+    if (validated.ctaPrimaryUrl) templateCopy.ctaPrimaryUrl = validated.ctaPrimaryUrl;
+    if (validated.ctaSecondaryLabel) templateCopy.ctaSecondaryLabel = validated.ctaSecondaryLabel;
+    if (validated.ctaSecondaryUrl) templateCopy.ctaSecondaryUrl = validated.ctaSecondaryUrl;
+    if (validated.footerText) templateCopy.footerText = validated.footerText;
+    
     const unknownPlaceholders = validateTemplatePlaceholders(
-      {
-        subject: validated.subject,
-        preheader: validated.preheader,
-        heading: validated.heading,
-        bodyParagraphs: validated.bodyParagraphs,
-        bulletItems: validated.bulletItems,
-        ctaPrimaryLabel: validated.ctaPrimaryLabel,
-        ctaPrimaryUrl: validated.ctaPrimaryUrl,
-        ctaSecondaryLabel: validated.ctaSecondaryLabel,
-        ctaSecondaryUrl: validated.ctaSecondaryUrl,
-      },
+      templateCopy,
       validated.variableSchema
     );
     
@@ -193,23 +198,23 @@ export async function POST(request: NextRequest) {
       data: {
         key: validated.key,
         name: validated.name,
-        description: validated.description,
+        description: validated.description ?? null,
         layout: validated.layout,
         is_marketing: validated.isMarketing,
         is_system: false,
-        from_name: validated.fromName,
-        from_email: validated.fromEmail,
-        reply_to_email: validated.replyToEmail,
+        from_name: validated.fromName ?? null,
+        from_email: validated.fromEmail ?? null,
+        reply_to_email: validated.replyToEmail ?? null,
         subject: validated.subject,
-        preheader: validated.preheader,
-        heading: validated.heading,
+        preheader: validated.preheader ?? null,
+        heading: validated.heading ?? null,
         body_paragraphs: validated.bodyParagraphs,
         bullet_items: validated.bulletItems || [],
-        cta_primary_label: validated.ctaPrimaryLabel,
-        cta_primary_url: validated.ctaPrimaryUrl,
-        cta_secondary_label: validated.ctaSecondaryLabel,
-        cta_secondary_url: validated.ctaSecondaryUrl,
-        footer_text: validated.footerText,
+        cta_primary_label: validated.ctaPrimaryLabel ?? null,
+        cta_primary_url: validated.ctaPrimaryUrl ?? null,
+        cta_secondary_label: validated.ctaSecondaryLabel ?? null,
+        cta_secondary_url: validated.ctaSecondaryUrl ?? null,
+        footer_text: validated.footerText ?? null,
         variable_schema: validated.variableSchema,
         created_by_id: session.user.id,
         updated_by_id: session.user.id,
@@ -222,18 +227,18 @@ export async function POST(request: NextRequest) {
         template_id: template.id,
         version_number: 1,
         subject: validated.subject,
-        preheader: validated.preheader,
-        heading: validated.heading,
+        preheader: validated.preheader ?? null,
+        heading: validated.heading ?? null,
         body_paragraphs: validated.bodyParagraphs,
         bullet_items: validated.bulletItems || [],
-        cta_primary_label: validated.ctaPrimaryLabel,
-        cta_primary_url: validated.ctaPrimaryUrl,
-        cta_secondary_label: validated.ctaSecondaryLabel,
-        cta_secondary_url: validated.ctaSecondaryUrl,
-        footer_text: validated.footerText,
-        from_name: validated.fromName,
-        from_email: validated.fromEmail,
-        reply_to_email: validated.replyToEmail,
+        cta_primary_label: validated.ctaPrimaryLabel ?? null,
+        cta_primary_url: validated.ctaPrimaryUrl ?? null,
+        cta_secondary_label: validated.ctaSecondaryLabel ?? null,
+        cta_secondary_url: validated.ctaSecondaryUrl ?? null,
+        footer_text: validated.footerText ?? null,
+        from_name: validated.fromName ?? null,
+        from_email: validated.fromEmail ?? null,
+        reply_to_email: validated.replyToEmail ?? null,
         created_by_id: session.user.id,
       },
     });
@@ -244,7 +249,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }

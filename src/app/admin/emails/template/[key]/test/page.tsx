@@ -1,7 +1,7 @@
 'use client';
 
 import { AdminTabs } from '@/components/admin/AdminTabs';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Send } from 'lucide-react';
 
@@ -33,6 +33,7 @@ export default function TestSendPage() {
         userEmail: recipientEmail,
         verificationUrl: 'https://voiceoverstudiofinder.com/verify/test',
         resetUrl: 'https://voiceoverstudiofinder.com/reset/test',
+        resetPasswordUrl: 'https://voiceoverstudiofinder.com/reset/test', // Required by legacy-user-announcement
         signupUrl: 'https://voiceoverstudiofinder.com/signup',
         customerName: 'Test Customer',
         amount: '10.00',

@@ -1,16 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signupSchema, type SignupInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Eye, EyeOff, Mail } from 'lucide-react';
+import { Eye, EyeOff, Mail, Shield } from 'lucide-react';
 import { ResumeSignupBanner } from './ResumeSignupBanner';
 import { SignupProgressIndicator } from './SignupProgressIndicator';
 import { storeSignupData } from '@/lib/signup-recovery';
+
+// Declare Turnstile types
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (element: string | HTMLElement, options: {
+        sitekey: string;
+        callback?: (token: string) => void;
+        'error-callback'?: () => void;
+        'expired-callback'?: () => void;
+        theme?: 'light' | 'dark' | 'auto';
+        size?: 'normal' | 'compact';
+      }) => string;
+      reset: (widgetId: string) => void;
+      remove: (widgetId: string) => void;
+    };
+  }
+}
 
 interface PendingSignupData {
   canResume: boolean;
@@ -40,6 +58,12 @@ export function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [pendingSignup, setPendingSignup] = useState<PendingSignupData | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [formLoadTime] = useState(Date.now());
+  const [turnstileConfigError, setTurnstileConfigError] = useState<string | null>(null);
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const turnstileWidgetId = useRef<string | null>(null);
+  const honeypotRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -51,6 +75,82 @@ export function SignupForm() {
   });
 
   const emailValue = watch('email');
+
+  // Check if Turnstile is configured
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+
+  // Load Turnstile script
+  useEffect(() => {
+    // Check if Turnstile site key is configured
+    if (!turnstileSiteKey) {
+      const errorMsg = isDevelopment 
+        ? 'Turnstile not configured. Set NEXT_PUBLIC_TURNSTILE_SITE_KEY in .env.local (or skip in dev by removing the check)'
+        : 'Security verification is not configured. Please contact support.';
+      
+      setTurnstileConfigError(errorMsg);
+      console.error('[Turnstile] Missing NEXT_PUBLIC_TURNSTILE_SITE_KEY');
+      
+      // In development, auto-set a dummy token to allow testing without Turnstile
+      if (isDevelopment) {
+        console.warn('[Turnstile] Development mode: bypassing security check');
+        setTurnstileToken('dev-bypass-token');
+      }
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (turnstileRef.current && window.turnstile) {
+        try {
+          turnstileWidgetId.current = window.turnstile.render(turnstileRef.current, {
+            sitekey: turnstileSiteKey,
+            callback: (token: string) => {
+              setTurnstileToken(token);
+              setTurnstileConfigError(null);
+            },
+            'error-callback': () => {
+              setTurnstileToken(null);
+              setTurnstileConfigError('Security verification failed. Please refresh the page and try again.');
+            },
+            'expired-callback': () => {
+              setTurnstileToken(null);
+              setTurnstileConfigError('Security verification expired. Please complete it again.');
+            },
+            theme: 'light',
+            size: 'normal',
+          });
+        } catch (err) {
+          console.error('Failed to render Turnstile:', err);
+          setTurnstileConfigError('Failed to load security verification. Please refresh the page.');
+        }
+      }
+    };
+    
+    script.onerror = () => {
+      console.error('Failed to load Turnstile script');
+      setTurnstileConfigError('Failed to load security verification. Please check your internet connection and refresh.');
+    };
+    
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup: remove widget and script
+      if (turnstileWidgetId.current && window.turnstile) {
+        try {
+          window.turnstile.remove(turnstileWidgetId.current);
+        } catch (err) {
+          console.error('Failed to remove Turnstile widget:', err);
+        }
+      }
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, [turnstileSiteKey, isDevelopment]);
 
   // Check for existing PENDING signup when email is entered
   useEffect(() => {
@@ -157,6 +257,25 @@ export function SignupForm() {
     setError(null);
     setSuccess(null);
 
+    // Check minimum time (honeypot timing check)
+    const timeSinceLoad = Date.now() - formLoadTime;
+    if (timeSinceLoad < 800) {
+      setError('Please slow down and try again');
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate Turnstile token (unless in development mode with bypass)
+    if (!turnstileToken) {
+      if (turnstileConfigError && !isDevelopment) {
+        setError(turnstileConfigError);
+      } else {
+        setError('Please complete the security check');
+      }
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const display_name = data.display_name ?? data.email.split('@')[0];
       
@@ -168,6 +287,8 @@ export function SignupForm() {
           email: data.email,
           password: data.password,
           display_name: display_name,
+          turnstileToken, // Include Turnstile token
+          website: honeypotRef.current?.value || '', // Include honeypot field
         }),
       });
 
@@ -369,11 +490,56 @@ export function SignupForm() {
           <p className="text-sm text-red-600">{errors.acceptTerms.message}</p>
         )}
 
+        {/* Honeypot field (hidden from real users, bots will fill it) */}
+        <input
+          ref={honeypotRef}
+          type="text"
+          name="website"
+          autoComplete="off"
+          tabIndex={-1}
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            width: '1px',
+            height: '1px',
+            opacity: 0,
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Turnstile CAPTCHA */}
+        <div className="flex flex-col items-center space-y-2 py-2">
+          <div className="flex items-center gap-2 text-sm text-text-secondary mb-2">
+            <Shield className="w-4 h-4" />
+            <span>Security verification</span>
+          </div>
+          
+          {turnstileConfigError ? (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md w-full">
+              <p className="text-sm text-red-600 text-center">{turnstileConfigError}</p>
+              {isDevelopment && (
+                <p className="text-xs text-red-500 text-center mt-2">
+                  Development mode: Security check bypassed for testing
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              <div ref={turnstileRef} className="flex justify-center" />
+              {!turnstileToken && (
+                <p className="text-xs text-text-secondary text-center">
+                  Complete the security check above to continue
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
         <Button
           type="submit"
           className="w-full bg-red-600 hover:bg-red-700"
           loading={isLoading}
-          disabled={isLoading}
+          disabled={isLoading || !turnstileToken}
         >
           Continue to Membership
         </Button>

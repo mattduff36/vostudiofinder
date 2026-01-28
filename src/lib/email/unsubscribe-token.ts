@@ -19,7 +19,6 @@ export async function generateUnsubscribeToken(userId: string): Promise<string> 
   await db.email_preferences.upsert({
     where: { user_id: userId },
     create: {
-      id: crypto.randomBytes(16).toString('hex'),
       user_id: userId,
       unsubscribe_token: token,
       marketing_opt_in: true, // Default ON as per your selection
@@ -101,7 +100,6 @@ export async function resubscribeUser(userId: string): Promise<boolean> {
     await db.email_preferences.upsert({
       where: { user_id: userId },
       create: {
-        id: crypto.randomBytes(16).toString('hex'),
         user_id: userId,
         marketing_opt_in: true,
       },

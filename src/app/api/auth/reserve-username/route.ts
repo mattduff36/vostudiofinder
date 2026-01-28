@@ -2,9 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
 import { UserStatus } from '@prisma/client';
+import { checkRateLimit, generateFingerprint, RATE_LIMITS } from '@/lib/rate-limiting';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const fingerprint = generateFingerprint(request);
+    const rateLimitResult = await checkRateLimit(fingerprint, RATE_LIMITS.RESERVE_USERNAME);
+    
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many username reservation attempts. Please slow down.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { userId, username } = body;
 

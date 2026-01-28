@@ -947,3 +947,22 @@ enum DeliveryStatus {
   FAILED
   BOUNCED
 }
+
+// ============================================
+// RATE LIMITING / BOT PROTECTION
+// ============================================
+
+model rate_limit_events {
+  id            String   @id @default(cuid())
+  fingerprint   String   // IP address or hash of email+UA
+  endpoint      String   // e.g. 'signup', 'check-username', 'reserve-username'
+  event_count   Int      @default(1)
+  window_start  DateTime @default(now())
+  last_event_at DateTime @default(now())
+  
+  @@unique([fingerprint, endpoint])
+  @@index([fingerprint])
+  @@index([endpoint])
+  @@index([window_start])
+  @@index([last_event_at])
+}

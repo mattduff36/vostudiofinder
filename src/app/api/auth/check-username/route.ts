@@ -6,6 +6,7 @@ import {
   addNumberSuffix,
   isValidUsername 
 } from '@/lib/utils/username';
+import { checkRateLimit, generateFingerprint, RATE_LIMITS } from '@/lib/rate-limiting';
 
 /**
  * Check if username exists (case-insensitive)
@@ -28,6 +29,17 @@ async function usernameExists(username: string): Promise<boolean> {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const fingerprint = generateFingerprint(request);
+    const rateLimitResult = await checkRateLimit(fingerprint, RATE_LIMITS.CHECK_USERNAME);
+    
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please slow down.' },
+        { status: 429 }
+      );
+    }
+
     const { display_name, username } = await request.json();
 
     // If checking a specific username

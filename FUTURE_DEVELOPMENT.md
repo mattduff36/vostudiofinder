@@ -2,7 +2,86 @@
 
 This document tracks features, enhancements, and improvements that have been identified but deferred for future implementation.
 
-**Last Updated**: January 19, 2025
+**Last Updated**: January 27, 2026
+
+---
+
+## 🛡️ Bot Protection - DEPLOYMENT PENDING
+
+**Priority**: HIGH  
+**Status**: Code Complete, Awaiting Deployment  
+**Added**: January 27, 2026
+
+### Summary
+
+Complete bot protection system implemented but requires Cloudflare Turnstile configuration before deployment.
+
+### What Was Implemented
+
+1. **Cloudflare Turnstile CAPTCHA**
+   - Frontend: Turnstile widget integrated into signup form
+   - Backend: Server-side token verification
+   - Files: `src/components/auth/SignupForm.tsx`, `src/app/api/auth/register/route.ts`
+
+2. **Rate Limiting (Postgres-backed)**
+   - Signup: 3 per hour per IP
+   - Username check: 20 per minute per IP
+   - Username reservation: 5 per hour per IP
+   - Files: `src/lib/rate-limiting.ts`, signup/username API routes
+   - Schema: Added `rate_limit_events` table in `prisma/schema.prisma`
+
+3. **Bot Traps**
+   - Honeypot field (hidden input)
+   - Timing check (<800ms submissions rejected)
+
+4. **Production Analysis**
+   - Diagnostic script: `scripts/diagnose-bot-signups.ts`
+   - Report generated: `BOT_SIGNUP_DIAGNOSIS_REPORT.md`
+   - Evidence: 57 signups in 1 hour, 52 from `test.com`, 27.9% verification rate
+
+### Deployment Checklist
+
+- [ ] **Get Cloudflare Turnstile keys**
+  - Visit Cloudflare Dashboard → Turnstile → Add site
+  - Domain: `voiceoverstudiofinder.com`
+  - Mode: Managed (recommended)
+  - Copy Site Key and Secret Key
+
+- [ ] **Add environment variables**
+  ```bash
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY="your-site-key"
+  TURNSTILE_SECRET_KEY="your-secret-key"
+  ```
+
+- [ ] **Run database migration**
+  - Stop all dev servers and close IDE (Windows file locking)
+  - Run: `npx prisma generate`
+  - Run: `npx prisma migrate dev --name add_rate_limiting_table`
+
+- [ ] **Deploy to production**
+  - Commit changes
+  - Push to GitHub
+  - Verify Turnstile widget appears on signup
+  - Test rate limiting
+
+- [ ] **Monitor results**
+  - Run diagnosis script weekly: `npx tsx scripts/diagnose-bot-signups.ts`
+  - Compare metrics to baseline report
+  - Watch for `[BOT]` and `[RATE_LIMIT]` log entries
+
+### Documentation
+
+- **Deployment Guide**: `docs/BOT_PROTECTION_DEPLOYMENT.md`
+- **Summary**: `BOT_PROTECTION_SUMMARY.md`
+- **Quick Start**: `DEPLOYMENT_NOTES.md`
+- **Analysis Report**: `BOT_SIGNUP_DIAGNOSIS_REPORT.md`
+
+### Expected Impact
+
+- 90%+ reduction in bot signups
+- Verification rate improves from 27.9% to 70-90%
+- Admin reservations panel shows mostly real accounts
+- Legitimate users unaffected
 
 ---
 

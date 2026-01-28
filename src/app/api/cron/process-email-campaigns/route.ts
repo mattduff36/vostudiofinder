@@ -18,9 +18,19 @@ const CRON_SECRET = process.env.CRON_SECRET;
 
 export async function POST(request: NextRequest) {
   try {
+    // Verify cron secret is configured
+    if (!CRON_SECRET) {
+      console.error('❌ CRON_SECRET is not configured');
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+    
     // Verify cron secret
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${CRON_SECRET}`) {
+      console.warn('❌ Unauthorized cron request:', authHeader);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
@@ -93,10 +103,46 @@ export async function POST(request: NextRequest) {
       for (const delivery of deliveries) {
         try {
           // Build variables from user data
-          const variables = {
+          // NOTE: Campaigns are designed for marketing emails with basic user data.
+          // Using transactional templates (payment-success, refund-processed, etc.)
+          // in campaigns will fail because they require additional context that
+          // campaigns don't store (payment amounts, dates, etc.)
+          const variables: Record<string, any> = {
+            // Core user variables (available for all templates)
             displayName: delivery.user?.display_name || 'there',
             username: delivery.user?.username || '',
             userEmail: delivery.to_email,
+            
+            // Provide reasonable defaults for common template variables
+            // to prevent hard failures if someone accidentally uses wrong template
+            studioName: delivery.user?.display_name || 'Your Studio',
+            email: delivery.to_email,
+            
+            // URL defaults (templates should not use these in campaigns)
+            verificationUrl: '',
+            resetUrl: '',
+            signupUrl: '',
+            studioUrl: '',
+            adminDashboardUrl: '',
+            resetPasswordUrl: '',
+            
+            // Numeric/date defaults (templates should not use these in campaigns)
+            amount: '0.00',
+            currency: 'USD',
+            paymentId: '',
+            planName: '',
+            nextBillingDate: '',
+            profileCompletion: 0,
+            daysRemaining: 0,
+            reservationExpiresAt: '',
+            refundAmount: '0.00',
+            paymentAmount: '0.00',
+            refundType: '',
+            refundDate: '',
+            isFullRefund: 'no',
+            comment: '',
+            errorMessage: '',
+            retryUrl: '',
           };
           
           // Send email
@@ -104,7 +150,7 @@ export async function POST(request: NextRequest) {
             to: delivery.to_email,
             templateKey: campaign.template_key,
             variables,
-            skipMarketingCheck: !campaign.template.is_marketing, // Only check for marketing emails
+            skipMarketingCheck: true, // Skip check - recipients already filtered at campaign start
           });
           
           if (success) {

@@ -6,10 +6,9 @@
  */
 
 import { db } from '@/lib/db';
-import { renderStandardLayout, type StandardLayoutProps } from './layouts/standard';
-import { renderHeroLayout, type HeroLayoutProps } from './layouts/hero';
+import { renderStandardLayout } from './layouts/standard';
+import { renderHeroLayout } from './layouts/hero';
 import { getTemplateDefinition } from './template-registry';
-import type { EmailLayout } from '@prisma/client';
 
 export interface RenderOptions {
   includeUnsubscribe?: boolean; // Add unsubscribe footer (for marketing emails)
@@ -30,13 +29,13 @@ function substituteVariables(text: string, variables: Record<string, any>): stri
  * Validate that all required variables are provided
  */
 function validateVariables(
-  templateKey: string,
+  _templateKey: string,
   variables: Record<string, any>,
   variableSchema: Record<string, string>
 ): { valid: boolean; missing: string[] } {
   const missing: string[] = [];
   
-  for (const [key, type] of Object.entries(variableSchema)) {
+  for (const [key /* , type */] of Object.entries(variableSchema)) {
     if (!(key in variables) || variables[key] === undefined || variables[key] === null) {
       missing.push(key);
     }
@@ -129,7 +128,9 @@ export async function renderEmailTemplate(
   const subject = substituteVariables(template.subject, variables);
   const preheader = template.preheader ? substituteVariables(template.preheader, variables) : undefined;
   const heading = substituteVariables(template.heading, variables);
-  const bodyParagraphs = template.bodyParagraphs.map(p => substituteVariables(p, variables));
+  const bodyParagraphs = template.bodyParagraphs
+    .map(p => substituteVariables(p, variables))
+    .filter(p => p.trim().length > 0); // Remove empty paragraphs after substitution
   const bulletItems = template.bulletItems?.map(b => substituteVariables(b, variables));
   const ctaPrimaryLabel = template.ctaPrimaryLabel ? substituteVariables(template.ctaPrimaryLabel, variables) : undefined;
   const ctaPrimaryUrl = template.ctaPrimaryUrl ? substituteVariables(template.ctaPrimaryUrl, variables) : undefined;
@@ -150,49 +151,52 @@ export async function renderEmailTemplate(
     // Get hero-specific props from template definition
     const defaultTemplate = getTemplateDefinition(templateKey);
     
-    const heroProps: HeroLayoutProps = {
+    const heroProps: any = {
       subject,
-      preheader,
-      heroImageUrl: defaultTemplate?.heroImageUrl,
-      heroImageAlt: defaultTemplate?.heroImageAlt,
-      heroImageHeight: defaultTemplate?.heroImageHeight,
       heading,
       bodyParagraphs,
-      bulletItems,
-      ctaPrimaryLabel,
-      ctaPrimaryUrl,
-      ctaSecondaryLabel,
-      ctaSecondaryUrl,
-      footerText,
     };
+    if (preheader) heroProps.preheader = preheader;
+    if (defaultTemplate?.heroImageUrl) heroProps.heroImageUrl = defaultTemplate.heroImageUrl;
+    if (defaultTemplate?.heroImageAlt) heroProps.heroImageAlt = defaultTemplate.heroImageAlt;
+    if (defaultTemplate?.heroImageHeight) heroProps.heroImageHeight = defaultTemplate.heroImageHeight;
+    if (bulletItems) heroProps.bulletItems = bulletItems;
+    if (ctaPrimaryLabel) heroProps.ctaPrimaryLabel = ctaPrimaryLabel;
+    if (ctaPrimaryUrl) heroProps.ctaPrimaryUrl = ctaPrimaryUrl;
+    if (ctaSecondaryLabel) heroProps.ctaSecondaryLabel = ctaSecondaryLabel;
+    if (ctaSecondaryUrl) heroProps.ctaSecondaryUrl = ctaSecondaryUrl;
+    if (footerText) heroProps.footerText = footerText;
     
     rendered = renderHeroLayout(heroProps);
   } else {
     // Standard layout
-    const standardProps: StandardLayoutProps = {
+    const standardProps: any = {
       subject,
-      preheader,
       heading,
       bodyParagraphs,
-      bulletItems,
-      ctaPrimaryLabel,
-      ctaPrimaryUrl,
-      ctaSecondaryLabel,
-      ctaSecondaryUrl,
-      footerText,
     };
+    if (preheader) standardProps.preheader = preheader;
+    if (bulletItems) standardProps.bulletItems = bulletItems;
+    if (ctaPrimaryLabel) standardProps.ctaPrimaryLabel = ctaPrimaryLabel;
+    if (ctaPrimaryUrl) standardProps.ctaPrimaryUrl = ctaPrimaryUrl;
+    if (ctaSecondaryLabel) standardProps.ctaSecondaryLabel = ctaSecondaryLabel;
+    if (ctaSecondaryUrl) standardProps.ctaSecondaryUrl = ctaSecondaryUrl;
+    if (footerText) standardProps.footerText = footerText;
     
     rendered = renderStandardLayout(standardProps);
   }
   
-  return {
+  const result: any = {
     html: rendered.html,
     text: rendered.text,
     subject,
-    fromName: template.fromName,
-    fromEmail: template.fromEmail,
-    replyToEmail: template.replyToEmail,
   };
+  
+  if (template.fromName) result.fromName = template.fromName;
+  if (template.fromEmail) result.fromEmail = template.fromEmail;
+  if (template.replyToEmail) result.replyToEmail = template.replyToEmail;
+  
+  return result;
 }
 
 /**
@@ -210,6 +214,7 @@ export function validateTemplatePlaceholders(
     ctaPrimaryUrl?: string;
     ctaSecondaryLabel?: string;
     ctaSecondaryUrl?: string;
+    footerText?: string;
   },
   variableSchema: Record<string, string>
 ): string[] {
@@ -220,8 +225,8 @@ export function validateTemplatePlaceholders(
   const extractPlaceholders = (text: string) => {
     const matches = text.matchAll(/\{\{([^}]+)\}\}/g);
     for (const match of matches) {
-      const placeholder = match[1].trim();
-      if (!allowedPlaceholders.includes(placeholder)) {
+      const placeholder = match[1]?.trim();
+      if (placeholder && !allowedPlaceholders.includes(placeholder)) {
         unknownPlaceholders.add(placeholder);
       }
     }
@@ -237,6 +242,7 @@ export function validateTemplatePlaceholders(
   if (templateCopy.ctaPrimaryUrl) extractPlaceholders(templateCopy.ctaPrimaryUrl);
   if (templateCopy.ctaSecondaryLabel) extractPlaceholders(templateCopy.ctaSecondaryLabel);
   if (templateCopy.ctaSecondaryUrl) extractPlaceholders(templateCopy.ctaSecondaryUrl);
+  if (templateCopy.footerText) extractPlaceholders(templateCopy.footerText);
   
   return Array.from(unknownPlaceholders);
 }

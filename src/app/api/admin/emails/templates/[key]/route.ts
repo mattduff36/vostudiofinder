@@ -35,9 +35,13 @@ const updateTemplateSchema = z.object({
   footerText: z.string().optional(),
 });
 
+interface RouteParams {
+  params: Promise<{ key: string }>;
+}
+
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { key: string } }
+  _request: NextRequest,
+  { params }: RouteParams
 ) {
   try {
     // Verify admin auth
@@ -46,7 +50,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { key } = params;
+    const { key } = await params;
     
     // Try to get from DB first
     const dbTemplate = await db.email_templates.findUnique({
@@ -142,7 +146,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  { params }: RouteParams
 ) {
   try {
     // Verify admin auth
@@ -151,7 +155,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { key } = params;
+    const { key } = await params;
     const body = await request.json();
     const validated = updateTemplateSchema.parse(body);
     
@@ -212,18 +216,24 @@ export async function PATCH(
     
     // Validate placeholders
     const variableSchema = (dbTemplate?.variable_schema || defaultTemplate!.variableSchema) as Record<string, string>;
+    
+    // Build template copy object with only defined properties
+    const templateCopy: any = {
+      subject: updated.subject,
+      heading: updated.heading,
+      bodyParagraphs: updated.body_paragraphs,
+      bulletItems: updated.bullet_items,
+    };
+    
+    if (updated.preheader) templateCopy.preheader = updated.preheader;
+    if (updated.cta_primary_label) templateCopy.ctaPrimaryLabel = updated.cta_primary_label;
+    if (updated.cta_primary_url) templateCopy.ctaPrimaryUrl = updated.cta_primary_url;
+    if (updated.cta_secondary_label) templateCopy.ctaSecondaryLabel = updated.cta_secondary_label;
+    if (updated.cta_secondary_url) templateCopy.ctaSecondaryUrl = updated.cta_secondary_url;
+    if (updated.footer_text) templateCopy.footerText = updated.footer_text;
+    
     const unknownPlaceholders = validateTemplatePlaceholders(
-      {
-        subject: updated.subject,
-        preheader: updated.preheader || undefined,
-        heading: updated.heading,
-        bodyParagraphs: updated.body_paragraphs,
-        bulletItems: updated.bullet_items,
-        ctaPrimaryLabel: updated.cta_primary_label || undefined,
-        ctaPrimaryUrl: updated.cta_primary_url || undefined,
-        ctaSecondaryLabel: updated.cta_secondary_label || undefined,
-        ctaSecondaryUrl: updated.cta_secondary_url || undefined,
-      },
+      templateCopy,
       variableSchema
     );
     
@@ -247,19 +257,19 @@ export async function PATCH(
         layout: current.layout,
         is_marketing: current.is_marketing,
         is_system: defaultTemplate?.isSystem || false,
-        from_name: updated.from_name,
-        from_email: updated.from_email,
-        reply_to_email: updated.reply_to_email,
+        from_name: updated.from_name ?? null,
+        from_email: updated.from_email ?? null,
+        reply_to_email: updated.reply_to_email ?? null,
         subject: updated.subject,
-        preheader: updated.preheader,
-        heading: updated.heading,
+        preheader: updated.preheader ?? null,
+        heading: updated.heading ?? null,
         body_paragraphs: updated.body_paragraphs,
         bullet_items: updated.bullet_items,
-        cta_primary_label: updated.cta_primary_label,
-        cta_primary_url: updated.cta_primary_url,
-        cta_secondary_label: updated.cta_secondary_label,
-        cta_secondary_url: updated.cta_secondary_url,
-        footer_text: updated.footer_text,
+        cta_primary_label: updated.cta_primary_label ?? null,
+        cta_primary_url: updated.cta_primary_url ?? null,
+        cta_secondary_label: updated.cta_secondary_label ?? null,
+        cta_secondary_url: updated.cta_secondary_url ?? null,
+        footer_text: updated.footer_text ?? null,
         variable_schema: variableSchema,
         created_by_id: session.user.id,
         updated_by_id: session.user.id,
@@ -267,19 +277,19 @@ export async function PATCH(
       update: {
         name: updated.name,
         description: updated.description,
-        from_name: updated.from_name,
-        from_email: updated.from_email,
-        reply_to_email: updated.reply_to_email,
+        from_name: updated.from_name ?? null,
+        from_email: updated.from_email ?? null,
+        reply_to_email: updated.reply_to_email ?? null,
         subject: updated.subject,
-        preheader: updated.preheader,
-        heading: updated.heading,
+        preheader: updated.preheader ?? null,
+        heading: updated.heading ?? null,
         body_paragraphs: updated.body_paragraphs,
         bullet_items: updated.bullet_items,
-        cta_primary_label: updated.cta_primary_label,
-        cta_primary_url: updated.cta_primary_url,
-        cta_secondary_label: updated.cta_secondary_label,
-        cta_secondary_url: updated.cta_secondary_url,
-        footer_text: updated.footer_text,
+        cta_primary_label: updated.cta_primary_label ?? null,
+        cta_primary_url: updated.cta_primary_url ?? null,
+        cta_secondary_label: updated.cta_secondary_label ?? null,
+        cta_secondary_url: updated.cta_secondary_url ?? null,
+        footer_text: updated.footer_text ?? null,
         updated_by_id: session.user.id,
       },
     });
@@ -297,18 +307,18 @@ export async function PATCH(
         template_id: template.id,
         version_number: newVersionNumber,
         subject: updated.subject,
-        preheader: updated.preheader,
-        heading: updated.heading,
+        preheader: updated.preheader ?? null,
+        heading: updated.heading ?? null,
         body_paragraphs: updated.body_paragraphs,
         bullet_items: updated.bullet_items,
-        cta_primary_label: updated.cta_primary_label,
-        cta_primary_url: updated.cta_primary_url,
-        cta_secondary_label: updated.cta_secondary_label,
-        cta_secondary_url: updated.cta_secondary_url,
-        footer_text: updated.footer_text,
-        from_name: updated.from_name,
-        from_email: updated.from_email,
-        reply_to_email: updated.reply_to_email,
+        cta_primary_label: updated.cta_primary_label ?? null,
+        cta_primary_url: updated.cta_primary_url ?? null,
+        cta_secondary_label: updated.cta_secondary_label ?? null,
+        cta_secondary_url: updated.cta_secondary_url ?? null,
+        footer_text: updated.footer_text ?? null,
+        from_name: updated.from_name ?? null,
+        from_email: updated.from_email ?? null,
+        reply_to_email: updated.reply_to_email ?? null,
         created_by_id: session.user.id,
       },
     });
@@ -319,7 +329,7 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }
@@ -333,8 +343,8 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { key: string } }
+  _request: NextRequest,
+  { params }: RouteParams
 ) {
   try {
     // Verify admin auth
@@ -343,7 +353,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { key } = params;
+    const { key } = await params;
     
     // Check if it's a system template
     const defaultTemplate = getTemplateDefinition(key);

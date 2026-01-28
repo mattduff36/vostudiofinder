@@ -9,9 +9,13 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: RouteParams
 ) {
   try {
     // Verify admin auth
@@ -20,7 +24,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { id } = params;
+    const { id } = await params;
     
     // Get campaign
     const campaign = await db.email_campaigns.findUnique({
@@ -52,12 +56,34 @@ export async function POST(
     const where = buildUserWhereClause(campaign.filters);
     
     // For marketing campaigns, enforce opt-in
+    // Include users with no preferences record (default opt-in) OR users who explicitly opted in
     if (campaign.template.is_marketing) {
-      where.email_preferences = {
-        ...where.email_preferences,
-        marketing_opt_in: true,
-        unsubscribed_at: null,
-      };
+      const marketingOptInConditions = [
+        // Users without email_preferences record (default opt-in)
+        {
+          email_preferences: null,
+        },
+        // Users with explicit opt-in and not unsubscribed
+        {
+          email_preferences: {
+            marketing_opt_in: true,
+            unsubscribed_at: null,
+          },
+        },
+      ];
+      
+      // If there's already an OR clause (e.g., from search filter), wrap both in AND
+      if (where.OR) {
+        // Combine existing OR with marketing OR using AND
+        where.AND = [
+          { OR: where.OR }, // Existing search filter
+          { OR: marketingOptInConditions }, // Marketing opt-in filter
+        ];
+        delete where.OR; // Remove the top-level OR to avoid conflict
+      } else {
+        // No existing OR, just add marketing filter
+        where.OR = marketingOptInConditions;
+      }
     }
     
     const recipients = await db.users.findMany({
@@ -126,56 +152,99 @@ function buildUserWhereClause(filters: any): Prisma.usersWhereInput {
   
   if (filters.hasStudio !== undefined) {
     if (filters.hasStudio) {
-      where.studio_profiles = { isNot: null };
+      // User HAS a studio - can apply additional filters
+      const studioFilter: any = { isNot: null };
+      
+      if (filters.studioVerified !== undefined) {
+        studioFilter.verified = filters.studioVerified;
+      }
+      
+      if (filters.studioFeatured !== undefined) {
+        studioFilter.is_featured = filters.studioFeatured;
+      }
+      
+      where.studio_profiles = studioFilter;
     } else {
+      // User has NO studio - ignore studioVerified/studioFeatured filters
       where.studio_profiles = { is: null };
+    }
+  } else {
+    // hasStudio not specified - can still filter by verified/featured if user HAS a studio
+    const studioFilter: any = {};
+    
+    if (filters.studioVerified !== undefined) {
+      studioFilter.verified = filters.studioVerified;
+    }
+    
+    if (filters.studioFeatured !== undefined) {
+      studioFilter.is_featured = filters.studioFeatured;
+    }
+    
+    if (Object.keys(studioFilter).length > 0) {
+      where.studio_profiles = studioFilter;
     }
   }
   
-  if (filters.studioVerified !== undefined) {
-    where.studio_profiles = {
-      ...where.studio_profiles,
-      verified: filters.studioVerified,
-    };
-  }
-  
-  if (filters.studioFeatured !== undefined) {
-    where.studio_profiles = {
-      ...where.studio_profiles,
-      is_featured: filters.studioFeatured,
-    };
-  }
-  
   if (filters.marketingOptIn !== undefined) {
-    where.email_preferences = {
-      marketing_opt_in: filters.marketingOptIn,
-    };
+    if (filters.marketingOptIn === true) {
+      // Include users with explicit opt-in OR users without preferences (default opt-in)
+      const marketingOptInConditions = [
+        // Users without email_preferences record (default opt-in)
+        {
+          email_preferences: null,
+        },
+        // Users with explicit opt-in
+        {
+          email_preferences: {
+            marketing_opt_in: true,
+          },
+        },
+      ];
+      
+      // If there's already an OR clause (e.g., from search filter), wrap both in AND
+      if (where.OR) {
+        where.AND = [
+          { OR: where.OR }, // Existing OR clause
+          { OR: marketingOptInConditions }, // Marketing opt-in filter
+        ];
+        delete where.OR;
+      } else {
+        where.OR = marketingOptInConditions;
+      }
+    } else {
+      // marketingOptIn === false: Only include users who explicitly opted out
+      where.email_preferences = {
+        marketing_opt_in: false,
+      };
+    }
   }
   
-  if (filters.createdAfter) {
+  if (filters.createdAfter && filters.createdBefore) {
     where.created_at = {
-      ...where.created_at,
+      gte: new Date(filters.createdAfter),
+      lte: new Date(filters.createdBefore),
+    };
+  } else if (filters.createdAfter) {
+    where.created_at = {
       gte: new Date(filters.createdAfter),
     };
-  }
-  
-  if (filters.createdBefore) {
+  } else if (filters.createdBefore) {
     where.created_at = {
-      ...where.created_at,
       lte: new Date(filters.createdBefore),
     };
   }
   
-  if (filters.lastLoginAfter) {
+  if (filters.lastLoginAfter && filters.lastLoginBefore) {
     where.last_login = {
-      ...where.last_login,
+      gte: new Date(filters.lastLoginAfter),
+      lte: new Date(filters.lastLoginBefore),
+    };
+  } else if (filters.lastLoginAfter) {
+    where.last_login = {
       gte: new Date(filters.lastLoginAfter),
     };
-  }
-  
-  if (filters.lastLoginBefore) {
+  } else if (filters.lastLoginBefore) {
     where.last_login = {
-      ...where.last_login,
       lte: new Date(filters.lastLoginBefore),
     };
   }

@@ -260,7 +260,7 @@ export default function TemplateEditorPage() {
         <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="text-sm font-medium text-blue-900 mb-2">Available Variables</h3>
           <div className="flex flex-wrap gap-2">
-            {Object.entries(template.variableSchema).map(([key, type]) => (
+            {Object.keys(template.variableSchema).map((key) => (
               <code key={key} className="px-2 py-1 text-xs bg-white border border-blue-200 rounded text-blue-700">
                 {`{{${key}}}`}
               </code>

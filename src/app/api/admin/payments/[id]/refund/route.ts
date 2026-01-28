@@ -180,7 +180,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             paymentAmount: paymentAmountFormatted,
             refundType: isFullRefund ? 'full' : 'partial',
             isFullRefund: isFullRefund ? 'yes' : 'no',
-            comment: comment || '',
+            comment: comment ? `Note from admin:\n${comment}` : '',
             refundDate,
           },
         });

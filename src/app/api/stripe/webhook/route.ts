@@ -204,25 +204,16 @@ async function handleFeaturedUpgradePaymentSuccess(session: Stripe.Checkout.Sess
 
   // Send confirmation email
   try {
-    await sendEmail({
+    await sendTemplatedEmail({
       to: user_email,
-      subject: 'Featured Studio Upgrade Confirmed - VoiceoverStudioFinder',
-      html: `
-        <h2>Featured Studio Upgrade Confirmed</h2>
-        <p>Congratulations! Your studio has been upgraded to Featured status.</p>
-        <p><strong>Featured Until:</strong> ${featuredUntil.toLocaleDateString('en-GB', {
+      templateKey: 'featured-upgrade',
+      variables: {
+        featuredUntil: featuredUntil.toLocaleDateString('en-GB', {
           day: 'numeric',
           month: 'long',
           year: 'numeric'
-        })}</p>
-        <p><strong>Benefits:</strong></p>
-        <ul>
-          <li>Prominent placement on the homepage</li>
-          <li>Priority in search results</li>
-          <li>Increased visibility to potential clients</li>
-        </ul>
-        <p>Thank you for your support!</p>
-      `,
+        }),
+      },
     });
     console.log(`[EMAIL] Featured upgrade confirmation sent to ${user_email}`);
   } catch (emailError) {

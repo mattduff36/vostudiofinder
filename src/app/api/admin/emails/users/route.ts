@@ -54,56 +54,97 @@ export async function GET(request: NextRequest) {
     
     if (filters.hasStudio !== null) {
       if (filters.hasStudio) {
-        where.studio_profiles = { isNot: null };
+        // User HAS a studio - can apply additional filters
+        const studioFilter: any = { isNot: null };
+        
+        if (filters.studioVerified !== null) {
+          studioFilter.verified = filters.studioVerified;
+        }
+        
+        if (filters.studioFeatured !== null) {
+          studioFilter.is_featured = filters.studioFeatured;
+        }
+        
+        where.studio_profiles = studioFilter;
       } else {
+        // User has NO studio - ignore studioVerified/studioFeatured filters
         where.studio_profiles = { is: null };
+      }
+    } else {
+      // hasStudio not specified - can still filter by verified/featured if user HAS a studio
+      const studioFilter: any = {};
+      
+      if (filters.studioVerified !== null) {
+        studioFilter.verified = filters.studioVerified;
+      }
+      
+      if (filters.studioFeatured !== null) {
+        studioFilter.is_featured = filters.studioFeatured;
+      }
+      
+      if (Object.keys(studioFilter).length > 0) {
+        where.studio_profiles = studioFilter;
       }
     }
     
-    if (filters.studioVerified !== null) {
-      where.studio_profiles = {
-        ...where.studio_profiles,
-        verified: filters.studioVerified,
-      };
-    }
-    
-    if (filters.studioFeatured !== null) {
-      where.studio_profiles = {
-        ...where.studio_profiles,
-        is_featured: filters.studioFeatured,
-      };
-    }
-    
     if (filters.marketingOptIn !== null) {
-      where.email_preferences = {
-        marketing_opt_in: filters.marketingOptIn,
-      };
+      if (filters.marketingOptIn === true) {
+        // Include users with explicit opt-in OR users without preferences (default opt-in)
+        const marketingOptInConditions = [
+          // Users without email_preferences record (default opt-in)
+          {
+            email_preferences: null,
+          },
+          // Users with explicit opt-in
+          {
+            email_preferences: {
+              marketing_opt_in: true,
+            },
+          },
+        ];
+        
+        // If there's already an OR clause (e.g., from search filter), wrap both in AND
+        if (where.OR) {
+          where.AND = [
+            { OR: where.OR }, // Existing OR clause
+            { OR: marketingOptInConditions }, // Marketing opt-in filter
+          ];
+          delete where.OR;
+        } else {
+          where.OR = marketingOptInConditions;
+        }
+      } else {
+        // marketingOptIn === false: Only include users who explicitly opted out
+        where.email_preferences = {
+          marketing_opt_in: false,
+        };
+      }
     }
     
     if (filters.createdAfter) {
       where.created_at = {
-        ...where.created_at,
+        ...(where.created_at as any || {}),
         gte: new Date(filters.createdAfter),
       };
     }
     
     if (filters.createdBefore) {
       where.created_at = {
-        ...where.created_at,
+        ...(where.created_at as any || {}),
         lte: new Date(filters.createdBefore),
       };
     }
     
     if (filters.lastLoginAfter) {
       where.last_login = {
-        ...where.last_login,
+        ...(where.last_login as any || {}),
         gte: new Date(filters.lastLoginAfter),
       };
     }
     
     if (filters.lastLoginBefore) {
       where.last_login = {
-        ...where.last_login,
+        ...(where.last_login as any || {}),
         lte: new Date(filters.lastLoginBefore),
       };
     }
@@ -135,7 +176,6 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            verified: true,
             is_featured: true,
           },
         },

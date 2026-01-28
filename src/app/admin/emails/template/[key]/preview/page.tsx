@@ -29,6 +29,7 @@ export default function PreviewPage() {
         userEmail: 'john@example.com',
         verificationUrl: 'https://voiceoverstudiofinder.com/verify/sample',
         resetUrl: 'https://voiceoverstudiofinder.com/reset/sample',
+        resetPasswordUrl: 'https://voiceoverstudiofinder.com/reset/sample', // Required by legacy-user-announcement
         signupUrl: 'https://voiceoverstudiofinder.com/signup',
         customerName: 'John Doe',
         amount: '10.00',

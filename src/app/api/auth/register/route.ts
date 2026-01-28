@@ -8,6 +8,7 @@ import { UserStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { ZodError } from 'zod';
 import { getBaseUrl } from '@/lib/seo/site';
+import { checkRateLimit, generateFingerprint, RATE_LIMITS } from '@/lib/rate-limiting';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,87 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid JSON in request body' },
         { status: 400 }
       );
+    }
+    
+    // Check honeypot field (should be empty)
+    if (body.website) {
+      console.warn('[BOT] Honeypot field filled:', body.website);
+      return NextResponse.json(
+        { error: 'Invalid submission' },
+        { status: 400 }
+      );
+    }
+
+    // Check rate limit BEFORE Turnstile verification (cheaper)
+    const fingerprint = generateFingerprint(request, body.email);
+    const rateLimitResult = await checkRateLimit(fingerprint, RATE_LIMITS.SIGNUP);
+    
+    if (!rateLimitResult.allowed) {
+      const minutesUntilReset = Math.ceil(
+        (rateLimitResult.resetAt.getTime() - Date.now()) / (1000 * 60)
+      );
+      console.warn(`[RATE_LIMIT] Signup blocked for ${fingerprint}, resets in ${minutesUntilReset}m`);
+      return NextResponse.json(
+        { 
+          error: `Too many signup attempts. Please try again in ${minutesUntilReset} minute${minutesUntilReset !== 1 ? 's' : ''}.`,
+        },
+        { status: 429 }
+      );
+    }
+
+    // Verify Turnstile token (server-side)
+    const turnstileToken = body.turnstileToken;
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isTest = process.env.NODE_ENV === 'test';
+    
+    // Allow development/test bypass
+    if ((isDevelopment || isTest) && turnstileToken === 'dev-bypass-token') {
+      console.warn('[Turnstile] Development/test mode: bypassing security check');
+    } else {
+      // Production: require valid Turnstile token
+      if (!turnstileToken) {
+        console.warn('[BOT] Missing Turnstile token');
+        return NextResponse.json(
+          { error: 'Security verification required' },
+          { status: 400 }
+        );
+      }
+
+      // Verify with Cloudflare
+      const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+      if (!turnstileSecret) {
+        console.error('[ERROR] TURNSTILE_SECRET_KEY not configured');
+        return NextResponse.json(
+          { error: 'Server configuration error' },
+          { status: 500 }
+        );
+      }
+
+      const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          secret: turnstileSecret,
+          response: turnstileToken,
+          remoteip: request.headers.get('cf-connecting-ip') || 
+                    request.headers.get('x-forwarded-for') || 
+                    request.headers.get('x-real-ip'),
+        }),
+      });
+
+      const turnstileResult = await turnstileResponse.json();
+      
+      if (!turnstileResult.success) {
+        console.warn('[BOT] Turnstile verification failed:', turnstileResult['error-codes']);
+        return NextResponse.json(
+          { error: 'Security verification failed. Please try again.' },
+          { status: 400 }
+        );
+      }
+
+      console.log('✅ Turnstile verification passed');
     }
     
     // Validate input using server-side schema (no confirmPassword or acceptTerms)

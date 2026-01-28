@@ -8,7 +8,7 @@
  * 4. Sends via email service
  */
 
-import { sendEmail, type EmailOptions } from './email-service';
+import { sendEmail } from './email-service';
 import { renderEmailTemplate } from './render';
 import { db } from '@/lib/db';
 import { getTemplateDefinition } from './template-registry';
@@ -32,8 +32,20 @@ export async function sendTemplatedEmail(
   const { to, templateKey, variables, fromOverride, replyToOverride, skipMarketingCheck } = options;
   
   // Get template definition to check if it's marketing
-  const templateDef = getTemplateDefinition(templateKey);
-  const isMarketing = templateDef?.isMarketing || false;
+  // Check database first (custom templates), then fall back to registry
+  let isMarketing = false;
+  
+  const dbTemplate = await db.email_templates.findUnique({
+    where: { key: templateKey },
+    select: { is_marketing: true },
+  });
+  
+  if (dbTemplate) {
+    isMarketing = dbTemplate.is_marketing;
+  } else {
+    const templateDef = getTemplateDefinition(templateKey);
+    isMarketing = templateDef?.isMarketing || false;
+  }
   
   // For marketing emails, check opt-in (unless explicitly skipped)
   if (isMarketing && !skipMarketingCheck) {
@@ -82,10 +94,12 @@ export async function sendTemplatedEmail(
   }
   
   // Render the template
-  const rendered = await renderEmailTemplate(templateKey, variables, {
+  const renderOptions: any = {
     includeUnsubscribe: isMarketing,
-    unsubscribeUrl,
-  });
+  };
+  if (unsubscribeUrl) renderOptions.unsubscribeUrl = unsubscribeUrl;
+  
+  const rendered = await renderEmailTemplate(templateKey, variables, renderOptions);
   
   // Determine sender
   const fromEmail = fromOverride || rendered.fromEmail || process.env.RESEND_FROM_EMAIL || 'noreply@voiceoverstudiofinder.com';
@@ -97,14 +111,14 @@ export async function sendTemplatedEmail(
     : fromEmail;
   
   // Send email
-  const emailOptions: EmailOptions = {
+  const emailOptions: any = {
     to,
     subject: rendered.subject,
     html: rendered.html,
     text: rendered.text,
     from: fromHeader,
-    replyTo,
   };
+  if (replyTo) emailOptions.replyTo = replyTo;
   
   return sendEmail(emailOptions);
 }

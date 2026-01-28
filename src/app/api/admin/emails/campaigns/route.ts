@@ -16,7 +16,7 @@ import { Prisma } from '@prisma/client';
 const createCampaignSchema = z.object({
   name: z.string().min(1).max(200),
   templateKey: z.string(),
-  filters: z.record(z.any()),
+  filters: z.record(z.string(), z.any()),
   scheduledAt: z.string().datetime().optional(),
 });
 
@@ -73,21 +73,52 @@ export async function POST(request: NextRequest) {
     const validated = createCampaignSchema.parse(body);
     
     // Verify template exists
-    const template = await db.email_templates.findUnique({
+    let template = await db.email_templates.findUnique({
       where: { key: validated.templateKey },
-      select: { is_marketing: true },
+      select: { is_marketing: true, key: true },
     });
     
     if (!template) {
       // Check if it's in registry
       const { getTemplateDefinition } = await import('@/lib/email/template-registry');
       const defaultTemplate = getTemplateDefinition(validated.templateKey);
+      
       if (!defaultTemplate) {
         return NextResponse.json(
           { error: 'Template not found' },
           { status: 404 }
         );
       }
+      
+      // Create DB entry for registry template to satisfy foreign key constraint
+      template = await db.email_templates.create({
+        data: {
+          key: validated.templateKey,
+          name: defaultTemplate.name,
+          description: defaultTemplate.description,
+          layout: defaultTemplate.layout,
+          is_marketing: defaultTemplate.isMarketing,
+          is_system: defaultTemplate.isSystem,
+          from_name: defaultTemplate.fromName ?? null,
+          from_email: defaultTemplate.fromEmail ?? null,
+          reply_to_email: defaultTemplate.replyToEmail ?? null,
+          subject: defaultTemplate.subject,
+          preheader: defaultTemplate.preheader ?? null,
+          heading: defaultTemplate.heading ?? null,
+          body_paragraphs: defaultTemplate.bodyParagraphs,
+          bullet_items: defaultTemplate.bulletItems || [],
+          cta_primary_label: defaultTemplate.ctaPrimaryLabel ?? null,
+          cta_primary_url: defaultTemplate.ctaPrimaryUrl ?? null,
+          cta_secondary_label: defaultTemplate.ctaSecondaryLabel ?? null,
+          cta_secondary_url: defaultTemplate.ctaSecondaryUrl ?? null,
+          footer_text: defaultTemplate.footerText ?? null,
+          variable_schema: defaultTemplate.variableSchema ?? null,
+          created_by_id: session.user.id,
+          updated_by_id: session.user.id,
+        },
+      });
+      
+      console.log(`✅ Created DB entry for registry template: ${validated.templateKey}`);
     }
     
     // Count recipients matching filters
@@ -120,7 +151,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }
@@ -149,56 +180,99 @@ function buildUserWhereClause(filters: any): Prisma.usersWhereInput {
   
   if (filters.hasStudio !== undefined) {
     if (filters.hasStudio) {
-      where.studio_profiles = { isNot: null };
+      // User HAS a studio - can apply additional filters
+      const studioFilter: any = { isNot: null };
+      
+      if (filters.studioVerified !== undefined) {
+        studioFilter.verified = filters.studioVerified;
+      }
+      
+      if (filters.studioFeatured !== undefined) {
+        studioFilter.is_featured = filters.studioFeatured;
+      }
+      
+      where.studio_profiles = studioFilter;
     } else {
+      // User has NO studio - ignore studioVerified/studioFeatured filters
       where.studio_profiles = { is: null };
+    }
+  } else {
+    // hasStudio not specified - can still filter by verified/featured if user HAS a studio
+    const studioFilter: any = {};
+    
+    if (filters.studioVerified !== undefined) {
+      studioFilter.verified = filters.studioVerified;
+    }
+    
+    if (filters.studioFeatured !== undefined) {
+      studioFilter.is_featured = filters.studioFeatured;
+    }
+    
+    if (Object.keys(studioFilter).length > 0) {
+      where.studio_profiles = studioFilter;
     }
   }
   
-  if (filters.studioVerified !== undefined) {
-    where.studio_profiles = {
-      ...where.studio_profiles,
-      verified: filters.studioVerified,
-    };
-  }
-  
-  if (filters.studioFeatured !== undefined) {
-    where.studio_profiles = {
-      ...where.studio_profiles,
-      is_featured: filters.studioFeatured,
-    };
-  }
-  
   if (filters.marketingOptIn !== undefined) {
-    where.email_preferences = {
-      marketing_opt_in: filters.marketingOptIn,
-    };
+    if (filters.marketingOptIn === true) {
+      // Include users with explicit opt-in OR users without preferences (default opt-in)
+      const marketingOptInConditions = [
+        // Users without email_preferences record (default opt-in)
+        {
+          email_preferences: null,
+        },
+        // Users with explicit opt-in
+        {
+          email_preferences: {
+            marketing_opt_in: true,
+          },
+        },
+      ];
+      
+      // If there's already an OR clause (e.g., from search filter), wrap both in AND
+      if (where.OR) {
+        where.AND = [
+          { OR: where.OR }, // Existing OR clause
+          { OR: marketingOptInConditions }, // Marketing opt-in filter
+        ];
+        delete where.OR;
+      } else {
+        where.OR = marketingOptInConditions;
+      }
+    } else {
+      // marketingOptIn === false: Only include users who explicitly opted out
+      where.email_preferences = {
+        marketing_opt_in: false,
+      };
+    }
   }
   
-  if (filters.createdAfter) {
+  if (filters.createdAfter && filters.createdBefore) {
     where.created_at = {
-      ...where.created_at,
+      gte: new Date(filters.createdAfter),
+      lte: new Date(filters.createdBefore),
+    };
+  } else if (filters.createdAfter) {
+    where.created_at = {
       gte: new Date(filters.createdAfter),
     };
-  }
-  
-  if (filters.createdBefore) {
+  } else if (filters.createdBefore) {
     where.created_at = {
-      ...where.created_at,
       lte: new Date(filters.createdBefore),
     };
   }
   
-  if (filters.lastLoginAfter) {
+  if (filters.lastLoginAfter && filters.lastLoginBefore) {
     where.last_login = {
-      ...where.last_login,
+      gte: new Date(filters.lastLoginAfter),
+      lte: new Date(filters.lastLoginBefore),
+    };
+  } else if (filters.lastLoginAfter) {
+    where.last_login = {
       gte: new Date(filters.lastLoginAfter),
     };
-  }
-  
-  if (filters.lastLoginBefore) {
+  } else if (filters.lastLoginBefore) {
     where.last_login = {
-      ...where.last_login,
       lte: new Date(filters.lastLoginBefore),
     };
   }
