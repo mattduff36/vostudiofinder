@@ -35,7 +35,12 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session || session.user.role !== 'ADMIN') {
+    // Check if user is admin using multiple criteria
+    const isAdmin = session?.user?.email === 'admin@mpdee.co.uk' || 
+                    session?.user?.username === 'VoiceoverGuy' || 
+                    session?.user?.role === 'ADMIN';
+    
+    if (!session || !isAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -255,7 +260,12 @@ export async function PUT(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session || session.user.role !== 'ADMIN') {
+    // Check if user is admin using multiple criteria
+    const isAdmin = session?.user?.email === 'admin@mpdee.co.uk' || 
+                    session?.user?.username === 'VoiceoverGuy' || 
+                    session?.user?.role === 'ADMIN';
+    
+    if (!session || !isAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -801,7 +811,12 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session || session.user.role !== 'ADMIN') {
+    // Check if user is admin using multiple criteria
+    const isAdmin = session?.user?.email === 'admin@mpdee.co.uk' || 
+                    session?.user?.username === 'VoiceoverGuy' || 
+                    session?.user?.role === 'ADMIN';
+    
+    if (!session || !isAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
