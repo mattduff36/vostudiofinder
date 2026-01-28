@@ -52,9 +52,9 @@ export function Footer() {
                 <span className="cursor-not-allowed opacity-50 relative group inline-block">
                   Blog
                   {/* Tooltip */}
-                  <span className="absolute left-0 bottom-full mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  <span className="absolute left-0 bottom-full mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-md border border-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
                     Coming soon!
-                    <span className="absolute left-4 top-full w-2 h-2 bg-gray-900 rotate-45 -mt-1"></span>
+                    <span className="absolute left-4 top-full w-2 h-2 bg-gray-900 border-r border-b border-white rotate-45 -mt-1"></span>
                   </span>
                 </span>
               </li>

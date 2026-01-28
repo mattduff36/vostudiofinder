@@ -16,10 +16,9 @@ import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
 interface MobileBurgerMenuProps {
   session: Session | null;
   isAdminUser: boolean;
-  showEditButton: boolean;
 }
 
-export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: MobileBurgerMenuProps) {
+export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
@@ -150,8 +149,6 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
     setIsOpen(false);
     if (action === 'logout') {
       signOut({ callbackUrl: '/' });
-    } else if (action === 'profileEditClick') {
-      window.dispatchEvent(new Event('profileEditClick'));
     } else if (action === 'resetCookies') {
       document.cookie = 'vsf_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       window.location.reload();
@@ -166,7 +163,6 @@ export function MobileBurgerMenu({ session, isAdminUser, showEditButton }: Mobil
   const menuItems = getMobileMenuItems({
     session,
     isAdminUser,
-    showEditButton,
     username: session?.user?.username,
     pathname,
     bottomNavIds,

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Lightbulb, Check, X, Columns, ChevronDown, RotateCcw } from 'lucide-react';
-import EditStudioModal from '@/components/admin/EditStudioModal';
+import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
 import { AdminTabs } from '@/components/admin/AdminTabs';
@@ -275,11 +275,18 @@ export default function AdminStudiosPage() {
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setEditingStudio(null);
+    // Refresh data to show any changes
+    if (pagination.offset === 0) {
+      setStudios([]); // Clear studios to prevent duplicates
+      fetchStudios(); // Directly call fetchStudios to refetch
+    } else {
+      setStudios([]); // Clear studios to prevent duplicates
+      setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page - this will trigger useEffect
+    }
   };
 
-  const handleSaveStudio = () => {
-    // If we're already on the first page, fetchStudios won't be triggered by useEffect
-    // So we need to call it directly
+  const handleSaveSuccess = () => {
+    // Refresh the studios list immediately after save (without closing modal)
     if (pagination.offset === 0) {
       setStudios([]); // Clear studios to prevent duplicates
       fetchStudios(); // Directly call fetchStudios to refetch
@@ -1233,12 +1240,13 @@ export default function AdminStudiosPage() {
         </>
       )}
 
-      {/* Edit Studio Modal */}
-      <EditStudioModal
-        studio={editingStudio}
+      {/* Edit Studio Modal - Now using unified EditProfileModal */}
+      <EditProfileModal
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
-        onSave={handleSaveStudio}
+        onSaveSuccess={handleSaveSuccess}
+        mode="admin"
+        studioId={editingStudio?.id}
       />
 
       <AddStudioModal

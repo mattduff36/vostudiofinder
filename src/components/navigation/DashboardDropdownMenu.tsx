@@ -14,7 +14,6 @@ interface DashboardDropdownMenuProps {
   includeSiteLinks?: boolean;
   session?: any;
   isAdminUser?: boolean;
-  showEditButton?: boolean;
 }
 
 export function DashboardDropdownMenu({ 
@@ -24,7 +23,6 @@ export function DashboardDropdownMenu({
   includeSiteLinks = false,
   session,
   isAdminUser = false,
-  showEditButton = false,
 }: DashboardDropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -149,7 +147,6 @@ export function DashboardDropdownMenu({
   const menuItems = getDesktopBurgerMenuItems({
     session: session || { user: { username } },
     isAdminUser,
-    showEditButton,
     username,
     includeSiteLinks,
   });

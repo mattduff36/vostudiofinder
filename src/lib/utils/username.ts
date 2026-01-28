@@ -3,6 +3,100 @@
  */
 
 /**
+ * Reserved usernames that cannot be used (matches Next.js routes and system pages)
+ * These are top-level routes that would conflict with the [username] dynamic route
+ */
+export const RESERVED_USERNAMES = [
+  // Core pages
+  'about',
+  'admin',
+  'api',
+  'auth',
+  'blog',
+  'dashboard',
+  'help',
+  'privacy',
+  'register',
+  'studios',
+  'terms',
+  'unauthorized',
+  'upgrade',
+  
+  // Auth flows
+  'signin',
+  'signup',
+  'login',
+  'logout',
+  'verify',
+  'reset',
+  'forgot',
+  'callback',
+  'membership',
+  
+  // Membership pages
+  'featured',
+  'premium',
+  'featured-studio',
+  'join-waitlist',
+  'waitlist',
+  
+  // Email management
+  'email',
+  'unsubscribe',
+  
+  // Account management
+  'settings',
+  'profile',
+  'account',
+  'user',
+  
+  // System pages
+  'error',
+  'not-found',
+  'notfound',
+  'loading',
+  
+  // Static assets
+  'favicon',
+  'robots',
+  'sitemap',
+  'public',
+  'static',
+  '_next',
+  'assets',
+  
+  // Common system words to prevent confusion
+  'admin-panel',
+  'administrator',
+  'root',
+  'system',
+  'moderator',
+  'support',
+  'contact',
+  'vostudiofinder',
+  'vsf',
+  
+  // Protected words that might cause issues
+  'null',
+  'undefined',
+  'true',
+  'false',
+  'delete',
+  'edit',
+  'create',
+  'update',
+  'new',
+] as const;
+
+/**
+ * Check if a username is reserved (case-insensitive)
+ */
+export function isReservedUsername(username: string): boolean {
+  const lowerUsername = username.toLowerCase();
+  return RESERVED_USERNAMES.includes(lowerUsername as any);
+}
+
+/**
  * Convert display name to CamelCase (e.g., "Smith Studios" -> "SmithStudios")
  */
 export function toCamelCase(display_name: string): string {
@@ -76,11 +170,23 @@ export function addNumberSuffix(username: string, number: number): string {
 }
 
 /**
- * Validate username format
+ * Validate username format and check for reserved names
+ * @param username - The username to validate
+ * @param checkReserved - Whether to check against reserved usernames (default: true)
  */
-export function isValidUsername(username: string): boolean {
+export function isValidUsername(username: string, checkReserved: boolean = true): boolean {
   // Must be 3-20 characters, alphanumeric and underscores only
   const regex = /^[a-zA-Z0-9_]{3,20}$/;
-  return regex.test(username);
+  
+  if (!regex.test(username)) {
+    return false;
+  }
+  
+  // Check against reserved usernames if enabled
+  if (checkReserved && isReservedUsername(username)) {
+    return false;
+  }
+  
+  return true;
 }
 

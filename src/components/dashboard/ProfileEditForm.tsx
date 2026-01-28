@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Save, Eye, EyeOff, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, Settings, Copy, Sparkles } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
+import { Save, Eye, EyeOff, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, Settings, Copy, Sparkles, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -24,8 +24,20 @@ import { showSuccess, showError, showInfo, showWarning } from '@/lib/toast';
 import { getBaseUrl } from '@/lib/seo/site';
 import { buildProfileMetaTitle } from '@/lib/seo/profile-title';
 
+import { adminProfileToProfileData, profileDataToAdminPayload } from '@/lib/profile/adminProfileAdapter';
+
+export interface ProfileEditFormHandle {
+  saveIfDirty: () => Promise<boolean>;
+}
+
 interface ProfileEditFormProps {
   userId: string;
+  mode?: 'page' | 'modal';
+  autoSaveOnSectionChange?: boolean;
+  onSaveSuccess?: () => void;
+  dataSource?: 'user' | 'admin';
+  adminStudioId?: string | undefined;
+  isAdminUI?: boolean;
 }
 
 interface ProfileData {
@@ -34,6 +46,8 @@ interface ProfileData {
     username: string;
     email: string;
     avatar_url?: string | null;
+    email_verified?: boolean;
+    status?: string;
   };
   profile: {
     phone?: string;
@@ -45,12 +59,12 @@ interface ProfileData {
     rate_tier_3?: number;
     show_rates: boolean;
     facebook_url?: string;
-    x_url?: string; // Renamed from twitter_url
+    x_url?: string;
     linkedin_url?: string;
     instagram_url?: string;
     youtube_url?: string;
-    tiktok_url?: string; // New field
-    threads_url?: string; // New field
+    tiktok_url?: string;
+    threads_url?: string;
     soundcloud_url?: string;
     connection1?: string;
     connection2?: string;
@@ -86,10 +100,20 @@ interface ProfileData {
     phone?: string;
     images?: any[];
     is_profile_visible?: boolean;
+    use_coordinates_for_map?: boolean;
+    is_verified?: boolean;
+    is_featured?: boolean;
+    featured_until?: string | null;
   };
   studio_types: string[];
   metadata?: {
     custom_meta_title?: string;
+  };
+  _adminOnly?: {
+    studioId: string;
+    status: string;
+    email_verified: boolean;
+    membership_expires_at?: string | null;
   };
 }
 
@@ -119,7 +143,8 @@ const CONNECTION_TYPES = [
   { id: 'connection12', label: 'Other (See profile)' },
 ];
 
-export function ProfileEditForm({ userId }: ProfileEditFormProps) {
+export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditFormProps>(
+  function ProfileEditForm({ userId, mode = 'page', autoSaveOnSectionChange = false, onSaveSuccess, dataSource = 'user', adminStudioId, isAdminUI = false }, ref) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -129,6 +154,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   const [socialMediaErrors, setSocialMediaErrors] = useState<{ [key: string]: string }>({});
   const [isProfileVisible, setIsProfileVisible] = useState(false);
   const [visibilitySaving, setVisibilitySaving] = useState(false);
+  const [adminNeverExpires, setAdminNeverExpires] = useState(true);
+  const [verifyingEmail, setVerifyingEmail] = useState(false);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -221,11 +248,6 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     }));
   };
 
-  // Fetch profile data
-  useEffect(() => {
-    fetchProfile();
-  }, [userId]);
-
   // Listen for visibility changes from other components (e.g., Overview page, burger menu)
   useEffect(() => {
     const handleVisibilityChange = (event: CustomEvent<{ isVisible: boolean }>) => {
@@ -268,35 +290,65 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     }
   }, [expandedMobileSection]);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/user/profile');
-      if (!response.ok) throw new Error('Failed to fetch profile');
       
-      const data = await response.json();
-      const profileData = {
-        user: data.data.user,
-        profile: data.data.profile || {},
-        studio: data.data.studio,
-        studio_types: data.data.studio?.studio_types || [],
-        metadata: {
-          custom_meta_title: data.data.metadata?.custom_meta_title || '',
-        },
-      };
-      setProfile(profileData);
-      setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
-      
-      // Set initial visibility state
-      if (profileData.studio) {
-        setIsProfileVisible(profileData.studio.is_profile_visible !== false);
+      if (dataSource === 'admin' && adminStudioId) {
+        // Admin mode: fetch from admin endpoint
+        const response = await fetch(`/api/admin/studios/${adminStudioId}`);
+        if (!response.ok) throw new Error('Failed to fetch admin profile');
+        
+        const adminData = await response.json();
+        const profileData = adminProfileToProfileData(adminData);
+        
+        setProfile(profileData);
+        setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
+        
+        // Set initial visibility state
+        if (profileData.studio) {
+          setIsProfileVisible(profileData.studio.is_profile_visible !== false);
+        }
+        
+        // Initialize admin never expires toggle based on membership expiry
+        const isAdminAccount = profileData.user.email === 'admin@mpdee.co.uk' || profileData.user.email === 'guy@voiceoverguy.co.uk';
+        if (isAdminAccount) {
+          setAdminNeverExpires(!profileData._adminOnly?.membership_expires_at);
+        }
+      } else {
+        // User mode: fetch from user endpoint
+        const response = await fetch('/api/user/profile');
+        if (!response.ok) throw new Error('Failed to fetch profile');
+        
+        const data = await response.json();
+        const profileData = {
+          user: data.data.user,
+          profile: data.data.profile || {},
+          studio: data.data.studio,
+          studio_types: data.data.studio?.studio_types || [],
+          metadata: {
+            custom_meta_title: data.data.metadata?.custom_meta_title || '',
+          },
+        };
+        setProfile(profileData);
+        setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
+        
+        // Set initial visibility state
+        if (profileData.studio) {
+          setIsProfileVisible(profileData.studio.is_profile_visible !== false);
+        }
       }
     } catch (err) {
       showError(err instanceof Error ? err.message : 'Failed to load profile', true);
     } finally {
       setLoading(false);
     }
-  };
+  }, [dataSource, adminStudioId]);
+
+  // Fetch profile data - refetch when userId, dataSource, or adminStudioId changes
+  useEffect(() => {
+    fetchProfile();
+  }, [userId, fetchProfile]);
 
   // Check if there are unsaved changes
   const hasChanges = useMemo(() => {
@@ -452,14 +504,14 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       if (Object.keys(errors).length > 0) {
         setSocialMediaErrors(errors);
         showError('Please fix the invalid social media URLs before saving');
-        return;
+        return false;
       }
 
       setSaving(true);
 
       // Normalize social URLs for storage (standardize to https://...).
-      const profileToSave = {
-        user: profile!.user,
+      const normalizedProfile = {
+        ...profile!,
         profile: {
           ...profile!.profile!,
           facebook_url: normalizeSocialMediaUrl(profile!.profile!.facebook_url || ''),
@@ -471,16 +523,40 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           linkedin_url: normalizeSocialMediaUrl(profile!.profile!.linkedin_url || ''),
           threads_url: normalizeSocialMediaUrl(profile!.profile!.threads_url || ''),
         },
-        studio: profile!.studio,
-        studio_types: profile!.studio_types,
-        metadata: profile!.metadata,
       };
 
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profileToSave),
-      });
+      let response;
+      
+      if (dataSource === 'admin' && adminStudioId) {
+        // Admin mode: use admin endpoint
+        // Handle admin never expires logic for admin accounts
+        const isAdminAccount = normalizedProfile.user.email === 'admin@mpdee.co.uk' || normalizedProfile.user.email === 'guy@voiceoverguy.co.uk';
+        if (isAdminAccount && adminNeverExpires && normalizedProfile._adminOnly) {
+          normalizedProfile._adminOnly.membership_expires_at = null;
+        }
+        
+        const adminPayload = profileDataToAdminPayload(normalizedProfile);
+        response = await fetch(`/api/admin/studios/${adminStudioId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(adminPayload),
+        });
+      } else {
+        // User mode: use user endpoint
+        const profileToSave = {
+          user: normalizedProfile.user,
+          profile: normalizedProfile.profile,
+          studio: normalizedProfile.studio,
+          studio_types: normalizedProfile.studio_types,
+          metadata: normalizedProfile.metadata,
+        };
+        
+        response = await fetch('/api/user/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(profileToSave),
+        });
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -489,7 +565,10 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
 
       const result = await response.json().catch(() => ({} as any));
       showSuccess('Profile updated successfully!');
-      sessionStorage.setItem('invalidateProfileCache', '1');
+      
+      if (dataSource !== 'admin') {
+        sessionStorage.setItem('invalidateProfileCache', '1');
+      }
 
       if ((result as any)?.visibilityAutoDisabled) {
         showInfo('Profile visibility was turned off because required fields are incomplete.');
@@ -503,25 +582,55 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       
       // Refresh profile data
       await fetchProfile();
+      
+      // Notify parent (modal) of successful save
+      if (onSaveSuccess) {
+        onSaveSuccess();
+      }
+      
+      return true;
     } catch (err) {
       showError(err instanceof Error ? err.message : 'Failed to save profile');
+      return false;
     } finally {
       setSaving(false);
     }
   };
 
+  // Expose saveIfDirty method via ref for modal to call on close
+  useImperativeHandle(ref, () => ({
+    saveIfDirty: async () => {
+      if (hasChanges) {
+        return await handleSave();
+      }
+      return true; // No changes, nothing to save
+    }
+  }));
+
   const handleVisibilityToggle = async (visible: boolean) => {
     setVisibilitySaving(true);
     try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studio: {
-            is_profile_visible: visible
-          }
-        }),
-      });
+      let response;
+      
+      if (dataSource === 'admin' && adminStudioId) {
+        // Admin mode: use admin visibility endpoint
+        response = await fetch(`/api/admin/studios/${adminStudioId}/visibility`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isVisible: visible }),
+        });
+      } else {
+        // User mode: use user endpoint
+        response = await fetch('/api/user/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studio: {
+              is_profile_visible: visible
+            }
+          }),
+        });
+      }
 
       const result = await response.json();
 
@@ -537,10 +646,13 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           ...prev,
           studio: { ...prev.studio, is_profile_visible: visible } as any,
         } : null);
+        
         // Broadcast visibility change to other components
-        window.dispatchEvent(new CustomEvent('profile-visibility-changed', { 
-          detail: { isVisible: visible } 
-        }));
+        if (dataSource !== 'admin') {
+          window.dispatchEvent(new CustomEvent('profile-visibility-changed', { 
+            detail: { isVisible: visible } 
+          }));
+        }
       } else {
         showError(result.error || 'Failed to update profile visibility');
         // Revert on error
@@ -554,6 +666,55 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       setVisibilitySaving(false);
     }
   };
+
+  // Admin-only function to verify email
+  const handleVerifyEmailNow = async () => {
+    if (!adminStudioId) return;
+    setVerifyingEmail(true);
+    try {
+      const response = await fetch(`/api/admin/studios/${adminStudioId}/verify-email`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Failed to verify email');
+      }
+
+      showSuccess(result?.alreadyVerified ? 'Email is already verified.' : 'Email marked as verified.');
+      await fetchProfile();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to verify email.';
+      showError(errorMessage);
+    } finally {
+      setVerifyingEmail(false);
+    }
+  };
+
+  // Helper to update admin-only fields
+  const updateAdminField = useCallback((field: string, value: any) => {
+    setProfile(prev => prev ? {
+      ...prev,
+      _adminOnly: { ...prev._adminOnly!, [field]: value },
+    } : null);
+  }, []);
+
+  // Helper to update user fields (including admin-editable ones)
+  const updateUserField = useCallback((field: string, value: any) => {
+    setProfile(prev => prev ? {
+      ...prev,
+      user: { ...prev.user, [field]: value },
+    } : null);
+  }, []);
+
+  // Helper to update studio fields (including admin-editable ones)
+  const updateStudioField = useCallback((field: string, value: any) => {
+    setProfile(prev => prev ? {
+      ...prev,
+      studio: { ...prev.studio, [field]: value } as any,
+    } : null);
+  }, []);
 
   const updateUser = useCallback((field: string, value: any) => {
     setProfile(prev => prev ? {
@@ -617,6 +778,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
     { id: 'images', label: 'Images', icon: ImageIcon, description: 'Studio photos and gallery' },
     { id: 'privacy', label: 'Privacy Settings', icon: Eye, description: 'Display preferences' },
     { id: 'advanced', label: 'Advanced Settings', icon: Settings, description: 'SEO and advanced options' },
+    ...(isAdminUI ? [{ id: 'admin', label: 'Admin Settings', icon: Settings, description: 'Admin-only settings' }] : []),
   ];
 
   const handleMobileSectionClick = (sectionId: string) => {
@@ -639,12 +801,30 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
   };
 
   // Handle desktop tab navigation with unsaved changes check
-  const handleTabNavigation = (sectionId: string) => {
-    // Check for unsaved changes before navigation
-    if (hasChanges && activeSection !== sectionId) {
+  const handleTabNavigation = async (sectionId: string) => {
+    if (activeSection === sectionId) return;
+    
+    // Concurrency guard: prevent multiple simultaneous tab changes/saves
+    if (saving) {
+      showWarning('Please wait for the current save operation to complete.');
+      return;
+    }
+    
+    // Modal mode with autosave enabled: autosave before switching
+    if (mode === 'modal' && autoSaveOnSectionChange && hasChanges) {
+      const saveSuccess = await handleSave();
+      if (!saveSuccess) {
+        // Save failed, block navigation
+        return;
+      }
+    }
+    
+    // Page mode: check for unsaved changes before navigation (existing behavior)
+    if (mode === 'page' && hasChanges) {
       showWarning('You have unsaved changes. Please save or discard them before switching tabs.');
       return;
     }
+    
     setActiveSection(sectionId);
   };
 
@@ -1179,6 +1359,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         return (
           <div>
             <ImageGalleryManager 
+              studioId={dataSource === 'admin' && adminStudioId ? adminStudioId : undefined}
+              isAdminMode={dataSource === 'admin'}
               embedded={true}
               onImagesChanged={fetchProfile}
               hasUnsavedChanges={hasChanges}
@@ -1318,6 +1500,266 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           </div>
         );
 
+      case 'admin':
+        if (!isAdminUI || !profile._adminOnly) return null;
+        
+        return (
+          <div className="space-y-6">
+            {/* Warning Banner - Compact */}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-900 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div>
+                <h3 className="text-sm font-medium text-red-900">Admin Only Section</h3>
+                <p className="text-xs text-red-700">
+                  These settings are only visible and editable by administrators.
+                </p>
+              </div>
+            </div>
+
+            {/* Username and Email (Admin-editable) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Username"
+                value={profile.user.username || ''}
+                onChange={(e) => updateUserField('username', e.target.value)}
+                helperText="User's unique username"
+                required
+              />
+              <Input
+                label="Email"
+                type="email"
+                value={profile.user.email || ''}
+                onChange={(e) => updateUserField('email', e.target.value)}
+                helperText="User's email address (changing will require re-verification)"
+                required
+              />
+            </div>
+
+            {/* Status & Verification Section */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Status & Verification</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Account Status
+                  </label>
+                  <select
+                    value={profile._adminOnly.status || 'ACTIVE'}
+                    onChange={(e) => updateAdminField('status', e.target.value)}
+                    className="w-full max-w-xs px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                    <option value="PENDING">Pending</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Account status (controls login access). This is separate from Profile Visibility (toggle at bottom).</p>
+
+                  {/* Email verification */}
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Email verification</p>
+                        <p className="text-xs text-gray-600 mt-0.5">
+                          Current: <span className={profile._adminOnly.email_verified ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold'}>
+                            {profile._adminOnly.email_verified ? 'Verified' : 'Not verified'}
+                          </span>
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleVerifyEmailNow}
+                        disabled={verifyingEmail || !!profile._adminOnly.email_verified}
+                        className="inline-flex items-center px-3 py-2 text-xs font-medium rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={profile._adminOnly.email_verified ? 'Already verified' : 'Force-verify this user email'}
+                      >
+                        {verifyingEmail ? 'Verifying...' : 'Verify email now'}
+                      </button>
+                    </div>
+                    {!profile._adminOnly.email_verified && (
+                      <p className="text-[11px] text-gray-500 mt-2">
+                        This marks the account's email as verified immediately (no email is sent).
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <Toggle
+                    label="Verified"
+                    description="Show verified badge on profile"
+                    checked={profile.studio?.is_verified === true}
+                    onChange={(checked) => updateStudioField('is_verified', checked)}
+                  />
+                  <Toggle
+                    label="Featured"
+                    description="Show in featured listings"
+                    checked={profile.studio?.is_featured === true}
+                    onChange={(checked) => updateStudioField('is_featured', checked)}
+                  />
+                  
+                  {/* Featured Expiry Date - only show when Featured is enabled */}
+                  {profile.studio?.is_featured && (
+                    <div className="pl-6 pt-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Featured Expiry Date
+                      </label>
+                      <input
+                        type="date"
+                        value={profile.studio.featured_until ? new Date(profile.studio.featured_until).toISOString().split('T')[0] : ''}
+                        onChange={(e) => {
+                          const dateValue = e.target.value ? new Date(e.target.value).toISOString() : '';
+                          updateStudioField('featured_until', dateValue);
+                        }}
+                        className="w-full max-w-xs px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        When should this studio stop being featured? Leave empty for no expiry.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Membership & Coordinates Section - Side by Side */}
+            <div className="border-t border-gray-200 pt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Membership Section */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Membership</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Membership Expiry Date
+                      </label>
+                      {(profile.user.email === 'admin@mpdee.co.uk' || profile.user.email === 'guy@voiceoverguy.co.uk') ? (
+                        <>
+                          {/* Admin Account Toggle */}
+                          <div className="flex items-center space-x-3 mb-3 p-3 bg-blue-50 rounded-md border border-blue-200">
+                            <span className="text-lg">👑</span>
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-blue-900">Admin Account</p>
+                              <p className="text-xs text-blue-700">Toggle to set expiry for testing renewal features</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={adminNeverExpires}
+                                onChange={(e) => setAdminNeverExpires(e.target.checked)}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                              <span className="ml-3 text-xs font-medium text-gray-700">Never Expires</span>
+                            </label>
+                          </div>
+                          
+                          {/* Date input (shown when "Never Expires" is OFF) */}
+                          {!adminNeverExpires && (
+                            <>
+                              <input
+                                type="date"
+                                value={profile._adminOnly.membership_expires_at ? new Date(profile._adminOnly.membership_expires_at).toISOString().split('T')[0] : ''}
+                                onChange={(e) => {
+                                  if (!e.target.value) {
+                                    updateAdminField('membership_expires_at', null);
+                                    return;
+                                  }
+                                  const parts = e.target.value.split('-').map(Number);
+                                  if (parts.length === 3 && parts.every(n => !isNaN(n))) {
+                                    const [year, month, day] = parts as [number, number, number];
+                                    const dateValue = new Date(Date.UTC(year, month - 1, day)).toISOString();
+                                    updateAdminField('membership_expires_at', dateValue);
+                                  }
+                                }}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              <p className="text-xs text-blue-600 mt-1">
+                                ⚠️ Testing mode: Set expiry date to test renewal features. Toggle back to "Never Expires" when done.
+                              </p>
+                            </>
+                          )}
+                          
+                          {adminNeverExpires && (
+                            <div className="p-2 bg-gray-50 rounded border border-gray-200 text-center">
+                              <p className="text-sm text-gray-600">No expiry date - unlimited access</p>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            type="date"
+                            value={profile._adminOnly.membership_expires_at ? new Date(profile._adminOnly.membership_expires_at).toISOString().split('T')[0] : ''}
+                            onChange={(e) => {
+                              if (!e.target.value) {
+                                updateAdminField('membership_expires_at', null);
+                                return;
+                              }
+                              const parts = e.target.value.split('-').map(Number);
+                              if (parts.length === 3 && parts.every(n => !isNaN(n))) {
+                                const [year, month, day] = parts as [number, number, number];
+                                const dateValue = new Date(Date.UTC(year, month - 1, day)).toISOString();
+                                updateAdminField('membership_expires_at', dateValue);
+                              }
+                            }}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Set when the user's membership expires. Studio will become INACTIVE after this date. Leave empty to clear.
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Coordinates Section */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Coordinates</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Set precise coordinates for map display.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <Input
+                      label="Latitude"
+                      type="text"
+                      value={profile.studio?.latitude?.toString() || ''}
+                      onChange={(e) => updateStudioField('latitude', parseFloat(e.target.value) || null)}
+                      placeholder="e.g., 51.5074"
+                      helperText="Decimal degrees"
+                    />
+                    <Input
+                      label="Longitude"
+                      type="text"
+                      value={profile.studio?.longitude?.toString() || ''}
+                      onChange={(e) => updateStudioField('longitude', parseFloat(e.target.value) || null)}
+                      placeholder="e.g., -0.1278"
+                      helperText="Decimal degrees"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <Checkbox
+                      id="use_coordinates_for_map"
+                      checked={profile.studio?.use_coordinates_for_map === true}
+                      onChange={(e) => updateStudioField('use_coordinates_for_map', e.target.checked)}
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="use_coordinates_for_map" className="text-sm font-medium text-gray-900 cursor-pointer">
+                        Use Coordinates for map
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {profile.studio?.use_coordinates_for_map 
+                          ? 'Map will use coordinates above instead of address'
+                          : 'Map will use full address, falling back to coordinates'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -1339,7 +1781,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         {/* Sticky Header + Tabs Container */}
         <div className="flex-shrink-0 bg-white/95 backdrop-blur-md rounded-t-2xl">
           {/* Desktop Header with Progress Indicators */}
-          <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
+          <div className="flex border-b border-gray-100 px-6 py-5 items-end justify-between gap-6">
             <div className="flex items-center gap-4 flex-1">
               {/* Avatar */}
               <AvatarUpload
@@ -1369,8 +1811,8 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
               </div>
             </div>
 
-            {/* Right Side - Profile Visibility and Required Progress */}
-            <div className="flex items-center gap-6">
+            {/* Right Side - Profile Visibility and Required Progress (aligned to bottom) */}
+            <div className="flex items-center gap-6 pb-1">
               {/* Profile Visibility Toggle */}
               <div 
                 className="flex items-center gap-3 pl-6 border-l border-gray-100"
@@ -1416,12 +1858,12 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
           </div>
 
           {/* Desktop Section Navigation with hover animations */}
-          <div className="border-b border-gray-100 px-6 py-1 overflow-hidden">
+          <div className="bg-white px-6 py-1 overflow-hidden">
             <nav className="flex space-x-4" aria-label="Profile sections">
               {sections.map((section) => (
                 <motion.button
                   key={section.id}
-                  onClick={() => handleTabNavigation(section.id)}
+                  onClick={async () => await handleTabNavigation(section.id)}
                   data-section={section.id}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -1439,7 +1881,7 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
         </div>
 
         {/* Desktop Content - Scrollable area */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 min-h-0">
+        <div className="flex-1 overflow-y-auto px-6 py-6 min-h-0 bg-white">
           <div className="w-full max-w-5xl mx-auto">
             {renderSectionContent(activeSection)}
           </div>
@@ -1556,5 +1998,5 @@ export function ProfileEditForm({ userId }: ProfileEditFormProps) {
       )}
     </>
   );
-}
+});
 

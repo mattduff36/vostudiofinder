@@ -20,7 +20,6 @@ export function Navbar({ session }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showEditButton, setShowEditButton] = useState(false);
   const [isLogoLoading, setIsLogoLoading] = useState(false);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -74,25 +73,6 @@ export function Navbar({ session }: NavbarProps) {
     scrollThreshold: 3,
     enabled: isMobile // Only enable on mobile
   });
-
-  // Listen for profile edit handler events
-  useEffect(() => {
-    const handleEditHandlerReady = () => {
-      setShowEditButton(true);
-    };
-
-    const handleEditHandlerUnmount = () => {
-      setShowEditButton(false);
-    };
-
-    window.addEventListener('profileEditHandlerReady', handleEditHandlerReady);
-    window.addEventListener('profileEditHandlerUnmount', handleEditHandlerUnmount);
-
-    return () => {
-      window.removeEventListener('profileEditHandlerReady', handleEditHandlerReady);
-      window.removeEventListener('profileEditHandlerUnmount', handleEditHandlerUnmount);
-    };
-  }, []);
 
   // Monitor fullscreen state for hiding nav on mobile
   useEffect(() => {
@@ -153,11 +133,6 @@ export function Navbar({ session }: NavbarProps) {
       document.removeEventListener('keydown', handleEscape);
     };
   }, [isDesktopBurgerOpen]);
-
-
-  const handleEditClick = () => {
-    window.dispatchEvent(new Event('profileEditClick'));
-  };
 
   // Handle scroll effect - use hero height as threshold
   useEffect(() => {
@@ -360,14 +335,13 @@ export function Navbar({ session }: NavbarProps) {
           {session && (
             <div className="hidden md:flex lg:hidden">
               <DashboardDropdownMenu
-                username={session.user.username || ''}
-                isScrolled={isScrolled}
-                isHomePage={isHomePage}
-                session={session}
-                isAdminUser={session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN'}
-                showEditButton={showEditButton}
-                includeSiteLinks={true}
-              />
+              username={session.user.username || ''}
+              isScrolled={isScrolled}
+              isHomePage={isHomePage}
+              session={session}
+              isAdminUser={session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN'}
+              includeSiteLinks={true}
+            />
             </div>
           )}
 
@@ -389,7 +363,6 @@ export function Navbar({ session }: NavbarProps) {
         <DesktopBurgerMenu
           session={session}
           isAdminUser={session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN'}
-          showEditButton={showEditButton}
           isOpen={isDesktopBurgerOpen}
           onClose={() => setIsDesktopBurgerOpen(false)}
           menuRef={desktopBurgerRef}
@@ -442,29 +415,6 @@ export function Navbar({ session }: NavbarProps) {
           </Link>
         </div>
       </>
-    )}
-    
-    {/* Admin Buttons - Positioned below nav bar on right side */}
-    {(session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN') && (
-      <div className={`hidden md:flex fixed top-20 right-6 z-[99] items-center gap-0 bg-black rounded-md text-white text-xs font-medium shadow-lg [.admin-modal-open_&]:hidden [.image-modal-open_&]:hidden ${isMapFullscreen ? 'hidden' : ''}`}>
-        {showEditButton && (
-          <>
-            <button
-              onClick={handleEditClick}
-              className="px-3 py-1.5 hover:bg-gray-800 transition-colors rounded-l-md"
-            >
-              EDIT
-            </button>
-            <div className="w-px h-4 bg-white/30"></div>
-          </>
-        )}
-        <button
-          onClick={() => router.push('/admin')}
-          className={`px-3 py-1.5 hover:bg-gray-800 transition-colors ${showEditButton ? 'rounded-r-md' : 'rounded-md'}`}
-        >
-          ADMIN
-        </button>
-      </div>
     )}
   </>
   );

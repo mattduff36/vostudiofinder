@@ -20,7 +20,7 @@ interface StudioImage {
 }
 
 interface ImageGalleryManagerProps {
-  studioId?: string; // Optional: for admin mode
+  studioId?: string | undefined; // Optional: for admin mode
   isAdminMode?: boolean; // Optional: to use admin API endpoints
   embedded?: boolean; // Optional: hide header/progress when embedded in edit profile
   onImagesChanged?: () => void; // Optional: callback when images change (for parent to refresh)

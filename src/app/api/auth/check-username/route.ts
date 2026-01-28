@@ -4,7 +4,8 @@ import { UserStatus } from '@prisma/client';
 import { 
   generateUsernameSuggestions, 
   addNumberSuffix,
-  isValidUsername 
+  isValidUsername,
+  isReservedUsername 
 } from '@/lib/utils/username';
 import { checkRateLimit, generateFingerprint, RATE_LIMITS } from '@/lib/rate-limiting';
 
@@ -44,11 +45,23 @@ export async function POST(request: NextRequest) {
 
     // If checking a specific username
     if (username) {
-      if (!isValidUsername(username)) {
+      // Check format first (without reserved check)
+      if (!isValidUsername(username, false)) {
         return NextResponse.json(
           { 
             available: false, 
             message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' 
+          },
+          { status: 400 }
+        );
+      }
+
+      // Check if reserved
+      if (isReservedUsername(username)) {
+        return NextResponse.json(
+          { 
+            available: false, 
+            message: 'This username is reserved and cannot be used' 
           },
           { status: 400 }
         );

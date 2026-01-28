@@ -16,7 +16,6 @@ import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
 interface DesktopBurgerMenuProps {
   session: Session | null;
   isAdminUser: boolean;
-  showEditButton: boolean;
   isOpen: boolean;
   onClose: () => void;
   menuRef: React.RefObject<HTMLDivElement | null>;
@@ -25,8 +24,7 @@ interface DesktopBurgerMenuProps {
 
 export function DesktopBurgerMenu({ 
   session, 
-  isAdminUser, 
-  showEditButton,
+  isAdminUser,
   isOpen,
   onClose,
   menuRef,
@@ -156,7 +154,6 @@ export function DesktopBurgerMenu({
   const menuItems = getMobileMenuItems({
     session,
     isAdminUser,
-    showEditButton,
     username: session?.user?.username,
     pathname,
     bottomNavIds,

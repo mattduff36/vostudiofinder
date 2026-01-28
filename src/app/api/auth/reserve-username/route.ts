@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
 import { UserStatus } from '@prisma/client';
 import { checkRateLimit, generateFingerprint, RATE_LIMITS } from '@/lib/rate-limiting';
+import { isReservedUsername } from '@/lib/utils/username';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +33,14 @@ export async function POST(request: NextRequest) {
     if (!usernameRegex.test(username)) {
       return NextResponse.json(
         { error: 'Username must be 3-20 characters (letters, numbers, underscores only)' },
+        { status: 400 }
+      );
+    }
+
+    // Check if username is reserved
+    if (isReservedUsername(username)) {
+      return NextResponse.json(
+        { error: 'This username is reserved and cannot be used', available: false },
         { status: 400 }
       );
     }

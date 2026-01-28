@@ -6,7 +6,7 @@
  * consume this config to ensure consistency.
  */
 
-import { LucideIcon, Home, Search, User, Edit, CreditCard, Settings, LogOut, Eye, LogIn, UserPlus, Shield, Pencil, HelpCircle, FileText, Cookie } from 'lucide-react';
+import { LucideIcon, Home, Search, User, Edit, CreditCard, Settings, LogOut, Eye, LogIn, UserPlus, Shield, HelpCircle, FileText, Cookie } from 'lucide-react';
 
 export type NavItemType = 'link' | 'action' | 'visibility-toggle';
 
@@ -171,18 +171,6 @@ export const NAV_ITEMS: Record<string, NavItem> = {
   },
 
   // Admin links
-  adminEdit: {
-    id: 'adminEdit',
-    label: 'EDIT',
-    icon: Pencil,
-    type: 'action',
-    action: 'profileEditClick',
-    section: 'admin',
-    requiresAuth: true,
-    adminOnly: true,
-    showOnMobile: true,
-    showOnDesktop: true,
-  },
   adminPanel: {
     id: 'adminPanel',
     label: 'ADMIN',
@@ -224,7 +212,6 @@ export const NAV_ITEMS: Record<string, NavItem> = {
 export interface MenuContext {
   session: any;
   isAdminUser: boolean;
-  showEditButton: boolean;
   username?: string | undefined;
   pathname?: string | undefined;
   isVisible?: boolean | undefined;
@@ -275,10 +262,10 @@ export function getDesktopBurgerMenuItems(context: MenuContext & { includeSiteLi
  * Rules:
  * - Signed in: Include site links + account links, but EXCLUDE items already in bottom nav
  * - Signed out: Show all links including duplicates
- * - Admin users: Add EDIT/ADMIN actions at the top
+ * - Admin users: Add ADMIN action at the top
  */
 export function getMobileMenuItems(context: MenuContext & { bottomNavIds: string[] }): NavItem[] {
-  const { session, isAdminUser, showEditButton, username } = context;
+  const { session, isAdminUser, username } = context;
 
   const items: NavItem[] = [];
 
@@ -308,9 +295,6 @@ export function getMobileMenuItems(context: MenuContext & { bottomNavIds: string
     // Section 4: Admin actions (if admin user)
     if (isAdminUser) {
       items.push(NAV_ITEMS.adminPanel!);
-      if (showEditButton) {
-        items.push(NAV_ITEMS.adminEdit!);
-      }
     }
 
     // Section 5: Logout (always last)
