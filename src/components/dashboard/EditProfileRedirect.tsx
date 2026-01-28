@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 /**
- * Client component that opens the Edit Profile Modal and redirects to dashboard
+ * Client component that opens the Edit Profile Modal and returns to previous page
  * Used when /dashboard/edit-profile is accessed on desktop
  */
 export function EditProfileRedirect() {
@@ -15,18 +15,13 @@ export function EditProfileRedirect() {
     // Note: openProfileSection in sessionStorage will be consumed by ProfileEditForm
     window.dispatchEvent(new CustomEvent('openEditProfileModal'));
     
-    // Redirect to dashboard after a brief delay to ensure modal opens
-    const redirectTimer = setTimeout(() => {
-      router.replace('/dashboard');
-    }, 100);
-
-    return () => {
-      clearTimeout(redirectTimer);
-      // Don't clear the sessionStorage here - let ProfileEditForm consume it
-    };
+    // Return to previous page (the page user was on before clicking edit profile)
+    // This keeps the user on their original page with modal as overlay
+    router.back();
   }, [router]);
 
-  // Show a brief loading state while redirecting
+  // Show a brief loading state while processing
+  // This component will unmount quickly as we navigate back
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg p-8 shadow-xl">

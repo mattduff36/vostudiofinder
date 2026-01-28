@@ -2,7 +2,6 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { ProfileEditForm, ProfileEditFormHandle } from '@/components/dashboard/ProfileEditForm';
 import { showError } from '@/lib/toast';
@@ -22,7 +21,6 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
   const [isClosing, setIsClosing] = useState(false);
   const [adminStudioId, setAdminStudioId] = useState<string | undefined>(studioId);
   const [loadingStudioId, setLoadingStudioId] = useState(false);
-  const router = useRouter();
   const { data: session } = useSession();
 
   const isAdminMode = mode === 'admin';
@@ -89,8 +87,7 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
       }
       
       // Save succeeded or no changes, allow close
-      // Refresh the page to show updated data
-      router.refresh();
+      // Don't refresh - just close the modal and stay on current page
       onClose();
     } catch (error) {
       console.error('Error during modal close:', error);
