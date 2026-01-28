@@ -226,15 +226,14 @@ h6,
   }
 }
 
-/* Homepage hero h3 - match h2 sizing exactly (24px desktop, 18px mobile) */
+/* Homepage hero h3 - custom sizing (28px desktop, 22px mobile) */
 .hp3 {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 28px;
 }
 
 @media (max-width: 640px) {
   .hp3 {
-    font-size: 18px;
+    font-size: 22px;
   }
 }
 
