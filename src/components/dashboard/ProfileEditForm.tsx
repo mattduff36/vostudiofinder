@@ -1869,8 +1869,12 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                   whileTap={{ scale: 0.95 }}
                   className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
                     activeSection === section.id
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? section.id === 'admin' 
+                        ? 'border-red-500 text-red-600' 
+                        : 'border-red-500 text-red-600'
+                      : section.id === 'admin'
+                        ? 'border-transparent text-red-500 hover:text-red-600 hover:border-red-300'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
                   {section.label}
