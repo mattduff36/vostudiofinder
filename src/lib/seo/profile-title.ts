@@ -23,7 +23,7 @@ function compactWhitespace(input: string): string {
 
 function stripParentheticals(input: string): string {
   // Remove (...) and [...] blocks (often secondary name elements)
-  return compactWhitespace(input.replace(/\s*[\(\[].*?[\)\]]\s*/g, ' ').trim());
+  return compactWhitespace(input.replace(/\s*[(\[].*?[)\]]\s*/g, ' ').trim());
 }
 
 function takeBeforeDelimiters(input: string): string {

@@ -260,14 +260,18 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     };
   }, []);
 
-  // Check for sessionStorage to open specific section (e.g., from Settings page)
+  // Check for sessionStorage to open specific section (e.g., from ProfileCompletionProgress)
+  // Run this whenever the modal opens (isOpen state would be ideal, but we use loading as proxy)
   useEffect(() => {
+    // Only check when profile has loaded (not on initial mount while loading)
+    if (loading) return;
+    
     const targetSection = sessionStorage.getItem('openProfileSection');
     if (targetSection) {
       setActiveSection(targetSection);
       sessionStorage.removeItem('openProfileSection'); // Clean up after use
     }
-  }, []);
+  }, [loading]); // Re-run when loading completes (modal opened and data loaded)
 
   // Scroll to expanded card on mobile
   useEffect(() => {
@@ -658,7 +662,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         // Revert on error
         setIsProfileVisible(!visible);
       }
-    } catch (err) {
+    } catch (_err) {
       showError('Error updating profile visibility');
       // Revert on error
       setIsProfileVisible(!visible);
@@ -1319,7 +1323,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                         : [];
                       methods[0] = e.target.value;
                       const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
-                      updateProfile('custom_connection_methods', filtered.length > 0 && filtered.some(m => m) ? filtered : []);
+                      updateProfile('custom_connection_methods', filtered.some(m => m) ? filtered : []);
                     }}
                     placeholder="e.g., Discord, WhatsApp, Slack"
                     maxLength={50}
@@ -1340,7 +1344,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                         : [];
                       methods[1] = e.target.value;
                       const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
-                      updateProfile('custom_connection_methods', filtered.length > 0 && filtered.some(m => m) ? filtered : []);
+                      updateProfile('custom_connection_methods', filtered.some(m => m) ? filtered : []);
                     }}
                     placeholder="e.g., Discord, WhatsApp, Slack"
                     maxLength={50}
@@ -1426,7 +1430,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
           try {
             await navigator.clipboard.writeText(currentMetaTitle);
             showSuccess('Meta title copied to clipboard!');
-          } catch (err) {
+          } catch (_err) {
             showError('Failed to copy to clipboard');
           }
         };
