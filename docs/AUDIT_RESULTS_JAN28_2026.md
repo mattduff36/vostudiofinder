@@ -30,13 +30,13 @@ Comprehensive audit completed using ESLint, oxlint, and depcheck. Found **63 war
 
 ### MEDIUM Priority
 
-#### M1: Unused Dependencies ⚠️ FALSE POSITIVE
-- **Status**: ⚠️ VERIFIED AS IN-USE
+#### M1: Unused Dependencies ✅ FIXED
+- **Status**: ✅ REMOVED
 - **Issue**: depcheck reported `@sentry/nextjs` and `@specy/liquid-glass-react` as unused
-- **Investigation**: Both packages ARE being used:
-  - `@sentry/nextjs`: Used in error logging system (8 files)
-  - `@specy/liquid-glass-react`: Used in mobile navigation components
-- **Action**: No changes made - depcheck gave false positives
+- **Investigation**: Verified both packages are NOT imported anywhere:
+  - `@sentry/nextjs`: SDK removed, only using Sentry REST API via native fetch()
+  - `@specy/liquid-glass-react`: Replaced with burger menu implementation
+- **Action**: Removed both packages (freed 98 dependencies total)
 
 #### M2: Unused Dev Dependencies ⚠️ FALSE POSITIVE
 - **Status**: ⚠️ VERIFIED AS IN-USE
