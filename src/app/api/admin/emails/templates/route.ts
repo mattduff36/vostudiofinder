@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
         reply_to_email: validated.replyToEmail ?? null,
         subject: validated.subject,
         preheader: validated.preheader ?? null,
-        heading: validated.heading ?? null,
+        heading: validated.heading, // Required by schema validation
         body_paragraphs: validated.bodyParagraphs,
         bullet_items: validated.bulletItems || [],
         cta_primary_label: validated.ctaPrimaryLabel ?? null,
@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
         version_number: 1,
         subject: validated.subject,
         preheader: validated.preheader ?? null,
-        heading: validated.heading ?? null,
+        heading: validated.heading, // Required by schema validation
         body_paragraphs: validated.bodyParagraphs,
         bullet_items: validated.bulletItems || [],
         cta_primary_label: validated.ctaPrimaryLabel ?? null,

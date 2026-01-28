@@ -204,7 +204,7 @@ export async function PATCH(
       reply_to_email: validated.replyToEmail ?? current.reply_to_email,
       subject: validated.subject ?? current.subject,
       preheader: validated.preheader ?? current.preheader,
-      heading: validated.heading ?? current.heading,
+      heading: validated.heading ?? current.heading ?? defaultTemplate!.heading,
       body_paragraphs: validated.bodyParagraphs ?? current.body_paragraphs,
       bullet_items: validated.bulletItems ?? current.bullet_items,
       cta_primary_label: validated.ctaPrimaryLabel ?? current.cta_primary_label,
@@ -262,7 +262,7 @@ export async function PATCH(
         reply_to_email: updated.reply_to_email ?? null,
         subject: updated.subject,
         preheader: updated.preheader ?? null,
-        heading: updated.heading ?? null,
+        heading: updated.heading, // Required field - guaranteed to have value
         body_paragraphs: updated.body_paragraphs,
         bullet_items: updated.bullet_items,
         cta_primary_label: updated.cta_primary_label ?? null,
@@ -282,7 +282,7 @@ export async function PATCH(
         reply_to_email: updated.reply_to_email ?? null,
         subject: updated.subject,
         preheader: updated.preheader ?? null,
-        heading: updated.heading ?? null,
+        heading: updated.heading, // Required field - guaranteed to have value
         body_paragraphs: updated.body_paragraphs,
         bullet_items: updated.bullet_items,
         cta_primary_label: updated.cta_primary_label ?? null,
@@ -308,7 +308,7 @@ export async function PATCH(
         version_number: newVersionNumber,
         subject: updated.subject,
         preheader: updated.preheader ?? null,
-        heading: updated.heading ?? null,
+        heading: updated.heading, // Required field - guaranteed to have value
         body_paragraphs: updated.body_paragraphs,
         bullet_items: updated.bullet_items,
         cta_primary_label: updated.cta_primary_label ?? null,
