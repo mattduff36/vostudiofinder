@@ -138,6 +138,9 @@ export function DesktopBurgerMenu({
     onClose();
     if (action === 'logout') {
       signOut({ callbackUrl: '/' });
+    } else if (action === 'openEditProfileModal') {
+      // Dispatch custom event to open the global edit profile modal
+      window.dispatchEvent(new CustomEvent('openEditProfileModal'));
     } else if (action === 'profileEditClick') {
       window.dispatchEvent(new Event('profileEditClick'));
     } else if (action === 'resetCookies') {

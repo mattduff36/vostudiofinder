@@ -149,6 +149,9 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
     setIsOpen(false);
     if (action === 'logout') {
       signOut({ callbackUrl: '/' });
+    } else if (action === 'openEditProfileModal') {
+      // Dispatch custom event to open the global edit profile modal
+      window.dispatchEvent(new CustomEvent('openEditProfileModal'));
     } else if (action === 'resetCookies') {
       document.cookie = 'vsf_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       window.location.reload();

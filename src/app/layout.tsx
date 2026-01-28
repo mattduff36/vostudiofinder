@@ -10,6 +10,7 @@ import { Navbar } from '@/components/navigation/Navbar';
 import { MobileShell } from '@/components/navigation/MobileShell';
 import { CookieConsentBanner } from '@/components/consent/CookieConsentBanner';
 import { DynamicAnalytics } from '@/components/consent/DynamicAnalytics';
+import { GlobalEditProfileModal } from '@/components/profile/GlobalEditProfileModal';
 import { authOptions } from '@/lib/auth';
 import Script from 'next/script';
 import { getBaseUrl, SITE_NAME } from '@/lib/seo/site';
@@ -97,6 +98,7 @@ export default async function RootLayout({
           <LoadingProvider>
             <ToastProvider />
             <ConfirmDialog />
+            <GlobalEditProfileModal />
             <Navbar session={session} />
             <main className="pt-16 pb-40 md:pt-20 md:pb-0">{children}</main>
             <MobileShell session={session} />
