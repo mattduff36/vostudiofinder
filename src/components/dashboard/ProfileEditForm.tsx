@@ -1505,12 +1505,12 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         
         return (
           <div className="space-y-6">
-            {/* Warning Banner - Compact */}
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-900 flex-shrink-0 mt-0.5" aria-hidden="true" />
-              <div>
-                <h3 className="text-sm font-medium text-red-900">Admin Only Section</h3>
-                <p className="text-xs text-red-700">
+            {/* Warning Banner - Compact 2-column layout */}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 flex gap-3 items-center">
+              <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0" aria-hidden="true" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-red-900 leading-tight">Admin Only Section</h3>
+                <p className="text-xs text-red-700 leading-tight mt-0.5">
                   These settings are only visible and editable by administrators.
                 </p>
               </div>
