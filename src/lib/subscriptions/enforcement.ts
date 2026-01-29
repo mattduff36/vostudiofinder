@@ -7,7 +7,7 @@ export interface StudioStatusDecision {
   studioId: string;
   currentStatus: string;
   desiredStatus: 'ACTIVE' | 'INACTIVE';
-  reason: 'admin_override' | 'expired' | 'active';
+  reason: 'admin_override' | 'expired' | 'active' | 'legacy';
 }
 
 /**
@@ -66,12 +66,14 @@ export function computeStudioStatus(
   // Check latest subscription
   const latestSubscription = studio.users.subscriptions?.[0];
   if (!latestSubscription?.current_period_end) {
-    // No subscription - should be INACTIVE
+    // Legacy profile: No subscription or no expiry date - keep ACTIVE
+    // These are legacy profiles that should remain active and will get
+    // a free 6-month membership when they first sign in
     return {
       studioId: studio.id,
       currentStatus: studio.status,
-      desiredStatus: 'INACTIVE',
-      reason: 'expired',
+      desiredStatus: 'ACTIVE',
+      reason: 'legacy',
     };
   }
   

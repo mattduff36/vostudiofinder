@@ -48,7 +48,7 @@ describe('Subscription Enforcement', () => {
       });
     });
 
-    it('should return INACTIVE for non-admin with no subscription', () => {
+    it('should return ACTIVE for legacy profile with no subscription (legacy profiles)', () => {
       const studio = {
         id: 'studio-2',
         status: 'ACTIVE',
@@ -63,8 +63,28 @@ describe('Subscription Enforcement', () => {
       expect(result).toEqual({
         studioId: 'studio-2',
         currentStatus: 'ACTIVE',
-        desiredStatus: 'INACTIVE',
-        reason: 'expired',
+        desiredStatus: 'ACTIVE',
+        reason: 'legacy',
+      });
+    });
+
+    it('should return ACTIVE for legacy profile with subscription but no expiry date', () => {
+      const studio = {
+        id: 'studio-2b',
+        status: 'ACTIVE',
+        users: {
+          email: 'user@example.com',
+          subscriptions: [{ current_period_end: null }],
+        },
+      };
+
+      const result = computeStudioStatus(studio, now);
+
+      expect(result).toEqual({
+        studioId: 'studio-2b',
+        currentStatus: 'ACTIVE',
+        desiredStatus: 'ACTIVE',
+        reason: 'legacy',
       });
     });
 
