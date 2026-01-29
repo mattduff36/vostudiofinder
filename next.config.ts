@@ -1,4 +1,24 @@
 import type { NextConfig } from 'next';
+import { execSync } from 'node:child_process';
+
+function safeExec(cmd: string): string | undefined {
+  try {
+    return execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return undefined;
+  }
+}
+
+const buildTimeIso = new Date().toISOString();
+const buildVersion =
+  process.env.GITHUB_RUN_NUMBER ||
+  safeExec('git rev-list --count HEAD') ||
+  '';
+
+const gitCommitDateIso =
+  process.env.VERCEL_GIT_COMMIT_DATE ||
+  safeExec('git show -s --format=%cI HEAD') ||
+  buildTimeIso;
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -33,6 +53,9 @@ const nextConfig: NextConfig = {
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
+    // Build metadata (auto-updates each push/build via git/CI metadata)
+    NEXT_PUBLIC_GIT_COMMIT_DATE: gitCommitDateIso,
+    NEXT_PUBLIC_BUILD_VERSION: buildVersion,
   },
 
   // Admin route configuration
