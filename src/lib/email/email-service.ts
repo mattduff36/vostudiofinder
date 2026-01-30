@@ -3,7 +3,14 @@ import { Resend } from 'resend';
 import { generatePasswordResetEmail } from './templates/password-reset';
 import { generateEmailVerificationEmail } from './templates/email-verification';
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_key');
+// Lazy-initialize Resend client to ensure environment variables are loaded
+let resend: Resend | null = null;
+function getResendClient(): Resend {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_key');
+  }
+  return resend;
+}
 
 export interface EmailOptions {
   to: string;
@@ -64,7 +71,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       emailPayload.replyTo = process.env.RESEND_REPLY_TO_EMAIL;
     }
 
-    const result = await resend.emails.send(emailPayload);
+    const result = await getResendClient().emails.send(emailPayload);
 
     if (result.error) {
       console.error('❌ Failed to send email via Resend:', result.error);

@@ -72,6 +72,9 @@ docs-private/
 assets/
 dev.log
 
+# Email template testing
+.email-test-output/
+
 # Prisma
 prisma/*.backup
 
