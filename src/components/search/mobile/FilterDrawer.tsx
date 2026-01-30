@@ -47,6 +47,47 @@ export function FilterDrawer({
 }: FilterDrawerProps) {
   const filtersRef = useRef<SearchFiltersRef>(null);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
+  const [drawerPosition, setDrawerPosition] = useState({ top: 249, left: 32 }); // Default fallback values
+
+  // Calculate drawer position based on mobile controls element
+  useEffect(() => {
+    const calculatePosition = () => {
+      // Find the mobile controls sticky bar
+      const mobileControls = document.querySelector('[class*="lg:hidden sticky top-20"]') as HTMLElement;
+      
+      if (mobileControls) {
+        const rect = mobileControls.getBoundingClientRect();
+        const scrollY = window.scrollY || window.pageYOffset;
+        
+        // Position drawer below the mobile controls bar
+        // Add the bar's height and a small gap
+        const top = rect.bottom + scrollY + 4; // 4px gap
+        const left = 32; // 2rem = 32px (matches left-8)
+        
+        setDrawerPosition({ top, left });
+      }
+    };
+
+    // Calculate on mount and when drawer opens
+    if (isOpen) {
+      calculatePosition();
+      
+      // Recalculate on scroll and resize
+      const handleUpdate = () => {
+        calculatePosition();
+      };
+      
+      window.addEventListener('scroll', handleUpdate, { passive: true });
+      window.addEventListener('resize', handleUpdate, { passive: true });
+      
+      return () => {
+        window.removeEventListener('scroll', handleUpdate);
+        window.removeEventListener('resize', handleUpdate);
+      };
+    }
+    
+    return undefined;
+  }, [isOpen]);
 
   // Monitor fullscreen state for hiding filter drawer
   useEffect(() => {
@@ -150,7 +191,7 @@ export function FilterDrawer({
       {/* Semi-transparent backdrop for outside clicks */}
       {isOpen && (
         <div
-          className="fixed inset-0 md:hidden z-[60] bg-black/30"
+          className="fixed inset-0 lg:hidden z-[60] bg-black/30"
           onClick={(e) => {
             e.stopPropagation();
             handleClose();
@@ -161,9 +202,13 @@ export function FilterDrawer({
 
       {/* Compact Filter Dropdown */}
       <div
-        className={`fixed top-[249px] left-8 w-[calc(100vw-4rem)] max-w-md transform transition-all duration-300 ease-out md:hidden z-[70] ${
+        className={`fixed w-[calc(100vw-4rem)] max-w-md transform transition-all duration-300 ease-out lg:hidden z-[70] ${
           isOpen ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95 pointer-events-none'
         }`}
+        style={{
+          top: `${drawerPosition.top}px`,
+          left: `${drawerPosition.left}px`,
+        }}
         role="dialog"
         aria-modal="true"
         aria-label="Filter studios"
