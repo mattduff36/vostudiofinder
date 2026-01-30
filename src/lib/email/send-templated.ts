@@ -35,41 +35,53 @@ export async function sendTemplatedEmail(
   // Check database first (custom templates), then fall back to registry
   let isMarketing = false;
   
-  const dbTemplate = await db.email_templates.findUnique({
-    where: { key: templateKey },
-    select: { is_marketing: true },
-  });
-  
-  if (dbTemplate) {
-    isMarketing = dbTemplate.is_marketing;
-  } else {
+  try {
+    const dbTemplate = await db.email_templates.findUnique({
+      where: { key: templateKey },
+      select: { is_marketing: true },
+    });
+    
+    if (dbTemplate) {
+      isMarketing = dbTemplate.is_marketing;
+    } else {
+      const templateDef = getTemplateDefinition(templateKey);
+      isMarketing = templateDef?.isMarketing || false;
+    }
+  } catch (error) {
+    // If table doesn't exist, fall back to registry
+    console.warn(`Failed to check is_marketing from DB (falling back to default): ${error}`);
     const templateDef = getTemplateDefinition(templateKey);
     isMarketing = templateDef?.isMarketing || false;
   }
   
   // For marketing emails, check opt-in (unless explicitly skipped)
   if (isMarketing && !skipMarketingCheck) {
-    // Find user by email
-    const user = await db.users.findUnique({
-      where: { email: to.toLowerCase() },
-      select: {
-        id: true,
-        email_preferences: {
-          select: {
-            marketing_opt_in: true,
-            unsubscribed_at: true,
+    try {
+      // Find user by email
+      const user = await db.users.findUnique({
+        where: { email: to.toLowerCase() },
+        select: {
+          id: true,
+          email_preferences: {
+            select: {
+              marketing_opt_in: true,
+              unsubscribed_at: true,
+            },
           },
         },
-      },
-    });
-    
-    // If user exists and has opted out, don't send
-    if (user) {
-      const prefs = user.email_preferences;
-      if (prefs && (!prefs.marketing_opt_in || prefs.unsubscribed_at)) {
-        console.log(`📧 Skipping marketing email to ${to} (opted out)`);
-        return false;
+      });
+      
+      // If user exists and has opted out, don't send
+      if (user) {
+        const prefs = user.email_preferences;
+        if (prefs && (!prefs.marketing_opt_in || prefs.unsubscribed_at)) {
+          console.log(`📧 Skipping marketing email to ${to} (opted out)`);
+          return false;
+        }
       }
+    } catch (error) {
+      // If email_preferences table doesn't exist, continue with send
+      console.warn(`Failed to check email preferences (continuing with send): ${error}`);
     }
   }
   
@@ -88,7 +100,7 @@ export async function sendTemplatedEmail(
         unsubscribeUrl = `${baseUrl}/email/unsubscribe?token=${token}`;
       }
     } catch (error) {
-      console.error('Failed to generate unsubscribe token:', error);
+      console.warn('Failed to generate unsubscribe token (continuing without):', error);
       // Continue without unsubscribe link rather than failing
     }
   }

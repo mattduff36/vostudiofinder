@@ -48,29 +48,34 @@ function validateVariables(
  * Load template from database (or fall back to default)
  */
 async function loadTemplate(templateKey: string) {
-  // Try to load from DB first
-  const dbTemplate = await db.email_templates.findUnique({
-    where: { key: templateKey },
-  });
-  
-  if (dbTemplate) {
-    return {
-      layout: dbTemplate.layout,
-      subject: dbTemplate.subject,
-      preheader: dbTemplate.preheader,
-      heading: dbTemplate.heading,
-      bodyParagraphs: dbTemplate.body_paragraphs,
-      bulletItems: dbTemplate.bullet_items,
-      ctaPrimaryLabel: dbTemplate.cta_primary_label,
-      ctaPrimaryUrl: dbTemplate.cta_primary_url,
-      ctaSecondaryLabel: dbTemplate.cta_secondary_label,
-      ctaSecondaryUrl: dbTemplate.cta_secondary_url,
-      footerText: dbTemplate.footer_text,
-      fromName: dbTemplate.from_name,
-      fromEmail: dbTemplate.from_email,
-      replyToEmail: dbTemplate.reply_to_email,
-      variableSchema: dbTemplate.variable_schema as Record<string, string>,
-    };
+  // Try to load from DB first (gracefully handle table not existing)
+  try {
+    const dbTemplate = await db.email_templates.findUnique({
+      where: { key: templateKey },
+    });
+    
+    if (dbTemplate) {
+      return {
+        layout: dbTemplate.layout,
+        subject: dbTemplate.subject,
+        preheader: dbTemplate.preheader,
+        heading: dbTemplate.heading,
+        bodyParagraphs: dbTemplate.body_paragraphs,
+        bulletItems: dbTemplate.bullet_items,
+        ctaPrimaryLabel: dbTemplate.cta_primary_label,
+        ctaPrimaryUrl: dbTemplate.cta_primary_url,
+        ctaSecondaryLabel: dbTemplate.cta_secondary_label,
+        ctaSecondaryUrl: dbTemplate.cta_secondary_url,
+        footerText: dbTemplate.footer_text,
+        fromName: dbTemplate.from_name,
+        fromEmail: dbTemplate.from_email,
+        replyToEmail: dbTemplate.reply_to_email,
+        variableSchema: dbTemplate.variable_schema as Record<string, string>,
+      };
+    }
+  } catch (error) {
+    // If table doesn't exist or query fails, fall back to default template
+    console.warn(`Failed to load template from DB (falling back to default): ${error}`);
   }
   
   // Fall back to default from registry
