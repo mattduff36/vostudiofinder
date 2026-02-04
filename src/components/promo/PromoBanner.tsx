@@ -11,12 +11,17 @@ interface PromoBannerProps {
   dismissible?: boolean;
   /** Variant: 'top' for site-wide header, 'inline' for page sections */
   variant?: 'top' | 'inline';
+  /** Override the promo active state (passed from server component) */
+  isPromoActive?: boolean;
 }
 
-export function PromoBanner({ dismissible = true, variant = 'top' }: PromoBannerProps) {
+export function PromoBanner({ dismissible = true, variant = 'top', isPromoActive }: PromoBannerProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const config = getPromoConfig();
+  
+  // Use prop if provided, otherwise fall back to env-based config
+  const promoActive = isPromoActive !== undefined ? isPromoActive : config.isActive;
 
   useEffect(() => {
     // Check if banner was previously dismissed in this session
@@ -32,7 +37,7 @@ export function PromoBanner({ dismissible = true, variant = 'top' }: PromoBanner
   }, []);
 
   // Don't render if promo is not active or banner is dismissed
-  if (!config.isActive || isDismissed) {
+  if (!promoActive || isDismissed) {
     return null;
   }
 

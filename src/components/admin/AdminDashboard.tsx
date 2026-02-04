@@ -19,6 +19,7 @@ import {
 import { AdminTabs } from './AdminTabs';
 import { AdminInsights } from './AdminInsights';
 import { AdminStickyNotes } from './AdminStickyNotes';
+import { PromoToggle } from './PromoToggle';
 import { Button } from '@/components/ui/Button';
 
 interface RecentActivityData {
@@ -380,6 +381,11 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
               <StickyNote className="w-5 h-5 text-gray-600" />
               <span className="text-sm font-medium text-gray-700">Notes</span>
             </button>
+          </div>
+
+          {/* Promo Toggle - Prominent at the top */}
+          <div className="mb-6">
+            <PromoToggle />
           </div>
 
           <div className="space-y-8">

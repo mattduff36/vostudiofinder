@@ -16,7 +16,7 @@ import { PromoBanner } from '@/components/promo/PromoBanner';
 import { authOptions } from '@/lib/auth';
 import Script from 'next/script';
 import { getBaseUrl, SITE_NAME } from '@/lib/seo/site';
-import { isFreeSignupPromoActive } from '@/lib/promo';
+import { getPromoStateFromDb } from '@/lib/promo';
 import './globals.css';
 
 const geistSans = Geist({
@@ -35,9 +35,10 @@ const raleway = Raleway({
   weight: ['300', '400', '500', '600', '700'],
 });
 
-// Dynamic metadata based on promo status
-const promoActive = isFreeSignupPromoActive();
-const descriptionText = promoActive
+// Metadata uses env variable (static at build time)
+// Runtime promo state is checked in the component
+const envPromoActive = process.env.NEXT_PUBLIC_PROMO_FREE_SIGNUP === 'true';
+const descriptionText = envPromoActive
   ? 'Browse professional voiceover recording studios worldwide - no signup required! Find studios, read reviews, and contact directly. Studio owners can list FREE for a limited time (normally £25/year).'
   : 'Browse professional voiceover recording studios worldwide - no signup required! Find studios, read reviews, and contact directly. Studio owners can list for £25/year.';
 
@@ -77,6 +78,16 @@ export default async function RootLayout({
 }>) {
   const session = await getServerSession(authOptions);
 
+  // Get promo state from database (with fallback to env)
+  let promoActive = false;
+  try {
+    promoActive = await getPromoStateFromDb();
+  } catch (error) {
+    console.error('Error fetching promo state:', error);
+    // Fall back to env variable
+    promoActive = process.env.NEXT_PUBLIC_PROMO_FREE_SIGNUP === 'true';
+  }
+
   let consentLevel: 'all' | 'necessary' | 'decline' | undefined;
   try {
     const cookieStore = await cookies();
@@ -102,7 +113,7 @@ export default async function RootLayout({
         )}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${raleway.variable} antialiased`}>
-        <PromoBanner />
+        <PromoBanner isPromoActive={promoActive} />
         <SessionProvider session={session}>
           <LoadingProvider>
             <ToastProvider />

@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
-import { isFreeSignupPromoActive } from '@/lib/promo';
+import { getPromoStateFromDb } from '@/lib/promo';
 import { UserStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 
 /**
  * Activate a free promo membership
- * This endpoint is only available when the promo is active (NEXT_PUBLIC_PROMO_FREE_SIGNUP=true)
+ * This endpoint is only available when the promo is active (database or env)
  * It activates the user's membership without requiring payment
  */
 export async function POST(request: NextRequest) {
   try {
-    // CRITICAL: Check if promo is active
-    if (!isFreeSignupPromoActive()) {
+    // CRITICAL: Check if promo is active (checks database first, then env)
+    const promoActive = await getPromoStateFromDb();
+    if (!promoActive) {
       console.error('[ERROR] Promo membership activation attempted while promo is not active');
       return NextResponse.json(
         { error: 'This promotion is no longer available' },
