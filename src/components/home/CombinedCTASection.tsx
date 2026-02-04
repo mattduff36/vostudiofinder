@@ -15,6 +15,8 @@ interface CombinedCTASectionProps {
     totalUsers: number;
     totalCountries: number;
   };
+  /** Server-side promo state from database */
+  isPromoActive?: boolean;
 }
 
 // Animated counter hook
@@ -52,7 +54,7 @@ const useCountUp = (end: number, duration: number = 2000) => {
   return { count, animate };
 };
 
-export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
+export function CombinedCTASection({ stats, isPromoActive }: CombinedCTASectionProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [nextSection, setNextSection] = useState(1);
   const [textVisible, setTextVisible] = useState(false);
@@ -61,7 +63,10 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const animationStartedRef = useRef(false);
   const promoConfig = getPromoConfig();
-  const signupCtaText = getSignupCtaText();
+  
+  // Use prop if provided, otherwise fall back to env-based config
+  const promoActive = isPromoActive !== undefined ? isPromoActive : promoConfig.isActive;
+  const signupCtaText = promoActive ? 'List Your Studio' : getSignupCtaText();
   
   const studiosCounter = useCountUp(stats.totalStudios, 2000);
   const usersCounter = useCountUp(stats.totalUsers, 2500);
@@ -260,7 +265,7 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
                 'Professional facilities worldwide', 
                 'Verified locations and equipment', 
                 'Direct booking capabilities', 
-                promoConfig.isActive ? `List FREE (normally ${promoConfig.normalPrice})` : 'Competitive pricing options'
+                promoActive ? `List FREE (normally ${promoConfig.normalPrice})` : 'Competitive pricing options'
               ]
             },
             { 
@@ -302,7 +307,7 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
 
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-2">
           <Link href="/auth/signup" className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center relative" style={{ backgroundColor: colors.background, color: colors.primary }}>
-            {promoConfig.isActive && (
+            {promoActive && (
               <span className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
                 FREE

@@ -95,31 +95,31 @@ export function PromoBanner({ dismissible = true, variant = 'top', isPromoActive
     );
   }
 
-  // Default: top banner variant
+  // Default: top banner variant - positioned BELOW navbar
+  // Desktop: Shows as a slim bar below the fixed navbar
+  // Mobile: Shows as a floating bottom banner (doesn't compete with navbar)
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="bg-gradient-to-r from-[#d42027] via-[#e63946] to-[#d42027] text-white relative z-[60]"
-        >
-          <div className="max-w-7xl mx-auto px-4 py-2.5 sm:py-3">
-            <div className="flex items-center justify-center gap-2 sm:gap-4 text-sm sm:text-base">
-              {/* Badge */}
-              <span className="hidden sm:inline-flex items-center gap-1.5 bg-white/20 text-xs font-semibold px-2.5 py-1 rounded-full">
-                <Sparkles className="w-3.5 h-3.5" />
-                {config.badgeText}
-              </span>
-
-              {/* Main message */}
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
-                <span className="font-semibold">
-                  <span className="sm:hidden">🎉 </span>
-                  FLASH SALE:
+        <>
+          {/* Desktop: Fixed banner below navbar */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="hidden md:block fixed top-20 left-0 right-0 z-[55] bg-gradient-to-r from-[#d42027] via-[#e63946] to-[#d42027] text-white shadow-lg"
+          >
+            <div className="max-w-7xl mx-auto px-4 py-2">
+              <div className="flex items-center justify-center gap-4 text-sm">
+                {/* Badge */}
+                <span className="inline-flex items-center gap-1.5 bg-white/20 text-xs font-semibold px-2.5 py-1 rounded-full">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {config.badgeText}
                 </span>
+
+                {/* Main message */}
+                <span className="font-semibold">FLASH SALE:</span>
                 <span>
                   <span className="font-bold">{config.promoPrice}</span>
                   {' '}membership
@@ -127,47 +127,83 @@ export function PromoBanner({ dismissible = true, variant = 'top', isPromoActive
                     (normally <span className="line-through">{config.normalPrice}</span>)
                   </span>
                 </span>
-              </div>
 
-              {/* End date indicator */}
-              {endDateFormatted && (
-                <span className="hidden md:inline-flex items-center gap-1 text-white/80 text-xs">
-                  <Clock className="w-3.5 h-3.5" />
-                  Ends {endDateFormatted}
-                </span>
-              )}
+                {/* End date indicator */}
+                {endDateFormatted && (
+                  <span className="inline-flex items-center gap-1 text-white/80 text-xs">
+                    <Clock className="w-3.5 h-3.5" />
+                    Ends {endDateFormatted}
+                  </span>
+                )}
 
-              {/* CTA Button */}
-              <Link
-                href="/auth/signup"
-                className="bg-white text-[#d42027] px-3 sm:px-4 py-1 sm:py-1.5 rounded-md font-semibold text-xs sm:text-sm hover:bg-gray-100 transition-colors whitespace-nowrap ml-1 sm:ml-2"
-              >
-                Get free membership
-              </Link>
-
-              {/* Dismiss button */}
-              {dismissible && (
-                <button
-                  onClick={handleDismiss}
-                  className="ml-2 p-1 hover:bg-white/20 rounded-full transition-colors"
-                  aria-label="Dismiss banner"
+                {/* CTA Button */}
+                <Link
+                  href="/auth/signup"
+                  className="bg-white text-[#d42027] px-4 py-1.5 rounded-md font-semibold text-sm hover:bg-gray-100 transition-colors whitespace-nowrap"
                 >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+                  Get free membership
+                </Link>
 
-            {/* Secondary link - mobile visible */}
-            <div className="flex justify-center mt-1.5 sm:hidden">
-              <Link
-                href="/help"
-                className="text-white/80 text-xs underline hover:text-white transition-colors"
-              >
-                See what&apos;s included
-              </Link>
+                {/* Dismiss button */}
+                {dismissible && (
+                  <button
+                    onClick={handleDismiss}
+                    className="p-1 hover:bg-white/20 rounded-full transition-colors"
+                    aria-label="Dismiss banner"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+
+          {/* Mobile: Floating bottom banner - compact and out of the way */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3, ease: 'easeOut', delay: 0.5 }}
+            className="md:hidden fixed bottom-20 left-3 right-3 z-[55]"
+          >
+            <div className="bg-gradient-to-r from-[#d42027] to-[#e63946] text-white rounded-xl shadow-2xl p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className="bg-white/20 rounded-full p-1.5 flex-shrink-0">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold truncate">
+                      🎉 FLASH SALE: {config.promoPrice} membership
+                    </p>
+                    <p className="text-[10px] text-white/80 truncate">
+                      normally <span className="line-through">{config.normalPrice}</span>
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Link
+                    href="/auth/signup"
+                    className="bg-white text-[#d42027] px-3 py-1.5 rounded-lg font-semibold text-xs hover:bg-gray-100 transition-colors whitespace-nowrap"
+                  >
+                    Join free
+                  </Link>
+                  
+                  {dismissible && (
+                    <button
+                      onClick={handleDismiss}
+                      className="p-1 hover:bg-white/20 rounded-full transition-colors"
+                      aria-label="Dismiss banner"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
       )}
     </AnimatePresence>
   );

@@ -7,17 +7,25 @@ import { useState, useEffect } from 'react';
 import { colors } from './HomePage';
 import { getPromoConfig, getSignupCtaText } from '@/lib/promo';
 
-export function NewCTASection() {
+interface NewCTASectionProps {
+  /** Server-side promo state from database */
+  isPromoActive?: boolean;
+}
+
+export function NewCTASection({ isPromoActive }: NewCTASectionProps) {
   const [isVisible, setIsVisible] = useState(false);
   const promoConfig = getPromoConfig();
-  const signupCtaText = getSignupCtaText();
+  
+  // Use prop if provided, otherwise fall back to env-based config
+  const promoActive = isPromoActive !== undefined ? isPromoActive : promoConfig.isActive;
+  const signupCtaText = promoActive ? 'List Your Studio' : getSignupCtaText();
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
   // Dynamic pricing text based on promo status
-  const pricingText = promoConfig.isActive
+  const pricingText = promoActive
     ? `${promoConfig.promoPrice} for a limited time (normally ${promoConfig.normalPrice}) - one booking pays for itself!`
     : `Just ${promoConfig.normalPrice} - one booking pays for the whole year.`;
 
@@ -142,7 +150,7 @@ export function NewCTASection() {
               className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center relative" 
               style={{ backgroundColor: colors.primary, color: '#ffffff' }}
             >
-              {promoConfig.isActive && (
+              {promoActive && (
                 <span className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
                   FREE

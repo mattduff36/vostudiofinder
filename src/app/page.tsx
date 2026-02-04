@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { HomePage } from '@/components/home/HomePage';
+import { getPromoStateFromDb } from '@/lib/promo';
 import {
   getBaseUrl,
   SITE_NAME,
@@ -47,6 +48,16 @@ export const revalidate = 600;
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
+
+  // Get promo state from database (server-side)
+  let isPromoActive = false;
+  try {
+    isPromoActive = await getPromoStateFromDb();
+  } catch (error) {
+    console.error('Error fetching promo state:', error);
+    // Fall back to env variable
+    isPromoActive = process.env.NEXT_PUBLIC_PROMO_FREE_SIGNUP === 'true';
+  }
 
   let featuredStudiosRaw: any[] = [];
 
@@ -171,6 +182,7 @@ export default async function Home() {
           totalUsers,
           totalCountries: uniqueCountries,
         }}
+        isPromoActive={isPromoActive}
       />
     </>
   );

@@ -11,7 +11,12 @@ import { Sparkles } from 'lucide-react';
 
 import Image from 'next/image';
 
-export function HeroSection() {
+interface HeroSectionProps {
+  /** Server-side promo state from database */
+  isPromoActive?: boolean;
+}
+
+export function HeroSection({ isPromoActive }: HeroSectionProps) {
   logger.log('🏠 HeroSection component rendered');
   const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -19,6 +24,9 @@ export function HeroSection() {
   const lastWidthRef = useRef<number | null>(null);
   const hasInitializedRef = useRef(false);
   const promoConfig = getPromoConfig();
+  
+  // Use prop if provided, otherwise fall back to env-based config
+  const promoActive = isPromoActive !== undefined ? isPromoActive : promoConfig.isActive;
 
   useEffect(() => {
     setIsLoaded(true);
@@ -180,7 +188,7 @@ export function HeroSection() {
           </div>
 
           {/* Promo CTA Section - Only shows when promo is active */}
-          {promoConfig.isActive && (
+          {promoActive && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
