@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { AlertCircle, CreditCard } from 'lucide-react';
+import { AlertCircle, CreditCard, Sparkles } from 'lucide-react';
+import { getPromoConfig } from '@/lib/promo';
 
 interface MembershipPaywallProps {
   title?: string;
@@ -16,6 +17,7 @@ export function MembershipPaywall({
   action = 'Renew Membership',
 }: MembershipPaywallProps) {
   const router = useRouter();
+  const promoConfig = getPromoConfig();
 
   const handleRenew = () => {
     router.push('/auth/membership');
@@ -32,13 +34,21 @@ export function MembershipPaywall({
         {message}
       </p>
       
+      {/* Promo badge when active */}
+      {promoConfig.isActive && (
+        <div className="mb-4 bg-green-100 text-green-800 text-sm font-semibold px-4 py-2 rounded-full flex items-center gap-2">
+          <Sparkles className="w-4 h-4" />
+          {promoConfig.badgeText}: {promoConfig.promoPrice} (normally {promoConfig.normalPrice})
+        </div>
+      )}
+      
       <div className="flex flex-col sm:flex-row gap-3">
         <Button
           onClick={handleRenew}
           className="bg-[#d42027] hover:bg-[#b91c23] text-white"
         >
           <CreditCard className="w-4 h-4 mr-2" />
-          {action}
+          {promoConfig.isActive ? 'Get Free Membership' : action}
         </Button>
         
         <Button
@@ -52,7 +62,16 @@ export function MembershipPaywall({
       
       <div className="mt-6 text-sm text-gray-500 text-center max-w-md">
         <p>
-          Annual membership is only <span className="font-semibold">£25/year</span>.
+          {promoConfig.isActive ? (
+            <>
+              Annual membership is <span className="line-through">{promoConfig.normalPrice}</span>{' '}
+              <span className="font-semibold text-green-600">{promoConfig.promoPrice} for a limited time</span>.
+            </>
+          ) : (
+            <>
+              Annual membership is only <span className="font-semibold">{promoConfig.normalPrice}</span>.
+            </>
+          )}{' '}
           Get unlimited access to create and manage your studio listing.
         </p>
       </div>

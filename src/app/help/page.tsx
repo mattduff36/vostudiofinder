@@ -2,12 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Book, Mail, Building, Users, Star } from 'lucide-react';
+import { Search, Book, Mail, Building, Users, Star, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { PageHero } from '@/components/common/PageHero';
 import { colors } from '../../components/home/HomePage';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Footer } from '@/components/home/Footer';
+import { getPromoConfig } from '@/lib/promo';
 
 interface FAQ {
   id: string;
@@ -20,6 +21,7 @@ export default function HelpPage() {
   const [openFAQ, setOpenFAQ] = useState<string | null>(null);
   const [faqData, setFaqData] = useState<FAQ[]>([]);
   const [isLoadingFAQs, setIsLoadingFAQs] = useState(true);
+  const promoConfig = getPromoConfig();
 
   // Fetch FAQs from database
   useEffect(() => {
@@ -101,8 +103,27 @@ export default function HelpPage() {
                     <Star className="w-6 h-6" style={{ color: colors.primary }} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-lg mb-1">No Commission</h4>
-                    <p className="text-gray-600">Keep 100% of what you earn. Just £25/year to list your studio—one booking often pays for the whole year.</p>
+                    <h4 className="font-semibold text-lg mb-1">
+                      No Commission
+                      {promoConfig.isActive && (
+                        <span className="ml-2 bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          {promoConfig.badgeText}
+                        </span>
+                      )}
+                    </h4>
+                    <p className="text-gray-600">
+                      Keep 100% of what you earn.{' '}
+                      {promoConfig.isActive ? (
+                        <>
+                          <span className="line-through">{promoConfig.normalPrice}</span>{' '}
+                          <span className="font-semibold text-green-600">{promoConfig.promoPrice} for a limited time</span>
+                        </>
+                      ) : (
+                        <>Just {promoConfig.normalPrice}</>
+                      )}{' '}
+                      to list your studio—one booking often pays for the whole year.
+                    </p>
                   </div>
                 </div>
                 <div className="flex gap-4">

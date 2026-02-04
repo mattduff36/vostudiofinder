@@ -6,10 +6,15 @@ import { requireEmailVerification } from '@/lib/auth-guards';
 import { db } from '@/lib/db';
 import { UserStatus } from '@prisma/client';
 import { MembershipPayment } from '@/components/auth/MembershipPayment';
+import { isFreeSignupPromoActive } from '@/lib/promo';
+
+const isPromoActive = isFreeSignupPromoActive();
 
 export const metadata: Metadata = {
   title: 'Studio Membership - Voiceover Studio Finder',
-  description: 'Join as a studio owner for £25/year and connect with voice artists worldwide',
+  description: isPromoActive 
+    ? 'Join as a studio owner FREE for a limited time (normally £25/year) and connect with voice artists worldwide'
+    : 'Join as a studio owner for £25/year and connect with voice artists worldwide',
 };
 
 interface MembershipPageProps {
