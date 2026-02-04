@@ -1,17 +1,25 @@
 'use client';
 
-import { Mic, Building, Users, CheckCircle2 } from 'lucide-react';
+import { Mic, Building, Users, CheckCircle2, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { colors } from './HomePage';
+import { getPromoConfig, getSignupCtaText } from '@/lib/promo';
 
 export function NewCTASection() {
   const [isVisible, setIsVisible] = useState(false);
+  const promoConfig = getPromoConfig();
+  const signupCtaText = getSignupCtaText();
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  // Dynamic pricing text based on promo status
+  const pricingText = promoConfig.isActive
+    ? `${promoConfig.promoPrice} for a limited time (normally ${promoConfig.normalPrice}) - one booking pays for itself!`
+    : `Just ${promoConfig.normalPrice} - one booking pays for the whole year.`;
 
   const sections = [
     { 
@@ -33,7 +41,7 @@ export function NewCTASection() {
         'Get discovered by thousands of voice artists worldwide', 
         'Showcase your studio with photos, equipment lists, prices  and services', 
         'Receive direct enquiries from qualified clients', 
-        'Just £25/year - one booking pays for the whole year.'
+        pricingText
       ] 
     },
     { 
@@ -131,10 +139,16 @@ export function NewCTASection() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-2">
             <Link 
               href="/auth/signup" 
-              className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" 
+              className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center relative" 
               style={{ backgroundColor: colors.primary, color: '#ffffff' }}
             >
-              List Your Studio - £25/year
+              {promoConfig.isActive && (
+                <span className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  FREE
+                </span>
+              )}
+              {signupCtaText}
             </Link>
             <Link 
               href="/studios" 

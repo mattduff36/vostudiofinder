@@ -2,10 +2,11 @@
 
 import { Session } from 'next-auth';
 import { useState, useEffect, useRef } from 'react';
-import { Building, Users, Star } from 'lucide-react';
+import { Building, Users, Star, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { colors } from './HomePage';
+import { getPromoConfig, getSignupCtaText } from '@/lib/promo';
 
 interface CombinedCTASectionProps {
   session: Session | null;
@@ -59,6 +60,8 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
   const [kenBurnsActive, setKenBurnsActive] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const animationStartedRef = useRef(false);
+  const promoConfig = getPromoConfig();
+  const signupCtaText = getSignupCtaText();
   
   const studiosCounter = useCountUp(stats.totalStudios, 2000);
   const usersCounter = useCountUp(stats.totalUsers, 2500);
@@ -253,7 +256,12 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
               number: `${studiosCounter.count.toLocaleString()}+`, 
               label: 'Recording Studios', 
               color: '#ffffff',
-              points: ['Professional facilities worldwide', 'Verified locations and equipment', 'Direct booking capabilities', 'Competitive pricing options']
+              points: [
+                'Professional facilities worldwide', 
+                'Verified locations and equipment', 
+                'Direct booking capabilities', 
+                promoConfig.isActive ? `List FREE (normally ${promoConfig.normalPrice})` : 'Competitive pricing options'
+              ]
             },
             { 
               icon: Users, 
@@ -293,8 +301,14 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-2">
-          <Link href="/auth/signup" className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" style={{ backgroundColor: colors.background, color: colors.primary }}>
-            List Your Studio - £25/year
+          <Link href="/auth/signup" className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center relative" style={{ backgroundColor: colors.background, color: colors.primary }}>
+            {promoConfig.isActive && (
+              <span className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                FREE
+              </span>
+            )}
+            {signupCtaText}
           </Link>
           <Link href="/studios" className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" style={{ border: `1px solid ${colors.background}`, color: colors.background, backgroundColor: 'transparent' }}>
             Browse Studios

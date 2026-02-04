@@ -3,9 +3,11 @@ import { logger } from '@/lib/logger';
 import { motion } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { colors } from './HomePage';
 import { EnhancedSearchBar } from '../search/EnhancedSearchBar';
-
+import { getPromoConfig } from '@/lib/promo';
+import { Sparkles } from 'lucide-react';
 
 import Image from 'next/image';
 
@@ -16,6 +18,7 @@ export function HeroSection() {
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const lastWidthRef = useRef<number | null>(null);
   const hasInitializedRef = useRef(false);
+  const promoConfig = getPromoConfig();
 
   useEffect(() => {
     setIsLoaded(true);
@@ -175,6 +178,45 @@ export function HeroSection() {
               onSearch={handleSearch}
             />
           </div>
+
+          {/* Promo CTA Section - Only shows when promo is active */}
+          {promoConfig.isActive && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="max-w-2xl mx-auto mt-8 sm:mt-10 px-4"
+            >
+              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 sm:p-6 shadow-2xl border border-white/20">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-center sm:text-left">
+                    <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
+                      <span className="bg-[#d42027] text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        {promoConfig.badgeText}
+                      </span>
+                    </div>
+                    <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
+                      List Your Studio {promoConfig.promoPrice}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      <span className="line-through text-gray-400">{promoConfig.normalPrice}</span>
+                      <span className="ml-2 font-semibold text-[#d42027]">{promoConfig.promoPrice} for a limited time</span>
+                    </p>
+                  </div>
+                  <Link
+                    href="/auth/signup"
+                    className="w-full sm:w-auto px-6 py-3 bg-[#d42027] text-white font-semibold rounded-lg hover:bg-[#b91c22] transition-all duration-300 hover:shadow-lg text-center whitespace-nowrap"
+                  >
+                    {promoConfig.ctaText}
+                  </Link>
+                </div>
+                <p className="text-xs text-gray-500 text-center mt-3">
+                  Limited-time promotion — secure your listing while it&apos;s free.
+                </p>
+              </div>
+            </motion.div>
+          )}
 
         </div>
       </div>
