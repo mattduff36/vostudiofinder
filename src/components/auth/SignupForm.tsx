@@ -7,10 +7,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { signupSchema, type SignupInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Eye, EyeOff, Mail, Shield } from 'lucide-react';
+import { Eye, EyeOff, Mail, Shield, Sparkles, Check } from 'lucide-react';
 import { ResumeSignupBanner } from './ResumeSignupBanner';
 import { SignupProgressIndicator } from './SignupProgressIndicator';
 import { storeSignupData } from '@/lib/signup-recovery';
+import { getPromoConfig, getMembershipButtonText } from '@/lib/promo';
 
 // Declare Turnstile types
 declare global {
@@ -64,6 +65,9 @@ export function SignupForm() {
   const turnstileRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetId = useRef<string | null>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
+  
+  const promoConfig = getPromoConfig();
+  const buttonText = getMembershipButtonText();
 
   const {
     register,
@@ -391,10 +395,50 @@ export function SignupForm() {
       <div className="w-full max-w-2xl space-y-6">
         <SignupProgressIndicator currentStep="signup" />
         
+        {/* Promo Callout Card - Only shows when promo is active */}
+        {promoConfig.isActive && (
+          <div className="bg-gradient-to-r from-[#d42027] to-[#e63946] rounded-xl p-5 text-white shadow-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="bg-white/20 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                {promoConfig.badgeText}
+              </span>
+            </div>
+            <h2 className="text-xl font-bold mb-2">
+              {promoConfig.promoPrice} Membership
+            </h2>
+            <p className="text-white/90 mb-3">
+              <span className="line-through opacity-75">{promoConfig.normalPrice}</span>
+              <span className="ml-2 font-semibold">{promoConfig.promoPrice} for a limited time</span>
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 flex-shrink-0" />
+                <span>Professional studio listing with photos</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 flex-shrink-0" />
+                <span>Direct contact from qualified clients</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 flex-shrink-0" />
+                <span>Be discoverable by voice artists worldwide</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 flex-shrink-0" />
+                <span>SEO-optimised profile for search engines</span>
+              </li>
+            </ul>
+          </div>
+        )}
+        
         <div className="text-center">
           <h1 className="text-3xl font-bold text-text-primary">List Your Studio</h1>
           <p className="mt-2 text-text-secondary">
-            Start your membership to showcase your studio to voice artists worldwide
+            {promoConfig.isActive 
+              ? `Create your free account and start showcasing your studio to voice artists worldwide`
+              : `Start your membership to showcase your studio to voice artists worldwide`
+            }
           </p>
         </div>
 
@@ -541,7 +585,7 @@ export function SignupForm() {
           loading={isLoading}
           disabled={isLoading || !turnstileToken}
         >
-          Continue to Membership
+          {buttonText}
         </Button>
 
         <div className="text-center">

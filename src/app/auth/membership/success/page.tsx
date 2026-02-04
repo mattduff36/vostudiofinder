@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 interface MembershipSuccessPageProps {
-  searchParams: Promise<{ session_id?: string; email?: string; name?: string; username?: string }>;
+  searchParams: Promise<{ session_id?: string; email?: string; name?: string; username?: string; promo?: string }>;
 }
 
 // Field guidance data
@@ -150,14 +150,203 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   console.log(`[DEBUG ${pageTimestamp}] ========== SUCCESS PAGE LOAD START ==========`);
   
   const params = await searchParams;
+  const isPromoActivation = params.promo === 'true';
+  
   console.log(`[DEBUG ${pageTimestamp}] Search params received:`, {
     session_id: params.session_id || 'MISSING',
     email: params.email || 'MISSING',
     name: params.name || 'MISSING',
     username: params.username || 'MISSING',
+    promo: params.promo || 'MISSING',
+    isPromoActivation,
   });
 
-  // Verify payment exists
+  // PROMO FLOW: No session_id needed - user already activated via promo API
+  if (isPromoActivation && params.email) {
+    console.log(`[DEBUG ${pageTimestamp}] 🎁 PROMO FLOW: Processing promo activation for ${params.email}`);
+    
+    // Look up user by email (promo flow doesn't have session_id)
+    const promoUser = await db.users.findFirst({
+      where: { email: params.email },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        display_name: true,
+        avatar_url: true,
+        status: true,
+        email_verified: true,
+      },
+    });
+
+    if (!promoUser) {
+      console.error(`[DEBUG ${pageTimestamp}] ❌ ERROR: Promo user not found for email: ${params.email}`);
+      redirect('/auth/signup?error=user_not_found');
+    }
+
+    if (promoUser.status !== 'ACTIVE') {
+      console.error(`[DEBUG ${pageTimestamp}] ❌ ERROR: Promo user not active: ${promoUser.status}`);
+      redirect('/auth/signup?error=activation_failed');
+    }
+
+    console.log(`[DEBUG ${pageTimestamp}] ✅ PROMO: User verified as ACTIVE: ${promoUser.id}`);
+
+    // Fetch studio profile for promo user
+    const promoStudioProfile = await db.studio_profiles.findUnique({
+      where: { user_id: promoUser.id },
+      select: {
+        id: true,
+        name: true,
+        short_about: true,
+        about: true,
+        phone: true,
+        location: true,
+        website_url: true,
+        equipment_list: true,
+        services_offered: true,
+        facebook_url: true,
+        x_url: true,
+        linkedin_url: true,
+        instagram_url: true,
+        youtube_url: true,
+        tiktok_url: true,
+        threads_url: true,
+        soundcloud_url: true,
+        connection1: true,
+        connection2: true,
+        connection3: true,
+        connection4: true,
+        connection5: true,
+        connection6: true,
+        connection7: true,
+        connection8: true,
+        connection9: true,
+        connection10: true,
+        connection11: true,
+        connection12: true,
+        rate_tier_1: true,
+        studio_studio_types: {
+          select: {
+            studio_type: true,
+          },
+        },
+        studio_images: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    // Calculate profile completion using single source of truth
+    const promoCompletionStats = calculateCompletionStats({
+      user: {
+        username: promoUser.username,
+        display_name: promoUser.display_name,
+        email: promoUser.email,
+        avatar_url: promoUser.avatar_url,
+      },
+      profile: promoStudioProfile ? {
+        short_about: promoStudioProfile.short_about,
+        about: promoStudioProfile.about,
+        phone: promoStudioProfile.phone,
+        location: promoStudioProfile.location,
+        website_url: promoStudioProfile.website_url,
+        equipment_list: promoStudioProfile.equipment_list,
+        services_offered: promoStudioProfile.services_offered,
+        facebook_url: promoStudioProfile.facebook_url,
+        x_url: promoStudioProfile.x_url,
+        linkedin_url: promoStudioProfile.linkedin_url,
+        instagram_url: promoStudioProfile.instagram_url,
+        youtube_url: promoStudioProfile.youtube_url,
+        tiktok_url: promoStudioProfile.tiktok_url,
+        threads_url: promoStudioProfile.threads_url,
+        soundcloud_url: promoStudioProfile.soundcloud_url,
+        connection1: promoStudioProfile.connection1,
+        connection2: promoStudioProfile.connection2,
+        connection3: promoStudioProfile.connection3,
+        connection4: promoStudioProfile.connection4,
+        connection5: promoStudioProfile.connection5,
+        connection6: promoStudioProfile.connection6,
+        connection7: promoStudioProfile.connection7,
+        connection8: promoStudioProfile.connection8,
+        connection9: promoStudioProfile.connection9,
+        connection10: promoStudioProfile.connection10,
+        connection11: promoStudioProfile.connection11,
+        connection12: promoStudioProfile.connection12,
+        rate_tier_1: promoStudioProfile.rate_tier_1,
+      } : undefined,
+      studio: {
+        name: promoStudioProfile?.name || null,
+        studio_types: promoStudioProfile?.studio_studio_types?.map(st => st.studio_type) || [],
+        images: promoStudioProfile?.studio_images || [],
+        website_url: promoStudioProfile?.website_url || null,
+      },
+    });
+
+    const promoHasConnectionMethod = !!(
+      promoStudioProfile?.connection1 === '1' || 
+      promoStudioProfile?.connection2 === '1' || 
+      promoStudioProfile?.connection3 === '1' || 
+      promoStudioProfile?.connection4 === '1' || 
+      promoStudioProfile?.connection5 === '1' || 
+      promoStudioProfile?.connection6 === '1' || 
+      promoStudioProfile?.connection7 === '1' || 
+      promoStudioProfile?.connection8 === '1' ||
+      promoStudioProfile?.connection9 === '1' ||
+      promoStudioProfile?.connection10 === '1' ||
+      promoStudioProfile?.connection11 === '1' ||
+      promoStudioProfile?.connection12 === '1'
+    );
+
+    const promoSocialMediaCount = [
+      promoStudioProfile?.facebook_url,
+      promoStudioProfile?.x_url,
+      promoStudioProfile?.linkedin_url,
+      promoStudioProfile?.instagram_url,
+      promoStudioProfile?.youtube_url,
+      promoStudioProfile?.tiktok_url,
+      promoStudioProfile?.threads_url,
+      promoStudioProfile?.soundcloud_url,
+    ].filter(url => url && url.trim() !== '').length;
+
+    const promoRequiredFieldsWithStatus = [
+      { name: REQUIRED_FIELDS[0]!.name, required: true, completed: !!(promoUser.username && !promoUser.username.startsWith('temp_')), where: REQUIRED_FIELDS[0]!.where, how: REQUIRED_FIELDS[0]!.how, why: REQUIRED_FIELDS[0]!.why },
+      { name: REQUIRED_FIELDS[1]!.name, required: true, completed: !!(promoUser.display_name && promoUser.display_name.trim()), where: REQUIRED_FIELDS[1]!.where, how: REQUIRED_FIELDS[1]!.how, why: REQUIRED_FIELDS[1]!.why },
+      { name: REQUIRED_FIELDS[2]!.name, required: true, completed: !!(promoUser.email && promoUser.email.trim()), where: REQUIRED_FIELDS[2]!.where, how: REQUIRED_FIELDS[2]!.how, why: REQUIRED_FIELDS[2]!.why },
+      { name: REQUIRED_FIELDS[3]!.name, required: true, completed: !!(promoStudioProfile?.name && promoStudioProfile.name.trim()), where: REQUIRED_FIELDS[3]!.where, how: REQUIRED_FIELDS[3]!.how, why: REQUIRED_FIELDS[3]!.why },
+      { name: REQUIRED_FIELDS[4]!.name, required: true, completed: !!(promoStudioProfile?.short_about && promoStudioProfile.short_about.trim()), where: REQUIRED_FIELDS[4]!.where, how: REQUIRED_FIELDS[4]!.how, why: REQUIRED_FIELDS[4]!.why },
+      { name: REQUIRED_FIELDS[5]!.name, required: true, completed: !!(promoStudioProfile?.about && promoStudioProfile.about.trim()), where: REQUIRED_FIELDS[5]!.where, how: REQUIRED_FIELDS[5]!.how, why: REQUIRED_FIELDS[5]!.why },
+      { name: REQUIRED_FIELDS[6]!.name, required: true, completed: !!(promoStudioProfile?.studio_studio_types && promoStudioProfile.studio_studio_types.length >= 1), where: REQUIRED_FIELDS[6]!.where, how: REQUIRED_FIELDS[6]!.how, why: REQUIRED_FIELDS[6]!.why },
+      { name: REQUIRED_FIELDS[7]!.name, required: true, completed: !!(promoStudioProfile?.location && promoStudioProfile.location.trim()), where: REQUIRED_FIELDS[7]!.where, how: REQUIRED_FIELDS[7]!.how, why: REQUIRED_FIELDS[7]!.why },
+      { name: REQUIRED_FIELDS[8]!.name, required: true, completed: promoHasConnectionMethod, where: REQUIRED_FIELDS[8]!.where, how: REQUIRED_FIELDS[8]!.how, why: REQUIRED_FIELDS[8]!.why },
+      { name: REQUIRED_FIELDS[9]!.name, required: true, completed: !!(promoStudioProfile?.website_url && promoStudioProfile.website_url.trim()), where: REQUIRED_FIELDS[9]!.where, how: REQUIRED_FIELDS[9]!.how, why: REQUIRED_FIELDS[9]!.why },
+      { name: REQUIRED_FIELDS[10]!.name, required: true, completed: !!(promoStudioProfile?.studio_images && promoStudioProfile.studio_images.length >= 1), where: REQUIRED_FIELDS[10]!.where, how: REQUIRED_FIELDS[10]!.how, why: REQUIRED_FIELDS[10]!.why },
+    ];
+
+    const promoOptionalFieldsWithStatus = [
+      { name: OPTIONAL_FIELDS[0]!.name, required: false, completed: !!(promoUser.avatar_url && promoUser.avatar_url.trim()), where: OPTIONAL_FIELDS[0]!.where, how: OPTIONAL_FIELDS[0]!.how, why: OPTIONAL_FIELDS[0]!.why },
+      { name: OPTIONAL_FIELDS[1]!.name, required: false, completed: !!(promoStudioProfile?.phone && promoStudioProfile.phone.trim()), where: OPTIONAL_FIELDS[1]!.where, how: OPTIONAL_FIELDS[1]!.how, why: OPTIONAL_FIELDS[1]!.why },
+      { name: OPTIONAL_FIELDS[2]!.name, required: false, completed: promoSocialMediaCount >= 2, where: OPTIONAL_FIELDS[2]!.where, how: OPTIONAL_FIELDS[2]!.how, why: OPTIONAL_FIELDS[2]!.why },
+      { name: OPTIONAL_FIELDS[3]!.name, required: false, completed: !!(promoStudioProfile?.rate_tier_1 && (typeof promoStudioProfile.rate_tier_1 === 'number' ? promoStudioProfile.rate_tier_1 > 0 : parseFloat(promoStudioProfile.rate_tier_1) > 0)), where: OPTIONAL_FIELDS[3]!.where, how: OPTIONAL_FIELDS[3]!.how, why: OPTIONAL_FIELDS[3]!.why },
+      { name: OPTIONAL_FIELDS[4]!.name, required: false, completed: !!(promoStudioProfile?.equipment_list && promoStudioProfile.equipment_list.trim()), where: OPTIONAL_FIELDS[4]!.where, how: OPTIONAL_FIELDS[4]!.how, why: OPTIONAL_FIELDS[4]!.why },
+      { name: OPTIONAL_FIELDS[5]!.name, required: false, completed: !!(promoStudioProfile?.services_offered && promoStudioProfile.services_offered.trim()), where: OPTIONAL_FIELDS[5]!.where, how: OPTIONAL_FIELDS[5]!.how, why: OPTIONAL_FIELDS[5]!.why },
+    ];
+
+    return (
+      <AutoLoginAfterPayment>
+        <PaymentSuccessOnboarding
+          userName={promoUser.display_name}
+          completionPercentage={promoCompletionStats.overall.percentage}
+          requiredFields={promoRequiredFieldsWithStatus}
+          optionalFields={promoOptionalFieldsWithStatus}
+          isPromo={true}
+        />
+      </AutoLoginAfterPayment>
+    );
+  }
+
+  // STANDARD FLOW: Verify Stripe payment exists
   if (!params.session_id) {
     console.error(`[DEBUG ${pageTimestamp}] ❌ ERROR: No session_id provided in URL params`);
     console.error(`[DEBUG ${pageTimestamp}] Full params:`, JSON.stringify(params, null, 2));

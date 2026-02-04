@@ -4,10 +4,11 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { Check, Building, Loader2, Sparkles, Upload, Globe, AlertCircle } from 'lucide-react';
+import { Check, Building, Loader2, Sparkles, Upload, Globe, AlertCircle, Gift, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
 import { getSignupData, storeSignupData, recoverSignupState, updateURLParams, type SignupData } from '@/lib/signup-recovery';
+import { getPromoConfig } from '@/lib/promo';
 
 // Initialize Stripe
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -22,6 +23,8 @@ export function MembershipPayment() {
   const [isLoading, setIsLoading] = useState(true);
   const [recoveryAttempted, setRecoveryAttempted] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
+  const [isActivatingPromo, setIsActivatingPromo] = useState(false);
+  const promoConfig = getPromoConfig();
 
   // Get user data from URL params (passed from signup form)
   let userId = searchParams?.get('userId') || '';
@@ -226,6 +229,42 @@ export function MembershipPayment() {
 
   const options = { fetchClientSecret };
 
+  // Handle promo activation (free membership)
+  const handlePromoActivation = async () => {
+    setIsActivatingPromo(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/stripe/activate-promo-membership', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          email,
+          name,
+          username,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to activate free membership');
+      }
+
+      const data = await response.json();
+      console.log('✅ Promo membership activated:', data);
+      
+      // Redirect to success page
+      window.location.href = `/auth/membership/success?promo=true&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}`;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to activate membership';
+      console.error('❌ Promo activation error:', errorMessage);
+      setError(errorMessage);
+    } finally {
+      setIsActivatingPromo(false);
+    }
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col justify-center py-8 px-4">
       {/* Background Image */}
@@ -254,9 +293,22 @@ export function MembershipPayment() {
 
         {/* Welcome Header */}
         <div className="bg-[#d42027] px-8 py-8 text-white text-center rounded-t-xl shadow-lg">
+          {promoConfig.isActive && (
+            <div className="flex justify-center mb-3">
+              <span className="bg-white/20 text-sm font-semibold px-3 py-1 rounded-full flex items-center gap-1.5">
+                <Gift className="w-4 h-4" />
+                {promoConfig.badgeText} — {promoConfig.promoPrice} Membership
+              </span>
+            </div>
+          )}
           <div className="text-4xl font-bold mb-3">Welcome {name || 'Studio Owner'}!</div>
           <div className="text-xl mb-2">VoiceoverStudioFinder.com/{username || 'YourStudio'} has been secured</div>
-          <div className="text-base opacity-90">You&apos;re minutes away from showcasing your studio!</div>
+          <div className="text-base opacity-90">
+            {promoConfig.isActive 
+              ? `Activate your ${promoConfig.promoPrice} membership and start showcasing your studio!`
+              : `You're minutes away from showcasing your studio!`
+            }
+          </div>
         </div>
 
         <div className="bg-white shadow-2xl rounded-b-xl overflow-hidden">
@@ -336,7 +388,7 @@ export function MembershipPayment() {
               </div>
             </div>
 
-            {/* RIGHT: Payment Form - Takes 2 columns */}
+            {/* RIGHT: Payment/Activation Form - Takes 2 columns */}
             <div className="lg:col-span-2 pb-8">
               {/* Error Display with Recovery Options */}
               {error && (
@@ -368,36 +420,103 @@ export function MembershipPayment() {
                 </div>
               )}
 
-              {/* Embedded Stripe Checkout */}
-              {isLoading ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <Loader2 className="w-10 h-10 animate-spin text-[#d42027] mb-4" />
-                  <span className="text-gray-600 text-lg">Loading payment form...</span>
-                </div>
-              ) : !stripePromise ? (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                  <p className="text-red-800 font-medium text-lg mb-2">Payment system configuration error</p>
-                  <p className="text-red-600">
-                    Please contact support. Error: Stripe not configured
+              {/* PROMO: Free Membership Activation */}
+              {promoConfig.isActive ? (
+                <div className="px-6 py-8">
+                  {/* Promo Callout */}
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="bg-green-500 text-white p-2 rounded-full">
+                        <Gift className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-green-800">Flash Sale Active!</h3>
+                        <p className="text-sm text-green-700">
+                          <span className="line-through opacity-75">{promoConfig.normalPrice}</span>
+                          <span className="ml-2 font-semibold">{promoConfig.promoPrice}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-green-700 text-sm mb-4">
+                      You&apos;re getting a {promoConfig.promoPrice} membership as part of our limited-time promotion. 
+                      Normally this would cost {promoConfig.normalPrice}.
+                    </p>
+                    <ul className="space-y-2 text-sm text-green-800">
+                      <li className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-600" />
+                        No credit card required
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-600" />
+                        Full access to all features
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-600" />
+                        Your studio goes live immediately
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Activation Button */}
+                  <button
+                    onClick={handlePromoActivation}
+                    disabled={isLoading || isActivatingPromo || !userId}
+                    className="w-full bg-[#d42027] text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-[#b01b21] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isActivatingPromo ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Activating your membership...
+                      </>
+                    ) : (
+                      <>
+                        Activate {promoConfig.promoPrice} Membership
+                        <ArrowRight className="w-5 h-5" />
+                      </>
+                    )}
+                  </button>
+
+                  <p className="text-xs text-gray-500 text-center mt-4">
+                    By clicking above, you agree to our Terms of Service and Privacy Policy.
                   </p>
                 </div>
               ) : (
-                <div id="checkout" className="stripe-embedded-checkout">
-                  <EmbeddedCheckoutProvider
-                    stripe={stripePromise}
-                    options={options}
-                  >
-                    <EmbeddedCheckout />
-                  </EmbeddedCheckoutProvider>
-                </div>
+                /* NORMAL: Embedded Stripe Checkout */
+                <>
+                  {isLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <Loader2 className="w-10 h-10 animate-spin text-[#d42027] mb-4" />
+                      <span className="text-gray-600 text-lg">Loading payment form...</span>
+                    </div>
+                  ) : !stripePromise ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                      <p className="text-red-800 font-medium text-lg mb-2">Payment system configuration error</p>
+                      <p className="text-red-600">
+                        Please contact support. Error: Stripe not configured
+                      </p>
+                    </div>
+                  ) : (
+                    <div id="checkout" className="stripe-embedded-checkout">
+                      <EmbeddedCheckoutProvider
+                        stripe={stripePromise}
+                        options={options}
+                      >
+                        <EmbeddedCheckout />
+                      </EmbeddedCheckoutProvider>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
 
-          {/* Secure Payment Footer */}
+          {/* Footer - Different for promo vs paid */}
           <div className="py-4 text-center border-t border-gray-200 bg-white">
             <p className="text-sm text-gray-500">
-              🔒 Secure payment powered by Stripe
+              {promoConfig.isActive 
+                ? `🎉 Limited-time offer — normally ${promoConfig.normalPrice}`
+                : '🔒 Secure payment powered by Stripe'
+              }
             </p>
           </div>
         </div>

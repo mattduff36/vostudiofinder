@@ -1,17 +1,19 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight, Gift } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import { Button } from '@/components/ui/Button';
+import { getPromoConfig } from '@/lib/promo';
 
 interface HeroSectionProps {
   userName: string;
   requiredFieldsCompleted: number;
   totalRequiredFields: number;
   overallCompletionPercentage: number;
+  isPromo?: boolean;
 }
 
 export function HeroSection({
@@ -19,7 +21,9 @@ export function HeroSection({
   requiredFieldsCompleted,
   totalRequiredFields,
   overallCompletionPercentage,
+  isPromo = false,
 }: HeroSectionProps) {
+  const promoConfig = getPromoConfig();
   const [showConfetti, setShowConfetti] = useState(true);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
@@ -96,12 +100,25 @@ export function HeroSection({
           transition={{ delay: 0.4, duration: 0.6 }}
           className="text-center mb-8 px-4"
         >
+          {isPromo && (
+            <div className="flex justify-center mb-4">
+              <span className="bg-green-100 text-green-800 text-sm font-semibold px-4 py-1.5 rounded-full flex items-center gap-2">
+                <Gift className="w-4 h-4" />
+                You got the free membership deal! 🎉
+              </span>
+            </div>
+          )}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
-            Payment Successful!
+            {isPromo ? 'Membership Activated!' : 'Payment Successful!'}
           </h1>
           <p className="text-lg sm:text-xl md:text-2xl text-gray-600 font-medium">
             Welcome to Voiceover Studio Finder, {userName}!
           </p>
+          {isPromo && (
+            <p className="text-sm text-gray-500 mt-2">
+              (normally {promoConfig.normalPrice})
+            </p>
+          )}
         </motion.div>
 
         {/* Overall Profile Progress */}

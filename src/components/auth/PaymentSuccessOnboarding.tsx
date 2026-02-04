@@ -23,6 +23,7 @@ interface PaymentSuccessOnboardingProps {
   completionPercentage: number;
   requiredFields: ProfileField[];
   optionalFields: ProfileField[];
+  isPromo?: boolean;
 }
 
 export function PaymentSuccessOnboarding({
@@ -30,6 +31,7 @@ export function PaymentSuccessOnboarding({
   completionPercentage,
   requiredFields,
   optionalFields,
+  isPromo = false,
 }: PaymentSuccessOnboardingProps) {
   const completedRequired = requiredFields.filter(f => f.completed).length;
   const totalRequired = requiredFields.length;
@@ -66,6 +68,7 @@ export function PaymentSuccessOnboarding({
             requiredFieldsCompleted={completedRequired}
             totalRequiredFields={totalRequired}
             overallCompletionPercentage={completionPercentage}
+            isPromo={isPromo}
           />
 
           {/* Quick Start Guide */}

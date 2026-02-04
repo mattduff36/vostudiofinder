@@ -3,6 +3,7 @@
 import { AlertCircle, Clock, ArrowRight, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { getPromoConfig } from '@/lib/promo';
 
 interface ResumeSignupBannerProps {
   resumeStep: 'username' | 'payment' | 'profile';
@@ -22,11 +23,16 @@ const STEP_LABELS = {
   profile: 'Profile Creation',
 };
 
-const STEP_DESCRIPTIONS = {
-  username: 'Choose your unique username',
-  payment: 'Complete your £25/year membership payment',
-  profile: 'Create your studio profile',
-};
+function getStepDescriptions() {
+  const promoConfig = getPromoConfig();
+  return {
+    username: 'Choose your unique username',
+    payment: promoConfig.isActive 
+      ? `Complete your ${promoConfig.promoPrice} membership activation (normally ${promoConfig.normalPrice})`
+      : `Complete your ${promoConfig.normalPrice} membership payment`,
+    profile: 'Create your studio profile',
+  };
+}
 
 export function ResumeSignupBanner({
   resumeStep,
@@ -36,6 +42,7 @@ export function ResumeSignupBanner({
   isLoading = false,
 }: ResumeSignupBannerProps) {
   const { days, hours } = timeRemaining;
+  const STEP_DESCRIPTIONS = getStepDescriptions();
   
   const getTimeText = () => {
     if (days > 0) {
