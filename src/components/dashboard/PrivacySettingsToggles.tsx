@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { Toggle } from '@/components/ui/Toggle';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Lock } from 'lucide-react';
 import { showSuccess, showError } from '@/lib/toast';
 import { logger } from '@/lib/logger';
+import type { TierLimits } from '@/lib/membership-tiers';
 
 interface PrivacySettingsTogglesProps {
   initialSettings: {
@@ -13,6 +14,7 @@ interface PrivacySettingsTogglesProps {
     show_address: boolean;
     show_directions: boolean;
   };
+  tierLimits?: TierLimits | undefined;
   onUpdate?: (settings: Partial<{
     show_email: boolean;
     show_phone: boolean;
@@ -21,16 +23,21 @@ interface PrivacySettingsTogglesProps {
   }>) => void;
 }
 
-export function PrivacySettingsToggles({ initialSettings, onUpdate }: PrivacySettingsTogglesProps) {
+export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }: PrivacySettingsTogglesProps) {
   const [settings, setSettings] = useState(initialSettings);
   const [updating, setUpdating] = useState<string | null>(null);
+
+  // Default to restrictive (false) when tier data hasn't loaded yet.
+  // Server-side validation is the final authority, but the UI should not
+  // expose Premium-only controls while waiting for tier data.
+  const isPremium = tierLimits?.phoneVisibility ?? false;
 
   const handleToggle = async (field: keyof typeof settings, value: boolean) => {
     setUpdating(field);
     
     try {
       const response = await fetch('/api/user/profile', {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           profile: { [field]: value }
@@ -59,6 +66,13 @@ export function PrivacySettingsToggles({ initialSettings, onUpdate }: PrivacySet
     }
   };
 
+  const PremiumBadge = () => (
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full ml-2">
+      <Lock className="w-3 h-3" />
+      Premium
+    </span>
+  );
+
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
       <div className="space-y-3">
@@ -83,13 +97,16 @@ export function PrivacySettingsToggles({ initialSettings, onUpdate }: PrivacySet
               <Loader2 className="w-4 h-4 animate-spin text-red-600" />
             </div>
           )}
-          <Toggle
-            label="Show Phone"
-            description="Display phone number on public profile"
-            checked={settings.show_phone}
-            onChange={(checked) => handleToggle('show_phone', checked)}
-            disabled={updating === 'show_phone'}
-          />
+          <div className="flex items-center">
+            <Toggle
+              label="Show Phone"
+              description={!isPremium ? "Upgrade to Premium to display phone number" : "Display phone number on public profile"}
+              checked={isPremium ? settings.show_phone : false}
+              onChange={(checked) => handleToggle('show_phone', checked)}
+              disabled={updating === 'show_phone' || !isPremium}
+            />
+            {!isPremium && <PremiumBadge />}
+          </div>
         </div>
 
         <div className="relative">
@@ -113,15 +130,31 @@ export function PrivacySettingsToggles({ initialSettings, onUpdate }: PrivacySet
               <Loader2 className="w-4 h-4 animate-spin text-red-600" />
             </div>
           )}
-          <Toggle
-            label="Show Directions"
-            description="Display 'Get Directions' button on public profile"
-            checked={settings.show_directions}
-            onChange={(checked) => handleToggle('show_directions', checked)}
-            disabled={updating === 'show_directions'}
-          />
+          <div className="flex items-center">
+            <Toggle
+              label="Show Directions"
+              description={!isPremium ? "Upgrade to Premium to display directions" : "Display 'Get Directions' button on public profile"}
+              checked={isPremium ? settings.show_directions : false}
+              onChange={(checked) => handleToggle('show_directions', checked)}
+              disabled={updating === 'show_directions' || !isPremium}
+            />
+            {!isPremium && <PremiumBadge />}
+          </div>
         </div>
       </div>
+
+      {!isPremium && (
+        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-amber-800">
+            <Lock className="w-3.5 h-3.5 inline mr-1" />
+            Some privacy options require a{' '}
+            <a href="/auth/membership" className="font-medium underline hover:text-amber-900">
+              Premium membership
+            </a>
+            .
+          </p>
+        </div>
+      )}
     </div>
   );
 }

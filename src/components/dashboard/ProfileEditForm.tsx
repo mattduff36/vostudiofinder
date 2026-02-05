@@ -109,6 +109,22 @@ interface ProfileData {
   metadata?: {
     custom_meta_title?: string;
   };
+  tierLimits?: {
+    aboutMaxChars: number;
+    imagesMax: number;
+    studioTypesMax: number | null;
+    studioTypesExcluded: string[];
+    connectionsMax: number;
+    customConnectionsMax: number;
+    socialLinksMax: number | null;
+    phoneVisibility: boolean;
+    directionsVisibility: boolean;
+    advancedSettings: boolean;
+    aiAutoGenerate: boolean;
+    verificationEligible: boolean;
+    featuredEligible: boolean;
+    avatarAllowed: boolean;
+  } | null;
   _adminOnly?: {
     studioId: string;
     status: string;
@@ -333,6 +349,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
           metadata: {
             custom_meta_title: data.data.metadata?.custom_meta_title || '',
           },
+          tierLimits: data.data.tierLimits || null,
         };
         setProfile(profileData);
         setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
@@ -875,20 +892,34 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                   Studio Type
                 </label>
                 <div className="grid grid-cols-3 gap-3">
-                  {STUDIO_TYPES.map((type) => (
-                    <div key={type.value} className="relative group">
-                      <Checkbox
-                        label={type.label}
-                        checked={profile.studio_types.includes(type.value)}
-                        onChange={() => toggleStudioType(type.value)}
-                        disabled={type.disabled}
-                      />
-                      <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                        {type.disabled ? 'Coming soon!' : type.description}
-                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                  {STUDIO_TYPES.map((type) => {
+                    const tierExcluded = profile?.tierLimits?.studioTypesExcluded?.includes(type.value);
+                    const maxReached = profile?.tierLimits?.studioTypesMax !== null
+                      && profile?.tierLimits?.studioTypesMax !== undefined
+                      && profile.studio_types.length >= profile.tierLimits.studioTypesMax
+                      && !profile.studio_types.includes(type.value);
+                    const isDisabled = type.disabled || tierExcluded || maxReached;
+                    
+                    let tooltipText = type.description;
+                    if (type.disabled) tooltipText = 'Coming soon!';
+                    else if (tierExcluded) tooltipText = 'Upgrade to Premium to unlock this studio type.';
+                    else if (maxReached) tooltipText = `Basic members can select up to ${profile.tierLimits?.studioTypesMax ?? 1} studio type. Upgrade to Premium for unlimited.`;
+                    
+                    return (
+                      <div key={type.value} className="relative group">
+                        <Checkbox
+                          label={type.label}
+                          checked={profile.studio_types.includes(type.value)}
+                          onChange={() => toggleStudioType(type.value)}
+                          disabled={isDisabled}
+                        />
+                        <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                          {tooltipText}
+                          <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
               
@@ -912,21 +943,21 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 label="Full Description"
                 value={profile.profile.about || ''}
                 onChange={(e) => updateProfile('about', e.target.value)}
-                maxLength={1500}
+                maxLength={profile?.tierLimits?.aboutMaxChars ?? 1500}
                 className="min-h-[150px] resize-none overflow-hidden"
               />
               <div className="flex justify-between items-center text-xs mt-1">
                 <span className="text-gray-500">Detailed description for your profile page</span>
                 <span 
                   className={`${
-                    (profile.profile.about || '').length >= 1400 
+                    (profile.profile.about || '').length >= (profile?.tierLimits?.aboutMaxChars ?? 1500) - 100
                       ? 'text-red-600 font-semibold' 
-                      : (profile.profile.about || '').length >= 1300 
+                      : (profile.profile.about || '').length >= (profile?.tierLimits?.aboutMaxChars ?? 1500) - 200
                       ? 'text-orange-600 font-medium' 
                       : 'text-gray-500'
                   }`}
                 >
-                  {(profile.profile.about || '').length}/1500 characters
+                  {(profile.profile.about || '').length}/{profile?.tierLimits?.aboutMaxChars ?? 1500} characters
                 </span>
               </div>
             </div>
@@ -1388,6 +1419,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 show_address: profile.profile.show_address || false,
                 show_directions: profile.profile.show_directions !== false,
               }}
+              tierLimits={profile?.tierLimits as import('@/lib/membership-tiers').TierLimits | undefined}
               onUpdate={(updatedSettings) => {
                 // Update local profile state
                 setProfile(prev => {
@@ -1435,6 +1467,11 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
           }
         };
 
+        // Default to restrictive (false) when tier data hasn't loaded yet.
+        // This prevents Basic users from interacting with Premium-only controls
+        // during the brief window before tier data arrives from the API.
+        const isAdvancedAllowed = profile?.tierLimits?.advancedSettings ?? false;
+
         return (
           <div className="space-y-6">
             {/* Section Description */}
@@ -1443,6 +1480,15 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 Customize how your studio appears in search engine results and social media shares.
               </p>
             </div>
+
+            {!isAdvancedAllowed && (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+                <p className="text-sm text-amber-800 font-medium">
+                  Advanced settings require a Premium membership.{' '}
+                  <a href="/auth/membership" className="underline hover:text-amber-900">Upgrade now</a> for £25/year to customise your SEO meta title.
+                </p>
+              </div>
+            )}
 
             {/* Meta Title Input with Copy Icon Inside */}
             <div>
@@ -1454,6 +1500,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                   type="text"
                   value={currentMetaTitle}
                   onChange={(e) => {
+                    if (!isAdvancedAllowed) return;
                     const value = e.target.value;
                     setProfile(prev => prev ? {
                       ...prev,
@@ -1461,8 +1508,9 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                     } : null);
                   }}
                   maxLength={60}
+                  disabled={!isAdvancedAllowed}
                   placeholder="Auto-generated from your studio name, type, and location"
-                  className="w-full px-3 py-2 pr-10 text-sm text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className={`w-full px-3 py-2 pr-10 text-sm text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent ${!isAdvancedAllowed ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
                 />
                 <button
                   type="button"

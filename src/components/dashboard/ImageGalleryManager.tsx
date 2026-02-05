@@ -50,6 +50,11 @@ export function ImageGalleryManager({
   // Profile data for completion calculation
   const [profileData, setProfileData] = useState<any>(null);
   
+  // Tier-based image limit (fetched from API)
+  // Default to the most restrictive limit (Basic = 2) while loading to prevent
+  // unauthorised uploads before the actual tier data arrives from the server.
+  const maxImages = profileData?.tierLimits?.imagesMax ?? 2;
+  
   // Calculate completion stats
   const completionStats: CompletionStats | null = profileData ? calculateCompletionStats({
     user: {
@@ -144,10 +149,10 @@ export function ImageGalleryManager({
       return;
     }
 
-    // Check image limit - now 5 max
-    if (images.length >= 5) {
-      logger.error('[ERROR] Maximum images reached:', images.length);
-      setError('Maximum of 5 images reached');
+    // Check image limit based on membership tier
+    if (images.length >= maxImages) {
+      logger.error('[ERROR] Maximum images reached:', images.length, '/', maxImages);
+      setError(`Maximum of ${maxImages} images for your membership tier.`);
       return;
     }
 
@@ -452,17 +457,19 @@ export function ImageGalleryManager({
 
       {/* Upload Zone */}
       <div className={isAdminMode || embedded ? "mb-4" : "p-4 md:p-6"}>
-        {images.length >= 5 ? (
+        {images.length >= maxImages ? (
           <div className={`border-2 border-gray-300 rounded-lg text-center bg-gray-50 ${
             isAdminMode ? 'p-4' : 'p-6 md:p-8'
           }`}>
             <div className="flex flex-col items-center">
               <ImageIcon className={`text-gray-400 ${isAdminMode ? 'w-8 h-8 mb-2' : 'w-10 md:w-12 h-10 md:h-12 mb-3'}`} />
               <p className="text-sm font-medium text-gray-700 mb-1">
-                Maximum of 5 images reached
+                Maximum of {maxImages} images reached
               </p>
               <p className="text-xs text-gray-500">
-                Delete an image to upload a new one
+                {maxImages < 5
+                  ? <><a href="/auth/membership" className="text-red-600 hover:underline">Upgrade to Premium</a> for up to 5 images, or delete an image to upload a new one.</>
+                  : 'Delete an image to upload a new one.'}
               </p>
             </div>
           </div>
@@ -495,7 +502,7 @@ export function ImageGalleryManager({
                   {isMobile ? 'Tap to upload image' : 'Drop images here or click to browse'}
                 </p>
                 <p className="text-xs text-gray-500">
-                  PNG, JPG, WebP up to 5MB (max 5 images)
+                  PNG, JPG, WebP up to 5MB (max {maxImages} images)
                 </p>
               </div>
             )}

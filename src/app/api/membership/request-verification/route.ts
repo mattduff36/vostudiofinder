@@ -70,20 +70,13 @@ export async function POST(_request: NextRequest) {
       );
     }
 
-    // Check if user has an active membership
-    const latestSubscription = user.subscriptions[0];
-    if (!latestSubscription?.current_period_end) {
+    // Check if user has Premium membership (verification is Premium-only)
+    const { requirePremiumMembership } = await import('@/lib/membership');
+    const premiumCheck = await requirePremiumMembership(userId);
+    if (premiumCheck.error) {
       return NextResponse.json(
-        { error: 'Active membership required to request verification' },
-        { status: 403 }
-      );
-    }
-
-    const now = new Date();
-    if (latestSubscription.current_period_end < now) {
-      return NextResponse.json(
-        { error: 'Active membership required to request verification' },
-        { status: 403 }
+        { error: premiumCheck.error },
+        { status: premiumCheck.status || 403 }
       );
     }
 

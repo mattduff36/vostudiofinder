@@ -82,20 +82,19 @@ export function SignupForm() {
 
   // Load Turnstile script
   useEffect(() => {
+    // In development mode, always bypass Turnstile (even if configured)
+    if (isDevelopment) {
+      console.warn('[Turnstile] Development mode: bypassing security check');
+      setTurnstileToken('dev-bypass-token');
+      setTurnstileConfigError('Development mode: Security check bypassed for testing');
+      return;
+    }
+
     // Check if Turnstile site key is configured
     if (!turnstileSiteKey) {
-      const errorMsg = isDevelopment 
-        ? 'Turnstile not configured. Set NEXT_PUBLIC_TURNSTILE_SITE_KEY in .env.local (or skip in dev by removing the check)'
-        : 'Security verification is not configured. Please contact support.';
-      
+      const errorMsg = 'Security verification is not configured. Please contact support.';
       setTurnstileConfigError(errorMsg);
       console.error('[Turnstile] Missing NEXT_PUBLIC_TURNSTILE_SITE_KEY');
-      
-      // In development, auto-set a dummy token to allow testing without Turnstile
-      if (isDevelopment) {
-        console.warn('[Turnstile] Development mode: bypassing security check');
-        setTurnstileToken('dev-bypass-token');
-      }
       return;
     }
 

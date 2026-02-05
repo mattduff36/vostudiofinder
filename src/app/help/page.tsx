@@ -102,7 +102,7 @@ export default function HelpPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-lg mb-1">No Commission</h4>
-                    <p className="text-gray-600">Keep 100% of what you earn. Just £25/year to list your studio—one booking often pays for the whole year.</p>
+                    <p className="text-gray-600">Keep 100% of what you earn. List your studio for free, or upgrade to Premium for just £25/year to unlock all features—one booking pays for itself.</p>
                   </div>
                 </div>
                 <div className="flex gap-4">

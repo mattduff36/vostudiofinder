@@ -38,14 +38,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check current image count
+    // Get tier limits for image count enforcement
+    const { getUserTierLimits } = await import('@/lib/membership');
+    const tierLimits = await getUserTierLimits(userId);
+
+    // Check current image count against tier limit
     const imageCount = await db.studio_images.count({
       where: { studio_id: studio.id },
     });
 
-    if (imageCount >= 10) {
+    if (imageCount >= tierLimits.imagesMax) {
       return NextResponse.json(
-        { success: false, error: 'Maximum of 10 images allowed per studio' },
+        {
+          success: false,
+          error: `Maximum of ${tierLimits.imagesMax} images allowed for your membership tier.`,
+          limit: tierLimits.imagesMax,
+          current: imageCount,
+        },
         { status: 400 }
       );
     }

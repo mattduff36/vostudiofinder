@@ -358,6 +358,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
       where: { id: user_id },
       data: {
         status: 'ACTIVE',
+        membership_tier: 'PREMIUM', // Grant Premium tier on payment
         email_verified: true,
         updated_at: now,
       },
@@ -379,7 +380,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
       },
     });
 
-    console.log(`[DEBUG ${timestamp}] ✅ User ${user_id} activated with ${membershipMonths}-month membership (zero-amount)${couponCode ? ` using coupon ${couponCode}` : ''}`);
+    console.log(`[DEBUG ${timestamp}] ✅ User ${user_id} activated with ${membershipMonths}-month PREMIUM membership (zero-amount)${couponCode ? ` using coupon ${couponCode}` : ''}`);
     console.log(`[DEBUG ${timestamp}] Membership expires: ${expiryDate.toISOString()}`);
     console.log(`[DEBUG ${timestamp}] ========== WEBHOOK: handleMembershipPaymentSuccess END (zero-amount) ==========`);
     return; // Exit early, membership granted
@@ -655,11 +656,12 @@ async function grantMembership(
   const expiryDate = new Date(now);
   expiryDate.setMonth(expiryDate.getMonth() + membershipMonths);
 
-  // ATOMIC UPDATE: status, payment tracking, and email flags in single operation
+  // ATOMIC UPDATE: status, tier, payment tracking, and email flags in single operation
   await db.users.update({
     where: { id: userId },
     data: {
       status: UserStatus.ACTIVE,
+      membership_tier: 'PREMIUM', // Grant Premium tier on payment
       // Include payment tracking fields if provided (from webhook success handler)
       ...(paymentTracking && {
         payment_attempted_at: paymentTracking.payment_attempted_at,
@@ -672,7 +674,7 @@ async function grantMembership(
       updated_at: now,
     },
   });
-  console.log(`[SUCCESS] User ${userId} status updated: PENDING → ACTIVE`);
+  console.log(`[SUCCESS] User ${userId} status updated: PENDING → ACTIVE (PREMIUM tier)`);
 
   // Create membership record in subscriptions table
   const subscription = await db.subscriptions.create({
@@ -781,11 +783,12 @@ async function handleMembershipRenewal(
     },
   });
 
-  // Ensure user status is ACTIVE (in case was EXPIRED)
+  // Ensure user status is ACTIVE and tier is PREMIUM (in case was EXPIRED)
   await db.users.update({
     where: { id: userId },
     data: {
       status: UserStatus.ACTIVE,
+      membership_tier: 'PREMIUM', // Renewals always keep Premium tier
       updated_at: new Date(),
     },
   });
@@ -799,7 +802,7 @@ async function handleMembershipRenewal(
     },
   });
 
-  console.log(`[SUCCESS] Membership renewed for user ${userId} until ${newExpiry.toISOString()}`);
+  console.log(`[SUCCESS] Premium membership renewed for user ${userId} until ${newExpiry.toISOString()}`);
 }
 
 /**

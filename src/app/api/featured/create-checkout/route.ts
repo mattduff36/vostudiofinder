@@ -71,23 +71,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check 1: Membership must be ACTIVE
-    const latestSubscription = user.subscriptions[0];
-    if (!latestSubscription?.current_period_end) {
+    // Check 1: Must be Premium tier with active membership
+    const { requirePremiumMembership } = await import('@/lib/membership');
+    const premiumCheck = await requirePremiumMembership(userId);
+    if (premiumCheck.error) {
       return NextResponse.json(
-        { error: 'No active membership found. Please ensure your membership is active before upgrading to featured.' },
-        { status: 400 }
+        { error: premiumCheck.error },
+        { status: premiumCheck.status || 403 }
       );
     }
 
     const now = new Date();
-    const isExpired = latestSubscription.current_period_end < now;
-    if (isExpired) {
-      return NextResponse.json(
-        { error: 'Your membership has expired. Please renew your membership before upgrading to featured.' },
-        { status: 400 }
-      );
-    }
 
     // Check 2: Profile must be 100% complete
     const completionStats = calculateCompletionStats({

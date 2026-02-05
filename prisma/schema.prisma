@@ -413,6 +413,9 @@ model users {
   deletion_status                                            String                  @default("ACTIVE")
   last_login                                                 DateTime?
   
+  // Membership tier (BASIC = free, PREMIUM = paid £25/year)
+  membership_tier                                            MembershipTier          @default(BASIC)
+  
   // Username reservation & payment tracking
   status                                                     UserStatus              @default(PENDING)
   reservation_expires_at                                     DateTime?
@@ -628,6 +631,11 @@ enum SubscriptionStatus {
   UNPAID
   INCOMPLETE
   SUSPENDED
+}
+
+enum MembershipTier {
+  BASIC
+  PREMIUM
 }
 
 enum SupportTicketType {

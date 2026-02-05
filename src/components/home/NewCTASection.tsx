@@ -33,7 +33,7 @@ export function NewCTASection() {
         'Get discovered by thousands of voice artists worldwide', 
         'Showcase your studio with photos, equipment lists, prices  and services', 
         'Receive direct enquiries from qualified clients', 
-        'Just £25/year - one booking pays for the whole year.'
+        'List for free or go Premium for £25/year - one booking pays for itself.'
       ] 
     },
     { 
@@ -134,7 +134,7 @@ export function NewCTASection() {
               className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" 
               style={{ backgroundColor: colors.primary, color: '#ffffff' }}
             >
-              List Your Studio - £25/year
+              List Your Studio - Free
             </Link>
             <Link 
               href="/studios" 

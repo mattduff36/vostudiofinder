@@ -431,6 +431,7 @@ export function Settings({ data }: SettingsProps) {
                       show_address: profileData.profile.show_address || false,
                       show_directions: profileData.profile.show_directions !== false,
                     }}
+                    tierLimits={profileData?.tierLimits ?? undefined}
                     onUpdate={(updatedSettings) => {
                       // Update local profile data state
                       setProfileData((prev: any) => ({
@@ -709,8 +710,18 @@ export function Settings({ data }: SettingsProps) {
                       <div className="flex items-center space-x-2">
                         <CreditCard className="w-4 h-4 text-gray-600" />
                         <h3 className="text-sm font-semibold text-gray-900">Membership Status</h3>
+                        {/* Tier Badge */}
+                        {profileData?.user?.membership_tier === 'PREMIUM' ? (
+                          <span className="px-2 py-0.5 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full border border-amber-200">
+                            Premium
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 text-xs font-semibold text-gray-600 bg-gray-100 rounded-full border border-gray-200">
+                            Basic (Free)
+                          </span>
+                        )}
                       </div>
-                      {isActive && (
+                      {isActive && profileData?.user?.membership_tier === 'PREMIUM' && (
                         <span className="px-2 py-0.5 text-xs font-semibold text-green-700 bg-green-100 rounded-full border border-green-200">
                           ✓ Active
                         </span>
@@ -720,7 +731,7 @@ export function Settings({ data }: SettingsProps) {
                           ✗ Expired
                         </span>
                       )}
-                      {hasNoExpiry && (
+                      {hasNoExpiry && profileData?.user?.membership_tier !== 'BASIC' && (
                         <span className="px-2 py-0.5 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-200">
                           Not Set
                         </span>
@@ -758,6 +769,35 @@ export function Settings({ data }: SettingsProps) {
                     )}
                   </div>
                 </div>
+
+                {/* Upgrade to Premium CTA for Basic users */}
+                {profileData?.user?.membership_tier !== 'PREMIUM' && profileData?.user?.role !== 'ADMIN' && (
+                  <div className="relative overflow-hidden rounded-xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50 p-5">
+                    <div className="space-y-3">
+                      <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                        <CreditCard className="w-5 h-5 text-amber-600" />
+                        Upgrade to Premium
+                      </h3>
+                      <p className="text-sm text-gray-700">
+                        Unlock all features for just <span className="font-bold text-[#d42027]">£25/year</span>:
+                      </p>
+                      <ul className="text-xs text-gray-600 space-y-1.5">
+                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Up to 5 studio images (vs 2)</li>
+                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Unlimited studio types including Voiceover</li>
+                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> All connection methods + custom connections</li>
+                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Full privacy controls (phone, directions)</li>
+                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Custom SEO meta title</li>
+                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Verification & Featured eligibility</li>
+                      </ul>
+                      <a
+                        href="/auth/membership"
+                        className="inline-block w-full text-center px-6 py-2.5 bg-[#d42027] text-white font-semibold rounded-lg hover:bg-[#b01b21] transition-colors shadow-sm"
+                      >
+                        Upgrade Now - £25/year
+                      </a>
+                    </div>
+                  </div>
+                )}
 
                 {/* Membership & Upgrade Options */}
                 <div className="space-y-3">
@@ -941,6 +981,7 @@ export function Settings({ data }: SettingsProps) {
                       const effectiveCompletion = sandboxEnabled ? sandboxProfileCompletion : completionStats.overall.percentage;
                       const isProfileComplete = effectiveCompletion === 100;
                       const isMembershipActive = sandboxEnabled ? sandboxMembershipActive : membership?.state === 'ACTIVE';
+                      const isPremiumUser = profileData?.user?.membership_tier === 'PREMIUM' || profileData?.user?.role === 'ADMIN';
 
                       const isFeatured = sandboxEnabled ? sandboxStudioIsFeatured : profileData?.studio?.is_featured;
                       const featuredUntil = profileData?.studio?.featured_until;
@@ -962,7 +1003,7 @@ export function Settings({ data }: SettingsProps) {
 
                       const slotsAvailable = effectiveFeaturedAvailability ? effectiveFeaturedAvailability.remaining > 0 : true;
                       
-                      const isEligible = isProfileComplete && isMembershipActive && !isFeaturedActive && slotsAvailable;
+                      const isEligible = isProfileComplete && isMembershipActive && isPremiumUser && !isFeaturedActive && slotsAvailable;
                       
                       return (
                         <motion.button
@@ -1005,13 +1046,17 @@ export function Settings({ data }: SettingsProps) {
                                   year: 'numeric'
                                 }) : 'indefinitely'}
                               </p>
+                            ) : !isPremiumUser ? (
+                              <p className="text-xs sm:text-sm text-gray-500">
+                                Featured Studio is a <span className="font-semibold">Premium</span> feature. <a href="/auth/membership" className="text-[#d42027] hover:underline font-medium">Upgrade to Premium</a> for £25/year, then complete your profile to 100%.
+                              </p>
                             ) : !isProfileComplete ? (
                               <p className="text-xs sm:text-sm text-gray-500">
                                 Complete your profile (currently {completionStats.overall.percentage}%) to unlock featured status
                               </p>
                             ) : !isMembershipActive ? (
                               <p className="text-xs sm:text-sm text-gray-500">
-                                Active membership required to become a featured studio
+                                Active Premium membership required to become a featured studio
                               </p>
                             ) : !slotsAvailable ? (
                               <>
@@ -1099,9 +1144,10 @@ export function Settings({ data }: SettingsProps) {
                     {(() => {
                       const isVerified = sandboxEnabled ? sandboxIsVerified : profileData?.studio?.is_verified;
                       const isMembershipActive = sandboxEnabled ? sandboxMembershipActive : membership?.state === 'ACTIVE';
+                      const isPremium = profileData?.user?.membership_tier === 'PREMIUM' || profileData?.user?.role === 'ADMIN';
                       const profileCompletion = sandboxEnabled ? sandboxProfileCompletion : completionStats.overall.percentage;
                       const meetsCompletion = profileCompletion >= 85;
-                      const isEligible = !isVerified && isMembershipActive && meetsCompletion;
+                      const isEligible = !isVerified && isMembershipActive && isPremium && meetsCompletion;
                       
                       return (
                         <motion.button
@@ -1154,13 +1200,17 @@ export function Settings({ data }: SettingsProps) {
                               <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
                                 Your studio is verified! The verified badge is now visible on your public profile, helping build trust with potential clients.
                               </p>
+                            ) : !isPremium ? (
+                              <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+                                Verification is a <span className="font-semibold">Premium</span> feature. <a href="/auth/membership" className="text-[#d42027] hover:underline font-medium">Upgrade to Premium</a> for £25/year to unlock verification, then complete your profile to 85%.
+                              </p>
                             ) : !meetsCompletion ? (
                               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
                                 Complete your profile to at least <span className="font-semibold">85%</span> to request verification. You're currently at <span className="font-semibold">{profileCompletion}%</span>. {!isMembershipActive && <span className="block mt-1">An active membership is also required.</span>}
                               </p>
                             ) : !isMembershipActive ? (
                               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                                An active membership is required to request verification. Complete your profile to <span className="font-semibold">85%</span> as well ({profileCompletion}% currently).
+                                An active Premium membership is required to request verification. Please renew your membership.
                               </p>
                             ) : submittingVerification ? (
                               <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">

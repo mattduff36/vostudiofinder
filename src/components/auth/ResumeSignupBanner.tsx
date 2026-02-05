@@ -24,7 +24,7 @@ const STEP_LABELS = {
 
 const STEP_DESCRIPTIONS = {
   username: 'Choose your unique username',
-  payment: 'Complete your £25/year membership payment',
+  payment: 'Complete your Premium membership payment (£25/year)',
   profile: 'Create your studio profile',
 };
 

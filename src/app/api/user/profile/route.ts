@@ -357,6 +357,10 @@ export async function GET() {
     });
 
     // Prepare response - split into profile (user fields) and studio (studio fields) for frontend compatibility
+    const { getTierLimits } = await import('@/lib/membership-tiers');
+    const userTier = (user as any).membership_tier || 'BASIC';
+    const tierLimits = getTierLimits(userTier);
+
     const response = {
       success: true,
       data: {
@@ -368,6 +372,7 @@ export async function GET() {
           avatar_url: user.avatar_url,
           role: user.role,
           email_verified: user.email_verified,
+          membership_tier: userTier,
           created_at: user.created_at,
           updated_at: user.updated_at,
         },
@@ -450,6 +455,7 @@ export async function GET() {
         } : null,
         metadata,
         membership: membershipInfo,
+        tierLimits,
       },
     };
 
@@ -488,7 +494,13 @@ export async function PUT(request: NextRequest) {
 
     const userId = session.user.id;
     const body = await request.json();
-    
+
+    // Fetch user tier for enforcement
+    const { getUserTier } = await import('@/lib/membership');
+    const { getTierLimits } = await import('@/lib/membership-tiers');
+    const userTier = await getUserTier(userId);
+    const tierLimits = getTierLimits(userTier);
+
     // Strict check: A visibility toggle request must have ONLY is_profile_visible in body.studio
     // and no other top-level properties. This prevents malicious requests from modifying
     // profile fields alongside a visibility toggle that might fail eligibility validation.
@@ -529,7 +541,12 @@ export async function PUT(request: NextRequest) {
       if (updates.name !== undefined) profileUpdates.name = updates.name;
       if (updates.description !== undefined) profileUpdates.description = updates.description;
       if (updates.short_about !== undefined) profileUpdates.short_about = updates.short_about;
-      if (updates.about !== undefined) profileUpdates.about = updates.about;
+      // Enforce about max chars based on tier
+      if (updates.about !== undefined) {
+        profileUpdates.about = typeof updates.about === 'string'
+          ? updates.about.substring(0, tierLimits.aboutMaxChars)
+          : updates.about;
+      }
       
       // Location
       if (updates.full_address !== undefined) profileUpdates.full_address = updates.full_address;
@@ -543,9 +560,14 @@ export async function PUT(request: NextRequest) {
       if (updates.phone !== undefined) profileUpdates.phone = updates.phone;
       if (updates.website_url !== undefined) profileUpdates.website_url = updates.website_url;
       if (updates.show_email !== undefined) profileUpdates.show_email = updates.show_email;
-      if (updates.show_phone !== undefined) profileUpdates.show_phone = updates.show_phone;
+      // Enforce phone/directions visibility based on tier
+      if (updates.show_phone !== undefined) {
+        profileUpdates.show_phone = tierLimits.phoneVisibility ? updates.show_phone : false;
+      }
       if (updates.show_address !== undefined) profileUpdates.show_address = updates.show_address;
-      if (updates.show_directions !== undefined) profileUpdates.show_directions = updates.show_directions;
+      if (updates.show_directions !== undefined) {
+        profileUpdates.show_directions = tierLimits.directionsVisibility ? updates.show_directions : false;
+      }
       
       // Professional
       if (updates.equipment_list !== undefined) profileUpdates.equipment_list = updates.equipment_list;
@@ -565,34 +587,114 @@ export async function PUT(request: NextRequest) {
       }
       if (updates.show_rates !== undefined) profileUpdates.show_rates = updates.show_rates;
       
-      // Social media
-      if (updates.facebook_url !== undefined) profileUpdates.facebook_url = updates.facebook_url;
-      if (updates.twitter_url !== undefined) profileUpdates.twitter_url = updates.twitter_url;
-      if (updates.x_url !== undefined) profileUpdates.x_url = updates.x_url;
-      if (updates.linkedin_url !== undefined) profileUpdates.linkedin_url = updates.linkedin_url;
-      if (updates.instagram_url !== undefined) profileUpdates.instagram_url = updates.instagram_url;
-      if (updates.tiktok_url !== undefined) profileUpdates.tiktok_url = updates.tiktok_url;
-      if (updates.threads_url !== undefined) profileUpdates.threads_url = updates.threads_url;
-      if (updates.youtube_url !== undefined) profileUpdates.youtube_url = updates.youtube_url;
-      if (updates.vimeo_url !== undefined) profileUpdates.vimeo_url = updates.vimeo_url;
-      if (updates.soundcloud_url !== undefined) profileUpdates.soundcloud_url = updates.soundcloud_url;
+      // Social media & connections - enforce tier limits against TOTAL count (existing + new)
+      // We must fetch the existing profile to count current values, not just values in this request.
+      const socialFields = [
+        'facebook_url', 'twitter_url', 'x_url', 'linkedin_url',
+        'instagram_url', 'tiktok_url', 'threads_url',
+        'youtube_url', 'vimeo_url', 'soundcloud_url',
+      ] as const;
+
+      const connectionFields = [
+        'connection1', 'connection2', 'connection3', 'connection4',
+        'connection5', 'connection6', 'connection7', 'connection8',
+        'connection9', 'connection10', 'connection11', 'connection12',
+      ] as const;
+
+      // Fetch existing profile values for social links and connections
+      const existingProfileForLimits = await db.studio_profiles.findUnique({
+        where: { user_id: userId },
+        select: {
+          facebook_url: true, twitter_url: true, x_url: true, linkedin_url: true,
+          instagram_url: true, tiktok_url: true, threads_url: true,
+          youtube_url: true, vimeo_url: true, soundcloud_url: true,
+          connection1: true, connection2: true, connection3: true, connection4: true,
+          connection5: true, connection6: true, connection7: true, connection8: true,
+          connection9: true, connection10: true, connection11: true, connection12: true,
+        },
+      });
+
+      if (tierLimits.socialLinksMax !== null) {
+        // Count existing non-empty social links that are NOT being overwritten in this request
+        let socialCount = 0;
+        for (const field of socialFields) {
+          if (updates[field] !== undefined) {
+            // This field is in the update - will be counted below
+            continue;
+          }
+          // Count existing non-empty value
+          const existingValue = existingProfileForLimits?.[field];
+          if (existingValue && typeof existingValue === 'string' && existingValue.trim()) {
+            socialCount++;
+          }
+        }
+
+        // Now process the update values against the remaining budget
+        for (const field of socialFields) {
+          const value = updates[field];
+          if (value !== undefined) {
+            if (value && value.trim() && socialCount < tierLimits.socialLinksMax) {
+              (profileUpdates as any)[field] = value;
+              socialCount++;
+            } else if (!value || !value.trim()) {
+              // Allow clearing values
+              (profileUpdates as any)[field] = value;
+            }
+            // Skip if over limit (silently drop)
+          }
+        }
+      } else {
+        // Unlimited social links (Premium)
+        if (updates.facebook_url !== undefined) profileUpdates.facebook_url = updates.facebook_url;
+        if (updates.twitter_url !== undefined) profileUpdates.twitter_url = updates.twitter_url;
+        if (updates.x_url !== undefined) profileUpdates.x_url = updates.x_url;
+        if (updates.linkedin_url !== undefined) profileUpdates.linkedin_url = updates.linkedin_url;
+        if (updates.instagram_url !== undefined) profileUpdates.instagram_url = updates.instagram_url;
+        if (updates.tiktok_url !== undefined) profileUpdates.tiktok_url = updates.tiktok_url;
+        if (updates.threads_url !== undefined) profileUpdates.threads_url = updates.threads_url;
+        if (updates.youtube_url !== undefined) profileUpdates.youtube_url = updates.youtube_url;
+        if (updates.vimeo_url !== undefined) profileUpdates.vimeo_url = updates.vimeo_url;
+        if (updates.soundcloud_url !== undefined) profileUpdates.soundcloud_url = updates.soundcloud_url;
+      }
       
-      // Connections
-      if (updates.connection1 !== undefined) profileUpdates.connection1 = updates.connection1;
-      if (updates.connection2 !== undefined) profileUpdates.connection2 = updates.connection2;
-      if (updates.connection3 !== undefined) profileUpdates.connection3 = updates.connection3;
-      if (updates.connection4 !== undefined) profileUpdates.connection4 = updates.connection4;
-      if (updates.connection5 !== undefined) profileUpdates.connection5 = updates.connection5;
-      if (updates.connection6 !== undefined) profileUpdates.connection6 = updates.connection6;
-      if (updates.connection7 !== undefined) profileUpdates.connection7 = updates.connection7;
-      if (updates.connection8 !== undefined) profileUpdates.connection8 = updates.connection8;
-      if (updates.connection9 !== undefined) profileUpdates.connection9 = updates.connection9;
-      if (updates.connection10 !== undefined) profileUpdates.connection10 = updates.connection10;
-      if (updates.connection11 !== undefined) profileUpdates.connection11 = updates.connection11;
-      if (updates.connection12 !== undefined) profileUpdates.connection12 = updates.connection12;
+      // Connections - enforce tier limit against TOTAL enabled count (existing + new)
+      // Count existing enabled connections that are NOT being overwritten in this request
+      let enabledConnectionCount = 0;
+      for (const field of connectionFields) {
+        if (updates[field] !== undefined) {
+          // This field is in the update - will be counted below
+          continue;
+        }
+        // Count existing enabled value
+        const existingValue = existingProfileForLimits?.[field];
+        if (existingValue === '1') {
+          enabledConnectionCount++;
+        }
+      }
+
+      // Now process the update values against the remaining budget
+      for (const field of connectionFields) {
+        if (updates[field] !== undefined) {
+          if (updates[field] === '1' && enabledConnectionCount < tierLimits.connectionsMax) {
+            (profileUpdates as any)[field] = '1';
+            enabledConnectionCount++;
+          } else if (updates[field] === '1') {
+            // Over limit - skip (preserve existing value) rather than
+            // writing '0' which would invert the user's intent and
+            // could disable an already-enabled connection.
+          } else {
+            // Allow disabling connections ('0') or other values
+            (profileUpdates as any)[field] = updates[field];
+          }
+        }
+      }
+
+      // Custom connections - enforce tier limit
       if (updates.custom_connection_methods !== undefined) {
         profileUpdates.custom_connection_methods = Array.isArray(updates.custom_connection_methods)
-          ? updates.custom_connection_methods.filter((m: string) => m && m.trim()).slice(0, 2)
+          ? updates.custom_connection_methods
+              .filter((m: string) => m && m.trim())
+              .slice(0, tierLimits.customConnectionsMax)
           : [];
       }
       
@@ -663,23 +765,33 @@ export async function PUT(request: NextRequest) {
           });
         }
 
-        // Update studio types if provided
+        // Update studio types if provided (enforce tier limits)
         if (body.studio_types && Array.isArray(body.studio_types)) {
           const profile = await db.studio_profiles.findUnique({
             where: { user_id: userId },
           });
           
           if (profile) {
+            // Filter out excluded studio types for this tier
+            let allowedTypes = body.studio_types.filter(
+              (type: string) => !tierLimits.studioTypesExcluded.includes(type)
+            );
+
+            // Enforce max studio types for this tier
+            if (tierLimits.studioTypesMax !== null) {
+              allowedTypes = allowedTypes.slice(0, tierLimits.studioTypesMax);
+            }
+
             // Delete existing types
             await db.studio_studio_types.deleteMany({
               where: { studio_id: profile.id },
             });
             
             // Create new types
-            if (body.studio_types.length > 0) {
+            if (allowedTypes.length > 0) {
               const { randomBytes } = await import('crypto');
               await db.studio_studio_types.createMany({
-                data: body.studio_types.map((type: string) => ({
+                data: allowedTypes.map((type: string) => ({
                   id: randomBytes(12).toString('base64url'),
                   studio_id: profile.id,
                   studio_type: type,
@@ -719,8 +831,19 @@ export async function PUT(request: NextRequest) {
 
     // Handle user metadata updates (e.g., custom_meta_title)
     if (body.metadata) {
-      // Update custom_meta_title if provided
       if (body.metadata.custom_meta_title !== undefined) {
+        // Custom meta title is a Premium-only feature
+        if (!tierLimits.advancedSettings) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'Custom SEO meta title is a Premium feature. Upgrade to Premium to unlock advanced settings.',
+              code: 'PREMIUM_REQUIRED',
+            },
+            { status: 403 }
+          );
+        }
+
         const customMetaTitle = body.metadata.custom_meta_title?.trim() || '';
         
         if (customMetaTitle) {

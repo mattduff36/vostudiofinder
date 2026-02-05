@@ -9,7 +9,7 @@ import { MembershipPayment } from '@/components/auth/MembershipPayment';
 
 export const metadata: Metadata = {
   title: 'Studio Membership - Voiceover Studio Finder',
-  description: 'Join as a studio owner for £25/year and connect with voice artists worldwide',
+  description: 'Join as a studio owner for free or upgrade to Premium for £25/year to unlock all features and connect with voice artists worldwide',
 };
 
 interface MembershipPageProps {

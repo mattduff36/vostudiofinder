@@ -23,7 +23,8 @@ export async function requireAuth(callbackUrl?: string) {
 }
 
 /**
- * Server-side guard: require active (paid) account for member areas
+ * Server-side guard: require active account for member areas.
+ * Handles both Basic (free) and Premium (paid) membership tiers.
  */
 export async function requireActiveAccount(callbackUrl?: string) {
   const session = await requireAuth(callbackUrl);
@@ -40,6 +41,8 @@ export async function requireActiveAccount(callbackUrl?: string) {
       verification_token: true,
       verification_token_expiry: true,
       status: true,
+      membership_tier: true,
+      payment_attempted_at: true,
     },
   });
 
@@ -121,6 +124,26 @@ export async function requireActiveAccount(callbackUrl?: string) {
     redirect('/auth/signup?error=reservation_expired');
   }
 
+  // --- Safety-net activation for non-ACTIVE users ---
+  // At this point the user is PENDING (email verified, but not yet activated).
+
+  // Basic (free) tier: activate without payment if they completed the Basic signup flow.
+  // `payment_attempted_at` is set by /api/auth/complete-basic-signup as evidence
+  // the user explicitly chose the Basic tier (distinguishes from a brand-new
+  // registrant who also defaults to BASIC but never finished the signup flow).
+  if (user.membership_tier === 'BASIC' && user.payment_attempted_at) {
+    console.log(`[AUTH-GUARD] Activating BASIC user ${user.id} (payment_attempted_at set, no payment required)`);
+    await db.users.update({
+      where: { id: user.id },
+      data: {
+        status: UserStatus.ACTIVE,
+        updated_at: new Date(),
+      },
+    });
+    return session;
+  }
+
+  // Premium tier: check for a successful payment record
   const payment = await db.payments.findFirst({
     where: { user_id: user.id, status: 'SUCCEEDED' },
     orderBy: { created_at: 'desc' },
@@ -137,9 +160,14 @@ export async function requireActiveAccount(callbackUrl?: string) {
     redirect(`/auth/membership?${paymentParams.toString()}`);
   }
 
+  // Payment found but user not yet ACTIVE – activate as Premium
   await db.users.update({
     where: { id: user.id },
-    data: { status: UserStatus.ACTIVE, updated_at: new Date() },
+    data: {
+      status: UserStatus.ACTIVE,
+      membership_tier: 'PREMIUM', // Users who paid are Premium
+      updated_at: new Date(),
+    },
   });
 
   const existingSubscription = await db.subscriptions.findFirst({

@@ -215,7 +215,7 @@ export default function JoinWaitlistPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg mb-1">No Commission</h3>
-                    <p className="text-gray-600">Keep 100% of what you earn. No stupid monthly payments! It's just £25/year to list your studio! One booking more than covers the listing fee.</p>
+                    <p className="text-gray-600">Keep 100% of what you earn. No stupid monthly payments! List your studio for free, or upgrade to Premium for just £25/year to unlock all features.</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
