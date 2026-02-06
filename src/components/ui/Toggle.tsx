@@ -1,5 +1,7 @@
 'use client';
 
+import { ReactNode } from 'react';
+
 export interface ToggleProps {
   label?: string;
   description?: string;
@@ -7,6 +9,7 @@ export interface ToggleProps {
   onChange: (checked: boolean) => void;
   disabled?: boolean;
   className?: string;
+  badge?: ReactNode;
 }
 
 export function Toggle({
@@ -16,6 +19,7 @@ export function Toggle({
   onChange,
   disabled = false,
   className = '',
+  badge,
 }: ToggleProps) {
   return (
     <div className={`flex items-center justify-between ${className}`}>
@@ -23,6 +27,7 @@ export function Toggle({
         {label && (
           <label className="text-sm font-medium text-gray-700 block">
             {label}
+            {badge && <>{badge}</>}
           </label>
         )}
         {description && (

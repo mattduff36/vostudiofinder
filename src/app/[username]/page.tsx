@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
           full_address: true,
           city: true,
           phone: true,
-          twitter_url: true,
+          x_url: true,
           status: true, // Need to check status for robots indexing control
           is_profile_visible: true, // Need to check visibility for robots indexing control
           studio_studio_types: {
@@ -132,8 +132,8 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   // Use first image or fallback to logo
   const ogImage = studio.studio_images?.[0]?.image_url || `${baseUrl}/images/voiceover-studio-finder-logo-black-BIG 1.png`;
 
-  // Check if user has Twitter handle
-  const hasTwitter = studio?.twitter_url && studio.twitter_url.trim().length > 0;
+  // Check if user has X (formerly Twitter) handle
+  const hasTwitter = studio?.x_url && studio.x_url.trim().length > 0;
 
   // Enhanced keywords with location
   const locationKeywords = studio.city ? `${studio.city} recording studio, ${studio.city} voiceover studio, ` : '';
@@ -196,14 +196,14 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     },
   };
 
-  // Only add Twitter metadata if user has a Twitter handle
-  if (hasTwitter && studio.twitter_url) {
+  // Only add Twitter/X metadata if user has an X handle
+  if (hasTwitter && studio.x_url) {
     metadata.twitter = {
       card: 'summary_large_image',
       title: metaTitle,
       description: seoDescription.substring(0, 160),
       images: [ogImage],
-      creator: studio.twitter_url,
+      creator: studio.x_url,
     };
   }
 
@@ -396,11 +396,10 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     const sameAsLinks = [
       studio.website_url,
       studio.facebook_url,
-      studio.x_url || studio.twitter_url,
+      studio.x_url,
       studio.linkedin_url,
       studio.instagram_url,
       studio.youtube_url,
-      studio.vimeo_url,
       studio.soundcloud_url,
     ].filter((url): url is string => !!url && url.trim().length > 0);
     
@@ -562,14 +561,12 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
                 rate_tier_3: studio.rate_tier_3,
                 show_rates: studio.show_rates,
                 facebook_url: studio.facebook_url,
-                twitter_url: studio.twitter_url,
-                x_url: studio.x_url, // X (formerly Twitter)
+                x_url: studio.x_url,
                 linkedin_url: studio.linkedin_url,
                 instagram_url: studio.instagram_url,
                 youtube_url: studio.youtube_url,
-                tiktok_url: studio.tiktok_url, // TikTok
-                threads_url: studio.threads_url, // Threads
-                vimeo_url: studio.vimeo_url,
+                tiktok_url: studio.tiktok_url,
+                threads_url: studio.threads_url,
                 soundcloud_url: studio.soundcloud_url,
                 is_crb_checked: studio.is_crb_checked,
                 is_featured: studio.is_featured,

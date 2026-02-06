@@ -12,6 +12,7 @@ import { signOut } from 'next-auth/react';
 import { Home, Search, User, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Session } from 'next-auth';
 import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
+import { FreeBadge } from '@/components/ui/FreeBadge';
 
 interface MobileBurgerMenuProps {
   session: Session | null;
@@ -252,10 +253,11 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
                 <button
                   type="button"
                   onClick={() => handleNavigation('/register')}
-                  className="w-[220px] px-4 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#b91c23] active:bg-[#a01820] text-sm font-medium transition-all"
+                  className="relative w-[220px] px-4 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#b91c23] active:bg-[#a01820] text-sm font-medium transition-all"
                   role="menuitem"
                 >
                   List Your Studio
+                  <FreeBadge small />
                 </button>
               </div>
             )}

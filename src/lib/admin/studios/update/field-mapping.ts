@@ -72,18 +72,13 @@ export function buildProfileUpdate(
   
   // Social media
   if (body._meta?.facebook !== undefined) profileUpdateData.facebook_url = body._meta.facebook;
-  if (body._meta?.twitter !== undefined) profileUpdateData.twitter_url = body._meta.twitter;
-  if (body._meta?.x !== undefined) {
-    profileUpdateData.x_url = body._meta.x;
-    profileUpdateData.twitter_url = body._meta.x; // Keep in sync
-  }
+  if (body._meta?.x !== undefined) profileUpdateData.x_url = body._meta.x;
   if (body._meta?.linkedin !== undefined) profileUpdateData.linkedin_url = body._meta.linkedin;
   if (body._meta?.instagram !== undefined) profileUpdateData.instagram_url = body._meta.instagram;
   if (body._meta?.youtubepage !== undefined) profileUpdateData.youtube_url = body._meta.youtubepage;
   if (body._meta?.tiktok !== undefined) profileUpdateData.tiktok_url = body._meta.tiktok;
   if (body._meta?.threads !== undefined) profileUpdateData.threads_url = body._meta.threads;
   if (body._meta?.soundcloud !== undefined) profileUpdateData.soundcloud_url = body._meta.soundcloud;
-  if (body._meta?.vimeo !== undefined) profileUpdateData.vimeo_url = body._meta.vimeo;
   
   // Featured status
   if (body._meta?.featured !== undefined) {

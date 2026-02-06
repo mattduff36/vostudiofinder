@@ -6,6 +6,7 @@ import { SessionProvider } from '@/components/providers/SessionProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
 import { LoadingProvider } from '@/providers/LoadingProvider';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 import { Navbar } from '@/components/navigation/Navbar';
 import { MobileShell } from '@/components/navigation/MobileShell';
 import { CookieConsentBanner } from '@/components/consent/CookieConsentBanner';
@@ -99,6 +100,7 @@ export default async function RootLayout({
           <LoadingProvider>
             <ToastProvider />
             <ConfirmDialog />
+            <UnsavedChangesDialog />
             <GlobalEditProfileModal />
             <AdminBuildInfoBadge />
             <Navbar session={session} />

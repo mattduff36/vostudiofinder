@@ -14,7 +14,6 @@ import {
   Instagram,
   Youtube,
   Music,
-  Globe,
   Video,
   MessageCircle
 } from 'lucide-react';
@@ -38,14 +37,12 @@ interface EnhancedUserProfileProps {
       rate_tier_2?: string | null;
       rate_tier_3?: string | null;
       facebook_url?: string | null;
-      twitter_url?: string | null;
       x_url?: string | null;
       linkedin_url?: string | null;
       instagram_url?: string | null;
       tiktok_url?: string | null;
       threads_url?: string | null;
       youtube_url?: string | null;
-      vimeo_url?: string | null;
       soundcloud_url?: string | null;
     } | null;
   };
@@ -73,7 +70,7 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
     },
     { 
       platform: 'X (formerly Twitter)', 
-      url: profile?.x_url || profile?.twitter_url, 
+      url: profile?.x_url, 
       icon: XLogo, 
       color: 'hover:bg-blue-50 hover:text-blue-400 border-blue-200' 
     },
@@ -112,12 +109,6 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
       url: profile?.soundcloud_url, 
       icon: Music, 
       color: 'hover:bg-orange-50 hover:text-orange-600 border-orange-200' 
-    },
-    { 
-      platform: 'Vimeo', 
-      url: profile?.vimeo_url, 
-      icon: Globe, 
-      color: 'hover:bg-green-50 hover:text-green-600 border-green-200' 
     },
   ].filter(link => link.url);
 

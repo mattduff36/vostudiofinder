@@ -235,12 +235,10 @@ export async function POST(request: NextRequest) {
     const allowlistedStudioFields = [
       'website_url',
       'facebook_url',
-      'twitter_url',
       'x_url',
       'linkedin_url',
       'instagram_url',
       'youtube_url',
-      'vimeo_url',
       'soundcloud_url',
       'tiktok_url',
       'threads_url',

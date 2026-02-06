@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { colors } from '../home/HomePage';
 import { SITE_NAME } from '@/lib/seo/site';
+import { FreeBadge } from '@/components/ui/FreeBadge';
 import { DashboardDropdownMenu } from './DashboardDropdownMenu';
 import { DesktopBurgerMenu } from './DesktopBurgerMenu';
 import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
@@ -316,7 +317,7 @@ export function Navbar({ session }: NavbarProps) {
                 </button>
                 <button
                   onClick={() => router.push('/auth/signup')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                  className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
                     isScrolled || !isHomePage 
                       ? 'text-white hover:opacity-90' 
                       : 'text-white border border-white bg-transparent hover:bg-white hover:text-red-600'
@@ -326,6 +327,7 @@ export function Navbar({ session }: NavbarProps) {
                   } : undefined}
                 >
                   List Your Studio
+                  <FreeBadge small />
                 </button>
               </>
             )}
@@ -408,10 +410,11 @@ export function Navbar({ session }: NavbarProps) {
           </Link>
           <Link
             href="/auth/signup"
-            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#d42027] hover:bg-red-50 transition-colors"
+            className="relative flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#d42027] hover:bg-red-50 transition-colors"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             List Your Studio
+            <FreeBadge small />
           </Link>
         </div>
       </>

@@ -106,11 +106,9 @@ export const userProfileUpdateSchema = z.object({
   
   // Social media
   facebook_url: urlSchema,
-  twitter_url: urlSchema,
   linkedin_url: urlSchema,
   instagram_url: urlSchema,
   youtube_url: urlSchema,
-  vimeo_url: urlSchema,
   soundcloud_url: urlSchema,
   
   // Connection methods

@@ -407,14 +407,12 @@ export async function GET() {
           show_rates: studioProfile.show_rates,
           // Social media
           facebook_url: studioProfile.facebook_url,
-          twitter_url: studioProfile.twitter_url,
           x_url: studioProfile.x_url,
           linkedin_url: studioProfile.linkedin_url,
           instagram_url: studioProfile.instagram_url,
           tiktok_url: studioProfile.tiktok_url,
           threads_url: studioProfile.threads_url,
           youtube_url: studioProfile.youtube_url,
-          vimeo_url: studioProfile.vimeo_url,
           soundcloud_url: studioProfile.soundcloud_url,
           // Connections
           connection1: studioProfile.connection1,
@@ -500,6 +498,9 @@ export async function PUT(request: NextRequest) {
 
     const userId = session.user.id;
     const body = await request.json();
+
+    // Track fields dropped due to tier limits so we can inform the user
+    const droppedFields: string[] = [];
 
     // Fetch user tier for enforcement
     const { getUserTier } = await import('@/lib/membership');
@@ -596,9 +597,9 @@ export async function PUT(request: NextRequest) {
       // Social media & connections - enforce tier limits against TOTAL count (existing + new)
       // We must fetch the existing profile to count current values, not just values in this request.
       const socialFields = [
-        'facebook_url', 'twitter_url', 'x_url', 'linkedin_url',
+        'facebook_url', 'x_url', 'linkedin_url',
         'instagram_url', 'tiktok_url', 'threads_url',
-        'youtube_url', 'vimeo_url', 'soundcloud_url',
+        'youtube_url', 'soundcloud_url',
       ] as const;
 
       const connectionFields = [
@@ -611,14 +612,16 @@ export async function PUT(request: NextRequest) {
       const existingProfileForLimits = await db.studio_profiles.findUnique({
         where: { user_id: userId },
         select: {
-          facebook_url: true, twitter_url: true, x_url: true, linkedin_url: true,
+          facebook_url: true, x_url: true, linkedin_url: true,
           instagram_url: true, tiktok_url: true, threads_url: true,
-          youtube_url: true, vimeo_url: true, soundcloud_url: true,
+          youtube_url: true, soundcloud_url: true,
           connection1: true, connection2: true, connection3: true, connection4: true,
           connection5: true, connection6: true, connection7: true, connection8: true,
           connection9: true, connection10: true, connection11: true, connection12: true,
         },
       });
+
+      // Track fields dropped due to tier limits so we can inform the user
 
       if (tierLimits.socialLinksMax !== null) {
         // Count existing non-empty social links that are NOT being overwritten in this request
@@ -645,21 +648,21 @@ export async function PUT(request: NextRequest) {
             } else if (!value || !value.trim()) {
               // Allow clearing values
               (profileUpdates as any)[field] = value;
+            } else {
+              // Over limit - track the dropped field
+              droppedFields.push(field);
             }
-            // Skip if over limit (silently drop)
           }
         }
       } else {
         // Unlimited social links (Premium)
         if (updates.facebook_url !== undefined) profileUpdates.facebook_url = updates.facebook_url;
-        if (updates.twitter_url !== undefined) profileUpdates.twitter_url = updates.twitter_url;
         if (updates.x_url !== undefined) profileUpdates.x_url = updates.x_url;
         if (updates.linkedin_url !== undefined) profileUpdates.linkedin_url = updates.linkedin_url;
         if (updates.instagram_url !== undefined) profileUpdates.instagram_url = updates.instagram_url;
         if (updates.tiktok_url !== undefined) profileUpdates.tiktok_url = updates.tiktok_url;
         if (updates.threads_url !== undefined) profileUpdates.threads_url = updates.threads_url;
         if (updates.youtube_url !== undefined) profileUpdates.youtube_url = updates.youtube_url;
-        if (updates.vimeo_url !== undefined) profileUpdates.vimeo_url = updates.vimeo_url;
         if (updates.soundcloud_url !== undefined) profileUpdates.soundcloud_url = updates.soundcloud_url;
       }
       
@@ -685,9 +688,8 @@ export async function PUT(request: NextRequest) {
             (profileUpdates as any)[field] = '1';
             enabledConnectionCount++;
           } else if (updates[field] === '1') {
-            // Over limit - skip (preserve existing value) rather than
-            // writing '0' which would invert the user's intent and
-            // could disable an already-enabled connection.
+            // Over limit - track the dropped field
+            droppedFields.push(field);
           } else {
             // Allow disabling connections ('0') or other values
             (profileUpdates as any)[field] = updates[field];
@@ -838,8 +840,11 @@ export async function PUT(request: NextRequest) {
     // Handle user metadata updates (e.g., custom_meta_title)
     if (body.metadata) {
       if (body.metadata.custom_meta_title !== undefined) {
-        // Custom meta title is a Premium-only feature
-        if (!tierLimits.advancedSettings) {
+        const customMetaTitle = body.metadata.custom_meta_title?.trim() || '';
+        
+        // Only block if a Basic user tries to SET a non-empty custom title.
+        // Empty/null values are always allowed (clearing reverts to auto-generated).
+        if (customMetaTitle && !tierLimits.advancedSettings) {
           return NextResponse.json(
             {
               success: false,
@@ -850,8 +855,6 @@ export async function PUT(request: NextRequest) {
           );
         }
 
-        const customMetaTitle = body.metadata.custom_meta_title?.trim() || '';
-        
         if (customMetaTitle) {
           // Upsert the custom_meta_title metadata
           await db.user_metadata.upsert({
@@ -961,6 +964,10 @@ export async function PUT(request: NextRequest) {
       allRequiredComplete: eligibility.allRequiredComplete,
       visibilityAutoDisabled,
       warnings: voArtistWarnings.length > 0 ? voArtistWarnings : undefined,
+      tierLimitReached: droppedFields.length > 0 ? {
+        droppedFields,
+        message: `Some fields were not saved because your plan limit was reached. Upgrade to Premium for unlimited access.`,
+      } : undefined,
     });
   } catch (error) {
     console.error('Error updating user profile:', error);

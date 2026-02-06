@@ -28,6 +28,7 @@ import { adminProfileToProfileData, profileDataToAdminPayload } from '@/lib/prof
 
 export interface ProfileEditFormHandle {
   saveIfDirty: () => Promise<boolean>;
+  hasUnsavedChanges: () => boolean;
 }
 
 interface ProfileEditFormProps {
@@ -160,7 +161,7 @@ const CONNECTION_TYPES = [
 ];
 
 export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditFormProps>(
-  function ProfileEditForm({ userId, mode = 'page', autoSaveOnSectionChange = false, onSaveSuccess, dataSource = 'user', adminStudioId, isAdminUI = false }, ref) {
+  function ProfileEditForm({ userId, mode = 'page', onSaveSuccess, dataSource = 'user', adminStudioId, isAdminUI = false }, ref) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -564,12 +565,15 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         });
       } else {
         // User mode: use user endpoint
+        // Only include metadata if user has Premium (advanced settings) to avoid
+        // sending auto-generated meta title data that triggers a 403 for Basic users.
+        const isAdvancedAllowedForSave = normalizedProfile.tierLimits?.advancedSettings ?? false;
         const profileToSave = {
           user: normalizedProfile.user,
           profile: normalizedProfile.profile,
           studio: normalizedProfile.studio,
           studio_types: normalizedProfile.studio_types,
-          metadata: normalizedProfile.metadata,
+          ...(isAdvancedAllowedForSave ? { metadata: normalizedProfile.metadata } : {}),
         };
         
         response = await fetch('/api/user/profile', {
@@ -618,14 +622,15 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     }
   };
 
-  // Expose saveIfDirty method via ref for modal to call on close
+  // Expose saveIfDirty and hasUnsavedChanges methods via ref for modal to call on close
   useImperativeHandle(ref, () => ({
     saveIfDirty: async () => {
       if (hasChanges) {
         return await handleSave();
       }
       return true; // No changes, nothing to save
-    }
+    },
+    hasUnsavedChanges: () => hasChanges,
   }));
 
   const handleVisibilityToggle = async (visible: boolean) => {
@@ -803,8 +808,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
   ];
 
   const handleMobileSectionClick = (sectionId: string) => {
-    // Check for unsaved changes before navigation
-    if (hasChanges && expandedMobileSection !== sectionId) {
+    // In page mode, warn about unsaved changes before navigation
+    if (mode === 'page' && hasChanges && expandedMobileSection !== sectionId) {
       const confirmNavigation = window.confirm(
         'You have unsaved changes. Are you sure you want to leave this section? Your changes will be lost.'
       );
@@ -812,6 +817,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         return;
       }
     }
+    // In modal mode, allow free tab switching (unsaved changes dialog shown on modal close)
 
     if (expandedMobileSection === sectionId) {
       setExpandedMobileSection(null);
@@ -831,17 +837,15 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       return;
     }
     
-    // Modal mode with autosave enabled: autosave before switching
-    if (mode === 'modal' && autoSaveOnSectionChange && hasChanges) {
-      const saveSuccess = await handleSave();
-      if (!saveSuccess) {
-        // Save failed, block navigation
-        return;
-      }
+    // Modal mode: allow free tab switching without warning or autosave.
+    // Unsaved changes will be handled when the user closes the modal.
+    if (mode === 'modal') {
+      setActiveSection(sectionId);
+      return;
     }
     
     // Page mode: check for unsaved changes before navigation (existing behavior)
-    if (mode === 'page' && hasChanges) {
+    if (hasChanges) {
       showWarning('You have unsaved changes. Please save or discard them before switching tabs.');
       return;
     }
@@ -1163,229 +1167,200 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         );
 
       case 'social':
+        const socialMediaFields = [
+          { field: 'facebook_url', label: 'Facebook', placeholder: 'facebook.com/your-page', helperText: 'Your Facebook page or profile' },
+          { field: 'x_url', label: 'X (formerly Twitter)', placeholder: 'x.com/yourhandle', helperText: 'Your X (Twitter) profile' },
+          { field: 'youtube_url', label: 'YouTube', placeholder: 'youtube.com/@yourchannel', helperText: 'Your YouTube channel' },
+          { field: 'instagram_url', label: 'Instagram', placeholder: 'instagram.com/yourhandle', helperText: 'Your Instagram profile' },
+          { field: 'soundcloud_url', label: 'SoundCloud', placeholder: 'soundcloud.com/yourprofile', helperText: 'Your SoundCloud profile' },
+          { field: 'tiktok_url', label: 'TikTok', placeholder: 'tiktok.com/@yourhandle', helperText: 'Your TikTok profile' },
+          { field: 'linkedin_url', label: 'LinkedIn', placeholder: 'linkedin.com/in/yourprofile', helperText: 'Your LinkedIn profile' },
+          { field: 'threads_url', label: 'Threads', placeholder: 'threads.net/@yourhandle', helperText: 'Your Threads profile' },
+        ];
+
+        // Count filled social media fields for tier limit enforcement
+        const filledSocialCount = socialMediaFields.filter(
+          ({ field }) => (profile.profile[field as keyof typeof profile.profile] as string || '').trim() !== ''
+        ).length;
+        const socialLimitReached = profile.tierLimits?.socialLinksMax !== null
+          && profile.tierLimits?.socialLinksMax !== undefined
+          && filledSocialCount >= profile.tierLimits.socialLinksMax;
+
         return (
           <div className="space-y-4">
             <p className="text-sm text-gray-600 mb-4">
               Add links to your social media profiles
+              {profile.tierLimits?.socialLinksMax !== null && profile.tierLimits?.socialLinksMax !== undefined && (
+                <span className="ml-1">({filledSocialCount}/{profile.tierLimits.socialLinksMax} used)</span>
+              )}
             </p>
+            {socialLimitReached && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm text-amber-800">
+                  Basic members can add up to {profile.tierLimits?.socialLinksMax} social links.{' '}
+                  <a href="/auth/membership" className="underline font-medium hover:text-amber-900">Upgrade to Premium</a> for unlimited.
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Facebook"
-                type="url"
-                value={profile.profile.facebook_url || ''}
-                onChange={(e) => handleSocialMediaChange('facebook_url', e.target.value)}
-                onBlur={(e) => {
-                  const normalized = normalizeSocialMediaUrl(e.target.value);
-                  if (normalized && normalized !== e.target.value) {
-                    updateProfile('facebook_url', normalized);
-                  }
-                  const error = validateSocialMediaUrl(normalized || e.target.value, 'facebook_url');
-                  setSocialMediaErrors(prev => ({ ...prev, facebook_url: error }));
-                }}
-                placeholder="facebook.com/your-page"
-                helperText="Your Facebook page or profile"
-                {...(socialMediaErrors.facebook_url && { error: socialMediaErrors.facebook_url })}
-              />
-              <Input
-                label="X (formerly Twitter)"
-                type="url"
-                value={profile.profile.x_url || ''}
-                onChange={(e) => handleSocialMediaChange('x_url', e.target.value)}
-                onBlur={(e) => {
-                  const normalized = normalizeSocialMediaUrl(e.target.value);
-                  if (normalized && normalized !== e.target.value) {
-                    updateProfile('x_url', normalized);
-                  }
-                  const error = validateSocialMediaUrl(normalized || e.target.value, 'x_url');
-                  setSocialMediaErrors(prev => ({ ...prev, x_url: error }));
-                }}
-                placeholder="x.com/yourhandle"
-                helperText="Your X (Twitter) profile"
-                {...(socialMediaErrors.x_url && { error: socialMediaErrors.x_url })}
-              />
-              <Input
-                label="YouTube"
-                type="url"
-                value={profile.profile.youtube_url || ''}
-                onChange={(e) => handleSocialMediaChange('youtube_url', e.target.value)}
-                onBlur={(e) => {
-                  const normalized = normalizeSocialMediaUrl(e.target.value);
-                  if (normalized && normalized !== e.target.value) {
-                    updateProfile('youtube_url', normalized);
-                  }
-                  const error = validateSocialMediaUrl(normalized || e.target.value, 'youtube_url');
-                  setSocialMediaErrors(prev => ({ ...prev, youtube_url: error }));
-                }}
-                placeholder="youtube.com/@yourchannel"
-                helperText="Your YouTube channel"
-                {...(socialMediaErrors.youtube_url && { error: socialMediaErrors.youtube_url })}
-              />
-              <Input
-                label="Instagram"
-                type="url"
-                value={profile.profile.instagram_url || ''}
-                onChange={(e) => handleSocialMediaChange('instagram_url', e.target.value)}
-                onBlur={(e) => {
-                  const normalized = normalizeSocialMediaUrl(e.target.value);
-                  if (normalized && normalized !== e.target.value) {
-                    updateProfile('instagram_url', normalized);
-                  }
-                  const error = validateSocialMediaUrl(normalized || e.target.value, 'instagram_url');
-                  setSocialMediaErrors(prev => ({ ...prev, instagram_url: error }));
-                }}
-                placeholder="instagram.com/yourhandle"
-                helperText="Your Instagram profile"
-                {...(socialMediaErrors.instagram_url && { error: socialMediaErrors.instagram_url })}
-              />
-              <Input
-                label="SoundCloud"
-                type="url"
-                value={profile.profile.soundcloud_url || ''}
-                onChange={(e) => handleSocialMediaChange('soundcloud_url', e.target.value)}
-                onBlur={(e) => {
-                  const normalized = normalizeSocialMediaUrl(e.target.value);
-                  if (normalized && normalized !== e.target.value) {
-                    updateProfile('soundcloud_url', normalized);
-                  }
-                  const error = validateSocialMediaUrl(normalized || e.target.value, 'soundcloud_url');
-                  setSocialMediaErrors(prev => ({ ...prev, soundcloud_url: error }));
-                }}
-                placeholder="soundcloud.com/yourprofile"
-                helperText="Your SoundCloud profile"
-                {...(socialMediaErrors.soundcloud_url && { error: socialMediaErrors.soundcloud_url })}
-              />
-              <Input
-                label="TikTok"
-                type="url"
-                value={profile.profile.tiktok_url || ''}
-                onChange={(e) => handleSocialMediaChange('tiktok_url', e.target.value)}
-                onBlur={(e) => {
-                  const normalized = normalizeSocialMediaUrl(e.target.value);
-                  if (normalized && normalized !== e.target.value) {
-                    updateProfile('tiktok_url', normalized);
-                  }
-                  const error = validateSocialMediaUrl(normalized || e.target.value, 'tiktok_url');
-                  setSocialMediaErrors(prev => ({ ...prev, tiktok_url: error }));
-                }}
-                placeholder="tiktok.com/@yourhandle"
-                helperText="Your TikTok profile"
-                {...(socialMediaErrors.tiktok_url && { error: socialMediaErrors.tiktok_url })}
-              />
-              <Input
-                label="LinkedIn"
-                type="url"
-                value={profile.profile.linkedin_url || ''}
-                onChange={(e) => handleSocialMediaChange('linkedin_url', e.target.value)}
-                onBlur={(e) => {
-                  const normalized = normalizeSocialMediaUrl(e.target.value);
-                  if (normalized && normalized !== e.target.value) {
-                    updateProfile('linkedin_url', normalized);
-                  }
-                  const error = validateSocialMediaUrl(normalized || e.target.value, 'linkedin_url');
-                  setSocialMediaErrors(prev => ({ ...prev, linkedin_url: error }));
-                }}
-                placeholder="linkedin.com/in/yourprofile"
-                helperText="Your LinkedIn profile"
-                {...(socialMediaErrors.linkedin_url && { error: socialMediaErrors.linkedin_url })}
-              />
-              <Input
-                label="Threads"
-                type="url"
-                value={profile.profile.threads_url || ''}
-                onChange={(e) => handleSocialMediaChange('threads_url', e.target.value)}
-                onBlur={(e) => {
-                  const normalized = normalizeSocialMediaUrl(e.target.value);
-                  if (normalized && normalized !== e.target.value) {
-                    updateProfile('threads_url', normalized);
-                  }
-                  const error = validateSocialMediaUrl(normalized || e.target.value, 'threads_url');
-                  setSocialMediaErrors(prev => ({ ...prev, threads_url: error }));
-                }}
-                placeholder="threads.net/@yourhandle"
-                helperText="Your Threads profile"
-                {...(socialMediaErrors.threads_url && { error: socialMediaErrors.threads_url })}
-              />
+              {socialMediaFields.map(({ field, label, placeholder, helperText }) => {
+                const value = (profile.profile[field as keyof typeof profile.profile] as string) || '';
+                const isEmpty = value.trim() === '';
+                const isDisabledByLimit = socialLimitReached && isEmpty;
+
+                return (
+                  <div key={field} className="relative group">
+                    <Input
+                      label={label}
+                      type="url"
+                      value={value}
+                      onChange={(e) => handleSocialMediaChange(field, e.target.value)}
+                      onBlur={(e) => {
+                        const normalized = normalizeSocialMediaUrl(e.target.value);
+                        if (normalized && normalized !== e.target.value) {
+                          updateProfile(field, normalized);
+                        }
+                        const error = validateSocialMediaUrl(normalized || e.target.value, field);
+                        setSocialMediaErrors(prev => ({ ...prev, [field]: error }));
+                      }}
+                      placeholder={placeholder}
+                      helperText={isDisabledByLimit ? `Upgrade to Premium to add more social links` : helperText}
+                      disabled={isDisabledByLimit}
+                      {...(socialMediaErrors[field] && { error: socialMediaErrors[field] })}
+                    />
+                    {isDisabledByLimit && (
+                      <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                        Basic members can add up to {profile.tierLimits?.socialLinksMax} social links. Upgrade to Premium to enable them all.
+                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
 
       case 'connections':
+        // Count currently enabled connections for tier limit enforcement
+        const enabledConnectionCount = CONNECTION_TYPES.filter(
+          (c) => profile.profile[c.id as keyof typeof profile.profile] === '1'
+        ).length;
+        const connectionLimitReached = profile.tierLimits?.connectionsMax !== undefined
+          && enabledConnectionCount >= profile.tierLimits.connectionsMax;
+        const customConnectionsAllowed = (profile.tierLimits?.customConnectionsMax ?? 0) > 0;
+
         return (
           <div className="space-y-6">
             <div>
               <p className="text-sm text-gray-600 mb-4">
                 Select the connections you support for remote sessions.
+                {profile.tierLimits?.connectionsMax !== undefined && profile.tierLimits.connectionsMax < 12 && (
+                  <span className="ml-1">({enabledConnectionCount}/{profile.tierLimits.connectionsMax} used)</span>
+                )}
               </p>
+              {connectionLimitReached && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+                  <p className="text-sm text-amber-800">
+                    Basic members can select up to {profile.tierLimits?.connectionsMax} connections.{' '}
+                    <a href="/auth/membership" className="underline font-medium hover:text-amber-900">Upgrade to Premium</a> for all connection types.
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {CONNECTION_TYPES.map((connection) => (
-                  <label
-                    key={connection.id}
-                    className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={profile.profile[connection.id as keyof typeof profile.profile] === '1'}
-                      onChange={(e) => updateProfile(connection.id, e.target.checked ? '1' : '0')}
-                      className="mr-3 h-4 w-4 text-red-600 accent-red-600 focus:ring-red-500 border-gray-300 rounded"
-                    />
-                    <span className="text-sm font-medium text-gray-900">
-                      {connection.label}
-                    </span>
-                  </label>
-                ))}
+                {CONNECTION_TYPES.map((connection) => {
+                  const isChecked = profile.profile[connection.id as keyof typeof profile.profile] === '1';
+                  const isDisabledByLimit = connectionLimitReached && !isChecked;
+
+                  return (
+                    <div key={connection.id} className="relative group">
+                      <label
+                        className={`flex items-center p-4 border border-gray-200 rounded-lg ${isDisabledByLimit ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-50 cursor-pointer'}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => updateProfile(connection.id, e.target.checked ? '1' : '0')}
+                          disabled={isDisabledByLimit}
+                          className="mr-3 h-4 w-4 text-red-600 accent-red-600 focus:ring-red-500 border-gray-300 rounded disabled:cursor-not-allowed"
+                        />
+                        <span className={`text-sm font-medium ${isDisabledByLimit ? 'text-gray-400' : 'text-gray-900'}`}>
+                          {connection.label}
+                        </span>
+                      </label>
+                      {isDisabledByLimit && (
+                        <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
+                          Basic members can select up to {profile.tierLimits?.connectionsMax} connections. Upgrade to Premium for unlimited.
+                          <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             {/* Custom Connections */}
             <div className="border-t border-gray-200 pt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Custom Connection Methods</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Add your own custom connection methods (max 2). These will appear in your profile alongside the standard connections.
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Input
-                    label="Custom Method 1"
-                    value={(profile.profile.custom_connection_methods || [])[0] || ''}
-                    onChange={(e) => {
-                      const methods = Array.isArray(profile.profile.custom_connection_methods) 
-                        ? [...profile.profile.custom_connection_methods] 
-                        : [];
-                      methods[0] = e.target.value;
-                      const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
-                      updateProfile('custom_connection_methods', filtered.some(m => m) ? filtered : []);
-                    }}
-                    placeholder="e.g., Discord, WhatsApp, Slack"
-                    maxLength={50}
-                  />
-                  <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                    <span>Connection method name</span>
-                    <span>{((profile.profile.custom_connection_methods || [])[0] || '').length}/50</span>
-                  </div>
+              {!customConnectionsAllowed ? (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    Custom connection methods require a Premium membership.{' '}
+                    <a href="/auth/membership" className="underline font-medium hover:text-amber-900">Upgrade now</a> for £25/year to add custom connections.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Add your own custom connection methods (max 2). These will appear in your profile alongside the standard connections.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Input
+                        label="Custom Method 1"
+                        value={(profile.profile.custom_connection_methods || [])[0] || ''}
+                        onChange={(e) => {
+                          const methods = Array.isArray(profile.profile.custom_connection_methods) 
+                            ? [...profile.profile.custom_connection_methods] 
+                            : [];
+                          methods[0] = e.target.value;
+                          const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
+                          updateProfile('custom_connection_methods', filtered.some(m => m) ? filtered : []);
+                        }}
+                        placeholder="e.g., Discord, WhatsApp, Slack"
+                        maxLength={50}
+                      />
+                      <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                        <span>Connection method name</span>
+                        <span>{((profile.profile.custom_connection_methods || [])[0] || '').length}/50</span>
+                      </div>
+                    </div>
 
-                <div>
-                  <Input
-                    label="Custom Method 2"
-                    value={(profile.profile.custom_connection_methods || [])[1] || ''}
-                    onChange={(e) => {
-                      const methods = Array.isArray(profile.profile.custom_connection_methods) 
-                        ? [...profile.profile.custom_connection_methods] 
-                        : [];
-                      methods[1] = e.target.value;
-                      const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
-                      updateProfile('custom_connection_methods', filtered.some(m => m) ? filtered : []);
-                    }}
-                    placeholder="e.g., Discord, WhatsApp, Slack"
-                    maxLength={50}
-                  />
-                  <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                    <span>Connection method name</span>
-                    <span>{((profile.profile.custom_connection_methods || [])[1] || '').length}/50</span>
+                    <div>
+                      <Input
+                        label="Custom Method 2"
+                        value={(profile.profile.custom_connection_methods || [])[1] || ''}
+                        onChange={(e) => {
+                          const methods = Array.isArray(profile.profile.custom_connection_methods) 
+                            ? [...profile.profile.custom_connection_methods] 
+                            : [];
+                          methods[1] = e.target.value;
+                          const filtered = methods.filter((m, i) => m || i === 0 || i === 1).slice(0, 2);
+                          updateProfile('custom_connection_methods', filtered.some(m => m) ? filtered : []);
+                        }}
+                        placeholder="e.g., Discord, WhatsApp, Slack"
+                        maxLength={50}
+                      />
+                      <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                        <span>Connection method name</span>
+                        <span>{((profile.profile.custom_connection_methods || [])[1] || '').length}/50</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </div>
         );

@@ -93,12 +93,10 @@ interface ModernStudioProfileV3Props {
         rate_tier_3?: string | null;
         show_rates?: boolean | null;
         facebook_url?: string | null;
-        twitter_url?: string | null;
         x_url?: string | null;
         linkedin_url?: string | null;
         instagram_url?: string | null;
         youtube_url?: string | null;
-        vimeo_url?: string | null;
         soundcloud_url?: string | null;
         tiktok_url?: string | null;
         threads_url?: string | null;
@@ -193,7 +191,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
     },
     { 
       platform: 'X (formerly Twitter)', 
-      url: profile?.x_url || profile?.twitter_url, 
+      url: profile?.x_url, 
       icon: XLogo, 
       color: 'text-sky-500 hover:text-sky-700' 
     },

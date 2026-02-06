@@ -6,7 +6,7 @@ import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
 import { AdminTabs } from '@/components/admin/AdminTabs';
-import { getCompletionBgColor } from '@/lib/profile-completion';
+import { getCompletionBgColor } from '@/lib/utils/profile-completion';
 import { formatRelativeDate, formatDate } from '@/lib/date-format';
 import { showSuccess, showError } from '@/lib/toast';
 import { showConfirm } from '@/components/ui/ConfirmDialog';

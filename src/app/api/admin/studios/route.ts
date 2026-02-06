@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { calculateProfileCompletion } from '@/lib/profile-completion';
+import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
 export async function GET(request: NextRequest) {
   try {
@@ -78,11 +78,12 @@ export async function GET(request: NextRequest) {
           services_offered: true,
           website_url: true,
           facebook_url: true,
-          twitter_url: true,
+          x_url: true,
           linkedin_url: true,
           instagram_url: true,
           youtube_url: true,
-          vimeo_url: true,
+          tiktok_url: true,
+          threads_url: true,
           soundcloud_url: true,
           connection1: true,
           connection2: true,
@@ -92,6 +93,10 @@ export async function GET(request: NextRequest) {
           connection6: true,
           connection7: true,
           connection8: true,
+          connection9: true,
+          connection10: true,
+          connection11: true,
+          connection12: true,
           rate_tier_1: true,
           status: true,
           is_verified: true,
@@ -156,43 +161,53 @@ export async function GET(request: NextRequest) {
 
     // Serialize Decimal fields and calculate profile completion
     let serializedStudios = studios.map(studio => {
-      // Calculate profile completion - only include defined values
-      const profileData: any = {
-        username: studio.users.username,
-        display_name: studio.users.display_name,
-        email: studio.users.email,
-        studio_name: studio.name,
-        studio_types_count: studio.studio_studio_types?.length || 0,
-        images_count: studio.studio_images?.length || 0,
+      // Calculate profile completion using the shared calculator
+      const completionData = {
+        user: {
+          username: studio.users.username || '',
+          display_name: studio.users.display_name || '',
+          email: studio.users.email || '',
+          avatar_url: studio.users.avatar_url,
+        },
+        profile: {
+          short_about: studio.short_about,
+          about: studio.about,
+          phone: studio.phone,
+          location: studio.location,
+          website_url: studio.website_url,
+          equipment_list: studio.equipment_list,
+          services_offered: studio.services_offered,
+          rate_tier_1: studio.rate_tier_1,
+          facebook_url: studio.facebook_url,
+          x_url: studio.x_url,
+          linkedin_url: studio.linkedin_url,
+          instagram_url: studio.instagram_url,
+          youtube_url: studio.youtube_url,
+          tiktok_url: studio.tiktok_url,
+          threads_url: studio.threads_url,
+          soundcloud_url: studio.soundcloud_url,
+          connection1: studio.connection1,
+          connection2: studio.connection2,
+          connection3: studio.connection3,
+          connection4: studio.connection4,
+          connection5: studio.connection5,
+          connection6: studio.connection6,
+          connection7: studio.connection7,
+          connection8: studio.connection8,
+          connection9: studio.connection9,
+          connection10: studio.connection10,
+          connection11: studio.connection11,
+          connection12: studio.connection12,
+        },
+        studio: {
+          name: studio.name,
+          studio_types: studio.studio_studio_types?.map((st: any) => st.studio_type) || [],
+          images: studio.studio_images || [],
+          website_url: studio.website_url,
+        },
       };
       
-      // Add optional fields only if they exist
-      if (studio.short_about) profileData.short_about = studio.short_about;
-      if (studio.about) profileData.about = studio.about;
-      if (studio.phone) profileData.phone = studio.phone;
-      if (studio.location) profileData.location = studio.location;
-      if (studio.website_url) profileData.website_url = studio.website_url;
-      if (studio.equipment_list) profileData.equipment_list = studio.equipment_list;
-      if (studio.services_offered) profileData.services_offered = studio.services_offered;
-      if (studio.users.avatar_url) profileData.avatar_url = studio.users.avatar_url;
-      if (studio.rate_tier_1) profileData.rate_tier_1 = studio.rate_tier_1;
-      if (studio.facebook_url) profileData.facebook_url = studio.facebook_url;
-      if (studio.twitter_url) profileData.twitter_url = studio.twitter_url;
-      if (studio.linkedin_url) profileData.linkedin_url = studio.linkedin_url;
-      if (studio.instagram_url) profileData.instagram_url = studio.instagram_url;
-      if (studio.youtube_url) profileData.youtube_url = studio.youtube_url;
-      if (studio.vimeo_url) profileData.vimeo_url = studio.vimeo_url;
-      if (studio.soundcloud_url) profileData.soundcloud_url = studio.soundcloud_url;
-      if (studio.connection1) profileData.connection1 = studio.connection1;
-      if (studio.connection2) profileData.connection2 = studio.connection2;
-      if (studio.connection3) profileData.connection3 = studio.connection3;
-      if (studio.connection4) profileData.connection4 = studio.connection4;
-      if (studio.connection5) profileData.connection5 = studio.connection5;
-      if (studio.connection6) profileData.connection6 = studio.connection6;
-      if (studio.connection7) profileData.connection7 = studio.connection7;
-      if (studio.connection8) profileData.connection8 = studio.connection8;
-      
-      const profileCompletion = calculateProfileCompletion(profileData);
+      const profileCompletion = calculateCompletionStats(completionData).overall.percentage;
       
       // Get membership expiry from subscription
       const latestSubscription = studio.users.subscriptions[0];

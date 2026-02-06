@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { colors } from './HomePage';
+import { FreeBadge } from '@/components/ui/FreeBadge';
 
 export function NewCTASection() {
   const [isVisible, setIsVisible] = useState(false);
@@ -131,10 +132,11 @@ export function NewCTASection() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-2">
             <Link 
               href="/auth/signup" 
-              className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" 
+              className="relative w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" 
               style={{ backgroundColor: colors.primary, color: '#ffffff' }}
             >
-              List Your Studio - Free
+              List Your Studio
+              <FreeBadge />
             </Link>
             <Link 
               href="/studios" 

@@ -138,3 +138,21 @@ export function calculateCompletionStats(data: ProfileCompletionData): Completio
     },
   };
 }
+
+/**
+ * Get text color class based on completion percentage
+ */
+export function getCompletionColor(percentage: number): string {
+  if (percentage < 50) return 'text-red-600';
+  if (percentage < 80) return 'text-yellow-600';
+  return 'text-green-600';
+}
+
+/**
+ * Get background color class based on completion percentage
+ */
+export function getCompletionBgColor(percentage: number): string {
+  if (percentage < 50) return 'bg-red-600';
+  if (percentage < 80) return 'bg-yellow-500';
+  return 'bg-green-600';
+}

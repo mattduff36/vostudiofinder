@@ -6,6 +6,7 @@ import { Building, Users, Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { colors } from './HomePage';
+import { FreeBadge } from '@/components/ui/FreeBadge';
 
 interface CombinedCTASectionProps {
   session: Session | null;
@@ -293,8 +294,9 @@ export function CombinedCTASection({ stats }: CombinedCTASectionProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-2">
-          <Link href="/auth/signup" className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" style={{ backgroundColor: colors.background, color: colors.primary }}>
-            List Your Studio - Free
+          <Link href="/auth/signup" className="relative w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" style={{ backgroundColor: colors.background, color: colors.primary }}>
+            List Your Studio
+            <FreeBadge />
           </Link>
           <Link href="/studios" className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300 hover:shadow-xl text-center" style={{ border: `1px solid ${colors.background}`, color: colors.background, backgroundColor: 'transparent' }}>
             Browse Studios

@@ -97,16 +97,14 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
               <Loader2 className="w-4 h-4 animate-spin text-red-600" />
             </div>
           )}
-          <div className="flex items-center">
-            <Toggle
-              label="Show Phone"
-              description={!isPremium ? "Upgrade to Premium to display phone number" : "Display phone number on public profile"}
-              checked={isPremium ? settings.show_phone : false}
-              onChange={(checked) => handleToggle('show_phone', checked)}
-              disabled={updating === 'show_phone' || !isPremium}
-            />
-            {!isPremium && <PremiumBadge />}
-          </div>
+          <Toggle
+            label="Show Phone"
+            description={!isPremium ? "Upgrade to Premium to display phone number" : "Display phone number on public profile"}
+            checked={isPremium ? settings.show_phone : false}
+            onChange={(checked) => handleToggle('show_phone', checked)}
+            disabled={updating === 'show_phone' || !isPremium}
+            badge={!isPremium ? <PremiumBadge /> : undefined}
+          />
         </div>
 
         <div className="relative">
@@ -130,16 +128,14 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
               <Loader2 className="w-4 h-4 animate-spin text-red-600" />
             </div>
           )}
-          <div className="flex items-center">
-            <Toggle
-              label="Show Directions"
-              description={!isPremium ? "Upgrade to Premium to display directions" : "Display 'Get Directions' button on public profile"}
-              checked={isPremium ? settings.show_directions : false}
-              onChange={(checked) => handleToggle('show_directions', checked)}
-              disabled={updating === 'show_directions' || !isPremium}
-            />
-            {!isPremium && <PremiumBadge />}
-          </div>
+          <Toggle
+            label="Show Directions"
+            description={!isPremium ? "Upgrade to Premium to display directions" : "Display 'Get Directions' button on public profile"}
+            checked={isPremium ? settings.show_directions : false}
+            onChange={(checked) => handleToggle('show_directions', checked)}
+            disabled={updating === 'show_directions' || !isPremium}
+            badge={!isPremium ? <PremiumBadge /> : undefined}
+          />
         </div>
       </div>
 

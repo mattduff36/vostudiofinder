@@ -27,12 +27,10 @@ export interface UserProfile {
   rate_tier_3?: string | number | null;
   show_rates?: boolean;
   facebook_url?: string;
-  twitter_url?: string;
   x_url?: string;
   linkedin_url?: string;
   instagram_url?: string;
   youtube_url?: string;
-  vimeo_url?: string;
   soundcloud_url?: string;
   tiktok_url?: string;
   threads_url?: string;
@@ -114,11 +112,9 @@ export interface ProfileCompletionData {
   location?: string;
   studio_name?: string;
   facebook_url?: string;
-  twitter_url?: string;
   linkedin_url?: string;
   instagram_url?: string;
   youtube_url?: string;
-  vimeo_url?: string;
   soundcloud_url?: string;
   connection1?: string;
   connection2?: string;

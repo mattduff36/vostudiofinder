@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { ProfileEditForm, ProfileEditFormHandle } from '@/components/dashboard/ProfileEditForm';
 import { showError } from '@/lib/toast';
+import { showUnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -26,11 +27,12 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
   const isAdminMode = mode === 'admin';
   const isAdmin = session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN';
 
-  // Reset studioId when modal closes
+  // Reset state when modal closes so it's clean on next open
   useEffect(() => {
     if (!isOpen) {
       setAdminStudioId(studioId);
       setLoadingStudioId(false);
+      setIsClosing(false);
     }
   }, [isOpen, studioId]);
 
@@ -75,66 +77,52 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
   const handleCloseAttempt = async () => {
     if (isClosing) return;
     
-    setIsClosing(true);
+    // Check if there are unsaved changes
+    const hasChanges = profileFormRef.current?.hasUnsavedChanges?.() ?? false;
     
-    const savePromise = profileFormRef.current?.saveIfDirty();
-    if (savePromise === undefined) {
-      // Ref not mounted or form not ready - don't close without attempting save (avoid data loss)
-      setIsClosing(false);
+    if (!hasChanges) {
+      // No unsaved changes, close immediately
+      onClose();
       return;
     }
     
-    let timeoutId: NodeJS.Timeout | null = null;
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => {
-        reject(new Error('MODAL_CLOSE_TIMEOUT: Save operation timed out after 30 seconds'));
-      }, 30000);
-    });
+    // Show 3-button dialog: Cancel / Discard / Save
+    const result = await showUnsavedChangesDialog();
     
-    try {
-      const saveSuccess = await Promise.race([savePromise, timeoutPromise]);
-      
-      // Clean up timeout if save completed first (prevent unhandled rejection)
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-      }
-      
-      if (saveSuccess === false) {
-        // Save failed, block closing
-        setIsClosing(false);
-        return;
-      }
-      
-      // Save succeeded or no changes, allow close
-      // Don't refresh - just close the modal and stay on current page
+    if (result === 'cancel') {
+      // User chose to stay in the modal
+      return;
+    }
+    
+    if (result === 'discard') {
+      // User chose to discard changes and close
       onClose();
-    } catch (error) {
-      // Clean up timeout on error too
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-      }
+      return;
+    }
+    
+    if (result === 'save') {
+      // User chose to save then close
+      setIsClosing(true);
       
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
-      // Check if it's a timeout error
-      if (errorMessage.includes('MODAL_CLOSE_TIMEOUT')) {
-        console.error('❌ CRITICAL ERROR: Modal close operation timed out', {
-          timestamp: new Date().toISOString(),
-          userId: session?.user?.id,
-          username: session?.user?.username,
-          mode: mode,
-          targetUsername: targetUsername,
-          error: errorMessage
-        });
+      try {
+        const saveSuccess = await profileFormRef.current?.saveIfDirty();
         
-        showError('Save operation timed out. Forcing modal close.');
+        if (saveSuccess === false) {
+          // Save failed, stay in modal
+          setIsClosing(false);
+          return;
+        }
         
-        // Force close the modal after timeout
-        setIsClosing(false);
+        // Save succeeded, close modal
+        // (isClosing is reset by the useEffect when isOpen becomes false)
         onClose();
-      } else {
-        // Regular error during save
-        console.error('Error during modal close:', error);
+      } catch (error) {
+        console.error('Error saving during modal close:', error);
+        showError('Failed to save changes. Please try again.');
+      } finally {
+        // Always reset isClosing to prevent stuck spinner state.
+        // If onClose() succeeded, the useEffect(!isOpen) reset also fires,
+        // but this ensures cleanup even if onClose throws or is delayed.
         setIsClosing(false);
       }
     }
@@ -209,7 +197,7 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
             ref={profileFormRef}
             userId={effectiveUserId}
             mode="modal"
-            autoSaveOnSectionChange={true}
+            autoSaveOnSectionChange={false}
             onSaveSuccess={handleSaveSuccess}
             dataSource={isAdminMode ? 'admin' : 'user'}
             adminStudioId={isAdminMode && adminStudioId ? adminStudioId : undefined}
