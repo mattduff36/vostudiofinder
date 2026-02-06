@@ -354,6 +354,9 @@ export async function GET() {
       const isDateValid = diffMs > 0;
       const isStatusActive = latestSubscription.status === 'ACTIVE';
       membershipInfo.state = (isDateValid && isStatusActive) ? 'ACTIVE' : 'EXPIRED';
+    } else if ((user as any).membership_tier === 'BASIC') {
+      // Basic (free) tier users have no subscription record but are always active
+      membershipInfo.state = 'ACTIVE';
     }
 
     // Transform metadata array into key-value object
@@ -966,7 +969,7 @@ export async function PUT(request: NextRequest) {
       warnings: voArtistWarnings.length > 0 ? voArtistWarnings : undefined,
       tierLimitReached: droppedFields.length > 0 ? {
         droppedFields,
-        message: `Some fields were not saved because your plan limit was reached. Upgrade to Premium for unlimited access.`,
+        message: `Some fields were not saved because your Basic tier limit was reached. Upgrade to Premium to unlock all features.`,
       } : undefined,
     });
   } catch (error) {

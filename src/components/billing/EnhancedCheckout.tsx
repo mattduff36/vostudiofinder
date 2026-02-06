@@ -89,7 +89,7 @@ export function EnhancedCheckout({
         <div className="flex justify-between items-center">
           <div>
             <p className="font-medium">{planName}</p>
-            <p className="text-sm text-gray-600">Annual subscription</p>
+            <p className="text-sm text-gray-600">Annual membership</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-gray-900">
@@ -103,23 +103,27 @@ export function EnhancedCheckout({
           <ul className="space-y-2 text-sm text-gray-600">
             <li className="flex items-center">
               <span className="text-green-500 mr-2">✓</span>
-              Featured studio listing
+              Up to 5 studio images
             </li>
             <li className="flex items-center">
               <span className="text-green-500 mr-2">✓</span>
-              Priority placement in search results
+              All studio types including Voiceover
             </li>
             <li className="flex items-center">
               <span className="text-green-500 mr-2">✓</span>
-              Unlimited photo uploads
+              All connections + custom methods
             </li>
             <li className="flex items-center">
               <span className="text-green-500 mr-2">✓</span>
-              Enhanced profile customisation
+              Phone &amp; directions visibility
             </li>
             <li className="flex items-center">
               <span className="text-green-500 mr-2">✓</span>
-              Detailed analytics and insights
+              Custom SEO meta title
+            </li>
+            <li className="flex items-center">
+              <span className="text-green-500 mr-2">✓</span>
+              Verified &amp; Featured eligibility
             </li>
           </ul>
         </div>

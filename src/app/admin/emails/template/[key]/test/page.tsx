@@ -39,7 +39,7 @@ export default function TestSendPage() {
         amount: '10.00',
         currency: 'GBP',
         paymentId: 'pi_test123',
-        planName: '1 Year Membership',
+        planName: '1 Year Premium Membership',
         nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB'),
         reservationExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB'),
         daysRemaining: 7,

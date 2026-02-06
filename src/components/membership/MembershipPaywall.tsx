@@ -11,9 +11,9 @@ interface MembershipPaywallProps {
 }
 
 export function MembershipPaywall({
-  title = 'Membership Required',
-  message = 'You need an active membership to perform this action.',
-  action = 'Renew Membership',
+  title = 'Premium Membership Required',
+  message = 'This feature requires an active Premium membership.',
+  action = 'Upgrade to Premium',
 }: MembershipPaywallProps) {
   const router = useRouter();
 

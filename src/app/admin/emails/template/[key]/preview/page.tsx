@@ -35,7 +35,7 @@ export default function PreviewPage() {
         amount: '10.00',
         currency: 'GBP',
         paymentId: 'pi_sample123',
-        planName: '1 Year Membership',
+        planName: '1 Year Premium Membership',
         nextBillingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
           day: 'numeric',
           month: 'long',

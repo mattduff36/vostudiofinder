@@ -395,7 +395,7 @@ export function SignupForm() {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-text-primary">List Your Studio</h1>
           <p className="mt-2 text-text-secondary">
-            Start your membership to showcase your studio to voice artists worldwide
+            Sign up to showcase your studio to voice artists worldwide
           </p>
         </div>
 

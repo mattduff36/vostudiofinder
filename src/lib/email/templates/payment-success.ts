@@ -36,7 +36,7 @@ export const paymentSuccessTemplate = (data: {
                 <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
               </div>
               <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Payment received</h1>
-              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We've successfully processed your payment. Your membership is now active.</p>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We've successfully processed your payment. Your Premium membership is now active.</p>
             </td>
           </tr>
           <tr>

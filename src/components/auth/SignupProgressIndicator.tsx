@@ -9,7 +9,7 @@ interface SignupProgressIndicatorProps {
 const STEPS = [
   { id: 'signup', label: 'Sign Up', number: 1 },
   { id: 'username', label: 'Username', number: 2 },
-  { id: 'payment', label: 'Payment', number: 3 },
+  { id: 'payment', label: 'Membership', number: 3 },
   { id: 'profile', label: 'Profile', number: 4 },
 ];
 

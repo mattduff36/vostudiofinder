@@ -907,7 +907,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                     let tooltipText = type.description;
                     if (type.disabled) tooltipText = 'Coming soon!';
                     else if (tierExcluded) tooltipText = 'Upgrade to Premium to unlock this studio type.';
-                    else if (maxReached) tooltipText = `Basic members can select up to ${profile.tierLimits?.studioTypesMax ?? 1} studio type. Upgrade to Premium for unlimited.`;
+                    else if (maxReached) tooltipText = `Basic members can select up to ${profile.tierLimits?.studioTypesMax ?? 1} studio type. Upgrade to Premium for all studio types.`;
                     
                     return (
                       <div key={type.value} className="relative group">
@@ -1198,7 +1198,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-sm text-amber-800">
                   Basic members can add up to {profile.tierLimits?.socialLinksMax} social links.{' '}
-                  <a href="/auth/membership" className="underline font-medium hover:text-amber-900">Upgrade to Premium</a> for unlimited.
+                  <a href="/auth/membership" className="underline font-medium hover:text-amber-900">Upgrade to Premium</a> to enable them all.
                 </p>
               </div>
             )}
@@ -1290,7 +1290,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                       </label>
                       {isDisabledByLimit && (
                         <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
-                          Basic members can select up to {profile.tierLimits?.connectionsMax} connections. Upgrade to Premium for unlimited.
+                          Basic members can select up to {profile.tierLimits?.connectionsMax} connections. Upgrade to Premium for all connection types.
                           <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                         </div>
                       )}

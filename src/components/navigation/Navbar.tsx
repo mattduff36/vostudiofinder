@@ -317,10 +317,10 @@ export function Navbar({ session }: NavbarProps) {
                 </button>
                 <button
                   onClick={() => router.push('/auth/signup')}
-                  className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                  className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-300 border ${
                     isScrolled || !isHomePage 
-                      ? 'text-white hover:opacity-90' 
-                      : 'text-white border border-white bg-transparent hover:bg-white hover:text-red-600'
+                      ? 'text-white border-transparent hover:opacity-90' 
+                      : 'text-white border-white bg-transparent hover:bg-white hover:text-red-600'
                   }`}
                   style={isScrolled || !isHomePage ? {
                     backgroundColor: colors.primary

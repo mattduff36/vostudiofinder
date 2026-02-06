@@ -55,8 +55,8 @@ export default function StudioNotFound() {
         <div className="mt-12 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-500">
             Want to list your studio?{' '}
-            <Link href="/join-waitlist" className="text-black hover:underline font-medium">
-              Join the waitlist
+            <Link href="/auth/signup" className="text-black hover:underline font-medium">
+              Sign up for free
             </Link>
           </p>
         </div>

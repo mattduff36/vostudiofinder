@@ -171,7 +171,7 @@ export default function TermsPage() {
 
             <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">6. Paid Features & Subscriptions</h2>
             
-            <p className="mb-4">If we introduce paid options (such as annual subscriptions or featured listings):</p>
+            <p className="mb-4">We offer paid options including annual Premium membership and featured studio listings:</p>
             
             <ul className="list-disc pl-6 mb-6 space-y-2">
               <li>all pricing will be displayed clearly</li>
