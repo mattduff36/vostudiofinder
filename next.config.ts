@@ -53,6 +53,9 @@ const nextConfig: NextConfig = {
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
+    // Vercel environment (production | preview | development) - enables
+    // preview-deploy security bypasses for testing
+    NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV,
     // Build metadata (auto-updates each push/build via git/CI metadata)
     NEXT_PUBLIC_GIT_COMMIT_DATE: gitCommitDateIso,
     NEXT_PUBLIC_BUILD_VERSION: buildVersion,

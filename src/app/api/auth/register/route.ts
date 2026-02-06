@@ -52,10 +52,12 @@ export async function POST(request: NextRequest) {
     const turnstileToken = body.turnstileToken;
     const isDevelopment = process.env.NODE_ENV === 'development';
     const isTest = process.env.NODE_ENV === 'test';
+    const isPreviewDeploy = process.env.VERCEL_ENV === 'preview';
     
-    // Allow development/test bypass
-    if ((isDevelopment || isTest) && turnstileToken === 'dev-bypass-token') {
-      console.warn('[Turnstile] Development/test mode: bypassing security check');
+    // Allow development/test/preview bypass
+    if ((isDevelopment || isTest || isPreviewDeploy) && turnstileToken === 'dev-bypass-token') {
+      const reason = isPreviewDeploy ? 'Preview deployment' : 'Development/test mode';
+      console.warn(`[Turnstile] ${reason}: bypassing security check`);
     } else {
       // Production: require valid Turnstile token
       if (!turnstileToken) {

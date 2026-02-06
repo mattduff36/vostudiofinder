@@ -347,7 +347,13 @@ export async function GET() {
       
       const diffMs = expiryDate.getTime() - now.getTime();
       membershipInfo.daysUntilExpiry = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-      membershipInfo.state = diffMs > 0 ? 'ACTIVE' : 'EXPIRED';
+
+      // A subscription is only ACTIVE if both the date is in the future AND
+      // the subscription record itself is in ACTIVE status. A cancelled or
+      // suspended subscription with remaining days should show as EXPIRED.
+      const isDateValid = diffMs > 0;
+      const isStatusActive = latestSubscription.status === 'ACTIVE';
+      membershipInfo.state = (isDateValid && isStatusActive) ? 'ACTIVE' : 'EXPIRED';
     }
 
     // Transform metadata array into key-value object

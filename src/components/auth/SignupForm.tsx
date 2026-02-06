@@ -78,15 +78,17 @@ export function SignupForm() {
 
   // Check if Turnstile is configured
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+  const isPreviewDeploy = process.env.NEXT_PUBLIC_VERCEL_ENV === 'preview';
+  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test' || isPreviewDeploy;
 
   // Load Turnstile script
   useEffect(() => {
-    // In development mode, always bypass Turnstile (even if configured)
+    // In development/preview mode, always bypass Turnstile (even if configured)
     if (isDevelopment) {
-      console.warn('[Turnstile] Development mode: bypassing security check');
+      const bypassReason = isPreviewDeploy ? 'Preview deployment' : 'Development mode';
+      console.warn(`[Turnstile] ${bypassReason}: bypassing security check`);
       setTurnstileToken('dev-bypass-token');
-      setTurnstileConfigError('Development mode: Security check bypassed for testing');
+      setTurnstileConfigError(`${bypassReason}: Security check bypassed for testing`);
       return;
     }
 
