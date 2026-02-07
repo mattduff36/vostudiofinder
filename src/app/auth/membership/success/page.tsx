@@ -47,24 +47,24 @@ const REQUIRED_FIELDS = [
     why: 'Primary identifier for your business and crucial for SEO',
   },
   {
-    name: 'Short About',
+    name: 'Short Description',
     required: true,
     where: 'Search result listings and profile previews',
     how: 'Brief description shown in search results before users visit your profile',
     why: 'First impression that encourages artists to click through to your full profile',
   },
   {
-    name: 'About',
+    name: 'Full Description',
     required: true,
     where: 'Full profile page',
     how: 'Detailed description displayed prominently on your profile page',
     why: 'Builds trust and showcases your studio\'s unique capabilities and services',
   },
   {
-    name: 'Studio Type(s)',
+    name: 'Studio Type(s) / Service(s)',
     required: true,
     where: 'Search filters and profile badges',
-    how: 'Select from: Home Studio, Recording Studio, or Podcast Studio',
+    how: 'Select from: Home Studio, Recording Studio, Podcast Studio, Voiceover Studio, VO Coach, or Audio Producer',
     why: 'Enables artists to filter search results to find the right type of facility',
   },
   {
@@ -79,7 +79,7 @@ const REQUIRED_FIELDS = [
     required: true,
     where: 'Profile page under technical capabilities',
     how: 'Select from options like Source Connect, Zoom, Cleanfeed, Riverside, etc.',
-    why: 'Essential for remote sessions—shows clients how they can connect to your studio',
+    why: 'Essential for remote sessions - shows clients how they can connect to your studio',
   },
   {
     name: 'Website URL',
@@ -93,7 +93,7 @@ const REQUIRED_FIELDS = [
     required: true,
     where: 'Profile gallery and search result thumbnails',
     how: 'Uploaded photos displayed in an interactive gallery on your profile',
-    why: 'Visual proof of your facilities—significantly increases enquiries and bookings',
+    why: 'Visual proof of your facilities - significantly increases enquiries and bookings',
   },
 ];
 
@@ -165,10 +165,15 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
   if (params.tier === 'basic') {
     console.log(`[DEBUG ${pageTimestamp}] Basic tier flow detected, skipping payment verification`);
 
-    // Look up user by username (preferred) or email
-    const basicUser = params.username
+    // Look up user using both username AND email when available for safety,
+    // falling back to whichever is provided if only one exists.
+    const basicUserWhere: { status: 'ACTIVE'; username?: string; email?: string } = { status: 'ACTIVE' };
+    if (params.username) basicUserWhere.username = params.username;
+    if (params.email) basicUserWhere.email = params.email;
+
+    const basicUser = (params.username || params.email)
       ? await db.users.findFirst({
-          where: { username: params.username, status: 'ACTIVE' },
+          where: basicUserWhere,
           select: {
             id: true,
             email: true,
@@ -178,19 +183,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
             status: true,
           },
         })
-      : params.email
-        ? await db.users.findFirst({
-            where: { email: params.email, status: 'ACTIVE' },
-            select: {
-              id: true,
-              email: true,
-              username: true,
-              display_name: true,
-              avatar_url: true,
-              status: true,
-            },
-          })
-        : null;
+      : null;
 
     if (!basicUser) {
       console.error(`[DEBUG ${pageTimestamp}] ❌ Basic user not found or not ACTIVE`);

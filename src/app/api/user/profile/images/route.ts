@@ -13,6 +13,9 @@ import { uploadImage } from '@/lib/cloudinary';
  * - alt_text: Alt text for accessibility (optional)
  */
 export async function POST(request: NextRequest) {
+  // Declared outside try so the catch block can clean up on failure
+  let cloudinaryPublicId: string | undefined;
+
   try {
     // Verify authentication
     const session = await getServerSession(authOptions);
@@ -101,6 +104,7 @@ export async function POST(request: NextRequest) {
         { fetch_format: 'auto' },
       ],
     });
+    cloudinaryPublicId = cloudinaryResult.public_id;
 
     // Authoritative count + insert inside a transaction with a row lock so
     // concurrent uploads can't both slip past the tier limit.
@@ -140,8 +144,15 @@ export async function POST(request: NextRequest) {
       },
     }, { status: 201 });
   } catch (error) {
-    // Handle the tier-limit error thrown inside the transaction
+    // Handle the tier-limit error thrown inside the transaction.
+    // Clean up the optimistically-uploaded Cloudinary image so it doesn't become orphaned.
     if (error instanceof Error && error.message === 'IMAGE_LIMIT_REACHED') {
+      try {
+        const { deleteImage } = await import('@/lib/cloudinary');
+        if (cloudinaryPublicId) await deleteImage(cloudinaryPublicId);
+      } catch (cleanupErr) {
+        console.warn('[Image cleanup] Failed to delete orphaned Cloudinary image:', cleanupErr);
+      }
       return NextResponse.json(
         { success: false, error: 'Image limit reached for your membership tier.' },
         { status: 400 }

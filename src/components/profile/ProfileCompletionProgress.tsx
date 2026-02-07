@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { CheckCircle, Circle, Pencil } from 'lucide-react';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 
@@ -188,9 +188,19 @@ export function ProfileCompletionProgress({
     window.dispatchEvent(new CustomEvent('openEditProfileModal'));
   };
 
+  // Track whether the widget pencil icon has been clicked this session
+  const [pencilDismissed, setPencilDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return sessionStorage.getItem('editProfilePencilDismissed') === '1';
+  });
+
   // Handler for widget click - opens Edit Profile Modal
   const handleWidgetClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!pencilDismissed) {
+      sessionStorage.setItem('editProfilePencilDismissed', '1');
+      setPencilDismissed(true);
+    }
     window.dispatchEvent(new CustomEvent('openEditProfileModal'));
   };
 
@@ -318,8 +328,13 @@ export function ProfileCompletionProgress({
         <div className="flex flex-col md:flex-row gap-8 items-start">
         {/* Circular Progress */}
         {renderWidget ? renderWidget(
-          <div className="relative flex items-center justify-center flex-shrink-0">
-            <svg width={svgSize} height={svgSize} className="transform -rotate-90">
+          <button
+            onClick={handleWidgetClick}
+            aria-label="Edit your profile"
+            className="group relative flex items-center justify-center flex-shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 cursor-pointer bg-transparent border-0"
+            title="Edit profile"
+          >
+            <svg width={svgSize} height={svgSize} className="transform -rotate-90 transition-opacity group-hover:opacity-80">
               {/* Background circle */}
               <circle
                 cx={svgSize / 2}
@@ -344,7 +359,7 @@ export function ProfileCompletionProgress({
               />
             </svg>
             {/* Percentage text */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className={`${mobileVariant ? 'text-base' : 'text-4xl'} font-bold ${getColor(completionPercentage)}`}>
                 {completionPercentage}%
               </span>
@@ -352,7 +367,13 @@ export function ProfileCompletionProgress({
                 <span className="text-sm text-gray-600">Complete</span>
               )}
             </div>
-          </div>
+            {/* Pencil icon badge - bottom right, hidden after first click */}
+            {!pencilDismissed && (
+              <div className="absolute bottom-1 right-1 bg-gray-400 text-white rounded-full p-1.5 shadow-md group-hover:bg-[#d42027] transition-colors">
+                <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
+              </div>
+            )}
+          </button>
         ) : (
           <button
             onClick={handleWidgetClick}

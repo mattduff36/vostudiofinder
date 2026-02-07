@@ -60,7 +60,6 @@ export function UnsavedChangesDialog() {
   const { current, resolve } = useUnsavedChangesDialogStore();
 
   const handleCancel = () => resolve('cancel');
-  const handleDiscard = () => resolve('discard');
   const handleSave = () => resolve('save');
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -108,8 +107,8 @@ export function UnsavedChangesDialog() {
             <div className="p-6">
               {/* Icon & Title */}
               <div className="flex items-start gap-4 mb-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6 text-amber-600" />
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-[#d42027]" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -128,12 +127,6 @@ export function UnsavedChangesDialog() {
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                 >
                   Cancel
-                </button>
-                <button
-                  onClick={handleDiscard}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                >
-                  Discard
                 </button>
                 <button
                   onClick={handleSave}

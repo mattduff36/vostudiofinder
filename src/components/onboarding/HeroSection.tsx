@@ -82,9 +82,8 @@ export function HeroSection({
             </div>
             <motion.div
               className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full"
-              initial={{ scale: 1, opacity: 0.5 }}
-              animate={{ scale: 1.5, opacity: 0 }}
-              transition={{ duration: 1.5, repeat: Infinity }}
+              animate={{ scale: [1, 1.25, 1], opacity: [0.35, 0, 0.35] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             />
           </div>
         </motion.div>
@@ -96,9 +95,6 @@ export function HeroSection({
           transition={{ delay: 0.4, duration: 0.6 }}
           className="text-center mb-8 px-4"
         >
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
-            Payment Successful!
-          </h1>
           <p className="text-lg sm:text-xl md:text-2xl text-gray-600 font-medium">
             Welcome to Voiceover Studio Finder, {userName}!
           </p>

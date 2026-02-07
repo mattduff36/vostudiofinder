@@ -607,6 +607,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       
       if (dataSource !== 'admin') {
         sessionStorage.setItem('invalidateProfileCache', '1');
+        // Notify dashboard to refresh profile data immediately
+        window.dispatchEvent(new CustomEvent('profileDataUpdated'));
       }
 
       if ((result as any)?.visibilityAutoDisabled) {

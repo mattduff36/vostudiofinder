@@ -311,10 +311,17 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
     const handleFocus = () => {
       void loadProfile();
     };
+    // Refetch immediately when profile is saved in the Edit Profile modal
+    const handleProfileUpdated = () => {
+      invalidateProfileCache();
+      void loadProfile();
+    };
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('profileDataUpdated', handleProfileUpdated);
     return () => {
       didCancel = true;
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('profileDataUpdated', handleProfileUpdated);
     };
   }, [initialProfileData]);
 
@@ -461,9 +468,12 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                       {isProfileVisible ? 'Visible' : 'Hidden'}
                     </p>
                     {!allRequiredComplete && (
-                      <p className="text-xs text-amber-600 mt-0.5">
-                        Complete required fields first
-                      </p>
+                      <button
+                        onClick={() => window.dispatchEvent(new CustomEvent('openEditProfileModal'))}
+                        className="text-xs text-[#d42027] hover:text-[#b01b21] transition-colors mt-0.5"
+                      >
+                        Edit profile to go live &rarr;
+                      </button>
                     )}
                   </div>
                 </div>
@@ -512,7 +522,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-6 md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100"
+                  className="relative lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-6 md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100"
                   style={{
                     boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
                   }}
@@ -640,7 +650,10 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                       <Share2 className="w-8 h-8 text-[#d42027]" aria-hidden="true" />
                     </div>
                     <h3 className="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">
-                      Share your studio. Get a free month!
+                      {profileData?.user?.membership_tier === 'PREMIUM'
+                        ? <>Share your studio. Get an extra month of Premium membership free.</>
+                        : <>Share your studio. Get a free month of <em>Premium</em> membership.</>
+                      }
                     </h3>
                     <p className="text-base text-gray-700 leading-relaxed">
                       Post your profile publicly on social media and send us the link.
@@ -661,7 +674,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                       className="px-8 py-3"
                     />
                     <div className="text-sm text-gray-500 text-center space-y-2">
-                      <p>One free month per membership.</p>
+                      <p>One free month of Premium membership per user.</p>
                       <p>
                         Email the link to{' '}
                         <a 

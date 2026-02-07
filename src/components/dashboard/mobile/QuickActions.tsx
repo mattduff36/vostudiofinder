@@ -76,8 +76,16 @@ export function QuickActions({
       // Silent refresh: don't flip `loading` or collapse/hide the accordion UI
       fetchProfile({ showLoading: false });
     };
+    // Refetch immediately when profile is saved in the Edit Profile modal
+    const handleProfileUpdated = () => {
+      fetchProfile({ showLoading: false });
+    };
     window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    window.addEventListener('profileDataUpdated', handleProfileUpdated);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('profileDataUpdated', handleProfileUpdated);
+    };
   }, []);
 
   // Calculate completion stats
@@ -498,7 +506,10 @@ export function QuickActions({
                 <Share2 className="w-5 h-5 text-[#d42027]" />
               </div>
               <p className="font-semibold text-gray-900 text-base leading-none m-0 !pb-0">
-                Share your studio. Get a free month!
+                {profileData?.user?.membership_tier === 'PREMIUM'
+                  ? 'Share your studio. Get an extra month of Premium free!'
+                  : 'Share your studio. Get a free month of Premium!'
+                }
               </p>
             </div>
             <div className="ml-2 flex-shrink-0">
@@ -531,7 +542,7 @@ export function QuickActions({
                   />
                 </div>
                 <p className="text-xs text-gray-500">
-                  One free month per membership.<br />
+                  One free month of Premium membership per user.<br />
                   Email the link to{' '}
                   <a 
                     href="mailto:support@voiceoverstudiofinder.com" 

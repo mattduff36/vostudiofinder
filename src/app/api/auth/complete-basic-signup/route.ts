@@ -65,12 +65,25 @@ export async function POST(req: NextRequest) {
     }
 
     // All gates passed — activate the user with BASIC tier
+    //
+    // NOTE ON payment_attempted_at: This field is intentionally set for Basic
+    // (free) users even though no payment occurs. It serves as a "membership
+    // step completed" marker — NOT a literal payment indicator. Downstream
+    // systems rely on its presence:
+    //   1. auth-guards.ts (line ~134) uses `payment_attempted_at` being set to
+    //      distinguish a user who explicitly chose the Basic tier from a
+    //      brand-new registrant who also defaults to BASIC but never finished
+    //      the signup flow.
+    //   2. The engagement-email cron (/api/cron/send-engagement-emails) filters
+    //      for `payment_attempted_at: null` to find users who haven't completed
+    //      the membership selection step yet.
+    // Removing or skipping this field for Basic users would break both systems.
     await db.users.update({
       where: { id: userId },
       data: {
         status: UserStatus.ACTIVE,
         membership_tier: 'BASIC',
-        payment_attempted_at: new Date(),
+        payment_attempted_at: new Date(), // See note above — intentional for free tier
         reservation_expires_at: null, // Clear reservation
       },
     });

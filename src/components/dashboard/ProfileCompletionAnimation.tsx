@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MousePointer2, Pencil } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 interface ProfileCompletionAnimationProps {
   children: ReactNode;
@@ -30,10 +29,9 @@ export function ProfileCompletionAnimation({
   completionPercentage,
   allRequiredComplete,
 }: ProfileCompletionAnimationProps) {
-  const router = useRouter();
   const [animationPhase, setAnimationPhase] = useState<'initial' | 'center' | 'pause' | 'transition' | 'complete'>('initial');
   const [mounted, setMounted] = useState(false);
-  const targetRef = useRef<HTMLAnchorElement>(null);
+  const targetRef = useRef<HTMLDivElement>(null);
   const [finalPosition, setFinalPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [isPulsing, setIsPulsing] = useState(false);
@@ -106,11 +104,10 @@ export function ProfileCompletionAnimation({
     setIsPulsing(shouldPulse);
   }, [animationPhase, shouldAnimate, hasBeenHovered]);
 
-  // Handle link click
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  // Handle link click - open Edit Profile Modal directly
+  const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Navigate to edit profile page
-    router.push('/dashboard/edit-profile');
+    window.dispatchEvent(new CustomEvent('openEditProfileModal'));
   };
 
   const isAnimating = shouldAnimate && mounted && animationPhase !== 'complete';
@@ -238,11 +235,12 @@ export function ProfileCompletionAnimation({
   return (
     <>
       {/* In-layout target (used for final position measurement + non-animated interaction) */}
-      <motion.a
+      <motion.div
         ref={targetRef}
-        href="/dashboard/edit-profile"
         onClick={handleClick}
-        className="group relative flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full"
+        role="button"
+        tabIndex={0}
+        className="group relative flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full cursor-pointer"
         aria-label="Edit your profile"
         animate={
           isPulsing && !isHovered
@@ -287,7 +285,7 @@ export function ProfileCompletionAnimation({
             <span className="text-sm text-gray-600 whitespace-nowrap mt-1">Edit Profile</span>
           </div>
         </div>
-      </motion.a>
+      </motion.div>
 
       {/* Portal for animation */}
       {isAnimating && typeof window !== 'undefined' && createPortal(animationContent, document.body)}

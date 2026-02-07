@@ -635,6 +635,15 @@ export async function PUT(request: NextRequest) {
         'connection9', 'connection10', 'connection11', 'connection12',
       ] as const;
 
+      // Geocode full_address BEFORE the transaction to avoid holding a row lock
+      // during an external network call (which can take multiple seconds).
+      let geocodeResult: { lat: number; lng: number; city?: string; country?: string } | null = null;
+      if (updates.full_address !== undefined && updates.full_address &&
+          updates.latitude === undefined && updates.longitude === undefined) {
+        const { geocodeAddress } = await import('@/lib/maps');
+        geocodeResult = await geocodeAddress(updates.full_address);
+      }
+
       // Wrap tier-limit enforcement + write in a transaction with a row lock
       // to prevent concurrent requests from reading stale counts and bypassing limits.
       await db.$transaction(async (tx) => {
@@ -730,22 +739,25 @@ export async function PUT(request: NextRequest) {
 
       // Custom connections - enforce tier limit
       if (updates.custom_connection_methods !== undefined) {
-        profileUpdates.custom_connection_methods = Array.isArray(updates.custom_connection_methods)
-          ? updates.custom_connection_methods
-              .filter((m: string) => m && m.trim())
-              .slice(0, tierLimits.customConnectionsMax)
-          : [];
+        if (Array.isArray(updates.custom_connection_methods)) {
+          const validMethods = updates.custom_connection_methods.filter((m: string) => m && m.trim());
+          profileUpdates.custom_connection_methods = validMethods.slice(0, tierLimits.customConnectionsMax);
+          // Track excess custom connections that were dropped
+          if (validMethods.length > tierLimits.customConnectionsMax) {
+            droppedFields.push('custom_connection_methods');
+          }
+        } else {
+          profileUpdates.custom_connection_methods = [];
+        }
       }
       
       // Status
       if (updates.is_profile_visible !== undefined) profileUpdates.is_profile_visible = updates.is_profile_visible;
       if (updates.use_coordinates_for_map !== undefined) profileUpdates.use_coordinates_for_map = updates.use_coordinates_for_map;
       
-      // Geocode full_address if being updated and coordinates aren't manually set
-      if (updates.full_address !== undefined && updates.full_address && 
+      // Apply pre-fetched geocoding result (network call was done before the transaction)
+      if (updates.full_address !== undefined && updates.full_address &&
           updates.latitude === undefined && updates.longitude === undefined) {
-        const { geocodeAddress } = await import('@/lib/maps');
-        const geocodeResult = await geocodeAddress(updates.full_address);
         if (geocodeResult) {
           // On success: set coordinates and derive city/country
           profileUpdates.latitude = geocodeResult.lat;
@@ -812,12 +824,25 @@ export async function PUT(request: NextRequest) {
           
           if (profile) {
             // Filter out excluded studio types for this tier
+            const excludedTypes = body.studio_types.filter(
+              (type: string) => tierLimits.studioTypesExcluded.includes(type)
+            );
             let allowedTypes = body.studio_types.filter(
               (type: string) => !tierLimits.studioTypesExcluded.includes(type)
             );
 
+            // Track excluded studio types that were dropped
+            if (excludedTypes.length > 0) {
+              droppedFields.push('studio_types');
+            }
+
             // Enforce max studio types for this tier
             if (tierLimits.studioTypesMax !== null) {
+              if (allowedTypes.length > tierLimits.studioTypesMax) {
+                if (!droppedFields.includes('studio_types')) {
+                  droppedFields.push('studio_types');
+                }
+              }
               allowedTypes = allowedTypes.slice(0, tierLimits.studioTypesMax);
             }
 

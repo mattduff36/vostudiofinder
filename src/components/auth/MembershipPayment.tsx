@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { Check, Building, Loader2, Sparkles, Upload, Globe, AlertCircle, X, Crown } from 'lucide-react';
+import { Check, Loader2, AlertCircle, X, Crown } from 'lucide-react';
 import Image from 'next/image';
 import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
 import { getSignupData, storeSignupData, recoverSignupState, updateURLParams, type SignupData } from '@/lib/signup-recovery';
@@ -30,6 +30,16 @@ export function MembershipPayment() {
   let email = searchParams?.get('email') || '';
   let name = searchParams?.get('name') || '';
   let username = searchParams?.get('username') || '';
+
+  // Lock body scroll when premium payment modal is open
+  useEffect(() => {
+    if (selectedTier === 'premium') {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [selectedTier]);
 
   // Enable back button protection only (not beforeunload)
   // Note: We disable beforeunload because it interferes with Stripe's redirect after payment
@@ -291,315 +301,232 @@ export function MembershipPayment() {
         </div>
 
         <div className="bg-white shadow-2xl rounded-b-xl overflow-hidden">
-          {/* Show tier selection if no tier is selected */}
-          {!selectedTier ? (
-            <div className="p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
-                {/* BASIC (FREE) TIER */}
-                <div className="border-2 border-gray-300 rounded-xl p-8 hover:border-gray-400 transition-all">
-                  <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Basic</h3>
-                    <div className="text-4xl font-bold text-gray-900">Free</div>
-                    <p className="text-sm text-gray-600 mt-2">Perfect to get started</p>
-                  </div>
-
-                  <ul className="space-y-3 mb-8 min-h-[320px]">
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">A Professional studio listing</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Studio images</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">1 studio category</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">3 connection methods (Cleanfeed or Teams etc)</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Social media links</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Show Rates & Equipment</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">1000 character studio description</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-500">Voiceover studio type</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-500">Verified badge eligibility</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-500">Featured studio eligibility</span>
-                    </li>
-                  </ul>
-
-                  <button
-                    onClick={handleBasicSignup}
-                    disabled={isCompletingBasic}
-                    className="w-full bg-gray-100 text-gray-900 py-4 px-6 rounded-lg hover:bg-gray-200 transition-colors font-semibold text-lg border-2 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isCompletingBasic ? (
-                      <span className="flex items-center justify-center">
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                        Setting up...
-                      </span>
-                    ) : (
-                      'Continue with Basic (Free)'
-                    )}
-                  </button>
+          <div className="p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+              {/* BASIC (FREE) TIER */}
+              <div className="border-2 border-gray-300 rounded-xl p-8 hover:border-gray-400 transition-all">
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Basic</h3>
+                  <div className="text-4xl font-bold text-gray-900">Free</div>
+                  <p className="text-sm text-gray-600 mt-2">Perfect to get started</p>
                 </div>
 
-                {/* PREMIUM TIER */}
-                <div className="border-2 border-[#d42027] rounded-xl p-8 relative bg-gradient-to-br from-white to-red-50/30 shadow-lg">
-                  {/* Popular Badge */}
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-[#d42027] text-white px-4 py-1 rounded-full text-sm font-semibold flex items-center">
-                      <Crown className="w-4 h-4 mr-1" />
-                      RECOMMENDED
-                    </div>
-                  </div>
+                <ul className="space-y-3 mb-8 min-h-[320px]">
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">A Professional studio listing</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">Studio images</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">1 studio category</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">3 connection methods (Cleanfeed or Teams etc)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">Social media links</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">Show Rates & Equipment</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">1000 character studio description</span>
+                  </li>
+                  <li className="flex items-start">
+                    <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-500">Voiceover studio type</span>
+                  </li>
+                  <li className="flex items-start">
+                    <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-500">Verified badge eligibility</span>
+                  </li>
+                  <li className="flex items-start">
+                    <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-500">Featured studio eligibility</span>
+                  </li>
+                </ul>
 
-                  <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
-                    <div className="flex items-baseline justify-center">
-                      <span className="text-4xl font-bold text-[#d42027]">£25</span>
-                      <span className="text-gray-600 ml-2">/year</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-2">One booking more than pays for itself</p>
-                  </div>
-
-                  <ul className="space-y-3 mb-8 min-h-[320px]">
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700 font-medium">Everything in Basic, plus:</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Add more studio images</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Multiple studio categories including Voiceover</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">All connections + 2 custom methods</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Include all social media platforms</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">2000 character studio description</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Show Phone & Directions visibility controls</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Control how your studio appears on Google</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Verified badge eligibility</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Featured studio eligibility</span>
-                    </li>
-                  </ul>
-
-                  <button
-                    onClick={() => setSelectedTier('premium')}
-                    className="w-full bg-[#d42027] text-white py-4 px-6 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-lg shadow-lg"
-                  >
-                    Upgrade to Premium - £25/year
-                  </button>
-                </div>
+                <button
+                  onClick={handleBasicSignup}
+                  disabled={isCompletingBasic}
+                  className="w-full bg-gray-100 text-gray-900 py-4 px-6 rounded-lg hover:bg-gray-200 transition-colors font-semibold text-lg border-2 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCompletingBasic ? (
+                    <span className="flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      Setting up...
+                    </span>
+                  ) : (
+                    'Continue with Basic (Free)'
+                  )}
+                </button>
+                <p className="text-sm text-gray-500 text-center mt-3">Most studios upgrade once their profile is live</p>
               </div>
 
-              {/* Value Proposition */}
-              <div className="mt-10 text-center max-w-2xl mx-auto">
-                <p className="text-gray-600">
-                  <strong>Why Premium?</strong> Voice artists trust studios with complete, professional profiles. 
-                  Premium members get more profile views and are eligible for Verified and Featured status, which appear higher in search results and build trust with clients.
-                </p>
+              {/* PREMIUM TIER */}
+              <div className="border-2 border-[#d42027] rounded-xl p-8 relative bg-gradient-to-br from-white to-red-50/30 shadow-lg">
+                {/* Popular Badge */}
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-[#d42027] text-white px-4 py-1 rounded-full text-sm font-semibold flex items-center">
+                    <Crown className="w-4 h-4 mr-1" />
+                    RECOMMENDED
+                  </div>
+                </div>
+
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
+                  <div className="flex items-baseline justify-center">
+                    <span className="text-4xl font-bold text-[#d42027]">£25</span>
+                    <span className="text-gray-600 ml-2">/year</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">One booking more than pays for itself</p>
+                </div>
+
+                <ul className="space-y-3 mb-8 min-h-[320px]">
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 font-medium">Everything in Basic, plus:</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">Add more studio images</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">Multiple studio categories including Voiceover</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">All connections + 2 custom methods</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">Include all social media platforms</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">2000 character studio description</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">Show Phone & Directions visibility controls</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">Control how your studio appears on Google</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">Verified badge eligibility</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">Featured studio eligibility</span>
+                  </li>
+                </ul>
+
+                <button
+                  onClick={() => setSelectedTier('premium')}
+                  className="w-full bg-[#d42027] text-white py-4 px-6 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-lg shadow-lg"
+                >
+                  Upgrade to Premium - £25/year
+                </button>
+                <p className="text-sm text-gray-500 text-center mt-3">Cancel anytime. No auto-renew surprises</p>
               </div>
             </div>
-          ) : selectedTier === 'premium' ? (
-            /* Premium Payment Flow - Original layout */
-            <>
-              {/* Two Column Layout - 3:2 ratio */}
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-0">
-                {/* LEFT: Features & Account Info - Takes 3 columns */}
-                <div className="px-8 py-8 lg:col-span-3 border-r border-gray-200">
-                  <div className="mb-6">
-                    <button
-                      onClick={() => setSelectedTier(null)}
-                      className="text-gray-600 hover:text-gray-900 flex items-center text-sm mb-4"
-                    >
-                      ← Back to membership options
-                    </button>
-                    
-                    <div className="flex items-start">
-                      <div className="bg-[#d42027] text-white p-2 rounded-lg mr-4">
-                        <Building className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-xl font-semibold text-gray-900">
-                          Premium Membership - £25/year
-                        </h4>
-                        <p className="text-sm text-gray-500 mt-1">Unlock everything with Premium</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <ul className="space-y-4 mb-8">
-                    {[
-                      'Professional studio listing with up to 5 photos',
-                      'Unlimited studio types including Voiceover',
-                      'All connection methods + 2 custom connections',
-                      'All social media links',
-                      'Phone & directions visibility controls',
-                      'Custom SEO meta title for your profile',
-                      'Eligible for Verified badge (85%+ completion)',
-                      'Eligible to become a Featured Studio (100% completion)',
-                      'Direct contact from qualified clients',
-                      'Be discoverable by voice artists worldwide',
-                    ].map((feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <Check className="w-6 h-6 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
 
-                  {/* Divider */}
-                  <div className="my-8 border-t border-gray-200"></div>
-
-                  {/* What's Next Section */}
-                  <div className="bg-gradient-to-br from-[#d42027]/5 to-[#d42027]/10 rounded-lg p-6 border border-[#d42027]/20">
-                    <div className="flex items-start mb-4">
-                      <div className="bg-[#d42027] text-white p-2 rounded-lg mr-4">
-                        <Sparkles className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-xl font-semibold text-gray-900 mb-4">
-                          What Happens Next?
-                        </h4>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-start">
-                        <Building className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-gray-800 font-medium">Add Your Studio Details</p>
-                          <p className="text-gray-600 text-sm">Studio name, description, and type (Home/Recording/Podcast)</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start">
-                        <Upload className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-gray-800 font-medium">Upload Studio Images</p>
-                          <p className="text-gray-600 text-sm">Showcase your space with 1-5 professional photos</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start">
-                        <Globe className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-gray-800 font-medium">Go Live Worldwide</p>
-                          <p className="text-gray-600 text-sm">Your profile becomes instantly searchable to thousands of voice artists globally</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* RIGHT: Payment Form - Takes 2 columns */}
-                <div className="lg:col-span-2 pb-8">
-                  {/* Error Display with Recovery Options */}
-                  {error && (
-                    <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-                      <div className="flex items-start mb-3">
-                        <AlertCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
-                        <p className="text-red-700 flex-1">{error}</p>
-                      </div>
-                      {recoveryAttempted && (
-                        <div className="mt-4 pt-3 border-t border-red-200">
-                          <button
-                            onClick={() => router.push('/auth/signup')}
-                            className="w-full bg-[#d42027] text-white py-2 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-medium"
-                          >
-                            Start Fresh Signup
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Recovery in Progress */}
-                  {isRecovering && (
-                    <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex items-center">
-                        <Loader2 className="w-5 h-5 text-blue-600 mr-3 animate-spin" />
-                        <p className="text-blue-700">Recovering your session...</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Embedded Stripe Checkout */}
-                  {isLoading ? (
-                    <div className="flex flex-col items-center justify-center py-20">
-                      <Loader2 className="w-10 h-10 animate-spin text-[#d42027] mb-4" />
-                      <span className="text-gray-600 text-lg">Loading payment form...</span>
-                    </div>
-                  ) : !stripePromise ? (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                      <p className="text-red-800 font-medium text-lg mb-2">Payment system configuration error</p>
-                      <p className="text-red-600">
-                        Please contact support. Error: Stripe not configured
-                      </p>
-                    </div>
-                  ) : (
-                    <div id="checkout" className="stripe-embedded-checkout">
-                      <EmbeddedCheckoutProvider
-                        stripe={stripePromise}
-                        options={options}
-                      >
-                        <EmbeddedCheckout />
-                      </EmbeddedCheckoutProvider>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Secure Payment Footer */}
-              <div className="py-4 text-center border-t border-gray-200 bg-white">
-                <p className="text-sm text-gray-500">
-                  🔒 Secure payment powered by Stripe
-                </p>
-              </div>
-            </>
-          ) : null}
+            {/* Value Proposition */}
+            <div className="mt-10 text-center max-w-2xl mx-auto">
+              <p className="text-gray-600">
+                <strong>Why Premium?</strong> Voice artists trust studios with complete, professional profiles. 
+                Premium members get more profile views and are eligible for Verified and Featured status, which appear higher in search results and build trust with clients.
+              </p>
+            </div>
+          </div>
         </div>
+
+        {/* Premium Payment Modal */}
+        {selectedTier === 'premium' && (
+          <div
+            className="fixed inset-0 z-[200] flex items-start justify-center"
+            onClick={(e) => { if (e.target === e.currentTarget) setSelectedTier(null); }}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+
+            {/* Modal Container */}
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[994px] mt-[152px] overflow-hidden z-[201] py-5">
+              {/* Modal Close Button */}
+              <button
+                onClick={() => setSelectedTier(null)}
+                className="absolute top-3 right-3 z-10 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                aria-label="Close payment modal"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              {/* Error Display */}
+              {error && (
+                <div className="m-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start mb-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <p className="text-red-700 flex-1">{error}</p>
+                  </div>
+                  {recoveryAttempted && (
+                    <div className="mt-3 pt-3 border-t border-red-200">
+                      <button
+                        onClick={() => router.push('/auth/signup')}
+                        className="w-full bg-[#d42027] text-white py-2 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-medium"
+                      >
+                        Start Fresh Signup
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Recovery in Progress */}
+              {isRecovering && (
+                <div className="m-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <Loader2 className="w-5 h-5 text-blue-600 mr-3 animate-spin" />
+                    <p className="text-blue-700">Recovering your session...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Embedded Stripe Checkout */}
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <Loader2 className="w-10 h-10 animate-spin text-[#d42027] mb-4" />
+                  <span className="text-gray-600 text-lg">Loading payment form...</span>
+                </div>
+              ) : !stripePromise ? (
+                <div className="m-4 bg-red-50 border border-red-200 rounded-lg p-6">
+                  <p className="text-red-800 font-medium text-lg mb-2">Payment system configuration error</p>
+                  <p className="text-red-600">Please contact support. Error: Stripe not configured</p>
+                </div>
+              ) : (
+                <div id="checkout" className="stripe-embedded-checkout">
+                  <EmbeddedCheckoutProvider
+                    stripe={stripePromise}
+                    options={options}
+                  >
+                    <EmbeddedCheckout />
+                  </EmbeddedCheckoutProvider>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Footer Note */}
         <div className="mt-6 text-center">

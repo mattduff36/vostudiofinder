@@ -10,6 +10,7 @@ export interface User {
   email: string;
   avatar_url?: string;
   role: string;
+  membership_tier?: string;
   created_at?: Date | string;
   updated_at?: Date | string;
 }

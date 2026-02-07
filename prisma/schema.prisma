@@ -419,7 +419,7 @@ model users {
   // Username reservation & payment tracking
   status                                                     UserStatus              @default(PENDING)
   reservation_expires_at                                     DateTime?
-  payment_attempted_at                                       DateTime?
+  payment_attempted_at                                       DateTime?               /// Membership-step-completed timestamp. Set for BOTH Basic (free) and Premium users. Used by auth-guards to distinguish completed signups from incomplete ones, and by the engagement-email cron to target users who haven't finished onboarding. Do NOT remove for Basic users.
   payment_retry_count                                        Int                     @default(0)
   day2_reminder_sent_at                                      DateTime?
   day5_reminder_sent_at                                      DateTime?

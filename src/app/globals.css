@@ -408,6 +408,20 @@ input[type="checkbox"]:focus {
  * The padding is dynamically removed once the banner is dismissed to prevent
  * wasting valuable mobile screen space.
  */
+/* Force Stripe embedded checkout iframe to fill container width */
+.stripe-embedded-checkout {
+  width: 100%;
+  line-height: 0;
+}
+.stripe-embedded-checkout iframe {
+  width: 100% !important;
+  min-width: 100% !important;
+  display: block;
+}
+.stripe-embedded-checkout > div {
+  width: 100% !important;
+}
+
 @media (max-width: 767px) {
   body:not(.cookie-banner-visible) main {
     padding-bottom: 0 !important;
