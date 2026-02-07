@@ -207,7 +207,7 @@ export default function PrivacyPage() {
             </ul>
             
             <p className="mb-6">
-              Analytics cookies only load after you click "Accept All". You can change your preferences at any time using the Cookie Settings link in the footer, or by clearing your browser cookies.
+              Analytics cookies only load after you click "Accept All". You can change your preferences at any time by clearing your browser cookies, which will show the consent banner again on your next visit.
             </p>
 
             <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">9. Contact</h2>

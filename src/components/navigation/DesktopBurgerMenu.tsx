@@ -143,9 +143,6 @@ export function DesktopBurgerMenu({
       window.dispatchEvent(new CustomEvent('openEditProfileModal'));
     } else if (action === 'profileEditClick') {
       window.dispatchEvent(new Event('profileEditClick'));
-    } else if (action === 'resetCookies') {
-      document.cookie = 'vsf_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      window.location.reload();
     }
   };
 

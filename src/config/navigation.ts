@@ -6,7 +6,7 @@
  * consume this config to ensure consistency.
  */
 
-import { LucideIcon, Home, Search, User, Edit, CreditCard, Settings, LogOut, Eye, LogIn, UserPlus, Shield, HelpCircle, FileText, Cookie } from 'lucide-react';
+import { LucideIcon, Home, Search, User, Edit, CreditCard, Settings, LogOut, Eye, LogIn, UserPlus, Shield, HelpCircle, FileText } from 'lucide-react';
 
 export type NavItemType = 'link' | 'action' | 'visibility-toggle';
 
@@ -80,17 +80,6 @@ export const NAV_ITEMS: Record<string, NavItem> = {
     showOnMobile: true,
     showOnDesktop: true,
   },
-  cookies: {
-    id: 'cookies',
-    label: 'Cookie Settings',
-    icon: Cookie,
-    type: 'action',
-    action: 'resetCookies',
-    section: 'site',
-    showOnMobile: true,
-    showOnDesktop: true,
-  },
-
   // Account links (authenticated)
   overview: {
     id: 'overview',
@@ -286,11 +275,10 @@ export function getMobileMenuItems(context: MenuContext & { bottomNavIds: string
     items.push(NAV_ITEMS.membership!);
     items.push(NAV_ITEMS.settings!);
 
-    // Section 3: Site Links (About, Help, Privacy, Cookies)
+    // Section 3: Site Links (About, Help, Privacy)
     items.push(NAV_ITEMS.about!);
     items.push(NAV_ITEMS.help!);
     items.push(NAV_ITEMS.privacy!);
-    items.push(NAV_ITEMS.cookies!);
 
     // Section 4: Admin actions (if admin user)
     if (isAdminUser) {
@@ -320,7 +308,6 @@ export function getMobileMenuItems(context: MenuContext & { bottomNavIds: string
     // Section 3: Help/Legal links
     items.push(NAV_ITEMS.help!);
     items.push(NAV_ITEMS.privacy!);
-    items.push(NAV_ITEMS.cookies!);
   }
 
   return items;

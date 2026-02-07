@@ -153,9 +153,6 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
     } else if (action === 'openEditProfileModal') {
       // On mobile, navigate to the edit profile page instead of opening the modal
       router.push('/dashboard/edit-profile');
-    } else if (action === 'resetCookies') {
-      document.cookie = 'vsf_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      window.location.reload();
     }
   };
 
@@ -317,7 +314,7 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
                 const showDividerBefore = (
                   // Divider before About Us (after Settings) - signed in
                   (session && item.id === 'about') ||
-                  // Divider before Admin section (after Cookie Settings) - signed in
+                  // Divider before Admin section - signed in
                   (session && isAdminItem && index > 0 && filteredItems[index - 1]?.section !== 'admin') ||
                   // Divider before Logout - signed in
                   (session && isLogoutItem)

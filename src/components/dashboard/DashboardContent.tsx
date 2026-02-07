@@ -184,16 +184,6 @@ export function DashboardContent({ dashboardData, initialProfileData, activeTab 
                   <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                     <a href="/privacy" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Privacy Policy</a>
                     <a href="/terms" className="transition-colors hover:text-red-500" style={{ color: '#cccccc' }}>Terms of Service</a>
-                    <button
-                      onClick={() => {
-                        document.cookie = 'vsf_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                        window.location.reload();
-                      }}
-                      className="transition-colors hover:text-red-500"
-                      style={{ color: '#cccccc' }}
-                    >
-                      Cookie Settings
-                    </button>
                   </div>
                 </div>
 
