@@ -105,7 +105,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                   />
                   <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]}>
                     {insights.studioTypeStats.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length] ?? '#8b5cf6'} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -166,7 +166,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                     dataKey="value"
                   >
                     {insights.locationStats.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length] ?? '#8b5cf6'} />
                     ))}
                   </Pie>
                   <Tooltip 
