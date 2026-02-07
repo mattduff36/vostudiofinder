@@ -340,7 +340,11 @@ export async function GET() {
       state: 'NONE_SET'
     };
 
-    if (latestSubscription?.current_period_end) {
+    if ((user as any).membership_tier === 'BASIC') {
+      // Basic (free) tier users are always active, regardless of any stale
+      // subscription records left over from a previous Premium membership.
+      membershipInfo.state = 'ACTIVE';
+    } else if (latestSubscription?.current_period_end) {
       const now = new Date();
       const expiryDate = latestSubscription.current_period_end;
       membershipInfo.expiresAt = expiryDate.toISOString();
@@ -354,9 +358,9 @@ export async function GET() {
       const isDateValid = diffMs > 0;
       const isStatusActive = latestSubscription.status === 'ACTIVE';
       membershipInfo.state = (isDateValid && isStatusActive) ? 'ACTIVE' : 'EXPIRED';
-    } else if ((user as any).membership_tier === 'BASIC') {
-      // Basic (free) tier users have no subscription record but are always active
-      membershipInfo.state = 'ACTIVE';
+    } else {
+      // Premium users without a valid subscription record are expired
+      membershipInfo.state = 'EXPIRED';
     }
 
     // Transform metadata array into key-value object
@@ -572,11 +576,25 @@ export async function PUT(request: NextRequest) {
       if (updates.show_email !== undefined) profileUpdates.show_email = updates.show_email;
       // Enforce phone/directions visibility based on tier
       if (updates.show_phone !== undefined) {
-        profileUpdates.show_phone = tierLimits.phoneVisibility ? updates.show_phone : false;
+        if (tierLimits.phoneVisibility) {
+          profileUpdates.show_phone = updates.show_phone;
+        } else {
+          profileUpdates.show_phone = false;
+          if (updates.show_phone === true) {
+            droppedFields.push('show_phone');
+          }
+        }
       }
       if (updates.show_address !== undefined) profileUpdates.show_address = updates.show_address;
       if (updates.show_directions !== undefined) {
-        profileUpdates.show_directions = tierLimits.directionsVisibility ? updates.show_directions : false;
+        if (tierLimits.directionsVisibility) {
+          profileUpdates.show_directions = updates.show_directions;
+        } else {
+          profileUpdates.show_directions = false;
+          if (updates.show_directions === true) {
+            droppedFields.push('show_directions');
+          }
+        }
       }
       
       // Professional

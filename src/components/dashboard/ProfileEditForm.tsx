@@ -372,6 +372,20 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     fetchProfile();
   }, [userId, fetchProfile]);
 
+  // Handle image changes from ImageGalleryManager without discarding unsaved form edits.
+  // Only updates the images array in both profile and originalProfile state,
+  // so that image operations (upload, reorder, delete) don't reset other form fields.
+  const handleImagesChanged = useCallback((updatedImages: any[]) => {
+    setProfile(prev => {
+      if (!prev || !prev.studio) return prev;
+      return { ...prev, studio: { ...prev.studio, images: updatedImages } };
+    });
+    setOriginalProfile(prev => {
+      if (!prev || !prev.studio) return prev;
+      return { ...prev, studio: { ...prev.studio, images: updatedImages } };
+    });
+  }, []);
+
   // Check if there are unsaved changes
   const hasChanges = useMemo(() => {
     if (!profile || !originalProfile) return false;
@@ -1372,8 +1386,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               studioId={dataSource === 'admin' && adminStudioId ? adminStudioId : undefined}
               isAdminMode={dataSource === 'admin'}
               embedded={true}
-              onImagesChanged={fetchProfile}
-              hasUnsavedChanges={hasChanges}
+              onImagesChanged={handleImagesChanged}
             />
           </div>
         );

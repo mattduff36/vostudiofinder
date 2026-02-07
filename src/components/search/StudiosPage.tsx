@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
@@ -101,6 +101,10 @@ export function StudiosPage() {
     position: { x: number; y: number };
   } | null>(null);
   
+  // Stable seed for deterministic studio shuffle ordering across paginated requests.
+  // Generated once on mount so that initial load and "Load More" get the same ordering.
+  const shuffleSeedRef = useRef(Math.floor(Math.random() * 2147483647));
+
   // Check if we're on mobile viewport
   useEffect(() => {
     const checkMobile = () => {
@@ -489,6 +493,8 @@ export function StudiosPage() {
       params.set('offset', '0');
       params.set('limit', '30'); // Initial load: 30 studios
     }
+    // Pass shuffle seed for deterministic ordering across paginated requests
+    params.set('seed', shuffleSeedRef.current.toString());
     try {
       const response = await fetch(`/api/studios/search?${params.toString()}`);
       if (response.ok) {
@@ -525,15 +531,20 @@ export function StudiosPage() {
       
       params.set('offset', newOffset.toString());
       params.set('limit', limit.toString());
+      // Pass the same shuffle seed to ensure consistent ordering with the initial load
+      params.set('seed', shuffleSeedRef.current.toString());
       
       const response = await fetch(`/api/studios/search?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
         setSearchResults(prev => {
           if (!prev) return data;
+          // Deduplicate: filter out any studios already in the list (safety net)
+          const existingIds = new Set(prev.studios.map(s => s.id));
+          const newStudios = data.studios.filter((s: Studio) => !existingIds.has(s.id));
           return {
             ...data,
-            studios: [...prev.studios, ...data.studios], // Append new studios
+            studios: [...prev.studios, ...newStudios],
           };
         });
       } else {

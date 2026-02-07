@@ -44,11 +44,26 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to update privacy setting');
+        throw new Error(data.error || 'Failed to update privacy setting');
       }
 
-      // Update local state
+      // Check if the server silently rejected the change due to tier limits
+      const droppedFields: string[] = data.tierLimitReached?.droppedFields ?? [];
+      if (droppedFields.includes(field)) {
+        // Server forced this field to false — update local state to match
+        setSettings(prev => ({ ...prev, [field]: false }));
+        if (onUpdate) {
+          onUpdate({ [field]: false });
+        }
+        showError('This feature requires a Premium membership. Upgrade to unlock it.');
+        logger.log(`[PrivacySettings] ${field} rejected by server (tier limit)`);
+        return;
+      }
+
+      // Update local state with the confirmed value
       setSettings(prev => ({ ...prev, [field]: value }));
       
       // Call optional callback

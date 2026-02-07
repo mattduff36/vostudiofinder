@@ -12,11 +12,25 @@ import crypto from 'crypto';
 // let lastEnforcementRun = 0;
 // const ENFORCEMENT_THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
 
-// Fisher-Yates shuffle algorithm for randomizing array
-function shuffleArray<T>(array: T[]): T[] {
+// Simple seeded PRNG (mulberry32) for deterministic shuffling
+function mulberry32(seed: number): () => number {
+  return function() {
+    seed |= 0;
+    seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// Fisher-Yates shuffle algorithm with optional seed for deterministic ordering.
+// When a seed is provided, the shuffle is reproducible across requests,
+// which is essential for consistent offset-based pagination.
+function shuffleArray<T>(array: T[], seed?: number): T[] {
   const shuffled = [...array];
+  const random = seed !== undefined ? mulberry32(seed) : Math.random;
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     const temp = shuffled[i];
     shuffled[i] = shuffled[j]!;
     shuffled[j] = temp!;
@@ -26,11 +40,12 @@ function shuffleArray<T>(array: T[]): T[] {
 
 // Prioritize studios: verified+images -> images -> no images, randomized within each tier
 // Always pins VoiceoverGuy (site owner) to the top if present
+// Uses a seed for deterministic shuffle so that offset-based pagination returns consistent results
 function prioritizeStudios<T extends { 
   is_verified: boolean; 
   studio_images: any[];
   users?: { username?: string | null } | null;
-}>(studios: T[], offset: number, limit: number): { studios: T[]; hasMore: boolean } {
+}>(studios: T[], offset: number, limit: number, seed?: number): { studios: T[]; hasMore: boolean } {
   if (studios.length === 0) return { studios: [], hasMore: false };
   
   // Find VoiceoverGuy studio to pin at the top (site owner)
@@ -56,10 +71,11 @@ function prioritizeStudios<T extends {
     s => !s.studio_images || s.studio_images.length === 0
   );
   
-  // Shuffle each tier
-  const shuffledVerified = shuffleArray(verifiedWithImages);
-  const shuffledWithImages = shuffleArray(nonVerifiedWithImages);
-  const shuffledWithoutImages = shuffleArray(withoutImages);
+  // Shuffle each tier with the same seed for deterministic ordering.
+  // Use different derived seeds per tier so they don't get identical orderings.
+  const shuffledVerified = shuffleArray(verifiedWithImages, seed !== undefined ? seed : undefined);
+  const shuffledWithImages = shuffleArray(nonVerifiedWithImages, seed !== undefined ? seed + 1 : undefined);
+  const shuffledWithoutImages = shuffleArray(withoutImages, seed !== undefined ? seed + 2 : undefined);
   
   // Combine tiers in priority order, with VoiceoverGuy always first if present
   const allPrioritized = [
@@ -96,6 +112,7 @@ export async function GET(request: NextRequest) {
       page: parseInt(searchParams.get('page') || '1'),
       limit: parseInt(searchParams.get('limit') || '30'),
       offset: parseInt(searchParams.get('offset') || '0'), // New offset parameter for load-more pattern
+      seed: searchParams.get('seed') ? parseInt(searchParams.get('seed')!) : undefined, // Seed for deterministic shuffle across paginated requests
       sortBy: searchParams.get('sortBy') || 'name',
       sort_order: searchParams.get('sort_order') || 'asc',
     };
@@ -557,8 +574,11 @@ export async function GET(request: NextRequest) {
     // const prioStartTime = Date.now();
 
     // Apply prioritization logic (verified+images -> images -> no images)
+    // Use the client-provided seed for deterministic shuffle, or fall back to a daily seed
+    // so that the order is consistent within a day but varies day-to-day
+    const shuffleSeed = validatedParams.seed ?? Math.floor(Date.now() / (1000 * 60 * 60 * 24));
     totalCount = allStudios.length;
-    const prioritized = prioritizeStudios(allStudios, offset, validatedParams.limit);
+    const prioritized = prioritizeStudios(allStudios, offset, validatedParams.limit, shuffleSeed);
     const studios = prioritized.studios;
     hasMore = prioritized.hasMore;
 

@@ -118,6 +118,7 @@ export const studioSearchSchema = z.object({
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(1000).default(30), // Default 30 studios, increased max to 1000 for map area filtering
   offset: z.number().min(0).default(0), // New offset parameter for load-more pattern
+  seed: z.number().optional(), // Seed for deterministic shuffle (ensures consistent ordering across paginated requests)
   sortBy: z.enum(['name', 'distance', 'rating', 'created_at']).default('name'),
   sort_order: z.enum(['asc', 'desc']).default('asc'),
 });

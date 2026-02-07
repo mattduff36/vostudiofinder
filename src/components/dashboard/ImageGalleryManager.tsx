@@ -23,8 +23,7 @@ interface ImageGalleryManagerProps {
   studioId?: string | undefined; // Optional: for admin mode
   isAdminMode?: boolean; // Optional: to use admin API endpoints
   embedded?: boolean; // Optional: hide header/progress when embedded in edit profile
-  onImagesChanged?: () => void; // Optional: callback when images change (for parent to refresh)
-  hasUnsavedChanges?: boolean; // Optional: warn user about unsaved changes before upload
+  onImagesChanged?: (images: StudioImage[]) => void; // Optional: callback when images change (passes updated images array)
 }
 
 export function ImageGalleryManager({ 
@@ -32,7 +31,6 @@ export function ImageGalleryManager({
   isAdminMode = false,
   embedded = false,
   onImagesChanged,
-  hasUnsavedChanges = false
 }: ImageGalleryManagerProps = {}) {
   const [images, setImages] = useState<StudioImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,9 +49,11 @@ export function ImageGalleryManager({
   const [profileData, setProfileData] = useState<any>(null);
   
   // Tier-based image limit (fetched from API)
-  // Default to the most restrictive limit (Basic = 2) while loading to prevent
-  // unauthorised uploads before the actual tier data arrives from the server.
-  const maxImages = profileData?.tierLimits?.imagesMax ?? 2;
+  // Admin mode: use the server-side admin limit (10) since the admin API doesn't
+  // return tierLimits and admins shouldn't be gated by the studio owner's tier.
+  // User mode: default to the most restrictive limit (Basic = 2) while loading to
+  // prevent unauthorised uploads before the actual tier data arrives from the server.
+  const maxImages = isAdminMode ? 10 : (profileData?.tierLimits?.imagesMax ?? 2);
   
   // Calculate completion stats
   const completionStats: CompletionStats | null = profileData ? calculateCompletionStats({
@@ -105,20 +105,6 @@ export function ImageGalleryManager({
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-
-    // Warn about unsaved changes before uploading
-    if (hasUnsavedChanges) {
-      const confirmUpload = window.confirm(
-        'You have unsaved changes in other fields. Uploading an image now will discard those changes. Would you like to continue?'
-      );
-      if (!confirmUpload) {
-        // Clear the file input
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-        return;
-      }
-    }
 
     const file = files[0];
     if (!file) return;
@@ -206,7 +192,8 @@ export function ImageGalleryManager({
 
       const result = await response.json();
       logger.log('[SUCCESS] Upload successful:', result);
-      setImages([...images, result.data]);
+      const updatedImages = [...images, result.data];
+      setImages(updatedImages);
       
       // Reset file input
       if (fileInputRef.current) {
@@ -216,9 +203,9 @@ export function ImageGalleryManager({
       // Reset cropper state
       setFileToCrop(null);
       
-      // Notify parent component if embedded
+      // Notify parent component with updated images (without triggering full refetch)
       if (onImagesChanged) {
-        onImagesChanged();
+        onImagesChanged(updatedImages);
       }
     } catch (err) {
       logger.error('[ERROR] Upload error caught:', err);
@@ -289,9 +276,9 @@ export function ImageGalleryManager({
 
       if (!response.ok) throw new Error('Failed to reorder images');
       
-      // Notify parent component if embedded
+      // Notify parent component with reordered images (without triggering full refetch)
       if (onImagesChanged) {
-        onImagesChanged();
+        onImagesChanged(updatedImages);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reorder images');
@@ -366,12 +353,13 @@ export function ImageGalleryManager({
 
       if (!response.ok) throw new Error('Failed to delete image');
 
-      setImages(images.filter(img => img.id !== imageId));
+      const updatedImages = images.filter(img => img.id !== imageId);
+      setImages(updatedImages);
       showSuccess('Image deleted successfully');
       
-      // Notify parent component if embedded
+      // Notify parent component with updated images (without triggering full refetch)
       if (onImagesChanged) {
-        onImagesChanged();
+        onImagesChanged(updatedImages);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete image');

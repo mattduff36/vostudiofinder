@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 interface MembershipSuccessPageProps {
-  searchParams: Promise<{ session_id?: string; email?: string; name?: string; username?: string }>;
+  searchParams: Promise<{ session_id?: string; email?: string; name?: string; username?: string; tier?: string }>;
 }
 
 // Field guidance data
@@ -155,8 +155,164 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     email: params.email || 'MISSING',
     name: params.name || 'MISSING',
     username: params.username || 'MISSING',
+    tier: params.tier || 'MISSING',
   });
 
+  // ─── Basic (free) tier flow ───────────────────────────────────────────
+  // Basic signups have no Stripe session. The complete-basic-signup API
+  // already activated the user, so we just need to look them up and show
+  // the onboarding page.
+  if (params.tier === 'basic') {
+    console.log(`[DEBUG ${pageTimestamp}] Basic tier flow detected, skipping payment verification`);
+
+    // Look up user by username (preferred) or email
+    const basicUser = params.username
+      ? await db.users.findFirst({
+          where: { username: params.username, status: 'ACTIVE' },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            display_name: true,
+            avatar_url: true,
+            status: true,
+          },
+        })
+      : params.email
+        ? await db.users.findFirst({
+            where: { email: params.email, status: 'ACTIVE' },
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              display_name: true,
+              avatar_url: true,
+              status: true,
+            },
+          })
+        : null;
+
+    if (!basicUser) {
+      console.error(`[DEBUG ${pageTimestamp}] ❌ Basic user not found or not ACTIVE`);
+      redirect('/auth/signup?error=session_expired');
+    }
+
+    console.log(`[DEBUG ${pageTimestamp}] ✅ Basic user found: ${basicUser.id}`);
+
+    // Fetch studio profile (may not exist yet)
+    const basicStudioProfile = await db.studio_profiles.findUnique({
+      where: { user_id: basicUser.id },
+      select: {
+        id: true, name: true, short_about: true, about: true, phone: true,
+        location: true, website_url: true, equipment_list: true, services_offered: true,
+        facebook_url: true, x_url: true, linkedin_url: true, instagram_url: true,
+        youtube_url: true, tiktok_url: true, threads_url: true, soundcloud_url: true,
+        connection1: true, connection2: true, connection3: true, connection4: true,
+        connection5: true, connection6: true, connection7: true, connection8: true,
+        connection9: true, connection10: true, connection11: true, connection12: true,
+        rate_tier_1: true,
+        studio_studio_types: { select: { studio_type: true } },
+        studio_images: { select: { id: true } },
+      },
+    });
+
+    const basicCompletionStats = calculateCompletionStats({
+      user: {
+        username: basicUser.username,
+        display_name: basicUser.display_name,
+        email: basicUser.email,
+        avatar_url: basicUser.avatar_url,
+      },
+      profile: basicStudioProfile ? {
+        short_about: basicStudioProfile.short_about,
+        about: basicStudioProfile.about,
+        phone: basicStudioProfile.phone,
+        location: basicStudioProfile.location,
+        website_url: basicStudioProfile.website_url,
+        equipment_list: basicStudioProfile.equipment_list,
+        services_offered: basicStudioProfile.services_offered,
+        facebook_url: basicStudioProfile.facebook_url,
+        x_url: basicStudioProfile.x_url,
+        linkedin_url: basicStudioProfile.linkedin_url,
+        instagram_url: basicStudioProfile.instagram_url,
+        youtube_url: basicStudioProfile.youtube_url,
+        tiktok_url: basicStudioProfile.tiktok_url,
+        threads_url: basicStudioProfile.threads_url,
+        soundcloud_url: basicStudioProfile.soundcloud_url,
+        connection1: basicStudioProfile.connection1,
+        connection2: basicStudioProfile.connection2,
+        connection3: basicStudioProfile.connection3,
+        connection4: basicStudioProfile.connection4,
+        connection5: basicStudioProfile.connection5,
+        connection6: basicStudioProfile.connection6,
+        connection7: basicStudioProfile.connection7,
+        connection8: basicStudioProfile.connection8,
+        connection9: basicStudioProfile.connection9,
+        connection10: basicStudioProfile.connection10,
+        connection11: basicStudioProfile.connection11,
+        connection12: basicStudioProfile.connection12,
+        rate_tier_1: basicStudioProfile.rate_tier_1,
+      } : undefined,
+      studio: {
+        name: basicStudioProfile?.name || null,
+        studio_types: basicStudioProfile?.studio_studio_types?.map(st => st.studio_type) || [],
+        images: basicStudioProfile?.studio_images || [],
+        website_url: basicStudioProfile?.website_url || null,
+      },
+    });
+
+    const basicHasConnection = !!(
+      basicStudioProfile?.connection1 === '1' || basicStudioProfile?.connection2 === '1' ||
+      basicStudioProfile?.connection3 === '1' || basicStudioProfile?.connection4 === '1' ||
+      basicStudioProfile?.connection5 === '1' || basicStudioProfile?.connection6 === '1' ||
+      basicStudioProfile?.connection7 === '1' || basicStudioProfile?.connection8 === '1' ||
+      basicStudioProfile?.connection9 === '1' || basicStudioProfile?.connection10 === '1' ||
+      basicStudioProfile?.connection11 === '1' || basicStudioProfile?.connection12 === '1'
+    );
+
+    const basicSocialCount = [
+      basicStudioProfile?.facebook_url, basicStudioProfile?.x_url,
+      basicStudioProfile?.linkedin_url, basicStudioProfile?.instagram_url,
+      basicStudioProfile?.youtube_url, basicStudioProfile?.tiktok_url,
+      basicStudioProfile?.threads_url, basicStudioProfile?.soundcloud_url,
+    ].filter(url => url && url.trim() !== '').length;
+
+    const basicRequiredFields = [
+      { name: REQUIRED_FIELDS[0]!.name, required: true, completed: !!(basicUser.username && !basicUser.username.startsWith('temp_')), where: REQUIRED_FIELDS[0]!.where, how: REQUIRED_FIELDS[0]!.how, why: REQUIRED_FIELDS[0]!.why },
+      { name: REQUIRED_FIELDS[1]!.name, required: true, completed: !!(basicUser.display_name && basicUser.display_name.trim()), where: REQUIRED_FIELDS[1]!.where, how: REQUIRED_FIELDS[1]!.how, why: REQUIRED_FIELDS[1]!.why },
+      { name: REQUIRED_FIELDS[2]!.name, required: true, completed: !!(basicUser.email && basicUser.email.trim()), where: REQUIRED_FIELDS[2]!.where, how: REQUIRED_FIELDS[2]!.how, why: REQUIRED_FIELDS[2]!.why },
+      { name: REQUIRED_FIELDS[3]!.name, required: true, completed: !!(basicStudioProfile?.name && basicStudioProfile.name.trim()), where: REQUIRED_FIELDS[3]!.where, how: REQUIRED_FIELDS[3]!.how, why: REQUIRED_FIELDS[3]!.why },
+      { name: REQUIRED_FIELDS[4]!.name, required: true, completed: !!(basicStudioProfile?.short_about && basicStudioProfile.short_about.trim()), where: REQUIRED_FIELDS[4]!.where, how: REQUIRED_FIELDS[4]!.how, why: REQUIRED_FIELDS[4]!.why },
+      { name: REQUIRED_FIELDS[5]!.name, required: true, completed: !!(basicStudioProfile?.about && basicStudioProfile.about.trim()), where: REQUIRED_FIELDS[5]!.where, how: REQUIRED_FIELDS[5]!.how, why: REQUIRED_FIELDS[5]!.why },
+      { name: REQUIRED_FIELDS[6]!.name, required: true, completed: !!(basicStudioProfile?.studio_studio_types && basicStudioProfile.studio_studio_types.length >= 1), where: REQUIRED_FIELDS[6]!.where, how: REQUIRED_FIELDS[6]!.how, why: REQUIRED_FIELDS[6]!.why },
+      { name: REQUIRED_FIELDS[7]!.name, required: true, completed: !!(basicStudioProfile?.location && basicStudioProfile.location.trim()), where: REQUIRED_FIELDS[7]!.where, how: REQUIRED_FIELDS[7]!.how, why: REQUIRED_FIELDS[7]!.why },
+      { name: REQUIRED_FIELDS[8]!.name, required: true, completed: basicHasConnection, where: REQUIRED_FIELDS[8]!.where, how: REQUIRED_FIELDS[8]!.how, why: REQUIRED_FIELDS[8]!.why },
+      { name: REQUIRED_FIELDS[9]!.name, required: true, completed: !!(basicStudioProfile?.website_url && basicStudioProfile.website_url.trim()), where: REQUIRED_FIELDS[9]!.where, how: REQUIRED_FIELDS[9]!.how, why: REQUIRED_FIELDS[9]!.why },
+      { name: REQUIRED_FIELDS[10]!.name, required: true, completed: !!(basicStudioProfile?.studio_images && basicStudioProfile.studio_images.length >= 1), where: REQUIRED_FIELDS[10]!.where, how: REQUIRED_FIELDS[10]!.how, why: REQUIRED_FIELDS[10]!.why },
+    ];
+
+    const basicOptionalFields = [
+      { name: OPTIONAL_FIELDS[0]!.name, required: false, completed: !!(basicUser.avatar_url && basicUser.avatar_url.trim()), where: OPTIONAL_FIELDS[0]!.where, how: OPTIONAL_FIELDS[0]!.how, why: OPTIONAL_FIELDS[0]!.why },
+      { name: OPTIONAL_FIELDS[1]!.name, required: false, completed: !!(basicStudioProfile?.phone && basicStudioProfile.phone.trim()), where: OPTIONAL_FIELDS[1]!.where, how: OPTIONAL_FIELDS[1]!.how, why: OPTIONAL_FIELDS[1]!.why },
+      { name: OPTIONAL_FIELDS[2]!.name, required: false, completed: basicSocialCount >= 2, where: OPTIONAL_FIELDS[2]!.where, how: OPTIONAL_FIELDS[2]!.how, why: OPTIONAL_FIELDS[2]!.why },
+      { name: OPTIONAL_FIELDS[3]!.name, required: false, completed: !!(basicStudioProfile?.rate_tier_1 && (typeof basicStudioProfile.rate_tier_1 === 'number' ? basicStudioProfile.rate_tier_1 > 0 : parseFloat(basicStudioProfile.rate_tier_1) > 0)), where: OPTIONAL_FIELDS[3]!.where, how: OPTIONAL_FIELDS[3]!.how, why: OPTIONAL_FIELDS[3]!.why },
+      { name: OPTIONAL_FIELDS[4]!.name, required: false, completed: !!(basicStudioProfile?.equipment_list && basicStudioProfile.equipment_list.trim()), where: OPTIONAL_FIELDS[4]!.where, how: OPTIONAL_FIELDS[4]!.how, why: OPTIONAL_FIELDS[4]!.why },
+      { name: OPTIONAL_FIELDS[5]!.name, required: false, completed: !!(basicStudioProfile?.services_offered && basicStudioProfile.services_offered.trim()), where: OPTIONAL_FIELDS[5]!.where, how: OPTIONAL_FIELDS[5]!.how, why: OPTIONAL_FIELDS[5]!.why },
+    ];
+
+    return (
+      <AutoLoginAfterPayment>
+        <PaymentSuccessOnboarding
+          userName={basicUser.display_name}
+          completionPercentage={basicCompletionStats.overall.percentage}
+          requiredFields={basicRequiredFields}
+          optionalFields={basicOptionalFields}
+        />
+      </AutoLoginAfterPayment>
+    );
+  }
+
+  // ─── Premium (paid) tier flow ─────────────────────────────────────────
   // Verify payment exists
   if (!params.session_id) {
     console.error(`[DEBUG ${pageTimestamp}] ❌ ERROR: No session_id provided in URL params`);

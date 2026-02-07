@@ -72,7 +72,10 @@ export function buildProfileUpdate(
   
   // Social media
   if (body._meta?.facebook !== undefined) profileUpdateData.facebook_url = body._meta.facebook;
-  if (body._meta?.x !== undefined) profileUpdateData.x_url = body._meta.x;
+  if (body._meta?.x !== undefined) {
+    profileUpdateData.x_url = body._meta.x;
+    profileUpdateData.twitter_url = body._meta.x; // Keep legacy column in sync
+  }
   if (body._meta?.linkedin !== undefined) profileUpdateData.linkedin_url = body._meta.linkedin;
   if (body._meta?.instagram !== undefined) profileUpdateData.instagram_url = body._meta.instagram;
   if (body._meta?.youtubepage !== undefined) profileUpdateData.youtube_url = body._meta.youtubepage;
@@ -149,7 +152,10 @@ export function buildProfileUpdate(
   // Also support profile.* format for compatibility
   if (body.profile?.equipment_list !== undefined) profileUpdateData.equipment_list = body.profile.equipment_list;
   if (body.profile?.services_offered !== undefined) profileUpdateData.services_offered = body.profile.services_offered;
-  if (body.profile?.x_url !== undefined) profileUpdateData.x_url = body.profile.x_url;
+  if (body.profile?.x_url !== undefined) {
+    profileUpdateData.x_url = body.profile.x_url;
+    profileUpdateData.twitter_url = body.profile.x_url; // Keep legacy column in sync
+  }
   
   return profileUpdateData;
 }

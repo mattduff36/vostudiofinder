@@ -62,6 +62,7 @@ export default function AdminStudiosPage() {
   const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Featured expiry modal state
   const [featuredExpiryModalOpen, setFeaturedExpiryModalOpen] = useState(false);
@@ -249,7 +250,7 @@ export default function AdminStudiosPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, pagination.offset, pagination.limit, sortBy, sortOrder]);
+  }, [search, statusFilter, pagination.offset, pagination.limit, sortBy, sortOrder, refreshKey]);
 
   useEffect(() => {
     fetchStudios();
@@ -276,24 +277,17 @@ export default function AdminStudiosPage() {
     setIsEditModalOpen(false);
     setEditingStudio(null);
     // Refresh data to show any changes
-    if (pagination.offset === 0) {
-      setStudios([]); // Clear studios to prevent duplicates
-      fetchStudios(); // Directly call fetchStudios to refetch
-    } else {
-      setStudios([]); // Clear studios to prevent duplicates
-      setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page - this will trigger useEffect
-    }
+    setPagination(prev => ({ ...prev, offset: 0 }));
+    setRefreshKey(prev => prev + 1);
   };
 
   const handleSaveSuccess = () => {
-    // Refresh the studios list immediately after save (without closing modal)
-    if (pagination.offset === 0) {
-      setStudios([]); // Clear studios to prevent duplicates
-      fetchStudios(); // Directly call fetchStudios to refetch
-    } else {
-      setStudios([]); // Clear studios to prevent duplicates
-      setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page - this will trigger useEffect
-    }
+    // Refresh the studios list after save by incrementing refreshKey.
+    // This causes fetchStudios to be recreated (refreshKey is in its deps),
+    // which triggers the useEffect that calls fetchStudios().
+    // Reset offset to 0 so the fetch replaces (not appends) the list.
+    setPagination(prev => ({ ...prev, offset: 0 }));
+    setRefreshKey(prev => prev + 1);
   };
 
   const handleDeleteStudio = async (studio: Studio) => {
@@ -316,9 +310,8 @@ export default function AdminStudiosPage() {
       }
 
       showSuccess('Studio and user account deleted successfully');
-      setStudios([]); // Clear studios to prevent duplicates
-      setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page
-      // fetchStudios will be called automatically by the useEffect
+      setPagination(prev => ({ ...prev, offset: 0 }));
+      setRefreshKey(prev => prev + 1);
     } catch (error) {
       console.error('Error deleting studio:', error);
       showError('Failed to delete studio and user account. Please try again.');
@@ -1255,8 +1248,8 @@ export default function AdminStudiosPage() {
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={(message) => {
           showSuccess(message);
-          setStudios([]);
           setPagination(prev => ({ ...prev, offset: 0 }));
+          setRefreshKey(prev => prev + 1);
         }}
       />
 

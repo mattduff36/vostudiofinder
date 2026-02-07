@@ -109,6 +109,7 @@ export function Settings({ data }: SettingsProps) {
   const [sandboxProfileCompletion, setSandboxProfileCompletion] = useState<number>(100);
   const [sandboxIsVerified, setSandboxIsVerified] = useState(false);
   const [sandboxMembershipActive, setSandboxMembershipActive] = useState(true);
+  const [sandboxMembershipTier, setSandboxMembershipTier] = useState<'BASIC' | 'PREMIUM'>('PREMIUM');
   const [sandboxStudioIsFeatured, setSandboxStudioIsFeatured] = useState(false);
   const [sandboxFeaturedRemaining, setSandboxFeaturedRemaining] = useState<number>(6);
   const [sandboxNextAvailableDate, setSandboxNextAvailableDate] = useState<string>('');
@@ -274,6 +275,49 @@ export function Settings({ data }: SettingsProps) {
                   />
 
                   <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${sandboxEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
+                    {/* Membership tier emulation */}
+                    <div className="bg-white rounded-lg border border-amber-100 p-4 md:col-span-2">
+                      <p className="text-sm font-semibold text-gray-900 mb-3">Membership tier</p>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">Simulate membership tier</label>
+                          <p className="text-xs text-gray-500 mb-2">
+                            Changes how the Featured and Verified cards evaluate Premium eligibility. Also affects the tier badge and Upgrade CTA visibility.
+                          </p>
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setSandboxMembershipTier('BASIC')}
+                              className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg border-2 transition-colors ${
+                                sandboxMembershipTier === 'BASIC'
+                                  ? 'border-gray-700 bg-gray-100 text-gray-900'
+                                  : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                              }`}
+                            >
+                              Basic (Free)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSandboxMembershipTier('PREMIUM')}
+                              className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg border-2 transition-colors ${
+                                sandboxMembershipTier === 'PREMIUM'
+                                  ? 'border-amber-500 bg-amber-50 text-amber-900'
+                                  : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                              }`}
+                            >
+                              Premium (£25/yr)
+                            </button>
+                          </div>
+                        </div>
+                        <Toggle
+                          label="Membership active"
+                          description="Simulate whether the membership is currently active or expired."
+                          checked={sandboxMembershipActive}
+                          onChange={setSandboxMembershipActive}
+                        />
+                      </div>
+                    </div>
+
                     <div className="bg-white rounded-lg border border-amber-100 p-4">
                       <p className="text-sm font-semibold text-gray-900 mb-3">Verified badge card</p>
                       <div className="space-y-3">
@@ -293,12 +337,6 @@ export function Settings({ data }: SettingsProps) {
                           description="Simulate the studio already having a verified badge."
                           checked={sandboxIsVerified}
                           onChange={setSandboxIsVerified}
-                        />
-                        <Toggle
-                          label="Membership active"
-                          description="Simulate membership state for verification eligibility messaging."
-                          checked={sandboxMembershipActive}
-                          onChange={setSandboxMembershipActive}
                         />
                       </div>
                     </div>
@@ -386,6 +424,7 @@ export function Settings({ data }: SettingsProps) {
                         setSandboxProfileCompletion(100);
                         setSandboxIsVerified(false);
                         setSandboxMembershipActive(true);
+                        setSandboxMembershipTier('PREMIUM');
                         setSandboxStudioIsFeatured(false);
                         setSandboxFeaturedRemaining(6);
                         setSandboxNextAvailableDate('');
@@ -697,9 +736,11 @@ export function Settings({ data }: SettingsProps) {
                 {/* Membership Display */}
                 {(() => {
                   const membership = profileData?.membership;
-                  const isActive = membership?.state === 'ACTIVE';
-                  const isExpired = membership?.state === 'EXPIRED';
-                  const hasNoExpiry = membership?.state === 'NONE_SET';
+                  // Effective tier: sandbox overrides the real tier for UI simulation
+                  const effectiveTier = sandboxEnabled ? sandboxMembershipTier : (profileData?.user?.membership_tier || 'BASIC');
+                  const isActive = sandboxEnabled ? sandboxMembershipActive : membership?.state === 'ACTIVE';
+                  const isExpired = sandboxEnabled ? !sandboxMembershipActive : membership?.state === 'EXPIRED';
+                  const hasNoExpiry = sandboxEnabled ? false : membership?.state === 'NONE_SET';
                   
                   return (
               <>
@@ -711,7 +752,7 @@ export function Settings({ data }: SettingsProps) {
                         <CreditCard className="w-4 h-4 text-gray-600" />
                         <h3 className="text-sm font-semibold text-gray-900">Membership Status</h3>
                         {/* Tier Badge */}
-                        {profileData?.user?.membership_tier === 'PREMIUM' ? (
+                        {effectiveTier === 'PREMIUM' ? (
                           <span className="px-2 py-0.5 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full border border-amber-200">
                             Premium
                           </span>
@@ -721,7 +762,7 @@ export function Settings({ data }: SettingsProps) {
                           </span>
                         )}
                       </div>
-                      {isActive && profileData?.user?.membership_tier === 'PREMIUM' && (
+                      {isActive && effectiveTier === 'PREMIUM' && (
                         <span className="px-2 py-0.5 text-xs font-semibold text-green-700 bg-green-100 rounded-full border border-green-200">
                           ✓ Active
                         </span>
@@ -731,7 +772,7 @@ export function Settings({ data }: SettingsProps) {
                           ✗ Expired
                         </span>
                       )}
-                      {hasNoExpiry && profileData?.user?.membership_tier !== 'BASIC' && (
+                      {hasNoExpiry && effectiveTier !== 'BASIC' && (
                         <span className="px-2 py-0.5 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-200">
                           Not Set
                         </span>
@@ -771,7 +812,7 @@ export function Settings({ data }: SettingsProps) {
                 </div>
 
                 {/* Upgrade to Premium CTA for Basic users */}
-                {profileData?.user?.membership_tier !== 'PREMIUM' && profileData?.user?.role !== 'ADMIN' && (
+                {effectiveTier !== 'PREMIUM' && (sandboxEnabled || profileData?.user?.role !== 'ADMIN') && (
                   <div className="relative overflow-hidden rounded-xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50 p-5">
                     <div className="space-y-3">
                       <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -791,7 +832,7 @@ export function Settings({ data }: SettingsProps) {
                       </ul>
                       <a
                         href="/auth/membership"
-                        className="inline-block w-full text-center px-6 py-2.5 bg-[#d42027] text-white font-semibold rounded-lg hover:bg-[#b01b21] transition-colors shadow-sm"
+                        className="inline-block w-full text-center px-6 py-2.5 bg-[#d42027] !text-white font-semibold rounded-lg hover:bg-[#b01b21] transition-colors shadow-sm no-underline"
                       >
                         Upgrade Now - £25/year
                       </a>
@@ -981,7 +1022,7 @@ export function Settings({ data }: SettingsProps) {
                       const effectiveCompletion = sandboxEnabled ? sandboxProfileCompletion : completionStats.overall.percentage;
                       const isProfileComplete = effectiveCompletion === 100;
                       const isMembershipActive = sandboxEnabled ? sandboxMembershipActive : membership?.state === 'ACTIVE';
-                      const isPremiumUser = profileData?.user?.membership_tier === 'PREMIUM' || profileData?.user?.role === 'ADMIN';
+                      const isPremiumUser = sandboxEnabled ? sandboxMembershipTier === 'PREMIUM' : (profileData?.user?.membership_tier === 'PREMIUM' || profileData?.user?.role === 'ADMIN');
 
                       const isFeatured = sandboxEnabled ? sandboxStudioIsFeatured : profileData?.studio?.is_featured;
                       const featuredUntil = profileData?.studio?.featured_until;
@@ -1144,7 +1185,7 @@ export function Settings({ data }: SettingsProps) {
                     {(() => {
                       const isVerified = sandboxEnabled ? sandboxIsVerified : profileData?.studio?.is_verified;
                       const isMembershipActive = sandboxEnabled ? sandboxMembershipActive : membership?.state === 'ACTIVE';
-                      const isPremium = profileData?.user?.membership_tier === 'PREMIUM' || profileData?.user?.role === 'ADMIN';
+                      const isPremium = sandboxEnabled ? sandboxMembershipTier === 'PREMIUM' : (profileData?.user?.membership_tier === 'PREMIUM' || profileData?.user?.role === 'ADMIN');
                       const profileCompletion = sandboxEnabled ? sandboxProfileCompletion : completionStats.overall.percentage;
                       const meetsCompletion = profileCompletion >= 85;
                       const isEligible = !isVerified && isMembershipActive && isPremium && meetsCompletion;
