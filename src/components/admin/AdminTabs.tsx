@@ -16,10 +16,11 @@ import {
   Search,
   Menu,
   X,
-  Mail
+  Mail,
+  Lightbulb
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support' | 'payments' | 'reservations' | 'error_log' | 'audit' | 'emails';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support' | 'payments' | 'reservations' | 'error_log' | 'audit' | 'emails' | 'sandbox';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -49,6 +50,7 @@ const secondaryTabs: TabConfig[] = [
   { id: 'audit', label: 'User Audit', icon: Search, href: '/admin/audit/users' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'error_log', label: 'Error Log', icon: AlertTriangle, href: '/admin/error-log' },
+  { id: 'sandbox', label: 'Sandbox', icon: Lightbulb, href: '/admin/sandbox' },
 ];
 
 // All tabs combined for mobile menu

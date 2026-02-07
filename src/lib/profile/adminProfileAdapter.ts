@@ -80,6 +80,7 @@ export interface AdminProfileResponse {
       connection12?: string;
       custom_connection_methods?: string[];
       membership_expires_at?: string | null;
+      membership_tier?: string;
       custom_meta_title?: string;
     };
     images?: AdminProfileImage[];
@@ -150,6 +151,7 @@ export interface ProfileData {
     is_verified?: boolean;
     is_featured?: boolean;
     featured_until?: string | null;
+    created_at?: string | Date;
   };
   studio_types: string[];
   metadata?: {
@@ -161,6 +163,7 @@ export interface ProfileData {
     status: string;
     email_verified: boolean;
     membership_expires_at?: string | null;
+    membership_tier?: string;
   };
 }
 
@@ -256,6 +259,7 @@ export function adminProfileToProfileData(response: AdminProfileResponse): Profi
       is_verified: meta.verified === '1',
       is_featured: meta.featured === '1',
       featured_until: meta.featured_expires_at || null,
+      ...(admin.joined ? { created_at: admin.joined } : {}),
     },
     studio_types: admin.studioTypes?.map(st => st.studio_type) || [],
     metadata: {
@@ -266,6 +270,7 @@ export function adminProfileToProfileData(response: AdminProfileResponse): Profi
       status: admin.status,
       email_verified: admin.email_verified,
       membership_expires_at: meta.membership_expires_at || null,
+      membership_tier: meta.membership_tier || 'BASIC',
     },
   };
 }
@@ -331,6 +336,7 @@ export function profileDataToAdminPayload(data: ProfileData): any {
       featured_expires_at: data.studio?.featured_until || null,
       is_profile_visible: data.studio?.is_profile_visible !== false,
       membership_expires_at: data._adminOnly?.membership_expires_at || null,
+      membership_tier: data._adminOnly?.membership_tier || 'BASIC',
       custom_meta_title: data.metadata?.custom_meta_title || '',
     },
   };

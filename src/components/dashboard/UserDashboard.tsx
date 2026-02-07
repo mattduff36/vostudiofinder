@@ -645,19 +645,21 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-4xl mx-auto">
                   {/* Left Column - Content */}
-                  <div className="flex flex-col items-start text-left">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                      <Share2 className="w-8 h-8 text-[#d42027]" aria-hidden="true" />
+                  <div className="flex items-center gap-4 text-left">
+                    <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Share2 className="w-7 h-7 text-[#d42027]" aria-hidden="true" />
                     </div>
-                    <h3 className="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">
-                      {profileData?.user?.membership_tier === 'PREMIUM'
-                        ? <>Share your studio. Get an extra month of Premium membership free.</>
-                        : <>Share your studio. Get a free month of <em>Premium</em> membership.</>
-                      }
-                    </h3>
-                    <p className="text-base text-gray-700 leading-relaxed">
-                      Post your profile publicly on social media and send us the link.
-                    </p>
+                    <div>
+                      <h3 className="text-xl font-extrabold text-gray-900 mb-2 tracking-tight">
+                        {profileData?.user?.membership_tier === 'PREMIUM'
+                          ? <>Share your studio. Get an extra month of Premium membership free.</>
+                          : <>Share your studio. Get a free month of <em>Premium</em> membership.</>
+                        }
+                      </h3>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        Post your profile publicly on social media and send us the link.
+                      </p>
+                    </div>
                   </div>
                   
                   {/* Right Column - CTA and Fine Print */}

@@ -248,14 +248,23 @@ export async function GET() {
       }
     }
 
-    // Lazy enforcement: update studio status based on membership expiry (skip for admin accounts)
+    // Lazy enforcement: update studio status based on membership tier + expiry (skip for admin accounts)
     const isAdminAccount = user.role === 'ADMIN';
     const latestSubscription = user.subscriptions[0];
+    const userMembershipTier = (user as any).membership_tier || 'BASIC';
     
-    if (studioProfile && !isAdminAccount && latestSubscription?.current_period_end) {
+    if (studioProfile && !isAdminAccount) {
       const now = new Date();
-      const isExpired = latestSubscription.current_period_end < now;
-      const desiredStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
+      // Basic tier: always ACTIVE. Premium tier: check subscription expiry.
+      let desiredStatus: 'ACTIVE' | 'INACTIVE';
+      if (userMembershipTier === 'BASIC') {
+        desiredStatus = 'ACTIVE';
+      } else if (latestSubscription?.current_period_end) {
+        desiredStatus = latestSubscription.current_period_end < now ? 'INACTIVE' : 'ACTIVE';
+      } else {
+        // Premium with no subscription = INACTIVE
+        desiredStatus = 'INACTIVE';
+      }
       
       if (studioProfile.status !== desiredStatus) {
         const updatedStudio = await db.studio_profiles.update({
@@ -343,9 +352,13 @@ export async function GET() {
     // Admins are always treated as active Premium members
     const isAdmin = (user as any).role === 'ADMIN';
 
+    // Default NULL membership_tier to BASIC — users created before the
+    // membership_tier column was added are free-tier users.
+    const effectiveTier = (user as any).membership_tier || 'BASIC';
+
     if (isAdmin) {
       membershipInfo.state = 'ACTIVE';
-    } else if ((user as any).membership_tier === 'BASIC') {
+    } else if (effectiveTier === 'BASIC') {
       // Basic (free) tier users are always active, regardless of any stale
       // subscription records left over from a previous Premium membership.
       membershipInfo.state = 'ACTIVE';
@@ -377,7 +390,7 @@ export async function GET() {
     // Prepare response - split into profile (user fields) and studio (studio fields) for frontend compatibility
     // Admins always get Premium tier limits, regardless of their DB membership_tier value
     const { getTierLimits } = await import('@/lib/membership-tiers');
-    const userTier = isAdmin ? 'PREMIUM' : ((user as any).membership_tier || 'BASIC');
+    const userTier = isAdmin ? 'PREMIUM' : effectiveTier;
     const tierLimits = getTierLimits(userTier);
 
     const response = {
@@ -460,7 +473,6 @@ export async function GET() {
           is_profile_visible: studioProfile.is_profile_visible,
           is_featured: studioProfile.is_featured,
           is_spotlight: studioProfile.is_spotlight,
-          is_crb_checked: studioProfile.is_crb_checked,
           verification_level: studioProfile.verification_level,
           use_coordinates_for_map: studioProfile.use_coordinates_for_map,
           created_at: studioProfile.created_at,
@@ -961,13 +973,14 @@ export async function PUT(request: NextRequest) {
     }
 
     // Enforce: if required profile fields are incomplete, visibility must be OFF.
+    // Exception: legacy profiles (created before 2026-01-01) can keep visibility ON.
     // - If this request is a direct visibility toggle attempt to ON, reject it (and ensure it remains OFF).
     // - If this request updated profile data and made it incomplete, auto-disable visibility.
     let visibilityAutoDisabled = false;
     const eligibility = await getProfileVisibilityEligibility(userId);
 
-    if (!eligibility.allRequiredComplete) {
-      // Always ensure visibility is OFF when requirements are not met
+    if (!eligibility.allRequiredComplete && !eligibility.isLegacyProfile) {
+      // Always ensure visibility is OFF when requirements are not met (non-legacy only)
       if (eligibility.currentVisibility) {
         await db.studio_profiles.update({
           where: { user_id: userId },

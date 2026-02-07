@@ -535,7 +535,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
       await grantMembership(user.id, payment.id, {
         payment_attempted_at: user.payment_attempted_at || new Date(),
         payment_retry_count: 0,
-      }, membershipMonths);
+      }, membershipMonths, session.customer as string || null);
       console.log(`[DEBUG ${timestamp}] ✅ Membership granted successfully`);
     }
   } catch (error) {
@@ -642,6 +642,8 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
  * @param _paymentId - Payment ID (for logging/tracking)
  * @param paymentTracking - Payment tracking metadata
  * @param membershipMonths - Number of months to grant (default: 12)
+ * @param stripeCustomerId - Stripe customer ID (marks the subscription as a real
+ *   payment so the legacy-grant logic in auth.ts will not overwrite it)
  */
 async function grantMembership(
   userId: string, 
@@ -650,7 +652,8 @@ async function grantMembership(
     payment_attempted_at: Date;
     payment_retry_count: number;
   },
-  membershipMonths: number = 12
+  membershipMonths: number = 12,
+  stripeCustomerId?: string | null,
 ) {
   const now = new Date();
   const expiryDate = new Date(now);
@@ -681,6 +684,7 @@ async function grantMembership(
     data: {
       id: randomBytes(12).toString('base64url'),
       user_id: userId,
+      stripe_customer_id: stripeCustomerId || null,
       status: 'ACTIVE',
       payment_method: 'STRIPE',
       current_period_start: now,

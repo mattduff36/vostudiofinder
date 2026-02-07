@@ -568,7 +568,6 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
                 tiktok_url: studio.tiktok_url,
                 threads_url: studio.threads_url,
                 soundcloud_url: studio.soundcloud_url,
-                is_crb_checked: studio.is_crb_checked,
                 is_featured: studio.is_featured,
                 is_spotlight: studio.is_spotlight,
                 verification_level: studio.verification_level,

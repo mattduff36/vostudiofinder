@@ -94,6 +94,7 @@ export interface AdminStudioUpdateInput {
     
     // Membership
     membership_expires_at?: string | null;
+    membership_tier?: 'BASIC' | 'PREMIUM';
     
     // SEO
     custom_meta_title?: string;

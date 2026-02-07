@@ -50,7 +50,6 @@ export interface UserProfile {
   equipment_list?: string;
   services_offered?: string;
   is_featured?: boolean;
-  is_crb_checked?: boolean;
   created_at?: Date | string;
   updated_at?: Date | string;
 }

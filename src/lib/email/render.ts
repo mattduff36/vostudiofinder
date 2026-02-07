@@ -164,7 +164,7 @@ export async function renderEmailTemplate(
     if (preheader) heroProps.preheader = preheader;
     if (defaultTemplate?.heroImageUrl) heroProps.heroImageUrl = defaultTemplate.heroImageUrl;
     if (defaultTemplate?.heroImageAlt) heroProps.heroImageAlt = defaultTemplate.heroImageAlt;
-    if (defaultTemplate?.heroImageHeight) heroProps.heroImageHeight = defaultTemplate.heroImageHeight;
+    // heroImageHeight intentionally omitted — image scales to natural aspect ratio
     if (bulletItems) heroProps.bulletItems = bulletItems;
     if (ctaPrimaryLabel) heroProps.ctaPrimaryLabel = ctaPrimaryLabel;
     if (ctaPrimaryUrl) heroProps.ctaPrimaryUrl = ctaPrimaryUrl;

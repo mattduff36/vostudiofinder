@@ -37,6 +37,7 @@ export function DashboardContent({ dashboardData, initialProfileData, activeTab 
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
   
   // Mobile-only: Smooth scroll-driven animation to sync with top navbar
   const { translateY: navTranslateY } = useScrollDrivenNav({ 

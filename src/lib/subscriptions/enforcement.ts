@@ -7,7 +7,7 @@ export interface StudioStatusDecision {
   studioId: string;
   currentStatus: string;
   desiredStatus: 'ACTIVE' | 'INACTIVE';
-  reason: 'admin_override' | 'expired' | 'active' | 'legacy';
+  reason: 'admin_override' | 'expired' | 'active' | 'basic_tier';
 }
 
 /**
@@ -38,7 +38,12 @@ export function isAdminEmail(email: string): boolean {
 }
 
 /**
- * Computes desired status for a studio based on membership expiry
+ * Computes desired status for a studio based on membership tier + subscription expiry.
+ *
+ * Rules:
+ *  - Admin accounts → always ACTIVE
+ *  - Basic tier     → always ACTIVE (free tier, no subscription required)
+ *  - Premium tier   → ACTIVE only if subscription has a future current_period_end
  */
 export function computeStudioStatus(
   studio: {
@@ -46,6 +51,7 @@ export function computeStudioStatus(
     status: string;
     users: {
       email: string;
+      membership_tier?: string;
       subscriptions?: Array<{ current_period_end: Date | null }>;
     };
   },
@@ -62,18 +68,28 @@ export function computeStudioStatus(
       reason: 'admin_override',
     };
   }
+
+  const membershipTier = studio.users.membership_tier || 'BASIC';
   
-  // Check latest subscription
-  const latestSubscription = studio.users.subscriptions?.[0];
-  if (!latestSubscription?.current_period_end) {
-    // Legacy profile: No subscription or no expiry date - keep ACTIVE
-    // These are legacy profiles that should remain active and will get
-    // a free 6-month membership when they first sign in
+  // Basic tier: always ACTIVE (free tier, no subscription required)
+  if (membershipTier === 'BASIC') {
     return {
       studioId: studio.id,
       currentStatus: studio.status,
       desiredStatus: 'ACTIVE',
-      reason: 'legacy',
+      reason: 'basic_tier',
+    };
+  }
+  
+  // Premium tier: check subscription expiry
+  const latestSubscription = studio.users.subscriptions?.[0];
+  if (!latestSubscription?.current_period_end) {
+    // Premium with no subscription = INACTIVE (expired Premium)
+    return {
+      studioId: studio.id,
+      currentStatus: studio.status,
+      desiredStatus: 'INACTIVE',
+      reason: 'expired',
     };
   }
   
@@ -131,6 +147,7 @@ export function computeEnforcementDecisions(
     featured_until: Date | null;
     users: {
       email: string;
+      membership_tier?: string;
       subscriptions?: Array<{ current_period_end: Date | null }>;
     };
   }>,

@@ -60,6 +60,7 @@ export async function GET(
             email: true,
             email_verified: true,
             avatar_url: true,
+            membership_tier: true,
             subscriptions: {
               orderBy: { created_at: 'desc' },
               take: 1,
@@ -229,6 +230,7 @@ export async function GET(
         custom_connection_methods: studioData.custom_connection_methods || [],
         // Membership
         membership_expires_at: studio.users?.subscriptions[0]?.current_period_end?.toISOString() || null,
+        membership_tier: studio.users?.membership_tier || 'BASIC',
         // Meta Title
         custom_meta_title: customMetaTitle
       },

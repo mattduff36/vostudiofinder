@@ -34,6 +34,7 @@ describe('Subscription Enforcement', () => {
         status: 'INACTIVE',
         users: {
           email: 'admin@mpdee.co.uk',
+          membership_tier: 'BASIC',
           subscriptions: [],
         },
       };
@@ -48,12 +49,15 @@ describe('Subscription Enforcement', () => {
       });
     });
 
-    it('should return ACTIVE for legacy profile with no subscription (legacy profiles)', () => {
+    // ── Basic tier tests ──
+
+    it('should return ACTIVE for Basic tier with no subscription', () => {
       const studio = {
         id: 'studio-2',
         status: 'ACTIVE',
         users: {
           email: 'user@example.com',
+          membership_tier: 'BASIC',
           subscriptions: [],
         },
       };
@@ -64,17 +68,19 @@ describe('Subscription Enforcement', () => {
         studioId: 'studio-2',
         currentStatus: 'ACTIVE',
         desiredStatus: 'ACTIVE',
-        reason: 'legacy',
+        reason: 'basic_tier',
       });
     });
 
-    it('should return ACTIVE for legacy profile with subscription but no expiry date', () => {
+    it('should return ACTIVE for Basic tier even with expired subscription', () => {
+      const pastDate = new Date('2023-12-31T23:59:59Z');
       const studio = {
         id: 'studio-2b',
         status: 'ACTIVE',
         users: {
           email: 'user@example.com',
-          subscriptions: [{ current_period_end: null }],
+          membership_tier: 'BASIC',
+          subscriptions: [{ current_period_end: pastDate }],
         },
       };
 
@@ -84,17 +90,62 @@ describe('Subscription Enforcement', () => {
         studioId: 'studio-2b',
         currentStatus: 'ACTIVE',
         desiredStatus: 'ACTIVE',
-        reason: 'legacy',
+        reason: 'basic_tier',
       });
     });
 
-    it('should return ACTIVE for non-admin with active subscription', () => {
+    it('should return ACTIVE for Basic tier with subscription but no expiry date', () => {
+      const studio = {
+        id: 'studio-2c',
+        status: 'ACTIVE',
+        users: {
+          email: 'user@example.com',
+          membership_tier: 'BASIC',
+          subscriptions: [{ current_period_end: null }],
+        },
+      };
+
+      const result = computeStudioStatus(studio, now);
+
+      expect(result).toEqual({
+        studioId: 'studio-2c',
+        currentStatus: 'ACTIVE',
+        desiredStatus: 'ACTIVE',
+        reason: 'basic_tier',
+      });
+    });
+
+    it('should default to BASIC tier when membership_tier is undefined', () => {
+      const studio = {
+        id: 'studio-2d',
+        status: 'ACTIVE',
+        users: {
+          email: 'user@example.com',
+          // membership_tier not set — should default to BASIC
+          subscriptions: [],
+        },
+      };
+
+      const result = computeStudioStatus(studio, now);
+
+      expect(result).toEqual({
+        studioId: 'studio-2d',
+        currentStatus: 'ACTIVE',
+        desiredStatus: 'ACTIVE',
+        reason: 'basic_tier',
+      });
+    });
+
+    // ── Premium tier tests ──
+
+    it('should return ACTIVE for Premium tier with active subscription', () => {
       const futureDate = new Date('2024-12-31T23:59:59Z');
       const studio = {
         id: 'studio-3',
         status: 'INACTIVE',
         users: {
           email: 'user@example.com',
+          membership_tier: 'PREMIUM',
           subscriptions: [{ current_period_end: futureDate }],
         },
       };
@@ -109,13 +160,14 @@ describe('Subscription Enforcement', () => {
       });
     });
 
-    it('should return INACTIVE for non-admin with expired subscription', () => {
+    it('should return INACTIVE for Premium tier with expired subscription', () => {
       const pastDate = new Date('2023-12-31T23:59:59Z');
       const studio = {
         id: 'studio-4',
         status: 'ACTIVE',
         users: {
           email: 'user@example.com',
+          membership_tier: 'PREMIUM',
           subscriptions: [{ current_period_end: pastDate }],
         },
       };
@@ -124,6 +176,48 @@ describe('Subscription Enforcement', () => {
 
       expect(result).toEqual({
         studioId: 'studio-4',
+        currentStatus: 'ACTIVE',
+        desiredStatus: 'INACTIVE',
+        reason: 'expired',
+      });
+    });
+
+    it('should return INACTIVE for Premium tier with no subscription', () => {
+      const studio = {
+        id: 'studio-5',
+        status: 'ACTIVE',
+        users: {
+          email: 'user@example.com',
+          membership_tier: 'PREMIUM',
+          subscriptions: [],
+        },
+      };
+
+      const result = computeStudioStatus(studio, now);
+
+      expect(result).toEqual({
+        studioId: 'studio-5',
+        currentStatus: 'ACTIVE',
+        desiredStatus: 'INACTIVE',
+        reason: 'expired',
+      });
+    });
+
+    it('should return INACTIVE for Premium tier with subscription but no expiry date', () => {
+      const studio = {
+        id: 'studio-5b',
+        status: 'ACTIVE',
+        users: {
+          email: 'user@example.com',
+          membership_tier: 'PREMIUM',
+          subscriptions: [{ current_period_end: null }],
+        },
+      };
+
+      const result = computeStudioStatus(studio, now);
+
+      expect(result).toEqual({
+        studioId: 'studio-5b',
         currentStatus: 'ACTIVE',
         desiredStatus: 'INACTIVE',
         reason: 'expired',
@@ -215,6 +309,7 @@ describe('Subscription Enforcement', () => {
           featured_until: null,
           users: {
             email: 'user@example.com',
+            membership_tier: 'PREMIUM',
             subscriptions: [{ current_period_end: futureDate }],
           },
         },
@@ -225,7 +320,7 @@ describe('Subscription Enforcement', () => {
       expect(decisions).toEqual([]);
     });
 
-    it('should identify studios needing status update', () => {
+    it('should identify Premium studios needing status update (expired)', () => {
       const studios = [
         {
           id: 'studio-1',
@@ -234,6 +329,7 @@ describe('Subscription Enforcement', () => {
           featured_until: null,
           users: {
             email: 'user@example.com',
+            membership_tier: 'PREMIUM',
             subscriptions: [{ current_period_end: pastDate }],
           },
         },
@@ -249,6 +345,27 @@ describe('Subscription Enforcement', () => {
       ]);
     });
 
+    it('should NOT deactivate Basic tier studios even without subscription', () => {
+      const studios = [
+        {
+          id: 'studio-basic',
+          status: 'ACTIVE',
+          is_featured: false,
+          featured_until: null,
+          users: {
+            email: 'user@example.com',
+            membership_tier: 'BASIC',
+            subscriptions: [],
+          },
+        },
+      ];
+
+      const decisions = computeEnforcementDecisions(studios, now);
+
+      // No changes — Basic stays ACTIVE
+      expect(decisions).toEqual([]);
+    });
+
     it('should identify studios needing unfeature', () => {
       const studios = [
         {
@@ -258,6 +375,7 @@ describe('Subscription Enforcement', () => {
           featured_until: pastDate,
           users: {
             email: 'user@example.com',
+            membership_tier: 'PREMIUM',
             subscriptions: [{ current_period_end: futureDate }],
           },
         },
@@ -282,6 +400,7 @@ describe('Subscription Enforcement', () => {
           featured_until: pastDate,
           users: {
             email: 'user@example.com',
+            membership_tier: 'PREMIUM',
             subscriptions: [{ current_period_end: pastDate }],
           },
         },
@@ -307,6 +426,7 @@ describe('Subscription Enforcement', () => {
           featured_until: null,
           users: {
             email: 'admin@mpdee.co.uk',
+            membership_tier: 'BASIC',
             subscriptions: [],
           },
         },
@@ -318,6 +438,31 @@ describe('Subscription Enforcement', () => {
         {
           studioId: 'studio-1',
           statusUpdate: { status: 'ACTIVE' },
+        },
+      ]);
+    });
+
+    it('should deactivate Premium studio with no subscription', () => {
+      const studios = [
+        {
+          id: 'studio-premium-nosub',
+          status: 'ACTIVE',
+          is_featured: false,
+          featured_until: null,
+          users: {
+            email: 'user@example.com',
+            membership_tier: 'PREMIUM',
+            subscriptions: [],
+          },
+        },
+      ];
+
+      const decisions = computeEnforcementDecisions(studios, now);
+
+      expect(decisions).toEqual([
+        {
+          studioId: 'studio-premium-nosub',
+          statusUpdate: { status: 'INACTIVE' },
         },
       ]);
     });

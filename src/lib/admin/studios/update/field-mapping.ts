@@ -19,6 +19,7 @@ export function buildUserUpdate(
   if (body.display_name !== undefined) userUpdateData.display_name = body.display_name;
   if (body.username !== undefined) userUpdateData.username = body.username;
   if (body.avatar_image !== undefined) userUpdateData.avatar_url = body.avatar_image;
+  if (body._meta?.membership_tier !== undefined) userUpdateData.membership_tier = body._meta.membership_tier;
   
   return userUpdateData;
 }

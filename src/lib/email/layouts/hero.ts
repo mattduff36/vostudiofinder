@@ -12,7 +12,8 @@ export interface HeroLayoutProps {
   preheader?: string;
   heroImageUrl?: string; // Optional hero image URL
   heroImageAlt?: string; // Alt text for hero image
-  heroImageHeight?: number; // Hero image height in px
+  /** @deprecated No longer used — image scales to natural aspect ratio */
+  heroImageHeight?: number;
   heading: string;
   bodyParagraphs: string[]; // Plain text paragraphs
   bulletItems?: string[];
@@ -111,7 +112,6 @@ export function renderHeroLayout(props: HeroLayoutProps): { html: string; text: 
     preheader,
     heroImageUrl,
     heroImageAlt = 'Hero Image',
-    heroImageHeight = 300,
     heading,
     bodyParagraphs,
     bulletItems,
@@ -165,7 +165,7 @@ export function renderHeroLayout(props: HeroLayoutProps): { html: string; text: 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="center" style="padding: 0;">
-                    <img src="${escapeHtml(heroImageUrl)}" alt="${escapeHtml(heroImageAlt)}" width="600" height="${heroImageHeight}" style="max-width: 600px; width: 100%; height: auto; display: block; margin: 0; border: 0; outline: none; text-decoration: none;" />
+                    <img src="${escapeHtml(heroImageUrl)}" alt="${escapeHtml(heroImageAlt)}" width="600" style="max-width: 600px; width: 100%; height: auto; display: block; margin: 0; border: 0; outline: none; text-decoration: none;" />
                   </td>
                 </tr>
               </table>

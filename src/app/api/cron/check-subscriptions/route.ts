@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         users: {
           select: {
             email: true,
+            membership_tier: true,
             subscriptions: {
               orderBy: { created_at: 'desc' },
               take: 1,

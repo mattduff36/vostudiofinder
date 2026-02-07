@@ -39,6 +39,9 @@ interface ProfileEditFormProps {
   dataSource?: 'user' | 'admin';
   adminStudioId?: string | undefined;
   isAdminUI?: boolean;
+  /** When true, admin sandbox overrides (e.g. legacy profile simulation) are ignored.
+   *  Set this when the form is editing another user's profile via the admin panel. */
+  disableSandboxOverrides?: boolean;
 }
 
 interface ProfileData {
@@ -105,6 +108,7 @@ interface ProfileData {
     is_verified?: boolean;
     is_featured?: boolean;
     featured_until?: string | null;
+    created_at?: string | Date;
   };
   studio_types: string[];
   metadata?: {
@@ -131,6 +135,7 @@ interface ProfileData {
     status: string;
     email_verified: boolean;
     membership_expires_at?: string | null;
+    membership_tier?: string;
   };
 }
 
@@ -161,7 +166,7 @@ const CONNECTION_TYPES = [
 ];
 
 export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditFormProps>(
-  function ProfileEditForm({ userId, mode = 'page', onSaveSuccess, dataSource = 'user', adminStudioId, isAdminUI = false }, ref) {
+  function ProfileEditForm({ userId, mode = 'page', onSaveSuccess, dataSource = 'user', adminStudioId, isAdminUI = false, disableSandboxOverrides = false }, ref) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -430,6 +435,37 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       },
     });
   }, [profile]);
+
+  // Admin sandbox: read legacy profile override from sessionStorage on mount
+  // (sessionStorage is only ever written by the ADMIN TEST tab in Settings.tsx)
+  // Sandbox overrides are DISABLED when editing another user's profile via the admin panel,
+  // because the sandbox is only for testing the admin's own profile behaviour.
+  const [sandboxLegacyOverride, setSandboxLegacyOverride] = useState(false);
+  useEffect(() => {
+    if (disableSandboxOverrides) {
+      setSandboxLegacyOverride(false);
+      return;
+    }
+    try {
+      const stored = sessionStorage.getItem('adminSandbox');
+      if (stored) {
+        const sandbox = JSON.parse(stored);
+        if (sandbox.enabled && sandbox.legacyProfile) {
+          setSandboxLegacyOverride(true);
+        }
+      }
+    } catch { /* ignore */ }
+  }, [disableSandboxOverrides]);
+
+  // Legacy profiles (created before 2026-01-01) can enable visibility without completing all required fields.
+  // Admin sandbox override: if the admin sandbox has "legacyProfile" enabled, treat any profile as legacy.
+  const isLegacyProfile = useMemo(() => {
+    if (sandboxLegacyOverride) return true;
+
+    if (!profile?.studio?.created_at) return false;
+    const createdAt = new Date(profile.studio.created_at);
+    return createdAt < new Date('2026-01-01T00:00:00.000Z');
+  }, [profile?.studio?.created_at, sandboxLegacyOverride]);
 
   // Calculate per-section completion status for mobile accordion icons
   const sectionStatusById = useMemo(() => {
@@ -1670,6 +1706,24 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Membership</h3>
                   <div className="space-y-4">
+                    {/* Membership Tier */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Membership Tier
+                      </label>
+                      <select
+                        value={profile._adminOnly.membership_tier || 'BASIC'}
+                        onChange={(e) => updateAdminField('membership_tier', e.target.value)}
+                        className="w-full max-w-xs px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      >
+                        <option value="BASIC">Basic (Free)</option>
+                        <option value="PREMIUM">Premium</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Change the user&apos;s membership tier. This does not create or cancel a Stripe subscription.
+                      </p>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Membership Expiry Date
@@ -1853,10 +1907,10 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               {/* Profile Visibility Toggle */}
               <div 
                 className="flex items-center gap-3 pl-6 border-l border-gray-100"
-                title={completionStats.required.completed !== completionStats.required.total ? 'Complete all required profile fields before making your profile visible' : ''}
+                title={(!isLegacyProfile && completionStats.required.completed !== completionStats.required.total) ? 'Complete all required profile fields before making your profile visible' : ''}
               >
                 <div className="flex items-center space-x-3">
-                  {completionStats.required.completed !== completionStats.required.total ? (
+                  {(!isLegacyProfile && completionStats.required.completed !== completionStats.required.total) ? (
                     <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <EyeOff className="w-5 h-5 text-gray-600" />
                     </div>
@@ -1871,13 +1925,18 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                   )}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-900">Profile Visibility</h3>
+                    {isLegacyProfile && completionStats.required.completed !== completionStats.required.total && (
+                      <p className="text-xs text-amber-600 mt-0.5 max-w-[220px] leading-tight">
+                        Legacy profiles can enable visibility without completing all required fields, but doing so is strongly recommended for better discoverability.
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="relative">
                   <Toggle
                     checked={isProfileVisible}
                     onChange={handleVisibilityToggle}
-                    disabled={visibilitySaving || completionStats.required.completed !== completionStats.required.total}
+                    disabled={visibilitySaving || (!isLegacyProfile && completionStats.required.completed !== completionStats.required.total)}
                   />
                 </div>
               </div>

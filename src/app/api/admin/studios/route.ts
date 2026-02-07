@@ -118,6 +118,7 @@ export async function GET(request: NextRequest) {
               created_at: true,
               updated_at: true,
               last_login: true,
+              membership_tier: true,
               subscriptions: {
                 orderBy: { created_at: 'desc' },
                 take: 1,
@@ -221,6 +222,7 @@ export async function GET(request: NextRequest) {
         profile_completion: profileCompletion,
         last_login: studio.users.last_login,
         membership_expires_at: membershipExpiresAt,
+        membership_tier: studio.users.membership_tier || 'BASIC',
       };
     });
 

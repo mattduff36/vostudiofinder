@@ -100,7 +100,6 @@ interface ModernStudioProfileV3Props {
         soundcloud_url?: string | null;
         tiktok_url?: string | null;
         threads_url?: string | null;
-        is_crb_checked?: boolean | null;
         is_featured?: boolean | null;
         is_spotlight?: boolean | null;
         verification_level?: string | null;

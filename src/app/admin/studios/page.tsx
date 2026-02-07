@@ -27,6 +27,7 @@ interface Studio {
   profile_completion?: number;
   last_login?: string | null;
   membership_expires_at?: string | null;
+  membership_tier?: string;
   users: {
     display_name: string;
     email: string;
@@ -717,7 +718,7 @@ export default function AdminStudiosPage() {
           {/* Mobile Card List - Hidden on desktop */}
           <div className="md:hidden space-y-4">
             {studios.map((studio) => (
-              <div key={studio.id} className="bg-white rounded-lg shadow border border-gray-200 p-4">
+              <div key={studio.id} className="bg-white rounded-lg shadow border border-gray-200 p-4 cursor-pointer hover:border-blue-300 transition-colors" onClick={() => handleEditStudio(studio)}>
                 {/* Studio Name and Avatar */}
                 <div className="flex items-start gap-3 mb-3">
                   <div className="h-12 w-12 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
@@ -735,7 +736,7 @@ export default function AdminStudiosPage() {
                 </div>
 
                 {/* Status Badges Row */}
-                <div className="flex flex-wrap gap-2 mb-3">
+                <div className="flex flex-wrap gap-2 mb-3" onClick={e => e.stopPropagation()}>
                   {/* Status */}
                   <button
                     onClick={() => handleToggleStatus(studio, studio.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
@@ -811,7 +812,7 @@ export default function AdminStudiosPage() {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex gap-2">
+                <div className="flex gap-2" onClick={e => e.stopPropagation()}>
                   <button
                     onClick={() => window.open(`/${studio.users.username}`, '_blank')}
                     className="flex-1 px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
@@ -986,9 +987,9 @@ export default function AdminStudiosPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {studios.map((studio) => (
-                    <tr key={studio.id} className={`hover:bg-gray-50 ${selectedStudios.includes(studio.id) ? 'bg-blue-50' : ''}`}>
+                    <tr key={studio.id} className={`hover:bg-gray-50 cursor-pointer ${selectedStudios.includes(studio.id) ? 'bg-blue-50' : ''}`} onClick={() => handleEditStudio(studio)}>
                       {isColumnVisible('select') && (
-                        <td data-column="select" className="px-6 py-4 whitespace-nowrap">
+                        <td data-column="select" className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={selectedStudios.includes(studio.id)}
@@ -1000,9 +1001,15 @@ export default function AdminStudiosPage() {
                       {isColumnVisible('studio') && (
                         <td data-column="studio" className="px-6 py-4">
                           <div className="flex items-center">
-                            <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center mr-3">
-                              <span className="text-white text-sm font-bold">
-                                {studio.name.charAt(0).toUpperCase()}
+                            <div className={`h-10 w-10 flex-shrink-0 rounded-full flex items-center justify-center mr-3 ${
+                              studio.membership_tier === 'PREMIUM'
+                                ? 'bg-gradient-to-br from-amber-300 to-yellow-500'
+                                : 'bg-gray-300'
+                            }`}>
+                              <span className={`text-sm font-bold ${
+                                studio.membership_tier === 'PREMIUM' ? 'text-amber-900' : 'text-gray-600'
+                              }`}>
+                                {studio.membership_tier === 'PREMIUM' ? 'P' : 'B'}
                               </span>
                             </div>
                             <div className="min-w-0">
@@ -1039,7 +1046,7 @@ export default function AdminStudiosPage() {
                         </td>
                       )}
                       {isColumnVisible('status') && (
-                        <td data-column="status" className="px-6 py-4 whitespace-nowrap">
+                        <td data-column="status" className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
                           <button
                             onClick={() => handleToggleStatus(studio, studio.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
                             className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
@@ -1067,7 +1074,7 @@ export default function AdminStudiosPage() {
                         </td>
                       )}
                       {isColumnVisible('visible') && (
-                        <td data-column="visible" className="px-6 py-4 whitespace-nowrap text-center">
+                        <td data-column="visible" className="px-6 py-4 whitespace-nowrap text-center" onClick={e => e.stopPropagation()}>
                           <button
                             onClick={() => handleToggleVisibility(studio, !studio.is_profile_visible)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
@@ -1099,7 +1106,7 @@ export default function AdminStudiosPage() {
                         </td>
                       )}
                       {isColumnVisible('verified') && (
-                        <td data-column="verified" className="px-6 py-4 whitespace-nowrap text-center">
+                        <td data-column="verified" className="px-6 py-4 whitespace-nowrap text-center" onClick={e => e.stopPropagation()}>
                           <button
                             onClick={() => handleToggleVerified(studio, !studio.is_verified)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
@@ -1116,7 +1123,7 @@ export default function AdminStudiosPage() {
                         </td>
                       )}
                       {isColumnVisible('featured') && (
-                        <td data-column="featured" className="px-6 py-4 whitespace-nowrap text-center">
+                        <td data-column="featured" className="px-6 py-4 whitespace-nowrap text-center" onClick={e => e.stopPropagation()}>
                           <button
                             onClick={() => handleToggleFeatured(studio, !studio.is_featured)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 ${
@@ -1162,7 +1169,7 @@ export default function AdminStudiosPage() {
                         </td>
                       )}
                       {isColumnVisible('actions') && (
-                        <td data-column="actions" className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td data-column="actions" className="px-6 py-4 whitespace-nowrap text-sm font-medium" onClick={e => e.stopPropagation()}>
                           <div className="flex space-x-2">
                             <button
                               onClick={() => window.open(`/${studio.users.username}`, '_blank')}

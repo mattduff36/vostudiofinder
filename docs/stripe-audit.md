@@ -225,7 +225,7 @@ NEXT_PUBLIC_STRIPE_MEMBERSHIP_PRICE_ID="price_..." # Client-exposed (bad!)
 
 ### `src/lib/auth.ts` - Sign-In Event Handler
 **What it does**:
-- On sign-in, checks if user qualifies for legacy membership (studio created before 2026-01-05)
+- On sign-in, checks if user qualifies for legacy membership (studio created before 2026-01-01)
 - If eligible and no expiry, grants 6 months from sign-in (capped at 2026-08-31)
 - Sets studio `status` to `INACTIVE` if membership expired (lazy enforcement)
 

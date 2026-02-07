@@ -97,7 +97,6 @@ export type UserProfile = {
   rate_tier_3?: string | null;
   is_featured?: boolean;
   is_spotlight?: boolean;
-  is_crb_checked?: boolean;
   verification_level?: string | null;
   home_studio_description?: string | null;
   equipment_list?: string | null;

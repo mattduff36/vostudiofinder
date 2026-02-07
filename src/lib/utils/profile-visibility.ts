@@ -1,8 +1,11 @@
 import { db } from '@/lib/db';
 import { calculateCompletionStats, type CompletionStats } from '@/lib/utils/profile-completion';
 
+const LEGACY_CUTOFF = new Date('2026-01-01T00:00:00.000Z');
+
 export interface ProfileVisibilityEligibility {
   allRequiredComplete: boolean;
+  isLegacyProfile: boolean;
   stats: CompletionStats;
   currentVisibility: boolean;
 }
@@ -31,6 +34,7 @@ export async function getProfileVisibilityEligibility(userId: string): Promise<P
       about: true,
       location: true,
       is_profile_visible: true,
+      created_at: true,
       connection1: true,
       connection2: true,
       connection3: true,
@@ -84,8 +88,11 @@ export async function getProfileVisibilityEligibility(userId: string): Promise<P
     },
   });
 
+  const isLegacyProfile = studio?.created_at ? studio.created_at < LEGACY_CUTOFF : false;
+
   return {
     allRequiredComplete: stats.required.completed === stats.required.total,
+    isLegacyProfile,
     stats,
     currentVisibility: studio?.is_profile_visible === true,
   };

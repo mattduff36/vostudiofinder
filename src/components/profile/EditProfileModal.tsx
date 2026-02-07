@@ -231,6 +231,7 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
             dataSource={useAdminDataSource ? 'admin' : 'user'}
             adminStudioId={useAdminDataSource ? adminStudioId : undefined}
             isAdminUI={showAdminUI}
+            disableSandboxOverrides={isAdminMode}
           />
         </div>
       </div>

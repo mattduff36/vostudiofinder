@@ -24,9 +24,10 @@ export async function PATCH(request: NextRequest) {
     const { isVisible } = await request.json();
 
     // Prevent enabling visibility unless required fields are complete
+    // Exception: legacy profiles (created before 2026-01-01) can enable visibility regardless
     if (isVisible === true) {
       const eligibility = await getProfileVisibilityEligibility(userId);
-      if (!eligibility.allRequiredComplete) {
+      if (!eligibility.allRequiredComplete && !eligibility.isLegacyProfile) {
         return NextResponse.json(
           {
             success: false,
