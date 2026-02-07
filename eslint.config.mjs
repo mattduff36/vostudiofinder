@@ -29,6 +29,8 @@ const eslintConfig = [
       'inspect-styles.js',
     ],
   },
+
+  // Default rules for all files
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
@@ -57,6 +59,18 @@ const eslintConfig = [
       'sonarjs/cognitive-complexity': ['warn', 15],
       'sonarjs/no-duplicate-string': 'warn',
       'sonarjs/no-identical-functions': 'warn',
+    },
+  },
+
+  // Allow console.log in server-side files (API routes, lib, server utilities)
+  {
+    files: [
+      'src/app/api/**/*.{ts,tsx}',
+      'src/lib/**/*.{ts,tsx}',
+      'src/app/**/layout.tsx',
+    ],
+    rules: {
+      'no-console': 'off',
     },
   },
 ];
