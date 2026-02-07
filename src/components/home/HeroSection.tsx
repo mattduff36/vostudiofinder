@@ -148,7 +148,7 @@ export function HeroSection() {
                 {char === ' ' ? '\u00A0' : char}
               </motion.span>
             ))}
-            {'List it for FREE!'.split('').map((char, i) => (
+            {'List it FREE!'.split('').map((char, i) => (
               <motion.span
                 key={`part2-${i}`}
                 initial={{ y: 0 }}

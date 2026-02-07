@@ -22,16 +22,23 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
   const [isClosing, setIsClosing] = useState(false);
   const [adminStudioId, setAdminStudioId] = useState<string | undefined>(studioId);
   const [loadingStudioId, setLoadingStudioId] = useState(false);
+  const [selfEditFetchFailed, setSelfEditFetchFailed] = useState(false);
   const { data: session } = useSession();
 
   const isAdminMode = mode === 'admin';
   const isAdmin = session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN';
+
+  // When an admin edits their OWN profile (owner mode), we still want to show
+  // the Admin Settings tab. For that to work, we need the admin's studio ID
+  // so we can use the admin data source for both reading and writing.
+  const isAdminEditingSelf = isAdmin && !isAdminMode && session?.user?.id === (userId || session?.user?.id);
 
   // Reset state when modal closes so it's clean on next open
   useEffect(() => {
     if (!isOpen) {
       setAdminStudioId(studioId);
       setLoadingStudioId(false);
+      setSelfEditFetchFailed(false);
       setIsClosing(false);
     }
   }, [isOpen, studioId]);
@@ -55,20 +62,36 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
     }
   }, [isOpen, isAdminMode, targetUsername, adminStudioId]);
 
-  const fetchStudioIdByUsername = async () => {
-    if (!targetUsername) return;
+  // When admin edits their own profile in owner mode, fetch their studio ID
+  // so the Admin Settings tab can use the admin data source
+  useEffect(() => {
+    if (isOpen && isAdminEditingSelf && !adminStudioId && session?.user?.username) {
+      fetchStudioIdByUsername(session.user.username);
+    }
+  }, [isOpen, isAdminEditingSelf, adminStudioId, session?.user?.username]);
+
+  const fetchStudioIdByUsername = async (usernameOverride?: string) => {
+    const username = usernameOverride || targetUsername;
+    if (!username) return;
     
     setLoadingStudioId(true);
     try {
-      const response = await fetch(`/api/admin/studios/by-username/${targetUsername}`);
+      const response = await fetch(`/api/admin/studios/by-username/${username}`);
       if (!response.ok) throw new Error('Failed to fetch studio');
       
       const data = await response.json();
       setAdminStudioId(data.studio.id);
     } catch (error) {
       console.error('Error fetching studio:', error);
-      showError('Failed to load studio data. Please try again.');
-      onClose();
+      // Only show error and close if in explicit admin mode.
+      // For self-edit, failing to get studio ID just means no Admin Settings tab -
+      // fall back to user data source so the form still works.
+      if (isAdminEditingSelf) {
+        setSelfEditFetchFailed(true);
+      } else {
+        showError('Failed to load studio data. Please try again.');
+        onClose();
+      }
     } finally {
       setLoadingStudioId(false);
     }
@@ -145,8 +168,10 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
 
   if (!isOpen) return null;
 
-  // Show loading spinner while fetching studioId
-  if (loadingStudioId || (isAdminMode && !adminStudioId)) {
+  // Show loading spinner while fetching studioId (for explicit admin mode or admin self-edit)
+  // If self-edit fetch failed, skip the spinner and fall back to user data source
+  const needsAdminData = isAdminMode || (isAdminEditingSelf && !selfEditFetchFailed);
+  if (loadingStudioId || (needsAdminData && !adminStudioId)) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md">
         <div className="bg-white rounded-lg p-8">
@@ -165,6 +190,10 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
   // - When in admin mode editing another user's profile, OR
   // - When admin is editing their own profile (even in owner mode)
   const showAdminUI = isAdmin && (isAdminMode || effectiveUserId === session?.user?.id);
+  
+  // Use admin data source when we have the studio ID for admin operations.
+  // Falls back to user data source if the self-edit studio ID fetch failed.
+  const useAdminDataSource = (isAdminMode || isAdminEditingSelf) && !!adminStudioId && !selfEditFetchFailed;
 
   return (
     <div 
@@ -199,8 +228,8 @@ export function EditProfileModal({ isOpen, onClose, onSaveSuccess, userId, mode 
             mode="modal"
             autoSaveOnSectionChange={false}
             onSaveSuccess={handleSaveSuccess}
-            dataSource={isAdminMode ? 'admin' : 'user'}
-            adminStudioId={isAdminMode && adminStudioId ? adminStudioId : undefined}
+            dataSource={useAdminDataSource ? 'admin' : 'user'}
+            adminStudioId={useAdminDataSource ? adminStudioId : undefined}
             isAdminUI={showAdminUI}
           />
         </div>

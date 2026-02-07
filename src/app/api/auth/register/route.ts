@@ -49,15 +49,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify Turnstile token (server-side)
+    // The bypass decision is made entirely server-side using server-only env vars.
+    // No magic token or client-side environment detection is required.
     const turnstileToken = body.turnstileToken;
     const isDevelopment = process.env.NODE_ENV === 'development';
     const isTest = process.env.NODE_ENV === 'test';
+    // VERCEL_ENV is server-only (NOT exposed via NEXT_PUBLIC_), so attackers
+    // cannot detect preview environments from client-side code.
     const isPreviewDeploy = process.env.VERCEL_ENV === 'preview';
     
-    // Allow development/test/preview bypass
-    if ((isDevelopment || isTest || isPreviewDeploy) && turnstileToken === 'dev-bypass-token') {
-      const reason = isPreviewDeploy ? 'Preview deployment' : 'Development/test mode';
-      console.warn(`[Turnstile] ${reason}: bypassing security check`);
+    if (isDevelopment || isTest) {
+      // Local dev/test: skip Turnstile entirely
+      console.warn('[Turnstile] Development/test mode: bypassing security check');
+    } else if (isPreviewDeploy) {
+      // Preview deployment: skip Turnstile entirely (server-side decision only).
+      // Rate limiting and honeypot checks above still apply.
+      console.warn('[Turnstile] Preview deployment: bypassing security check (server-side)');
     } else {
       // Production: require valid Turnstile token
       if (!turnstileToken) {

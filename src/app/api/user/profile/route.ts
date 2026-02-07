@@ -340,7 +340,12 @@ export async function GET() {
       state: 'NONE_SET'
     };
 
-    if ((user as any).membership_tier === 'BASIC') {
+    // Admins are always treated as active Premium members
+    const isAdmin = (user as any).role === 'ADMIN';
+
+    if (isAdmin) {
+      membershipInfo.state = 'ACTIVE';
+    } else if ((user as any).membership_tier === 'BASIC') {
       // Basic (free) tier users are always active, regardless of any stale
       // subscription records left over from a previous Premium membership.
       membershipInfo.state = 'ACTIVE';
@@ -370,8 +375,9 @@ export async function GET() {
     });
 
     // Prepare response - split into profile (user fields) and studio (studio fields) for frontend compatibility
+    // Admins always get Premium tier limits, regardless of their DB membership_tier value
     const { getTierLimits } = await import('@/lib/membership-tiers');
-    const userTier = (user as any).membership_tier || 'BASIC';
+    const userTier = isAdmin ? 'PREMIUM' : ((user as any).membership_tier || 'BASIC');
     const tierLimits = getTierLimits(userTier);
 
     const response = {
@@ -629,8 +635,12 @@ export async function PUT(request: NextRequest) {
         'connection9', 'connection10', 'connection11', 'connection12',
       ] as const;
 
-      // Fetch existing profile values for social links and connections
-      const existingProfileForLimits = await db.studio_profiles.findUnique({
+      // Wrap tier-limit enforcement + write in a transaction with a row lock
+      // to prevent concurrent requests from reading stale counts and bypassing limits.
+      await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM studio_profiles WHERE user_id = ${userId} FOR UPDATE`;
+
+      const existingProfileForLimits = await tx.studio_profiles.findUnique({
         where: { user_id: userId },
         select: {
           facebook_url: true, x_url: true, linkedin_url: true,
@@ -756,7 +766,7 @@ export async function PUT(request: NextRequest) {
 
       if (Object.keys(profileUpdates).length > 0) {
         // Check if studio profile exists
-        const existingProfile = await db.studio_profiles.findUnique({
+        const existingProfile = await tx.studio_profiles.findUnique({
           where: { user_id: userId },
           select: {
             id: true,
@@ -770,7 +780,7 @@ export async function PUT(request: NextRequest) {
           if (!existingProfile.full_address && existingProfile.abbreviated_address && !updates.full_address) {
             profileUpdates.full_address = existingProfile.abbreviated_address;
           }
-          await db.studio_profiles.update({
+          await tx.studio_profiles.update({
             where: { user_id: userId },
             data: {
               ...profileUpdates,
@@ -780,7 +790,7 @@ export async function PUT(request: NextRequest) {
         } else {
           // Create studio profile if it doesn't exist (shouldn't happen after migration)
           const { randomBytes } = await import('crypto');
-          await db.studio_profiles.create({
+          await tx.studio_profiles.create({
             data: {
               id: randomBytes(12).toString('base64url'),
               user_id: userId,
@@ -796,7 +806,7 @@ export async function PUT(request: NextRequest) {
 
         // Update studio types if provided (enforce tier limits)
         if (body.studio_types && Array.isArray(body.studio_types)) {
-          const profile = await db.studio_profiles.findUnique({
+          const profile = await tx.studio_profiles.findUnique({
             where: { user_id: userId },
           });
           
@@ -812,14 +822,14 @@ export async function PUT(request: NextRequest) {
             }
 
             // Delete existing types
-            await db.studio_studio_types.deleteMany({
+            await tx.studio_studio_types.deleteMany({
               where: { studio_id: profile.id },
             });
             
             // Create new types
             if (allowedTypes.length > 0) {
               const { randomBytes } = await import('crypto');
-              await db.studio_studio_types.createMany({
+              await tx.studio_studio_types.createMany({
                 data: allowedTypes.map((type: string) => ({
                   id: randomBytes(12).toString('base64url'),
                   studio_id: profile.id,
@@ -832,20 +842,20 @@ export async function PUT(request: NextRequest) {
 
         // Update services if provided
         if (body.services && Array.isArray(body.services)) {
-          const profile = await db.studio_profiles.findUnique({
+          const profile = await tx.studio_profiles.findUnique({
             where: { user_id: userId },
           });
           
           if (profile) {
             // Delete existing services
-            await db.studio_services.deleteMany({
+            await tx.studio_services.deleteMany({
               where: { studio_id: profile.id },
             });
             
             // Create new services
             if (body.services.length > 0) {
               const { randomBytes } = await import('crypto');
-              await db.studio_services.createMany({
+              await tx.studio_services.createMany({
                 data: body.services.map((service: string) => ({
                   id: randomBytes(12).toString('base64url'),
                   studio_id: profile.id,
@@ -856,6 +866,7 @@ export async function PUT(request: NextRequest) {
           }
         }
       }
+      }); // end tier-limit transaction
     }
 
     // Handle user metadata updates (e.g., custom_meta_title)

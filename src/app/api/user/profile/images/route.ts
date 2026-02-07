@@ -42,18 +42,20 @@ export async function POST(request: NextRequest) {
     const { getUserTierLimits } = await import('@/lib/membership');
     const tierLimits = await getUserTierLimits(userId);
 
-    // Check current image count against tier limit
-    const imageCount = await db.studio_images.count({
+    // Early (non-authoritative) image count check — avoids a Cloudinary upload
+    // when the user is clearly already at the limit. The authoritative check
+    // happens inside the transaction below.
+    const earlyImageCount = await db.studio_images.count({
       where: { studio_id: studio.id },
     });
 
-    if (imageCount >= tierLimits.imagesMax) {
+    if (earlyImageCount >= tierLimits.imagesMax) {
       return NextResponse.json(
         {
           success: false,
           error: `Maximum of ${tierLimits.imagesMax} images allowed for your membership tier.`,
           limit: tierLimits.imagesMax,
-          current: imageCount,
+          current: earlyImageCount,
         },
         { status: 400 }
       );
@@ -87,7 +89,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upload to Cloudinary
+    // Upload to Cloudinary first (optimistic — outside the lock so we don't
+    // hold a row lock during a slow external call).
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const cloudinaryResult = await uploadImage(buffer, {
@@ -99,18 +102,31 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    // Create database record
+    // Authoritative count + insert inside a transaction with a row lock so
+    // concurrent uploads can't both slip past the tier limit.
     const { randomBytes } = await import('crypto');
     const imageId = randomBytes(12).toString('hex');
-    
-    const newImage = await db.studio_images.create({
-      data: {
-        id: imageId,
-        studio_id: studio.id,
-        image_url: cloudinaryResult.secure_url,
-        alt_text: alt_text || '',
-        sort_order: imageCount, // Append to end
-      },
+
+    const newImage = await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM studio_profiles WHERE id = ${studio.id} FOR UPDATE`;
+
+      const imageCount = await tx.studio_images.count({
+        where: { studio_id: studio.id },
+      });
+
+      if (imageCount >= tierLimits.imagesMax) {
+        throw new Error('IMAGE_LIMIT_REACHED');
+      }
+
+      return tx.studio_images.create({
+        data: {
+          id: imageId,
+          studio_id: studio.id,
+          image_url: cloudinaryResult.secure_url,
+          alt_text: alt_text || '',
+          sort_order: imageCount, // Append to end
+        },
+      });
     });
 
     return NextResponse.json({
@@ -124,6 +140,13 @@ export async function POST(request: NextRequest) {
       },
     }, { status: 201 });
   } catch (error) {
+    // Handle the tier-limit error thrown inside the transaction
+    if (error instanceof Error && error.message === 'IMAGE_LIMIT_REACHED') {
+      return NextResponse.json(
+        { success: false, error: 'Image limit reached for your membership tier.' },
+        { status: 400 }
+      );
+    }
     console.error('Error uploading image:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to upload image' },

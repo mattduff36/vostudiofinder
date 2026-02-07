@@ -78,25 +78,25 @@ export function SignupForm() {
 
   // Check if Turnstile is configured
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  const isPreviewDeploy = process.env.NEXT_PUBLIC_VERCEL_ENV === 'preview';
-  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test' || isPreviewDeploy;
+  // Only bypass in local dev/test (NODE_ENV is never 'development' in deployed builds)
+  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
 
   // Load Turnstile script
   useEffect(() => {
-    // In development/preview mode, always bypass Turnstile (even if configured)
+    // In local development/test, bypass Turnstile (NODE_ENV is never 'development' in deployed builds)
     if (isDevelopment) {
-      const bypassReason = isPreviewDeploy ? 'Preview deployment' : 'Development mode';
-      console.warn(`[Turnstile] ${bypassReason}: bypassing security check`);
-      setTurnstileToken('dev-bypass-token');
-      setTurnstileConfigError(`${bypassReason}: Security check bypassed for testing`);
+      console.warn('[Turnstile] Development mode: bypassing security check');
+      setTurnstileToken('__dev__');
+      setTurnstileConfigError('Development mode: Security check bypassed for testing');
       return;
     }
 
-    // Check if Turnstile site key is configured
+    // If Turnstile site key isn't configured (e.g. preview deployments),
+    // allow form submission and let the server decide whether to enforce.
+    // No environment info or bypass mechanism is exposed to the client.
     if (!turnstileSiteKey) {
-      const errorMsg = 'Security verification is not configured. Please contact support.';
-      setTurnstileConfigError(errorMsg);
-      console.error('[Turnstile] Missing NEXT_PUBLIC_TURNSTILE_SITE_KEY');
+      setTurnstileToken('__pending_server_validation__');
+      setTurnstileConfigError('Security check deferred to server');
       return;
     }
 

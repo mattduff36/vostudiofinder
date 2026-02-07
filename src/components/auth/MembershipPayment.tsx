@@ -264,7 +264,7 @@ export function MembershipPayment() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col justify-center py-8 px-4">
+    <div className="min-h-screen relative overflow-hidden flex flex-col justify-center pb-8 px-4 -mt-2">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -276,35 +276,24 @@ export function MembershipPayment() {
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto">
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <Image
-            src="/images/voiceover-studio-finder-logo-black-BIG 1.png"
-            alt="VoiceoverStudioFinder"
-            width={450}
-            height={71}
-            priority
-            className="h-auto"
-          />
-        </div>
-
+      <div className="relative z-10 w-full max-w-7xl mx-auto mt-6">
         {/* Welcome Header */}
-        <div className="bg-[#d42027] px-8 py-8 text-white text-center rounded-t-xl shadow-lg">
+        <div className="bg-[#d42027] px-8 pt-12 pb-8 text-white text-center rounded-t-xl shadow-lg">
           <div className="text-4xl font-bold mb-3">Welcome {name || 'Studio Owner'}!</div>
-          <div className="text-xl mb-2">VoiceoverStudioFinder.com/{username || 'YourStudio'} has been secured</div>
-          <div className="text-base opacity-90">You&apos;re minutes away from showcasing your studio!</div>
+          <div className="flex items-center justify-center mb-4">
+            <span className="inline-flex items-center bg-white/15 backdrop-blur-sm rounded-full px-6 py-2.5 text-base tracking-wide">
+              <span className="text-white/70">VoiceoverStudioFinder.com/</span>
+              <span className="text-white font-semibold">{username || 'YourStudio'}</span>
+              <span className="text-white/70 ml-1.5">has been secured</span>
+            </span>
+          </div>
+          <div className="text-2xl font-semibold">Choose Your Membership</div>
         </div>
 
         <div className="bg-white shadow-2xl rounded-b-xl overflow-hidden">
           {/* Show tier selection if no tier is selected */}
           {!selectedTier ? (
             <div className="p-8">
-              <h2 className="text-3xl font-bold text-center text-gray-900 mb-3">Choose Your Membership</h2>
-              <p className="text-center text-gray-600 mb-10">
-                Start with a free Basic listing, or unlock everything with Premium
-              </p>
-
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
                 {/* BASIC (FREE) TIER */}
                 <div className="border-2 border-gray-300 rounded-xl p-8 hover:border-gray-400 transition-all">
@@ -317,39 +306,35 @@ export function MembershipPayment() {
                   <ul className="space-y-3 mb-8 min-h-[320px]">
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Professional studio listing</span>
+                      <span className="text-gray-700">A Professional studio listing</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Up to 2 studio images</span>
+                      <span className="text-gray-700">Studio images</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">1 studio type (Home or Recording)</span>
+                      <span className="text-gray-700">1 studio category</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Up to 3 connection methods</span>
+                      <span className="text-gray-700">3 connection methods (Cleanfeed or Teams etc)</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">2 social media links</span>
+                      <span className="text-gray-700">Social media links</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">1000 character description</span>
+                      <span className="text-gray-700">Show Rates & Equipment</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700">1000 character studio description</span>
                     </li>
                     <li className="flex items-start">
                       <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
                       <span className="text-gray-500">Voiceover studio type</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-500">Custom connections</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-500">Advanced SEO settings</span>
                     </li>
                     <li className="flex items-start">
                       <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
@@ -393,7 +378,7 @@ export function MembershipPayment() {
                       <span className="text-4xl font-bold text-[#d42027]">£25</span>
                       <span className="text-gray-600 ml-2">/year</span>
                     </div>
-                    <p className="text-sm text-gray-600 mt-2">One booking pays for itself</p>
+                    <p className="text-sm text-gray-600 mt-2">One booking more than pays for itself</p>
                   </div>
 
                   <ul className="space-y-3 mb-8 min-h-[320px]">
@@ -403,11 +388,11 @@ export function MembershipPayment() {
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Up to 5 studio images</span>
+                      <span className="text-gray-700">Add more studio images</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Unlimited studio types including Voiceover</span>
+                      <span className="text-gray-700">Multiple studio categories including Voiceover</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
@@ -415,27 +400,27 @@ export function MembershipPayment() {
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">All social media platforms</span>
+                      <span className="text-gray-700">Include all social media platforms</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">2000 character description</span>
+                      <span className="text-gray-700">2000 character studio description</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Phone & directions visibility controls</span>
+                      <span className="text-gray-700">Show Phone & Directions visibility controls</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Custom SEO meta title</span>
+                      <span className="text-gray-700">Control how your studio appears on Google</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Verified badge eligibility (85%+)</span>
+                      <span className="text-gray-700">Verified badge eligibility</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">Featured studio eligibility (100%)</span>
+                      <span className="text-gray-700">Featured studio eligibility</span>
                     </li>
                   </ul>
 
@@ -452,7 +437,7 @@ export function MembershipPayment() {
               <div className="mt-10 text-center max-w-2xl mx-auto">
                 <p className="text-gray-600">
                   <strong>Why Premium?</strong> Voice artists trust studios with complete, professional profiles. 
-                  Premium members get 3x more profile views and are eligible for Verified and Featured status.
+                  Premium members get more profile views and are eligible for Verified and Featured status, which appear higher in search results and build trust with clients.
                 </p>
               </div>
             </div>
