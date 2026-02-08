@@ -1,15 +1,10 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { Loader2, X, Calendar, Gift } from 'lucide-react';
+import { X, Calendar, Gift } from 'lucide-react';
+import { CompactCheckoutForm } from '@/components/billing/CompactCheckoutForm';
 import { formatRenewalBreakdown, getRenewalPrice, calculateFinalExpiryForDisplay } from '@/lib/membership-renewal';
 import { formatDaysAsYearsMonthsDays } from '@/lib/date-format';
-
-// Initialize Stripe
-const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 interface RenewalModalProps {
   isOpen: boolean;
@@ -26,13 +21,11 @@ export function RenewalModal({
   currentExpiry,
   daysRemaining = 0,
 }: RenewalModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setIsLoading(false);
       setError(null);
     }
   }, [isOpen]);
@@ -68,12 +61,10 @@ export function RenewalModal({
         throw new Error('No client secret returned from API');
       }
 
-      setIsLoading(false);
       return data.clientSecret;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Payment setup failed';
       setError(errorMessage);
-      setIsLoading(false);
       throw err;
     }
   }, [renewalType]);
@@ -170,28 +161,13 @@ export function RenewalModal({
             </div>
           )}
 
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-8 sm:py-12">
-              <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-[#d42027] mb-2 sm:mb-3" />
-              <span className="text-sm sm:text-base text-gray-600">Loading payment form...</span>
-            </div>
-          ) : !stripePromise ? (
-            <div className="p-4 sm:p-6 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800 font-medium mb-1 sm:mb-2 text-sm sm:text-base">Payment system error</p>
-              <p className="text-red-600 text-xs sm:text-sm">
-                Please contact support. Error: Stripe not configured
-              </p>
-            </div>
-          ) : (
-            <div className="stripe-embedded-checkout">
-              <EmbeddedCheckoutProvider
-                stripe={stripePromise}
-                options={{ fetchClientSecret }}
-              >
-                <EmbeddedCheckout />
-              </EmbeddedCheckoutProvider>
-            </div>
-          )}
+          <div className="stripe-payment-element">
+            <CompactCheckoutForm
+              fetchClientSecret={fetchClientSecret}
+              amount={priceInfo.formatted}
+              buttonText={`Pay ${priceInfo.formatted}`}
+            />
+          </div>
         </div>
 
         {/* Footer */}

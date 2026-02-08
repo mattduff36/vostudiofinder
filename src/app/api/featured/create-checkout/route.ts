@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
     const baseUrl = getBaseUrl(request);
     const stripeSession = await stripe.checkout.sessions.create({
       customer_email: user.email,
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'link'],
       line_items: [
         {
           price: priceId,
@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      ui_mode: 'embedded',
+      ui_mode: 'custom',
       return_url: `${baseUrl}/dashboard?tab=settings&section=membership&featured=success`,
       metadata: {
         user_id: userId,

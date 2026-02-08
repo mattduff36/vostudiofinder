@@ -2,24 +2,18 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 import { Check, Loader2, AlertCircle, X, Crown } from 'lucide-react';
+import { CompactCheckoutForm } from '@/components/billing/CompactCheckoutForm';
 import Image from 'next/image';
 import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
 import { getSignupData, storeSignupData, recoverSignupState, updateURLParams, type SignupData } from '@/lib/signup-recovery';
 
-// Initialize Stripe
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-console.log('🔧 Stripe Key loaded:', stripeKey ? 'Yes (pk_...)' : 'MISSING!');
-
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export function MembershipPayment() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [recoveryAttempted, setRecoveryAttempted] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
   const [selectedTier, setSelectedTier] = useState<'basic' | 'premium' | null>(null);
@@ -110,13 +104,11 @@ export function MembershipPayment() {
               setIsRecovering(false);
               setError('Session expired. Unable to recover your signup data. Please start over.');
               setRecoveryAttempted(true);
-              setIsLoading(false);
               return;
             }
           } else {
             setError('Session expired. Please sign up again.');
             setRecoveryAttempted(true);
-            setIsLoading(false);
             return;
           }
         }
@@ -142,13 +134,11 @@ export function MembershipPayment() {
 
       if (!userId) {
         setError('Session expired. Please sign up again.');
-        setIsLoading(false);
         return;
       }
 
       if (!stripeKey) {
         setError('Stripe configuration missing. Please contact support.');
-        setIsLoading(false);
         return;
       }
 
@@ -181,8 +171,6 @@ export function MembershipPayment() {
         console.error('Error checking payment status:', err);
       }
 
-      // Only set loading to false after all checks complete and no redirect occurred
-      setIsLoading(false);
     };
 
     initializeAndCheckPayment();
@@ -235,8 +223,6 @@ export function MembershipPayment() {
       throw err;
     }
   }, [userId, email, name, username]);
-
-  const options = { fetchClientSecret };
 
   // Handle Basic (Free) tier signup
   const handleBasicSignup = async () => {
@@ -456,14 +442,14 @@ export function MembershipPayment() {
         {/* Premium Payment Modal */}
         {selectedTier === 'premium' && (
           <div
-            className="fixed inset-0 z-[200] flex items-start justify-center"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
             onClick={(e) => { if (e.target === e.currentTarget) setSelectedTier(null); }}
           >
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
             {/* Modal Container */}
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[994px] mt-[152px] overflow-hidden z-[201] py-5">
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden z-[201] py-5">
               {/* Modal Close Button */}
               <button
                 onClick={() => setSelectedTier(null)}
@@ -503,27 +489,14 @@ export function MembershipPayment() {
                 </div>
               )}
 
-              {/* Embedded Stripe Checkout */}
-              {isLoading ? (
-                <div className="flex flex-col items-center justify-center py-16">
-                  <Loader2 className="w-10 h-10 animate-spin text-[#d42027] mb-4" />
-                  <span className="text-gray-600 text-lg">Loading payment form...</span>
-                </div>
-              ) : !stripePromise ? (
-                <div className="m-4 bg-red-50 border border-red-200 rounded-lg p-6">
-                  <p className="text-red-800 font-medium text-lg mb-2">Payment system configuration error</p>
-                  <p className="text-red-600">Please contact support. Error: Stripe not configured</p>
-                </div>
-              ) : (
-                <div id="checkout" className="stripe-embedded-checkout">
-                  <EmbeddedCheckoutProvider
-                    stripe={stripePromise}
-                    options={options}
-                  >
-                    <EmbeddedCheckout />
-                  </EmbeddedCheckoutProvider>
-                </div>
-              )}
+              {/* Compact Stripe Payment */}
+              <div className="px-5 py-4 stripe-payment-element">
+                <CompactCheckoutForm
+                  fetchClientSecret={fetchClientSecret}
+                  amount="£25"
+                  buttonText="Pay £25/year"
+                />
+              </div>
             </div>
           </div>
         )}

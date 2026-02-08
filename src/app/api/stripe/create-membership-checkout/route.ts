@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     const baseUrl = getBaseUrl(request);
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'link'],
       line_items: [
         {
           price: priceId,
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment', // One-time annual fee
-      ui_mode: 'embedded', // Embedded checkout stays on our site
+      ui_mode: 'custom', // Custom checkout with Payment Element for compact modal
       return_url: `${baseUrl}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
       metadata: {
         user_id: userId, // CRITICAL: User always exists now (PENDING status)
