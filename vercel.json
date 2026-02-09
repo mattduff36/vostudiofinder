@@ -104,7 +104,7 @@
     },
     {
       "source": "/register",
-      "destination": "/join-waitlist",
+      "destination": "/auth/signup",
       "permanent": true
     }
   ],

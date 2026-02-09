@@ -249,7 +249,7 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
                 {/* List Your Studio - Filled Red Button */}
                 <button
                   type="button"
-                  onClick={() => handleNavigation('/register')}
+                  onClick={() => handleNavigation('/auth/signup')}
                   className="relative w-[220px] px-4 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#b91c23] active:bg-[#a01820] text-sm font-medium transition-all"
                   role="menuitem"
                 >

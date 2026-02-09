@@ -17,7 +17,7 @@ export function MobileFooter() {
     {
       title: 'For Studios',
       links: [
-        { label: 'List Your Studio', href: '/register' },
+        { label: 'List Your Studio', href: '/auth/signup' },
         { label: 'Pricing', href: '/upgrade' },
         { label: 'Studio Dashboard', href: '/dashboard' },
       ],
