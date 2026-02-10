@@ -29,6 +29,7 @@ export function Navbar({ session }: NavbarProps) {
   const [isDesktopBurgerOpen, setIsDesktopBurgerOpen] = useState(false);
   const [isBrowseDropdownOpen, setIsBrowseDropdownOpen] = useState(false);
   const [browseDropdownTop, setBrowseDropdownTop] = useState<number | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const desktopBurgerRef = useRef<HTMLDivElement>(null);
@@ -41,6 +42,11 @@ export function Navbar({ session }: NavbarProps) {
   const lastWidthRef = useRef<number | null>(null);
   const hasInitializedRef = useRef(false);
   
+  // Track client-side mounting to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Check if we're on mobile viewport
   useEffect(() => {
     const checkMobile = () => {
@@ -279,6 +285,10 @@ export function Navbar({ session }: NavbarProps) {
   };
 
   const closeBrowseDropdownDelayed = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
     closeTimerRef.current = setTimeout(() => {
       setIsBrowseDropdownOpen(false);
     }, 1000);
@@ -358,6 +368,7 @@ export function Navbar({ session }: NavbarProps) {
               <div className="flex items-center gap-1">
                 <Link 
                   href="/studios" 
+                  onClick={() => setIsBrowseDropdownOpen(false)}
                   className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
                   style={{ 
                     color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
@@ -495,7 +506,7 @@ export function Navbar({ session }: NavbarProps) {
     </nav>
 
     {/* Browse Studios Dropdown (portal-mounted for proper backdrop blur) */}
-    {typeof document !== 'undefined' &&
+    {isMounted &&
       createPortal(
         <div
           ref={browseDropdownPanelRef}
