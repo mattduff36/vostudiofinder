@@ -40,6 +40,7 @@ export function Navbar({ session }: NavbarProps) {
   const userDismissedBrowseRef = useRef(false);
   const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const lastWidthRef = useRef<number | null>(null);
   const hasInitializedRef = useRef(false);
@@ -49,14 +50,16 @@ export function Navbar({ session }: NavbarProps) {
     setIsMounted(true);
   }, []);
 
-  // Check if we're on mobile viewport
+  // Check if we're on mobile viewport and track desktop breakpoint
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
+    const checkViewport = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 768); // md breakpoint
+      setIsDesktop(width >= 1024); // lg breakpoint
     };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    checkViewport();
+    window.addEventListener('resize', checkViewport);
+    return () => window.removeEventListener('resize', checkViewport);
   }, []);
 
   // Lock hero height on mount and update on width changes (matches HeroSection behavior)
@@ -217,7 +220,6 @@ export function Navbar({ session }: NavbarProps) {
 
   // Auto-open dropdown on homepage when at top (not scrolled at all) — desktop only (>= lg)
   useEffect(() => {
-    const isDesktop = window.innerWidth >= 1024;
     if (pathname === '/' && !hasScrolledAtAll && isMounted && !userDismissedBrowseRef.current && isDesktop) {
       setIsBrowseDropdownOpen(true);
     } else if (pathname !== '/' || hasScrolledAtAll || !isMounted || !isDesktop) {
@@ -229,7 +231,7 @@ export function Navbar({ session }: NavbarProps) {
     if (pathname !== '/') {
       userDismissedBrowseRef.current = false;
     }
-  }, [pathname, hasScrolledAtAll, isMounted]);
+  }, [pathname, hasScrolledAtAll, isMounted, isDesktop]);
 
   // Keep dropdown positioned under navbar (portal-mounted)
   useEffect(() => {
@@ -252,6 +254,7 @@ export function Navbar({ session }: NavbarProps) {
   }, [isBrowseDropdownOpen]);
 
   // Communicate dropdown height to HeroSection via CSS custom property
+  // Depends on isMounted so it re-runs after the portal renders and the ref is available
   useEffect(() => {
     if (isBrowseDropdownOpen && browseDropdownPanelRef.current) {
       // Small delay to let the dropdown render and measure correctly
@@ -263,7 +266,7 @@ export function Navbar({ session }: NavbarProps) {
     }
     document.documentElement.style.setProperty('--dropdown-offset', '0px');
     return undefined;
-  }, [isBrowseDropdownOpen]);
+  }, [isBrowseDropdownOpen, isMounted]);
 
   // Handle scroll effect - use hero height as threshold
   useEffect(() => {
