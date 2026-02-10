@@ -194,6 +194,16 @@ export function Navbar({ session }: NavbarProps) {
     };
   }, []);
 
+  // Auto-open dropdown on homepage when at top (not scrolled)
+  useEffect(() => {
+    if (pathname === '/' && !isScrolled && isMounted) {
+      setIsBrowseDropdownOpen(true);
+    } else if (pathname !== '/' || isScrolled) {
+      // Close dropdown when navigating away or scrolling down
+      setIsBrowseDropdownOpen(false);
+    }
+  }, [pathname, isScrolled, isMounted]);
+
   // Keep dropdown positioned under navbar (portal-mounted)
   useEffect(() => {
     if (!isBrowseDropdownOpen) return;
@@ -285,6 +295,11 @@ export function Navbar({ session }: NavbarProps) {
   };
 
   const closeBrowseDropdownDelayed = () => {
+    // On homepage at the top (not scrolled), keep dropdown always visible - don't close it
+    if (pathname === '/' && !isScrolled) {
+      return;
+    }
+    
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
