@@ -12,15 +12,16 @@ export async function POST(request: NextRequest) {
     
     // Validate input
     const validatedData = forgotPasswordSchema.parse(body);
+    const normalizedEmail = validatedData.email.toLowerCase().trim();
     
-    // Check if user exists
+    // Check if user exists (case-insensitive lookup — emails are stored lowercase)
     const user = await db.users.findUnique({
-      where: { email: validatedData.email },
+      where: { email: normalizedEmail },
     });
     
     // Always return success to prevent email enumeration
     if (!user) {
-      console.log(`Password reset requested for non-existent email: ${validatedData.email}`);
+      console.log(`Password reset requested for non-existent email: ${normalizedEmail}`);
       return NextResponse.json(
         {
           message: 'If an account with that email exists, we have sent a password reset link.',
