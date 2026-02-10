@@ -1,7 +1,7 @@
 'use client';
 import { logger } from '@/lib/logger';
 import { motion } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { colors } from './HomePage';
 import { EnhancedSearchBar } from '../search/EnhancedSearchBar';
@@ -14,8 +14,10 @@ export function HeroSection() {
   const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
+  const [heroScale, setHeroScale] = useState(1);
   const lastWidthRef = useRef<number | null>(null);
   const hasInitializedRef = useRef(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -45,6 +47,38 @@ export function HeroSection() {
     return () => window.removeEventListener('resize', updateHeight);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Dynamically scale hero content to fit available space
+  const recalcScale = useCallback(() => {
+    if (!contentRef.current) return;
+    const viewportH = window.innerHeight;
+    const navH = 80; // navbar height (approx)
+    const dropdownOffset = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--dropdown-offset') || '0'
+    );
+    const available = viewportH - navH - dropdownOffset;
+    // Temporarily reset scale to measure natural height
+    contentRef.current.style.transform = 'none';
+    const natural = contentRef.current.scrollHeight;
+    contentRef.current.style.transform = '';
+    if (natural > available && available > 0) {
+      setHeroScale(Math.max(0.55, available / natural));
+    } else {
+      setHeroScale(1);
+    }
+  }, []);
+
+  useEffect(() => {
+    recalcScale();
+    // Re-check when dropdown offset CSS variable changes
+    const observer = new MutationObserver(() => recalcScale());
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+    window.addEventListener('resize', recalcScale);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', recalcScale);
+    };
+  }, [recalcScale]);
 
   const handleSearch = (location: string, coordinates?: { lat: number; lng: number }, radius?: number) => {
     logger.log('Location search initiated:', { location, coordinates, radius });
@@ -88,8 +122,16 @@ export function HeroSection() {
         </div>
 
       {/* Hero Content */}
-      <div className="relative z-50 -mt-[10vh] py-6 sm:py-12 md:py-16 lg:py-20 w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="relative z-50 py-6 sm:py-12 md:py-16 lg:py-20 w-full" style={{ marginTop: 'calc(-10vh + var(--dropdown-offset, 0px))', transition: 'margin-top 200ms ease-out' }}>
+        <div
+          ref={contentRef}
+          className="max-w-7xl mx-auto px-4 sm:px-6"
+          style={{
+            transform: heroScale < 1 ? `scale(${heroScale})` : undefined,
+            transformOrigin: 'top center',
+            transition: 'transform 200ms ease-out',
+          }}
+        >
           <h1 className={`hp1 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 md:mb-6 text-center transition-all duration-1000 delay-200 leading-tight ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`} style={{ color: '#ffffff' }}>

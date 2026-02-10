@@ -37,6 +37,7 @@ export function Navbar({ session }: NavbarProps) {
   const desktopBurgerBtnRef = useRef<HTMLButtonElement>(null);
   const browseDropdownRef = useRef<HTMLDivElement>(null);
   const browseDropdownPanelRef = useRef<HTMLDivElement>(null);
+  const userDismissedBrowseRef = useRef(false);
   const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
@@ -156,6 +157,7 @@ export function Navbar({ session }: NavbarProps) {
       const inTrigger = !!(browseDropdownRef.current && browseDropdownRef.current.contains(target));
       const inPanel = !!(browseDropdownPanelRef.current && browseDropdownPanelRef.current.contains(target));
       if (!inTrigger && !inPanel) {
+        userDismissedBrowseRef.current = true;
         setIsBrowseDropdownOpen(false);
       }
     };
@@ -173,6 +175,7 @@ export function Navbar({ session }: NavbarProps) {
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        userDismissedBrowseRef.current = true;
         setIsBrowseDropdownOpen(false);
       }
     };
@@ -212,13 +215,19 @@ export function Navbar({ session }: NavbarProps) {
     return () => window.removeEventListener('scroll', checkScroll);
   }, [pathname]);
 
-  // Auto-open dropdown on homepage when at top (not scrolled at all)
+  // Auto-open dropdown on homepage when at top (not scrolled at all) — desktop only (>= lg)
   useEffect(() => {
-    if (pathname === '/' && !hasScrolledAtAll && isMounted) {
+    const isDesktop = window.innerWidth >= 1024;
+    if (pathname === '/' && !hasScrolledAtAll && isMounted && !userDismissedBrowseRef.current && isDesktop) {
       setIsBrowseDropdownOpen(true);
-    } else if (pathname !== '/' || hasScrolledAtAll) {
-      // Close dropdown when navigating away or scrolling at all
+    } else if (pathname !== '/' || hasScrolledAtAll || !isMounted || !isDesktop) {
+      // Close dropdown when navigating away, scrolling, during hydration, or on mobile/tablet
       setIsBrowseDropdownOpen(false);
+    }
+
+    // Reset dismissal when navigating away from homepage
+    if (pathname !== '/') {
+      userDismissedBrowseRef.current = false;
     }
   }, [pathname, hasScrolledAtAll, isMounted]);
 
@@ -240,6 +249,20 @@ export function Navbar({ session }: NavbarProps) {
       window.removeEventListener('scroll', updateTop);
       window.removeEventListener('resize', updateTop);
     };
+  }, [isBrowseDropdownOpen]);
+
+  // Communicate dropdown height to HeroSection via CSS custom property
+  useEffect(() => {
+    if (isBrowseDropdownOpen && browseDropdownPanelRef.current) {
+      // Small delay to let the dropdown render and measure correctly
+      const raf = requestAnimationFrame(() => {
+        const height = browseDropdownPanelRef.current?.offsetHeight ?? 0;
+        document.documentElement.style.setProperty('--dropdown-offset', `${height}px`);
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+    document.documentElement.style.setProperty('--dropdown-offset', '0px');
+    return undefined;
   }, [isBrowseDropdownOpen]);
 
   // Handle scroll effect - use hero height as threshold
@@ -344,8 +367,10 @@ export function Navbar({ session }: NavbarProps) {
 
   const toggleBrowseDropdown = () => {
     if (isBrowseDropdownOpen) {
+      userDismissedBrowseRef.current = true;
       setIsBrowseDropdownOpen(false);
     } else {
+      userDismissedBrowseRef.current = false;
       openBrowseDropdown();
     }
   };
@@ -551,7 +576,7 @@ export function Navbar({ session }: NavbarProps) {
       createPortal(
         <div
           ref={browseDropdownPanelRef}
-          className={`fixed left-1/2 -translate-x-1/2 z-[120] rounded-b-2xl transition-all duration-200 ease-out ${
+          className={`hidden lg:block fixed left-1/2 -translate-x-1/2 z-[120] rounded-b-2xl transition-all duration-200 ease-out ${
             isBrowseDropdownOpen
               ? 'opacity-100 translate-y-0 pointer-events-auto'
               : 'opacity-0 -translate-y-2 pointer-events-none'
