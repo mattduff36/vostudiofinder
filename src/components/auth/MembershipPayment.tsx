@@ -328,7 +328,7 @@ export function MembershipPayment() {
                   </li>
                   <li className="flex items-start">
                     <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-500">Voiceover studio type</span>
+                    <span className="text-gray-500">Voiceover artist type (Premium only)</span>
                   </li>
                   <li className="flex items-start">
                     <X className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
@@ -387,7 +387,7 @@ export function MembershipPayment() {
                   </li>
                   <li className="flex items-start">
                     <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Multiple studio categories including Voiceover</span>
+                    <span className="text-gray-700">All studio categories + exclusive Voiceover artist type</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />

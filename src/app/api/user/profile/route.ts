@@ -6,8 +6,9 @@ import { db } from '@/lib/db';
 import { getProfileVisibilityEligibility } from '@/lib/utils/profile-visibility';
 
 /**
- * Detect if profile content suggests user is listing themselves as a voiceover artist
- * Returns array of warning messages if suspicious phrases detected
+ * Detect if profile content suggests user is listing themselves as a voiceover artist.
+ * Returns array of warning/guidance messages if voiceover artist phrases are detected.
+ * If the user has already selected the VOICEOVER studio type, the detection is skipped.
  */
 function detectVoiceoverArtistMisuse(fields: {
   name?: string;
@@ -15,8 +16,13 @@ function detectVoiceoverArtistMisuse(fields: {
   about?: string;
   services_offered?: string;
   equipment_list?: string;
-}): string[] {
+}, studioTypes?: string[]): string[] {
   const warnings: string[] = [];
+
+  // If user already has VOICEOVER selected, no need to warn — they are correctly categorised
+  if (studioTypes?.includes('VOICEOVER')) {
+    return warnings;
+  }
   
   // Strong signals that user is a voiceover artist (not a studio owner)
   const voArtistPhrases = [
@@ -73,14 +79,15 @@ function detectVoiceoverArtistMisuse(fields: {
   
   console.log('[VO Artist Detection] Total score:', totalScore, 'Matched phrases:', matchedPhrases);
   
-  // If score exceeds threshold, add warning (regardless of studio-owner language)
-  // Someone could be trying to bypass detection by including both types of phrases
+  // If score exceeds threshold, provide guidance
   if (totalScore >= 10) {
     console.log('[VO Artist Detection] WARNING TRIGGERED');
     warnings.push(
-      'Your profile contains phrases typically used by voiceover artists. ' +
-      'Voiceover Studio Finder is currently for Studio Owners, Audio Producers, and Voiceover Coaches only. ' +
-      'Individual voiceover artist listings will be available in a future update.'
+      'Your profile contains language commonly associated with voiceover talent. ' +
+      'If you are a voiceover artist, please select the "Voiceover" studio type instead — ' +
+      'this is a dedicated category for voiceover professionals (available to Premium members). ' +
+      'Please note that a single profile cannot advertise both a studio and voiceover services. ' +
+      'If you wish to list both, we recommend creating a separate profile for each.'
     );
   }
   
@@ -848,6 +855,12 @@ export async function PUT(request: NextRequest) {
               droppedFields.push('studio_types');
             }
 
+            // Enforce VOICEOVER exclusivity: if VOICEOVER is present alongside other types,
+            // keep only VOICEOVER (it cannot be combined with other studio types)
+            if (allowedTypes.includes('VOICEOVER') && allowedTypes.length > 1) {
+              allowedTypes = ['VOICEOVER'];
+            }
+
             // Enforce max studio types for this tier
             if (tierLimits.studioTypesMax !== null) {
               if (allowedTypes.length > tierLimits.studioTypesMax) {
@@ -968,7 +981,7 @@ export async function PUT(request: NextRequest) {
         services_offered: body.profile?.services_offered,
         equipment_list: body.profile?.equipment_list,
       };
-      const warnings = detectVoiceoverArtistMisuse(fieldsToCheck);
+      const warnings = detectVoiceoverArtistMisuse(fieldsToCheck, body.studio_types);
       voArtistWarnings.push(...warnings);
     }
 

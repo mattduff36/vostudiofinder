@@ -40,7 +40,7 @@ Implemented a two-tier membership selection page that gives users the choice bet
 |---------|-------------|-------------------|
 | Studio listing | ✓ | ✓ |
 | Studio images | 2 max | 5 max |
-| Studio types | 1 (Home/Recording only) | Unlimited (including Voiceover) |
+| Studio types | 1 (Home/Recording only, Voiceover excluded) | Unlimited + exclusive Voiceover artist type (cannot be combined with other types) |
 | Connections | 3 max (no custom) | All + 2 custom |
 | Social media links | 2 | Unlimited |
 | Description length | 1000 chars | 2000 chars |

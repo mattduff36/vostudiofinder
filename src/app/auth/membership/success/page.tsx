@@ -64,7 +64,7 @@ const REQUIRED_FIELDS = [
     name: 'Studio Type(s) / Service(s)',
     required: true,
     where: 'Search filters and profile badges',
-    how: 'Select from: Home Studio, Recording Studio, Podcast Studio, Voiceover Studio, VO Coach, or Audio Producer',
+    how: 'Select from: Home Studio, Recording Studio, Podcast Studio, VO Coach, Audio Producer, or Voiceover Artist (exclusive, Premium only)',
     why: 'Enables artists to filter search results to find the right type of facility',
   },
   {
