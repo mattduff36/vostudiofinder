@@ -534,6 +534,24 @@ export async function PUT(request: NextRequest) {
     // Track fields dropped due to tier limits so we can inform the user
     const droppedFields: string[] = [];
 
+    // Fetch user to check role (for admin bypass logic)
+    const user = await db.users.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const isAdmin = user.role === 'ADMIN';
+
     // Fetch user tier for enforcement
     const { getUserTier } = await import('@/lib/membership');
     const { getTierLimits } = await import('@/lib/membership-tiers');
