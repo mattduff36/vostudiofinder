@@ -16,6 +16,7 @@ interface SearchSuggestion {
   metadata?: {
     place_id?: string;
     user_id?: string;
+    username?: string; // Username for building profile URL
     coordinates?: { lat: number; lng: number };
     full_location?: string;
     full_address?: string;
@@ -385,6 +386,7 @@ export function EnhancedSearchBar({
           distance,
           metadata: {
             user_id: user.id,
+            username: user.username, // Store username for profile URL
             coordinates: user.coordinates,
             full_location: user.full_location || user.location // Store for geocoding if needed
           }
@@ -440,6 +442,21 @@ export function EnhancedSearchBar({
 
   // Handle suggestion selection
   const handleSelect = (suggestion: SearchSuggestion) => {
+    if (suggestion.type === 'user') {
+      // For user profiles, get username from metadata and open profile in new tab
+      const username = suggestion.metadata?.username;
+      if (username) {
+        const profileUrl = `/${username}`;
+        window.open(profileUrl, '_blank');
+      }
+      
+      // Close dropdown
+      setIsOpen(false);
+      setSelectedIndex(-1);
+      return;
+    }
+    
+    // For location suggestions, keep existing behavior
     let locationToSearch: { name: string; coordinates?: { lat: number; lng: number } } | null = null;
     
     if (suggestion.type === 'location') {
@@ -451,15 +468,6 @@ export function EnhancedSearchBar({
       };
       setSelectedLocation(locationToSearch);
       setQuery(fullAddress); // Put full address in input box
-    } else if (suggestion.type === 'user') {
-      // For users, use their actual location address from metadata, not the formatted text
-      const actualLocation = suggestion.metadata?.full_location || suggestion.text;
-      locationToSearch = {
-        name: actualLocation,
-        ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
-      };
-      setSelectedLocation(locationToSearch);
-      setQuery(suggestion.text); // Keep the formatted username in the search box for display
     }
     
     setIsOpen(false);
