@@ -70,6 +70,7 @@ docs-private/
 *.tmp
 *.temp
 assets/
+!public/assets/categories/
 dev.log
 
 # Email template testing
