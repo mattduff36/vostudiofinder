@@ -202,7 +202,7 @@ export function Navbar({ session }: NavbarProps) {
       const navEl = navContainerRef.current?.closest('nav');
       if (!navEl) return;
       const rect = navEl.getBoundingClientRect();
-      setBrowseDropdownTop(rect.bottom + 8);
+      setBrowseDropdownTop(rect.bottom);
     };
 
     updateTop();
@@ -510,7 +510,7 @@ export function Navbar({ session }: NavbarProps) {
       createPortal(
         <div
           ref={browseDropdownPanelRef}
-          className={`fixed left-1/2 -translate-x-1/2 z-[120] rounded-2xl transition-all duration-200 ease-out ${
+          className={`fixed left-1/2 -translate-x-1/2 z-[120] rounded-b-2xl transition-all duration-200 ease-out ${
             isBrowseDropdownOpen
               ? 'opacity-100 translate-y-0 pointer-events-auto'
               : 'opacity-0 -translate-y-2 pointer-events-none'
