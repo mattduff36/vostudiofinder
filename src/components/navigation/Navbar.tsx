@@ -3,15 +3,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { createPortal } from 'react-dom';
 import { colors } from '../home/HomePage';
 import { SITE_NAME } from '@/lib/seo/site';
 import { FreeBadge } from '@/components/ui/FreeBadge';
 import { DashboardDropdownMenu } from './DashboardDropdownMenu';
 import { DesktopBurgerMenu } from './DesktopBurgerMenu';
 import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
+import { CategoryFilterBar } from '@/components/category/CategoryFilterBar';
 
 interface NavbarProps {
   session: Session | null;
@@ -25,10 +27,15 @@ export function Navbar({ session }: NavbarProps) {
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopBurgerOpen, setIsDesktopBurgerOpen] = useState(false);
+  const [isBrowseDropdownOpen, setIsBrowseDropdownOpen] = useState(false);
+  const [browseDropdownTop, setBrowseDropdownTop] = useState<number | null>(null);
   const navContainerRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const desktopBurgerRef = useRef<HTMLDivElement>(null);
   const desktopBurgerBtnRef = useRef<HTMLButtonElement>(null);
+  const browseDropdownRef = useRef<HTMLDivElement>(null);
+  const browseDropdownPanelRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const lastWidthRef = useRef<number | null>(null);
@@ -135,6 +142,72 @@ export function Navbar({ session }: NavbarProps) {
     };
   }, [isDesktopBurgerOpen]);
 
+  // Close browse dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const inTrigger = !!(browseDropdownRef.current && browseDropdownRef.current.contains(target));
+      const inPanel = !!(browseDropdownPanelRef.current && browseDropdownPanelRef.current.contains(target));
+      if (!inTrigger && !inPanel) {
+        setIsBrowseDropdownOpen(false);
+      }
+    };
+
+    if (isBrowseDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isBrowseDropdownOpen]);
+
+  // Close browse dropdown on Escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsBrowseDropdownOpen(false);
+      }
+    };
+
+    if (isBrowseDropdownOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isBrowseDropdownOpen]);
+
+  // Cleanup close timer on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Keep dropdown positioned under navbar (portal-mounted)
+  useEffect(() => {
+    if (!isBrowseDropdownOpen) return;
+
+    const updateTop = () => {
+      const navEl = navContainerRef.current?.closest('nav');
+      if (!navEl) return;
+      const rect = navEl.getBoundingClientRect();
+      setBrowseDropdownTop(rect.bottom + 8);
+    };
+
+    updateTop();
+    window.addEventListener('scroll', updateTop, { passive: true });
+    window.addEventListener('resize', updateTop);
+    return () => {
+      window.removeEventListener('scroll', updateTop);
+      window.removeEventListener('resize', updateTop);
+    };
+  }, [isBrowseDropdownOpen]);
+
   // Handle scroll effect - use hero height as threshold
   useEffect(() => {
     // Don't set up scroll listeners until we have the hero height
@@ -196,6 +269,36 @@ export function Navbar({ session }: NavbarProps) {
     router.push('/');
   };
 
+  // Browse dropdown handlers
+  const openBrowseDropdown = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setIsBrowseDropdownOpen(true);
+  };
+
+  const closeBrowseDropdownDelayed = () => {
+    closeTimerRef.current = setTimeout(() => {
+      setIsBrowseDropdownOpen(false);
+    }, 1000);
+  };
+
+  const cancelCloseTimer = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
+  const toggleBrowseDropdown = () => {
+    if (isBrowseDropdownOpen) {
+      setIsBrowseDropdownOpen(false);
+    } else {
+      openBrowseDropdown();
+    }
+  };
+
 
   const isHomePage = pathname === '/' || pathname === '/studios';
 
@@ -241,21 +344,53 @@ export function Navbar({ session }: NavbarProps) {
           
           {/* Desktop Navigation - Flex centered - Hidden on tablet, shown on desktop */}
           <div className="hidden lg:flex items-center space-x-8 flex-1 justify-center">
-            <Link 
-              href="/studios" 
-              className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
-              style={{ 
-                color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+            {/* Browse Studios with dropdown */}
+            <div
+              ref={browseDropdownRef}
+              className="relative"
+              onMouseEnter={() => {
+                cancelCloseTimer();
+                openBrowseDropdown();
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-              }}
+              onMouseLeave={closeBrowseDropdownDelayed}
             >
-              Browse Studios
-            </Link>
+              {/* Trigger: Link + Chevron button */}
+              <div className="flex items-center gap-1">
+                <Link 
+                  href="/studios" 
+                  className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
+                  style={{ 
+                    color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+                  }}
+                >
+                  Browse Studios
+                </Link>
+                <button
+                  type="button"
+                  onClick={toggleBrowseDropdown}
+                  className="p-0.5 rounded transition-colors"
+                  style={{
+                    color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+                  }}
+                  aria-label="Toggle studio categories"
+                  aria-expanded={isBrowseDropdownOpen}
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isBrowseDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+            </div>
           </div>
           
           {/* Tablet/Desktop Burger Menu for Public Users - Only shown when NOT logged in */}
@@ -358,6 +493,49 @@ export function Navbar({ session }: NavbarProps) {
         </div>
       </div>
     </nav>
+
+    {/* Browse Studios Dropdown (portal-mounted for proper backdrop blur) */}
+    {typeof document !== 'undefined' &&
+      createPortal(
+        <div
+          ref={browseDropdownPanelRef}
+          className={`fixed left-1/2 -translate-x-1/2 z-[120] rounded-2xl transition-all duration-200 ease-out ${
+            isBrowseDropdownOpen
+              ? 'opacity-100 translate-y-0 pointer-events-auto'
+              : 'opacity-0 -translate-y-2 pointer-events-none'
+          } ${
+            isScrolled || !isHomePage
+              ? 'bg-white/70 md:bg-white backdrop-blur-lg shadow-lg border border-gray-200'
+              : 'bg-black/30 backdrop-blur-md shadow-xl'
+          }`}
+          style={{ top: `${(browseDropdownTop ?? 80)}px` }}
+          onMouseEnter={() => {
+            cancelCloseTimer();
+            openBrowseDropdown();
+          }}
+          onMouseLeave={closeBrowseDropdownDelayed}
+          onClick={(e) => {
+            const target = e.target as HTMLElement | null;
+            const clickedLink = target?.closest('a');
+            const clickedButton = target?.closest('button');
+            if (clickedLink || clickedButton) {
+              setIsBrowseDropdownOpen(false);
+            }
+          }}
+          role="menu"
+          aria-label="Browse studios by type"
+        >
+          <div className="px-6 py-4">
+            <CategoryFilterBar
+              variant="compact"
+              tone={isScrolled || !isHomePage ? 'light' : 'dark'}
+              labelMode="short"
+              imageScale={pathname === '/' && !isScrolled ? 2 : 1}
+            />
+          </div>
+        </div>,
+        document.body,
+      )}
 
     {/* Desktop Burger Menu for Logged-In Users */}
     {session && (
