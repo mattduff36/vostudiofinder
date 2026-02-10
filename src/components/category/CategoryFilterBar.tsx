@@ -127,7 +127,7 @@ export function CategoryFilterBar({
       return (
         <div
           className="rounded-lg flex items-center justify-center"
-          style={{ width: size.w, height: size.h, backgroundColor: tile.backgroundColor }}
+          style={{ width: `${size.w}px`, height: `${size.h}px`, backgroundColor: tile.backgroundColor }}
         >
           <span className="text-[10px] font-medium text-black/50">{tile.label[0]}</span>
         </div>
