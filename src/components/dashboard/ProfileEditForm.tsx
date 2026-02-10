@@ -1152,8 +1152,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                       </label>
                       <p className="text-xs text-gray-500 mt-1">
                         {profile.studio?.show_exact_location ?? true 
-                          ? 'Public visitors will see a precise pin on your map. Turn off to show an approximate 150m area instead (ideal for home studios).'
-                          : 'Public visitors will see an approximate 150m area instead of a precise pin. This helps protect your privacy while still showing your general location.'
+                          ? 'Public visitors will see a precise pin on your map. Turn off to show an approximate 300m area instead (ideal for home studios).'
+                          : 'Public visitors will see an approximate 300m area instead of a precise pin. This helps protect your privacy while still showing your general location.'
                         }
                       </p>
                     </div>

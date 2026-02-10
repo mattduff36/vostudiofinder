@@ -287,7 +287,8 @@ export function profileDataToAdminPayload(data: ProfileData): any {
     status: data._adminOnly?.status,
     studioTypes: data.studio_types.map(type => ({ studio_type: type })),
     _meta: {
-      studio_name: data.profile.studio_name || data.studio?.name || '',
+      // Prefer studio.name - the form field is bound to it; profile.studio_name is only set on initial load
+      studio_name: data.studio?.name ?? data.profile.studio_name ?? '',
       phone: data.profile.phone || '',
       about: data.profile.about || '',
       short_about: data.profile.short_about || '',
