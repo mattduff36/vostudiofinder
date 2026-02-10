@@ -304,6 +304,14 @@ export function Navbar({ session }: NavbarProps) {
       clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
     }
+    
+    // On homepage when scrolled, close immediately (no delay)
+    if (pathname === '/' && isScrolled) {
+      setIsBrowseDropdownOpen(false);
+      return;
+    }
+    
+    // On other pages, use 1000ms delay
     closeTimerRef.current = setTimeout(() => {
       setIsBrowseDropdownOpen(false);
     }, 1000);
