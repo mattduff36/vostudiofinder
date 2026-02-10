@@ -52,6 +52,7 @@ interface ProfileData {
     avatar_url?: string | null;
     email_verified?: boolean;
     status?: string;
+    role?: string;
   };
   profile: {
     phone?: string;
@@ -824,10 +825,16 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     setProfile(prev => {
       if (!prev) return null;
       const types = prev.studio_types || [];
+      const isAdmin = prev.user?.role === 'ADMIN';
 
       // If unchecking, always allow
       if (types.includes(type)) {
         return { ...prev, studio_types: types.filter(t => t !== type) };
+      }
+
+      // Admin bypass: ADMIN users can combine VOICEOVER with any other types
+      if (isAdmin) {
+        return { ...prev, studio_types: [...types, type] };
       }
 
       // Check if the type being added is exclusive (VOICEOVER)
@@ -988,11 +995,13 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                       && !profile.studio_types.includes(type.value);
 
                     // Check exclusivity: if VOICEOVER is selected, disable all non-exclusive types (and vice versa)
+                    // Exception: ADMIN users can combine VOICEOVER with other types
+                    const isAdmin = profile?.user?.role === 'ADMIN';
                     const hasExclusiveSelected = profile.studio_types.some(t => {
                       const cfg = STUDIO_TYPES.find(st => st.value === t);
                       return cfg?.exclusive === true;
                     });
-                    const exclusivityBlocked = !type.exclusive && hasExclusiveSelected && !profile.studio_types.includes(type.value);
+                    const exclusivityBlocked = !isAdmin && !type.exclusive && hasExclusiveSelected && !profile.studio_types.includes(type.value);
 
                     const isDisabled = type.disabled || tierExcluded || maxReached || exclusivityBlocked;
                     

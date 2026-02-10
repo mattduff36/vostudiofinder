@@ -857,7 +857,8 @@ export async function PUT(request: NextRequest) {
 
             // Enforce VOICEOVER exclusivity: if VOICEOVER is present alongside other types,
             // keep only VOICEOVER (it cannot be combined with other studio types)
-            if (allowedTypes.includes('VOICEOVER') && allowedTypes.length > 1) {
+            // Exception: ADMIN users can combine VOICEOVER with other types
+            if (!isAdmin && allowedTypes.includes('VOICEOVER') && allowedTypes.length > 1) {
               allowedTypes = ['VOICEOVER'];
               if (!droppedFields.includes('studio_types')) {
                 droppedFields.push('studio_types');
