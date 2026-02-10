@@ -364,11 +364,16 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       const servicesContext = studio.studio_services?.length > 0 
         ? ` Offering ${studio.studio_services.map((s: { service: string }) => s.service.toLowerCase()).join(', ')}`
         : '';
+      const isVoiceoverArtist = studio.studio_studio_types?.some((t: { studio_type: string }) => t.studio_type === 'VOICEOVER');
       const typesContext = studio.studio_studio_types?.length > 0
-        ? `. This ${studio.studio_studio_types.map((t: { studio_type: string }) => t.studio_type.toLowerCase()).join(' and ')} is ideal for voiceover professionals`
+        ? isVoiceoverArtist
+          ? '. Professional voiceover talent available for recording sessions, commercial voice work, and audio production'
+          : `. This ${studio.studio_studio_types.map((t: { studio_type: string }) => t.studio_type.toLowerCase()).join(' and ')} is ideal for voiceover professionals`
         : '';
       
-      const supplementalContent = `Professional voiceover recording studio${locationContext}.${servicesContext}${typesContext}. Equipped for high-quality audio production and voice recording sessions. Contact us to discuss your project requirements and book a session.`;
+      const supplementalContent = isVoiceoverArtist
+        ? `Professional voiceover artist${locationContext}.${servicesContext}${typesContext}. Contact to discuss your project requirements and availability.`
+        : `Professional voiceover recording studio${locationContext}.${servicesContext}${typesContext}. Equipped for high-quality audio production and voice recording sessions. Contact us to discuss your project requirements and book a session.`;
       
       businessDescription = businessDescription 
         ? `${businessDescription} ${supplementalContent}`
@@ -377,7 +382,10 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     
     // Fallback if still empty
     if (!businessDescription.trim()) {
-      businessDescription = 'Voiceover recording studio available for hire in the UK.';
+      const hasVoiceoverType = studio.studio_studio_types?.some((t: { studio_type: string }) => t.studio_type === 'VOICEOVER');
+      businessDescription = hasVoiceoverType
+        ? 'Professional voiceover artist available for hire in the UK.'
+        : 'Voiceover recording studio available for hire in the UK.';
     }
 
     // Parse address for structured data

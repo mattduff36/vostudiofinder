@@ -650,7 +650,7 @@ export function Settings({ data }: SettingsProps) {
                       </p>
                       <ul className="text-xs text-gray-600 space-y-1.5">
                         <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Up to 5 studio images (vs 2)</li>
-                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Unlimited studio types including Voiceover</li>
+                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> All studio types + exclusive Voiceover artist type</li>
                         <li className="flex items-center gap-2"><span className="text-green-600">✓</span> All connection methods + custom connections</li>
                         <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Full privacy controls (phone, directions)</li>
                         <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Custom SEO meta title</li>

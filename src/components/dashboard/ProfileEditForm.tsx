@@ -140,14 +140,14 @@ interface ProfileData {
 }
 
 const STUDIO_TYPES = [
-  // Top row - Active types
-  { value: 'HOME', label: 'Home', description: 'Personal recording space in a home environment', disabled: false },
-  { value: 'RECORDING', label: 'Recording', description: 'Full, professional recording facility', disabled: false },
-  { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false },
-  // Bottom row - Future types
-  { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services', disabled: true },
-  { value: 'VO_COACH', label: 'VO Coach', description: 'Professional voiceover coaching and training', disabled: false },
-  { value: 'AUDIO_PRODUCER', label: 'Audio Producer', description: 'Audio production and post-production services', disabled: false },
+  // Top row
+  { value: 'HOME', label: 'Home', description: 'Personal recording space in a home environment', disabled: false, exclusive: false },
+  { value: 'RECORDING', label: 'Recording', description: 'Full, professional recording facility', disabled: false, exclusive: false },
+  { value: 'PODCAST', label: 'Podcast', description: 'Studio specialised for podcast recording', disabled: false, exclusive: false },
+  // Bottom row - VOICEOVER is mutually exclusive with all other types (Premium only)
+  { value: 'VOICEOVER', label: 'Voiceover', description: 'Voiceover talent/artist services. This type cannot be combined with other studio types.', disabled: false, exclusive: true },
+  { value: 'VO_COACH', label: 'VO Coach', description: 'Professional voiceover coaching and training', disabled: false, exclusive: false },
+  { value: 'AUDIO_PRODUCER', label: 'Audio Producer', description: 'Audio production and post-production services', disabled: false, exclusive: false },
 ];
 
 const CONNECTION_TYPES = [
@@ -824,10 +824,42 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     setProfile(prev => {
       if (!prev) return null;
       const types = prev.studio_types || [];
-      const newTypes = types.includes(type)
-        ? types.filter(t => t !== type)
-        : [...types, type];
-      return { ...prev, studio_types: newTypes };
+
+      // If unchecking, always allow
+      if (types.includes(type)) {
+        return { ...prev, studio_types: types.filter(t => t !== type) };
+      }
+
+      // Check if the type being added is exclusive (VOICEOVER)
+      const typeConfig = STUDIO_TYPES.find(t => t.value === type);
+      const isAddingExclusive = typeConfig?.exclusive === true;
+
+      // Check if any currently selected type is exclusive
+      const hasExclusiveSelected = types.some(t => {
+        const config = STUDIO_TYPES.find(st => st.value === t);
+        return config?.exclusive === true;
+      });
+
+      // Adding VOICEOVER when other types are already selected
+      if (isAddingExclusive && types.length > 0) {
+        const confirmed = window.confirm(
+          'Selecting Voiceover will remove your other studio types. The Voiceover type cannot be combined with other categories.\n\nDo you want to continue?'
+        );
+        if (!confirmed) return prev;
+        return { ...prev, studio_types: [type] };
+      }
+
+      // Adding a non-exclusive type when VOICEOVER is already selected
+      if (!isAddingExclusive && hasExclusiveSelected) {
+        const confirmed = window.confirm(
+          'Adding another studio type will remove Voiceover. The Voiceover type cannot be combined with other categories.\n\nDo you want to continue?'
+        );
+        if (!confirmed) return prev;
+        return { ...prev, studio_types: [type] };
+      }
+
+      // Normal case: add the type
+      return { ...prev, studio_types: [...types, type] };
     });
   }, []);
 
@@ -954,11 +986,20 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                       && profile?.tierLimits?.studioTypesMax !== undefined
                       && profile.studio_types.length >= profile.tierLimits.studioTypesMax
                       && !profile.studio_types.includes(type.value);
-                    const isDisabled = type.disabled || tierExcluded || maxReached;
+
+                    // Check exclusivity: if VOICEOVER is selected, disable all non-exclusive types (and vice versa)
+                    const hasExclusiveSelected = profile.studio_types.some(t => {
+                      const cfg = STUDIO_TYPES.find(st => st.value === t);
+                      return cfg?.exclusive === true;
+                    });
+                    const exclusivityBlocked = !type.exclusive && hasExclusiveSelected && !profile.studio_types.includes(type.value);
+
+                    const isDisabled = type.disabled || tierExcluded || maxReached || exclusivityBlocked;
                     
                     let tooltipText = type.description;
                     if (type.disabled) tooltipText = 'Coming soon!';
                     else if (tierExcluded) tooltipText = 'Upgrade to Premium to unlock this studio type.';
+                    else if (exclusivityBlocked) tooltipText = 'Voiceover cannot be combined with other studio types. Deselect Voiceover first to choose this type.';
                     else if (maxReached) tooltipText = `Basic members can select up to ${profile.tierLimits?.studioTypesMax ?? 1} studio type. Upgrade to Premium for all studio types.`;
                     
                     return (

@@ -14,7 +14,7 @@ const STUDIO_TYPE_LABELS: Record<string, { full: string; short: string }> = {
   PODCAST: { full: 'Podcast Studio', short: 'Podcast' },
   AUDIO_PRODUCER: { full: 'Audio Producer', short: 'Producer' },
   VO_COACH: { full: 'VO Coach', short: 'VO Coach' },
-  VOICEOVER: { full: 'Voiceover Studio', short: 'VO Studio' },
+  VOICEOVER: { full: 'Voiceover Artist', short: 'VO Artist' },
 };
 
 function compactWhitespace(input: string): string {

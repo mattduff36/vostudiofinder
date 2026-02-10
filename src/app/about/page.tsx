@@ -36,7 +36,7 @@ export default function AboutPage() {
             </p>
             
             <p className="text-lg text-gray-700 mb-6">
-              Voiceover Studio Finder connects voice artists, podcasters, broadcasters and producers with professional recording studios worldwide — all in one clean, simple directory.
+              Voiceover Studio Finder connects voice artists, podcasters, broadcasters and producers with professional recording studios worldwide — and gives voiceover professionals a dedicated space to list their services. All in one clean, simple directory.
             </p>
             
             <p className="mb-8">
@@ -111,7 +111,7 @@ export default function AboutPage() {
             </ul>
             
             <p className="mb-8 text-lg font-semibold text-gray-800">
-              If it's a space where spoken word, broadcast, or audio content gets made — it belongs here.
+              Whether you run a studio, coach talent, produce audio, or perform voiceover — if you're part of the spoken-word industry, you belong here.
             </p>
 
           </div>

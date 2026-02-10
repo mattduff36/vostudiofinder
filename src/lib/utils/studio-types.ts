@@ -27,7 +27,7 @@ export function formatStudioTypeLabel(studioType: string): string {
  */
 export function getStudioTypeTooltip(studioType: string): string {
   const tooltips: Record<string, string> = {
-    VOICEOVER: 'Professional voiceover recording facility',
+    VOICEOVER: 'Voiceover talent and artist services',
     PODCAST: 'Podcast recording and production studio',
     RECORDING: 'Music and audio recording studio',
     AUDIO_PRODUCER: 'Professional audio production services',

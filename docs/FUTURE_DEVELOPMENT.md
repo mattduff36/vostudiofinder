@@ -287,4 +287,4 @@ When implementing items from this list:
 
 Items that have been completed will be noted here with completion date:
 
-*No items archived yet*
+- **February 10, 2026** - Voiceover Studio Type enabled. Premium members can now select the "Voiceover" studio type (mutually exclusive with other types). Basic members remain excluded. Added to search filters, updated all marketing/membership pages, and updated VO artist detection guidance. Branch: `dev/enable-voiceover-studio-type`.

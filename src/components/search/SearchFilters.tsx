@@ -194,6 +194,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
     { value: studio_type.HOME, label: 'Home', fullLabel: 'Home Studio' },
     { value: studio_type.RECORDING, label: 'Recording', fullLabel: 'Recording Studio' },
     { value: studio_type.PODCAST, label: 'Podcast', fullLabel: 'Podcast Studio' },
+    { value: studio_type.VOICEOVER, label: 'Voiceover', fullLabel: 'Voiceover Artist' },
     { value: studio_type.AUDIO_PRODUCER, label: 'Audio Producer', fullLabel: 'Audio Producer' },
     { value: studio_type.VO_COACH, label: 'VO Coach', fullLabel: 'VO Coach' },
   ];
