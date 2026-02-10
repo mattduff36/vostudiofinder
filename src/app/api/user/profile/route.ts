@@ -859,6 +859,9 @@ export async function PUT(request: NextRequest) {
             // keep only VOICEOVER (it cannot be combined with other studio types)
             if (allowedTypes.includes('VOICEOVER') && allowedTypes.length > 1) {
               allowedTypes = ['VOICEOVER'];
+              if (!droppedFields.includes('studio_types')) {
+                droppedFields.push('studio_types');
+              }
             }
 
             // Enforce max studio types for this tier
