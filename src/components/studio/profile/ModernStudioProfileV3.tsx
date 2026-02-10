@@ -411,14 +411,14 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
           {/* Contact Info */}
           {(profile?.show_phone !== false && (profile?.phone || studio.phone)) && (
             <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Contact</h3>
+              <h3 className="text-sm !text-black !font-bold mb-3">Contact</h3>
               <div className="space-y-2">
                 {(profile?.phone || studio.phone) && (
                   <a
                     href={`tel:${profile?.phone || studio.phone}`}
                     className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <Phone className="w-5 h-5 text-[#d42027]" aria-hidden="true" />
+                    <Phone className="w-5 h-5 !text-[#d42027]" aria-hidden="true" />
                     <span className="text-sm text-gray-700">{profile?.phone || studio.phone}</span>
                   </a>
                 )}
@@ -436,12 +436,12 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
           {/* Rates Section */}
           {profile?.show_rates !== false && rates.length > 0 && (
             <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
-              <p className="text-xs text-gray-500 mb-3">Rates</p>
+              <p className="text-xs !text-black !font-bold mb-3">Rates</p>
               <div className="space-y-2">
                 {rates.map((rate, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span className="text-sm font-medium text-gray-700">{rate.duration}</span>
-                    <span className="text-sm font-semibold text-[#d42027]">{rate.price}</span>
+                    <span className="text-sm font-semibold !text-[#d42027]">{rate.price}</span>
                   </div>
                 ))}
               </div>
@@ -479,7 +479,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
 
             return allConnections.length > 0 ? (
               <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
-                <p className="text-xs text-gray-500 mb-3">Connections</p>
+                <p className="text-xs !text-black !font-bold mb-3">Connections</p>
                 <div className="flex flex-wrap gap-2">
                   {allConnections.map((connection) => (
                     <span
@@ -497,7 +497,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
           {/* Social Media Links */}
           {socialLinks.length > 0 && (
             <div className="bg-white border-b border-gray-200 md:hidden px-4 py-4">
-              <p className="text-xs text-gray-500 mb-3">Social Media</p>
+              <p className="text-xs !text-black !font-bold mb-3">Social Media</p>
               <div className="flex flex-wrap gap-2">
                 {socialLinks.map((link, index) => {
                   const Icon = link.icon;
@@ -526,7 +526,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
           {studio.latitude && studio.longitude && (
             <div className="bg-white border-b border-gray-200 md:hidden">
               <div className="px-4 py-4">
-                <p className="text-xs text-gray-500 mb-3">Location</p>
+                <p className="text-xs !text-black !font-bold mb-3">Location</p>
                 <MapFullscreen
                   latitude={studio.latitude}
                   longitude={studio.longitude}
@@ -562,14 +562,14 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
           </div>
         </>
 
-      {/* Main Content */}
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden md:block">
+      {/* Main Content - top padding matches sidebar gap (space-y-6) */}
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 hidden md:block">
         <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Images & Main Content */}
           <div className="lg:col-span-2 w-full">
             {/* Image Gallery - Large Featured + Thumbnails */}
             {displayImages.length > 0 && (
-              <div className="mb-8 w-full">
+              <div className="mb-2.5 w-full">
                 {/* Featured Image */}
                 <div 
                   className="relative aspect-[25/12] bg-gray-200 rounded-lg overflow-hidden mb-4 cursor-pointer group"
@@ -618,10 +618,10 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
               </div>
             )}
 
-            {/* Studio Header */}
-            <div className="mb-6 w-full">
-              <div className="flex items-center justify-between gap-3 mb-3 w-full">
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3" style={{ fontWeight: 700 }}>
+            {/* Studio Header - minimal margin for tight spacing around title */}
+            <div className="mb-2 w-full">
+              <div className="flex items-center justify-between gap-3 mb-1 w-full">
+                <h1 className="text-3xl !font-bold text-gray-900 flex items-center gap-3" style={{ fontWeight: 700 }}>
                   {/* Profile Avatar */}
                   {studio.owner.avatar_url && (
                     <AvatarUpload
@@ -661,7 +661,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
 
               {/* Rating and Reviews */}
               {studio.reviews.length > 0 && (
-                <div className="flex items-center space-x-2 mb-4 w-full">
+                <div className="flex items-center space-x-2 mb-1.5 w-full">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -682,49 +682,56 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
               )}
             </div>
 
-            {/* Description */}
-            <div className="mb-6 w-full">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-3 w-full">
-                <div className="prose prose-gray max-w-none w-full">
-                  {(() => {
-                    const cleanedAbout = cleanDescription(profile?.about || profile?.short_about || studio.description);
-                    const cleanedEquipment = profile?.equipment_list ? cleanDescription(profile.equipment_list) : '';
-                    const cleanedServices = profile?.services_offered ? cleanDescription(profile.services_offered) : '';
-                    
-                    return (
-                      <>
-                        {cleanedAbout && (
-                          <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words w-full">
-                            {cleanedAbout}
-                          </p>
-                        )}
-                        {cleanedEquipment && (
-                          <div className={`${cleanedAbout ? 'pt-4 border-t border-gray-200' : ''}`}>
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">Equipment</h3>
-                            <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
-                              {cleanedEquipment}
-                            </p>
-                          </div>
-                        )}
-                        {cleanedServices && (
-                          <div className={`${(cleanedAbout || cleanedEquipment) ? 'pt-4 border-t border-gray-200' : ''}`}>
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">Services Offered</h3>
-                            <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words">
-                              {cleanedServices}
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
+            {/* Description and Info Cards - Desktop: separate boxes like right column */}
+            {(() => {
+              const cleanedAbout = cleanDescription(profile?.about || profile?.short_about || studio.description);
+              const cleanedEquipment = profile?.equipment_list ? cleanDescription(profile.equipment_list) : '';
+              const cleanedServices = profile?.services_offered ? cleanDescription(profile.services_offered) : '';
+              const hasContent = cleanedAbout || cleanedEquipment || cleanedServices;
+              
+              if (!hasContent) return null;
+
+              return (
+                <div className="mb-6 w-full space-y-6">
+                  {/* Description Card */}
+                  {cleanedAbout && (
+                    <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3 w-full">
+                      <h3 className="text-base !text-black !font-bold mb-2 mt-0">Description</h3>
+                      <div className="prose prose-gray max-w-none w-full">
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words w-full">
+                          {cleanedAbout}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Equipment Card - separate box matching right column style */}
+                  {cleanedEquipment && (
+                    <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3 w-full">
+                      <h3 className="text-base !text-black !font-bold mb-2 mt-0">Equipment</h3>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words text-sm">
+                        {cleanedEquipment}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Services Offered Card - separate box matching right column style */}
+                  {cleanedServices && (
+                    <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3 w-full">
+                      <h3 className="text-base !text-black !font-bold mb-2 mt-0">Services Offered</h3>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words text-sm">
+                        {cleanedServices}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Reviews Section */}
             {studio.reviews.length > 0 && (
               <div className="mb-6 w-full">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3 w-full">Reviews</h2>
+                <h2 className="text-lg !text-black !font-bold mb-3 w-full">Reviews</h2>
                 <div className="space-y-4 w-full">
                   {studio.reviews.slice(0, 3).map((review) => (
                     <div key={review.id} className="border border-gray-200 rounded-lg p-4 w-full">
@@ -809,7 +816,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
 
               {/* Studio Details Card - Compact */}
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Studio Details</h3>
+                <h3 className="text-base !text-black !font-bold mb-2 mt-0">Studio Details</h3>
                 
                 <div className="space-y-2">
                   {/* Studio Types */}
@@ -905,7 +912,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
               {/* Rates Card */}
               {profile?.show_rates !== false && rates.length > 0 && (
                 <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Rates</h3>
+                  <h3 className="text-base !text-black !font-bold mb-2 mt-0">Rates</h3>
                   <div className="space-y-1">
                     {rates.map((rate, index) => (
                       <div key={index} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
@@ -950,7 +957,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
 
                 return allConnections.length > 0 ? (
                   <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-0">Connections</h3>
+                    <h3 className="text-base !text-black !font-bold mb-2 mt-0">Connections</h3>
                     <ul className="list-disc list-inside space-y-1">
                       {allConnections.map((connection) => (
                         <li key={connection.id} className="text-sm text-gray-700">

@@ -175,8 +175,8 @@ export function CompactHero({
           )}
         </div>
 
-        {/* Studio Info Card */}
-        <div className="px-4 py-4 border-b border-gray-200">
+        {/* Studio Info Card - minimal padding for tight spacing around title */}
+        <div className="px-4 py-1.5 border-b border-gray-200">
           <div className="flex items-start space-x-3">
             {/* Avatar */}
             <div className="flex-shrink-0">

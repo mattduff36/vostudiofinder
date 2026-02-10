@@ -45,6 +45,7 @@ export function AboutCollapsible({
       {/* About Description */}
       {description && (
         <div className="px-4 py-4 border-b border-gray-100">
+          <p className="text-xs !text-black !font-bold mb-2">Description</p>
           <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
             {description}
           </div>
@@ -54,12 +55,12 @@ export function AboutCollapsible({
       {/* Studio Types */}
       {studioTypes.length > 0 && (
         <div className="px-4 py-3 border-b border-gray-100">
-          <p className="text-xs text-gray-500 mb-2">Studio Type</p>
+          <p className="text-xs !text-black !font-bold mb-2">Studio Type</p>
           <div className="flex flex-wrap gap-2">
             {studioTypes.map((type, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#d42027]/10 text-[#d42027]"
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#d42027]/10 !text-[#d42027]"
               >
                 {formatStudioTypeLabel(type)}
               </span>
@@ -78,7 +79,7 @@ export function AboutCollapsible({
           >
             <div className="flex items-center space-x-2">
               <Wrench className="w-4 h-4 text-gray-500" aria-hidden="true" />
-              <p className="text-xs text-gray-500">Equipment</p>
+              <p className="text-xs !text-black !font-bold">Equipment</p>
             </div>
             {isEquipmentExpanded ? (
               <ChevronUp className="w-4 h-4 text-gray-400" aria-hidden="true" />
@@ -104,7 +105,7 @@ export function AboutCollapsible({
           >
             <div className="flex items-center space-x-2">
               <Briefcase className="w-4 h-4 text-gray-500" aria-hidden="true" />
-              <p className="text-xs text-gray-500">Services Offered</p>
+              <p className="text-xs !text-black !font-bold">Services Offered</p>
             </div>
             {isServicesExpanded ? (
               <ChevronUp className="w-4 h-4 text-gray-400" aria-hidden="true" />
