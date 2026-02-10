@@ -30,6 +30,7 @@ export function Navbar({ session }: NavbarProps) {
   const [isBrowseDropdownOpen, setIsBrowseDropdownOpen] = useState(false);
   const [browseDropdownTop, setBrowseDropdownTop] = useState<number | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [hasScrolledAtAll, setHasScrolledAtAll] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const desktopBurgerRef = useRef<HTMLDivElement>(null);
@@ -194,15 +195,32 @@ export function Navbar({ session }: NavbarProps) {
     };
   }, []);
 
-  // Auto-open dropdown on homepage when at top (not scrolled)
+  // Track any scroll at all (even 1 pixel) for dropdown visibility on homepage
   useEffect(() => {
-    if (pathname === '/' && !isScrolled && isMounted) {
+    if (pathname !== '/') {
+      setHasScrolledAtAll(false);
+      return;
+    }
+
+    const checkScroll = () => {
+      const scrollPos = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      setHasScrolledAtAll(scrollPos > 0);
+    };
+
+    checkScroll();
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    return () => window.removeEventListener('scroll', checkScroll);
+  }, [pathname]);
+
+  // Auto-open dropdown on homepage when at top (not scrolled at all)
+  useEffect(() => {
+    if (pathname === '/' && !hasScrolledAtAll && isMounted) {
       setIsBrowseDropdownOpen(true);
-    } else if (pathname !== '/' || isScrolled) {
-      // Close dropdown when navigating away or scrolling down
+    } else if (pathname !== '/' || hasScrolledAtAll) {
+      // Close dropdown when navigating away or scrolling at all
       setIsBrowseDropdownOpen(false);
     }
-  }, [pathname, isScrolled, isMounted]);
+  }, [pathname, hasScrolledAtAll, isMounted]);
 
   // Keep dropdown positioned under navbar (portal-mounted)
   useEffect(() => {
@@ -295,8 +313,8 @@ export function Navbar({ session }: NavbarProps) {
   };
 
   const closeBrowseDropdownDelayed = () => {
-    // On homepage at the top (not scrolled), keep dropdown always visible - don't close it
-    if (pathname === '/' && !isScrolled) {
+    // On homepage at the top (not scrolled at all), keep dropdown visible - don't close it
+    if (pathname === '/' && !hasScrolledAtAll) {
       return;
     }
     
@@ -305,8 +323,8 @@ export function Navbar({ session }: NavbarProps) {
       closeTimerRef.current = null;
     }
     
-    // On homepage when scrolled, close immediately (no delay)
-    if (pathname === '/' && isScrolled) {
+    // On homepage when scrolled (even 1 pixel), close immediately (no delay)
+    if (pathname === '/' && hasScrolledAtAll) {
       setIsBrowseDropdownOpen(false);
       return;
     }
