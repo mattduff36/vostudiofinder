@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
+import { useSession } from 'next-auth/react';
 import { Save, Eye, EyeOff, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, Settings, Copy, Sparkles, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
@@ -168,6 +169,8 @@ const CONNECTION_TYPES = [
 
 export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditFormProps>(
   function ProfileEditForm({ userId, mode = 'page', onSaveSuccess, dataSource = 'user', adminStudioId, isAdminUI = false, disableSandboxOverrides = false }, ref) {
+  const { data: session } = useSession();
+  const isSessionAdmin = session?.user?.role === 'ADMIN';
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -825,7 +828,6 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     setProfile(prev => {
       if (!prev) return null;
       const types = prev.studio_types || [];
-      const isAdmin = prev.user?.role === 'ADMIN';
 
       // If unchecking, always allow
       if (types.includes(type)) {
@@ -833,7 +835,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       }
 
       // Admin bypass: ADMIN users can combine VOICEOVER with any other types
-      if (isAdmin) {
+      if (isSessionAdmin) {
         return { ...prev, studio_types: [...types, type] };
       }
 
@@ -868,7 +870,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       // Normal case: add the type
       return { ...prev, studio_types: [...types, type] };
     });
-  }, []);
+  }, [isSessionAdmin]);
 
   if (loading) {
     return (
@@ -996,12 +998,11 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
 
                     // Check exclusivity: if VOICEOVER is selected, disable all non-exclusive types (and vice versa)
                     // Exception: ADMIN users can combine VOICEOVER with other types
-                    const isAdmin = profile?.user?.role === 'ADMIN';
                     const hasExclusiveSelected = profile.studio_types.some(t => {
                       const cfg = STUDIO_TYPES.find(st => st.value === t);
                       return cfg?.exclusive === true;
                     });
-                    const exclusivityBlocked = !isAdmin && !type.exclusive && hasExclusiveSelected && !profile.studio_types.includes(type.value);
+                    const exclusivityBlocked = !isSessionAdmin && !type.exclusive && hasExclusiveSelected && !profile.studio_types.includes(type.value);
 
                     const isDisabled = type.disabled || tierExcluded || maxReached || exclusivityBlocked;
                     
