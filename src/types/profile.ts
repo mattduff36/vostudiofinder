@@ -33,6 +33,8 @@ export interface UserProfile {
   instagram_url?: string;
   youtube_url?: string;
   soundcloud_url?: string;
+  vimeo_url?: string;
+  bluesky_url?: string;
   tiktok_url?: string;
   threads_url?: string;
   connection1?: string;
@@ -116,6 +118,8 @@ export interface ProfileCompletionData {
   instagram_url?: string;
   youtube_url?: string;
   soundcloud_url?: string;
+  vimeo_url?: string;
+  bluesky_url?: string;
   connection1?: string;
   connection2?: string;
   connection3?: string;

@@ -109,6 +109,8 @@ export type UserProfile = {
   threads_url?: string | null;
   youtube_url?: string | null;
   soundcloud_url?: string | null;
+  vimeo_url?: string | null;
+  bluesky_url?: string | null;
   created_at: Date;
   updated_at: Date;
 };
