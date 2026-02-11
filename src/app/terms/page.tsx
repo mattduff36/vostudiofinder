@@ -29,7 +29,7 @@ export default function TermsPage() {
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-16 flex-1">
         <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-8 md:p-12">
           <div className="prose prose-gray max-w-none">
-            <p className="text-sm text-gray-500 mb-8">Last updated: 23 November 2025</p>
+            <p className="text-sm text-gray-500 mb-8">Last updated: 11 February 2026</p>
             
             <p className="text-lg text-gray-700 mb-6">
               Welcome to Voiceover Studio Finder ("we", "us", "our").
@@ -132,26 +132,51 @@ export default function TermsPage() {
 
             <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">4. User-Generated Content</h2>
             
-            <p className="mb-4">Studio owners upload their own:</p>
+            <p className="mb-4">Studio owners upload their own content, including but not limited to:</p>
             
             <ul className="list-disc pl-6 mb-6 space-y-2">
-              <li>text</li>
-              <li>images</li>
-              <li>rates</li>
+              <li>text and descriptions</li>
+              <li>photographs and images</li>
+              <li>rates and pricing</li>
               <li>contact details</li>
-              <li>studio information</li>
+              <li>studio information and metadata</li>
             </ul>
             
-            <p className="mb-4">By doing so, you confirm that you:</p>
+            <p className="mb-4">By uploading content to Voiceover Studio Finder, you confirm and agree that:</p>
             
             <ul className="list-disc pl-6 mb-6 space-y-2">
-              <li>own or have permission to use the content</li>
-              <li>grant us permission to display it</li>
-              <li>will not upload unlawful, harmful or infringing material</li>
+              <li>you own the content or have obtained all necessary permissions, licences or consents from the rights holder(s) to use and upload it</li>
+              <li>you grant Voiceover Studio Finder a non-exclusive, worldwide, royalty-free licence to host, display, reproduce and distribute the content for the purposes of operating and promoting the platform</li>
+              <li>you will not upload any content that infringes copyright, trademarks, privacy rights or any other intellectual property or legal rights of any third party</li>
+              <li>you are solely responsible for any claims, damages or liability arising from content you upload, including any infringement of third-party rights</li>
             </ul>
             
             <p className="mb-6">
-              We reserve the right to edit or remove any content that breaches our guidelines.
+              We reserve the right to edit, remove or disable access to any content at any time, without prior notice, if we receive a complaint or reasonably suspect a breach of these terms or applicable law.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-4">Copyright complaints / takedown requests</h3>
+            
+            <p className="mb-4">
+              If you believe that content on Voiceover Studio Finder infringes your copyright or other intellectual property rights, please contact us at:
+            </p>
+            
+            <p className="mb-4">
+              <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#d42027] hover:text-[#b91c23] font-semibold">
+                support@voiceoverstudiofinder.com
+              </a>
+            </p>
+            
+            <p className="mb-4">Please include the following information in your request:</p>
+            
+            <ul className="list-disc pl-6 mb-6 space-y-2">
+              <li>the URL(s) of the content you believe is infringing</li>
+              <li>proof of your ownership or right to act on behalf of the rights holder</li>
+              <li>a clear description of the rights you believe have been infringed and the action you are requesting</li>
+            </ul>
+            
+            <p className="mb-6">
+              We will review all valid complaints and take appropriate action, which may include removing the content in question.
             </p>
 
             <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">5. Platform Availability</h2>

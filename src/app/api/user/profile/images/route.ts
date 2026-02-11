@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { uploadImage } from '@/lib/cloudinary';
+import { IMAGE_RIGHTS_CONFIRMATION_TEXT, extractClientIp } from '@/lib/legal/image-rights';
 
 /**
  * POST /api/user/profile/images
@@ -11,6 +12,7 @@ import { uploadImage } from '@/lib/cloudinary';
  * Expects multipart/form-data with:
  * - file: Image file (required)
  * - alt_text: Alt text for accessibility (optional)
+ * - image_rights_confirmed: "true" (required) — user must confirm they have rights
  */
 export async function POST(request: NextRequest) {
   // Declared outside try so the catch block can clean up on failure
@@ -68,6 +70,18 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const alt_text = formData.get('alt_text') as string;
+    const imageRightsConfirmed = formData.get('image_rights_confirmed') as string;
+
+    // Enforce image rights confirmation before allowing upload
+    if (imageRightsConfirmed !== 'true') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Please confirm you own the rights to these images (or have permission to use them) before uploading.',
+        },
+        { status: 400 }
+      );
+    }
 
     if (!file) {
       return NextResponse.json(
@@ -92,6 +106,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Extract client IP for the confirmation audit record (best-effort)
+    const clientIp = extractClientIp(request.headers);
+
     // Upload to Cloudinary first (optimistic — outside the lock so we don't
     // hold a row lock during a slow external call).
     const arrayBuffer = await file.arrayBuffer();
@@ -108,6 +125,7 @@ export async function POST(request: NextRequest) {
 
     // Authoritative count + insert inside a transaction with a row lock so
     // concurrent uploads can't both slip past the tier limit.
+    // Also persists the image-rights confirmation audit record.
     const { randomBytes } = await import('crypto');
     const imageId = randomBytes(12).toString('hex');
 
@@ -121,6 +139,17 @@ export async function POST(request: NextRequest) {
       if (imageCount >= tierLimits.imagesMax) {
         throw new Error('IMAGE_LIMIT_REACHED');
       }
+
+      // Persist image-rights confirmation alongside the upload
+      await tx.studio_profiles.update({
+        where: { id: studio.id },
+        data: {
+          image_rights_confirmed_at: new Date(),
+          image_rights_confirmed_text: IMAGE_RIGHTS_CONFIRMATION_TEXT,
+          image_rights_confirmed_ip: clientIp,
+          updated_at: new Date(),
+        },
+      });
 
       return tx.studio_images.create({
         data: {

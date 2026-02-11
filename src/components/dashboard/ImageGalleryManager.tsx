@@ -6,11 +6,13 @@ import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon, ChevronUp, ChevronD
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { ImageCropperModal } from '@/components/images/ImageCropperModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats, type CompletionStats } from '@/lib/utils/profile-completion';
 import { showConfirm } from '@/components/ui/ConfirmDialog';
 import { showSuccess } from '@/lib/toast';
+import { IMAGE_RIGHTS_CONFIRMATION_TEXT } from '@/lib/legal/image-rights';
 
 interface StudioImage {
   id: string;
@@ -44,6 +46,10 @@ export function ImageGalleryManager({
   // Cropper state
   const [fileToCrop, setFileToCrop] = useState<File | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  
+  // Image rights confirmation state (required before every upload)
+  const [imageRightsConfirmed, setImageRightsConfirmed] = useState(false);
+  const [imageRightsError, setImageRightsError] = useState<string | null>(null);
   
   // Profile data for completion calculation
   const [profileData, setProfileData] = useState<any>(null);
@@ -106,6 +112,13 @@ export function ImageGalleryManager({
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
+    // Require image rights confirmation before any upload
+    if (!imageRightsConfirmed) {
+      setImageRightsError('You must confirm you have the rights to upload images before proceeding.');
+      return;
+    }
+    setImageRightsError(null);
+
     const file = files[0];
     if (!file) return;
     
@@ -156,6 +169,7 @@ export function ImageGalleryManager({
 
       const formData = new FormData();
       formData.append('file', croppedFile);
+      formData.append('image_rights_confirmed', 'true');
 
       const endpoint = isAdminMode && studioId
         ? `/api/admin/studios/${studioId}/images`
@@ -203,6 +217,10 @@ export function ImageGalleryManager({
       // Reset cropper state
       setFileToCrop(null);
       
+      // Reset image rights checkbox (require confirmation per upload)
+      setImageRightsConfirmed(false);
+      setImageRightsError(null);
+      
       // Notify parent component with updated images (without triggering full refetch)
       if (onImagesChanged) {
         onImagesChanged(updatedImages);
@@ -229,12 +247,6 @@ export function ImageGalleryManager({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleFileSelect(e.dataTransfer.files);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -463,12 +475,28 @@ export function ImageGalleryManager({
           </div>
         ) : (
           <div
-            onDrop={handleDrop}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!imageRightsConfirmed) {
+                setImageRightsError('You must confirm you have the rights to upload images before proceeding.');
+                return;
+              }
+              setImageRightsError(null);
+              handleFileSelect(e.dataTransfer.files);
+            }}
             onDragOver={handleDragOver}
             className={`border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-red-500 transition-colors cursor-pointer ${
               isAdminMode ? 'p-4' : 'p-6 md:p-8'
             }`}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => {
+              if (!imageRightsConfirmed) {
+                setImageRightsError('You must confirm you have the rights to upload images before proceeding.');
+                return;
+              }
+              setImageRightsError(null);
+              fileInputRef.current?.click();
+            }}
           >
             <input
               ref={fileInputRef}
@@ -494,6 +522,24 @@ export function ImageGalleryManager({
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Image rights helper text + confirmation checkbox */}
+        {images.length < maxImages && (
+          <div className="mt-3 space-y-2">
+            <p className="text-xs text-gray-500">
+              Please only upload images you own or have permission to use. Do not upload copyrighted material without rights.
+            </p>
+            <Checkbox
+              checked={imageRightsConfirmed}
+              onChange={(e) => {
+                setImageRightsConfirmed(e.target.checked);
+                if (e.target.checked) setImageRightsError(null);
+              }}
+              label={IMAGE_RIGHTS_CONFIRMATION_TEXT}
+              {...(imageRightsError ? { error: imageRightsError } : {})}
+            />
           </div>
         )}
       </div>

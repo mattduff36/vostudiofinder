@@ -328,6 +328,11 @@ model studio_profiles {
   verification_level      String                  @default("none")
   use_coordinates_for_map Boolean                 @default(false)
   
+  // Image rights confirmation (legal record)
+  image_rights_confirmed_at   DateTime?
+  image_rights_confirmed_text String?
+  image_rights_confirmed_ip   String?              @db.VarChar(45)
+  
   // Timestamps
   created_at              DateTime                @default(now())
   updated_at              DateTime
