@@ -52,6 +52,7 @@ export interface AdminProfileResponse {
       linkedin?: string;
       soundcloud?: string;
       vimeo?: string;
+      bluesky?: string;
       verified?: string;
       featured?: string;
       featured_expires_at?: string | null;
@@ -113,6 +114,8 @@ export interface ProfileData {
     tiktok_url?: string;
     threads_url?: string;
     soundcloud_url?: string;
+    vimeo_url?: string;
+    bluesky_url?: string;
     connection1?: string;
     connection2?: string;
     connection3?: string;
@@ -221,6 +224,8 @@ export function adminProfileToProfileData(response: AdminProfileResponse): Profi
       tiktok_url: meta.tiktok || '',
       threads_url: meta.threads || '',
       soundcloud_url: meta.soundcloud || '',
+      vimeo_url: meta.vimeo || '',
+      bluesky_url: meta.bluesky || '',
       connection1: meta.connection1 === '1' ? '1' : '0',
       connection2: meta.connection2 === '1' ? '1' : '0',
       connection3: meta.connection3 === '1' ? '1' : '0',
@@ -313,6 +318,8 @@ export function profileDataToAdminPayload(data: ProfileData): any {
       tiktok: data.profile.tiktok_url || '',
       threads: data.profile.threads_url || '',
       soundcloud: data.profile.soundcloud_url || '',
+      vimeo: data.profile.vimeo_url || '',
+      bluesky: data.profile.bluesky_url || '',
       connection1: data.profile.connection1 || '0',
       connection2: data.profile.connection2 || '0',
       connection3: data.profile.connection3 || '0',

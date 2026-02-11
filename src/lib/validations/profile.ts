@@ -110,10 +110,12 @@ export const userProfileUpdateSchema = z.object({
   instagram_url: urlSchema,
   youtube_url: urlSchema,
   soundcloud_url: urlSchema,
+  vimeo_url: urlSchema,
+  bluesky_url: urlSchema,
   
   // Connection methods
   connection1: connectionSchema, // Source Connect
-  connection2: connectionSchema, // Source Connect Now
+  connection2: connectionSchema, // Source Connect Nexus
   connection3: connectionSchema, // ipDTL
   connection4: connectionSchema, // Session Link Pro
   connection5: connectionSchema, // Clean Feed

@@ -83,6 +83,8 @@ export function buildProfileUpdate(
   if (body._meta?.tiktok !== undefined) profileUpdateData.tiktok_url = body._meta.tiktok;
   if (body._meta?.threads !== undefined) profileUpdateData.threads_url = body._meta.threads;
   if (body._meta?.soundcloud !== undefined) profileUpdateData.soundcloud_url = body._meta.soundcloud;
+  if (body._meta?.vimeo !== undefined) profileUpdateData.vimeo_url = body._meta.vimeo;
+  if (body._meta?.bluesky !== undefined) profileUpdateData.bluesky_url = body._meta.bluesky;
   
   // Featured status
   if (body._meta?.featured !== undefined) {

@@ -447,6 +447,8 @@ export async function GET() {
           threads_url: studioProfile.threads_url,
           youtube_url: studioProfile.youtube_url,
           soundcloud_url: studioProfile.soundcloud_url,
+          vimeo_url: studioProfile.vimeo_url,
+          bluesky_url: studioProfile.bluesky_url,
           // Connections
           connection1: studioProfile.connection1,
           connection2: studioProfile.connection2,
@@ -664,6 +666,7 @@ export async function PUT(request: NextRequest) {
         'facebook_url', 'x_url', 'linkedin_url',
         'instagram_url', 'tiktok_url', 'threads_url',
         'youtube_url', 'soundcloud_url',
+        'vimeo_url', 'bluesky_url',
       ] as const;
 
       const connectionFields = [
@@ -692,6 +695,7 @@ export async function PUT(request: NextRequest) {
           facebook_url: true, x_url: true, linkedin_url: true,
           instagram_url: true, tiktok_url: true, threads_url: true,
           youtube_url: true, soundcloud_url: true,
+          vimeo_url: true, bluesky_url: true,
           connection1: true, connection2: true, connection3: true, connection4: true,
           connection5: true, connection6: true, connection7: true, connection8: true,
           connection9: true, connection10: true, connection11: true, connection12: true,
@@ -741,6 +745,8 @@ export async function PUT(request: NextRequest) {
         if (updates.threads_url !== undefined) profileUpdates.threads_url = updates.threads_url;
         if (updates.youtube_url !== undefined) profileUpdates.youtube_url = updates.youtube_url;
         if (updates.soundcloud_url !== undefined) profileUpdates.soundcloud_url = updates.soundcloud_url;
+        if (updates.vimeo_url !== undefined) profileUpdates.vimeo_url = updates.vimeo_url;
+        if (updates.bluesky_url !== undefined) profileUpdates.bluesky_url = updates.bluesky_url;
       }
       
       // Connections - enforce tier limit against TOTAL enabled count (existing + new)

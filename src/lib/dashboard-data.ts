@@ -83,6 +83,8 @@ export async function loadDashboardData(userId: string) {
             instagram_url: studioProfile.instagram_url ?? '',
             youtube_url: studioProfile.youtube_url ?? '',
             soundcloud_url: studioProfile.soundcloud_url ?? '',
+            vimeo_url: studioProfile.vimeo_url ?? '',
+            bluesky_url: studioProfile.bluesky_url ?? '',
             tiktok_url: studioProfile.tiktok_url ?? '',
             threads_url: studioProfile.threads_url ?? '',
             connection1: studioProfile.connection1 ?? '',

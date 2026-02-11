@@ -51,6 +51,7 @@ export interface AdminStudioUpdateInput {
     threads?: string;
     soundcloud?: string;
     vimeo?: string;
+    bluesky?: string;
     
     // Status flags
     verified?: string | boolean | number;

@@ -40,6 +40,8 @@ interface ProfileCompletionData {
     tiktok_url?: string | null | undefined;
     threads_url?: string | null | undefined;
     soundcloud_url?: string | null | undefined;
+    vimeo_url?: string | null | undefined;
+    bluesky_url?: string | null | undefined;
   } | undefined;
   studio?: {
     name?: string | null | undefined;
@@ -70,6 +72,8 @@ export function calculateCompletionStats(data: ProfileCompletionData): Completio
     data.profile?.tiktok_url,
     data.profile?.threads_url,
     data.profile?.soundcloud_url,
+    data.profile?.vimeo_url,
+    data.profile?.bluesky_url,
   ].filter(url => url && url.trim() !== '').length;
 
   // Check if at least one connection method is selected

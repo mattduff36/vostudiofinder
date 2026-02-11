@@ -34,19 +34,11 @@ export async function POST(request: NextRequest) {
       orderBy: { created_at: 'desc' },
     });
 
-    // Validate subscription exists (even if expired)
-    if (!subscription) {
-      return NextResponse.json(
-        { error: 'No membership found. Please contact support.' },
-        { status: 400 }
-      );
-    }
-
-    // Calculate days remaining (may be negative if expired)
+    // Calculate days remaining (may be negative if expired, or 0 if no subscription)
     let daysRemaining = 0;
     let currentExpiry: string | null = null;
     
-    if (subscription.current_period_end) {
+    if (subscription?.current_period_end) {
       daysRemaining = calculateDaysUntilExpiry(subscription.current_period_end);
       currentExpiry = subscription.current_period_end.toISOString();
     }

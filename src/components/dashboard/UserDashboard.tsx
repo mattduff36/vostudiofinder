@@ -191,6 +191,8 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
         tiktok_url: profileData.profile?.tiktok_url || null,
         threads_url: profileData.profile?.threads_url || null,
         soundcloud_url: profileData.profile?.soundcloud_url || null,
+        vimeo_url: profileData.profile?.vimeo_url || null,
+        bluesky_url: profileData.profile?.bluesky_url || null,
       },
       studio: {
         name: profileData.studio?.name || null,
@@ -545,6 +547,8 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                       tiktok_url: profileData.profile?.tiktok_url,
                       threads_url: profileData.profile?.threads_url,
                       soundcloud_url: profileData.profile?.soundcloud_url,
+                      vimeo_url: profileData.profile?.vimeo_url,
+                      bluesky_url: profileData.profile?.bluesky_url,
                       connection1: profileData.profile?.connection1,
                       connection2: profileData.profile?.connection2,
                       connection3: profileData.profile?.connection3,

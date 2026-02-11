@@ -23,7 +23,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           {(label || description) && (
             <div className="ml-3 flex-1">
               {label && (
-                <span className="text-sm font-medium text-gray-700 block">
+                <span className="text-sm font-medium text-text-primary block">
                   {label}
                 </span>
               )}

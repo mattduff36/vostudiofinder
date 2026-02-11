@@ -22,6 +22,8 @@ interface ProfileCompletionProgressProps {
     tiktok_url?: string | undefined;
     threads_url?: string | undefined;
     soundcloud_url?: string | undefined;
+    vimeo_url?: string | undefined;
+    bluesky_url?: string | undefined;
     connection1?: string | undefined;
     connection2?: string | undefined;
     connection3?: string | undefined;
@@ -100,6 +102,8 @@ export function ProfileCompletionProgress({
         tiktok_url: profileData.tiktok_url || null,
         threads_url: profileData.threads_url || null,
         soundcloud_url: profileData.soundcloud_url || null,
+        vimeo_url: profileData.vimeo_url || null,
+        bluesky_url: profileData.bluesky_url || null,
       },
       studio: {
         name: profileData.studio_name || null,
@@ -122,6 +126,8 @@ export function ProfileCompletionProgress({
     profileData.tiktok_url,
     profileData.threads_url,
     profileData.soundcloud_url,
+    profileData.vimeo_url,
+    profileData.bluesky_url,
   ].filter(url => url && url.trim() !== '').length, [
     profileData.facebook_url,
     profileData.x_url,
@@ -131,6 +137,8 @@ export function ProfileCompletionProgress({
     profileData.tiktok_url,
     profileData.threads_url,
     profileData.soundcloud_url,
+    profileData.vimeo_url,
+    profileData.bluesky_url,
   ]);
 
   // Check if at least one connection method is selected

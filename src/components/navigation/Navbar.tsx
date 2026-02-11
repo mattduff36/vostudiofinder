@@ -395,181 +395,188 @@ export function Navbar({ session }: NavbarProps) {
       } : undefined}
     >
       <div ref={navContainerRef} className="max-w-7xl mx-auto px-6 py-4 w-full">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link 
-            href="/" 
-            onClick={handleLogoClick}
-            className="relative cursor-pointer flex-shrink-0"
-          >
-            <div className={`relative transition-all duration-200 ${
-              isLogoLoading ? 'md:scale-100 scale-95' : 'scale-100'
-            }`}>
-              <Image
-                src={isScrolled || !isHomePage 
-                  ? "/images/voiceover-studio-finder-logo-black-BIG 1.png" 
-                  : "/images/voiceover-studio-finder-logo-WHITE-BIG 1.png"
-                }
-                alt={SITE_NAME}
-                width={384}
-                height={60}
-                priority
-                className={`transition-all duration-300 hover:opacity-80 w-[234px] sm:w-[286px] md:w-[364px] h-auto ${
-                  isLogoLoading ? 'md:opacity-100 opacity-60' : 'opacity-100'
-                }`}
-              />
-            </div>
-          </Link>
-          
-          {/* Desktop Navigation - Flex centered - Hidden on tablet, shown on desktop */}
-          <div className="hidden lg:flex items-center space-x-8 flex-1 justify-center">
-            {/* Browse Studios with dropdown */}
-            <div
-              ref={browseDropdownRef}
-              className="relative"
-              onMouseEnter={() => {
-                cancelCloseTimer();
-                openBrowseDropdown();
-              }}
-              onMouseLeave={closeBrowseDropdownDelayed}
+        <div className="grid items-center w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+          {/* Left: Logo */}
+          <div className="justify-self-start min-w-0">
+            <Link 
+              href="/" 
+              onClick={handleLogoClick}
+              className="relative cursor-pointer flex-shrink-0"
             >
-              {/* Trigger: Link + Chevron button */}
-              <div className="flex items-center gap-1">
-                <Link 
-                  href="/studios" 
-                  onClick={() => setIsBrowseDropdownOpen(false)}
-                  className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
-                  style={{ 
-                    color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-                  }}
-                >
-                  Browse Studios
-                </Link>
-                <button
-                  type="button"
-                  onClick={toggleBrowseDropdown}
-                  className="p-0.5 rounded transition-colors"
-                  style={{
-                    color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-                  }}
-                  aria-label="Toggle studio categories"
-                  aria-expanded={isBrowseDropdownOpen}
-                >
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isBrowseDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
+              <div className={`relative transition-all duration-200 ${
+                isLogoLoading ? 'md:scale-100 scale-95' : 'scale-100'
+              }`}>
+                <Image
+                  src={isScrolled || !isHomePage 
+                    ? "/images/voiceover-studio-finder-logo-black-BIG 1.png" 
+                    : "/images/voiceover-studio-finder-logo-WHITE-BIG 1.png"
+                  }
+                  alt={SITE_NAME}
+                  width={384}
+                  height={60}
+                  priority
+                  className={`transition-all duration-300 hover:opacity-80 w-[234px] sm:w-[286px] md:w-[364px] h-auto ${
+                    isLogoLoading ? 'md:opacity-100 opacity-60' : 'opacity-100'
+                  }`}
+                />
+              </div>
+            </Link>
+          </div>
+
+          {/* Center: Browse Studios (true center via symmetric grid tracks) */}
+          <div className="justify-self-center">
+            <div className="hidden lg:flex items-center space-x-8">
+              {/* Browse Studios with dropdown */}
+              <div
+                ref={browseDropdownRef}
+                className="relative"
+                onMouseEnter={() => {
+                  cancelCloseTimer();
+                  openBrowseDropdown();
+                }}
+                onMouseLeave={closeBrowseDropdownDelayed}
+              >
+                {/* Trigger: Link + Chevron button */}
+                <div className="flex items-center gap-1">
+                  <Link 
+                    href="/studios" 
+                    onClick={() => setIsBrowseDropdownOpen(false)}
+                    className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
+                    style={{ 
+                      color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+                    }}
+                  >
+                    Browse Studios
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={toggleBrowseDropdown}
+                    className="p-0.5 rounded transition-colors"
+                    style={{
+                      color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+                    }}
+                    aria-label="Toggle studio categories"
+                    aria-expanded={isBrowseDropdownOpen}
+                  >
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isBrowseDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-          
-          {/* Tablet/Desktop Burger Menu for Public Users - Only shown when NOT logged in */}
-          {!session && (
-            <div className="hidden md:flex lg:hidden">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`flex items-center justify-center p-2 rounded-lg border-2 transition-all duration-300 aspect-square w-10 h-10 ${
-                  isScrolled || !isHomePage
-                    ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white'
-                    : 'text-white border-white hover:bg-white hover:text-primary-800'
-                }`}
-                aria-label="Menu"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-            </div>
-          )}
 
-          {/* Desktop Auth Buttons */}
-          <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
-            {session ? (
-              <>
-                <span className={`text-sm ${
-                  isScrolled || !isHomePage ? 'text-gray-600' : 'text-white'
-                }`}>
-                  Welcome, {session.user.display_name}
-                </span>
+          {/* Right: User section */}
+          <div className="justify-self-end flex items-center min-w-0">
+            {/* Tablet/Desktop Burger Menu for Public Users - Only shown when NOT logged in */}
+            {!session && (
+              <div className="hidden md:flex lg:hidden">
                 <button
-                  ref={desktopBurgerBtnRef}
-                  onClick={() => setIsDesktopBurgerOpen(!isDesktopBurgerOpen)}
-                  className="flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className={`flex items-center justify-center p-2 rounded-lg border-2 transition-all duration-300 aspect-square w-10 h-10 ${
+                    isScrolled || !isHomePage
+                      ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white'
+                      : 'text-white border-white hover:bg-white hover:text-primary-800'
+                  }`}
                   aria-label="Menu"
                 >
-                  {isDesktopBurgerOpen ? (
-                    <X className="w-5 h-5" />
-                  ) : (
-                    <Menu className="w-5 h-5" />
-                  )}
+                  <Menu className="w-5 h-5" />
                 </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => router.push('/auth/signin')}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
-                  style={{
-                    color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff',
-                    backgroundColor: 'transparent'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = isScrolled || !isHomePage ? '#f3f4f6' : 'rgba(255, 255, 255, 0.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => router.push('/auth/signup')}
-                  className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-300 border ${
-                    isScrolled || !isHomePage 
-                      ? 'text-white border-transparent hover:opacity-90' 
-                      : 'text-white border-white bg-transparent hover:bg-white hover:text-red-600'
-                  }`}
-                  style={isScrolled || !isHomePage ? {
-                    backgroundColor: colors.primary
-                  } : undefined}
-                >
-                  List Your Studio
-                  <FreeBadge small />
-                </button>
-              </>
+              </div>
             )}
-          </div>
 
-          {/* Tablet Burger Menu for Logged-In Users */}
-          {session && (
-            <div className="hidden md:flex lg:hidden">
-              <DashboardDropdownMenu
-              username={session.user.username || ''}
-              isScrolled={isScrolled}
-              isHomePage={isHomePage}
-              session={session}
-              isAdminUser={session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN'}
-              includeSiteLinks={true}
-            />
+            {/* Desktop Auth Buttons */}
+            <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
+              {session ? (
+                <>
+                  <span className={`text-sm ${
+                    isScrolled || !isHomePage ? 'text-gray-600' : 'text-white'
+                  }`}>
+                    Welcome, {session.user.display_name}
+                  </span>
+                  <button
+                    ref={desktopBurgerBtnRef}
+                    onClick={() => setIsDesktopBurgerOpen(!isDesktopBurgerOpen)}
+                    className="flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10"
+                    aria-label="Menu"
+                  >
+                    {isDesktopBurgerOpen ? (
+                      <X className="w-5 h-5" />
+                    ) : (
+                      <Menu className="w-5 h-5" />
+                    )}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => router.push('/auth/signin')}
+                    className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                    style={{
+                      color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff',
+                      backgroundColor: 'transparent'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = isScrolled || !isHomePage ? '#f3f4f6' : 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => router.push('/auth/signup')}
+                    className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-300 border ${
+                      isScrolled || !isHomePage 
+                        ? 'text-white border-transparent hover:opacity-90' 
+                        : 'text-white border-white bg-transparent hover:bg-white hover:text-red-600'
+                    }`}
+                    style={isScrolled || !isHomePage ? {
+                      backgroundColor: colors.primary
+                    } : undefined}
+                  >
+                    List Your Studio
+                    <FreeBadge small />
+                  </button>
+                </>
+              )}
             </div>
-          )}
 
-          {/* Mobile Burger Menu Button - styled like desktop, sits in navbar */}
-          <button
-            onClick={() => window.dispatchEvent(new Event('toggleMobileBurgerMenu'))}
-            className="md:hidden flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10 mobile-burger-btn"
-            aria-label="Toggle menu"
-          >
-            <Menu className="w-5 h-5 mobile-burger-icon" />
-          </button>
+            {/* Tablet Burger Menu for Logged-In Users */}
+            {session && (
+              <div className="hidden md:flex lg:hidden">
+                <DashboardDropdownMenu
+                  username={session.user.username || ''}
+                  isScrolled={isScrolled}
+                  isHomePage={isHomePage}
+                  session={session}
+                  isAdminUser={session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy' || session?.user?.role === 'ADMIN'}
+                  includeSiteLinks={true}
+                />
+              </div>
+            )}
+
+            {/* Mobile Burger Menu Button - styled like desktop, sits in navbar */}
+            <button
+              onClick={() => window.dispatchEvent(new Event('toggleMobileBurgerMenu'))}
+              className="md:hidden flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10 mobile-burger-btn"
+              aria-label="Toggle menu"
+            >
+              <Menu className="w-5 h-5 mobile-burger-icon" />
+            </button>
+          </div>
         </div>
       </div>
     </nav>
@@ -609,7 +616,7 @@ export function Navbar({ session }: NavbarProps) {
             <CategoryFilterBar
               variant="compact"
               tone={isScrolled || !isHomePage ? 'light' : 'dark'}
-              labelMode="short"
+              labelMode={pathname === '/' && !isScrolled ? 'full' : 'short'}
               imageScale={pathname === '/' && !isScrolled ? 2 : 1}
             />
           </div>

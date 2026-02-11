@@ -200,6 +200,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
         location: true, website_url: true, equipment_list: true, services_offered: true,
         facebook_url: true, x_url: true, linkedin_url: true, instagram_url: true,
         youtube_url: true, tiktok_url: true, threads_url: true, soundcloud_url: true,
+        vimeo_url: true, bluesky_url: true,
         connection1: true, connection2: true, connection3: true, connection4: true,
         connection5: true, connection6: true, connection7: true, connection8: true,
         connection9: true, connection10: true, connection11: true, connection12: true,
@@ -232,6 +233,8 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
         tiktok_url: basicStudioProfile.tiktok_url,
         threads_url: basicStudioProfile.threads_url,
         soundcloud_url: basicStudioProfile.soundcloud_url,
+        vimeo_url: basicStudioProfile.vimeo_url,
+        bluesky_url: basicStudioProfile.bluesky_url,
         connection1: basicStudioProfile.connection1,
         connection2: basicStudioProfile.connection2,
         connection3: basicStudioProfile.connection3,
@@ -268,6 +271,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       basicStudioProfile?.linkedin_url, basicStudioProfile?.instagram_url,
       basicStudioProfile?.youtube_url, basicStudioProfile?.tiktok_url,
       basicStudioProfile?.threads_url, basicStudioProfile?.soundcloud_url,
+      basicStudioProfile?.vimeo_url, basicStudioProfile?.bluesky_url,
     ].filter(url => url && url.trim() !== '').length;
 
     const basicRequiredFields = [
@@ -664,6 +668,8 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       tiktok_url: true,
       threads_url: true,
       soundcloud_url: true,
+      vimeo_url: true,
+      bluesky_url: true,
       connection1: true,
       connection2: true,
       connection3: true,
@@ -714,6 +720,8 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       tiktok_url: studioProfile.tiktok_url,
       threads_url: studioProfile.threads_url,
       soundcloud_url: studioProfile.soundcloud_url,
+      vimeo_url: studioProfile.vimeo_url,
+      bluesky_url: studioProfile.bluesky_url,
       connection1: studioProfile.connection1,
       connection2: studioProfile.connection2,
       connection3: studioProfile.connection3,
@@ -764,6 +772,8 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     studioProfile?.tiktok_url,
     studioProfile?.threads_url,
     studioProfile?.soundcloud_url,
+    studioProfile?.vimeo_url,
+    studioProfile?.bluesky_url,
   ].filter(url => url && url.trim() !== '').length;
 
   // Map fields to completion status

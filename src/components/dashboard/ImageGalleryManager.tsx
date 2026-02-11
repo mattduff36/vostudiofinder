@@ -456,7 +456,7 @@ export function ImageGalleryManager({
               </p>
               <p className="text-xs text-gray-500">
                 {maxImages < 5
-                  ? <><a href="/auth/membership" className="text-red-600 hover:underline">Upgrade to Premium</a> for up to 5 images, or delete an image to upload a new one.</>
+                  ? <><a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline">Upgrade to Premium</a> for up to 5 images, or delete an image to upload a new one.</>
                   : 'Delete an image to upload a new one.'}
               </p>
             </div>

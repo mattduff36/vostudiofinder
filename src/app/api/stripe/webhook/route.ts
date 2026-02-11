@@ -735,13 +735,14 @@ async function handleMembershipRenewal(
     orderBy: { created_at: 'desc' },
   });
 
-  if (!subscription) {
-    console.error(`[ERROR] No subscription found for user ${userId} during renewal`);
+  // For early/standard renewals, subscription must exist
+  if (!subscription && renewalType !== '5year') {
+    console.error(`[ERROR] No subscription found for user ${userId} during ${renewalType} renewal`);
     throw new Error('No subscription found for renewal');
   }
 
   // Get current expiry (from metadata or database)
-  let currentExpiry = subscription.current_period_end;
+  let currentExpiry = subscription?.current_period_end ?? null;
   if (currentExpiryIso && currentExpiryIso !== 'none') {
     try {
       currentExpiry = new Date(currentExpiryIso);
@@ -777,15 +778,37 @@ async function handleMembershipRenewal(
     throw new Error(`Invalid renewal type: ${renewalType}`);
   }
 
-  // Update subscription with new expiry
-  await db.subscriptions.update({
-    where: { id: subscription.id },
-    data: {
-      current_period_end: newExpiry,
-      status: 'ACTIVE', // Ensure status is active (in case was expired)
-      updated_at: new Date(),
-    },
-  });
+  // Update or create subscription
+  const now = new Date();
+  if (subscription) {
+    // Update existing subscription with new expiry
+    await db.subscriptions.update({
+      where: { id: subscription.id },
+      data: {
+        current_period_end: newExpiry,
+        status: 'ACTIVE', // Ensure status is active (in case was expired)
+        updated_at: now,
+      },
+    });
+  } else {
+    // No subscription exists (Basic user upgrading via 5-year) — create one
+    console.log(`[INFO] Creating new subscription for Basic user ${userId} via 5-year purchase`);
+    const subscriptionId = randomBytes(12).toString('base64url');
+    await db.subscriptions.create({
+      data: {
+        id: subscriptionId,
+        user_id: userId,
+        stripe_subscription_id: null,
+        stripe_customer_id: null,
+        payment_method: 'STRIPE',
+        status: 'ACTIVE',
+        current_period_start: now,
+        current_period_end: newExpiry,
+        created_at: now,
+        updated_at: now,
+      },
+    });
+  }
 
   // Ensure user status is ACTIVE and tier is PREMIUM (in case was EXPIRED)
   await db.users.update({

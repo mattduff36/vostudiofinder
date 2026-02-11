@@ -117,6 +117,8 @@ export async function POST(_request: NextRequest) {
         tiktok_url: studio.tiktok_url,
         threads_url: studio.threads_url,
         soundcloud_url: studio.soundcloud_url,
+        vimeo_url: studio.vimeo_url,
+        bluesky_url: studio.bluesky_url,
       },
       studio: {
         name: studio.name,

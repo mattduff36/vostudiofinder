@@ -15,7 +15,10 @@ import {
   ChevronDown,
   ChevronUp,
   AlertTriangle,
-  ArrowLeft
+  ArrowLeft,
+  Check,
+  X,
+  Crown,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -570,98 +573,195 @@ export function Settings({ data }: SettingsProps) {
                   
                   return (
               <>
-                {/* Status Card */}
-                <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50">
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <CreditCard className="w-4 h-4 text-gray-600" />
-                        <h3 className="text-sm font-semibold text-gray-900">Membership Status</h3>
-                        {/* Tier Badge */}
-                        {effectiveTier === 'PREMIUM' ? (
+                {/* Basic users: signup-style side-by-side comparison cards */}
+                {effectiveTier !== 'PREMIUM' && (sandboxEnabled || profileData?.user?.role !== 'ADMIN') ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* BASIC (current plan) card */}
+                    <div className="border-2 border-gray-300 rounded-xl p-6 flex flex-col">
+                      <div className="text-center mb-4">
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">Basic</h3>
+                        <div className="text-3xl font-bold text-gray-900">Free</div>
+                        <p className="text-xs text-gray-600 mt-1">Your current plan</p>
+                      </div>
+
+                      <ul className="space-y-2.5 mb-6 flex-1 text-sm">
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-green-600 mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">A Professional studio listing</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-green-600 mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Studio images</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-green-600 mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">1 studio category</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-green-600 mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">3 connection methods</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-green-600 mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Social media links</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-green-600 mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Show Rates & Equipment</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-green-600 mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">1000 character description</span>
+                        </li>
+                        <li className="flex items-start">
+                          <X className="w-4 h-4 text-gray-400 mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-400">Voiceover artist listing</span>
+                        </li>
+                        <li className="flex items-start">
+                          <X className="w-4 h-4 text-gray-400 mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-400">Verified badge eligibility</span>
+                        </li>
+                        <li className="flex items-start">
+                          <X className="w-4 h-4 text-gray-400 mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-400">Featured studio eligibility</span>
+                        </li>
+                      </ul>
+
+                      <div className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-semibold text-sm text-center border-2 border-gray-300">
+                        Current Plan
+                      </div>
+                      <p className="text-xs text-gray-500 text-center mt-2">Premium studios rank higher and get more enquiries</p>
+                    </div>
+
+                    {/* PREMIUM card */}
+                    <div className="border-2 border-[#d42027] rounded-xl p-6 relative bg-gradient-to-br from-white to-red-50/30 shadow-lg flex flex-col">
+                      {/* Recommended Badge */}
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <div className="bg-[#d42027] text-white px-3 py-0.5 rounded-full text-xs font-semibold flex items-center">
+                          <Crown className="w-3.5 h-3.5 mr-1" />
+                          RECOMMENDED
+                        </div>
+                      </div>
+
+                      <div className="text-center mb-4 mt-1">
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">Premium</h3>
+                        <div className="flex items-baseline justify-center">
+                          <span className="text-3xl font-bold text-[#d42027]">£25</span>
+                          <span className="text-gray-600 ml-1.5 text-sm">/year</span>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">One booking more than pays for itself</p>
+                      </div>
+
+                      <ul className="space-y-2.5 mb-6 flex-1 text-sm">
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700 font-medium">Everything in Basic, plus:</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Add more studio images</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">All studio categories + Voiceover artist listing</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">All connections + 2 custom methods</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Include all social media platforms</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">2000 character description</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Phone & Directions visibility controls</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Control how your studio appears on Google</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Verified badge eligibility</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Featured studio eligibility</span>
+                        </li>
+                      </ul>
+
+                      <a
+                        href="/auth/membership"
+                        className="block w-full bg-[#d42027] !text-white py-3 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-sm text-center shadow-lg no-underline"
+                      >
+                        Upgrade to Premium - £25/year
+                      </a>
+                      <p className="text-xs text-gray-500 text-center mt-2">Cancel anytime. No auto-renew surprises</p>
+                    </div>
+                  </div>
+                ) : (
+                  /* Premium users: compact status card */
+                  <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50">
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <CreditCard className="w-4 h-4 text-gray-600" />
+                          <h3 className="text-sm font-semibold text-gray-900">Membership Status</h3>
                           <span className="px-2 py-0.5 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full border border-amber-200">
                             Premium
                           </span>
-                        ) : (
-                          <span className="px-2 py-0.5 text-xs font-semibold text-gray-600 bg-gray-100 rounded-full border border-gray-200">
-                            Basic (Free)
+                        </div>
+                        {isActive && (
+                          <span className="px-2 py-0.5 text-xs font-semibold text-green-700 bg-green-100 rounded-full border border-green-200">
+                            ✓ Active
+                          </span>
+                        )}
+                        {isExpired && (
+                          <span className="px-2 py-0.5 text-xs font-semibold text-red-700 bg-red-100 rounded-full border border-red-200">
+                            ✗ Expired
+                          </span>
+                        )}
+                        {hasNoExpiry && (
+                          <span className="px-2 py-0.5 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-200">
+                            Not Set
                           </span>
                         )}
                       </div>
-                      {isActive && effectiveTier === 'PREMIUM' && (
-                        <span className="px-2 py-0.5 text-xs font-semibold text-green-700 bg-green-100 rounded-full border border-green-200">
-                          ✓ Active
-                        </span>
-                      )}
-                      {isExpired && (
-                        <span className="px-2 py-0.5 text-xs font-semibold text-red-700 bg-red-100 rounded-full border border-red-200">
-                          ✗ Expired
-                        </span>
-                      )}
-                      {hasNoExpiry && effectiveTier !== 'BASIC' && (
-                        <span className="px-2 py-0.5 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-200">
-                          Not Set
-                        </span>
-                      )}
-                    </div>
-                    
-                    {membership?.expiresAt && (
-                      <div className="space-y-0.5">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Expires on</p>
-                        <p className="text-base font-bold text-gray-900">
-                          {new Date(membership.expiresAt).toLocaleDateString('en-GB', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          })}
-                        </p>
-                        {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
-                          <p className={`text-xs font-medium ${
-                            membership?.daysUntilExpiry < 0 
-                              ? 'text-red-600' 
-                              : membership?.daysUntilExpiry < 180 
-                              ? 'text-amber-600' 
-                              : 'text-gray-600'
-                          }`}>
-                            {membership?.daysUntilExpiry < 0 
-                              ? `Expired ${formatDaysAsYearsMonthsDays(Math.abs(membership?.daysUntilExpiry))} ago` 
-                              : `${formatDaysAsYearsMonthsDays(membership?.daysUntilExpiry)} remaining`}
+                      
+                      {membership?.expiresAt && (
+                        <div className="space-y-0.5">
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Expires on</p>
+                          <p className="text-base font-bold text-gray-900">
+                            {new Date(membership.expiresAt).toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric'
+                            })}
                           </p>
-                        )}
-                      </div>
-                    )}
-                    
-                    {hasNoExpiry && (
-                      <p className="text-xs text-gray-500">No membership expiry set. Please contact support.</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Upgrade to Premium CTA for Basic users */}
-                {effectiveTier !== 'PREMIUM' && (sandboxEnabled || profileData?.user?.role !== 'ADMIN') && (
-                  <div className="relative overflow-hidden rounded-xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50 p-5">
-                    <div className="space-y-3">
-                      <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                        <CreditCard className="w-5 h-5 text-amber-600" />
-                        Upgrade to Premium
-                      </h3>
-                      <p className="text-sm text-gray-700">
-                        Unlock all features for just <span className="font-bold text-[#d42027]">£25/year</span>:
-                      </p>
-                      <ul className="text-xs text-gray-600 space-y-1.5">
-                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Up to 5 studio images (vs 2)</li>
-                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> All studio types + exclusive Voiceover artist type</li>
-                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> All connection methods + custom connections</li>
-                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Full privacy controls (phone, directions)</li>
-                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Custom SEO meta title</li>
-                        <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Verification & Featured eligibility</li>
-                      </ul>
-                      <a
-                        href="/auth/membership"
-                        className="inline-block w-full text-center px-6 py-2.5 bg-[#d42027] !text-white font-semibold rounded-lg hover:bg-[#b01b21] transition-colors shadow-sm no-underline"
-                      >
-                        Upgrade Now - £25/year
-                      </a>
+                          {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
+                            <p className={`text-xs font-medium ${
+                              membership?.daysUntilExpiry < 0 
+                                ? 'text-red-600' 
+                                : membership?.daysUntilExpiry < 180 
+                                ? 'text-amber-600' 
+                                : 'text-gray-600'
+                            }`}>
+                              {membership?.daysUntilExpiry < 0 
+                                ? `Expired ${formatDaysAsYearsMonthsDays(Math.abs(membership?.daysUntilExpiry))} ago` 
+                                : `${formatDaysAsYearsMonthsDays(membership?.daysUntilExpiry)} remaining`}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {hasNoExpiry && (
+                        <p className="text-xs text-gray-500">No membership expiry set. Please contact support.</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -915,7 +1015,7 @@ export function Settings({ data }: SettingsProps) {
                               </p>
                             ) : !isPremiumUser ? (
                               <p className="text-xs sm:text-sm text-gray-500">
-                                Featured Studio is a <span className="font-semibold">Premium</span> feature. <a href="/auth/membership" className="text-[#d42027] hover:underline font-medium">Upgrade to Premium</a> for £25/year, then complete your profile to 100%.
+                                Featured Studio is a <span className="font-semibold">Premium</span> feature. <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-[#d42027] hover:underline font-medium">Upgrade to Premium</a> for £25/year, then complete your profile to 100%.
                               </p>
                             ) : !isProfileComplete ? (
                               <p className="text-xs sm:text-sm text-gray-500">
@@ -1069,7 +1169,7 @@ export function Settings({ data }: SettingsProps) {
                               </p>
                             ) : !isPremium ? (
                               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                                Verification is a <span className="font-semibold">Premium</span> feature. <a href="/auth/membership" className="text-[#d42027] hover:underline font-medium">Upgrade to Premium</a> for £25/year to unlock verification, then complete your profile to 85%.
+                                Verification is a <span className="font-semibold">Premium</span> feature. <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-[#d42027] hover:underline font-medium">Upgrade to Premium</a> for £25/year to unlock verification, then complete your profile to 85%.
                               </p>
                             ) : !meetsCompletion ? (
                               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">

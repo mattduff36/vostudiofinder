@@ -298,6 +298,7 @@ model studio_profiles {
   threads_url             String?
   youtube_url             String?
   vimeo_url               String?
+  bluesky_url             String?
   soundcloud_url          String?
   
   // Connections

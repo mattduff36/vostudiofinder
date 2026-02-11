@@ -240,6 +240,8 @@ export async function POST(request: NextRequest) {
       'instagram_url',
       'youtube_url',
       'soundcloud_url',
+      'vimeo_url',
+      'bluesky_url',
       'tiktok_url',
       'threads_url',
       'phone',

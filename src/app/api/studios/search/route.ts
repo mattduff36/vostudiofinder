@@ -393,7 +393,8 @@ export async function GET(request: NextRequest) {
       const serviceMapping: { [key: string]: string } = {
         'isdn': 'ISDN',
         'source connect': 'SOURCE_CONNECT',
-        'source connect now': 'SOURCE_CONNECT_NOW',
+        'source connect nexus': 'SOURCE_CONNECT_NOW',
+        'source connect now': 'SOURCE_CONNECT_NOW', // Backward compatibility
         'cleanfeed': 'CLEANFEED',
         'sessionlinkpro': 'SESSION_LINK_PRO',
         'session link pro': 'SESSION_LINK_PRO',

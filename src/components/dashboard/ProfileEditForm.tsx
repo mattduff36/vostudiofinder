@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useSession } from 'next-auth/react';
-import { Save, Eye, EyeOff, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, Settings, Copy, Sparkles, AlertTriangle } from 'lucide-react';
+import { Save, Eye, EyeOff, Loader2, User, MapPin, DollarSign, Share2, Wifi, ChevronDown, ChevronUp, Image as ImageIcon, Settings, Copy, Sparkles, AlertTriangle, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -184,6 +184,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
   const [visibilitySaving, setVisibilitySaving] = useState(false);
   const [adminNeverExpires, setAdminNeverExpires] = useState(true);
   const [verifyingEmail, setVerifyingEmail] = useState(false);
+  const [showStudioTypeUpgrade, setShowStudioTypeUpgrade] = useState(false);
   const { scrollDirection, isAtTop } = useScrollDirection({ threshold: 5 });
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -1007,9 +1008,22 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Studio Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Studio Type
-                </label>
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="block text-sm font-medium text-text-primary">
+                    Studio Type
+                  </label>
+                  {showStudioTypeUpgrade && (
+                    <a
+                      href="/dashboard/settings?section=membership"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full hover:bg-amber-100 transition-colors"
+                    >
+                      <Lock className="w-3 h-3" />
+                      Premium
+                    </a>
+                  )}
+                </div>
                 <div className="grid grid-cols-3 gap-3">
                   {STUDIO_TYPES.map((type) => {
                     const tierExcluded = profile?.tierLimits?.studioTypesExcluded?.includes(type.value);
@@ -1030,12 +1044,18 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                     
                     let tooltipText = type.description;
                     if (type.disabled) tooltipText = 'Coming soon!';
-                    else if (tierExcluded) tooltipText = 'Upgrade to Premium to unlock this studio type.';
+                    else if (tierExcluded) tooltipText = 'Upgrade to Premium to unlock';
                     else if (exclusivityBlocked) tooltipText = 'Voiceover cannot be combined with other studio types. Deselect Voiceover first to choose this type.';
                     else if (maxReached) tooltipText = `Basic members can select up to ${profile.tierLimits?.studioTypesMax ?? 1} studio type. Upgrade to Premium for all studio types.`;
                     
                     return (
-                      <div key={type.value} className="relative group">
+                      <div
+                        key={type.value}
+                        className="relative group"
+                        onMouseEnter={() => {
+                          if (tierExcluded) setShowStudioTypeUpgrade(true);
+                        }}
+                      >
                         <Checkbox
                           label={type.label}
                           checked={profile.studio_types.includes(type.value)}
@@ -1094,7 +1114,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
             {/* Row 4: Short Description (single line input, full width) - SWAPPED ORDER */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-text-primary">
                   Short Description
                 </label>
                 <button
@@ -1170,7 +1190,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                   {/* Location privacy toggle */}
                   <div className="flex items-center justify-between pt-3 pb-2">
                     <div className="flex-1 mr-4">
-                      <label className="text-sm font-medium text-gray-700 cursor-pointer flex items-center" htmlFor="show-exact-location">
+                      <label className="text-sm font-medium text-text-primary cursor-pointer flex items-center" htmlFor="show-exact-location">
                         Show exact location
                       </label>
                       <p className="text-xs text-gray-500 mt-1">
@@ -1207,7 +1227,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
 
               {/* Right column: Map preview (desktop), below fields (mobile) */}
               <div className="flex flex-col h-full">
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex-shrink-0">
+                <label className="block text-sm font-medium text-text-primary mb-2 flex-shrink-0">
                   Map Preview
                 </label>
                 <AddressPreviewMap
@@ -1325,7 +1345,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-sm text-amber-800">
                   Basic members can add up to {profile.tierLimits?.socialLinksMax} social links.{' '}
-                  <a href="/auth/membership" className="underline font-medium hover:text-amber-900">Upgrade to Premium</a> to enable them all.
+                  <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-amber-900">Upgrade to Premium</a> to enable them all.
                 </p>
               </div>
             )}
@@ -1390,7 +1410,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
                   <p className="text-sm text-amber-800">
                     Basic members can select up to {profile.tierLimits?.connectionsMax} connections.{' '}
-                    <a href="/auth/membership" className="underline font-medium hover:text-amber-900">Upgrade to Premium</a> for all connection types.
+                    <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-amber-900">Upgrade to Premium</a> for all connection types.
                   </p>
                 </div>
               )}
@@ -1434,7 +1454,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-sm text-amber-800">
                     Custom connection methods require a Premium membership.{' '}
-                    <a href="/auth/membership" className="underline font-medium hover:text-amber-900">Upgrade now</a> for £25/year to add custom connections.
+                    <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-amber-900">Upgrade now</a> for £25/year to add custom connections.
                   </p>
                 </div>
               ) : (
@@ -1586,14 +1606,14 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
                 <p className="text-sm text-amber-800 font-medium">
                   Advanced settings require a Premium membership.{' '}
-                  <a href="/auth/membership" className="underline hover:text-amber-900">Upgrade now</a> for £25/year to customise your SEO meta title.
+                  <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-900">Upgrade now</a> for £25/year to customise your SEO meta title.
                 </p>
               </div>
             )}
 
             {/* Meta Title Input with Copy Icon Inside */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Meta Title
               </label>
               <div className="relative">
@@ -1642,7 +1662,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
 
             {/* Best Practices */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Best Practices</h4>
+              <h4 className="text-sm font-semibold text-text-primary mb-2">Best Practices</h4>
               <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
                 <li>Keep it between 50-60 characters for best display</li>
                 <li>Include your studio name and primary service</li>
@@ -1693,7 +1713,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               <h3 className="text-lg font-medium text-gray-900 mb-4">Status & Verification</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-text-primary mb-2">
                     Account Status
                   </label>
                   <select
@@ -1753,7 +1773,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                   {/* Featured Expiry Date - only show when Featured is enabled */}
                   {profile.studio?.is_featured && (
                     <div className="pl-6 pt-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-text-primary mb-2">
                         Featured Expiry Date
                       </label>
                       <input
@@ -1783,7 +1803,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                   <div className="space-y-4">
                     {/* Membership Tier */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-text-primary mb-2">
                         Membership Tier
                       </label>
                       <select
@@ -1800,7 +1820,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-text-primary mb-2">
                         Membership Expiry Date
                       </label>
                       {(profile.user.email === 'admin@mpdee.co.uk' || profile.user.email === 'guy@voiceoverguy.co.uk') ? (

@@ -415,7 +415,7 @@ export function SignupForm() {
         <Input
           label="Display Name"
           type="text"
-          placeholder="Your Display Name is how we address you"
+          placeholder="How we address you"
           error={errors.display_name?.message || ''}
           {...register('display_name')}
         />

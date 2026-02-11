@@ -82,10 +82,16 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
   };
 
   const PremiumBadge = () => (
-    <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full ml-2">
+    <a
+      href="/dashboard/settings?section=membership"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full ml-2 hover:bg-amber-100 transition-colors"
+      onClick={(e) => e.stopPropagation()}
+    >
       <Lock className="w-3 h-3" />
       Premium
-    </span>
+    </a>
   );
 
   return (
@@ -159,7 +165,7 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
           <p className="text-sm text-amber-800">
             <Lock className="w-3.5 h-3.5 inline mr-1" />
             Some privacy options require a{' '}
-            <a href="/auth/membership" className="font-medium underline hover:text-amber-900">
+            <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-amber-900">
               Premium membership
             </a>
             .

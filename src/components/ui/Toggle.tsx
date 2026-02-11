@@ -25,7 +25,7 @@ export function Toggle({
     <div className={`flex items-center justify-between ${className}`}>
       <div className="flex-1">
         {label && (
-          <label className="text-sm font-medium text-gray-700 block">
+          <label className="text-sm font-medium text-text-primary block">
             {label}
             {badge && <>{badge}</>}
           </label>
