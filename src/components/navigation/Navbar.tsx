@@ -426,54 +426,72 @@ export function Navbar({ session }: NavbarProps) {
           {/* Center: Browse Studios (true center via symmetric grid tracks) */}
           <div className="justify-self-center">
             <div className="hidden lg:flex items-center space-x-8">
-              {/* Browse Studios with dropdown */}
-              <div
-                ref={browseDropdownRef}
-                className="relative"
-                onMouseEnter={() => {
-                  cancelCloseTimer();
-                  openBrowseDropdown();
-                }}
-                onMouseLeave={closeBrowseDropdownDelayed}
-              >
-                {/* Trigger: Link + Chevron button */}
-                <div className="flex items-center gap-1">
-                  <Link 
-                    href="/studios" 
-                    onClick={() => setIsBrowseDropdownOpen(false)}
-                    className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
-                    style={{ 
-                      color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-                    }}
-                  >
-                    Browse Studios
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={toggleBrowseDropdown}
-                    className="p-0.5 rounded transition-colors"
-                    style={{
-                      color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
-                    }}
-                    aria-label="Toggle studio categories"
-                    aria-expanded={isBrowseDropdownOpen}
-                  >
-                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isBrowseDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
+              {/* Browse Studios - with dropdown on homepage only */}
+              {pathname === '/' ? (
+                <div
+                  ref={browseDropdownRef}
+                  className="relative"
+                  onMouseEnter={() => {
+                    cancelCloseTimer();
+                    openBrowseDropdown();
+                  }}
+                  onMouseLeave={closeBrowseDropdownDelayed}
+                >
+                  {/* Trigger: Link + Chevron button */}
+                  <div className="flex items-center gap-1">
+                    <Link 
+                      href="/studios" 
+                      onClick={() => setIsBrowseDropdownOpen(false)}
+                      className="transition-colors"
+                      style={{ 
+                        color: isScrolled ? colors.textSecondary : '#ffffff'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = isScrolled ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = isScrolled ? colors.textSecondary : '#ffffff';
+                      }}
+                    >
+                      Browse Studios
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={toggleBrowseDropdown}
+                      className="p-0.5 rounded transition-colors"
+                      style={{
+                        color: isScrolled ? colors.textSecondary : '#ffffff'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = isScrolled ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = isScrolled ? colors.textSecondary : '#ffffff';
+                      }}
+                      aria-label="Toggle studio categories"
+                      aria-expanded={isBrowseDropdownOpen}
+                    >
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isBrowseDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <Link 
+                  href="/studios" 
+                  className={`transition-colors ${pathname === '/studios' ? 'font-semibold' : ''}`}
+                  style={{ 
+                    color: isScrolled || !isHomePage ? colors.textSecondary : '#ffffff'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = isScrolled || !isHomePage ? colors.primary : 'rgba(255, 255, 255, 0.8)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = isScrolled || !isHomePage ? colors.textSecondary : '#ffffff';
+                  }}
+                >
+                  Browse Studios
+                </Link>
+              )}
             </div>
           </div>
 
@@ -581,8 +599,8 @@ export function Navbar({ session }: NavbarProps) {
       </div>
     </nav>
 
-    {/* Browse Studios Dropdown (portal-mounted for proper backdrop blur) */}
-    {isMounted &&
+    {/* Browse Studios Dropdown (portal-mounted for proper backdrop blur) - Homepage only */}
+    {isMounted && pathname === '/' &&
       createPortal(
         <div
           ref={browseDropdownPanelRef}
@@ -591,7 +609,7 @@ export function Navbar({ session }: NavbarProps) {
               ? 'opacity-100 translate-y-0 pointer-events-auto'
               : 'opacity-0 -translate-y-2 pointer-events-none'
           } ${
-            isScrolled || !isHomePage
+            isScrolled
               ? 'bg-white/70 md:bg-white backdrop-blur-lg shadow-lg border border-gray-200'
               : 'bg-black/30 backdrop-blur-md shadow-xl'
           }`}
@@ -615,9 +633,9 @@ export function Navbar({ session }: NavbarProps) {
           <div className="px-6 py-4">
             <CategoryFilterBar
               variant="compact"
-              tone={isScrolled || !isHomePage ? 'light' : 'dark'}
-              labelMode={pathname === '/' && !isScrolled ? 'full' : 'short'}
-              imageScale={pathname === '/' && !isScrolled ? 2 : 1}
+              tone={isScrolled ? 'light' : 'dark'}
+              labelMode={!isScrolled ? 'full' : 'short'}
+              imageScale={!isScrolled ? 2 : 1}
             />
           </div>
         </div>,

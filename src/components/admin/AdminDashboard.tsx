@@ -8,7 +8,6 @@ import {
   Activity,
   Clock,
   CreditCard,
-  AlertTriangle,
   Lightbulb,
   Building2,
   Star,
@@ -110,8 +109,6 @@ interface AdminDashboardProps {
     recentPaymentAmount: number;
     pendingReservations: number;
     totalReservations: number;
-    totalIssues: number;
-    openIssues: number;
     totalSuggestions: number;
     openSuggestions: number;
   };
@@ -182,13 +179,6 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       subtitle: `${stats.totalReservations} total`,
       icon: Clock,
       color: 'bg-orange-500',
-    },
-    {
-      title: 'New Issues',
-      value: stats.openIssues.toLocaleString(),
-      subtitle: `${stats.totalIssues} total`,
-      icon: AlertTriangle,
-      color: 'bg-red-500',
     },
     {
       title: 'New Suggestions',

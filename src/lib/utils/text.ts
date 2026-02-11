@@ -42,6 +42,36 @@ export function cleanDescription(description: string | null | undefined): string
 }
 
 /**
+ * Escape HTML special characters to prevent XSS when interpolating user input into HTML
+ */
+export function escapeHtml(text: string | null | undefined): string {
+  if (text == null || typeof text !== 'string') return '';
+  const map: { [key: string]: string } = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  };
+  return text.replace(/[&<>"']/g, (char) => map[char] || char);
+}
+
+/**
+ * Format a display name for safe use in RFC 5322 email headers (e.g. From, To).
+ * Strips control characters (including CRLF) that could inject headers, then
+ * properly quotes and escapes per RFC 5322. Prevents header injection.
+ */
+export function formatRfc5322DisplayName(name: string | null | undefined): string {
+  if (name == null || typeof name !== 'string') return 'User';
+  // Strip control characters and CRLF that could inject additional headers
+  let safe = name.replace(/[\x00-\x1F\x7F\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!safe) return 'User';
+  // Escape backslashes and double quotes for RFC 5322 quoted-string
+  safe = safe.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return `"${safe}"`;
+}
+
+/**
  * Decode HTML entities in text
  */
 export function decodeHtmlEntities(str: string | null | undefined): string {

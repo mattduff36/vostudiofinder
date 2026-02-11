@@ -99,3 +99,52 @@ export async function PATCH(
   }
 }
 
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+
+    // Check admin authorization
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const user = await db.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    if (user?.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    // Delete the suggestion
+    await db.support_tickets.delete({
+      where: { id },
+    });
+
+    logger.log(`Support ticket ${id} deleted by admin ${session.user.id}`);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Suggestion deleted successfully',
+    });
+
+  } catch (error) {
+    logger.error('Error deleting support ticket:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete suggestion' },
+      { status: 500 }
+    );
+  }
+}
+

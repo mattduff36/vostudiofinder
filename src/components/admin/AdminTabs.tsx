@@ -9,18 +9,16 @@ import {
   Activity, 
   MessageSquare,
   Users,
-  Headphones,
   CreditCard,
   Clock,
   AlertTriangle,
-  Search,
   Menu,
   X,
   Mail,
   Lightbulb
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'support' | 'payments' | 'reservations' | 'error_log' | 'audit' | 'emails' | 'sandbox';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'suggestions' | 'payments' | 'reservations' | 'error_log' | 'emails' | 'sandbox';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -40,14 +38,13 @@ const mainTabs: TabConfig[] = [
   { id: 'payments', label: 'Payments', icon: CreditCard, href: '/admin/payments' },
   { id: 'reservations', label: 'Reservations', icon: Clock, href: '/admin/reservations' },
   { id: 'waitlist', label: 'Waiting List', icon: Users, href: '/admin/waitlist' },
-  { id: 'support', label: 'Support', icon: Headphones, href: '/admin/support' },
+  { id: 'suggestions', label: 'Suggestions', icon: Lightbulb, href: '/admin/suggestions' },
   { id: 'faq', label: 'FAQ', icon: MessageSquare, href: '/admin/faq' },
 ];
 
 // Secondary tabs that go in the burger menu
 const secondaryTabs: TabConfig[] = [
   { id: 'emails', label: 'Emails', icon: Mail, href: '/admin/emails' },
-  { id: 'audit', label: 'User Audit', icon: Search, href: '/admin/audit/users' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'error_log', label: 'Error Log', icon: AlertTriangle, href: '/admin/error-log' },
   { id: 'sandbox', label: 'Sandbox', icon: Lightbulb, href: '/admin/sandbox' },
@@ -126,8 +123,8 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
       {/* Desktop Tabs - With burger menu on left */}
       <div className="hidden md:block sticky top-[72px] -mt-1 z-50 bg-red-600 border-b border-red-700">
         <nav className="relative flex items-center justify-center px-6" aria-label="Admin tabs">
-          {/* Burger Menu Button - LEFT side */}
-          <div className="absolute left-6 top-0 bottom-0 flex items-center">
+          {/* Burger Menu Button - RIGHT side (under main navbar burger) */}
+          <div className="absolute right-6 top-0 bottom-0 flex items-center">
             <button
               ref={desktopBurgerBtnRef}
               onClick={() => setIsDesktopBurgerOpen(!isDesktopBurgerOpen)}
@@ -183,7 +180,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
           {/* Menu Panel */}
           <div 
             ref={desktopBurgerRef}
-            className="hidden md:block fixed top-[136px] left-6 z-[110] w-56 bg-white rounded-lg shadow-xl border border-gray-200"
+            className="hidden md:block fixed top-[136px] right-6 z-[110] w-56 bg-red-600 rounded-lg shadow-xl border border-red-700"
             role="menu"
             aria-orientation="vertical"
           >
@@ -202,8 +199,8 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-red-50 text-red-600'
-                        : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
+                        ? 'bg-red-700 text-white'
+                        : 'text-white hover:bg-red-700 active:bg-red-800'
                     }`}
                     role="menuitem"
                   >

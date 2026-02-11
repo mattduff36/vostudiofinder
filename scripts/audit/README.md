@@ -128,31 +128,29 @@ ts-node scripts/audit/enrich-profiles.ts --limit=20
 - Waits 1 second between profiles to avoid being blocked
 - Set custom timeout for slow sites (default: 10-15 seconds)
 
-### Step 4: Review in Admin UI
+### Step 4: Review via API or Database
 
-Navigate to: **[http://localhost:3000/admin/audit/users](http://localhost:3000/admin/audit/users)**
+**⚠️ NOTE: The admin UI for this feature has been removed (end of life).**
 
-**Two Views:**
+Review findings and suggestions using the API endpoints (see below) or by querying the database directly:
 
-1. **Findings View**
-   - See all classified accounts
-   - Filter by classification
-   - View completeness scores
-   - See reasons and recommended actions
+```sql
+-- View findings summary
+SELECT classification, COUNT(*) 
+FROM profile_audit_findings 
+GROUP BY classification;
 
-2. **Suggestions View**
-   - Review enrichment suggestions
-   - See current vs. suggested values
-   - Check confidence scores (HIGH/MEDIUM/LOW)
-   - Bulk approve, reject, or apply
+-- View pending suggestions
+SELECT * FROM profile_enrichment_suggestions 
+WHERE status = 'PENDING' 
+ORDER BY confidence DESC;
+```
 
 **Workflow:**
-1. Filter findings by classification
-2. Click "View Details" on a finding
-3. Review suggestions for that account
-4. Select suggestions to approve/reject
-5. Click "Approve Selected" or "Reject Selected"
-6. Click "Apply Approved" to update profiles
+1. Query findings from database or API
+2. Review suggestions for specific accounts
+3. Manually approve/reject via API (see endpoints below)
+4. Apply approved suggestions via API
 
 ### Step 5: Apply Updates (Dev)
 
@@ -204,7 +202,9 @@ ts-node scripts/audit/promote-to-production.ts --finding-ids=id1,id2,id3
 
 ### GET `/api/admin/audit/users`
 
-List audit findings with filtering.
+**⚠️ DEPRECATED: This endpoint has been removed as part of feature end-of-life.**
+
+Use direct database queries instead to access audit findings data.
 
 **Query params:**
 - `classification` - Filter by classification

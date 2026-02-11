@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Lightbulb, Check, X, Columns, ChevronDown, RotateCcw } from 'lucide-react';
+import { Lightbulb, Check, X, Columns, ChevronDown, RotateCcw, FlaskConical, Trash2 } from 'lucide-react';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
 import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
@@ -10,6 +10,7 @@ import { getCompletionBgColor } from '@/lib/utils/profile-completion';
 import { formatRelativeDate, formatDate } from '@/lib/date-format';
 import { showSuccess, showError } from '@/lib/toast';
 import { showConfirm } from '@/components/ui/ConfirmDialog';
+import { TEST_EMAIL_DOMAIN } from '@/lib/admin/test-data-generator';
 
 interface Studio {
   id: string;
@@ -319,6 +320,39 @@ export default function AdminStudiosPage() {
     }
   };
 
+  const handleDeleteTestAccounts = async () => {
+    // Count test accounts in current list
+    const testCount = studios.filter(s => s.users.email.endsWith(`@${TEST_EMAIL_DOMAIN}`)).length;
+    
+    const confirmed = await showConfirm({
+      title: 'Delete All Test Accounts?',
+      message: `This will permanently delete ALL accounts with @${TEST_EMAIL_DOMAIN} emails${testCount > 0 ? ` (at least ${testCount} visible in current list)` : ''}.\n\nThis includes their studio profiles, images, and all related data.\n\nThis action CANNOT be undone.`,
+      confirmText: 'Delete All Test Accounts',
+      isDangerous: true,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch('/api/admin/delete-test-accounts', {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete test accounts');
+      }
+
+      const result = await response.json();
+      showSuccess(result.message);
+      setPagination(prev => ({ ...prev, offset: 0 }));
+      setRefreshKey(prev => prev + 1);
+    } catch (error) {
+      console.error('Error deleting test accounts:', error);
+      showError(error instanceof Error ? error.message : 'Failed to delete test accounts');
+    }
+  };
+
   const handleToggleVisibility = async (studio: Studio, isVisible: boolean) => {
     try {
       const response = await fetch(`/api/admin/studios/${studio.id}/visibility`, {
@@ -584,15 +618,27 @@ export default function AdminStudiosPage() {
             {pagination.total} studios in the Voice Over Studio Finder network
           </p>
         </div>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 whitespace-nowrap"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Studio
-        </button>
+        <div className="flex items-center gap-2">
+          {studios.some(s => s.users.email.endsWith(`@${TEST_EMAIL_DOMAIN}`)) && (
+            <button
+              onClick={handleDeleteTestAccounts}
+              className="px-4 py-2 border border-orange-300 text-orange-700 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors flex items-center gap-2 whitespace-nowrap text-sm"
+              title="Delete all test accounts (@vostudiofinder-test.com)"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Delete Test Accounts</span>
+            </button>
+          )}
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Studio
+          </button>
+        </div>
       </div>
 
       {/* Bulk Operations */}
@@ -731,7 +777,15 @@ export default function AdminStudiosPage() {
                       {studio.name}
                     </h3>
                     <p className="text-sm text-gray-600">@{studio.users.username}</p>
-                    <p className="text-xs text-gray-500">{studio.users.email}</p>
+                    <p className="text-xs text-gray-500">
+                      {studio.users.email}
+                      {studio.users.email.endsWith(`@${TEST_EMAIL_DOMAIN}`) && (
+                        <span className="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-100 text-purple-700">
+                          <FlaskConical className="w-2.5 h-2.5" />
+                          TEST
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </div>
 
@@ -1042,7 +1096,15 @@ export default function AdminStudiosPage() {
                       {isColumnVisible('owner') && (
                         <td data-column="owner" className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{studio.users.display_name}</div>
-                          <div className="text-sm text-gray-500">{studio.users.email}</div>
+                          <div className="text-sm text-gray-500 flex items-center gap-1.5">
+                            {studio.users.email}
+                            {studio.users.email.endsWith(`@${TEST_EMAIL_DOMAIN}`) && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-100 text-purple-700">
+                                <FlaskConical className="w-2.5 h-2.5" />
+                                TEST
+                              </span>
+                            )}
+                          </div>
                         </td>
                       )}
                       {isColumnVisible('status') && (

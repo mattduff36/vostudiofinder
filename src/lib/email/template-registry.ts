@@ -295,6 +295,34 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
     },
   },
   
+  {
+    key: 'support-request',
+    name: 'Support Request (to Support Team)',
+    description: 'Sent to support inbox when a user submits a support issue',
+    layout: 'STANDARD',
+    isMarketing: false,
+    isSystem: true,
+    subject: 'Support request: {{category}} — @{{username}}',
+    heading: 'New support request',
+    bodyParagraphs: [
+      'A user has submitted a support request.',
+      'From: {{displayName}} (@{{username}})',
+      'Email: {{userEmail}}',
+      'Category: {{category}}',
+      'Submitted: {{submittedAt}}',
+      '{{message}}',
+    ],
+    footerText: 'Reply directly to this email to respond to the user.',
+    variableSchema: {
+      displayName: 'string',
+      username: 'string',
+      userEmail: 'email',
+      category: 'string',
+      submittedAt: 'string',
+      message: 'string',
+    },
+  },
+  
   // ============================================
   // MARKETING / ANNOUNCEMENT EMAILS
   // ============================================

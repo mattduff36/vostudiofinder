@@ -426,9 +426,10 @@ async function runEnrichment(options: {
     if (!options.dryRun && totalSuggestions > 0) {
       console.log(`💾 Stored ${totalSuggestions} suggestions in database`);
       console.log('\n🔍 Next steps:');
-      console.log('  1. Review suggestions in admin UI: /admin/audit/users');
-      console.log('  2. Approve/reject suggestions');
-      console.log('  3. Apply approved suggestions to profiles');
+      console.log('  1. Review suggestions via API: /api/admin/audit/suggestions');
+      console.log('  2. Approve/reject suggestions using PATCH endpoint');
+      console.log('  3. Apply approved suggestions using POST endpoint');
+      console.log('  Note: The admin UI has been removed; use API or database queries');
     }
 
   } catch (error) {

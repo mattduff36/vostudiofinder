@@ -26,8 +26,6 @@ export default async function AdminPage() {
     recentPaymentAmount,
     pendingReservations,
     expiredReservations,
-    totalIssues,
-    openIssues,
     totalSuggestions,
     openSuggestions,
   ] = await Promise.all([
@@ -80,19 +78,6 @@ export default async function AdminPage() {
     
     // Expired reservations
     db.users.count({ where: { status: UserStatus.EXPIRED } }),
-    
-    // Total issues
-    db.support_tickets.count({ where: { type: 'ISSUE' } }),
-    
-    // Open issues
-    db.support_tickets.count({
-      where: {
-        type: 'ISSUE',
-        status: {
-          in: ['OPEN', 'IN_PROGRESS'],
-        },
-      },
-    }),
     
     // Total suggestions
     db.support_tickets.count({ where: { type: 'SUGGESTION' } }),
@@ -447,8 +432,6 @@ export default async function AdminPage() {
     recentPaymentAmount,
     pendingReservations,
     totalReservations: pendingReservations + expiredReservations,
-    totalIssues,
-    openIssues,
     totalSuggestions,
     openSuggestions,
   };

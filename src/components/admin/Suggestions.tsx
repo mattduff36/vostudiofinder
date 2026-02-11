@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  AlertTriangle, 
   Lightbulb, 
   Loader2, 
   Mail, 
@@ -10,17 +9,19 @@ import {
   CheckCircle2,
   XCircle,
   Filter,
-  Calendar
+  Calendar,
+  Trash2
 } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
+import { showConfirm } from '@/components/ui/ConfirmDialog';
 import { AdminTabs } from './AdminTabs';
 import { AdminDrawer } from './AdminDrawer';
 
-interface Ticket {
+interface Suggestion {
   id: string;
   user_id: string;
-  type: 'ISSUE' | 'SUGGESTION';
+  type: 'SUGGESTION';
   category: string;
   subject: string | null;
   message: string;
@@ -37,22 +38,22 @@ interface Ticket {
   };
 }
 
-export function SupportTickets() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+export function Suggestions() {
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState<'ALL' | 'ISSUE' | 'SUGGESTION'>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
-  const fetchTickets = useCallback(async () => {
+  const fetchSuggestions = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filterType !== 'ALL') params.append('type', filterType);
+      params.append('type', 'SUGGESTION');
       if (filterStatus !== 'ALL') params.append('status', filterStatus);
       params.append('sortBy', 'created_at');
       params.append('sortOrder', 'desc');
@@ -61,26 +62,26 @@ export function SupportTickets() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch tickets');
+        throw new Error(data.error || 'Failed to fetch suggestions');
       }
 
-      setTickets(data.tickets);
+      setSuggestions(data.tickets);
     } catch (error) {
-      logger.error('Error fetching support tickets:', error);
-      showError('Failed to load support tickets');
+      logger.error('Error fetching suggestions:', error);
+      showError('Failed to load suggestions');
     } finally {
       setLoading(false);
     }
-  }, [filterType, filterStatus]);
+  }, [filterStatus]);
 
   useEffect(() => {
-    fetchTickets();
-  }, [fetchTickets]);
+    fetchSuggestions();
+  }, [fetchSuggestions]);
 
-  const handleUpdateStatus = async (ticketId: string, newStatus: string) => {
+  const handleUpdateStatus = async (suggestionId: string, newStatus: string) => {
     setUpdatingStatus(true);
     try {
-      const response = await fetch(`/api/admin/support-tickets/${ticketId}`, {
+      const response = await fetch(`/api/admin/support-tickets/${suggestionId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -93,12 +94,12 @@ export function SupportTickets() {
       }
 
       showSuccess('Status updated successfully');
-      fetchTickets();
-      if (selectedTicket?.id === ticketId) {
-        setSelectedTicket(data.ticket);
+      fetchSuggestions();
+      if (selectedSuggestion?.id === suggestionId) {
+        setSelectedSuggestion(data.ticket);
       }
     } catch (error: any) {
-      logger.error('Error updating ticket status:', error);
+      logger.error('Error updating suggestion status:', error);
       showError(error.message || 'Failed to update status');
     } finally {
       setUpdatingStatus(false);
@@ -108,19 +109,19 @@ export function SupportTickets() {
   const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedTicket || !replyMessage.trim()) {
+    if (!selectedSuggestion || !replyMessage.trim()) {
       showError('Please enter a reply message');
       return;
     }
 
     setSendingReply(true);
     try {
-      const response = await fetch(`/api/admin/support-tickets/${selectedTicket.id}/reply`, {
+      const response = await fetch(`/api/admin/support-tickets/${selectedSuggestion.id}/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: replyMessage,
-          updateStatus: selectedTicket.status === 'OPEN' ? 'IN_PROGRESS' : undefined,
+          updateStatus: selectedSuggestion.status === 'OPEN' ? 'IN_PROGRESS' : undefined,
         }),
       });
 
@@ -132,12 +133,46 @@ export function SupportTickets() {
 
       showSuccess('Reply sent successfully!');
       setReplyMessage('');
-      fetchTickets();
+      fetchSuggestions();
     } catch (error: any) {
       logger.error('Error sending reply:', error);
       showError(error.message || 'Failed to send reply');
     } finally {
       setSendingReply(false);
+    }
+  };
+
+  const handleDeleteSuggestion = async (suggestionId: string) => {
+    const confirmed = await showConfirm({
+      title: 'Delete Suggestion?',
+      message: 'This will permanently delete this suggestion. This action cannot be undone.',
+      confirmText: 'Delete Suggestion',
+      isDangerous: true,
+    });
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/admin/support-tickets/${suggestionId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete suggestion');
+      }
+
+      showSuccess('Suggestion deleted successfully');
+      setSelectedSuggestion(null);
+      setMobileDrawerOpen(false);
+      fetchSuggestions();
+    } catch (error: any) {
+      logger.error('Error deleting suggestion:', error);
+      showError(error.message || 'Failed to delete suggestion');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -181,27 +216,17 @@ export function SupportTickets() {
     );
   };
 
-  const getTypeIcon = (type: string) => {
-    return type === 'ISSUE' ? (
-      <AlertTriangle className="w-5 h-5 text-orange-600" />
-    ) : (
-      <Lightbulb className="w-5 h-5 text-yellow-600" />
-    );
-  };
-
-  const filteredTickets = tickets;
-
   return (
     <>
-      <AdminTabs activeTab="support" />
+      <AdminTabs activeTab="suggestions" />
 
       <div className="px-4 py-4 md:p-8 min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-4 md:mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Support Tickets</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Suggestions</h1>
             <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
-              Manage user-reported issues and suggestions
+              Review user suggestions and feature requests
             </p>
           </div>
 
@@ -210,18 +235,8 @@ export function SupportTickets() {
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center space-x-2">
                 <Filter className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">Filters:</span>
+                <span className="text-sm font-medium text-gray-700">Filter:</span>
               </div>
-
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value as any)}
-                className="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-              >
-                <option value="ALL">All Types</option>
-                <option value="ISSUE">Issues</option>
-                <option value="SUGGESTION">Suggestions</option>
-              </select>
 
               <select
                 value={filterStatus}
@@ -236,32 +251,32 @@ export function SupportTickets() {
               </select>
 
               <div className="ml-auto text-sm text-gray-600">
-                {filteredTickets.length} ticket{filteredTickets.length !== 1 ? 's' : ''}
+                {suggestions.length} suggestion{suggestions.length !== 1 ? 's' : ''}
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Tickets List */}
+            {/* Suggestions List */}
             <div className="lg:col-span-2 space-y-3">
               {loading ? (
                 <div className="flex items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
                   <Loader2 className="w-8 h-8 animate-spin text-[#d42027]" />
                 </div>
-              ) : filteredTickets.length === 0 ? (
+              ) : suggestions.length === 0 ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                  <p className="text-gray-500">No tickets found</p>
+                  <p className="text-gray-500">No suggestions found</p>
                 </div>
               ) : (
-                filteredTickets.map((ticket) => (
+                suggestions.map((suggestion) => (
                   <div
-                    key={ticket.id}
+                    key={suggestion.id}
                     onClick={() => {
-                      setSelectedTicket(ticket);
+                      setSelectedSuggestion(suggestion);
                       setMobileDrawerOpen(true);
                     }}
                     className={`bg-white rounded-lg border cursor-pointer transition-all ${
-                      selectedTicket?.id === ticket.id
+                      selectedSuggestion?.id === suggestion.id
                         ? 'border-[#d42027] shadow-md'
                         : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                     }`}
@@ -269,27 +284,27 @@ export function SupportTickets() {
                     <div className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center space-x-2">
-                          {getTypeIcon(ticket.type)}
+                          <Lightbulb className="w-5 h-5 text-yellow-600" />
                           <h3 className="font-semibold text-gray-900">
-                            {ticket.type === 'ISSUE' ? 'Issue' : 'Suggestion'} - {ticket.category}
+                            Suggestion - {suggestion.category}
                           </h3>
                         </div>
-                        {getStatusBadge(ticket.status)}
+                        {getStatusBadge(suggestion.status)}
                       </div>
 
                       <p className="text-sm text-gray-700 mb-3 line-clamp-2">
-                        {ticket.message}
+                        {suggestion.message}
                       </p>
 
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <div className="flex items-center space-x-3">
-                          <span>By: {ticket.users.display_name}</span>
+                          <span>By: {suggestion.users.display_name}</span>
                           <span className="flex items-center space-x-1">
                             <Calendar className="w-3 h-3" />
-                            <span>{new Date(ticket.created_at).toLocaleDateString('en-GB')}</span>
+                            <span>{new Date(suggestion.created_at).toLocaleDateString('en-GB')}</span>
                           </span>
                         </div>
-                        {getPriorityBadge(ticket.priority)}
+                        {getPriorityBadge(suggestion.priority)}
                       </div>
                     </div>
                   </div>
@@ -297,42 +312,42 @@ export function SupportTickets() {
               )}
             </div>
 
-            {/* Desktop Ticket Detail & Reply Panel - Hidden on mobile */}
+            {/* Desktop Detail & Reply Panel - Hidden on mobile */}
             <div className="hidden lg:block lg:col-span-1">
-              {selectedTicket ? (
+              {selectedSuggestion ? (
                 <div className="bg-white rounded-lg border border-gray-200 shadow-sm sticky top-4">
                   <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        {getTypeIcon(selectedTicket.type)}
+                        <Lightbulb className="w-5 h-5 text-yellow-600" />
                         <h3 className="font-semibold text-gray-900">
-                          {selectedTicket.type === 'ISSUE' ? 'Issue Details' : 'Suggestion Details'}
+                          Suggestion Details
                         </h3>
                       </div>
-                      {getStatusBadge(selectedTicket.status)}
+                      {getStatusBadge(selectedSuggestion.status)}
                     </div>
 
                     <div className="space-y-2 text-sm">
                       <div>
                         <span className="font-medium text-gray-700">Category:</span>
-                        <span className="ml-2 text-gray-600">{selectedTicket.category}</span>
+                        <span className="ml-2 text-gray-600">{selectedSuggestion.category}</span>
                       </div>
                       <div>
                         <span className="font-medium text-gray-700">From:</span>
-                        <span className="ml-2 text-gray-600">{selectedTicket.users.display_name}</span>
+                        <span className="ml-2 text-gray-600">{selectedSuggestion.users.display_name}</span>
                       </div>
                       <div>
                         <span className="font-medium text-gray-700">Email:</span>
-                        <span className="ml-2 text-gray-600">{selectedTicket.users.email}</span>
+                        <span className="ml-2 text-gray-600">{selectedSuggestion.users.email}</span>
                       </div>
                       <div>
                         <span className="font-medium text-gray-700">Priority:</span>
-                        <span className="ml-2">{getPriorityBadge(selectedTicket.priority)}</span>
+                        <span className="ml-2">{getPriorityBadge(selectedSuggestion.priority)}</span>
                       </div>
                       <div>
                         <span className="font-medium text-gray-700">Submitted:</span>
                         <span className="ml-2 text-gray-600">
-                          {new Date(selectedTicket.created_at).toLocaleString('en-GB')}
+                          {new Date(selectedSuggestion.created_at).toLocaleString('en-GB')}
                         </span>
                       </div>
                     </div>
@@ -340,7 +355,7 @@ export function SupportTickets() {
 
                   <div className="p-4 border-b border-gray-200 bg-gray-50">
                     <p className="text-sm font-medium text-gray-700 mb-2">Message:</p>
-                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedTicket.message}</p>
+                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedSuggestion.message}</p>
                   </div>
 
                   <div className="p-4 border-b border-gray-200">
@@ -348,8 +363,8 @@ export function SupportTickets() {
                       Change Status
                     </label>
                     <select
-                      value={selectedTicket.status}
-                      onChange={(e) => handleUpdateStatus(selectedTicket.id, e.target.value)}
+                      value={selectedSuggestion.status}
+                      onChange={(e) => handleUpdateStatus(selectedSuggestion.id, e.target.value)}
                       disabled={updatingStatus}
                       className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
                     >
@@ -358,6 +373,26 @@ export function SupportTickets() {
                       <option value="RESOLVED">Resolved</option>
                       <option value="CLOSED">Closed</option>
                     </select>
+                  </div>
+
+                  <div className="p-4 border-b border-gray-200">
+                    <button
+                      onClick={() => handleDeleteSuggestion(selectedSuggestion.id)}
+                      disabled={deleting}
+                      className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    >
+                      {deleting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Deleting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4" />
+                          <span>Delete Suggestion</span>
+                        </>
+                      )}
+                    </button>
                   </div>
 
                   <form onSubmit={handleSendReply} className="p-4">
@@ -393,7 +428,7 @@ export function SupportTickets() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-                  Select a ticket to view details and reply
+                  Select a suggestion to view details and reply
                 </div>
               )}
             </div>
@@ -401,53 +436,51 @@ export function SupportTickets() {
         </div>
       </div>
 
-      {/* Mobile Ticket Details Drawer */}
+      {/* Mobile Suggestion Details Drawer */}
       <AdminDrawer
-        isOpen={mobileDrawerOpen && !!selectedTicket}
+        isOpen={mobileDrawerOpen && !!selectedSuggestion}
         onClose={() => {
           setMobileDrawerOpen(false);
           setReplyMessage('');
           setUpdatingStatus(false);
         }}
-        title={selectedTicket ? `${selectedTicket.type === 'ISSUE' ? 'Issue' : 'Suggestion'} Details` : 'Ticket Details'}
+        title="Suggestion Details"
         showBackButton
       >
-        {selectedTicket && (
+        {selectedSuggestion && (
           <div className="p-4 space-y-4">
             {/* Status Badge */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                {getTypeIcon(selectedTicket.type)}
-                <span className="font-medium text-gray-900">
-                  {selectedTicket.type === 'ISSUE' ? 'Issue' : 'Suggestion'}
-                </span>
+                <Lightbulb className="w-5 h-5 text-yellow-600" />
+                <span className="font-medium text-gray-900">Suggestion</span>
               </div>
-              {getStatusBadge(selectedTicket.status)}
+              {getStatusBadge(selectedSuggestion.status)}
             </div>
 
-            {/* Ticket Details */}
+            {/* Details */}
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="space-y-3 text-sm">
                 <div>
                   <span className="font-medium text-gray-700">Category:</span>
-                  <span className="ml-2 text-gray-900">{selectedTicket.category}</span>
+                  <span className="ml-2 text-gray-900">{selectedSuggestion.category}</span>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">From:</span>
-                  <span className="ml-2 text-gray-900">{selectedTicket.users.display_name}</span>
+                  <span className="ml-2 text-gray-900">{selectedSuggestion.users.display_name}</span>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Email:</span>
-                  <span className="ml-2 text-gray-900 break-words">{selectedTicket.users.email}</span>
+                  <span className="ml-2 text-gray-900 break-words">{selectedSuggestion.users.email}</span>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Priority:</span>
-                  <span className="ml-2">{getPriorityBadge(selectedTicket.priority)}</span>
+                  <span className="ml-2">{getPriorityBadge(selectedSuggestion.priority)}</span>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Submitted:</span>
                   <span className="ml-2 text-gray-900 text-xs">
-                    {new Date(selectedTicket.created_at).toLocaleString('en-GB')}
+                    {new Date(selectedSuggestion.created_at).toLocaleString('en-GB')}
                   </span>
                 </div>
               </div>
@@ -456,7 +489,7 @@ export function SupportTickets() {
             {/* Message */}
             <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
               <p className="text-sm font-medium text-gray-700 mb-2">Message:</p>
-              <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedTicket.message}</p>
+              <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedSuggestion.message}</p>
             </div>
 
             {/* Change Status */}
@@ -465,8 +498,8 @@ export function SupportTickets() {
                 Change Status
               </label>
               <select
-                value={selectedTicket.status}
-                onChange={(e) => handleUpdateStatus(selectedTicket.id, e.target.value)}
+                value={selectedSuggestion.status}
+                onChange={(e) => handleUpdateStatus(selectedSuggestion.id, e.target.value)}
                 disabled={updatingStatus}
                 className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
               >
@@ -475,6 +508,27 @@ export function SupportTickets() {
                 <option value="RESOLVED">Resolved</option>
                 <option value="CLOSED">Closed</option>
               </select>
+            </div>
+
+            {/* Delete Button */}
+            <div>
+              <button
+                onClick={() => handleDeleteSuggestion(selectedSuggestion.id)}
+                disabled={deleting}
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete Suggestion</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Reply Form */}
@@ -514,4 +568,3 @@ export function SupportTickets() {
     </>
   );
 }
-
