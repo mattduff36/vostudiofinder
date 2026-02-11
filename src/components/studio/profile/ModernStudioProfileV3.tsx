@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
@@ -35,9 +35,14 @@ import {
   Youtube,
   Music,
   Video,
-  Eye
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  X
 } from 'lucide-react';
 import { XLogo } from '@/components/icons/XLogo';
+import { BlueskyLogo } from '@/components/icons/BlueskyLogo';
+import { VimeoLogo } from '@/components/icons/VimeoLogo';
 
 interface ModernStudioProfileV3Props {
   previewMode?: boolean; // If true, show preview banner for owner viewing hidden profile
@@ -100,6 +105,8 @@ interface ModernStudioProfileV3Props {
         soundcloud_url?: string | null;
         tiktok_url?: string | null;
         threads_url?: string | null;
+        vimeo_url?: string | null;
+        bluesky_url?: string | null;
         is_featured?: boolean | null;
         is_spotlight?: boolean | null;
         verification_level?: string | null;
@@ -127,7 +134,8 @@ interface ModernStudioProfileV3Props {
       } | null;
     };
     created_at: Date;
-    updated_at: Date;
+    updated_at: Date | string;
+    last_login?: string | null;
     averageRating: number;
     _count: {
       reviews: number;
@@ -135,11 +143,34 @@ interface ModernStudioProfileV3Props {
   };
 }
 
+/** Format a date-like value to UK dd/mm/yyyy */
+function formatDateUK(value: Date | string | null | undefined): string | null {
+  if (!value) return null;
+  const d = typeof value === 'string' ? new Date(value) : value;
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
 export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStudioProfileV3Props) {
-  const [displayImages, setDisplayImages] = useState(studio.studio_images || []);
+  const displayImages = studio.studio_images || [];
   const [showUnavailableModal, setShowUnavailableModal] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [showContactModal, setShowContactModal] = useState(false);
+
+  // Keyboard navigation for lightbox
+  const handleLightboxKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!showLightbox) return;
+    if (e.key === 'Escape') setShowLightbox(false);
+    if (e.key === 'ArrowLeft') setLightboxIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length);
+    if (e.key === 'ArrowRight') setLightboxIndex((prev) => (prev + 1) % displayImages.length);
+  }, [showLightbox, displayImages.length]);
+
+  useEffect(() => {
+    if (!showLightbox) return undefined;
+    window.addEventListener('keydown', handleLightboxKeyDown);
+    return () => window.removeEventListener('keydown', handleLightboxKeyDown);
+  }, [showLightbox, handleLightboxKeyDown]);
 
   // Refresh page when visibility is toggled from burger menu (to remove preview banner)
   useEffect(() => {
@@ -161,32 +192,16 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
     ? studio.reviews.reduce((sum, review) => sum + review.rating, 0) / studio.reviews.length
     : 0;
 
-  // Function to swap images when thumbnail is clicked
-  const handleThumbnailClick = (clickedIndex: number) => {
-    if (clickedIndex >= displayImages.length || clickedIndex < 0) return;
-    
-    const newImages = [...displayImages];
-    const clickedImage = newImages[clickedIndex];
-    const mainImage = newImages[0];
-    
-    // Only swap if both images exist
-    if (clickedImage && mainImage) {
-      newImages[0] = clickedImage;
-      newImages[clickedIndex] = mainImage;
-      setDisplayImages(newImages);
-    }
-  };
-
   // Studio type formatting is now handled by formatStudioTypeLabel utility
 
   // Social media links from owner profile
   const profile = studio.owner.profile;
   const socialLinks = [
     { 
-      platform: 'Facebook', 
-      url: profile?.facebook_url, 
-      icon: Facebook, 
-      color: 'text-blue-600 hover:text-blue-800' 
+      platform: 'LinkedIn', 
+      url: profile?.linkedin_url, 
+      icon: Linkedin, 
+      color: 'text-blue-700 hover:text-blue-900' 
     },
     { 
       platform: 'X (formerly Twitter)', 
@@ -195,16 +210,40 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
       color: 'text-sky-500 hover:text-sky-700' 
     },
     { 
-      platform: 'LinkedIn', 
-      url: profile?.linkedin_url, 
-      icon: Linkedin, 
-      color: 'text-blue-700 hover:text-blue-900' 
+      platform: 'Facebook', 
+      url: profile?.facebook_url, 
+      icon: Facebook, 
+      color: 'text-blue-600 hover:text-blue-800' 
     },
     { 
       platform: 'Instagram', 
       url: profile?.instagram_url, 
       icon: Instagram, 
       color: 'text-pink-600 hover:text-pink-800' 
+    },
+    { 
+      platform: 'YouTube', 
+      url: profile?.youtube_url, 
+      icon: Youtube, 
+      color: 'text-red-600 hover:text-red-800' 
+    },
+    { 
+      platform: 'SoundCloud', 
+      url: profile?.soundcloud_url, 
+      icon: Music, 
+      color: 'text-orange-500 hover:text-orange-700' 
+    },
+    { 
+      platform: 'Vimeo', 
+      url: profile?.vimeo_url, 
+      icon: VimeoLogo, 
+      color: 'text-cyan-600 hover:text-cyan-800' 
+    },
+    { 
+      platform: 'Bluesky', 
+      url: profile?.bluesky_url, 
+      icon: BlueskyLogo, 
+      color: 'text-blue-500 hover:text-blue-700' 
     },
     { 
       platform: 'TikTok', 
@@ -218,18 +257,6 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
       icon: MessageCircle, 
       color: 'text-gray-900 hover:text-black' 
     },
-    { 
-      platform: 'YouTube', 
-      url: profile?.youtube_url, 
-      icon: Youtube, 
-      color: 'text-red-600 hover:text-red-800' 
-    },
-    { 
-      platform: 'SoundCloud', 
-      url: profile?.soundcloud_url, 
-      icon: Music, 
-      color: 'text-orange-500 hover:text-orange-700' 
-    }
   ].filter(link => link.url);
 
   // Rates from profile data with currency formatting
@@ -266,83 +293,68 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
   };
 
   // Directions handling with platform detection
-  // Request location permission when user clicks "Get Directions" (for better directions)
-  const handleGetDirections = async () => {
+  // Pre-opens the tab synchronously (preserving user gesture for Safari/macOS)
+  // then fetches optional geolocation and updates the tab URL.
+  const handleGetDirections = () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    // Request user's current location for better directions (optional - will use if available)
-    let userLocation: { lat: number; lng: number } | null = null;
-    try {
-      if (navigator.geolocation) {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            timeout: 3000, // Quick timeout - don't wait too long
-            maximumAge: 300000, // Accept cached location up to 5 minutes old
-          });
-        });
-        userLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
+
+    // Build a base destination URL synchronously so we can open the tab immediately
+    const buildBaseUrl = () => {
+      if (studio.latitude && studio.longitude) {
+        return `https://www.google.com/maps/dir/?api=1&destination=${studio.latitude},${studio.longitude}`;
       }
-    } catch (error) {
-      // Silently fail - location is optional for directions
-      // Google Maps will use browser's location if available
-    }
-    
-    if (studio.latitude && studio.longitude) {
-      // Build directions URL with optional origin
-      let directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${studio.latitude},${studio.longitude}`;
-      if (userLocation) {
-        directionsUrl += `&origin=${userLocation.lat},${userLocation.lng}`;
+      if (studio.full_address || studio.address) {
+        const addressToUse = studio.full_address || studio.address || '';
+        return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addressToUse)}`;
       }
-      
-      if (isMobile) {
-        // Detect platform only within mobile check to prevent inconsistent state
+      return null;
+    };
+
+    const baseUrl = buildBaseUrl();
+    if (!baseUrl) return;
+
+    if (isMobile) {
+      // Mobile: try native app deep-link first, fall back to web
+      if (studio.latitude && studio.longitude) {
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
         const isAndroid = /Android/i.test(navigator.userAgent);
-        
-        // Try to open native app first
+
         let appUrl = '';
         if (isIOS) {
           appUrl = `comgooglemaps://?daddr=${studio.latitude},${studio.longitude}&directionsmode=driving`;
-          if (userLocation) {
-            appUrl += `&saddr=${userLocation.lat},${userLocation.lng}`;
-          }
         } else if (isAndroid) {
-          // Android navigation scheme doesn't support origin parameter
-          // Only destination is supported: google.navigation:q=lat,lng
           appUrl = `google.navigation:q=${studio.latitude},${studio.longitude}`;
         }
-        
-        // Try app URL, fallback to web if it fails
+
         if (appUrl) {
           window.location.href = appUrl;
-          // Fallback to web after a short delay if app doesn't open
-          setTimeout(() => {
-            window.open(directionsUrl, '_blank');
-          }, 1000);
+          setTimeout(() => { window.location.href = baseUrl; }, 1000);
         } else {
-          window.open(directionsUrl, '_blank');
+          window.location.href = baseUrl;
         }
       } else {
-        // Desktop: open in new tab
-        window.open(directionsUrl, '_blank');
+        window.location.href = baseUrl;
       }
-    } else if (studio.full_address || studio.address) {
-      // Fallback to full_address or legacy address if no coordinates
-      const addressToUse = studio.full_address || studio.address || '';
-      const encodedAddress = encodeURIComponent(addressToUse);
-      let directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
-      if (userLocation) {
-        directionsUrl += `&origin=${userLocation.lat},${userLocation.lng}`;
-      }
-      
-      if (isMobile) {
-        window.location.href = directionsUrl;
-      } else {
-        window.open(directionsUrl, '_blank');
-      }
+      return;
+    }
+
+    // Desktop: open tab synchronously (within user gesture) to avoid Safari popup blocker
+    const newTab = window.open(baseUrl, '_blank');
+
+    // Try to upgrade the URL with the user's origin location (optional, async)
+    if (newTab && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const origin = `&origin=${position.coords.latitude},${position.coords.longitude}`;
+          try {
+            newTab.location.href = baseUrl + origin;
+          } catch {
+            // Cross-origin security may prevent updating; the base URL is already loaded
+          }
+        },
+        () => { /* location denied/unavailable – base URL already loaded */ },
+        { timeout: 3000, maximumAge: 300000 }
+      );
     }
   };
 
@@ -456,18 +468,18 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
             };
 
             const standardConnections = [
+              { id: 'connection6', value: profile?.connection6, label: 'Cleanfeed' },
               { id: 'connection1', value: profile?.connection1, label: 'Source Connect' },
-              { id: 'connection2', value: profile?.connection2, label: 'Source Connect Now' },
+              { id: 'connection2', value: profile?.connection2, label: 'Source Connect Nexus' },
               { id: 'connection3', value: profile?.connection3, label: 'Phone Patch' },
               { id: 'connection4', value: profile?.connection4, label: 'Session Link Pro' },
               { id: 'connection5', value: profile?.connection5, label: 'Zoom or Teams' },
-              { id: 'connection6', value: profile?.connection6, label: 'Cleanfeed' },
               { id: 'connection7', value: profile?.connection7, label: 'Riverside' },
               { id: 'connection8', value: profile?.connection8, label: 'Google Hangouts' },
               { id: 'connection9', value: getConnection('connection9'), label: 'ipDTL' },
               { id: 'connection10', value: getConnection('connection10'), label: 'SquadCast' },
               { id: 'connection11', value: getConnection('connection11'), label: 'Zencastr' },
-              { id: 'connection12', value: getConnection('connection12'), label: 'Other (See profile)' },
+              { id: 'connection12', value: getConnection('connection12'), label: 'DIVA' },
             ].filter(conn => conn.value === '1');
 
             const customConnections = (profile?.custom_connection_methods || []).map((method, index) => ({
@@ -486,7 +498,13 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                       key={connection.id}
                       className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
                     >
-                      {connection.label}
+                      {connection.label === 'Cleanfeed' ? (
+                        <a href="https://cleanfeed.net/" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">
+                          {connection.label}
+                        </a>
+                      ) : (
+                        connection.label
+                      )}
                     </span>
                   ))}
                 </div>
@@ -518,6 +536,20 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                     </a>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Last Updated / Last Active - mobile */}
+          {(formatDateUK(studio.updated_at) || formatDateUK(studio.last_login)) && (
+            <div className="bg-white border-b border-gray-200 md:hidden px-4 py-3">
+              <div className="text-xs text-gray-400 space-y-0.5">
+                {formatDateUK(studio.updated_at) && (
+                  <p>Last Updated {formatDateUK(studio.updated_at)}</p>
+                )}
+                {formatDateUK(studio.last_login) && (
+                  <p>Last Active {formatDateUK(studio.last_login)}</p>
+                )}
               </div>
             </div>
           )}
@@ -573,7 +605,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                 {/* Featured Image */}
                 <div 
                   className="relative aspect-[25/12] bg-gray-200 rounded-lg overflow-hidden mb-4 cursor-pointer group"
-                  onClick={() => setShowLightbox(true)}
+                  onClick={() => { setLightboxIndex(0); setShowLightbox(true); }}
                 >
                   <Image
                     src={displayImages[0]?.image_url || ''}
@@ -603,7 +635,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                       <div 
                         key={image.id} 
                         className="relative aspect-[25/12] bg-gray-200 rounded-md overflow-hidden cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-[#d42027] transition-all"
-                        onClick={() => handleThumbnailClick(index + 1)}
+                        onClick={() => { setLightboxIndex(index + 1); setShowLightbox(true); }}
                       >
                         <Image
                           src={image.image_url}
@@ -658,6 +690,14 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                   className="text-gray-600 hover:text-gray-900"
                 />
               </div>
+
+              {/* Region / City - desktop only (mobile shows via CompactHero) */}
+              {studio.city && (
+                <div className="hidden md:flex items-center gap-1.5 mt-1">
+                  <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <span className="text-sm text-gray-500">{studio.city}</span>
+                </div>
+              )}
 
               {/* Rating and Reviews */}
               {studio.reviews.length > 0 && (
@@ -932,18 +972,18 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                 };
 
                 const standardConnections = [
+                  { id: 'connection6', label: 'Cleanfeed', value: profile?.connection6 },
                   { id: 'connection1', label: 'Source Connect', value: profile?.connection1 },
-                  { id: 'connection2', label: 'Source Connect Now', value: profile?.connection2 },
+                  { id: 'connection2', label: 'Source Connect Nexus', value: profile?.connection2 },
                   { id: 'connection3', label: 'Phone Patch', value: profile?.connection3 },
                   { id: 'connection4', label: 'Session Link Pro', value: profile?.connection4 },
                   { id: 'connection5', label: 'Zoom or Teams', value: profile?.connection5 },
-                  { id: 'connection6', label: 'Cleanfeed', value: profile?.connection6 },
                   { id: 'connection7', label: 'Riverside', value: profile?.connection7 },
                   { id: 'connection8', label: 'Google Hangouts', value: profile?.connection8 },
                   { id: 'connection9', label: 'ipDTL', value: getConnection('connection9') },
                   { id: 'connection10', label: 'SquadCast', value: getConnection('connection10') },
                   { id: 'connection11', label: 'Zencastr', value: getConnection('connection11') },
-                  { id: 'connection12', label: 'Other (See profile)', value: getConnection('connection12') },
+                  { id: 'connection12', label: 'DIVA', value: getConnection('connection12') },
                 ].filter(conn => conn.value === '1');
 
                 // Add custom connections
@@ -961,7 +1001,13 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                     <ul className="list-disc list-inside space-y-1">
                       {allConnections.map((connection) => (
                         <li key={connection.id} className="text-sm text-gray-700">
-                          {connection.label}
+                          {connection.label === 'Cleanfeed' ? (
+                            <a href="https://cleanfeed.net/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                              {connection.label}
+                            </a>
+                          ) : (
+                            connection.label
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -991,6 +1037,18 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                       </a>
                     );
                   })}
+                </div>
+              )}
+
+              {/* Last Updated / Last Active */}
+              {(formatDateUK(studio.updated_at) || formatDateUK(studio.last_login)) && (
+                <div className="text-xs text-gray-400 space-y-0.5 pt-2">
+                  {formatDateUK(studio.updated_at) && (
+                    <p>Last Updated {formatDateUK(studio.updated_at)}</p>
+                  )}
+                  {formatDateUK(studio.last_login) && (
+                    <p>Last Active {formatDateUK(studio.last_login)}</p>
+                  )}
                 </div>
               )}
 
@@ -1031,20 +1089,58 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
       {/* Image Lightbox Modal */}
       {showLightbox && displayImages.length > 0 && (
         <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-pointer"
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
           onClick={() => setShowLightbox(false)}
         >
-          <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
+          {/* Close button */}
+          <button
+            className="absolute top-4 right-4 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-colors"
+            onClick={(e) => { e.stopPropagation(); setShowLightbox(false); }}
+            aria-label="Close"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Left arrow */}
+          {displayImages.length > 1 && (
+            <button
+              className="absolute left-4 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-colors"
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length); }}
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* Image */}
+          <div
+            className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
-              src={displayImages[0]?.image_url || ''}
-              alt={displayImages[0]?.alt_text || studio.name}
+              src={displayImages[lightboxIndex]?.image_url || ''}
+              alt={displayImages[lightboxIndex]?.alt_text || studio.name}
               className="max-w-full max-h-full object-contain"
             />
-            {/* Close hint */}
-            <div className="absolute top-4 right-4 text-white text-sm bg-black/50 px-3 py-2 rounded-lg">
-              Click anywhere to close
-            </div>
           </div>
+
+          {/* Right arrow */}
+          {displayImages.length > 1 && (
+            <button
+              className="absolute right-4 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-colors"
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex((prev) => (prev + 1) % displayImages.length); }}
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* Image counter */}
+          {displayImages.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-sm bg-black/60 px-3 py-1.5 rounded-full">
+              {lightboxIndex + 1} / {displayImages.length}
+            </div>
+          )}
         </div>
       )}
 

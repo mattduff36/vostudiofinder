@@ -72,6 +72,8 @@ interface ProfileData {
     tiktok_url?: string;
     threads_url?: string;
     soundcloud_url?: string;
+    vimeo_url?: string;
+    bluesky_url?: string;
     connection1?: string;
     connection2?: string;
     connection3?: string;
@@ -153,18 +155,18 @@ const STUDIO_TYPES = [
 ];
 
 const CONNECTION_TYPES = [
+  { id: 'connection6', label: 'Cleanfeed' },
   { id: 'connection1', label: 'Source Connect' },
-  { id: 'connection2', label: 'Source Connect Now' },
+  { id: 'connection2', label: 'Source Connect Nexus' },
   { id: 'connection3', label: 'Phone Patch' },
   { id: 'connection4', label: 'Session Link Pro' },
   { id: 'connection5', label: 'Zoom or Teams' },
-  { id: 'connection6', label: 'Cleanfeed' },
   { id: 'connection7', label: 'Riverside' },
   { id: 'connection8', label: 'Google Hangouts' },
   { id: 'connection9', label: 'ipDTL' },
   { id: 'connection10', label: 'SquadCast' },
   { id: 'connection11', label: 'Zencastr' },
-  { id: 'connection12', label: 'Other (See profile)' },
+  { id: 'connection12', label: 'DIVA' },
 ];
 
 export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditFormProps>(
@@ -204,9 +206,23 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
   });
 
   // Social media URL validation functions
-  const normalizeSocialMediaUrl = (rawUrl: string): string => {
+  const normalizeSocialMediaUrl = (rawUrl: string, platform?: string): string => {
     const trimmed = rawUrl.trim();
     if (!trimmed) return '';
+
+    // Bluesky-specific: accept bare handles like "handle.bsky.social" and
+    // convert to https://bsky.app/profile/handle.bsky.social
+    if (platform === 'bluesky_url') {
+      // Bare handle (no scheme, no path separators) ending with .bsky.social
+      if (!trimmed.includes('/') && trimmed.endsWith('.bsky.social')) {
+        return `https://bsky.app/profile/${trimmed}`;
+      }
+      // handle.bsky.social entered with https:// prefix on the bsky.social domain
+      const bskyMatch = trimmed.match(/^https?:\/\/([^/]+\.bsky\.social)\/?$/i);
+      if (bskyMatch) {
+        return `https://bsky.app/profile/${bskyMatch[1]!.toLowerCase()}`;
+      }
+    }
 
     // Check if URL has ANY scheme (protocol): word characters followed by ://
     const hasScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//i.test(trimmed);
@@ -228,7 +244,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     if (!url || url.trim() === '') return '';
     
     try {
-      const normalizedUrl = normalizeSocialMediaUrl(url);
+      const normalizedUrl = normalizeSocialMediaUrl(url, platform);
+      if (!normalizedUrl) return 'Please enter a valid URL';
       const urlObj = new URL(normalizedUrl);
       const hostname = urlObj.hostname.toLowerCase().replace('www.', '');
       
@@ -241,6 +258,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         tiktok_url: ['tiktok.com', 'vm.tiktok.com'],
         linkedin_url: ['linkedin.com'],
         threads_url: ['threads.net'],
+        vimeo_url: ['vimeo.com'],
+        bluesky_url: ['bsky.app'],
       };
 
       const validDomains = platformPatterns[platform];
@@ -563,7 +582,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       // Validate all social media URLs before saving
       const socialMediaFields = [
         'facebook_url', 'x_url', 'youtube_url', 'instagram_url',
-        'soundcloud_url', 'tiktok_url', 'linkedin_url', 'threads_url'
+        'soundcloud_url', 'tiktok_url', 'linkedin_url', 'threads_url',
+        'vimeo_url', 'bluesky_url',
       ];
       
       const errors: { [key: string]: string } = {};
@@ -598,6 +618,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
           tiktok_url: normalizeSocialMediaUrl(profile!.profile!.tiktok_url || ''),
           linkedin_url: normalizeSocialMediaUrl(profile!.profile!.linkedin_url || ''),
           threads_url: normalizeSocialMediaUrl(profile!.profile!.threads_url || ''),
+          vimeo_url: normalizeSocialMediaUrl(profile!.profile!.vimeo_url || ''),
+          bluesky_url: normalizeSocialMediaUrl(profile!.profile!.bluesky_url || '', 'bluesky_url'),
         },
       };
 
@@ -1271,13 +1293,15 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
 
       case 'social':
         const socialMediaFields = [
-          { field: 'facebook_url', label: 'Facebook', placeholder: 'facebook.com/your-page', helperText: 'Your Facebook page or profile' },
-          { field: 'x_url', label: 'X (formerly Twitter)', placeholder: 'x.com/yourhandle', helperText: 'Your X (Twitter) profile' },
-          { field: 'youtube_url', label: 'YouTube', placeholder: 'youtube.com/@yourchannel', helperText: 'Your YouTube channel' },
-          { field: 'instagram_url', label: 'Instagram', placeholder: 'instagram.com/yourhandle', helperText: 'Your Instagram profile' },
-          { field: 'soundcloud_url', label: 'SoundCloud', placeholder: 'soundcloud.com/yourprofile', helperText: 'Your SoundCloud profile' },
-          { field: 'tiktok_url', label: 'TikTok', placeholder: 'tiktok.com/@yourhandle', helperText: 'Your TikTok profile' },
           { field: 'linkedin_url', label: 'LinkedIn', placeholder: 'linkedin.com/in/yourprofile', helperText: 'Your LinkedIn profile' },
+          { field: 'x_url', label: 'X (formerly Twitter)', placeholder: 'x.com/yourhandle', helperText: 'Your X (Twitter) profile' },
+          { field: 'facebook_url', label: 'Facebook', placeholder: 'facebook.com/your-page', helperText: 'Your Facebook page or profile' },
+          { field: 'instagram_url', label: 'Instagram', placeholder: 'instagram.com/yourhandle', helperText: 'Your Instagram profile' },
+          { field: 'youtube_url', label: 'YouTube', placeholder: 'youtube.com/@yourchannel', helperText: 'Your YouTube channel' },
+          { field: 'soundcloud_url', label: 'SoundCloud', placeholder: 'soundcloud.com/yourprofile', helperText: 'Your SoundCloud profile' },
+          { field: 'vimeo_url', label: 'Vimeo', placeholder: 'vimeo.com/yourprofile', helperText: 'Your Vimeo profile or channel' },
+          { field: 'bluesky_url', label: 'Bluesky', placeholder: 'bsky.app/profile/you.bsky.social', helperText: 'Your Bluesky profile (or handle.bsky.social)' },
+          { field: 'tiktok_url', label: 'TikTok', placeholder: 'tiktok.com/@yourhandle', helperText: 'Your TikTok profile' },
           { field: 'threads_url', label: 'Threads', placeholder: 'threads.net/@yourhandle', helperText: 'Your Threads profile' },
         ];
 
@@ -1319,7 +1343,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                       value={value}
                       onChange={(e) => handleSocialMediaChange(field, e.target.value)}
                       onBlur={(e) => {
-                        const normalized = normalizeSocialMediaUrl(e.target.value);
+                        const normalized = normalizeSocialMediaUrl(e.target.value, field);
                         if (normalized && normalized !== e.target.value) {
                           updateProfile(field, normalized);
                         }

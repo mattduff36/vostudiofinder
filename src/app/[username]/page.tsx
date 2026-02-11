@@ -232,6 +232,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
               username: true,
               avatar_url: true,
               email: true,
+              last_login: true,
             },
           },
           studio_services: {
@@ -409,6 +410,10 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       studio.instagram_url,
       studio.youtube_url,
       studio.soundcloud_url,
+      studio.tiktok_url,
+      studio.threads_url,
+      studio.vimeo_url,
+      studio.bluesky_url,
     ].filter((url): url is string => !!url && url.trim().length > 0);
     
     // Generate structured data for SEO (LocalBusiness schema)
@@ -576,6 +581,8 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
                 tiktok_url: studio.tiktok_url,
                 threads_url: studio.threads_url,
                 soundcloud_url: studio.soundcloud_url,
+                vimeo_url: studio.vimeo_url,
+                bluesky_url: studio.bluesky_url,
                 is_featured: studio.is_featured,
                 is_spotlight: studio.is_spotlight,
                 verification_level: studio.verification_level,
@@ -603,6 +610,8 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
                 custom_connection_methods: studio.custom_connection_methods,
               },
             },
+            updated_at: studio.updated_at ? new Date(studio.updated_at).toISOString() : null,
+            last_login: studio.users.last_login ? new Date(studio.users.last_login).toISOString() : null,
             ...(studio.website_url ? { website_url: studio.website_url } : {}),
             ...(studio.phone ? { phone: studio.phone } : {}),
             ...(studio.latitude ? { latitude: Number(studio.latitude) } : {}),

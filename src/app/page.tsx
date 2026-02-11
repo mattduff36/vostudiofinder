@@ -7,19 +7,21 @@ import {
   getBaseUrl,
   SITE_NAME,
   SITE_NAME_ALT,
-  SITE_TAGLINE,
   SITE_DESCRIPTION,
   SITE_KEYWORDS,
   TWITTER_HANDLE,
 } from '@/lib/seo/site';
 
+const HOME_TITLE = 'Voiceover Studio Finder | Voiceover & Podcast Recording Studios';
+const HOME_DESCRIPTION = 'Discover professional voiceover and podcast studios near you. Find Audio Producers and Pro Voiceover Coaches with Recording Studios Worldwide.';
+
 export const metadata: Metadata = {
-  title: `${SITE_NAME} - Find Professional Recording Studios`,
-  description: SITE_DESCRIPTION,
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
   keywords: SITE_KEYWORDS,
   openGraph: {
-    title: SITE_NAME,
-    description: SITE_TAGLINE,
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     type: 'website',
     locale: 'en_US',
     siteName: SITE_NAME,
@@ -29,14 +31,14 @@ export const metadata: Metadata = {
         url: `${getBaseUrl()}/images/homepage.jpg`,
         width: 1200,
         height: 630,
-        alt: `${SITE_NAME} - Find Professional Recording Studios`,
+        alt: HOME_TITLE,
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: SITE_NAME,
-    description: SITE_TAGLINE,
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     site: TWITTER_HANDLE,
     images: [`${getBaseUrl()}/images/homepage.jpg`],
   },

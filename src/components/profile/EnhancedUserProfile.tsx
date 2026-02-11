@@ -18,6 +18,8 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { XLogo } from '@/components/icons/XLogo';
+import { BlueskyLogo } from '@/components/icons/BlueskyLogo';
+import { VimeoLogo } from '@/components/icons/VimeoLogo';
 
 interface EnhancedUserProfileProps {
   user: User & {
@@ -44,6 +46,8 @@ interface EnhancedUserProfileProps {
       threads_url?: string | null;
       youtube_url?: string | null;
       soundcloud_url?: string | null;
+      vimeo_url?: string | null;
+      bluesky_url?: string | null;
     } | null;
   };
   isHidden?: boolean;
@@ -63,10 +67,10 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
   // Social media links with proper styling
   const socialLinks = [
     { 
-      platform: 'Facebook', 
-      url: profile?.facebook_url, 
-      icon: Facebook, 
-      color: 'hover:bg-blue-50 hover:text-blue-600 border-blue-200' 
+      platform: 'LinkedIn', 
+      url: profile?.linkedin_url, 
+      icon: Linkedin, 
+      color: 'hover:bg-blue-50 hover:text-blue-700 border-blue-200' 
     },
     { 
       platform: 'X (formerly Twitter)', 
@@ -75,28 +79,16 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
       color: 'hover:bg-blue-50 hover:text-blue-400 border-blue-200' 
     },
     { 
-      platform: 'LinkedIn', 
-      url: profile?.linkedin_url, 
-      icon: Linkedin, 
-      color: 'hover:bg-blue-50 hover:text-blue-700 border-blue-200' 
+      platform: 'Facebook', 
+      url: profile?.facebook_url, 
+      icon: Facebook, 
+      color: 'hover:bg-blue-50 hover:text-blue-600 border-blue-200' 
     },
     { 
       platform: 'Instagram', 
       url: profile?.instagram_url, 
       icon: Instagram, 
       color: 'hover:bg-pink-50 hover:text-pink-600 border-pink-200' 
-    },
-    { 
-      platform: 'TikTok', 
-      url: profile?.tiktok_url, 
-      icon: Video, 
-      color: 'hover:bg-gray-50 hover:text-gray-900 border-gray-200' 
-    },
-    { 
-      platform: 'Threads', 
-      url: profile?.threads_url, 
-      icon: MessageCircle, 
-      color: 'hover:bg-gray-50 hover:text-gray-900 border-gray-200' 
     },
     { 
       platform: 'YouTube', 
@@ -109,6 +101,30 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
       url: profile?.soundcloud_url, 
       icon: Music, 
       color: 'hover:bg-orange-50 hover:text-orange-600 border-orange-200' 
+    },
+    { 
+      platform: 'Vimeo', 
+      url: profile?.vimeo_url, 
+      icon: VimeoLogo, 
+      color: 'hover:bg-cyan-50 hover:text-cyan-600 border-cyan-200' 
+    },
+    { 
+      platform: 'Bluesky', 
+      url: profile?.bluesky_url, 
+      icon: BlueskyLogo, 
+      color: 'hover:bg-blue-50 hover:text-blue-500 border-blue-200' 
+    },
+    { 
+      platform: 'TikTok', 
+      url: profile?.tiktok_url, 
+      icon: Video, 
+      color: 'hover:bg-gray-50 hover:text-gray-900 border-gray-200' 
+    },
+    { 
+      platform: 'Threads', 
+      url: profile?.threads_url, 
+      icon: MessageCircle, 
+      color: 'hover:bg-gray-50 hover:text-gray-900 border-gray-200' 
     },
   ].filter(link => link.url);
 

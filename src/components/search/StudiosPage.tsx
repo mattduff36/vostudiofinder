@@ -122,30 +122,59 @@ export function StudiosPage() {
     enabled: isMobile
   });
 
-  // Generate dynamic H1 text based on location and studio type
-  const dynamicH1Text = useMemo(() => {
+  // Generate dynamic H1 + H2 text based on location and studio type
+  const { dynamicH1Text, dynamicH2Text } = useMemo(() => {
     const location = searchParams.get('location');
     const studioTypesParam = searchParams.get('studioTypes');
     const studioTypes = studioTypesParam ? studioTypesParam.split(',').filter(Boolean) : [];
-    
+    const defaultH2 = 'Find voiceover, recording and podcast studios near you';
+
+    // Custom headings for the three new types
+    const customHeadings: Record<string, { plural: string; sub: string }> = {
+      VOICEOVER: {
+        plural: 'Voiceover Artists',
+        sub: 'Regional accents, dialects or voices near you',
+      },
+      VO_COACH: {
+        plural: 'Voiceover Coaches',
+        sub: 'Are you an audio producer, voiceover coach, or sound engineer? Get listed!',
+      },
+      AUDIO_PRODUCER: {
+        plural: 'Audio Producers',
+        sub: 'Are you an audio producer, voiceover coach, or sound engineer? Get listed!',
+      },
+    };
+
     // If exactly one studio type is selected, use it in the heading
     if (studioTypes.length === 1 && studioTypes[0]) {
-      const studioTypeLabel = formatStudioTypeLabel(studioTypes[0]) || 'Studio';
+      const type = studioTypes[0];
+      const custom = customHeadings[type];
+
+      if (custom) {
+        const suffix = location && location.trim() ? `in ${location}` : 'Worldwide';
+        return {
+          dynamicH1Text: `${custom.plural} Available ${suffix}`,
+          dynamicH2Text: custom.sub,
+        };
+      }
+
+      // Fallback for other types (Home, Recording, Podcast studios)
+      const studioTypeLabel = formatStudioTypeLabel(type) || 'Studio';
       const pluralLabel = studioTypeLabel.includes('Studio') 
-        ? studioTypeLabel + 's' // e.g., "Home Studios"
-        : studioTypeLabel + ' Studios'; // e.g., "Audio Producer Studios"
+        ? studioTypeLabel + 's'
+        : studioTypeLabel + ' Studios';
       
       if (location && location.trim()) {
-        return `${pluralLabel} Available in ${location}`;
+        return { dynamicH1Text: `${pluralLabel} Available in ${location}`, dynamicH2Text: defaultH2 };
       }
-      return `${pluralLabel} Available Worldwide`;
+      return { dynamicH1Text: `${pluralLabel} Available Worldwide`, dynamicH2Text: defaultH2 };
     }
     
     // Default behavior for no types or multiple types selected
     if (location && location.trim()) {
-      return `Studios Available in ${location}`;
+      return { dynamicH1Text: `Studios Available in ${location}`, dynamicH2Text: defaultH2 };
     }
-    return 'Studios Available Worldwide';
+    return { dynamicH1Text: 'Studios Available Worldwide', dynamicH2Text: defaultH2 };
   }, [searchParams]);
 
   // Function to close the modal
@@ -753,7 +782,7 @@ export function StudiosPage() {
                 marginBottom: '0.5rem'
               }}
             >
-              Find voiceover, recording and podcast studios near you
+              {dynamicH2Text}
             </h2>
           </div>
         </div>
