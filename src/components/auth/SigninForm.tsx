@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { signinSchema, type SigninInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Eye, EyeOff, Mail } from 'lucide-react';
+import { Eye, EyeOff, User } from 'lucide-react';
 
 export function SigninForm() {
   const router = useRouter();
@@ -52,13 +52,13 @@ export function SigninForm() {
 
     try {
       const result = await signIn('credentials', {
-        email: data.email,
+        identifier: data.identifier,
         password: data.password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        setError('Invalid email/username or password');
         return;
       }
 
@@ -115,13 +115,14 @@ export function SigninForm() {
 
         <div className="relative">
           <Input
-            label="Email Address"
-            type="email"
-            placeholder="your@email.com"
-            error={errors.email?.message || ''}
-            {...register('email')}
+            label="Email or Username"
+            type="text"
+            autoComplete="username"
+            placeholder="your@email.com or your_username"
+            error={errors.identifier?.message || ''}
+            {...register('identifier')}
           />
-          <Mail className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />
+          <User className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />
         </div>
 
         <div className="relative">

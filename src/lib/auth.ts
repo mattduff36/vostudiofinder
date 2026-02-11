@@ -46,6 +46,12 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'credentials',
       credentials: {
+        identifier: {
+          label: 'Email or Username',
+          type: 'text',
+          placeholder: 'your@email.com or username',
+        },
+        // Keep email for backward compatibility (auto-login, reset-password flows)
         email: {
           label: 'Email',
           type: 'email',
@@ -57,17 +63,35 @@ export const authOptions: NextAuthOptions = {
         },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        // Accept identifier (new) or fall back to email (backward compat)
+        const rawIdentifier = credentials?.identifier || credentials?.email;
+
+        if (!rawIdentifier || !credentials?.password) {
           throw new Error('Invalid credentials');
         }
 
-        const normalizedEmail = credentials.email.toLowerCase().trim();
+        const trimmedIdentifier = rawIdentifier.trim();
 
-        const user = await db.users.findUnique({
-          where: {
-            email: normalizedEmail,
-          },
-        });
+        // Determine lookup strategy: email contains '@', username does not
+        let user;
+        if (trimmedIdentifier.includes('@')) {
+          // Email-based lookup
+          user = await db.users.findUnique({
+            where: {
+              email: trimmedIdentifier.toLowerCase(),
+            },
+          });
+        } else {
+          // Username-based lookup (case-insensitive)
+          user = await db.users.findFirst({
+            where: {
+              username: {
+                equals: trimmedIdentifier,
+                mode: 'insensitive',
+              },
+            },
+          });
+        }
 
         if (!user || !user.password) {
           throw new Error('Invalid credentials');

@@ -47,10 +47,30 @@ export const signupSchema = z.object({
 });
 
 export const signinSchema = z.object({
-  email: z
+  identifier: z
     .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
+    .min(1, 'Email or username is required')
+    .superRefine((val, ctx) => {
+      const trimmed = val.trim();
+      if (trimmed.includes('@')) {
+        // Validate as email
+        const emailResult = z.string().email('Please enter a valid email address').safeParse(trimmed);
+        if (!emailResult.success) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Please enter a valid email address',
+          });
+        }
+      } else {
+        // Validate as username format
+        if (!/^[a-zA-Z0-9_]{3,20}$/.test(trimmed)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Please enter a valid email address or username',
+          });
+        }
+      }
+    }),
   password: z.string().min(1, 'Password is required'),
   remember: z.boolean().optional(),
 });
