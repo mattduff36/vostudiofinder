@@ -53,7 +53,7 @@ export function CompactHero({
   // Use studio images or fallback to placeholder
   const images = studioImages.length > 0 
     ? studioImages 
-    : [{ image_url: '/images/placeholder-studio.jpg', alt_text: studioName }];
+    : [{ image_url: '/images/Featured-Studio-Placeholder.png', alt_text: studioName }];
 
   const shouldShowAddress = showAddress !== false;
 

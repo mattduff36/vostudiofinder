@@ -38,7 +38,8 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Flag
 } from 'lucide-react';
 import { XLogo } from '@/components/icons/XLogo';
 import { BlueskyLogo } from '@/components/icons/BlueskyLogo';
@@ -157,6 +158,8 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
   const displayImages = studio.studio_images || [];
   const [showUnavailableModal, setShowUnavailableModal] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
+  const [adminReviewEnabled, setAdminReviewEnabled] = useState(studio.admin_review ?? false);
+  const [isUpdatingAdminReview, setIsUpdatingAdminReview] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [showContactModal, setShowContactModal] = useState(false);
 
@@ -294,6 +297,33 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
     }
   };
 
+  // Admin: Toggle admin review flag
+  const handleToggleAdminReview = async () => {
+    if (!isAdminViewer || isUpdatingAdminReview) return;
+    
+    setIsUpdatingAdminReview(true);
+    const newValue = !adminReviewEnabled;
+    
+    try {
+      const response = await fetch(`/api/admin/studios/${studio.id}/admin-review`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminReview: newValue }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update admin review');
+      }
+
+      setAdminReviewEnabled(newValue);
+    } catch (error) {
+      console.error('Error toggling admin review:', error);
+      alert('Failed to update admin review. Please try again.');
+    } finally {
+      setIsUpdatingAdminReview(false);
+    }
+  };
+
   // Directions handling with platform detection
   // Pre-opens the tab synchronously (preserving user gesture for Safari/macOS)
   // then fetches optional geolocation and updates the tab URL.
@@ -362,14 +392,23 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Admin-only badge: profile flagged for review */}
-      {isAdminViewer && studio.admin_review && (
-        <div className="fixed top-20 left-4 md:left-6 z-50">
-          <span className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-sm font-semibold text-orange-800 shadow-sm">
-            Admin Review
-          </span>
-        </div>
+      {/* Admin Review Toggle (top-left, fixed) - Admin only */}
+      {isAdminViewer && (
+        <button
+          onClick={handleToggleAdminReview}
+          disabled={isUpdatingAdminReview}
+          className={`fixed top-20 left-4 z-[101] px-3 py-1.5 rounded-full shadow-md transition-all duration-200 flex items-center gap-2 text-sm font-medium ${
+            adminReviewEnabled 
+              ? 'bg-orange-500 hover:bg-orange-600 text-white border border-orange-600' 
+              : 'bg-transparent hover:bg-gray-50 text-gray-500 border border-gray-300'
+          } ${isUpdatingAdminReview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+          title={adminReviewEnabled ? 'Admin review enabled - click to disable' : 'Admin review disabled - click to enable'}
+        >
+          <Flag className="w-3.5 h-3.5" />
+          <span>Admin Review</span>
+        </button>
       )}
+      
       {/* Preview Mode Banner (owner viewing hidden profile) */}
       {previewMode && (
         <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-3">
@@ -655,31 +694,44 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
               </div>
             )}
 
-            {/* Studio Header - 2-col (avatar | name + region) */}
+            {/* Studio Header - avatar left, text stacked */}
             <div className="mb-2 w-full">
-              <div className="grid grid-cols-[auto,1fr] items-start gap-3 min-w-0">
-                {/* Avatar column (slightly lowered for visual alignment) */}
-                <div className="mt-2">
-                  <AvatarUpload
-                    currentAvatar={studio.owner.avatar_url ?? null}
-                    onAvatarChange={() => {}}
-                    size="small"
-                    editable={false}
-                    userName={studio.owner.display_name || studio.owner.username}
-                    variant="profile"
-                  />
-                </div>
+              <div className="flex items-start justify-between gap-3 mb-1 w-full">
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Profile Avatar - Mobile (small) */}
+                  {studio.owner.avatar_url && (
+                    <div className="md:hidden">
+                      <AvatarUpload
+                        currentAvatar={studio.owner.avatar_url}
+                        onAvatarChange={() => {}}
+                        size="small"
+                        editable={false}
+                        userName={studio.owner.display_name || studio.owner.username}
+                        variant="profile"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Profile Avatar - Desktop (72px, 150% of small) */}
+                  {studio.owner.avatar_url && (
+                    <div className="hidden md:block w-[72px] h-[72px] rounded-lg overflow-hidden border-2 border-gray-200 flex-shrink-0 relative">
+                      <Image
+                        src={studio.owner.avatar_url}
+                        alt={`${studio.owner.display_name || studio.owner.username}'s avatar`}
+                        fill
+                        className="object-cover"
+                        sizes="72px"
+                        unoptimized={studio.owner.avatar_url.includes('cloudinary')}
+                      />
+                    </div>
+                  )}
 
-                {/* Content column (name + region + share aligned to name row) */}
-                <div className="min-w-0">
-                  <div className="flex items-start justify-between gap-3 min-w-0">
-                    <h1
-                      className="text-3xl !font-bold text-gray-900 flex items-center gap-3 min-w-0"
-                      style={{ fontWeight: 700 }}
-                    >
+                  <div className="min-w-0">
+                    {/* Studio Name Row */}
+                    <h1 className="text-3xl !font-bold text-gray-900 flex items-center gap-3" style={{ fontWeight: 700 }}>
                       <span className="min-w-0 truncate">{studio.name}</span>
                       {studio.is_verified && (
-                        <span className="group relative inline-flex items-center cursor-default flex-shrink-0">
+                        <span className="group relative inline-flex items-center cursor-default">
                           <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 transition-all duration-200 group-hover:scale-110">
                             <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                           </span>
@@ -691,44 +743,45 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
                       )}
                     </h1>
 
-                    <ShareProfileButton
-                      profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
-                      profileName={studio.name}
-                      {...(studio.city && { region: studio.city })}
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-600 hover:text-gray-900 flex-shrink-0 mt-1"
-                    />
-                  </div>
-
-                  {/* Region / City - desktop only (mobile shows via CompactHero) */}
-                  {studio.city && (
-                    <div className="hidden md:flex items-center gap-1.5 mt-1 min-w-0">
-                      <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-500 truncate">{studio.city}</span>
-                    </div>
-                  )}
-
-                  {/* Rating and Reviews */}
-                  {studio.reviews.length > 0 && (
-                    <div className="flex items-center space-x-2 mb-1.5 w-full mt-2">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={clsx(
-                              'w-5 h-5',
-                              i < Math.floor(averageRating) ? 'text-yellow-400 fill-current' : 'text-gray-300',
-                            )}
-                          />
-                        ))}
+                    {/* Region Row - desktop only (mobile shows via CompactHero) */}
+                    {studio.city && (
+                      <div className="hidden md:flex items-center gap-1.5 mb-2">
+                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-sm text-gray-500">{studio.city}</span>
                       </div>
-                      <span className="text-sm text-gray-600">
-                        {averageRating.toFixed(1)} ({studio._count.reviews} reviews)
-                      </span>
-                    </div>
-                  )}
+                    )}
+
+                    {/* Rating and Reviews */}
+                    {studio.reviews.length > 0 && (
+                      <div className="flex items-center space-x-2 mb-1.5 w-full">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={clsx(
+                                'w-5 h-5',
+                                i < Math.floor(averageRating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                              )}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          {averageRating.toFixed(1)} ({studio._count.reviews} reviews)
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {/* Share Profile Button - Desktop Header */}
+                <ShareProfileButton
+                  profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
+                  profileName={studio.name}
+                  {...(studio.city && { region: studio.city })}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900"
+                />
               </div>
             </div>
 
@@ -1097,55 +1150,56 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
           onClick={() => setShowLightbox(false)}
         >
-          {/* Close button */}
-          <button
-            className="absolute top-4 right-4 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-colors"
-            onClick={(e) => { e.stopPropagation(); setShowLightbox(false); }}
-            aria-label="Close"
-          >
-            <X className="w-6 h-6" />
-          </button>
-
-          {/* Left arrow */}
-          {displayImages.length > 1 && (
-            <button
-              className="absolute left-4 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-colors"
-              onClick={(e) => { e.stopPropagation(); setLightboxIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length); }}
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-          )}
-
-          {/* Image */}
+          {/* Image container with controls inside */}
           <div
             className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Close button - inside image, top-right */}
+            <button
+              className="absolute top-4 right-4 z-10 bg-black/60 hover:bg-black/90 hover:scale-110 text-white rounded-full p-3 transition-all duration-200"
+              onClick={(e) => { e.stopPropagation(); setShowLightbox(false); }}
+              aria-label="Close"
+            >
+              <X className="w-9 h-9" />
+            </button>
+
+            {/* Left arrow - inside image */}
+            {displayImages.length > 1 && (
+              <button
+                className="absolute left-4 z-10 bg-black/60 hover:bg-black/90 hover:scale-110 text-white rounded-full p-3 transition-all duration-200"
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length); }}
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="w-9 h-9" />
+              </button>
+            )}
+
+            {/* Image */}
             <img
               src={displayImages[lightboxIndex]?.image_url || ''}
               alt={displayImages[lightboxIndex]?.alt_text || studio.name}
               className="max-w-full max-h-full object-contain"
             />
+
+            {/* Right arrow - inside image */}
+            {displayImages.length > 1 && (
+              <button
+                className="absolute right-4 z-10 bg-black/60 hover:bg-black/90 hover:scale-110 text-white rounded-full p-3 transition-all duration-200"
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex((prev) => (prev + 1) % displayImages.length); }}
+                aria-label="Next image"
+              >
+                <ChevronRight className="w-9 h-9" />
+              </button>
+            )}
+
+            {/* Image counter */}
+            {displayImages.length > 1 && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-sm bg-black/60 px-3 py-1.5 rounded-full">
+                {lightboxIndex + 1} / {displayImages.length}
+              </div>
+            )}
           </div>
-
-          {/* Right arrow */}
-          {displayImages.length > 1 && (
-            <button
-              className="absolute right-4 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-colors"
-              onClick={(e) => { e.stopPropagation(); setLightboxIndex((prev) => (prev + 1) % displayImages.length); }}
-              aria-label="Next image"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          )}
-
-          {/* Image counter */}
-          {displayImages.length > 1 && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-sm bg-black/60 px-3 py-1.5 rounded-full">
-              {lightboxIndex + 1} / {displayImages.length}
-            </div>
-          )}
         </div>
       )}
 

@@ -41,6 +41,9 @@ export function Navbar({ session }: NavbarProps) {
   const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isLargeMobile, setIsLargeMobile] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const mobileBrowseDropdownPanelRef = useRef<HTMLDivElement>(null);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const lastWidthRef = useRef<number | null>(null);
   const hasInitializedRef = useRef(false);
@@ -51,11 +54,16 @@ export function Navbar({ session }: NavbarProps) {
   }, []);
 
   // Check if we're on mobile viewport and track desktop breakpoint
+  // Short viewports (height < 768px) are treated as mobile even if width >= 1024
   useEffect(() => {
     const checkViewport = () => {
       const width = window.innerWidth;
+      const height = window.innerHeight;
+      const isShortViewport = height < 768;
       setIsMobile(width < 768); // md breakpoint
-      setIsDesktop(width >= 1024); // lg breakpoint
+      setIsDesktop(width >= 1024 && !isShortViewport); // desktop only when tall enough
+      setIsLargeMobile((width >= 430 && width < 1024) || (width >= 1024 && isShortViewport)); // includes short-height wide screens
+      setViewportWidth(width);
     };
     checkViewport();
     window.addEventListener('resize', checkViewport);
@@ -153,13 +161,14 @@ export function Navbar({ session }: NavbarProps) {
     };
   }, [isDesktopBurgerOpen]);
 
-  // Close browse dropdown on outside click
+  // Close browse dropdown on outside click (desktop trigger, desktop panel, or mobile panel)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
       const inTrigger = !!(browseDropdownRef.current && browseDropdownRef.current.contains(target));
-      const inPanel = !!(browseDropdownPanelRef.current && browseDropdownPanelRef.current.contains(target));
-      if (!inTrigger && !inPanel) {
+      const inDesktopPanel = !!(browseDropdownPanelRef.current && browseDropdownPanelRef.current.contains(target));
+      const inMobilePanel = !!(mobileBrowseDropdownPanelRef.current && mobileBrowseDropdownPanelRef.current.contains(target));
+      if (!inTrigger && !inDesktopPanel && !inMobilePanel) {
         userDismissedBrowseRef.current = true;
         setIsBrowseDropdownOpen(false);
       }
@@ -218,20 +227,27 @@ export function Navbar({ session }: NavbarProps) {
     return () => window.removeEventListener('scroll', checkScroll);
   }, [pathname]);
 
-  // Auto-open dropdown on homepage when at top (not scrolled at all) — desktop only (>= lg)
+  // Auto-open dropdown on homepage when at top — desktop (>= lg) and large mobile (430-1024px)
   useEffect(() => {
-    if (pathname === '/' && !hasScrolledAtAll && isMounted && !userDismissedBrowseRef.current && isDesktop) {
-      setIsBrowseDropdownOpen(true);
-    } else if (pathname !== '/' || hasScrolledAtAll || !isMounted || !isDesktop) {
-      // Close dropdown when navigating away, scrolling, during hydration, or on mobile/tablet
+    if (pathname === '/') {
+      // Desktop: open when at top, unless user explicitly dismissed
+      if (isDesktop && !hasScrolledAtAll && isMounted && !userDismissedBrowseRef.current) {
+        setIsBrowseDropdownOpen(true);
+      }
+      // Large mobile: open when at top (always reopen, even if previously dismissed)
+      else if (isLargeMobile && !hasScrolledAtAll && isMounted) {
+        setIsBrowseDropdownOpen(true);
+      }
+      // Close when scrolled or viewport doesn't qualify
+      else if (hasScrolledAtAll || !isMounted || (!isDesktop && !isLargeMobile)) {
+        setIsBrowseDropdownOpen(false);
+      }
+    } else {
+      // Not on homepage — close and reset dismissal flag
       setIsBrowseDropdownOpen(false);
-    }
-
-    // Reset dismissal when navigating away from homepage
-    if (pathname !== '/') {
       userDismissedBrowseRef.current = false;
     }
-  }, [pathname, hasScrolledAtAll, isMounted, isDesktop]);
+  }, [pathname, hasScrolledAtAll, isMounted, isDesktop, isLargeMobile]);
 
   // Keep dropdown positioned under navbar (portal-mounted)
   useEffect(() => {
@@ -256,17 +272,19 @@ export function Navbar({ session }: NavbarProps) {
   // Communicate dropdown height to HeroSection via CSS custom property
   // Depends on isMounted so it re-runs after the portal renders and the ref is available
   useEffect(() => {
-    if (isBrowseDropdownOpen && browseDropdownPanelRef.current) {
+    if (isBrowseDropdownOpen && (browseDropdownPanelRef.current || mobileBrowseDropdownPanelRef.current)) {
       // Small delay to let the dropdown render and measure correctly
       const raf = requestAnimationFrame(() => {
-        const height = browseDropdownPanelRef.current?.offsetHeight ?? 0;
+        const desktopHeight = browseDropdownPanelRef.current?.offsetHeight ?? 0;
+        const mobileHeight = mobileBrowseDropdownPanelRef.current?.offsetHeight ?? 0;
+        const height = Math.max(desktopHeight, mobileHeight);
         document.documentElement.style.setProperty('--dropdown-offset', `${height}px`);
       });
       return () => cancelAnimationFrame(raf);
     }
     document.documentElement.style.setProperty('--dropdown-offset', '0px');
     return undefined;
-  }, [isBrowseDropdownOpen, isMounted]);
+  }, [isBrowseDropdownOpen, isMounted, isDesktop, isLargeMobile]);
 
   // Handle scroll effect - use hero height as threshold
   useEffect(() => {
@@ -425,7 +443,7 @@ export function Navbar({ session }: NavbarProps) {
 
           {/* Center: Browse Studios (true center via symmetric grid tracks) */}
           <div className="justify-self-center">
-            <div className="hidden lg:flex items-center space-x-8">
+            <div className={`items-center space-x-8 ${isDesktop ? 'flex' : 'hidden'}`}>
               {/* Browse Studios - with dropdown on homepage only */}
               {pathname === '/' ? (
                 <div
@@ -599,12 +617,12 @@ export function Navbar({ session }: NavbarProps) {
       </div>
     </nav>
 
-    {/* Browse Studios Dropdown (portal-mounted for proper backdrop blur) - Homepage only */}
-    {isMounted && pathname === '/' &&
+    {/* Browse Studios Dropdown (portal-mounted for proper backdrop blur) - Homepage only, desktop */}
+    {isMounted && pathname === '/' && isDesktop &&
       createPortal(
         <div
           ref={browseDropdownPanelRef}
-          className={`hidden lg:block fixed left-1/2 -translate-x-1/2 z-[120] rounded-b-2xl transition-all duration-200 ease-out ${
+          className={`fixed left-1/2 -translate-x-1/2 z-[120] rounded-b-2xl transition-all duration-200 ease-out ${
             isBrowseDropdownOpen
               ? 'opacity-100 translate-y-0 pointer-events-auto'
               : 'opacity-0 -translate-y-2 pointer-events-none'
@@ -636,6 +654,41 @@ export function Navbar({ session }: NavbarProps) {
               tone={isScrolled ? 'light' : 'dark'}
               labelMode={!isScrolled ? 'full' : 'short'}
               imageScale={!isScrolled ? 2 : 1}
+            />
+          </div>
+        </div>,
+        document.body,
+      )}
+
+    {/* Browse Studios Dropdown — Large Mobile / Tablet (430-1024px), homepage only */}
+    {isMounted && pathname === '/' && isLargeMobile &&
+      createPortal(
+        <div
+          ref={mobileBrowseDropdownPanelRef}
+          className={`fixed left-0 right-0 z-[120] transition-all duration-200 ease-out ${
+            isBrowseDropdownOpen
+              ? 'opacity-100 translate-y-0 pointer-events-auto'
+              : 'opacity-0 -translate-y-2 pointer-events-none'
+          } bg-black/30 backdrop-blur-md shadow-xl`}
+          style={{ top: `${(browseDropdownTop ?? 80)}px` }}
+          onClick={(e) => {
+            const target = e.target as HTMLElement | null;
+            const clickedLink = target?.closest('a');
+            const clickedButton = target?.closest('button');
+            if (clickedLink || clickedButton) {
+              setIsBrowseDropdownOpen(false);
+            }
+          }}
+          role="menu"
+          aria-label="Browse studios by type"
+        >
+          <div className="px-2 py-3">
+            <CategoryFilterBar
+              variant="compact"
+              tone="dark"
+              labelMode="short"
+              imageScale={Math.max(0.75, (viewportWidth - 16) / 500)}
+              className="!overflow-visible justify-center"
             />
           </div>
         </div>,

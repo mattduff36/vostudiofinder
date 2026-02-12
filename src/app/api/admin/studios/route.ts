@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
       'is_profile_visible': { is_profile_visible: sortOrder },
       'is_verified': { is_verified: sortOrder },
       'is_featured': { is_featured: sortOrder },
+      'admin_review': { admin_review: sortOrder },
       'last_login': { users: { last_login: sortOrder } },
       'profile_completion': { updated_at: sortOrder }, // Will sort on client after calculation
     };
@@ -107,6 +108,7 @@ export async function GET(request: NextRequest) {
           featured_until: true,
           is_spotlight: true,
           is_profile_visible: true,
+          admin_review: true,
           created_at: true,
           updated_at: true,
           latitude: true,
@@ -221,8 +223,8 @@ export async function GET(request: NextRequest) {
       return {
         ...studio,
         status: studio.status,
-        latitude: studio.latitude ? Number(studio.latitude) : null,
-        longitude: studio.longitude ? Number(studio.longitude) : null,
+        latitude: studio.latitude !== null && studio.latitude !== undefined ? Number(studio.latitude) : null,
+        longitude: studio.longitude !== null && studio.longitude !== undefined ? Number(studio.longitude) : null,
         profile_completion: profileCompletion,
         last_login: studio.users.last_login,
         membership_expires_at: membershipExpiresAt,

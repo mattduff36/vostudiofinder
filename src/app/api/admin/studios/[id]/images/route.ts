@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { v2 as cloudinary } from 'cloudinary';
 import { randomBytes } from 'crypto';
 import { Role } from '@prisma/client';
+import { IMAGE_RIGHTS_CONFIRMATION_TEXT, extractClientIp } from '@/lib/legal/image-rights';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
@@ -148,15 +149,29 @@ export async function POST(
 
     const imageCount = studio.studio_images.length;
     const imageId = randomBytes(12).toString('hex');
-    
-    const newImage = await db.studio_images.create({
-      data: {
-        id: imageId,
-        studio_id: studio.id,
-        image_url: cloudinaryResult.secure_url,
-        alt_text: alt_text || '',
-        sort_order: imageCount,
-      },
+    const clientIp = extractClientIp(request.headers);
+
+    // Create image + persist image-rights confirmation audit record in a single transaction
+    const newImage = await db.$transaction(async (tx) => {
+      await tx.studio_profiles.update({
+        where: { id: studio.id },
+        data: {
+          image_rights_confirmed_at: new Date(),
+          image_rights_confirmed_text: IMAGE_RIGHTS_CONFIRMATION_TEXT,
+          image_rights_confirmed_ip: clientIp,
+          updated_at: new Date(),
+        },
+      });
+
+      return tx.studio_images.create({
+        data: {
+          id: imageId,
+          studio_id: studio.id,
+          image_url: cloudinaryResult.secure_url,
+          alt_text: alt_text || '',
+          sort_order: imageCount,
+        },
+      });
     });
 
     return NextResponse.json({

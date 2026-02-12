@@ -86,6 +86,22 @@ export interface AdminProfileResponse {
     };
     images?: AdminProfileImage[];
   };
+  tierLimits?: {
+    aboutMaxChars: number;
+    imagesMax: number;
+    studioTypesMax: number | null;
+    studioTypesExcluded: string[];
+    connectionsMax: number;
+    customConnectionsMax: number;
+    socialLinksMax: number | null;
+    phoneVisibility: boolean;
+    directionsVisibility: boolean;
+    advancedSettings: boolean;
+    aiAutoGenerate: boolean;
+    verificationEligible: boolean;
+    featuredEligible: boolean;
+    avatarAllowed: boolean;
+  };
 }
 
 export interface ProfileData {
@@ -160,6 +176,22 @@ export interface ProfileData {
   metadata?: {
     custom_meta_title?: string;
   };
+  tierLimits?: {
+    aboutMaxChars: number;
+    imagesMax: number;
+    studioTypesMax: number | null;
+    studioTypesExcluded: string[];
+    connectionsMax: number;
+    customConnectionsMax: number;
+    socialLinksMax: number | null;
+    phoneVisibility: boolean;
+    directionsVisibility: boolean;
+    advancedSettings: boolean;
+    aiAutoGenerate: boolean;
+    verificationEligible: boolean;
+    featuredEligible: boolean;
+    avatarAllowed: boolean;
+  } | null | undefined;
   // Admin-only fields
   _adminOnly?: {
     studioId: string;
@@ -270,6 +302,7 @@ export function adminProfileToProfileData(response: AdminProfileResponse): Profi
     metadata: {
       custom_meta_title: meta.custom_meta_title || '',
     },
+    tierLimits: response.tierLimits,
     _adminOnly: {
       studioId: admin.id,
       status: admin.status,

@@ -434,12 +434,14 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         postalCode: postalCode,
         addressCountry: 'GB',
       } : undefined,
-      geo: studio.latitude && studio.longitude ? {
+      geo: studio.latitude !== null && studio.latitude !== undefined && studio.longitude !== null && studio.longitude !== undefined ? {
         '@type': 'GeoCoordinates',
         latitude: Number(studio.latitude),
         longitude: Number(studio.longitude),
       } : undefined,
-      hasMap: studio.latitude && studio.longitude ? `https://www.google.com/maps?q=${Number(studio.latitude)},${Number(studio.longitude)}` : undefined,
+      hasMap: studio.latitude !== null && studio.latitude !== undefined && studio.longitude !== null && studio.longitude !== undefined
+        ? `https://www.google.com/maps?q=${Number(studio.latitude)},${Number(studio.longitude)}`
+        : undefined,
       areaServed: {
         '@type': 'AdministrativeArea',
         name: 'United Kingdom',
@@ -548,6 +550,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(cleanedBreadcrumbSchema) }}
         />
         <ModernStudioProfileV3 
+          isAdminViewer={isAdmin}
           previewMode={!studio.is_profile_visible || studio.status !== 'ACTIVE'}
           studio={({
             ...((): Omit<typeof studio, 'website_url' | 'phone' | 'latitude' | 'longitude' | 'studio_images' | 'reviews' | 'users' | 'studio_studio_types'> => {
@@ -556,6 +559,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             })(),
             description: studio.description || '',
             full_address: studio.full_address || '',
+            admin_review: studio.admin_review ?? false,
             studio_studio_types: studio.studio_studio_types && studio.studio_studio_types.length > 0 
               ? studio.studio_studio_types.map((st: { studio_type: string }) => st.studio_type) 
               : [],
@@ -614,8 +618,8 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
             last_login: studio.users.last_login ? new Date(studio.users.last_login).toISOString() : null,
             ...(studio.website_url ? { website_url: studio.website_url } : {}),
             ...(studio.phone ? { phone: studio.phone } : {}),
-            ...(studio.latitude ? { latitude: Number(studio.latitude) } : {}),
-            ...(studio.longitude ? { longitude: Number(studio.longitude) } : {}),
+            ...(studio.latitude !== null && studio.latitude !== undefined ? { latitude: Number(studio.latitude) } : {}),
+            ...(studio.longitude !== null && studio.longitude !== undefined ? { longitude: Number(studio.longitude) } : {}),
             show_exact_location: studio.show_exact_location ?? true,
             studio_images: studio.studio_images.map((img: { id: string; image_url: string; sort_order: number | null; alt_text: string | null }) => ({
               id: img.id,

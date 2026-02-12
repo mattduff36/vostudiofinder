@@ -242,9 +242,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where clause
+    // - latitude/longitude use DecimalNullableFilter (accepts null in `not`)
+    // - city is a non-nullable String (default ""), so only exclude empty strings
     const where: Prisma.studio_profilesWhereInput = {
       status: 'ACTIVE',
       is_profile_visible: true, // Only show visible profiles
+      latitude: { not: null },  // Exclude studios without coordinates
+      longitude: { not: null },
+      city: { not: '' },        // Exclude studios without a public location label
       AND: [],
     };
 
@@ -533,7 +538,9 @@ export async function GET(request: NextRequest) {
 
     // If geocoding failed but we have studios and a radius, calculate approximate center from results
     if (geocodingFailed && fetchedStudios.length > 0 && validatedParams.radius) {
-      const studiosWithCoords = fetchedStudios.filter(s => s.latitude && s.longitude);
+      const studiosWithCoords = fetchedStudios.filter(
+        (s) => s.latitude !== null && s.latitude !== undefined && s.longitude !== null && s.longitude !== undefined,
+      );
       if (studiosWithCoords.length > 0) {
         // Calculate center point from all found studios
         const avgLat = studiosWithCoords.reduce((sum, s) => sum + Number(s.latitude), 0) / studiosWithCoords.length;
@@ -547,7 +554,7 @@ export async function GET(request: NextRequest) {
     if (searchCoordinates && validatedParams.radius) {
       allStudios = fetchedStudios
         .map(studio => {
-          if (studio.latitude && studio.longitude) {
+          if (studio.latitude !== null && studio.latitude !== undefined && studio.longitude !== null && studio.longitude !== undefined) {
             const distance = calculateDistance(
               searchCoordinates.lat,
               searchCoordinates.lng,
@@ -595,8 +602,8 @@ export async function GET(request: NextRequest) {
       ...studio,
       description: studio.short_about || '', // short_about is now directly on studio_profiles
       address: studio.city || '', // Use city (region) for public display
-      latitude: studio.latitude ? Number(studio.latitude) : null,
-      longitude: studio.longitude ? Number(studio.longitude) : null,
+      latitude: studio.latitude !== null && studio.latitude !== undefined ? Number(studio.latitude) : null,
+      longitude: studio.longitude !== null && studio.longitude !== undefined ? Number(studio.longitude) : null,
       owner: studio.users, // Map users to owner for backward compatibility with studio cards
       studio_images: studio.studio_images || [],
     }));
@@ -648,7 +655,7 @@ export async function GET(request: NextRequest) {
         
         // Filter by distance for location searches
         mapMarkers = mapMarkers.filter(studio => {
-          if (!studio.latitude || !studio.longitude) return false;
+          if (studio.latitude === null || studio.latitude === undefined || studio.longitude === null || studio.longitude === undefined) return false;
           const distanceKm = calculateDistance(
             searchCoordinates.lat,
             searchCoordinates.lng,
@@ -730,8 +737,14 @@ export async function GET(request: NextRequest) {
       });
     } else {
       // No filters - show active and visible studios on map (cap at 200 for performance)
+      // Use a dedicated where clause: map markers only need valid coordinates, not city
       mapMarkers = await db.studio_profiles.findMany({
-        where: { status: 'ACTIVE', is_profile_visible: true },
+        where: {
+          status: 'ACTIVE',
+          is_profile_visible: true,
+          latitude: { not: null },
+          longitude: { not: null },
+        },
         take: MAX_STUDIOS_TO_FETCH,
         select: {
           id: true,

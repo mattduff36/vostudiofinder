@@ -133,7 +133,7 @@ interface ProfileData {
     verificationEligible: boolean;
     featuredEligible: boolean;
     avatarAllowed: boolean;
-  } | null;
+  } | null | undefined;
   _adminOnly?: {
     studioId: string;
     status: string;

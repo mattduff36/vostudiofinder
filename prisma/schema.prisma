@@ -321,6 +321,8 @@ model studio_profiles {
   is_premium              Boolean                 @default(false)
   is_verified             Boolean                 @default(false)
   is_profile_visible      Boolean                 @default(true)
+  // Admin flag to mark a studio for manual review
+  admin_review            Boolean                 @default(false)
   is_featured             Boolean                 @default(false)
   featured_until          DateTime?
   is_spotlight            Boolean                 @default(false)

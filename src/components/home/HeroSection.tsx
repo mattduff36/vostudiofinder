@@ -52,7 +52,7 @@ export function HeroSection() {
   const recalcScale = useCallback(() => {
     if (!contentRef.current) return;
     const viewportH = window.innerHeight;
-    const navH = 80; // navbar height (approx)
+    const navH = window.innerWidth >= 768 ? 80 : 56; // md+ navbar is 80px, mobile is 56px
     const dropdownOffset = parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue('--dropdown-offset') || '0'
     );
@@ -105,7 +105,7 @@ export function HeroSection() {
   };
 
   return (
-    <div className="relative text-white overflow-visible min-h-screen flex items-center justify-center w-full max-w-full" style={{ minHeight: heroHeight ? `${heroHeight}px` : '100dvh' }}>
+    <div className="relative text-white overflow-visible min-h-screen flex flex-col w-full max-w-full" style={{ minHeight: heroHeight ? `${heroHeight}px` : '100dvh', paddingTop: 'var(--dropdown-offset, 0px)', transition: 'padding-top 200ms ease-out' }}>
         {/* Background Image */}
         <div className="absolute inset-0 overflow-hidden">
           <Image
@@ -122,7 +122,7 @@ export function HeroSection() {
         </div>
 
       {/* Hero Content */}
-      <div className="relative z-50 py-6 sm:py-12 md:py-16 lg:py-20 w-full" style={{ marginTop: 'calc(-10vh + var(--dropdown-offset, 0px))', transition: 'margin-top 200ms ease-out' }}>
+      <div className="relative z-50 py-6 sm:py-12 md:py-16 lg:py-20 w-full my-auto">
         <div
           ref={contentRef}
           className="max-w-7xl mx-auto px-4 sm:px-6"

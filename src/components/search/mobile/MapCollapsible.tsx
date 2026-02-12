@@ -143,7 +143,13 @@ export function MapCollapsible({
   // Transform markers to GoogleMap format - memoized to prevent unnecessary recalculation
   const transformedMarkers = useMemo(() => {
     return markers
-      .filter((m) => m.latitude && m.longitude)
+      .filter(
+        (m) =>
+          m.latitude !== null &&
+          m.latitude !== undefined &&
+          m.longitude !== null &&
+          m.longitude !== undefined,
+      )
       .map((marker) => ({
         id: marker.id,
         position: { lat: marker.latitude!, lng: marker.longitude! },

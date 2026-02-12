@@ -296,12 +296,18 @@ async function main() {
 
     // --- 2d: Studio profiles ---
     console.log('🏠 Copying studio profiles...');
-    const prodStudios = await prodDb.studio_profiles.findMany({ orderBy: { created_at: 'asc' } });
+    const prodStudios = await prodDb.$queryRaw<any[]>`
+      SELECT * FROM studio_profiles ORDER BY created_at ASC
+    `;
+    
+    // Batch insert in chunks of 50 to avoid timeout
+    const chunkSize = 50;
     let studiosAdded = 0;
     
-    for (const s of prodStudios) {
-      await devDb.studio_profiles.create({
-        data: {
+    for (let i = 0; i < prodStudios.length; i += chunkSize) {
+      const chunk = prodStudios.slice(i, i + chunkSize);
+      const studioDataArray = chunk.map(s => {
+        const data: any = {
           id: s.id,
           user_id: s.user_id,
           name: s.name,
@@ -351,7 +357,7 @@ async function main() {
           connection10: s.connection10,
           connection11: s.connection11,
           connection12: s.connection12,
-          custom_connection_methods: s.custom_connection_methods,
+          custom_connection_methods: s.custom_connection_methods || [],
           status: s.status,
           is_premium: s.is_premium,
           is_verified: s.is_verified,
@@ -364,9 +370,21 @@ async function main() {
           use_coordinates_for_map: s.use_coordinates_for_map,
           created_at: s.created_at,
           updated_at: s.updated_at,
-        }
+        };
+        
+        // Add new fields if they exist in production data (with defaults if missing)
+        data.admin_review = s.admin_review ?? false;
+        data.bluesky_url = s.bluesky_url ?? null;
+        data.image_rights_confirmed_at = s.image_rights_confirmed_at ?? null;
+        data.image_rights_confirmed_text = s.image_rights_confirmed_text ?? null;
+        data.image_rights_confirmed_ip = s.image_rights_confirmed_ip ?? null;
+        
+        return data;
       });
-      studiosAdded++;
+      
+      // Use createMany which doesn't enforce relations
+      await devDb.studio_profiles.createMany({ data: studioDataArray, skipDuplicates: true });
+      studiosAdded += studioDataArray.length;
     }
     console.log(`  ✓ Studios: ${studiosAdded}`);
 
@@ -814,7 +832,17 @@ async function main() {
 
     // --- 2ac: Profile audit findings ---
     console.log('🔍 Copying profile audit findings...');
-    const prodAuditFindings = await prodDb.profile_audit_findings.findMany();
+    let prodAuditFindings: any[] = [];
+    try {
+      prodAuditFindings = await prodDb.profile_audit_findings.findMany();
+    } catch (error: any) {
+      if (error.code === 'P2021') {
+        console.log('  ⚠️  Table does not exist in production, skipping...');
+        prodAuditFindings = [];
+      } else {
+        throw error;
+      }
+    }
     for (const af of prodAuditFindings) {
       await devDb.profile_audit_findings.create({
         data: {
@@ -835,7 +863,17 @@ async function main() {
 
     // --- 2ad: Profile enrichment suggestions (FK → profile_audit_findings) ---
     console.log('💡 Copying profile enrichment suggestions...');
-    const prodEnrichments = await prodDb.profile_enrichment_suggestions.findMany();
+    let prodEnrichments: any[] = [];
+    try {
+      prodEnrichments = await prodDb.profile_enrichment_suggestions.findMany();
+    } catch (error: any) {
+      if (error.code === 'P2021') {
+        console.log('  ⚠️  Table does not exist in production, skipping...');
+        prodEnrichments = [];
+      } else {
+        throw error;
+      }
+    }
     for (const es of prodEnrichments) {
       await devDb.profile_enrichment_suggestions.create({
         data: {
@@ -860,7 +898,17 @@ async function main() {
 
     // --- 2ae: Profile audit log ---
     console.log('📋 Copying profile audit log...');
-    const prodAuditLog = await prodDb.profile_audit_log.findMany();
+    let prodAuditLog: any[] = [];
+    try {
+      prodAuditLog = await prodDb.profile_audit_log.findMany();
+    } catch (error: any) {
+      if (error.code === 'P2021') {
+        console.log('  ⚠️  Table does not exist in production, skipping...');
+        prodAuditLog = [];
+      } else {
+        throw error;
+      }
+    }
     for (const al of prodAuditLog) {
       await devDb.profile_audit_log.create({
         data: {

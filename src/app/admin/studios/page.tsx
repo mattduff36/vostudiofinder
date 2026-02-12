@@ -25,6 +25,7 @@ interface Studio {
   featured_until?: string | null;
   is_spotlight?: boolean;
   is_profile_visible?: boolean;
+  admin_review?: boolean;
   profile_completion?: number;
   last_login?: string | null;
   membership_expires_at?: string | null;
@@ -82,6 +83,7 @@ export default function AdminStudiosPage() {
   // Protected columns: 'studio' and 'actions' (always visible)
   const COLUMN_CONFIG = [
     { id: 'select', label: 'Select', protected: false },
+    { id: 'adminReview', label: 'Admin Review', protected: false },
     { id: 'studio', label: 'Studio', protected: true },
     { id: 'type', label: 'Type', protected: false },
     { id: 'owner', label: 'Owner', protected: false },
@@ -398,6 +400,29 @@ export default function AdminStudiosPage() {
     } catch (error) {
       console.error('Error toggling verified status:', error);
       showError('Failed to update verified status. Please try again.');
+    }
+  };
+
+  const handleToggleAdminReview = async (studio: Studio, adminReview: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/studios/${studio.id}/admin-review`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminReview }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update admin review');
+      }
+
+      setStudios((prev) =>
+        prev.map((s) => (s.id === studio.id ? { ...s, admin_review: adminReview } : s)),
+      );
+
+      showSuccess(`Admin review ${adminReview ? 'enabled' : 'disabled'} for ${studio.name}`);
+    } catch (error) {
+      console.error('Error toggling admin review:', error);
+      showError('Failed to update admin review. Please try again.');
     }
   };
 
@@ -814,6 +839,17 @@ export default function AdminStudiosPage() {
                     {studio.is_profile_visible ? 'Visible' : 'Hidden'}
                   </button>
 
+                  {/* Admin Review */}
+                  <button
+                    onClick={() => handleToggleAdminReview(studio, !studio.admin_review)}
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      studio.admin_review ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-600'
+                    }`}
+                    title="Flag this profile for admin review"
+                  >
+                    {studio.admin_review ? 'Admin Review' : 'No Review'}
+                  </button>
+
                   {/* Verified */}
                   <button
                     onClick={() => handleToggleVerified(studio, !studio.is_verified)}
@@ -927,6 +963,16 @@ export default function AdminStudiosPage() {
                     {isColumnVisible('select') && (
                       <th data-column="select" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Select
+                      </th>
+                    )}
+                    {isColumnVisible('adminReview') && (
+                      <th
+                        data-column="adminReview"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('admin_review')}
+                        title="Click to sort by admin review flag"
+                      >
+                        Admin Review{getSortIcon('admin_review')}
                       </th>
                     )}
                     {isColumnVisible('studio') && (
@@ -1050,6 +1096,27 @@ export default function AdminStudiosPage() {
                             onChange={(e) => handleSelectStudio(studio.id, e.target.checked)}
                             className="rounded border-gray-300"
                           />
+                        </td>
+                      )}
+                      {isColumnVisible('adminReview') && (
+                        <td
+                          data-column="adminReview"
+                          className="px-6 py-4 whitespace-nowrap text-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={() => handleToggleAdminReview(studio, !studio.admin_review)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+                              studio.admin_review ? 'bg-orange-500' : 'bg-gray-300'
+                            }`}
+                            title={studio.admin_review ? 'Admin review enabled - click to disable' : 'Admin review disabled - click to enable'}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                studio.admin_review ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
                         </td>
                       )}
                       {isColumnVisible('studio') && (

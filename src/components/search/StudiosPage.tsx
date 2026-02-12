@@ -324,7 +324,13 @@ export function StudiosPage() {
     const allStudios = searchResults.mapMarkers || searchResults.studios;
     
     return allStudios
-      .filter(studio => studio.latitude && studio.longitude)
+      .filter(
+        (studio) =>
+          studio.latitude !== null &&
+          studio.latitude !== undefined &&
+          studio.longitude !== null &&
+          studio.longitude !== undefined,
+      )
       .map(studio => ({
         id: studio.id,
         position: { lat: studio.latitude!, lng: studio.longitude! },
@@ -1012,11 +1018,7 @@ export function StudiosPage() {
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-50 text-red-700 border border-red-200">
                       {isFilteringByMapArea && mapAreaStudios.length > 0 
                         ? `${mapAreaStudios.length} ${mapAreaStudios.length === 1 ? 'Studio' : 'Studios'} Found`
-                        : `${searchResults.pagination.totalCount} ${searchResults.pagination.totalCount === 1 ? 'Studio' : 'Studios'} Found${
-                            memoizedMarkers.length > 0 && memoizedMarkers.length < searchResults.pagination.totalCount
-                              ? ` (${memoizedMarkers.length} shown on map)`
-                              : ''
-                          }`
+                        : `${searchResults.pagination.totalCount} ${searchResults.pagination.totalCount === 1 ? 'Studio' : 'Studios'} Found`
                       }
                     </span>
                   )}

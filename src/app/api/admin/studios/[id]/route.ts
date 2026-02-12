@@ -97,6 +97,10 @@ export async function GET(
     // Get custom meta title from user_metadata
     const customMetaTitle = studio.users?.user_metadata?.[0]?.value || '';
 
+    // Get tier limits for the studio owner (admins get Premium limits)
+    const { getUserTierLimits } = await import('@/lib/membership');
+    const tierLimits = await getUserTierLimits(studio.user_id);
+
     // Transform to match expected format for the frontend
     const studioData = {
       id: studio.id,
@@ -246,7 +250,7 @@ export async function GET(
       })) || []
     };
 
-    return NextResponse.json({ profile });
+    return NextResponse.json({ profile, tierLimits });
 
   } catch (error) {
     console.error('Get studio error:', error);

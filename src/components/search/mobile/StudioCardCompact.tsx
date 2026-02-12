@@ -43,7 +43,7 @@ interface StudioCardCompactProps {
 }
 
 export function StudioCardCompact({ studio, onClick }: StudioCardCompactProps) {
-  const primaryImage = studio.studio_images[0]?.image_url || '/images/placeholder-studio.jpg';
+  const primaryImage = studio.studio_images[0]?.image_url || '/images/Featured-Studio-Placeholder.png';
   const studioTypes = studio.studio_studio_types
     .map((st) => st.studio_type)
     .slice(0, 2); // Show max 2 types on mobile

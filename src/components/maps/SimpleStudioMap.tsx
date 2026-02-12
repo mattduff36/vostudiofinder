@@ -108,8 +108,9 @@ export function SimpleStudioMap({
     // Determine final location to use
     let finalLat: number | null = null;
     let finalLng: number | null = null;
+    const hasCoords = latitude !== null && latitude !== undefined && longitude !== null && longitude !== undefined;
 
-    if (useCoordinates && latitude && longitude) {
+    if (useCoordinates && hasCoords) {
       // Force using coordinates
       finalLat = latitude;
       finalLng = longitude;
@@ -117,7 +118,7 @@ export function SimpleStudioMap({
       // Use geocoded address location
       finalLat = geocodedLocation.lat;
       finalLng = geocodedLocation.lng;
-    } else if (latitude && longitude) {
+    } else if (hasCoords) {
       // Fall back to provided coordinates
       finalLat = latitude;
       finalLng = longitude;
@@ -131,7 +132,7 @@ export function SimpleStudioMap({
       return;
     }
 
-    if (!finalLat || !finalLng) return;
+    if (finalLat === null || finalLng === null) return;
 
     // Clear existing map instance if it exists
     if (mapInstanceRef.current) {
@@ -186,9 +187,10 @@ export function SimpleStudioMap({
   }, [isLoaded, useCoordinates, shouldUseAddress, geocodedLocation, isGeocoding, latitude, longitude, addressToUse, address, showExactLocation]);
 
   // Check if we have a valid location
-  const hasValidLocation = useCoordinates 
-    ? (latitude && longitude) 
-    : (shouldUseAddress && geocodedLocation) || (latitude && longitude);
+  const hasCoords = latitude !== null && latitude !== undefined && longitude !== null && longitude !== undefined;
+  const hasValidLocation = useCoordinates
+    ? hasCoords
+    : (shouldUseAddress && geocodedLocation) || hasCoords;
 
   if (hasError || !hasValidLocation) {
     return (
