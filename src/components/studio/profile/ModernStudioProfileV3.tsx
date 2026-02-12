@@ -655,22 +655,20 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
               </div>
             )}
 
-            {/* Studio Header - 2-col (avatar | name + region) when avatar exists */}
+            {/* Studio Header - 2-col (avatar | name + region) */}
             <div className="mb-2 w-full">
-              <div className={studio.owner.avatar_url ? "grid grid-cols-[auto,1fr] items-start gap-3 min-w-0" : "min-w-0"}>
+              <div className="grid grid-cols-[auto,1fr] items-start gap-3 min-w-0">
                 {/* Avatar column (slightly lowered for visual alignment) */}
-                {studio.owner.avatar_url && (
-                  <div className="mt-2">
-                    <AvatarUpload
-                      currentAvatar={studio.owner.avatar_url}
-                      onAvatarChange={() => {}}
-                      size="small"
-                      editable={false}
-                      userName={studio.owner.display_name || studio.owner.username}
-                      variant="profile"
-                    />
-                  </div>
-                )}
+                <div className="mt-2">
+                  <AvatarUpload
+                    currentAvatar={studio.owner.avatar_url ?? null}
+                    onAvatarChange={() => {}}
+                    size="small"
+                    editable={false}
+                    userName={studio.owner.display_name || studio.owner.username}
+                    variant="profile"
+                  />
+                </div>
 
                 {/* Content column (name + region + share aligned to name row) */}
                 <div className="min-w-0">

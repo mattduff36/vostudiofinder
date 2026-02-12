@@ -128,8 +128,17 @@ export function AvatarUpload({
   // Different rendering for edit pages vs profile display
   if (variant === 'profile') {
     // Small avatar for profile display
+    const initials = userName
+      ? userName
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2)
+      : '?';
+
     return (
-      <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-200 flex-shrink-0">
+      <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-200 flex-shrink-0 bg-gray-100">
         {hasAvatar ? (
           <Image
             key={currentAvatar}
@@ -140,7 +149,11 @@ export function AvatarUpload({
             sizes="48px"
             unoptimized={currentAvatar.includes('cloudinary')}
           />
-        ) : null}
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
+            <span className="text-gray-600 font-semibold text-sm">{initials}</span>
+          </div>
+        )}
       </div>
     );
   }
