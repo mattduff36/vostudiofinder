@@ -46,6 +46,7 @@ import { VimeoLogo } from '@/components/icons/VimeoLogo';
 
 interface ModernStudioProfileV3Props {
   previewMode?: boolean; // If true, show preview banner for owner viewing hidden profile
+  isAdminViewer?: boolean; // If true, show admin-only UI affordances
   studio: {
     id: string;
     name: string;
@@ -58,6 +59,7 @@ interface ModernStudioProfileV3Props {
     phone?: string;
     is_premium: boolean;
     is_verified: boolean;
+    admin_review?: boolean;
     latitude?: number;
     longitude?: number;
     show_exact_location?: boolean;
@@ -151,7 +153,7 @@ function formatDateUK(value: Date | string | null | undefined): string | null {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStudioProfileV3Props) {
+export function ModernStudioProfileV3({ studio, previewMode = false, isAdminViewer = false }: ModernStudioProfileV3Props) {
   const displayImages = studio.studio_images || [];
   const [showUnavailableModal, setShowUnavailableModal] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
@@ -360,6 +362,14 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Admin-only badge: profile flagged for review */}
+      {isAdminViewer && studio.admin_review && (
+        <div className="fixed top-20 left-4 md:left-6 z-50">
+          <span className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-sm font-semibold text-orange-800 shadow-sm">
+            Admin Review
+          </span>
+        </div>
+      )}
       {/* Preview Mode Banner (owner viewing hidden profile) */}
       {previewMode && (
         <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-3">
@@ -645,20 +655,22 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
               </div>
             )}
 
-            {/* Studio Header - 2-col (avatar | name + region) */}
+            {/* Studio Header - 2-col (avatar | name + region) when avatar exists */}
             <div className="mb-2 w-full">
-              <div className="grid grid-cols-[auto,1fr] items-start gap-3 min-w-0">
+              <div className={studio.owner.avatar_url ? "grid grid-cols-[auto,1fr] items-start gap-3 min-w-0" : "min-w-0"}>
                 {/* Avatar column (slightly lowered for visual alignment) */}
-                <div className="mt-2">
-                  <AvatarUpload
-                    currentAvatar={studio.owner.avatar_url ?? null}
-                    onAvatarChange={() => {}}
-                    size="small"
-                    editable={false}
-                    userName={studio.owner.display_name || studio.owner.username}
-                    variant="profile"
-                  />
-                </div>
+                {studio.owner.avatar_url && (
+                  <div className="mt-2">
+                    <AvatarUpload
+                      currentAvatar={studio.owner.avatar_url}
+                      onAvatarChange={() => {}}
+                      size="small"
+                      editable={false}
+                      userName={studio.owner.display_name || studio.owner.username}
+                      variant="profile"
+                    />
+                  </div>
+                )}
 
                 {/* Content column (name + region + share aligned to name row) */}
                 <div className="min-w-0">
