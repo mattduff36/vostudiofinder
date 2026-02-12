@@ -90,7 +90,7 @@
     "dotenv": "^17.2.3",
     "framer-motion": "^12.26.2",
     "ioredis": "^5.8.1",
-    "lucide-react": "^0.562.0",
+    "lucide-react": "^0.563.0",
     "nanoid": "^5.1.6",
     "next": "^16.1.5",
     "next-auth": "^4.24.11",
