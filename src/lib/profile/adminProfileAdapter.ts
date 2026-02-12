@@ -82,6 +82,7 @@ export interface AdminProfileResponse {
       custom_connection_methods?: string[];
       membership_expires_at?: string | null;
       membership_tier?: string;
+      auto_renew?: boolean;
       custom_meta_title?: string;
     };
     images?: AdminProfileImage[];
@@ -199,6 +200,7 @@ export interface ProfileData {
     email_verified: boolean;
     membership_expires_at?: string | null;
     membership_tier?: string;
+    auto_renew?: boolean;
   };
 }
 
@@ -309,6 +311,7 @@ export function adminProfileToProfileData(response: AdminProfileResponse): Profi
       email_verified: admin.email_verified,
       membership_expires_at: meta.membership_expires_at || null,
       membership_tier: meta.membership_tier || 'BASIC',
+      auto_renew: meta.auto_renew ?? false,
     },
   };
 }

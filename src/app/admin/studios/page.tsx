@@ -8,6 +8,7 @@ import AdminBulkOperations from '@/components/admin/AdminBulkOperations';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { getCompletionBgColor } from '@/lib/utils/profile-completion';
 import { formatRelativeDate, formatDate } from '@/lib/date-format';
+import { parseDateInputValueToIsoUtc } from '@/lib/date-input';
 import { showSuccess, showError } from '@/lib/toast';
 import { showConfirm } from '@/components/ui/ConfirmDialog';
 import { TEST_EMAIL_DOMAIN } from '@/lib/admin/test-data-generator';
@@ -466,12 +467,18 @@ export default function AdminStudiosPage() {
     if (!featuredStudioId || !featuredExpiryDate) return;
     
     try {
+      const featuredUntilIso = parseDateInputValueToIsoUtc(featuredExpiryDate);
+      if (!featuredUntilIso) {
+        showError('Please enter a valid featured expiry date.');
+        return;
+      }
+
       const response = await fetch(`/api/admin/studios/${featuredStudioId}/featured`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           isFeatured: true,
-          featuredUntil: new Date(featuredExpiryDate).toISOString()
+          featuredUntil: featuredUntilIso,
         }),
       });
 

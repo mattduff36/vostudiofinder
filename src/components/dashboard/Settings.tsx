@@ -27,6 +27,8 @@ import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { RenewalModal } from '@/components/dashboard/RenewalModal';
 import { FeaturedUpgradeModal } from '@/components/dashboard/FeaturedUpgradeModal';
 import { DowngradeConfirmModal } from '@/components/dashboard/DowngradeConfirmModal';
+import { UpgradeModal } from '@/components/dashboard/UpgradeModal';
+import { SwitchToAutoRenewModal } from '@/components/dashboard/SwitchToAutoRenewModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { calculateFinalExpiryForDisplay, isEligibleForEarlyRenewal, isEligibleForStandardRenewal } from '@/lib/membership-renewal';
@@ -69,8 +71,11 @@ export function Settings({ data }: SettingsProps) {
   const [renewalType, setRenewalType] = useState<'early' | 'standard' | '5year'>('early');
   const [featuredUpgradeModalOpen, setFeaturedUpgradeModalOpen] = useState(false);
   const [downgradeModalOpen, setDowngradeModalOpen] = useState(false);
-  const [downgradeAction, setDowngradeAction] = useState<'disable_auto_renew' | 'downgrade'>('disable_auto_renew');
+  const [downgradeAction, setDowngradeAction] = useState<'cancel_auto_renew' | 'schedule_downgrade'>('cancel_auto_renew');
   const [downgradeLoading, setDowngradeLoading] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [switchToAutoRenewModalOpen, setSwitchToAutoRenewModalOpen] = useState(false);
+  const [enableAutoRenewLoading, setEnableAutoRenewLoading] = useState(false);
   
   // Featured availability
   const [featuredAvailability, setFeaturedAvailability] = useState<{
@@ -170,23 +175,24 @@ export function Settings({ data }: SettingsProps) {
   }, [searchParams]);
 
 
-  // Fetch full profile data
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoadingProfile(true);
-        const response = await fetch('/api/user/profile');
-        if (response.ok) {
-          const result = await response.json();
-          setProfileData(result.data);
-          logger.log('[Settings] Profile data loaded');
-        }
-      } catch (err) {
-        logger.error('[Settings] Failed to fetch profile:', err);
-      } finally {
-        setLoadingProfile(false);
+  // Fetch full profile data (extracted so it can be re-called after mutations)
+  const fetchProfile = useCallback(async () => {
+    try {
+      setLoadingProfile(true);
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const result = await response.json();
+        setProfileData(result.data);
+        logger.log('[Settings] Profile data loaded');
       }
-    };
+    } catch (err) {
+      logger.error('[Settings] Failed to fetch profile:', err);
+    } finally {
+      setLoadingProfile(false);
+    }
+  }, []);
+
+  useEffect(() => {
     fetchProfile();
   }, []);
 
@@ -699,101 +705,164 @@ export function Settings({ data }: SettingsProps) {
                         </li>
                       </ul>
 
-                      <a
-                        href="/auth/membership"
-                        className="block w-full bg-[#d42027] !text-white py-3 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-sm text-center shadow-lg no-underline"
+                      <button
+                        type="button"
+                        onClick={() => setUpgradeModalOpen(true)}
+                        className="w-full bg-[#d42027] text-white py-3 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-sm text-center shadow-lg"
                       >
-                        Upgrade to Premium - £25/year
-                      </a>
-                      <p className="text-xs text-gray-500 text-center mt-2">Cancel anytime. No auto-renew surprises</p>
+                        Upgrade to Premium — £25/year
+                      </button>
+                      <p className="text-xs text-gray-500 text-center mt-2">Cancel or change plan anytime in Settings</p>
                     </div>
                   </div>
                 ) : (
-                  /* Premium users: compact status card */
-                  <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50">
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <CreditCard className="w-4 h-4 text-gray-600" />
-                          <h3 className="text-sm font-semibold text-gray-900">Membership Status</h3>
-                          <span className="px-2 py-0.5 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full border border-amber-200">
-                            Premium
-                          </span>
-                        </div>
-                        {isActive && (
-                          <span className="px-2 py-0.5 text-xs font-semibold text-green-700 bg-green-100 rounded-full border border-green-200">
-                            ✓ Active
-                          </span>
-                        )}
-                        {isExpired && (
-                          <span className="px-2 py-0.5 text-xs font-semibold text-red-700 bg-red-100 rounded-full border border-red-200">
-                            ✗ Expired
-                          </span>
-                        )}
-                        {hasNoExpiry && (
-                          <span className="px-2 py-0.5 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-200">
-                            Not Set
-                          </span>
-                        )}
-                      </div>
-                      
-                      {membership?.expiresAt && (
-                        <div className="space-y-0.5">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Expires on</p>
-                          <p className="text-base font-bold text-gray-900">
-                            {new Date(membership.expiresAt).toLocaleDateString('en-GB', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric'
-                            })}
-                          </p>
-                          {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
-                            <p className={`text-xs font-medium ${
-                              membership?.daysUntilExpiry < 0 
-                                ? 'text-red-600' 
-                                : membership?.daysUntilExpiry < 180 
-                                ? 'text-amber-600' 
-                                : 'text-gray-600'
-                            }`}>
-                              {membership?.daysUntilExpiry < 0 
-                                ? `Expired ${formatDaysAsYearsMonthsDays(Math.abs(membership?.daysUntilExpiry))} ago` 
-                                : `${formatDaysAsYearsMonthsDays(membership?.daysUntilExpiry)} remaining`}
-                            </p>
+                  /* Premium users: enhanced status card */
+                  (() => {
+                    const userAutoRenew = profileData?.user?.auto_renew ?? false;
+                    const hasStripeSubscription = profileData?.membership?.hasStripeSubscription ?? false;
+                    return (
+                      <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+                        <div className="p-5">
+                          {/* Header row */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <Crown className="w-5 h-5 text-[#d42027]" />
+                              <h3 className="text-base font-bold text-gray-900">Membership Status</h3>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-1 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full border border-amber-200">
+                                Premium
+                              </span>
+                              {isActive && (
+                                <span className="px-2.5 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full border border-green-200">
+                                  Active
+                                </span>
+                              )}
+                              {isExpired && (
+                                <span className="px-2.5 py-1 text-xs font-semibold text-red-700 bg-red-100 rounded-full border border-red-200">
+                                  Expired
+                                </span>
+                              )}
+                              {hasNoExpiry && (
+                                <span className="px-2.5 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-200">
+                                  Not Set
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Expiry and auto-renew info */}
+                          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+                            {membership?.expiresAt ? (
+                              <div className="space-y-0.5">
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                  {userAutoRenew ? 'Renews on' : 'Expires on'}
+                                </p>
+                                <p className="text-lg font-bold text-gray-900">
+                                  {new Date(membership.expiresAt).toLocaleDateString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                  })}
+                                </p>
+                                {membership?.daysUntilExpiry !== null && membership?.daysUntilExpiry !== undefined && (
+                                  <p className={`text-xs font-medium ${
+                                    membership.daysUntilExpiry < 0
+                                      ? 'text-red-600'
+                                      : membership.daysUntilExpiry < 180
+                                        ? 'text-amber-600'
+                                        : 'text-gray-600'
+                                  }`}>
+                                    {membership.daysUntilExpiry < 0
+                                      ? `Expired ${formatDaysAsYearsMonthsDays(Math.abs(membership.daysUntilExpiry))} ago`
+                                      : `${formatDaysAsYearsMonthsDays(membership.daysUntilExpiry)} remaining`}
+                                  </p>
+                                )}
+                              </div>
+                            ) : hasNoExpiry ? (
+                              <p className="text-xs text-gray-500">No membership expiry set. Please contact support.</p>
+                            ) : null}
+
+                            {/* Auto-renew badge */}
+                            <div>
+                              {userAutoRenew ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-green-700 bg-green-50 rounded-full border border-green-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                  Auto-renewing
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded-full border border-gray-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                                  Manual renewal
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Management links */}
+                          {isActive && (
+                            <div className="pt-3 border-t border-gray-200 flex flex-wrap gap-x-3 gap-y-1">
+                              {userAutoRenew ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDowngradeAction('cancel_auto_renew');
+                                    setDowngradeModalOpen(true);
+                                  }}
+                                  className="text-sm text-gray-500 hover:text-gray-700 underline"
+                                >
+                                  Cancel auto-renewal
+                                </button>
+                              ) : hasStripeSubscription ? (
+                                <button
+                                  type="button"
+                                  disabled={enableAutoRenewLoading}
+                                  onClick={async () => {
+                                    setEnableAutoRenewLoading(true);
+                                    try {
+                                      const res = await fetch('/api/membership/auto-renew', {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ autoRenew: true }),
+                                      });
+                                      if (!res.ok) throw new Error((await res.json()).error || 'Failed');
+                                      showSuccess('Auto-renewal enabled. Your membership will renew automatically.');
+                                      await fetchProfile();
+                                    } catch (err) {
+                                      showError(err instanceof Error ? err.message : 'Something went wrong');
+                                    } finally {
+                                      setEnableAutoRenewLoading(false);
+                                    }
+                                  }}
+                                  className="text-sm text-[#d42027] hover:text-[#b01b21] underline font-medium disabled:opacity-50"
+                                >
+                                  {enableAutoRenewLoading ? 'Enabling…' : 'Enable auto-renewal'}
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setSwitchToAutoRenewModalOpen(true)}
+                                  className="text-sm text-[#d42027] hover:text-[#b01b21] underline font-medium"
+                                >
+                                  Enable auto-renewal
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDowngradeAction('schedule_downgrade');
+                                  setDowngradeModalOpen(true);
+                                }}
+                                className="text-sm text-gray-500 hover:text-gray-700 underline"
+                              >
+                                Downgrade to Basic
+                              </button>
+                            </div>
                           )}
                         </div>
-                      )}
-                      
-                      {hasNoExpiry && (
-                        <p className="text-xs text-gray-500">No membership expiry set. Please contact support.</p>
-                      )}
-
-                      {isActive && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDowngradeAction('disable_auto_renew');
-                              setDowngradeModalOpen(true);
-                            }}
-                            className="text-sm text-gray-500 hover:text-gray-700 underline"
-                          >
-                            Let my membership expire
-                          </button>
-                          <span className="text-gray-400 mx-1">·</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDowngradeAction('downgrade');
-                              setDowngradeModalOpen(true);
-                            }}
-                            className="text-sm text-gray-500 hover:text-gray-700 underline"
-                          >
-                            Downgrade to Basic now
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                      </div>
+                    );
+                  })()
                 )}
 
                 {/* Membership & Upgrade Options */}
@@ -803,8 +872,8 @@ export function Settings({ data }: SettingsProps) {
                   </h4>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Early Renewal Card (6+ months remaining) */}
-                    {membership?.daysUntilExpiry != null && isEligibleForEarlyRenewal(membership.daysUntilExpiry) && (
+                    {/* Early Renewal Card (6+ months remaining) - Premium only */}
+                    {effectiveTier === 'PREMIUM' && membership?.daysUntilExpiry != null && isEligibleForEarlyRenewal(membership.daysUntilExpiry) && (
                       <motion.button
                         onClick={() => {
                           setRenewalType('early');
@@ -852,8 +921,8 @@ export function Settings({ data }: SettingsProps) {
                       </motion.button>
                     )}
 
-                    {/* Standard Renewal Card (<6 months remaining) */}
-                    {membership?.daysUntilExpiry != null && isEligibleForStandardRenewal(membership.daysUntilExpiry) && (
+                    {/* Standard Renewal Card (<6 months remaining) - Premium only */}
+                    {effectiveTier === 'PREMIUM' && membership?.daysUntilExpiry != null && isEligibleForStandardRenewal(membership.daysUntilExpiry) && (
                       <motion.button
                         onClick={() => {
                           setRenewalType('standard');
@@ -896,8 +965,8 @@ export function Settings({ data }: SettingsProps) {
                       </motion.button>
                     )}
 
-                    {/* Neither option available - show disabled state */}
-                    {(membership?.daysUntilExpiry == null || membership?.daysUntilExpiry < 0 || !profileData?.membership?.expiresAt) && (
+                    {/* Neither option available - show disabled state (Premium only) */}
+                    {effectiveTier === 'PREMIUM' && (membership?.daysUntilExpiry == null || membership?.daysUntilExpiry < 0 || !profileData?.membership?.expiresAt) && (
                       <div className="flex-1 relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left bg-gray-50 border-gray-200 opacity-60">
                         <div className="space-y-1.5 sm:space-y-2">
                           <div className="flex items-center justify-between">
@@ -1758,30 +1827,45 @@ export function Settings({ data }: SettingsProps) {
         open={downgradeModalOpen}
         onClose={() => setDowngradeModalOpen(false)}
         action={downgradeAction}
+        expiryDate={profileData?.membership?.expiresAt}
         isLoading={downgradeLoading}
         onConfirm={async () => {
           setDowngradeLoading(true);
           try {
-            if (downgradeAction === 'disable_auto_renew') {
-              const res = await fetch('/api/membership/auto-renew', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ autoRenew: false }),
-              });
-              if (!res.ok) throw new Error((await res.json()).error || 'Failed');
-              showSuccess('Auto-renew disabled. Your membership will expire at the end of your current period.');
+            // Both actions cancel auto-renew (cancel Stripe sub if any, set auto_renew=false).
+            // The cron job handles the actual downgrade at period end.
+            const res = await fetch('/api/membership/auto-renew', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ autoRenew: false }),
+            });
+            if (!res.ok) throw new Error((await res.json()).error || 'Failed');
+
+            if (downgradeAction === 'cancel_auto_renew') {
+              showSuccess('Auto-renewal cancelled. You\'ll keep Premium until your current period ends.');
             } else {
-              const res = await fetch('/api/membership/downgrade', { method: 'POST' });
-              if (!res.ok) throw new Error((await res.json()).error || 'Failed');
-              showSuccess('You have been downgraded to Basic.');
-              router.refresh();
+              showSuccess('Your Premium membership will end at the current period\'s expiry. You\'ll be moved to Basic then.');
             }
+            // Re-fetch profile to show updated auto_renew status
+            await fetchProfile();
           } catch (err) {
             showError(err instanceof Error ? err.message : 'Something went wrong');
           } finally {
             setDowngradeLoading(false);
           }
         }}
+      />
+      <UpgradeModal
+        isOpen={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+      />
+      <SwitchToAutoRenewModal
+        isOpen={switchToAutoRenewModalOpen}
+        onClose={() => {
+          setSwitchToAutoRenewModalOpen(false);
+          fetchProfile();
+        }}
+        expiryDate={profileData?.membership?.expiresAt}
       />
     </>
   );

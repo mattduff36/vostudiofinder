@@ -18,7 +18,8 @@ export function MembershipPayment() {
   const [isRecovering, setIsRecovering] = useState(false);
   const [selectedTier, setSelectedTier] = useState<'basic' | 'premium' | null>(null);
   const [isCompletingBasic, setIsCompletingBasic] = useState(false);
-  const [autoRenew, setAutoRenew] = useState(false);
+  const [autoRenew, setAutoRenew] = useState(true);
+  const [paymentOptionConfirmed, setPaymentOptionConfirmed] = useState(false);
 
   // Get user data from URL params (passed from signup form)
   let userId = searchParams?.get('userId') || '';
@@ -26,12 +27,14 @@ export function MembershipPayment() {
   let name = searchParams?.get('name') || '';
   let username = searchParams?.get('username') || '';
 
-  // Lock body scroll when premium payment modal is open
+  // Lock body scroll when premium payment modal is open; reset option state on close
   useEffect(() => {
     if (selectedTier === 'premium') {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      setPaymentOptionConfirmed(false);
+      setAutoRenew(true);
     }
     return () => { document.body.style.overflow = ''; };
   }, [selectedTier]);
@@ -427,7 +430,7 @@ export function MembershipPayment() {
                 >
                   Upgrade to Premium - £25/year
                 </button>
-                <p className="text-sm text-gray-500 text-center mt-3">Cancel anytime. No auto-renew surprises</p>
+                <p className="text-sm text-gray-500 text-center mt-3">Cancel or change plan anytime in Settings</p>
               </div>
             </div>
 
@@ -491,31 +494,109 @@ export function MembershipPayment() {
                 </div>
               )}
 
-              {/* Auto-renew checkbox */}
-              <div className="px-5 pb-3">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={autoRenew}
-                    onChange={(e) => setAutoRenew(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-[#d42027] focus:ring-[#d42027]"
-                  />
-                  <span className="text-sm text-gray-700">
-                    <span className="font-medium">Auto-renew annually at £25/year</span>
-                    <br />
-                    <span className="text-gray-500">Uncheck to pay once. You can turn auto-renew on later in Settings.</span>
-                  </span>
-                </label>
-              </div>
+              {/* Payment Option Selection */}
+              {!paymentOptionConfirmed ? (
+                <div className="px-5 pb-5">
+                  <p className="text-sm font-semibold text-gray-900 mb-3">Choose your payment option:</p>
+                  <div className="space-y-2.5">
+                    {/* Auto-renew option (recommended, pre-selected) */}
+                    <button
+                      type="button"
+                      onClick={() => setAutoRenew(true)}
+                      className={`relative w-full text-left rounded-xl border-2 p-4 transition-all ${
+                        autoRenew
+                          ? 'border-[#d42027] bg-red-50/50 shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-sm font-bold ${autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
+                              Auto-renew annually
+                            </span>
+                            <span className="text-[10px] font-semibold text-white bg-[#d42027] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                              Recommended
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Stay Premium automatically. Cancel anytime in Settings.
+                          </p>
+                        </div>
+                        <span className={`text-lg font-extrabold ${autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
+                          £25<span className="text-xs font-semibold">/yr</span>
+                        </span>
+                      </div>
+                      {autoRenew && (
+                        <div className="w-4 h-4 rounded-full bg-[#d42027] flex items-center justify-center absolute top-3 left-3">
+                          <Check className="w-2.5 h-2.5 text-white" />
+                        </div>
+                      )}
+                    </button>
 
-              {/* Compact Stripe Payment */}
-              <div className="px-5 py-4 stripe-payment-element">
-                <CompactCheckoutForm
-                  fetchClientSecret={fetchClientSecret}
-                  amount="£25"
-                  buttonText="Pay £25/year"
-                />
-              </div>
+                    {/* Pay once option */}
+                    <button
+                      type="button"
+                      onClick={() => setAutoRenew(false)}
+                      className={`relative w-full text-left rounded-xl border-2 p-4 transition-all ${
+                        !autoRenew
+                          ? 'border-[#d42027] bg-red-50/50 shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className={`text-sm font-bold ${!autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
+                            Pay once
+                          </span>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            One-off payment for 1 year. You can switch to auto-renew later in Settings.
+                          </p>
+                        </div>
+                        <span className={`text-lg font-extrabold ${!autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
+                          £25
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentOptionConfirmed(true)}
+                    className="w-full mt-4 bg-[#d42027] text-white py-3 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-sm shadow-sm"
+                  >
+                    Continue to payment
+                  </button>
+                  <p className="text-xs text-gray-400 text-center mt-2">Secure payment via Stripe</p>
+                </div>
+              ) : (
+                <>
+                  {/* Selected option summary */}
+                  <div className="px-5 pb-3">
+                    <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+                      <span className="text-sm text-gray-700">
+                        {autoRenew ? 'Auto-renew annually — £25/year' : 'Pay once — £25 for 1 year'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentOptionConfirmed(false)}
+                        className="text-xs text-[#d42027] hover:underline font-medium"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Compact Stripe Payment */}
+                  <div className="px-5 py-4 stripe-payment-element">
+                    <CompactCheckoutForm
+                      fetchClientSecret={fetchClientSecret}
+                      amount="£25"
+                      buttonText={autoRenew ? 'Pay £25/year' : 'Pay £25 once'}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

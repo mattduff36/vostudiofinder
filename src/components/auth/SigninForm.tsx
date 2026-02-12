@@ -118,7 +118,7 @@ export function SigninForm() {
             label="Email or Username"
             type="text"
             autoComplete="username"
-            placeholder="your@email.com or your_username"
+            placeholder="Enter your email or username"
             error={errors.identifier?.message || ''}
             {...register('identifier')}
           />

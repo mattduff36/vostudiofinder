@@ -7,36 +7,48 @@ interface DowngradeConfirmModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void | Promise<void>;
-  action: 'disable_auto_renew' | 'downgrade';
+  action: 'cancel_auto_renew' | 'schedule_downgrade';
+  expiryDate?: string | null;
   isLoading?: boolean;
 }
 
-const FEATURES_LIST = (
+const FEATURES_LOST = (
   <ul className="space-y-2 mb-6">
     <li className="flex items-center gap-2 text-gray-700">
       <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-      Verified badge
+      Verified badge eligibility
     </li>
     <li className="flex items-center gap-2 text-gray-700">
       <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-      Voiceover listing
+      Voiceover artist listing
     </li>
     <li className="flex items-center gap-2 text-gray-700">
       <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-      Phone & directions visibility
+      Phone &amp; directions visibility
     </li>
     <li className="flex items-center gap-2 text-gray-700">
       <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
       Custom SEO title
     </li>
+    <li className="flex items-center gap-2 text-gray-700">
+      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+      Extra images &amp; social links
+    </li>
   </ul>
 );
+
+function formatExpiryDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return 'the end of your current period';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
 
 export function DowngradeConfirmModal({
   open,
   onClose,
   onConfirm,
   action,
+  expiryDate,
   isLoading = false,
 }: DowngradeConfirmModalProps) {
   const handleConfirm = async () => {
@@ -44,30 +56,43 @@ export function DowngradeConfirmModal({
     onClose();
   };
 
-  const isDisableAutoRenew = action === 'disable_auto_renew';
+  const isCancelAutoRenew = action === 'cancel_auto_renew';
+  const formattedExpiry = formatExpiryDate(expiryDate);
 
   return (
     <Modal isOpen={open} onClose={onClose} maxWidth="md">
       <div className="p-6 sm:p-8">
         <h2 className="text-xl font-bold text-gray-900 mb-2">
-          {isDisableAutoRenew ? 'Let your membership expire?' : 'Before you go…'}
+          {isCancelAutoRenew ? 'Cancel auto-renewal?' : 'Downgrade to Basic?'}
         </h2>
         <p className="text-gray-600 mb-4">
           Premium is just £25 per year — less than £2.10 per month.
-        </p>
-        <p className="text-gray-600 mb-4">
           Most studios recover this from a single booking.
         </p>
-        {isDisableAutoRenew ? (
-          <p className="text-gray-700 mb-6">
-            You&apos;ll keep all Premium features until your current period ends. After that, you&apos;ll lose the verified badge, voiceover listing, phone & directions visibility, and custom SEO title. You can re-enable auto-renew anytime before expiry.
-          </p>
+
+        {isCancelAutoRenew ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-amber-900">
+              Your subscription will be cancelled, but you&apos;ll keep all Premium features
+              until <strong>{formattedExpiry}</strong>. After that, you can renew manually any
+              time from your Settings page. No further charges will be made unless you renew.
+            </p>
+          </div>
         ) : (
           <>
-            <p className="text-sm font-medium text-gray-700 mb-2">You will immediately lose:</p>
-            {FEATURES_LIST}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-red-900">
+                Your Premium membership will end on <strong>{formattedExpiry}</strong> and
+                you&apos;ll be moved to the Basic plan. No partial refunds are given.
+              </p>
+            </div>
+            <p className="text-sm font-medium text-gray-700 mb-2">
+              After {formattedExpiry}, you&apos;ll lose access to:
+            </p>
+            {FEATURES_LOST}
           </>
         )}
+
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             type="button"
@@ -82,7 +107,11 @@ export function DowngradeConfirmModal({
             disabled={isLoading}
             className="flex-1 px-4 py-2.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            {isLoading ? 'Processing…' : isDisableAutoRenew ? 'Let it expire' : 'Continue to Basic'}
+            {isLoading
+              ? 'Processing…'
+              : isCancelAutoRenew
+                ? 'Cancel auto-renewal'
+                : 'Downgrade to Basic'}
           </button>
         </div>
       </div>

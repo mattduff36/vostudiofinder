@@ -6,6 +6,18 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
 import { hashPassword } from '@/lib/auth-utils';
 
+function addMonths(date: Date, monthsToAdd: number): Date {
+  const next = new Date(date);
+  const targetMonth = next.getMonth() + monthsToAdd;
+  next.setMonth(targetMonth);
+  // If the day overflowed into the next month (e.g. Jan 31 + 1 month → Mar 3),
+  // roll back to the last day of the intended target month.
+  if (next.getMonth() !== ((targetMonth % 12) + 12) % 12) {
+    next.setDate(0); // sets to last day of the previous month
+  }
+  return next;
+}
+
 /**
  * Admin-only endpoint to create user accounts with stub studio profiles.
  * 
@@ -193,6 +205,29 @@ export async function POST(request: NextRequest) {
     });
 
     console.log('✅ Studio profile created:', studioProfileId);
+
+    // If this is a Premium test account, create a stub active subscription so:
+    // - enforcement doesn't auto-inactivate the studio
+    // - the admin UI shows a membership expiry date
+    if (isTestAccount && isPremium) {
+      const subscriptionEnd = addMonths(now, 1);
+
+      await db.subscriptions.create({
+        data: {
+          id: nanoid(),
+          user_id: user.id,
+          status: 'ACTIVE',
+          current_period_start: now,
+          current_period_end: subscriptionEnd,
+          updated_at: now,
+        },
+      });
+
+      console.log('✅ Premium test subscription created:', {
+        userId: user.id,
+        current_period_end: subscriptionEnd.toISOString(),
+      });
+    }
 
     // Create studio_studio_types records if studio types are provided
     if (profile_data?.studio_types && Array.isArray(profile_data.studio_types)) {

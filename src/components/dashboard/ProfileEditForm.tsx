@@ -26,6 +26,7 @@ import { getBaseUrl } from '@/lib/seo/site';
 import { buildProfileMetaTitle } from '@/lib/seo/profile-title';
 
 import { adminProfileToProfileData, profileDataToAdminPayload } from '@/lib/profile/adminProfileAdapter';
+import { formatIsoDateToDateInputValue, parseDateInputValueToIsoUtc } from '@/lib/date-input';
 
 export interface ProfileEditFormHandle {
   saveIfDirty: () => Promise<boolean>;
@@ -140,6 +141,7 @@ interface ProfileData {
     email_verified: boolean;
     membership_expires_at?: string | null;
     membership_tier?: string;
+    auto_renew?: boolean;
   };
 }
 
@@ -1796,10 +1798,10 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                       </label>
                       <input
                         type="date"
-                        value={profile.studio.featured_until ? new Date(profile.studio.featured_until).toISOString().split('T')[0] : ''}
+                        value={formatIsoDateToDateInputValue(profile.studio.featured_until)}
                         onChange={(e) => {
-                          const dateValue = e.target.value ? new Date(e.target.value).toISOString() : '';
-                          updateStudioField('featured_until', dateValue);
+                          const isoValue = parseDateInputValueToIsoUtc(e.target.value);
+                          updateStudioField('featured_until', isoValue);
                         }}
                         className="w-full max-w-xs px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                       />
@@ -1835,6 +1837,24 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                       <p className="text-xs text-gray-500 mt-1">
                         Change the user&apos;s membership tier. This does not create or cancel a Stripe subscription.
                       </p>
+
+                      {/* Auto-renew status (read-only) */}
+                      <div className="mt-3">
+                        {profile._adminOnly.auto_renew ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-green-700 bg-green-50 rounded-full border border-green-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                            Auto-renew: Enabled
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded-full border border-gray-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                            Auto-renew: Off (pay once)
+                          </span>
+                        )}
+                        <p className="text-xs text-gray-400 mt-1">
+                          This reflects the user&apos;s billing preference and cannot be changed from admin.
+                        </p>
+                      </div>
                     </div>
 
                     <div>
@@ -1862,18 +1882,10 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                             <>
                               <input
                                 type="date"
-                                value={profile._adminOnly.membership_expires_at ? new Date(profile._adminOnly.membership_expires_at).toISOString().split('T')[0] : ''}
+                                value={formatIsoDateToDateInputValue(profile._adminOnly.membership_expires_at)}
                                 onChange={(e) => {
-                                  if (!e.target.value) {
-                                    updateAdminField('membership_expires_at', null);
-                                    return;
-                                  }
-                                  const parts = e.target.value.split('-').map(Number);
-                                  if (parts.length === 3 && parts.every(n => !isNaN(n))) {
-                                    const [year, month, day] = parts as [number, number, number];
-                                    const dateValue = new Date(Date.UTC(year, month - 1, day)).toISOString();
-                                    updateAdminField('membership_expires_at', dateValue);
-                                  }
+                                  const isoValue = parseDateInputValueToIsoUtc(e.target.value);
+                                  updateAdminField('membership_expires_at', isoValue);
                                 }}
                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
@@ -1893,18 +1905,10 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                         <>
                           <input
                             type="date"
-                            value={profile._adminOnly.membership_expires_at ? new Date(profile._adminOnly.membership_expires_at).toISOString().split('T')[0] : ''}
+                            value={formatIsoDateToDateInputValue(profile._adminOnly.membership_expires_at)}
                             onChange={(e) => {
-                              if (!e.target.value) {
-                                updateAdminField('membership_expires_at', null);
-                                return;
-                              }
-                              const parts = e.target.value.split('-').map(Number);
-                              if (parts.length === 3 && parts.every(n => !isNaN(n))) {
-                                const [year, month, day] = parts as [number, number, number];
-                                const dateValue = new Date(Date.UTC(year, month - 1, day)).toISOString();
-                                updateAdminField('membership_expires_at', dateValue);
-                              }
+                              const isoValue = parseDateInputValueToIsoUtc(e.target.value);
+                              updateAdminField('membership_expires_at', isoValue);
                             }}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                           />

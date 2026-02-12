@@ -44,8 +44,20 @@ export async function PUT(request: NextRequest) {
 
     const stripeSubscriptionId = user.subscriptions[0]?.stripe_subscription_id;
 
+    // Pay-once users have no Stripe subscription; enabling auto-renew would set a misleading
+    // flag without any actual recurring charge. Reject the request.
+    if (autoRenew && !stripeSubscriptionId) {
+      return NextResponse.json(
+        {
+          error:
+            'Your membership was paid as a one-time payment and doesn\'t support auto-renewal. ' +
+            'When your membership expires, you can renew and choose the auto-renew option.',
+        },
+        { status: 400 }
+      );
+    }
+
     // For Stripe Subscriptions: update cancel_at_period_end
-    // For one-time payments: stripe_subscription_id is null, so we only update the DB flag
     if (stripeSubscriptionId && process.env.STRIPE_SECRET_KEY) {
       try {
         await stripe.subscriptions.update(stripeSubscriptionId, {

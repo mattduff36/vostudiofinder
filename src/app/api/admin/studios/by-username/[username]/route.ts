@@ -11,7 +11,7 @@ export async function GET(
     await requireRole('ADMIN');
 
     const { username } = await params;
-    const normalizedUsername = username.trim();
+    const normalizedUsername = decodeURIComponent(username).trim();
 
     // Find user by username
     const user = await db.users.findFirst({
@@ -22,7 +22,6 @@ export async function GET(
         username: true,
         display_name: true,
         studio_profiles: {
-          where: { status: 'ACTIVE' },
           select: {
             id: true,
             name: true,
@@ -47,7 +46,8 @@ export async function GET(
       },
     });
 
-    if (!user || !user.studio_profiles || user.studio_profiles.status !== 'ACTIVE') {
+    // Admins should be able to edit studios regardless of public visibility/status.
+    if (!user || !user.studio_profiles) {
       return NextResponse.json(
         { error: 'Studio not found' },
         { status: 404 }

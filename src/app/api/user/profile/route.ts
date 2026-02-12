@@ -153,6 +153,7 @@ export async function GET() {
           select: {
             id: true,
             status: true,
+            stripe_subscription_id: true,
             current_period_start: true,
             current_period_end: true,
             created_at: true,
@@ -350,10 +351,12 @@ export async function GET() {
       expiresAt: string | null;
       daysUntilExpiry: number | null;
       state: 'ACTIVE' | 'EXPIRED' | 'NONE_SET';
+      hasStripeSubscription: boolean;
     } = {
       expiresAt: null,
       daysUntilExpiry: null,
-      state: 'NONE_SET'
+      state: 'NONE_SET',
+      hasStripeSubscription: !!(latestSubscription as { stripe_subscription_id?: string } | null)?.stripe_subscription_id,
     };
 
     // Admins are always treated as active Premium members
@@ -412,6 +415,7 @@ export async function GET() {
           role: user.role,
           email_verified: user.email_verified,
           membership_tier: userTier,
+          auto_renew: (user as any).auto_renew ?? false,
           created_at: user.created_at,
           updated_at: user.updated_at,
         },

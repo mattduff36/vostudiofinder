@@ -241,8 +241,8 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
 
   console.log(`[DEBUG ${timestamp}] Extracted metadata - user_id: ${user_id}, user_email: ${user_email}, purpose: ${purpose}, renewal_type: ${renewal_type || 'N/A'}`);
 
-  // Accept both 'membership' (initial signup) and 'membership_renewal' (renewals)
-  if (purpose !== 'membership' && purpose !== 'membership_renewal') {
+  // Accept 'membership' (initial signup), 'membership_renewal' (renewals), and 'membership_upgrade' (Basic→Premium)
+  if (purpose !== 'membership' && purpose !== 'membership_renewal' && purpose !== 'membership_upgrade') {
     console.log(`[DEBUG ${timestamp}] ❌ Session ${session.id} is not a membership payment (purpose: ${purpose}), skipping`);
     console.log(`[INFO] Session ${session.id} is not a membership payment, skipping`);
     return;
@@ -643,7 +643,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
  */
 async function handleMembershipSubscriptionCompleted(session: Stripe.Checkout.Session) {
   const { user_id, purpose, auto_renew } = session.metadata || {};
-  if (purpose !== 'membership' || !user_id) {
+  if ((purpose !== 'membership' && purpose !== 'membership_upgrade' && purpose !== 'switch_to_subscription') || !user_id) {
     throw new Error('Missing user_id or purpose in subscription session metadata');
   }
 
@@ -1191,8 +1191,8 @@ export async function POST(request: NextRequest) {
             } else {
               await handleMembershipPaymentSuccess(session);
             }
-          } else if (session.mode === 'subscription' && session.metadata?.purpose === 'membership') {
-            console.log(`[DEBUG ${eventTimestamp}] ✅ Session is subscription mode (membership), processing...`);
+          } else if (session.mode === 'subscription' && (session.metadata?.purpose === 'membership' || session.metadata?.purpose === 'membership_upgrade' || session.metadata?.purpose === 'switch_to_subscription')) {
+            console.log(`[DEBUG ${eventTimestamp}] ✅ Session is subscription mode (${session.metadata?.purpose}), processing...`);
             await handleMembershipSubscriptionCompleted(session);
           } else {
             console.log(`[DEBUG ${eventTimestamp}] ⚠️ Session ${session.id} mode=${session.mode}, skipping`);
