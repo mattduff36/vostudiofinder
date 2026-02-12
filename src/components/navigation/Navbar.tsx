@@ -13,6 +13,7 @@ import { FreeBadge } from '@/components/ui/FreeBadge';
 import { DashboardDropdownMenu } from './DashboardDropdownMenu';
 import { DesktopBurgerMenu } from './DesktopBurgerMenu';
 import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
+import { useHasNewPlatformUpdates } from '@/hooks/useHasNewPlatformUpdates';
 import { CategoryFilterBar } from '@/components/category/CategoryFilterBar';
 
 interface NavbarProps {
@@ -47,7 +48,8 @@ export function Navbar({ session }: NavbarProps) {
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const lastWidthRef = useRef<number | null>(null);
   const hasInitializedRef = useRef(false);
-  
+  const { hasNew: hasNewPlatformUpdates } = useHasNewPlatformUpdates();
+
   // Track client-side mounting to prevent hydration mismatch
   useEffect(() => {
     setIsMounted(true);
@@ -541,18 +543,23 @@ export function Navbar({ session }: NavbarProps) {
                   }`}>
                     Welcome, {session.user.display_name}
                   </span>
-                  <button
-                    ref={desktopBurgerBtnRef}
-                    onClick={() => setIsDesktopBurgerOpen(!isDesktopBurgerOpen)}
-                    className="flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10"
-                    aria-label="Menu"
-                  >
-                    {isDesktopBurgerOpen ? (
-                      <X className="w-5 h-5" />
-                    ) : (
-                      <Menu className="w-5 h-5" />
+                  <div className="relative">
+                    <button
+                      ref={desktopBurgerBtnRef}
+                      onClick={() => setIsDesktopBurgerOpen(!isDesktopBurgerOpen)}
+                      className="flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10"
+                      aria-label="Menu"
+                    >
+                      {isDesktopBurgerOpen ? (
+                        <X className="w-5 h-5" />
+                      ) : (
+                        <Menu className="w-5 h-5" />
+                      )}
+                    </button>
+                    {hasNewPlatformUpdates && (
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white" aria-hidden />
                     )}
-                  </button>
+                  </div>
                 </>
               ) : (
                 <>
@@ -605,13 +612,18 @@ export function Navbar({ session }: NavbarProps) {
             )}
 
             {/* Mobile Burger Menu Button - styled like desktop, sits in navbar */}
-            <button
-              onClick={() => window.dispatchEvent(new Event('toggleMobileBurgerMenu'))}
-              className="md:hidden flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10 mobile-burger-btn"
-              aria-label="Toggle menu"
-            >
-              <Menu className="w-5 h-5 mobile-burger-icon" />
-            </button>
+            <div className="md:hidden relative">
+              <button
+                onClick={() => window.dispatchEvent(new Event('toggleMobileBurgerMenu'))}
+                className="flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10 mobile-burger-btn"
+                aria-label="Toggle menu"
+              >
+                <Menu className="w-5 h-5 mobile-burger-icon" />
+              </button>
+              {session && hasNewPlatformUpdates && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white" aria-hidden />
+              )}
+            </div>
           </div>
         </div>
       </div>

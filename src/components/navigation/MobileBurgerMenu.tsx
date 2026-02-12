@@ -153,6 +153,8 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
     } else if (action === 'openEditProfileModal') {
       // On mobile, navigate to the edit profile page instead of opening the modal
       router.push('/dashboard/edit-profile');
+    } else if (action === 'openWhatsNewModal') {
+      window.dispatchEvent(new CustomEvent('openWhatsNewModal'));
     }
   };
 

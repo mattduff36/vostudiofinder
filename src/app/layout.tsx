@@ -12,6 +12,7 @@ import { MobileShell } from '@/components/navigation/MobileShell';
 import { CookieConsentBanner } from '@/components/consent/CookieConsentBanner';
 import { DynamicAnalytics } from '@/components/consent/DynamicAnalytics';
 import { GlobalEditProfileModal } from '@/components/profile/GlobalEditProfileModal';
+import { GlobalWhatsNewModal } from '@/components/whats-new/GlobalWhatsNewModal';
 import { AdminBuildInfoBadge } from '@/components/admin/AdminBuildInfoBadge';
 import { authOptions } from '@/lib/auth';
 import Script from 'next/script';
@@ -102,6 +103,7 @@ export default async function RootLayout({
             <ConfirmDialog />
             <UnsavedChangesDialog />
             <GlobalEditProfileModal />
+            <GlobalWhatsNewModal />
             <AdminBuildInfoBadge />
             <Navbar session={session} />
             <main className="pt-16 pb-40 md:pt-20 md:pb-0">{children}</main>

@@ -18,6 +18,7 @@ export function MembershipPayment() {
   const [isRecovering, setIsRecovering] = useState(false);
   const [selectedTier, setSelectedTier] = useState<'basic' | 'premium' | null>(null);
   const [isCompletingBasic, setIsCompletingBasic] = useState(false);
+  const [autoRenew, setAutoRenew] = useState(false);
 
   // Get user data from URL params (passed from signup form)
   let userId = searchParams?.get('userId') || '';
@@ -196,6 +197,7 @@ export function MembershipPayment() {
           email,
           name,
           username,
+          autoRenew,
         }),
       });
 
@@ -222,7 +224,7 @@ export function MembershipPayment() {
       setError(errorMessage);
       throw err;
     }
-  }, [userId, email, name, username]);
+  }, [userId, email, name, username, autoRenew]);
 
   // Handle Basic (Free) tier signup
   const handleBasicSignup = async () => {
@@ -488,6 +490,23 @@ export function MembershipPayment() {
                   </div>
                 </div>
               )}
+
+              {/* Auto-renew checkbox */}
+              <div className="px-5 pb-3">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoRenew}
+                    onChange={(e) => setAutoRenew(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-[#d42027] focus:ring-[#d42027]"
+                  />
+                  <span className="text-sm text-gray-700">
+                    <span className="font-medium">Auto-renew annually at £25/year</span>
+                    <br />
+                    <span className="text-gray-500">Uncheck to pay once. You can turn auto-renew on later in Settings.</span>
+                  </span>
+                </label>
+              </div>
 
               {/* Compact Stripe Payment */}
               <div className="px-5 py-4 stripe-payment-element">

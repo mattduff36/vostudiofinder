@@ -120,7 +120,7 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
           )}
           <Toggle
             label="Show Phone"
-            description={!isPremium ? "Upgrade to Premium to display phone number" : "Display phone number on public profile"}
+            description={!isPremium ? "Currently unavailable on Basic plan." : "Display phone number on public profile"}
             checked={isPremium ? settings.show_phone : false}
             onChange={(checked) => handleToggle('show_phone', checked)}
             disabled={updating === 'show_phone' || !isPremium}
@@ -151,7 +151,7 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
           )}
           <Toggle
             label="Show Directions"
-            description={!isPremium ? "Upgrade to Premium to display directions" : "Display 'Get Directions' button on public profile"}
+            description={!isPremium ? "Currently unavailable on Basic plan." : "Display 'Get Directions' button on public profile"}
             checked={isPremium ? settings.show_directions : false}
             onChange={(checked) => handleToggle('show_directions', checked)}
             disabled={updating === 'show_directions' || !isPremium}

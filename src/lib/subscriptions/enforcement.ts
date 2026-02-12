@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { performDowngrade } from './downgrade';
 
 /**
  * Decision about a studio's status based on membership expiry
@@ -24,8 +25,11 @@ export interface FeaturedStatusDecision {
  */
 export interface StudioEnforcementDecision {
   studioId: string;
+  userId?: string;
   statusUpdate?: { status: 'ACTIVE' | 'INACTIVE' };
   unfeaturedUpdate?: boolean;
+  /** When true, Premium expired — perform downgrade then set ACTIVE */
+  triggerDowngrade?: boolean;
 }
 
 const ADMIN_EMAILS = ['admin@mpdee.co.uk', 'guy@voiceoverguy.co.uk'];
@@ -146,6 +150,7 @@ export function computeEnforcementDecisions(
     is_featured: boolean;
     featured_until: Date | null;
     users: {
+      id?: string;
       email: string;
       membership_tier?: string;
       subscriptions?: Array<{ current_period_end: Date | null }>;
@@ -159,23 +164,32 @@ export function computeEnforcementDecisions(
       const statusDecision = computeStudioStatus(studio, now);
       const featuredDecision = computeFeaturedStatus(studio, now);
       
+      const userId = (studio.users as { id?: string }).id;
       const decision: StudioEnforcementDecision = {
         studioId: studio.id,
+        ...(userId && { userId }),
       };
       
-      // Only include updates if status needs to change
+      // Status update: only when status needs to change (ACTIVE↔INACTIVE)
       if (statusDecision.desiredStatus !== statusDecision.currentStatus) {
         decision.statusUpdate = { status: statusDecision.desiredStatus };
       }
-      
+
+      // Downgrade: whenever Premium has expired, regardless of current studio status.
+      // Handles the case where studio is already INACTIVE (e.g. manually set) but user
+      // tier was never lowered — avoids leaving Premium users in an inconsistent state.
+      if (statusDecision.reason === 'expired' && decision.userId) {
+        decision.triggerDowngrade = true;
+      }
+
       // Only include unfeature if needed
       if (featuredDecision.shouldUnfeature) {
         decision.unfeaturedUpdate = true;
       }
-      
+
       return decision;
     })
-    .filter(d => d.statusUpdate || d.unfeaturedUpdate); // Only return studios needing updates
+    .filter(d => d.statusUpdate || d.unfeaturedUpdate || d.triggerDowngrade); // Only return studios needing updates
 }
 
 /**
@@ -183,22 +197,39 @@ export function computeEnforcementDecisions(
  */
 export async function applyEnforcementDecisions(
   decisions: StudioEnforcementDecision[]
-): Promise<{ statusUpdates: number; unfeaturedUpdates: number }> {
+): Promise<{ statusUpdates: number; unfeaturedUpdates: number; downgrades: number }> {
   
   if (decisions.length === 0) {
-    return { statusUpdates: 0, unfeaturedUpdates: 0 };
+    return { statusUpdates: 0, unfeaturedUpdates: 0, downgrades: 0 };
   }
   
   const now = new Date();
   
-  // Separate status updates and unfeature updates
-  const statusUpdates = decisions.filter(d => d.statusUpdate);
+  // Separate: downgrades (expired Premium), other status updates, unfeature updates
+  const downgradeDecisions = decisions.filter(d => d.triggerDowngrade && d.userId);
+  const otherStatusUpdates = decisions.filter(d => d.statusUpdate && !d.triggerDowngrade);
   const unfeaturedUpdates = decisions.filter(d => d.unfeaturedUpdate);
   
-  // Apply status updates
-  if (statusUpdates.length > 0) {
+  let downgrades = 0;
+  
+  // Perform downgrades first (expired Premium → BASIC, then studio stays ACTIVE)
+  for (const d of downgradeDecisions) {
+    const result = await performDowngrade(d.userId!);
+    if (result.downgraded) downgrades++;
+  }
+  
+  // Apply status updates: for downgraded studios, set ACTIVE (Basic stays active)
+  if (downgradeDecisions.length > 0) {
+    await db.studio_profiles.updateMany({
+      where: { id: { in: downgradeDecisions.map(d => d.studioId) } },
+      data: { status: 'ACTIVE', updated_at: now },
+    });
+  }
+  
+  // Apply other status updates (non-downgrade)
+  if (otherStatusUpdates.length > 0) {
     await Promise.all(
-      statusUpdates.map(({ studioId, statusUpdate }) =>
+      otherStatusUpdates.map(({ studioId, statusUpdate }) =>
         db.studio_profiles.update({
           where: { id: studioId },
           data: { 
@@ -222,7 +253,8 @@ export async function applyEnforcementDecisions(
   }
   
   return {
-    statusUpdates: statusUpdates.length,
+    statusUpdates: downgradeDecisions.length + otherStatusUpdates.length,
     unfeaturedUpdates: unfeaturedUpdates.length,
+    downgrades,
   };
 }

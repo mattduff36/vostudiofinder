@@ -18,7 +18,7 @@ describe('Membership Tiers Configuration', () => {
   describe('TIER_LIMITS', () => {
     it('should define BASIC tier limits', () => {
       const basic = TIER_LIMITS.BASIC;
-      expect(basic.aboutMaxChars).toBe(1000);
+      expect(basic.aboutMaxChars).toBe(2000);
       expect(basic.imagesMax).toBe(2);
       expect(basic.studioTypesMax).toBe(1);
       expect(basic.studioTypesExcluded).toContain('VOICEOVER');
@@ -174,7 +174,7 @@ describe('Tier Enforcement Rules', () => {
     const basic = TIER_LIMITS.BASIC;
 
     it('should restrict about to 1000 chars', () => {
-      expect(basic.aboutMaxChars).toBe(1000);
+      expect(basic.aboutMaxChars).toBe(2000);
     });
 
     it('should allow max 2 images', () => {

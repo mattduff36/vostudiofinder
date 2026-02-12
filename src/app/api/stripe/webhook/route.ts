@@ -11,8 +11,11 @@ import {
   calculateStandardRenewalExpiry,
   calculate5YearRenewalExpiry,
 } from '@/lib/membership-renewal';
+import { performDowngrade } from '@/lib/subscriptions/downgrade';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+
+type SubscriptionWithPeriod = { current_period_end?: number; current_period_start?: number; cancel_at_period_end?: boolean };
 
 /**
  * Ensure webhook event idempotency by recording processed events
@@ -636,6 +639,64 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
 }
 
 /**
+ * Handle Stripe subscription checkout completion (membership with auto-renew option)
+ */
+async function handleMembershipSubscriptionCompleted(session: Stripe.Checkout.Session) {
+  const { user_id, purpose, auto_renew } = session.metadata || {};
+  if (purpose !== 'membership' || !user_id) {
+    throw new Error('Missing user_id or purpose in subscription session metadata');
+  }
+
+  const subscriptionId = session.subscription as string;
+  if (!subscriptionId) {
+    throw new Error('No subscription ID in checkout session');
+  }
+
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const periodEndTs = (subscription as { current_period_end?: number }).current_period_end;
+  const periodEnd = periodEndTs
+    ? new Date(periodEndTs * 1000)
+    : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+  // Honour user's choice: metadata auto_renew === 'true' means they checked the checkbox
+  const userWantsAutoRenew = auto_renew === 'true';
+
+  await stripe.subscriptions.update(subscriptionId, {
+    cancel_at_period_end: !userWantsAutoRenew,
+  });
+
+  const now = new Date();
+  await db.users.update({
+    where: { id: user_id },
+    data: {
+      status: UserStatus.ACTIVE,
+      membership_tier: 'PREMIUM',
+      auto_renew: userWantsAutoRenew,
+      updated_at: now,
+    },
+  });
+
+  const periodStartTs = (subscription as { current_period_start?: number }).current_period_start;
+
+  await db.subscriptions.create({
+    data: {
+      id: randomBytes(12).toString('base64url'),
+      user_id,
+      stripe_subscription_id: subscriptionId,
+      stripe_customer_id: (subscription as { customer?: string }).customer || null,
+      payment_method: 'STRIPE',
+      status: 'ACTIVE',
+      current_period_start: periodStartTs ? new Date(periodStartTs * 1000) : now,
+      current_period_end: periodEnd,
+      created_at: now,
+      updated_at: now,
+    },
+  });
+
+  console.log(`[SUCCESS] Subscription membership granted for user ${user_id} until ${periodEnd.toISOString()}`);
+}
+
+/**
  * Grant membership to user with custom duration
  * Atomically updates user status and payment tracking fields
  * @param userId - User ID to grant membership to
@@ -1122,26 +1183,19 @@ export async function POST(request: NextRequest) {
           console.log(`[DEBUG ${eventTimestamp}] Customer email: ${session.customer_email || 'NONE'}`);
           console.log(`[DEBUG ${eventTimestamp}] Metadata:`, JSON.stringify(session.metadata || {}, null, 2));
           
-          // Only handle payment mode sessions (not subscription mode)
           if (session.mode === 'payment') {
             console.log(`[DEBUG ${eventTimestamp}] ✅ Session is payment mode, processing...`);
-            
-            // Route based on purpose metadata
             const purpose = session.metadata?.purpose;
-            
             if (purpose === 'featured_upgrade') {
-              console.log(`[DEBUG ${eventTimestamp}] Routing to featured upgrade handler`);
               await handleFeaturedUpgradePaymentSuccess(session);
             } else {
-              // membership or membership_renewal
-              console.log(`[DEBUG ${eventTimestamp}] Routing to membership handler`);
               await handleMembershipPaymentSuccess(session);
             }
-            
-            console.log(`[DEBUG ${eventTimestamp}] ✅ Payment processing completed`);
+          } else if (session.mode === 'subscription' && session.metadata?.purpose === 'membership') {
+            console.log(`[DEBUG ${eventTimestamp}] ✅ Session is subscription mode (membership), processing...`);
+            await handleMembershipSubscriptionCompleted(session);
           } else {
-            console.log(`[DEBUG ${eventTimestamp}] ⚠️ Session ${session.id} is subscription mode (${session.mode}), skipping`);
-            console.log(`[INFO] Session ${session.id} is subscription mode, skipping (legacy)`);
+            console.log(`[DEBUG ${eventTimestamp}] ⚠️ Session ${session.id} mode=${session.mode}, skipping`);
           }
           break;
         }
@@ -1185,14 +1239,86 @@ export async function POST(request: NextRequest) {
           break;
         }
 
-        // Keep legacy subscription handlers for backward compatibility
+        case 'customer.subscription.updated': {
+          const sub = event.data.object as Stripe.Subscription & SubscriptionWithPeriod;
+          const dbSub = await db.subscriptions.findFirst({
+            where: { stripe_subscription_id: sub.id },
+            select: { user_id: true },
+          });
+          if (dbSub) {
+            const updates: Record<string, unknown> = {
+              updated_at: new Date(),
+            };
+            if (sub.current_period_end) {
+              updates.current_period_end = new Date(sub.current_period_end * 1000);
+            }
+            if (sub.current_period_start) {
+              updates.current_period_start = new Date(sub.current_period_start * 1000);
+            }
+            await db.subscriptions.updateMany({
+              where: { stripe_subscription_id: sub.id },
+              data: updates,
+            });
+            await db.users.update({
+              where: { id: dbSub.user_id },
+              data: {
+                auto_renew: sub.cancel_at_period_end === false,
+                updated_at: new Date(),
+              },
+            });
+          }
+          break;
+        }
+
+        case 'customer.subscription.deleted': {
+          const sub = event.data.object as Stripe.Subscription;
+          const dbSub = await db.subscriptions.findFirst({
+            where: { stripe_subscription_id: sub.id },
+            select: { user_id: true },
+          });
+          if (dbSub) {
+            await performDowngrade(dbSub.user_id);
+          }
+          break;
+        }
+
+        case 'invoice.payment_succeeded': {
+          const invoice = event.data.object as Stripe.Invoice & { subscription?: string; billing_reason?: string };
+          if (invoice.subscription && invoice.billing_reason === 'subscription_cycle') {
+            // Renewal invoice - extend membership
+            const sub = await stripe.subscriptions.retrieve(invoice.subscription) as Stripe.Subscription & SubscriptionWithPeriod;
+            const dbSub = await db.subscriptions.findFirst({
+              where: { stripe_subscription_id: sub.id },
+            });
+            if (dbSub) {
+              const periodEnd = sub.current_period_end
+                ? new Date(sub.current_period_end * 1000)
+                : null;
+              if (periodEnd) {
+                const updates: Record<string, unknown> = {
+                  current_period_end: periodEnd,
+                  updated_at: new Date(),
+                };
+                if (sub.current_period_start) {
+                  updates.current_period_start = new Date(sub.current_period_start * 1000);
+                }
+                await db.subscriptions.updateMany({
+                  where: { stripe_subscription_id: sub.id },
+                  data: updates,
+                });
+                await db.users.update({
+                  where: { id: dbSub.user_id },
+                  data: { membership_tier: 'PREMIUM', updated_at: new Date() },
+                });
+              }
+            }
+          }
+          break;
+        }
+
         case 'customer.subscription.created':
-        case 'customer.subscription.updated':
-        case 'customer.subscription.deleted':
-        case 'invoice.payment_succeeded':
         case 'invoice.payment_failed': {
-          console.log(`[INFO] Legacy subscription event ${event.type}, keeping existing behavior`);
-          // TODO: Could handle these for premium tier in future
+          console.log(`[INFO] Subscription event ${event.type} (no action needed)`);
           break;
         }
 

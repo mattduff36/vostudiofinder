@@ -6,6 +6,7 @@ import { signOut } from 'next-auth/react';
 import { Menu, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { getDesktopBurgerMenuItems } from '@/config/navigation';
+import { useHasNewPlatformUpdates } from '@/hooks/useHasNewPlatformUpdates';
 
 interface DashboardDropdownMenuProps {
   username: string;
@@ -31,6 +32,7 @@ export function DashboardDropdownMenu({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const { hasNew: hasNewPlatformUpdates } = useHasNewPlatformUpdates();
 
   // Fetch profile visibility immediately on mount (single source of truth from database)
   useEffect(() => {
@@ -137,6 +139,8 @@ export function DashboardDropdownMenu({
     } else if (action === 'openEditProfileModal') {
       // Dispatch custom event to open the global edit profile modal
       window.dispatchEvent(new CustomEvent('openEditProfileModal'));
+    } else if (action === 'openWhatsNewModal') {
+      window.dispatchEvent(new CustomEvent('openWhatsNewModal'));
     } else if (action === 'profileEditClick') {
       window.dispatchEvent(new Event('profileEditClick'));
     }
@@ -152,26 +156,31 @@ export function DashboardDropdownMenu({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <Button
-        type="button"
-        onClick={() => {
-          setIsOpen(!isOpen);
-        }}
-        variant={isScrolled || !isHomePage ? 'outline' : 'outline'}
-        className={`${
-          isScrolled || !isHomePage 
-            ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white' 
-            : 'text-white border-white hover:bg-white hover:text-primary-800'
-        } flex items-center justify-center p-2 aspect-square w-10 h-10`}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        aria-label="Dashboard menu"
-      >
-        <Menu 
-          className="w-5 h-5"
-          aria-hidden="true"
-        />
-      </Button>
+      <div className="relative">
+        <Button
+          type="button"
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+          variant={isScrolled || !isHomePage ? 'outline' : 'outline'}
+          className={`${
+            isScrolled || !isHomePage 
+              ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white' 
+              : 'text-white border-white hover:bg-white hover:text-primary-800'
+          } flex items-center justify-center p-2 aspect-square w-10 h-10`}
+          aria-haspopup="menu"
+          aria-expanded={isOpen}
+          aria-label="Dashboard menu"
+        >
+          <Menu 
+            className="w-5 h-5"
+            aria-hidden="true"
+          />
+        </Button>
+        {hasNewPlatformUpdates && (
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white" aria-hidden />
+        )}
+      </div>
 
       {isOpen && (
         <div 

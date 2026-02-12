@@ -995,11 +995,11 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                   label="Studio Name"
                   value={profile.studio?.name || ''}
                   onChange={(e) => updateStudio('name', e.target.value)}
-                  maxLength={35}
+                  maxLength={40}
                 />
                 <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
                   <span>Your studio or business name</span>
-                  <span>{(profile.studio?.name || '').length}/35 characters</span>
+                  <span>{(profile.studio?.name || '').length}/40 characters</span>
                 </div>
               </div>
             </div>
@@ -1350,19 +1350,22 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {socialMediaFields.map(({ field, label, placeholder, helperText }) => {
+              {socialMediaFields.map(({ field, label, placeholder, helperText }, index) => {
                 const value = (profile.profile[field as keyof typeof profile.profile] as string) || '';
                 const isEmpty = value.trim() === '';
+                const maxLinks = profile.tierLimits?.socialLinksMax;
+                const isExtraField = maxLinks != null && index >= maxLinks;
                 const isDisabledByLimit = socialLimitReached && isEmpty;
 
                 return (
-                  <div key={field} className="relative group">
+                  <div key={field} className={`relative group ${isExtraField ? 'opacity-60' : ''}`}>
                     <Input
                       label={label}
                       type="url"
                       value={value}
-                      onChange={(e) => handleSocialMediaChange(field, e.target.value)}
+                      onChange={(e) => !isExtraField && handleSocialMediaChange(field, e.target.value)}
                       onBlur={(e) => {
+                        if (isExtraField) return;
                         const normalized = normalizeSocialMediaUrl(e.target.value, field);
                         if (normalized && normalized !== e.target.value) {
                           updateProfile(field, normalized);
@@ -1371,11 +1374,26 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                         setSocialMediaErrors(prev => ({ ...prev, [field]: error }));
                       }}
                       placeholder={placeholder}
-                      helperText={isDisabledByLimit ? `Upgrade to Premium to add more social links` : helperText}
-                      disabled={isDisabledByLimit}
-                      {...(socialMediaErrors[field] && { error: socialMediaErrors[field] })}
+                      helperText={
+                        isExtraField
+                          ? 'Premium allows all platforms.'
+                          : isDisabledByLimit
+                          ? 'Upgrade to Premium to add more social links'
+                          : helperText
+                      }
+                      disabled={isDisabledByLimit || isExtraField}
+                      {...(socialMediaErrors[field] && !isExtraField && { error: socialMediaErrors[field] })}
                     />
-                    {isDisabledByLimit && (
+                    {isExtraField && (
+                      <a
+                        href="/dashboard/settings?section=membership"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute inset-0 z-10"
+                        aria-label="Upgrade to Premium for all social links"
+                      />
+                    )}
+                    {isDisabledByLimit && !isExtraField && (
                       <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg pointer-events-none">
                         Basic members can add up to {profile.tierLimits?.socialLinksMax} social links. Upgrade to Premium to enable them all.
                         <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>

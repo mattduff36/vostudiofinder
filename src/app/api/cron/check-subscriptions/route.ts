@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
         featured_until: true,
         users: {
           select: {
+            id: true,
             email: true,
             membership_tier: true,
             subscriptions: {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     const decisions = computeEnforcementDecisions(studios);
 
     // Apply decisions
-    const { statusUpdates, unfeaturedUpdates } = await applyEnforcementDecisions(decisions);
+    const { statusUpdates, unfeaturedUpdates, downgrades } = await applyEnforcementDecisions(decisions);
 
     return NextResponse.json({
       success: true,
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
         total_studios: studios.length,
         status_updates: statusUpdates,
         unfeatured_updates: unfeaturedUpdates,
+        downgrades,
       },
       timestamp: new Date().toISOString(),
     });

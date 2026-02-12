@@ -6,7 +6,7 @@
  * consume this config to ensure consistency.
  */
 
-import { LucideIcon, Home, Search, User, Edit, CreditCard, Settings, LogOut, Eye, LogIn, UserPlus, Shield, HelpCircle, FileText } from 'lucide-react';
+import { LucideIcon, Home, Search, User, Edit, CreditCard, Settings, LogOut, Eye, LogIn, UserPlus, Shield, HelpCircle, FileText, Sparkles } from 'lucide-react';
 
 export type NavItemType = 'link' | 'action' | 'visibility-toggle';
 
@@ -87,6 +87,17 @@ export const NAV_ITEMS: Record<string, NavItem> = {
     icon: Home,
     type: 'link',
     href: '/dashboard',
+    section: 'account',
+    requiresAuth: true,
+    showOnMobile: true,
+    showOnDesktop: true,
+  },
+  whatsNew: {
+    id: 'whatsNew',
+    label: "What's New",
+    icon: Sparkles,
+    type: 'action',
+    action: 'openWhatsNewModal',
     section: 'account',
     requiresAuth: true,
     showOnMobile: true,
@@ -228,6 +239,7 @@ export function getDesktopBurgerMenuItems(context: MenuContext & { includeSiteLi
 
   // Account links
   items.push(NAV_ITEMS.overview!);
+  items.push(NAV_ITEMS.whatsNew!);
   items.push(NAV_ITEMS.editProfile!);
   items.push({
     ...NAV_ITEMS.myProfile!,
@@ -270,7 +282,8 @@ export function getMobileMenuItems(context: MenuContext & { bottomNavIds: string
       section: 'site' as const,
     });
 
-    // Section 2: Account Management (Edit Profile, Membership, Settings)
+    // Section 2: Account Management (What's New, Edit Profile, Membership, Settings)
+    items.push(NAV_ITEMS.whatsNew!);
     items.push(NAV_ITEMS.editProfile!);
     items.push(NAV_ITEMS.membership!);
     items.push(NAV_ITEMS.settings!);

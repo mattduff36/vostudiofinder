@@ -15,10 +15,11 @@ import {
   Menu,
   X,
   Mail,
-  Lightbulb
+  Lightbulb,
+  Sparkles
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'suggestions' | 'payments' | 'reservations' | 'error_log' | 'emails' | 'sandbox';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'suggestions' | 'payments' | 'reservations' | 'error_log' | 'emails' | 'sandbox' | 'platform_updates';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -44,6 +45,7 @@ const mainTabs: TabConfig[] = [
 
 // Secondary tabs that go in the burger menu
 const secondaryTabs: TabConfig[] = [
+  { id: 'platform_updates', label: "What's New", icon: Sparkles, href: '/admin/platform-updates' },
   { id: 'emails', label: 'Emails', icon: Mail, href: '/admin/emails' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'error_log', label: 'Error Log', icon: AlertTriangle, href: '/admin/error-log' },

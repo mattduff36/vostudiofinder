@@ -423,6 +423,7 @@ model users {
   
   // Membership tier (BASIC = free, PREMIUM = paid £25/year)
   membership_tier                                            MembershipTier          @default(BASIC)
+  auto_renew                                                 Boolean                 @default(false)
   
   // Username reservation & payment tracking
   status                                                     UserStatus              @default(PENDING)
@@ -432,6 +433,10 @@ model users {
   day2_reminder_sent_at                                      DateTime?
   day5_reminder_sent_at                                      DateTime?
   failed_payment_email_sent_at                               DateTime?
+  renewal_reminder_30_sent_at                                 DateTime?
+  renewal_reminder_14_sent_at                                DateTime?
+  renewal_reminder_7_sent_at                                 DateTime?
+  renewal_reminder_1_sent_at                                 DateTime?
   
   created_at                                                 DateTime                @default(now())
   updated_at                                                 DateTime
@@ -981,4 +986,25 @@ model rate_limit_events {
   @@index([endpoint])
   @@index([window_start])
   @@index([last_event_at])
+}
+
+// Platform updates for "What's New" modal
+model platform_updates {
+  id            String                  @id @default(cuid())
+  title         String?                 // Optional section title (e.g. "Improvements")
+  description   String                  @db.Text // Bullet points as newline-separated text
+  category      PlatformUpdateCategory
+  release_date  DateTime
+  is_highlighted Boolean                @default(false)
+  created_at    DateTime                @default(now())
+  updated_at    DateTime                @updatedAt
+
+  @@index([release_date])
+}
+
+enum PlatformUpdateCategory {
+  FEATURE
+  IMPROVEMENT
+  FIX
+  SECURITY
 }

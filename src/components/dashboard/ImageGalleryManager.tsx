@@ -549,27 +549,44 @@ export function ImageGalleryManager({
         <div className={isAdminMode || embedded ? "" : "px-4 md:px-6 pb-6"}>
           {/* Desktop Grid */}
           <div className={`hidden md:grid gap-3 ${isAdminMode ? 'grid-cols-3 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
-            {images.map((image, index) => (
+            {images.map((image, index) => {
+              const isBasicWithExtraImages = !isAdminMode && maxImages === 2 && index >= 2;
+              return (
               <motion.div
                 key={image.id}
-                draggable
-                onDragStart={() => handleDragStart(index)}
+                draggable={!isBasicWithExtraImages}
+                onDragStart={() => !isBasicWithExtraImages && handleDragStart(index)}
                 onDragEnd={handleDragEnd}
-                onDragEnter={() => handleDragEnter(index)}
-                whileHover={{ scale: 1.02, y: -4 }}
+                onDragEnter={() => !isBasicWithExtraImages && handleDragEnter(index)}
+                whileHover={isBasicWithExtraImages ? {} : { scale: 1.02, y: -4 }}
                 transition={{ duration: 0.3 }}
-                className={`group relative aspect-[25/12] bg-gray-100 rounded-lg overflow-hidden cursor-move ${
-                  draggedIndex === index ? 'opacity-50' : ''
+                className={`group relative aspect-[25/12] bg-gray-100 rounded-lg overflow-hidden ${
+                  isBasicWithExtraImages ? 'cursor-pointer' : 'cursor-move'
+                } ${draggedIndex === index ? 'opacity-50' : ''} ${
+                  isBasicWithExtraImages ? 'opacity-60' : ''
                 } ${index === 0 ? 'ring-2 ring-[#d42027]' : ''}`}
               >
                 <img
                   src={image.image_url}
                   alt={image.alt_text || `Studio image ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover ${isBasicWithExtraImages ? 'grayscale' : ''}`}
                 />
+                {isBasicWithExtraImages && (
+                  <a
+                    href="/dashboard/settings?section=membership"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 hover:bg-black/50 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="text-white font-semibold text-sm text-center px-2">
+                      Upgrade to show all images
+                    </span>
+                  </a>
+                )}
                 
                 {/* Featured Badge for first image */}
-                {index === 0 && (
+                {index === 0 && !isBasicWithExtraImages && (
                   <div className="absolute top-2 left-2 px-2 py-1 bg-[#d42027] text-white text-xs font-bold rounded shadow-lg flex items-center gap-1">
                     <Star className="w-3 h-3" aria-hidden="true" />
                     <span>Featured</span>
@@ -583,7 +600,8 @@ export function ImageGalleryManager({
                   </div>
                 )}
 
-                {/* Action Buttons - Always Visible */}
+                {/* Action Buttons - Hidden for greyed Basic extra images */}
+                {!isBasicWithExtraImages && (
                 <div className="absolute top-2 right-2 flex gap-2">
                   <button
                     onClick={() => handleEditAltText(image)}
@@ -600,6 +618,7 @@ export function ImageGalleryManager({
                     <Trash2 className="w-4 h-4 text-red-600" />
                   </button>
                 </div>
+                )}
 
                 {/* Alt Text Display */}
                 {image.alt_text && (
@@ -608,25 +627,40 @@ export function ImageGalleryManager({
                   </div>
                 )}
               </motion.div>
-            ))}
+            );
+            })}
           </div>
 
           {/* Mobile Card List */}
           <div className="md:hidden space-y-3">
-            {images.map((image, index) => (
+            {images.map((image, index) => {
+              const isBasicWithExtraImages = !isAdminMode && maxImages === 2 && index >= 2;
+              return (
               <div
                 key={image.id}
                 className={`bg-white border rounded-lg overflow-hidden shadow-sm ${
                   index === 0 ? 'ring-2 ring-[#d42027]' : 'border-gray-200'
-                }`}
+                } ${isBasicWithExtraImages ? 'opacity-75' : ''}`}
               >
                 {/* Image Preview */}
                 <div className="relative aspect-[25/12] bg-gray-100">
                   <img
                     src={image.image_url}
                     alt={image.alt_text || `Studio image ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover ${isBasicWithExtraImages ? 'grayscale' : ''}`}
                   />
+                  {isBasicWithExtraImages && (
+                    <a
+                      href="/dashboard/settings?section=membership"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute inset-0 flex flex-col items-center justify-center bg-black/40"
+                    >
+                      <span className="text-white font-semibold text-sm text-center px-4">
+                        Upgrade to show all images
+                      </span>
+                    </a>
+                  )}
                   
                   {/* Featured Badge */}
                   {index === 0 && (
@@ -637,14 +671,15 @@ export function ImageGalleryManager({
                   )}
                   
                   {/* Position Badge */}
-                  {index > 0 && (
+                  {index > 0 && !isBasicWithExtraImages && (
                     <div className="absolute top-3 left-3 w-8 h-8 bg-red-600 text-white text-sm font-bold rounded-full flex items-center justify-center shadow-lg">
                       {index + 1}
                     </div>
                   )}
                 </div>
 
-                {/* Card Actions */}
+                {/* Card Actions - Hidden for greyed Basic extra images */}
+                {!isBasicWithExtraImages && (
                 <div className="p-3 space-y-2">
                   {/* Alt Text Display/Edit */}
                   {image.alt_text && (
@@ -696,8 +731,10 @@ export function ImageGalleryManager({
                     </button>
                   </div>
                 </div>
+                )}
               </div>
-            ))}
+            );
+            })}
           </div>
 
           <div className="mt-6 pt-4 border-t border-gray-200">

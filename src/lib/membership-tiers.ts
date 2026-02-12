@@ -27,7 +27,7 @@ export interface TierLimits {
 
 export const TIER_LIMITS: Record<MembershipTier, TierLimits> = {
   BASIC: {
-    aboutMaxChars: 1000,
+    aboutMaxChars: 2000,
     imagesMax: 2,
     studioTypesMax: 1,
     studioTypesExcluded: ['VOICEOVER'],

@@ -141,6 +141,8 @@ export function DesktopBurgerMenu({
     } else if (action === 'openEditProfileModal') {
       // Dispatch custom event to open the global edit profile modal
       window.dispatchEvent(new CustomEvent('openEditProfileModal'));
+    } else if (action === 'openWhatsNewModal') {
+      window.dispatchEvent(new CustomEvent('openWhatsNewModal'));
     } else if (action === 'profileEditClick') {
       window.dispatchEvent(new Event('profileEditClick'));
     }

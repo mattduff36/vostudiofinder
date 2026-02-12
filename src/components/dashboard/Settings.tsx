@@ -26,6 +26,7 @@ import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { CloseAccountModal } from '@/components/settings/CloseAccountModal';
 import { RenewalModal } from '@/components/dashboard/RenewalModal';
 import { FeaturedUpgradeModal } from '@/components/dashboard/FeaturedUpgradeModal';
+import { DowngradeConfirmModal } from '@/components/dashboard/DowngradeConfirmModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import { calculateFinalExpiryForDisplay, isEligibleForEarlyRenewal, isEligibleForStandardRenewal } from '@/lib/membership-renewal';
@@ -67,6 +68,9 @@ export function Settings({ data }: SettingsProps) {
   const [renewalModalOpen, setRenewalModalOpen] = useState(false);
   const [renewalType, setRenewalType] = useState<'early' | 'standard' | '5year'>('early');
   const [featuredUpgradeModalOpen, setFeaturedUpgradeModalOpen] = useState(false);
+  const [downgradeModalOpen, setDowngradeModalOpen] = useState(false);
+  const [downgradeAction, setDowngradeAction] = useState<'disable_auto_renew' | 'downgrade'>('disable_auto_renew');
+  const [downgradeLoading, setDowngradeLoading] = useState(false);
   
   // Featured availability
   const [featuredAvailability, setFeaturedAvailability] = useState<{
@@ -611,7 +615,7 @@ export function Settings({ data }: SettingsProps) {
                         </li>
                         <li className="flex items-start">
                           <Check className="w-4 h-4 text-green-600 mr-2.5 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-700">1000 character description</span>
+                          <span className="text-gray-700">2000 character description</span>
                         </li>
                         <li className="flex items-start">
                           <X className="w-4 h-4 text-gray-400 mr-2.5 mt-0.5 flex-shrink-0" />
@@ -761,6 +765,32 @@ export function Settings({ data }: SettingsProps) {
                       
                       {hasNoExpiry && (
                         <p className="text-xs text-gray-500">No membership expiry set. Please contact support.</p>
+                      )}
+
+                      {isActive && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDowngradeAction('disable_auto_renew');
+                              setDowngradeModalOpen(true);
+                            }}
+                            className="text-sm text-gray-500 hover:text-gray-700 underline"
+                          >
+                            Let my membership expire
+                          </button>
+                          <span className="text-gray-400 mx-1">·</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDowngradeAction('downgrade');
+                              setDowngradeModalOpen(true);
+                            }}
+                            className="text-sm text-gray-500 hover:text-gray-700 underline"
+                          >
+                            Downgrade to Basic now
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1723,6 +1753,35 @@ export function Settings({ data }: SettingsProps) {
       <FeaturedUpgradeModal
         isOpen={featuredUpgradeModalOpen}
         onClose={() => setFeaturedUpgradeModalOpen(false)}
+      />
+      <DowngradeConfirmModal
+        open={downgradeModalOpen}
+        onClose={() => setDowngradeModalOpen(false)}
+        action={downgradeAction}
+        isLoading={downgradeLoading}
+        onConfirm={async () => {
+          setDowngradeLoading(true);
+          try {
+            if (downgradeAction === 'disable_auto_renew') {
+              const res = await fetch('/api/membership/auto-renew', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ autoRenew: false }),
+              });
+              if (!res.ok) throw new Error((await res.json()).error || 'Failed');
+              showSuccess('Auto-renew disabled. Your membership will expire at the end of your current period.');
+            } else {
+              const res = await fetch('/api/membership/downgrade', { method: 'POST' });
+              if (!res.ok) throw new Error((await res.json()).error || 'Failed');
+              showSuccess('You have been downgraded to Basic.');
+              router.refresh();
+            }
+          } catch (err) {
+            showError(err instanceof Error ? err.message : 'Something went wrong');
+          } finally {
+            setDowngradeLoading(false);
+          }
+        }}
       />
     </>
   );

@@ -10,7 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, username, userId } = await request.json();
+    const { email, name, username, userId, autoRenew } = await request.json();
 
     if (!email || !name) {
       return NextResponse.json(
@@ -58,53 +58,74 @@ export async function POST(request: NextRequest) {
     console.log(`[SUCCESS] Email verified for user: ${userId} (${email})`);
     console.log(`💳 Creating Stripe checkout for user: ${userId} (${email})`);
 
-    // Use real Stripe with one-time payment
     // Server selects price ID (never accept from client for security)
-    const priceId = process.env.STRIPE_MEMBERSHIP_PRICE_ID;
-    
-    if (!priceId) {
-      console.error('STRIPE_MEMBERSHIP_PRICE_ID not configured');
-      return NextResponse.json(
-        { error: 'Payment system not configured' },
-        { status: 500 }
-      );
+    const baseUrl = getBaseUrl(request);
+    const useSubscription = autoRenew === true;
+    const subscriptionPriceId = process.env.STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID;
+    const oneTimePriceId = process.env.STRIPE_MEMBERSHIP_PRICE_ID;
+
+    if (useSubscription) {
+      if (!subscriptionPriceId) {
+        console.error('STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID not configured for auto-renew');
+        return NextResponse.json(
+          { error: 'Subscription payment not configured' },
+          { status: 500 }
+        );
+      }
+    } else {
+      if (!oneTimePriceId) {
+        console.error('STRIPE_MEMBERSHIP_PRICE_ID not configured');
+        return NextResponse.json(
+          { error: 'Payment system not configured' },
+          { status: 500 }
+        );
+      }
     }
 
-    // Create Stripe checkout session for one-time payment (embedded mode)
-    const baseUrl = getBaseUrl(request);
-    const session = await stripe.checkout.sessions.create({
-      customer_email: email,
-      payment_method_types: ['card', 'link'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: 'payment', // One-time annual fee
-      ui_mode: 'custom', // Custom checkout with Payment Element for compact modal
-      return_url: `${baseUrl}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
-      metadata: {
-        user_id: userId, // CRITICAL: User always exists now (PENDING status)
-        user_email: email,
-        user_name: name,
-        user_username: username || '',
-        purpose: 'membership', // Standardized key for webhook routing
-      },
-      // CRITICAL: Propagate metadata to payment intent for failed payment tracking
-      payment_intent_data: {
-        metadata: {
-          user_id: userId, // CRITICAL: This enables immediate webhook processing
-          user_email: email,
-          user_name: name,
-          user_username: username || '',
-          purpose: 'membership',
-        },
-      },
-      allow_promotion_codes: true,
-    });
+    const priceId = useSubscription ? subscriptionPriceId : oneTimePriceId;
+    const metadata = {
+      user_id: userId,
+      user_email: email,
+      user_name: name,
+      user_username: username || '',
+      purpose: 'membership' as const,
+      // Preserve user's auto-renew preference for webhook (Stripe metadata values must be strings)
+      auto_renew: useSubscription ? 'true' : 'false',
+    };
 
-    console.log(`[SUCCESS] Stripe checkout created: ${session.id} for user ${userId}`);
+    // Create Stripe checkout: subscription (auto-renew) or one-time payment
+    const session = useSubscription
+      ? await stripe.checkout.sessions.create({
+          customer_email: email,
+          payment_method_types: ['card', 'link'],
+          line_items: [{ price: priceId!, quantity: 1 }],
+          mode: 'subscription',
+          ui_mode: 'custom',
+          return_url: `${baseUrl}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
+          metadata,
+          subscription_data: {
+            metadata,
+            // Default OFF: subscription won't auto-renew unless user opts in later
+            trial_period_days: 0,
+          },
+          allow_promotion_codes: true,
+        })
+      : await stripe.checkout.sessions.create({
+          customer_email: email,
+          payment_method_types: ['card', 'link'],
+          line_items: [{ price: priceId!, quantity: 1 }],
+          mode: 'payment',
+          ui_mode: 'custom',
+          return_url: `${baseUrl}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
+          metadata,
+          payment_intent_data: { metadata },
+          allow_promotion_codes: true,
+        });
+
+    // Note: For subscription mode, cancel_at_period_end is set in the webhook
+    // when subscription is created (default OFF per client spec).
+
+    console.log(`[SUCCESS] Stripe checkout created: ${session.id} for user ${userId} (${useSubscription ? 'subscription' : 'one-time'})`);
 
     return NextResponse.json({ clientSecret: session.client_secret });
   } catch (error) {

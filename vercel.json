@@ -4,7 +4,9 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["iad1"],
+  "regions": [
+    "iad1"
+  ],
   "functions": {
     "src/pages/api/**/*.ts": {
       "maxDuration": 30
@@ -118,6 +120,10 @@
   },
   "crons": [
     {
+      "path": "/api/cron/check-subscriptions",
+      "schedule": "0 2 * * *"
+    },
+    {
       "path": "/api/cron/expire-reservations",
       "schedule": "0 2 * * *"
     },
@@ -136,6 +142,10 @@
     {
       "path": "/api/cron/cleanup-error-logs",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/send-renewal-reminders",
+      "schedule": "0 9 * * *"
     }
   ]
 }
