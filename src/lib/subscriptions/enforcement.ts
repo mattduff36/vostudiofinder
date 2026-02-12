@@ -211,17 +211,22 @@ export async function applyEnforcementDecisions(
   const unfeaturedUpdates = decisions.filter(d => d.unfeaturedUpdate);
   
   let downgrades = 0;
-  
+  const successfulDowngradeStudioIds: string[] = [];
+
   // Perform downgrades first (expired Premium → BASIC, then studio stays ACTIVE)
   for (const d of downgradeDecisions) {
     const result = await performDowngrade(d.userId!);
-    if (result.downgraded) downgrades++;
+    if (result.downgraded) {
+      downgrades++;
+      successfulDowngradeStudioIds.push(d.studioId);
+    }
   }
-  
-  // Apply status updates: for downgraded studios, set ACTIVE (Basic stays active)
-  if (downgradeDecisions.length > 0) {
+
+  // Only set ACTIVE for studios whose downgrade succeeded. If downgrade failed,
+  // user remains PREMIUM with expired subscription — studio should stay INACTIVE.
+  if (successfulDowngradeStudioIds.length > 0) {
     await db.studio_profiles.updateMany({
-      where: { id: { in: downgradeDecisions.map(d => d.studioId) } },
+      where: { id: { in: successfulDowngradeStudioIds } },
       data: { status: 'ACTIVE', updated_at: now },
     });
   }
@@ -253,7 +258,7 @@ export async function applyEnforcementDecisions(
   }
   
   return {
-    statusUpdates: downgradeDecisions.length + otherStatusUpdates.length,
+    statusUpdates: successfulDowngradeStudioIds.length + otherStatusUpdates.length,
     unfeaturedUpdates: unfeaturedUpdates.length,
     downgrades,
   };

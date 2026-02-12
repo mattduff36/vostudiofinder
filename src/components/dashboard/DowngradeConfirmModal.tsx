@@ -11,10 +11,32 @@ interface DowngradeConfirmModalProps {
   isLoading?: boolean;
 }
 
+const FEATURES_LIST = (
+  <ul className="space-y-2 mb-6">
+    <li className="flex items-center gap-2 text-gray-700">
+      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+      Verified badge
+    </li>
+    <li className="flex items-center gap-2 text-gray-700">
+      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+      Voiceover listing
+    </li>
+    <li className="flex items-center gap-2 text-gray-700">
+      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+      Phone & directions visibility
+    </li>
+    <li className="flex items-center gap-2 text-gray-700">
+      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+      Custom SEO title
+    </li>
+  </ul>
+);
+
 export function DowngradeConfirmModal({
   open,
   onClose,
   onConfirm,
+  action,
   isLoading = false,
 }: DowngradeConfirmModalProps) {
   const handleConfirm = async () => {
@@ -22,35 +44,30 @@ export function DowngradeConfirmModal({
     onClose();
   };
 
+  const isDisableAutoRenew = action === 'disable_auto_renew';
+
   return (
     <Modal isOpen={open} onClose={onClose} maxWidth="md">
       <div className="p-6 sm:p-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Before you go…</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">
+          {isDisableAutoRenew ? 'Let your membership expire?' : 'Before you go…'}
+        </h2>
         <p className="text-gray-600 mb-4">
           Premium is just £25 per year — less than £2.10 per month.
         </p>
         <p className="text-gray-600 mb-4">
           Most studios recover this from a single booking.
         </p>
-        <p className="text-sm font-medium text-gray-700 mb-2">Are you sure you want to lose:</p>
-        <ul className="space-y-2 mb-6">
-          <li className="flex items-center gap-2 text-gray-700">
-            <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-            Verified badge
-          </li>
-          <li className="flex items-center gap-2 text-gray-700">
-            <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-            Voiceover listing
-          </li>
-          <li className="flex items-center gap-2 text-gray-700">
-            <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-            Phone & directions visibility
-          </li>
-          <li className="flex items-center gap-2 text-gray-700">
-            <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-            Custom SEO title
-          </li>
-        </ul>
+        {isDisableAutoRenew ? (
+          <p className="text-gray-700 mb-6">
+            You&apos;ll keep all Premium features until your current period ends. After that, you&apos;ll lose the verified badge, voiceover listing, phone & directions visibility, and custom SEO title. You can re-enable auto-renew anytime before expiry.
+          </p>
+        ) : (
+          <>
+            <p className="text-sm font-medium text-gray-700 mb-2">You will immediately lose:</p>
+            {FEATURES_LIST}
+          </>
+        )}
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             type="button"
@@ -65,7 +82,7 @@ export function DowngradeConfirmModal({
             disabled={isLoading}
             className="flex-1 px-4 py-2.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            {isLoading ? 'Processing…' : 'Continue to Basic'}
+            {isLoading ? 'Processing…' : isDisableAutoRenew ? 'Let it expire' : 'Continue to Basic'}
           </button>
         </div>
       </div>
