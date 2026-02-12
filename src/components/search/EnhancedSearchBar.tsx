@@ -3,20 +3,24 @@ import { logger } from '@/lib/logger';
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Building } from 'lucide-react';
+import { Search, MapPin, Building, Mic } from 'lucide-react';
 import { colors } from '../home/HomePage';
 import { formatUserSuggestion, calculateDistance } from '@/lib/utils/address';
+import { formatPlaceLabel, sortSuggestions } from '@/lib/search';
+import { useUserLocation } from '@/lib/location';
 
 interface SearchSuggestion {
   id: string;
   text: string;
   location?: string;
-  type: 'location' | 'user';
+  type: 'location' | 'user' | 'studio';
   distance?: number; // Distance in km from user's location
   metadata?: {
     place_id?: string;
     user_id?: string;
     username?: string; // Username for building profile URL
+    studio_id?: string;
+    studio_username?: string; // Username for studio profile URL
     coordinates?: { lat: number; lng: number };
     full_location?: string;
     full_address?: string;
@@ -49,10 +53,9 @@ export function EnhancedSearchBar({
     name: string;
     coordinates?: { lat: number; lng: number };
   } | null>(null);
-  // User location for distance calculations - currently disabled (always null)
-  // since auto-search on autocomplete selection is disabled
-  // Kept for future use if we want to re-enable location-based sorting
-  const userLocation = null as { lat: number; lng: number } | null;
+
+  // Shared user-location hook (IP-geo fallback + browser geolocation)
+  const { userLocation, requestPreciseLocation } = useUserLocation();
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -118,6 +121,18 @@ export function EnhancedSearchBar({
       
       let allSuggestions: SearchSuggestion[] = [];
 
+      // Fetch studio-name suggestions (home-only feature)
+      if (searchQuery.length >= 2) {
+        try {
+          logger.log('🏢 Searching for studio profiles...');
+          const studioSuggestions = await fetchStudioSuggestions(searchQuery);
+          logger.log('🏢 Found studio suggestions:', studioSuggestions.length);
+          allSuggestions = [...allSuggestions, ...studioSuggestions];
+        } catch (error) {
+          logger.warn('Studio search error:', error);
+        }
+      }
+
       // Search for users only if it looks like a username search
       if (type === 'user' || searchQuery.length >= 3) {
         try {
@@ -153,37 +168,11 @@ export function EnhancedSearchBar({
       logger.log('📋 All suggestions before sorting:', uniqueSuggestions);
       logger.log('🌍 User location for distance calculation:', userLocation);
 
-      // Sort by relevance and distance
-      uniqueSuggestions.sort((a, b) => {
-        // FIRST: Prioritize locations over users (blue pins before green pins)
-        if (a.type === 'location' && b.type === 'user') return -1;
-        if (a.type === 'user' && b.type === 'location') return 1;
-        
-        // SECOND: Within same type, prioritize exact matches
-        if (a.type === b.type) {
-          const aExact = a.text.toLowerCase().startsWith(searchQuery.toLowerCase());
-          const bExact = b.text.toLowerCase().startsWith(searchQuery.toLowerCase());
-          if (aExact && !bExact) return -1;
-          if (!aExact && bExact) return 1;
-          
-          // THIRD: For items of same type and same exact-match status, sort by distance
-          if (a.distance !== undefined && b.distance !== undefined) {
-            return a.distance - b.distance;
-          }
-          // If only one has distance, prioritize it
-          if (a.distance !== undefined && b.distance === undefined) return -1;
-          if (a.distance === undefined && b.distance !== undefined) return 1;
-          
-          // Fallback to alphabetical sorting
-          return a.text.localeCompare(b.text);
-        }
-        
-        return 0;
-      });
+      // Sort using shared logic with studio boosting (home-only)
+      const sorted = sortSuggestions(uniqueSuggestions, searchQuery, { boostStudios: true });
 
-      const finalSuggestions = uniqueSuggestions.slice(0, 8);
+      const finalSuggestions = sorted.slice(0, 8);
       logger.log('✅ Final suggestions to display:', finalSuggestions);
-      logger.log('🔓 Setting isOpen to:', finalSuggestions.length > 0);
       
       setSuggestions(finalSuggestions);
       setIsOpen(finalSuggestions.length > 0);
@@ -203,19 +192,18 @@ export function EnhancedSearchBar({
     const autocompleteService = new places.AutocompleteService();
     const placesService = new places.PlacesService(document.createElement('div'));
 
-    // Define different search types to try - enhanced for landmarks and businesses
+    // Same search types as /studios for consistent results
     const searchTypes = [
-      ['(cities)'], // Cities, towns, neighborhoods
-      ['postal_code'], // Postcodes/zip codes
-      ['sublocality'], // Neighborhoods, districts
-      ['locality'], // Cities and towns
-      ['establishment'], // Businesses, landmarks, points of interest
-      ['tourist_attraction'], // Tourist attractions, landmarks
-      ['natural_feature'], // Parks, forests, mountains
-      ['park'], // Parks and recreational areas
+      ['(cities)'],
+      ['postal_code'],
+      ['sublocality'],
+      ['locality'],
+      ['establishment'],
+      ['tourist_attraction'],
+      ['natural_feature'],
+      ['park'],
     ];
 
-    // Make parallel requests for different types
     const promises = searchTypes.map((types) => {
       return new Promise<SearchSuggestion[]>((resolve) => {
         const requestOptions: any = {
@@ -223,13 +211,13 @@ export function EnhancedSearchBar({
           types: types,
         };
 
-        // If user location is available, bias results towards user's location
+        // Bias results towards user's location if available
         if (userLocation) {
           requestOptions.location = new (window.google.maps as any).LatLng(userLocation.lat, userLocation.lng);
-          requestOptions.radius = 50000; // 50km radius bias around user's location
+          requestOptions.radius = 50000; // 50km radius bias
         }
 
-        // Add country restrictions to keep results relevant (but not UK-biased)
+        // Country restrictions for non-establishments (same as /studios)
         if (!types.includes('establishment') && !types.includes('tourist_attraction') && 
             !types.includes('natural_feature') && !types.includes('park')) {
           requestOptions.componentRestrictions = { country: ['us', 'gb', 'ca', 'au', 'ie', 'nz'] };
@@ -239,7 +227,6 @@ export function EnhancedSearchBar({
           requestOptions,
           async (predictions: any[], status: any) => {
             if (status === places.PlacesServiceStatus.OK && predictions) {
-              // Get details for each prediction to obtain coordinates
               const detailPromises = predictions.slice(0, 3).map((prediction) => {
                 return new Promise<SearchSuggestion | null>((detailResolve) => {
                   placesService.getDetails(
@@ -251,7 +238,6 @@ export function EnhancedSearchBar({
                       if (detailStatus === places.PlacesServiceStatus.OK && place) {
                         let distance: number | undefined;
                         
-                        // Calculate distance if user location is available
                         if (userLocation && place.geometry?.location) {
                           const lat = typeof place.geometry.location.lat === 'function' 
                             ? place.geometry.location.lat() 
@@ -268,44 +254,24 @@ export function EnhancedSearchBar({
                           );
                         }
 
-                        // Format location suggestion based on whether it's a business/establishment or just a location
-                        let displayText = '';
-                        let locationText = '';
-                        
-                        logger.log('🏢 Place details:', { 
-                          name: place.name, 
+                        // Use shared label formatting — consistent with /studios
+                        const displayText = formatPlaceLabel({
+                          name: place.name,
                           formatted_address: place.formatted_address,
-                          types: place.types 
+                          description: prediction.description,
                         });
-                        
+
                         const fullAddress = place.formatted_address || place.name || prediction.description;
-                        
-                        // For establishments/landmarks, show the name prominently
-                        // Check if this is a business/landmark (has a distinct name different from address)
-                        const isEstablishment = place.name && 
-                                               place.formatted_address && 
-                                               !place.formatted_address.startsWith(place.name);
-                        
-                        if (isEstablishment) {
-                          // Show name first, then abbreviated address
-                          displayText = `${place.name} - ${place.formatted_address}`;
-                        } else {
-                          // For regular locations (cities, areas), show the full address
-                          displayText = fullAddress;
-                        }
-                        
-                        locationText = ''; // Don't use location text since we're showing everything in main text
-                        logger.log('📍 Location suggestion:', displayText);
 
                         detailResolve({
                           id: `place-${place.place_id}`,
-                          text: displayText, // Abbreviated for dropdown display
-                          location: locationText,
+                          text: displayText,
+                          location: '',
                           type: 'location' as const,
                           distance: distance || 0,
                           metadata: {
                             place_id: place.place_id,
-                            full_address: fullAddress, // Store full address for input box
+                            full_address: fullAddress,
                             ...(place.geometry?.location ? {
                               coordinates: {
                                 lat: typeof place.geometry.location.lat === 'function' 
@@ -344,15 +310,37 @@ export function EnhancedSearchBar({
 
     try {
       const results = await Promise.all(promises);
-      // Flatten and deduplicate results
       const flatResults = results.flat();
       const uniqueResults = flatResults.filter((suggestion, index, self) => 
         index === self.findIndex(s => s.text.toLowerCase() === suggestion.text.toLowerCase())
       );
       
-      return uniqueResults.slice(0, 5); // Limit to 5 total suggestions
+      return uniqueResults.slice(0, 5);
     } catch (error) {
       logger.warn('Error fetching Google Places suggestions:', error);
+      return [];
+    }
+  };
+
+  // Fetch studio-name suggestions (home page only)
+  const fetchStudioSuggestions = async (searchQuery: string): Promise<SearchSuggestion[]> => {
+    try {
+      const response = await fetch(`/api/search/studios?q=${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) return [];
+      
+      const data = await response.json();
+      return (data.studios || []).map((studio: any) => ({
+        id: `studio-${studio.id}`,
+        text: studio.name,
+        location: studio.city || '',
+        type: 'studio' as const,
+        metadata: {
+          studio_id: studio.id,
+          studio_username: studio.username,
+        }
+      }));
+    } catch (error) {
+      logger.error('Error fetching studio suggestions:', error);
       return [];
     }
   };
@@ -367,7 +355,6 @@ export function EnhancedSearchBar({
       
       const data = await response.json();
       return (data.users || []).map((user: any) => {
-        // Calculate distance if user location is available
         let distance: number | undefined;
         if (userLocation && user.coordinates) {
           distance = calculateDistance(
@@ -381,14 +368,14 @@ export function EnhancedSearchBar({
         return {
           id: `user-${user.id}`,
           text: formatUserSuggestion(user.username, user.display_name),
-          location: user.location || '', // Full location
+          location: user.location || '',
           type: 'user' as const,
           distance,
           metadata: {
             user_id: user.id,
-            username: user.username, // Store username for profile URL
+            username: user.username,
             coordinates: user.coordinates,
-            full_location: user.full_location || user.location // Store for geocoding if needed
+            full_location: user.full_location || user.location
           }
         };
       });
@@ -398,18 +385,13 @@ export function EnhancedSearchBar({
     }
   };
 
-  // Note: Removed duplicate debounced search useEffect to avoid conflicts
-  // The onChange handler now handles all debouncing and processing
-
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (isOpen && suggestions.length > 0 && selectedIndex >= 0 && suggestions[selectedIndex]) {
-        // If dropdown is open and a suggestion is selected, select it (but don't auto-search)
         handleSelect(suggestions[selectedIndex]);
       } else {
-        // Otherwise, perform search with current typed query (even if no autocomplete selected)
         const typedQuery = query.trim();
         if (typedQuery) {
           performLocationSearch(typedQuery);
@@ -443,38 +425,41 @@ export function EnhancedSearchBar({
   // Handle suggestion selection
   const handleSelect = (suggestion: SearchSuggestion) => {
     if (suggestion.type === 'user') {
-      // For user profiles, get username from metadata and open profile in new tab
       const username = suggestion.metadata?.username;
       if (username) {
-        const profileUrl = `/${username}`;
-        window.open(profileUrl, '_blank');
+        window.open(`/${username}`, '_blank');
       }
-      
-      // Close dropdown
+      setIsOpen(false);
+      setSelectedIndex(-1);
+      return;
+    }
+
+    if (suggestion.type === 'studio') {
+      // Open studio profile page
+      const username = suggestion.metadata?.studio_username;
+      if (username) {
+        window.open(`/${username}`, '_blank');
+      }
       setIsOpen(false);
       setSelectedIndex(-1);
       return;
     }
     
-    // For location suggestions, keep existing behavior
+    // Location suggestions
     let locationToSearch: { name: string; coordinates?: { lat: number; lng: number } } | null = null;
     
     if (suggestion.type === 'location') {
-      // For locations, use the full address (now stored in suggestion.text)
       const fullAddress = suggestion.metadata?.full_address || suggestion.text;
       locationToSearch = {
         name: fullAddress,
         ...(suggestion.metadata?.coordinates ? { coordinates: suggestion.metadata.coordinates } : {})
       };
       setSelectedLocation(locationToSearch);
-      setQuery(fullAddress); // Put full address in input box
+      setQuery(fullAddress);
     }
     
     setIsOpen(false);
     setSelectedIndex(-1);
-    
-    // Auto-search disabled - user must click search button or press Enter
-    // Removed auto-search on autocomplete selection per client request
   };
 
 
@@ -482,20 +467,16 @@ export function EnhancedSearchBar({
   const performLocationSearch = async (locationName: string, coordinates?: { lat: number; lng: number }) => {
     const params = new URLSearchParams();
     
-    // Set location parameter
     params.set('location', locationName);
     
-    // Set radius if enabled
     if (showRadius && radius > 0) {
       params.set('radius', radius.toString());
     }
     
-    // If we have coordinates, add them
     if (coordinates) {
       params.set('lat', coordinates.lat.toString());
       params.set('lng', coordinates.lng.toString());
     } else if (window.google?.maps?.places) {
-      // Try to geocode the location to get coordinates
       try {
         const geocodedCoords = await geocodeLocation(locationName);
         if (geocodedCoords) {
@@ -507,14 +488,12 @@ export function EnhancedSearchBar({
       }
     }
 
-    // Call custom handler if provided
     if (onSearch) {
       onSearch(locationName, coordinates, showRadius ? radius : undefined);
     }
 
     logger.log('Location search:', { locationName, coordinates, params: params.toString() });
 
-    // Navigate to studios page
     router.push(`/studios?${params.toString()}`);
     setIsOpen(false);
   };
@@ -547,6 +526,8 @@ export function EnhancedSearchBar({
     switch (type) {
       case 'location':
         return <MapPin className="w-4 h-4 text-blue-500" />;
+      case 'studio':
+        return <Mic className="w-4 h-4 text-red-500" />;
       case 'user':
         return <Building className="w-4 h-4 text-green-500" />;
       default:
@@ -576,7 +557,7 @@ export function EnhancedSearchBar({
                 className="w-full h-10 pl-8 pr-2 sm:pr-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                 style={{ 
                   color: colors.textPrimary,
-                  fontSize: '16px', // Minimum 16px to prevent iOS zoom
+                  fontSize: '16px',
                   maxWidth: '100%',
                   touchAction: 'manipulation'
                 } as React.CSSProperties}
@@ -587,12 +568,10 @@ export function EnhancedSearchBar({
                   logger.log('⌨️ Input onChange triggered with:', newValue);
                   setQuery(newValue);
                   
-                  // Clear selected location if user is typing something new
                   if (selectedLocation && newValue !== selectedLocation.name) {
                     setSelectedLocation(null);
                   }
                   
-                  // Trigger suggestions with debounce
                   if (debounceRef.current) {
                     clearTimeout(debounceRef.current);
                   }
@@ -600,6 +579,10 @@ export function EnhancedSearchBar({
                   debounceRef.current = setTimeout(() => {
                     fetchSuggestions(newValue);
                   }, 200);
+                }}
+                onFocus={() => {
+                  // On first interaction with the search box, request precise location
+                  requestPreciseLocation();
                 }}
                 onKeyDown={handleKeyDown}
                 autoComplete="off"
@@ -614,14 +597,13 @@ export function EnhancedSearchBar({
             style={{ 
               backgroundColor: colors.primary, 
               color: colors.background,
-              fontSize: '16px', // Match input font-size for consistency
+              fontSize: '16px',
               minWidth: 'fit-content'
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryHover}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
             onClick={(e) => {
               e.preventDefault();
-              // Use typed query directly to avoid async state issues
               const typedQuery = query.trim();
               if (typedQuery) {
                 performLocationSearch(typedQuery);
@@ -637,7 +619,7 @@ export function EnhancedSearchBar({
         {isOpen && suggestions.length > 0 && (
           <div 
             ref={dropdownRef}
-            className="absolute z-[9999] w-full bg-white border-2 border-gray-300 rounded-lg shadow-2xl max-h-80 overflow-auto mt-2"
+            className="absolute z-[9999] w-full bg-white border-2 border-gray-300 rounded-lg shadow-2xl max-h-[30rem] overflow-auto mt-2"
             style={{
               boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)'
             }}
@@ -669,6 +651,9 @@ export function EnhancedSearchBar({
                 <div className="font-medium text-black">
                   {suggestion.text}
                 </div>
+                {suggestion.type === 'studio' && suggestion.location && (
+                  <div className="text-xs text-gray-500">{suggestion.location}</div>
+                )}
               </div>
             </div>
           ))}
@@ -712,10 +697,8 @@ export function EnhancedSearchBar({
                 newRadius = Math.round(25 + ((sliderValue - 75) / 25) * 25); // 75-100% maps to 25-50
               }
               
-              // Update radius immediately for UI feedback
               setRadius(newRadius);
               
-              // Debounce the search: 1s on mobile, 500ms on desktop
               if (radiusDebounceRef.current) {
                 clearTimeout(radiusDebounceRef.current);
               }
@@ -723,14 +706,11 @@ export function EnhancedSearchBar({
               const delay = isMobileDevice() ? 1000 : 500;
               radiusDebounceRef.current = setTimeout(() => {
                 logger.log(`Radius search triggered after ${delay}ms delay: ${newRadius} miles`);
-                // The search will be triggered when the user clicks the Search button
-                // No need to trigger here since radius is used in handleSearch
               }, delay);
             }}
             className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider touch-none"
             style={{
               background: `linear-gradient(to right, ${colors.primary} 0%, ${colors.primary} ${(() => {
-                // Convert radius to percentage for visual progress bar
                 if (radius <= 5) return ((radius - 1) / 4) * 25;
                 if (radius <= 10) return 25 + ((radius - 5) / 5) * 25;
                 if (radius <= 25) return 50 + ((radius - 10) / 15) * 25;

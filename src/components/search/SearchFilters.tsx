@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 're
 import { Button } from '@/components/ui/Button';
 
 import { EnhancedLocationFilter } from './EnhancedLocationFilter';
+import { useUserLocation } from '@/lib/location';
 import { studio_type } from '@/types/prisma';
 
 interface SearchFiltersProps {
@@ -34,6 +35,9 @@ export interface SearchFiltersRef {
 }
 
 export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(function SearchFilters({ initialFilters, onSearch, onFilterByMapArea, isFilteringByMapArea, visibleMarkerCount, filterByMapAreaMaxMarkers = 30, isMapReady = true, onApplyFilter, isMobileModalOpen, studioTypeCounts = {} }, ref) {
+  // Shared location for distance-sorting autocomplete suggestions
+  const { userLocation, requestPreciseLocation } = useUserLocation();
+
   // Normalize filters for comparison (stable, comparable shape)
   const normalizeFilters = (f: typeof initialFilters) => ({
     location: (f.location || '').trim(),
@@ -258,7 +262,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
 
   return (
     <div 
-      className="bg-white rounded-lg border border-gray-200 shadow-lg px-4 lg:px-6 py-2 lg:py-3 space-y-4 lg:space-y-6"
+      className="bg-white rounded-lg border border-gray-200 shadow-lg px-4 lg:px-6 py-2 lg:py-3 space-y-4 lg:space-y-6 overflow-visible"
       onClick={handleFilterBoxClick}
     >
       {/* Location */}
@@ -269,6 +273,8 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
         <div className="space-y-2">
           <EnhancedLocationFilter
             value={filters.location}
+            userLocation={userLocation}
+            onSearchFocus={requestPreciseLocation}
             onChange={(value, placeDetails) => {
               // Update the location value in state
               const newFilters = { ...filters, location: value };

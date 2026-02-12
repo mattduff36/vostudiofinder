@@ -697,10 +697,16 @@ export function StudiosPage() {
     // Always preserve existing coordinates if we have them and no new coordinates provided
     const currentLat = searchParams.get('lat');
     const currentLng = searchParams.get('lng');
+    const currentLocation = searchParams.get('location');
     
     // If filters don't include coordinates, but we have them in URL, preserve them
     // BUT only if coordinates weren't explicitly cleared (undefined means explicitly cleared)
-    if (!filters.lat && !filters.lng && currentLat && currentLng && 
+    // Also, only preserve when the location hasn't changed; otherwise we risk mixing old coords with a new location label.
+    const isSameLocation = typeof filters.location === 'string' && typeof currentLocation === 'string'
+      ? filters.location.trim().toLowerCase() === currentLocation.trim().toLowerCase()
+      : !filters.location && !currentLocation;
+    
+    if (isSameLocation && !filters.lat && !filters.lng && currentLat && currentLng && 
         !filters.hasOwnProperty('lat') && !filters.hasOwnProperty('lng')) {
       params.set('lat', currentLat);
       params.set('lng', currentLng);

@@ -4,20 +4,18 @@ import { logger } from '@/lib/logger';
 import React, { useState, useRef } from 'react';
 import { Search, MapPin } from 'lucide-react';
 import { colors } from '../home/HomePage';
-import { formatUserSuggestion, calculateDistance, abbreviateAddress } from '@/lib/utils/address';
-import { getCurrentLocation } from '@/lib/maps';
+import { calculateDistance } from '@/lib/utils/address';
+import { formatPlaceLabel, sortSuggestions } from '@/lib/search';
 
 interface SearchSuggestion {
   id: string;
   text: string;
   location?: string;
-  type: 'location' | 'user';
+  type: 'location';
   distance?: number; // Distance in km from user's location
   metadata?: {
     place_id?: string;
-    user_id?: string;
     coordinates?: { lat: number; lng: number };
-    full_location?: string;
   };
 }
 
@@ -27,84 +25,50 @@ interface EnhancedLocationFilterProps {
   onEnterKey?: (typedValue?: string) => void;
   placeholder?: string;
   className?: string;
+  /** User location for distance-sorting suggestions. Provided by the parent via useUserLocation(). */
+  userLocation?: { lat: number; lng: number } | null;
+  /** Called on first focus to trigger precise location request (soft prompt). */
+  onSearchFocus?: () => void;
 }
 
 export function EnhancedLocationFilter({ 
   value,
   onChange,
   onEnterKey,
-  placeholder = "Search by location, postcode, or username...",
-  className = ""
+  placeholder = "Search by location or postcode...",
+  className = "",
+  userLocation = null,
+  onSearchFocus,
 }: EnhancedLocationFilterProps) {
   const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSelectedSuggestionRef = useRef<{
+    text: string;
+    type: SearchSuggestion['type'];
+    coordinates: { lat: number; lng: number } | null;
+  } | null>(null);
 
-  // Get user's current location for distance calculations
-  React.useEffect(() => {
-    const getUserLocation = async () => {
-      try {
-        const location = await getCurrentLocation();
-        setUserLocation(location);
-        logger.log('🌍 User location obtained for filters:', location);
-      } catch (error) {
-        logger.warn('Could not get user location for distance sorting:', error);
-      }
-    };
-
-    getUserLocation();
-  }, []);
+  function shouldSearchAsSelectedSuggestion(typedValue: string) {
+    const last = lastSelectedSuggestionRef.current;
+    if (!last) return false;
+    if (!last.coordinates) return false;
+    return last.type === 'location' && last.text.trim().toLowerCase() === typedValue.trim().toLowerCase();
+  }
 
   // Update internal query when value prop changes
   React.useEffect(() => {
-    // If the value looks like a full address (contains commas and is long), abbreviate it for display
-    if (value && value.includes(',') && value.length > 30) {
-      setQuery(abbreviateAddress(value));
-    } else {
-      setQuery(value);
-    }
+    setQuery(value);
   }, [value]);
 
-  // Detect search type - location or user
-  const detectSearchType = (input: string): 'location' | 'user' => {
-    const lowerInput = input.toLowerCase().trim();
-    
-    // UK Postcode patterns
-    const postcodePatterns = [
-      /^[a-z]{1,2}\d{1,2}\s*\d[a-z]{2}$/i, // UK postcode (e.g., SW1A 1AA, M1 1AA)
-      /^[a-z]{1,2}\d[a-z]\s*\d[a-z]{2}$/i, // UK postcode with letter (e.g., W1A 0AX)
-    ];
-    
-    // US ZIP code patterns
-    const zipPatterns = [
-      /^\d{5}$/i, // 5-digit ZIP
-      /^\d{5}-\d{4}$/i, // ZIP+4
-    ];
-    
-    // Check if it's a postcode/ZIP first
-    if (postcodePatterns.some(pattern => pattern.test(lowerInput)) || 
-        zipPatterns.some(pattern => pattern.test(lowerInput))) {
-      return 'location';
-    }
-    
-    // If it's a short alphanumeric string without spaces, likely a username
-    if (/^[a-z0-9_-]{3,20}$/i.test(lowerInput) && !lowerInput.includes(' ')) {
-      return 'user';
-    }
-    
-    // Everything else is treated as a location (city, area, etc.)
-    return 'location';
-  };
-
-  // Fetch suggestions from multiple sources
+  // Fetch location-only suggestions from Google Places
   const fetchSuggestions = async (searchQuery: string) => {
     if (searchQuery.length < 2) {
       setSuggestions([]);
@@ -114,24 +78,10 @@ export function EnhancedLocationFilter({
 
     try {
       logger.log('🔎 fetchSuggestions called with:', searchQuery);
-      const type = detectSearchType(searchQuery);
-      logger.log('🎯 Detected search type:', type);
       
       let allSuggestions: SearchSuggestion[] = [];
 
-      // Search for users only if it looks like a username search
-      if (type === 'user' || searchQuery.length >= 3) {
-        try {
-          logger.log('🔍 Searching for users...');
-          const userSuggestions = await fetchUserSuggestions(searchQuery);
-          logger.log('👥 Found user suggestions:', userSuggestions.length);
-          allSuggestions = [...allSuggestions, ...userSuggestions];
-        } catch (error) {
-          logger.warn('User search error:', error);
-        }
-      }
-
-      // Always try Google Places for location suggestions
+      // Only fetch Google Places location suggestions (no users/studios for /studios page)
       if (window.google?.maps?.places) {
         setIsLoadingPlaces(true);
         try {
@@ -146,9 +96,8 @@ export function EnhancedLocationFilter({
         }
       }
 
-      // If no Google Places suggestions and it looks like a location search, add a fallback
-      const hasLocationSuggestions = allSuggestions.some(s => s.type === 'location');
-      if (!hasLocationSuggestions && type === 'location' && searchQuery.length >= 3) {
+      // Fallback if no results
+      if (allSuggestions.length === 0 && searchQuery.length >= 3) {
         logger.log('🔄 Adding fallback location suggestion for:', searchQuery);
         allSuggestions.push({
           id: `fallback-${searchQuery}`,
@@ -158,44 +107,16 @@ export function EnhancedLocationFilter({
         });
       }
 
-      // Deduplicate suggestions
+      // Deduplicate
       const uniqueSuggestions = allSuggestions.filter((suggestion, index, self) => 
         index === self.findIndex(s => s.text.toLowerCase() === suggestion.text.toLowerCase())
       );
 
-      logger.log('📋 All suggestions before sorting:', uniqueSuggestions);
-      logger.log('🌍 User location for distance calculation:', userLocation);
+      // Sort using shared sort logic
+      const sorted = sortSuggestions(uniqueSuggestions, searchQuery);
 
-      // Sort by relevance and distance
-      uniqueSuggestions.sort((a, b) => {
-        // Prioritize exact matches first
-        const aExact = a.text.toLowerCase().startsWith(searchQuery.toLowerCase());
-        const bExact = b.text.toLowerCase().startsWith(searchQuery.toLowerCase());
-        if (aExact && !bExact) return -1;
-        if (!aExact && bExact) return 1;
-        
-        // Then prioritize users over locations
-        if (a.type === 'user' && b.type !== 'user') return -1;
-        if (a.type !== 'user' && b.type === 'user') return 1;
-        
-        // For items of the same type, sort by distance if available
-        if (a.type === b.type) {
-          // If both have distance, sort by distance (closest first)
-          if (a.distance !== undefined && b.distance !== undefined) {
-            return a.distance - b.distance;
-          }
-          // If only one has distance, prioritize it
-          if (a.distance !== undefined && b.distance === undefined) return -1;
-          if (a.distance === undefined && b.distance !== undefined) return 1;
-        }
-        
-        // Fallback to alphabetical sorting
-        return a.text.localeCompare(b.text);
-      });
-
-      const finalSuggestions = uniqueSuggestions.slice(0, 8);
+      const finalSuggestions = sorted.slice(0, 8);
       logger.log('✅ Final suggestions to display:', finalSuggestions);
-      logger.log('🔓 Setting isOpen to:', finalSuggestions.length > 0);
       
       setSuggestions(finalSuggestions);
       setIsOpen(finalSuggestions.length > 0);
@@ -218,33 +139,41 @@ export function EnhancedLocationFilter({
     const autocompleteService = new places.AutocompleteService();
     const placesService = new places.PlacesService(document.createElement('div'));
 
-    // Define different search types to try - enhanced for landmarks and businesses
+    // Same search types as home page for consistent results
     const searchTypes = [
-      ['(cities)'], // Cities, towns, neighborhoods
-      ['postal_code'], // Postcodes/zip codes
-      ['sublocality'], // Neighborhoods, districts
-      ['locality'], // Cities and towns
-      ['establishment'], // Businesses, landmarks, points of interest
-      ['tourist_attraction'], // Tourist attractions, landmarks
-      ['natural_feature'], // Parks, forests, mountains
-      ['park'], // Parks and recreational areas
+      ['(cities)'],
+      ['postal_code'],
+      ['sublocality'],
+      ['locality'],
+      ['establishment'],
+      ['tourist_attraction'],
+      ['natural_feature'],
+      ['park'],
     ];
 
-    // Make parallel requests for different types
     const promises = searchTypes.map((types) => {
       return new Promise<SearchSuggestion[]>((resolve) => {
+        const requestOptions: any = {
+          input: searchQuery,
+          types: types,
+        };
+
+        // Bias results towards user's location if available
+        if (userLocation) {
+          requestOptions.location = new (window.google.maps as any).LatLng(userLocation.lat, userLocation.lng);
+          requestOptions.radius = 50000; // 50km radius bias
+        }
+
+        // Country restrictions for non-establishments
+        if (!types.includes('establishment') && !types.includes('tourist_attraction') && 
+            !types.includes('natural_feature') && !types.includes('park')) {
+          requestOptions.componentRestrictions = { country: ['us', 'gb', 'ca', 'au', 'ie', 'nz'] };
+        }
+
         autocompleteService.getPlacePredictions(
-          {
-            input: searchQuery,
-            types: types,
-            // Remove country restrictions for landmarks and tourist attractions to allow global search
-            ...(types.includes('establishment') || types.includes('tourist_attraction') || types.includes('natural_feature') || types.includes('park') 
-              ? {} 
-              : { componentRestrictions: { country: ['us', 'gb', 'ca', 'au'] } })
-          },
+          requestOptions,
           async (predictions: any[], status: any) => {
             if (status === places.PlacesServiceStatus.OK && predictions) {
-              // Get details for each prediction to obtain coordinates
               const detailPromises = predictions.slice(0, 3).map((prediction) => {
                 return new Promise<SearchSuggestion | null>((detailResolve) => {
                   placesService.getDetails(
@@ -256,7 +185,6 @@ export function EnhancedLocationFilter({
                       if (detailStatus === places.PlacesServiceStatus.OK && place) {
                         let distance: number | undefined;
                         
-                        // Calculate distance if user location is available
                         if (userLocation && place.geometry?.location) {
                           const lat = typeof place.geometry.location.lat === 'function' 
                             ? place.geometry.location.lat() 
@@ -273,31 +201,16 @@ export function EnhancedLocationFilter({
                           );
                         }
 
-                        // Format location suggestion based on whether it's a business/establishment or just a location
-                        let displayText = '';
-                        let locationText = '';
-                        
-                        logger.log('🏢 Place details:', { 
-                          name: place.name, 
+                        // Use shared label formatting — consistent with home page
+                        const displayText = formatPlaceLabel({
+                          name: place.name,
                           formatted_address: place.formatted_address,
-                          types: place.types 
+                          description: prediction.description,
                         });
-                        
-                        if (place.name && place.formatted_address && place.name !== place.formatted_address) {
-                          // It's a business/establishment - show "Business Name - Address"
-                          displayText = place.name;
-                          locationText = place.formatted_address;
-                          logger.log('✅ Business/establishment detected:', displayText, '-', locationText);
-                        } else {
-                          // It's just a location - show address only
-                          displayText = place.formatted_address || place.name || prediction.description;
-                          logger.log('📍 General location detected:', displayText);
-                        }
 
                         detailResolve({
                           id: `place-${place.place_id}`,
                           text: displayText,
-                          location: locationText, // This will show in grey text for businesses
                           type: 'location' as const,
                           distance: distance || 0,
                           metadata: {
@@ -340,55 +253,14 @@ export function EnhancedLocationFilter({
 
     try {
       const results = await Promise.all(promises);
-      // Flatten and deduplicate results
       const flatResults = results.flat();
       const uniqueResults = flatResults.filter((suggestion, index, self) => 
         index === self.findIndex(s => s.text.toLowerCase() === suggestion.text.toLowerCase())
       );
       
-      return uniqueResults.slice(0, 5); // Limit to 5 total suggestions
+      return uniqueResults.slice(0, 5);
     } catch (error) {
       logger.warn('Error fetching Google Places suggestions:', error);
-      return [];
-    }
-  };
-
-  // Fetch user suggestions by username
-  const fetchUserSuggestions = async (searchQuery: string): Promise<SearchSuggestion[]> => {
-    try {
-      const response = await fetch(`/api/search/users?q=${encodeURIComponent(searchQuery)}`);
-      if (!response.ok) {
-        return [];
-      }
-      
-      const data = await response.json();
-      return (data.users || []).map((user: any) => {
-        // Calculate distance if user location is available
-        let distance: number | undefined;
-        if (userLocation && user.coordinates) {
-          distance = calculateDistance(
-            userLocation.lat,
-            userLocation.lng,
-            user.coordinates.lat,
-            user.coordinates.lng
-          );
-        }
-
-        return {
-          id: `user-${user.id}`,
-          text: formatUserSuggestion(user.username, user.display_name),
-          location: user.location, // Abbreviated location will show in grey text
-          type: 'user' as const,
-          distance,
-          metadata: {
-            user_id: user.id,
-            coordinates: user.coordinates,
-            full_location: user.full_location || user.location // Store for geocoding if needed
-          }
-        };
-      });
-    } catch (error) {
-      logger.error('Error fetching user suggestions:', error);
       return [];
     }
   };
@@ -397,13 +269,12 @@ export function EnhancedLocationFilter({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setQuery(newValue);
+    lastSelectedSuggestionRef.current = null;
     
-    // Clear existing debounce
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
     
-    // Debounce the suggestion fetching
     debounceRef.current = setTimeout(() => {
       fetchSuggestions(newValue);
     }, 200);
@@ -414,17 +285,18 @@ export function EnhancedLocationFilter({
     if (!isOpen || suggestions.length === 0) {
       if (e.key === 'Enter' && onEnterKey) {
         e.preventDefault();
-        // Cancel any pending suggestion fetch
         if (debounceRef.current) {
           clearTimeout(debounceRef.current);
           debounceRef.current = null;
         }
-        // Pass the typed value directly to onEnterKey so it can use it immediately
-        // without waiting for async state updates
         const typedValue = query.trim();
         if (typedValue) {
-          onChange(typedValue);
-          onEnterKey(typedValue);
+          if (shouldSearchAsSelectedSuggestion(typedValue)) {
+            onEnterKey();
+          } else {
+            onChange(typedValue);
+            onEnterKey(typedValue);
+          }
         } else {
           onEnterKey();
         }
@@ -443,7 +315,6 @@ export function EnhancedLocationFilter({
         break;
       case 'Enter':
         e.preventDefault();
-        // Cancel any pending suggestion fetch
         if (debounceRef.current) {
           clearTimeout(debounceRef.current);
           debounceRef.current = null;
@@ -451,15 +322,17 @@ export function EnhancedLocationFilter({
         if (selectedIndex >= 0 && suggestions[selectedIndex]) {
           handleSelect(suggestions[selectedIndex]);
         } else if (onEnterKey) {
-          // User pressed Enter without selecting a suggestion - use typed value
           const typedValue = query.trim();
           if (typedValue) {
-            onChange(typedValue);
-            onEnterKey(typedValue);
+            if (shouldSearchAsSelectedSuggestion(typedValue)) {
+              onEnterKey();
+            } else {
+              onChange(typedValue);
+              onEnterKey(typedValue);
+            }
           } else {
             onEnterKey();
           }
-          // Close the suggestion dropdown after triggering search
           setIsOpen(false);
           setSelectedIndex(-1);
         }
@@ -475,41 +348,26 @@ export function EnhancedLocationFilter({
   // Handle suggestion selection
   const handleSelect = (suggestion: SearchSuggestion) => {
     logger.log('🎯 Suggestion selected:', suggestion);
+    lastSelectedSuggestionRef.current = {
+      text: suggestion.text,
+      type: suggestion.type,
+      coordinates: suggestion.metadata?.coordinates ?? null,
+    };
     
-    if (suggestion.type === 'location') {
-      setQuery(suggestion.text);
-      // For location suggestions, pass the place details if available
-      const placeDetails = suggestion.metadata?.coordinates ? {
-        geometry: {
-          location: {
-            lat: () => suggestion.metadata?.coordinates?.lat || 0,
-            lng: () => suggestion.metadata?.coordinates?.lng || 0
-          }
-        },
-        formatted_address: suggestion.location || suggestion.text,
-        place_id: suggestion.metadata?.place_id
-      } : undefined;
-      
-      logger.log('📍 Location selected, calling onChange with:', suggestion.text, placeDetails);
-      onChange(suggestion.text, placeDetails);
-    } else if (suggestion.type === 'user') {
-      // For users, use their actual location address from metadata
-      const actualLocation = suggestion.metadata?.full_location || suggestion.text;
-      setQuery(actualLocation);
-      
-      const placeDetails = suggestion.metadata?.coordinates ? {
-        geometry: {
-          location: {
-            lat: () => suggestion.metadata?.coordinates?.lat || 0,
-            lng: () => suggestion.metadata?.coordinates?.lng || 0
-          }
-        },
-        formatted_address: actualLocation
-      } : undefined;
-      
-      logger.log('👤 User selected, calling onChange with:', actualLocation, placeDetails);
-      onChange(actualLocation, placeDetails);
-    }
+    setQuery(suggestion.text);
+    const placeDetails = suggestion.metadata?.coordinates ? {
+      geometry: {
+        location: {
+          lat: () => suggestion.metadata?.coordinates?.lat || 0,
+          lng: () => suggestion.metadata?.coordinates?.lng || 0
+        }
+      },
+      formatted_address: suggestion.text,
+      place_id: suggestion.metadata?.place_id
+    } : undefined;
+    
+    logger.log('📍 Location selected, calling onChange with:', suggestion.text, placeDetails);
+    onChange(suggestion.text, placeDetails);
     
     setIsOpen(false);
     setSelectedIndex(-1);
@@ -518,10 +376,7 @@ export function EnhancedLocationFilter({
 
   // Handle clicks outside to close suggestions
   React.useEffect(() => {
-    // Only add listener if dropdown is actually open
-    if (!isOpen) {
-      return;
-    }
+    if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -541,7 +396,7 @@ export function EnhancedLocationFilter({
   }, [isOpen]);
 
   return (
-    <div className="relative">
+    <div className="relative overflow-visible">
       <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
       <input
         ref={inputRef}
@@ -550,6 +405,7 @@ export function EnhancedLocationFilter({
         value={query}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
+        onFocus={() => onSearchFocus?.()}
         className={`w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent ${className}`}
         autoComplete="off"
       />
@@ -558,22 +414,21 @@ export function EnhancedLocationFilter({
       <button
         type="button"
         onClick={() => {
-          // Cancel any pending suggestion fetch
           if (debounceRef.current) {
             clearTimeout(debounceRef.current);
             debounceRef.current = null;
           }
-          // Pass the typed value directly to onEnterKey so it can use it immediately
           const typedValue = query.trim();
           if (typedValue) {
-            onChange(typedValue);
-            if (onEnterKey) {
-              onEnterKey(typedValue);
+            if (onEnterKey && shouldSearchAsSelectedSuggestion(typedValue)) {
+              onEnterKey();
+            } else {
+              onChange(typedValue);
+              if (onEnterKey) onEnterKey(typedValue);
             }
           } else if (onEnterKey) {
             onEnterKey();
           }
-          // Close the suggestion dropdown after triggering search
           setIsOpen(false);
           setSelectedIndex(-1);
         }}
@@ -592,11 +447,11 @@ export function EnhancedLocationFilter({
         <Search className="w-4 h-4" />
       </button>
 
-      {/* Suggestions Dropdown */}
+      {/* Suggestions Dropdown — wider than parent, aligned left, single-line labels */}
       {isOpen && suggestions.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-[9999] w-full bg-white border-2 border-gray-300 rounded-lg shadow-2xl max-h-60 overflow-auto mt-1"
+          className="absolute z-[9999] left-0 min-w-full w-max max-w-[calc(100vw-2rem)] bg-white border-2 border-gray-300 rounded-lg shadow-2xl max-h-60 overflow-auto mt-1"
           style={{
             boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)'
           }}
@@ -612,7 +467,7 @@ export function EnhancedLocationFilter({
             <div
               key={suggestion.id}
               ref={(el) => { suggestionRefs.current[index] = el; }}
-              className={`px-3 py-2 cursor-pointer transition-colors ${
+              className={`px-3 py-2 cursor-pointer transition-colors flex items-center gap-2 whitespace-nowrap ${
                 index === selectedIndex
                   ? 'bg-blue-50 text-blue-900'
                   : 'hover:bg-gray-50 text-gray-900'
@@ -629,9 +484,10 @@ export function EnhancedLocationFilter({
                 e.stopPropagation();
               }}
             >
-              <div className="text-xs font-medium text-gray-900">
+              <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+              <span className="text-xs font-medium text-gray-900">
                 {suggestion.text}
-              </div>
+              </span>
             </div>
           ))}
         </div>
