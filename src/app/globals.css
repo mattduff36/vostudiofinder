@@ -181,6 +181,14 @@ a:hover {
   text-decoration: none;
 }
 
+/* Profile connection links - Cleanfeed matches other connections, brand colour on hover */
+a.profile-connection-cleanfeed {
+  color: inherit !important;
+}
+a.profile-connection-cleanfeed:hover {
+  color: #0095bb !important;
+}
+
 /* Typography matching original */
 h1,
 h2,

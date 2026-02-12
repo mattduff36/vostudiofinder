@@ -548,7 +548,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
                       className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
                     >
                       {connection.label === 'Cleanfeed' ? (
-                        <a href="https://cleanfeed.net/" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">
+                        <a href="https://cleanfeed.net/" target="_blank" rel="noopener noreferrer" className="profile-connection-cleanfeed transition-colors">
                           {connection.label}
                         </a>
                       ) : (
@@ -1065,7 +1065,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
                       {allConnections.map((connection) => (
                         <li key={connection.id} className="text-sm text-gray-700">
                           {connection.label === 'Cleanfeed' ? (
-                            <a href="https://cleanfeed.net/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            <a href="https://cleanfeed.net/" target="_blank" rel="noopener noreferrer" className="profile-connection-cleanfeed transition-colors">
                               {connection.label}
                             </a>
                           ) : (
