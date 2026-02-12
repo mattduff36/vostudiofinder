@@ -540,16 +540,11 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
             </div>
           )}
 
-          {/* Last Updated / Last Active - mobile */}
-          {(formatDateUK(studio.updated_at) || formatDateUK(studio.last_login)) && (
+          {/* Last Updated - mobile */}
+          {formatDateUK(studio.updated_at) && (
             <div className="bg-white border-b border-gray-200 md:hidden px-4 py-3">
               <div className="text-xs text-gray-400 space-y-0.5">
-                {formatDateUK(studio.updated_at) && (
-                  <p>Last Updated {formatDateUK(studio.updated_at)}</p>
-                )}
-                {formatDateUK(studio.last_login) && (
-                  <p>Last Active {formatDateUK(studio.last_login)}</p>
-                )}
+                <p>Last Updated {formatDateUK(studio.updated_at)}</p>
               </div>
             </div>
           )}
@@ -650,36 +645,71 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
               </div>
             )}
 
-            {/* Studio Header - minimal margin for tight spacing around title */}
+            {/* Studio Header - 2-col (avatar | name + region) */}
             <div className="mb-2 w-full">
-              <div className="flex items-center justify-between gap-3 mb-1 w-full">
-                <h1 className="text-3xl !font-bold text-gray-900 flex items-center gap-3" style={{ fontWeight: 700 }}>
-                  {/* Profile Avatar */}
-                  {studio.owner.avatar_url && (
+              <div className="flex items-start justify-between gap-3 mb-1 w-full">
+                <div className="grid grid-cols-[auto,1fr] items-start gap-3 min-w-0">
+                  {/* Profile Avatar (slightly lowered for visual alignment) */}
+                  <div className="mt-1.5">
                     <AvatarUpload
-                      currentAvatar={studio.owner.avatar_url}
+                      currentAvatar={studio.owner.avatar_url ?? null}
                       onAvatarChange={() => {}}
                       size="small"
                       editable={false}
                       userName={studio.owner.display_name || studio.owner.username}
                       variant="profile"
                     />
-                  )}
-                  <span>{studio.name}</span>
-                  {studio.is_verified && (
-                    <span className="group relative inline-flex items-center cursor-default">
-                      <span 
-                        className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 transition-all duration-200 group-hover:scale-110" 
-                      >
-                        <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
-                      </span>
-                      {/* Hover expand text - desktop only */}
-                      <span className="hidden md:inline-flex absolute left-full ml-1 items-center px-2 py-0.5 bg-green-600 text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none">
-                        Verified
-                      </span>
-                    </span>
-                  )}
-                </h1>
+                  </div>
+
+                  <div className="min-w-0">
+                    <h1
+                      className="text-3xl !font-bold text-gray-900 flex items-center gap-3 min-w-0"
+                      style={{ fontWeight: 700 }}
+                    >
+                      <span className="min-w-0 truncate">{studio.name}</span>
+                      {studio.is_verified && (
+                        <span className="group relative inline-flex items-center cursor-default flex-shrink-0">
+                          <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 transition-all duration-200 group-hover:scale-110">
+                            <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                          </span>
+                          {/* Hover expand text - desktop only */}
+                          <span className="hidden md:inline-flex absolute left-full ml-1 items-center px-2 py-0.5 bg-green-600 text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none">
+                            Verified
+                          </span>
+                        </span>
+                      )}
+                    </h1>
+
+                    {/* Region / City - desktop only (mobile shows via CompactHero) */}
+                    {studio.city && (
+                      <div className="hidden md:flex items-center gap-1.5 mt-1 min-w-0">
+                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-sm text-gray-500 truncate">{studio.city}</span>
+                      </div>
+                    )}
+
+                    {/* Rating and Reviews */}
+                    {studio.reviews.length > 0 && (
+                      <div className="flex items-center space-x-2 mb-1.5 w-full mt-2">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={clsx(
+                                'w-5 h-5',
+                                i < Math.floor(averageRating) ? 'text-yellow-400 fill-current' : 'text-gray-300',
+                              )}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          {averageRating.toFixed(1)} ({studio._count.reviews} reviews)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Share Profile Button - Desktop Header */}
                 <ShareProfileButton
                   profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
@@ -687,39 +717,9 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                   {...(studio.city && { region: studio.city })}
                   variant="ghost"
                   size="sm"
-                  className="text-gray-600 hover:text-gray-900"
+                  className="text-gray-600 hover:text-gray-900 flex-shrink-0"
                 />
               </div>
-
-              {/* Region / City - desktop only (mobile shows via CompactHero) */}
-              {studio.city && (
-                <div className="hidden md:flex items-center gap-1.5 mt-1">
-                  <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  <span className="text-sm text-gray-500">{studio.city}</span>
-                </div>
-              )}
-
-              {/* Rating and Reviews */}
-              {studio.reviews.length > 0 && (
-                <div className="flex items-center space-x-2 mb-1.5 w-full">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={clsx(
-                          'w-5 h-5',
-                          i < Math.floor(averageRating)
-                            ? 'text-yellow-400 fill-current'
-                            : 'text-gray-300'
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-600">
-                    {averageRating.toFixed(1)} ({studio._count.reviews} reviews)
-                  </span>
-                </div>
-              )}
             </div>
 
             {/* Description and Info Cards - Desktop: separate boxes like right column */}
@@ -1040,15 +1040,10 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                 </div>
               )}
 
-              {/* Last Updated / Last Active */}
-              {(formatDateUK(studio.updated_at) || formatDateUK(studio.last_login)) && (
+              {/* Last Updated */}
+              {formatDateUK(studio.updated_at) && (
                 <div className="text-xs text-gray-400 space-y-0.5 pt-2">
-                  {formatDateUK(studio.updated_at) && (
-                    <p>Last Updated {formatDateUK(studio.updated_at)}</p>
-                  )}
-                  {formatDateUK(studio.last_login) && (
-                    <p>Last Active {formatDateUK(studio.last_login)}</p>
-                  )}
+                  <p>Last Updated {formatDateUK(studio.updated_at)}</p>
                 </div>
               )}
 
