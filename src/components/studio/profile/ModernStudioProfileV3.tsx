@@ -647,21 +647,22 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
 
             {/* Studio Header - 2-col (avatar | name + region) */}
             <div className="mb-2 w-full">
-              <div className="flex items-start justify-between gap-3 mb-1 w-full">
-                <div className="grid grid-cols-[auto,1fr] items-start gap-3 min-w-0">
-                  {/* Profile Avatar (slightly lowered for visual alignment) */}
-                  <div className="mt-1.5">
-                    <AvatarUpload
-                      currentAvatar={studio.owner.avatar_url ?? null}
-                      onAvatarChange={() => {}}
-                      size="small"
-                      editable={false}
-                      userName={studio.owner.display_name || studio.owner.username}
-                      variant="profile"
-                    />
-                  </div>
+              <div className="grid grid-cols-[auto,1fr] items-start gap-3 min-w-0">
+                {/* Avatar column (slightly lowered for visual alignment) */}
+                <div className="mt-2">
+                  <AvatarUpload
+                    currentAvatar={studio.owner.avatar_url ?? null}
+                    onAvatarChange={() => {}}
+                    size="small"
+                    editable={false}
+                    userName={studio.owner.display_name || studio.owner.username}
+                    variant="profile"
+                  />
+                </div>
 
-                  <div className="min-w-0">
+                {/* Content column (name + region + share aligned to name row) */}
+                <div className="min-w-0">
+                  <div className="flex items-start justify-between gap-3 min-w-0">
                     <h1
                       className="text-3xl !font-bold text-gray-900 flex items-center gap-3 min-w-0"
                       style={{ fontWeight: 700 }}
@@ -680,45 +681,44 @@ export function ModernStudioProfileV3({ studio, previewMode = false }: ModernStu
                       )}
                     </h1>
 
-                    {/* Region / City - desktop only (mobile shows via CompactHero) */}
-                    {studio.city && (
-                      <div className="hidden md:flex items-center gap-1.5 mt-1 min-w-0">
-                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <span className="text-sm text-gray-500 truncate">{studio.city}</span>
-                      </div>
-                    )}
-
-                    {/* Rating and Reviews */}
-                    {studio.reviews.length > 0 && (
-                      <div className="flex items-center space-x-2 mb-1.5 w-full mt-2">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={clsx(
-                                'w-5 h-5',
-                                i < Math.floor(averageRating) ? 'text-yellow-400 fill-current' : 'text-gray-300',
-                              )}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm text-gray-600">
-                          {averageRating.toFixed(1)} ({studio._count.reviews} reviews)
-                        </span>
-                      </div>
-                    )}
+                    <ShareProfileButton
+                      profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
+                      profileName={studio.name}
+                      {...(studio.city && { region: studio.city })}
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-600 hover:text-gray-900 flex-shrink-0 mt-1"
+                    />
                   </div>
-                </div>
 
-                {/* Share Profile Button - Desktop Header */}
-                <ShareProfileButton
-                  profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
-                  profileName={studio.name}
-                  {...(studio.city && { region: studio.city })}
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-600 hover:text-gray-900 flex-shrink-0"
-                />
+                  {/* Region / City - desktop only (mobile shows via CompactHero) */}
+                  {studio.city && (
+                    <div className="hidden md:flex items-center gap-1.5 mt-1 min-w-0">
+                      <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-sm text-gray-500 truncate">{studio.city}</span>
+                    </div>
+                  )}
+
+                  {/* Rating and Reviews */}
+                  {studio.reviews.length > 0 && (
+                    <div className="flex items-center space-x-2 mb-1.5 w-full mt-2">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={clsx(
+                              'w-5 h-5',
+                              i < Math.floor(averageRating) ? 'text-yellow-400 fill-current' : 'text-gray-300',
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-600">
+                        {averageRating.toFixed(1)} ({studio._count.reviews} reviews)
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
