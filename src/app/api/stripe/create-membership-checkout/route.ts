@@ -105,8 +105,6 @@ export async function POST(request: NextRequest) {
           metadata,
           subscription_data: {
             metadata,
-            // Default OFF: subscription won't auto-renew unless user opts in later
-            trial_period_days: 0,
           },
           allow_promotion_codes: true,
         })

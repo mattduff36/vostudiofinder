@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { X, Crown } from 'lucide-react';
+import { X, Crown, Check } from 'lucide-react';
 import { CompactCheckoutForm } from '@/components/billing/CompactCheckoutForm';
 
 interface UpgradeModalProps {
@@ -94,23 +94,30 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold ${autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
-                        Auto-renew annually
-                      </span>
-                      <span className="text-[10px] font-semibold text-white bg-[#d42027] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
-                        Recommended
+                <div className="flex items-start gap-3">
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                    autoRenew ? 'border-[#d42027] bg-[#d42027]' : 'border-gray-300'
+                  }`}>
+                    {autoRenew && <Check className="w-3 h-3 text-white" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-sm font-bold ${autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
+                          Auto-renew annually
+                        </span>
+                        <span className="text-[10px] font-semibold text-white bg-[#d42027] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                          Recommended
+                        </span>
+                      </div>
+                      <span className={`text-lg font-extrabold flex-shrink-0 ${autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
+                        £25<span className="text-xs font-semibold">/yr</span>
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5">
                       Stay Premium automatically. Cancel anytime in Settings.
                     </p>
                   </div>
-                  <span className={`text-lg font-extrabold ${autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
-                    £25<span className="text-xs font-semibold">/yr</span>
-                  </span>
                 </div>
               </button>
 
@@ -124,18 +131,25 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className={`text-sm font-bold ${!autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
-                      Pay once
-                    </span>
+                <div className="flex items-start gap-3">
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                    !autoRenew ? 'border-[#d42027] bg-[#d42027]' : 'border-gray-300'
+                  }`}>
+                    {!autoRenew && <Check className="w-3 h-3 text-white" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`text-sm font-bold ${!autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
+                        Pay once
+                      </span>
+                      <span className={`text-lg font-extrabold flex-shrink-0 ${!autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
+                        £25
+                      </span>
+                    </div>
                     <p className="text-xs text-gray-500 mt-0.5">
                       One-off payment for 1 year. You can switch to auto-renew later in Settings.
                     </p>
                   </div>
-                  <span className={`text-lg font-extrabold ${!autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
-                    £25
-                  </span>
                 </div>
               </button>
             </div>

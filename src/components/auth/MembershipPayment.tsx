@@ -281,12 +281,12 @@ export function MembershipPayment() {
         {/* Welcome Header */}
         <div className="bg-[#d42027] px-8 pt-12 pb-8 text-white text-center rounded-t-xl shadow-lg">
           <div className="text-4xl font-bold mb-3">Welcome {name || 'Studio Owner'}!</div>
-          <div className="flex items-center justify-center mb-4">
-            <span className="inline-flex items-center bg-white/15 backdrop-blur-sm rounded-full px-6 py-2.5 text-base tracking-wide">
+          <div className="flex flex-col items-center justify-center mb-4 gap-1.5">
+            <span className="inline-flex items-center bg-white/15 backdrop-blur-sm rounded-full px-5 py-2 text-sm sm:text-base tracking-wide">
               <span className="text-white/70">VoiceoverStudioFinder.com/</span>
               <span className="text-white font-semibold">{username || 'YourStudio'}</span>
-              <span className="text-white/70 ml-1.5">has been secured</span>
             </span>
+            <span className="text-white/70 text-sm sm:text-base">has been secured</span>
           </div>
           <div className="text-2xl font-semibold">Choose Your Membership</div>
         </div>
@@ -503,59 +503,70 @@ export function MembershipPayment() {
                     <button
                       type="button"
                       onClick={() => setAutoRenew(true)}
-                      className={`relative w-full text-left rounded-xl border-2 p-4 transition-all ${
+                      className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                         autoRenew
                           ? 'border-[#d42027] bg-red-50/50 shadow-sm'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className={`text-sm font-bold ${autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
-                              Auto-renew annually
-                            </span>
-                            <span className="text-[10px] font-semibold text-white bg-[#d42027] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
-                              Recommended
+                      <div className="flex items-start gap-3">
+                        {/* Radio indicator */}
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                          autoRenew ? 'border-[#d42027] bg-[#d42027]' : 'border-gray-300'
+                        }`}>
+                          {autoRenew && <Check className="w-3 h-3 text-white" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`text-sm font-bold ${autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
+                                Auto-renew annually
+                              </span>
+                              <span className="text-[10px] font-semibold text-white bg-[#d42027] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                                Recommended
+                              </span>
+                            </div>
+                            <span className={`text-lg font-extrabold flex-shrink-0 ${autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
+                              £25<span className="text-xs font-semibold">/yr</span>
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 mt-0.5">
                             Stay Premium automatically. Cancel anytime in Settings.
                           </p>
                         </div>
-                        <span className={`text-lg font-extrabold ${autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
-                          £25<span className="text-xs font-semibold">/yr</span>
-                        </span>
                       </div>
-                      {autoRenew && (
-                        <div className="w-4 h-4 rounded-full bg-[#d42027] flex items-center justify-center absolute top-3 left-3">
-                          <Check className="w-2.5 h-2.5 text-white" />
-                        </div>
-                      )}
                     </button>
 
                     {/* Pay once option */}
                     <button
                       type="button"
                       onClick={() => setAutoRenew(false)}
-                      className={`relative w-full text-left rounded-xl border-2 p-4 transition-all ${
+                      className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                         !autoRenew
                           ? 'border-[#d42027] bg-red-50/50 shadow-sm'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className={`text-sm font-bold ${!autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
-                            Pay once
-                          </span>
+                      <div className="flex items-start gap-3">
+                        {/* Radio indicator */}
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                          !autoRenew ? 'border-[#d42027] bg-[#d42027]' : 'border-gray-300'
+                        }`}>
+                          {!autoRenew && <Check className="w-3 h-3 text-white" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`text-sm font-bold ${!autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
+                              Pay once
+                            </span>
+                            <span className={`text-lg font-extrabold flex-shrink-0 ${!autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
+                              £25
+                            </span>
+                          </div>
                           <p className="text-xs text-gray-500 mt-0.5">
                             One-off payment for 1 year. You can switch to auto-renew later in Settings.
                           </p>
                         </div>
-                        <span className={`text-lg font-extrabold ${!autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
-                          £25
-                        </span>
                       </div>
                     </button>
                   </div>
@@ -572,7 +583,7 @@ export function MembershipPayment() {
               ) : (
                 <>
                   {/* Selected option summary */}
-                  <div className="px-5 pb-3">
+                  <div className="pl-5 pr-12 pb-3">
                     <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
                       <span className="text-sm text-gray-700">
                         {autoRenew ? 'Auto-renew annually — £25/year' : 'Pay once — £25 for 1 year'}

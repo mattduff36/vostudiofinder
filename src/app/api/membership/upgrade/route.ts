@@ -96,7 +96,6 @@ export async function POST(request: NextRequest) {
           metadata,
           subscription_data: {
             metadata,
-            trial_period_days: 0,
           },
           allow_promotion_codes: true,
         })
