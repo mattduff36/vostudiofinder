@@ -1,6 +1,6 @@
 # VoiceoverStudioFinder
 
-A comprehensive Next.js platform connecting voiceover professionals with clients, featuring advanced studio search, booking, and professional networking capabilities.
+A comprehensive Next.js platform connecting voiceover professionals with studios, featuring advanced studio search, booking, and professional networking capabilities.
 
 ## 🌐 Live Site
 - **Production**: https://voiceoverstudiofinder.com
