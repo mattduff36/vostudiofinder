@@ -206,6 +206,7 @@ async function main() {
       devDb.waitlist.deleteMany({}),
       devDb.contacts.deleteMany({}),
       devDb.poi.deleteMany({}),
+      devDb.platform_updates.deleteMany({}),
     ]);
     console.log('  ✓ Root tables cleared');
 
@@ -1058,6 +1059,35 @@ async function main() {
     }
     console.log(`  ✓ Email preferences: ${prodEmailPrefs.length}`);
 
+    // --- 2ak: Platform updates (What's New) ---
+    console.log('✨ Copying platform updates (What\'s New)...');
+    let prodPlatformUpdates: any[] = [];
+    try {
+      prodPlatformUpdates = await prodDb.platform_updates.findMany();
+    } catch (error: any) {
+      if (error.code === 'P2021') {
+        console.log('  ⚠️  Table does not exist in production, skipping...');
+        prodPlatformUpdates = [];
+      } else {
+        throw error;
+      }
+    }
+    for (const pu of prodPlatformUpdates) {
+      await devDb.platform_updates.create({
+        data: {
+          id: pu.id,
+          title: pu.title,
+          description: pu.description,
+          category: pu.category,
+          release_date: pu.release_date,
+          is_highlighted: pu.is_highlighted,
+          created_at: pu.created_at,
+          updated_at: pu.updated_at,
+        }
+      });
+    }
+    console.log(`  ✓ Platform updates: ${prodPlatformUpdates.length}`);
+
     // =========================================================================
     // Step 3: Verify final counts
     // =========================================================================
@@ -1082,6 +1112,7 @@ async function main() {
     console.log(`   Notifications: ${prodNotifications.length}`);
     console.log(`   FAQ:           ${prodFaq.length}`);
     console.log(`   Waitlist:      ${prodWaitlist.length}`);
+    console.log(`   Platform upd:  ${prodPlatformUpdates.length}`);
     console.log('\n✅ Dev database now mirrors production exactly!\n');
 
   } catch (error) {

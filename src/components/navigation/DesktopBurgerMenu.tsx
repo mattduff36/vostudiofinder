@@ -230,8 +230,10 @@ export function DesktopBurgerMenu({
             
             // Determine if we need a divider before this item
             const showDividerBefore = (
-              // Divider before Help Center (after Settings)
-              (session && item.id === 'help') ||
+              // Divider before What's New / site links section (after Settings)
+              (session && item.id === 'whatsNew' && index > 0 && filteredItems[index - 1]?.section !== 'site') ||
+              // Divider before About Us (after Settings) in mobile menu
+              (session && item.id === 'about' && index > 0 && filteredItems[index - 1]?.section !== 'site') ||
               // Divider before Admin section
               (session && isAdminItem && index > 0 && filteredItems[index - 1]?.section !== 'admin') ||
               // Divider before Logout

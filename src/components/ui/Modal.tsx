@@ -8,7 +8,7 @@ interface ModalProps {
   onClose?: () => void;
   children: React.ReactNode;
   preventBackdropClose?: boolean;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '4xl';
 }
 
 export function Modal({ 
@@ -68,6 +68,7 @@ export function Modal({
     md: 'sm:max-w-md',
     lg: 'sm:max-w-lg',
     xl: 'sm:max-w-xl',
+    '4xl': 'sm:max-w-4xl',
   };
 
   const modalContent = (

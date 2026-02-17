@@ -35,7 +35,7 @@ npx tsx scripts/full-sync-production-to-dev.ts --confirm
 
 ## Tables Copied
 
-Users, accounts, sessions, studio profiles, studio types, studio images, studio services, payments, subscriptions, refunds, reviews, review responses, messages, user connections, user metadata, notifications, content reports, saved searches, pending subscriptions, support tickets, FAQ, waitlist, contacts, Stripe webhook events, error log groups, POI, admin sticky notes, rate limit events, profile audit findings, profile enrichment suggestions, profile audit log, email templates, email template versions, email campaigns, email deliveries, email preferences.
+Users, accounts, sessions, studio profiles, studio types, studio images, studio services, payments, subscriptions, refunds, reviews, review responses, messages, user connections, user metadata, notifications, content reports, saved searches, pending subscriptions, support tickets, FAQ, waitlist, contacts, Stripe webhook events, error log groups, POI, admin sticky notes, rate limit events, profile audit findings, profile enrichment suggestions, profile audit log, email templates, email template versions, email campaigns, email deliveries, email preferences, platform updates (What's New).
 
 ## Other Tools
 

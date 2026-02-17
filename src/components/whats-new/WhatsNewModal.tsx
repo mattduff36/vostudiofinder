@@ -35,10 +35,10 @@ function getCategoryLabel(category: PlatformUpdateCategory): string {
 
 function getCategoryBadgeClass(category: PlatformUpdateCategory): string {
   const classes: Record<PlatformUpdateCategory, string> = {
-    FEATURE: 'bg-emerald-100 text-emerald-800',
-    IMPROVEMENT: 'bg-blue-100 text-blue-800',
-    FIX: 'bg-amber-100 text-amber-800',
-    SECURITY: 'bg-red-100 text-red-800',
+    FEATURE: 'border-[#d42027] text-[#d42027]',
+    IMPROVEMENT: 'border-primary-600 text-primary-700',
+    FIX: 'border-secondary-500 text-secondary-700',
+    SECURITY: 'border-red-800 text-red-800',
   };
   return classes[category];
 }
@@ -75,23 +75,26 @@ export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
   const sortedDates = Object.keys(groupedByDate).sort((a, b) => (a > b ? -1 : 1));
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="lg">
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="4xl">
       <div className="flex flex-col h-full sm:max-h-[90vh]">
         {/* Header */}
-        <div className="flex-shrink-0 flex items-start justify-between p-6 pb-4 border-b border-gray-200">
+        <div className="flex-shrink-0 flex items-start justify-between p-6 sm:p-8 pb-4 sm:pb-5 border-b border-primary-100 bg-white">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-[#d42027]" aria-hidden />
-              What&apos;s New at Voiceover Studio Finder
+            <h2 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-[#d42027] to-red-400 bg-clip-text text-transparent flex items-center gap-3">
+              <Sparkles className="w-8 h-8 text-[#d42027] flex-shrink-0" aria-hidden />
+              What&apos;s New
             </h2>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="text-base text-gray-900 font-medium ml-11">
+              at Voiceover Studio Finder
+            </p>
+            <p className="mt-2 text-sm text-gray-900 ml-11">
               We&apos;re constantly improving the platform to help studios get more bookings.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 -m-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            className="p-2 -m-2 rounded-lg text-secondary-400 hover:text-gray-900 hover:bg-secondary-100 transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -99,13 +102,13 @@ export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-8 bg-gradient-to-b from-primary-50 to-white">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#d42027]" />
             </div>
           ) : updates.length === 0 ? (
-            <p className="text-center text-gray-500 py-12">No updates yet. Check back soon!</p>
+            <p className="text-center text-gray-900 py-12">No updates yet. Check back soon!</p>
           ) : (
             <div className="space-y-8">
               {sortedDates.map((dateKey) => {
@@ -113,26 +116,31 @@ export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
                 const dateStr = dateUpdates[0]?.release_date ?? dateKey;
                 return (
                   <section key={dateKey}>
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">
+                    <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#d42027]" aria-hidden />
                       {formatReleaseDate(dateStr)}
                     </h3>
                     <div className="space-y-4">
                       {dateUpdates.map((update) => (
                         <div
                           key={update.id}
-                          className={`rounded-lg p-4 ${update.is_highlighted ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50'}`}
+                          className={`rounded-xl p-5 shadow-sm ${
+                            update.is_highlighted
+                              ? 'bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 border-l-4 border-l-[#d42027]'
+                              : 'bg-gradient-to-br from-white to-primary-50 border border-primary-200'
+                          }`}
                         >
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            {update.title && (
+                              <span className="text-sm font-semibold text-gray-900">{update.title}</span>
+                            )}
                             <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryBadgeClass(update.category)}`}
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border shrink-0 ${getCategoryBadgeClass(update.category)}`}
                             >
                               {getCategoryLabel(update.category)}
                             </span>
-                            {update.title && (
-                              <span className="text-sm font-medium text-gray-700">{update.title}</span>
-                            )}
                           </div>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-900">
                             {update.description
                               .split('\n')
                               .filter((line) => line.trim())

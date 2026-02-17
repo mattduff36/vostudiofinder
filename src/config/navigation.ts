@@ -62,7 +62,7 @@ export const NAV_ITEMS: Record<string, NavItem> = {
   },
   help: {
     id: 'help',
-    label: 'Help Center',
+    label: 'Help Centre',
     icon: HelpCircle,
     type: 'link',
     href: '/help',
@@ -98,7 +98,7 @@ export const NAV_ITEMS: Record<string, NavItem> = {
     icon: Sparkles,
     type: 'action',
     action: 'openWhatsNewModal',
-    section: 'account',
+    section: 'site',
     requiresAuth: true,
     showOnMobile: true,
     showOnDesktop: true,
@@ -239,7 +239,6 @@ export function getDesktopBurgerMenuItems(context: MenuContext & { includeSiteLi
 
   // Account links
   items.push(NAV_ITEMS.overview!);
-  items.push(NAV_ITEMS.whatsNew!);
   items.push(NAV_ITEMS.editProfile!);
   items.push({
     ...NAV_ITEMS.myProfile!,
@@ -250,6 +249,10 @@ export function getDesktopBurgerMenuItems(context: MenuContext & { includeSiteLi
   items.push(NAV_ITEMS.membership!);
   items.push(NAV_ITEMS.profileVisibility!);
   items.push(NAV_ITEMS.settings!);
+
+  // Site / informational links (What's New above Help Centre)
+  items.push(NAV_ITEMS.whatsNew!);
+  items.push(NAV_ITEMS.help!);
 
   // Logout
   items.push(NAV_ITEMS.logout!);
@@ -282,14 +285,14 @@ export function getMobileMenuItems(context: MenuContext & { bottomNavIds: string
       section: 'site' as const,
     });
 
-    // Section 2: Account Management (What's New, Edit Profile, Membership, Settings)
-    items.push(NAV_ITEMS.whatsNew!);
+    // Section 2: Account Management (Edit Profile, Membership, Settings)
     items.push(NAV_ITEMS.editProfile!);
     items.push(NAV_ITEMS.membership!);
     items.push(NAV_ITEMS.settings!);
 
-    // Section 3: Site Links (About, Help, Privacy)
+    // Section 3: Site Links (About, What's New, Help, Privacy)
     items.push(NAV_ITEMS.about!);
+    items.push(NAV_ITEMS.whatsNew!);
     items.push(NAV_ITEMS.help!);
     items.push(NAV_ITEMS.privacy!);
 
