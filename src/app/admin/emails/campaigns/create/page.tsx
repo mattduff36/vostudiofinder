@@ -37,6 +37,26 @@ export default function CreateCampaignPage() {
   const searchParams = useSearchParams();
   const preselectedTemplate = searchParams.get('template') || '';
 
+  const parseInitialFilters = (): RecipientFilters => {
+    const f: RecipientFilters = {};
+    const s = searchParams;
+    if (s.get('status')) f.status = s.get('status')!;
+    if (s.get('emailVerified')) f.emailVerified = s.get('emailVerified') === 'true';
+    if (s.get('hasStudio')) f.hasStudio = s.get('hasStudio') === 'true';
+    if (s.get('studioVerified')) f.studioVerified = s.get('studioVerified') === 'true';
+    if (s.get('studioFeatured')) f.studioFeatured = s.get('studioFeatured') === 'true';
+    if (s.get('marketingOptIn')) f.marketingOptIn = s.get('marketingOptIn') === 'true';
+    if (s.get('createdAfter')) f.createdAfter = s.get('createdAfter')!;
+    if (s.get('createdBefore')) f.createdBefore = s.get('createdBefore')!;
+    if (s.get('lastLoginAfter')) f.lastLoginAfter = s.get('lastLoginAfter')!;
+    if (s.get('lastLoginBefore')) f.lastLoginBefore = s.get('lastLoginBefore')!;
+    if (s.get('search')) f.search = s.get('search')!;
+    return f;
+  };
+
+  const initialFilters = parseInitialFilters();
+  const hasInitialFilters = Object.keys(initialFilters).length > 0;
+
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -44,8 +64,8 @@ export default function CreateCampaignPage() {
 
   const [name, setName] = useState('');
   const [templateKey, setTemplateKey] = useState(preselectedTemplate);
-  const [filters, setFilters] = useState<RecipientFilters>({});
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [filters, setFilters] = useState<RecipientFilters>(initialFilters);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(hasInitialFilters);
   const [recipientCount, setRecipientCount] = useState<number | null>(null);
   const [countLoading, setCountLoading] = useState(false);
 
@@ -474,14 +494,14 @@ export default function CreateCampaignPage() {
             </button>
             <button
               onClick={() => {
-                if (recipientCount && recipientCount > 0) {
+                if (recipientCount != null && recipientCount > 0) {
                   const confirmed = window.confirm(
                     `This will immediately start sending to ${recipientCount.toLocaleString()} recipient${recipientCount !== 1 ? 's' : ''}. Continue?`
                   );
                   if (confirmed) handleCreate(true);
                 }
               }}
-              disabled={creating || !name.trim() || !templateKey || recipientCount === 0}
+              disabled={creating || !name.trim() || !templateKey || !recipientCount}
               className="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
