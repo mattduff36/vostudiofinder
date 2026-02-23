@@ -106,7 +106,7 @@ export default async function RootLayout({
             <GlobalWhatsNewModal />
             <AdminBuildInfoBadge />
             <Navbar session={session} />
-            <main className="pt-16 pb-40 md:pt-20 md:pb-0">{children}</main>
+            <main className="pt-16 pb-40 md:pt-[72px] md:pb-0">{children}</main>
             <MobileShell session={session} />
           </LoadingProvider>
         </SessionProvider>

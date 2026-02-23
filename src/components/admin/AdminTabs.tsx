@@ -123,7 +123,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
   return (
     <>
       {/* Desktop Tabs - With burger menu on left */}
-      <div className="hidden md:block sticky top-[72px] -mt-1 z-50 bg-red-600 border-b border-red-700">
+      <div className="hidden md:block sticky top-[72px] z-50 bg-red-600 border-b border-red-700">
         <nav className="relative flex items-center justify-center px-6" aria-label="Admin tabs">
           {/* Burger Menu Button - RIGHT side (under main navbar burger) */}
           <div className="absolute right-6 top-0 bottom-0 flex items-center">
@@ -218,7 +218,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
 
       {/* Mobile Tabs - Syncs with navbar scroll animation */}
       <div 
-        className="md:hidden sticky top-18 -mt-[4px] z-50 bg-red-600 border-b border-red-700"
+        className="md:hidden sticky top-16 z-50 bg-red-600 border-b border-red-700"
         style={isMobile ? {
           transform: `translateY(-${navTranslateY}px)`,
           transition: 'none', // Let scroll drive the animation
