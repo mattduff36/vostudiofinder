@@ -180,31 +180,35 @@ export default function CampaignDetailPage() {
 
   if (loading) {
     return (
-      <div className="px-4 py-4 md:p-6">
+      <>
         <AdminTabs activeTab="emails" />
-        <div className="max-w-5xl mx-auto mt-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-600 border-t-transparent" />
-          <p className="mt-2 text-gray-600">Loading campaign...</p>
+        <div className="px-4 py-4 md:p-8">
+          <div className="max-w-5xl mx-auto mt-8 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-600 border-t-transparent" />
+            <p className="mt-2 text-gray-600">Loading campaign...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!campaign) {
     return (
-      <div className="px-4 py-4 md:p-6">
+      <>
         <AdminTabs activeTab="emails" />
-        <div className="max-w-5xl mx-auto mt-8 text-center">
-          <XCircle className="w-12 h-12 mx-auto text-red-400 mb-4" />
-          <p className="text-gray-600">{error || 'Campaign not found'}</p>
-          <button
-            onClick={() => router.push('/admin/emails')}
-            className="mt-4 text-red-600 hover:underline"
-          >
-            Back to Email Management
-          </button>
+        <div className="px-4 py-4 md:p-8">
+          <div className="max-w-5xl mx-auto mt-8 text-center">
+            <XCircle className="w-12 h-12 mx-auto text-red-400 mb-4" />
+            <p className="text-gray-600">{error || 'Campaign not found'}</p>
+            <button
+              onClick={() => router.push('/admin/emails')}
+              className="mt-4 text-red-600 hover:underline"
+            >
+              Back to Email Management
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -216,10 +220,11 @@ export default function CampaignDetailPage() {
     : 0;
 
   return (
-    <div className="px-4 py-4 md:p-6">
+    <>
       <AdminTabs activeTab="emails" />
 
-      <div className="max-w-5xl mx-auto mt-4 md:mt-6">
+      <div className="px-4 py-4 md:p-8">
+      <div className="max-w-5xl mx-auto">
         <button
           onClick={() => router.push('/admin/emails')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
@@ -498,6 +503,7 @@ export default function CampaignDetailPage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

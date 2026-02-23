@@ -114,10 +114,11 @@ export default function AdminEmailsPage() {
   };
 
   return (
-    <div className="px-4 py-4 md:p-6">
+    <>
       <AdminTabs activeTab="emails" />
 
-      <div className="max-w-7xl mx-auto mt-4 md:mt-6">
+      <div className="px-4 py-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
         {/* Page Header */}
         <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -444,6 +445,7 @@ export default function AdminEmailsPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

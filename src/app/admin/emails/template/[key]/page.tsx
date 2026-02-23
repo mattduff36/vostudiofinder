@@ -138,43 +138,48 @@ export default function TemplateEditorPage() {
 
   if (loading) {
     return (
-      <div className="px-4 py-4 md:p-6">
+      <>
         <AdminTabs activeTab="emails" />
-        <div className="max-w-4xl mx-auto mt-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-600 border-t-transparent"></div>
-          <p className="mt-2 text-gray-600">Loading template...</p>
+        <div className="px-4 py-4 md:p-8">
+          <div className="max-w-4xl mx-auto mt-8 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-600 border-t-transparent"></div>
+            <p className="mt-2 text-gray-600">Loading template...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error && !template) {
     return (
-      <div className="px-4 py-4 md:p-6">
+      <>
         <AdminTabs activeTab="emails" />
-        <div className="max-w-4xl mx-auto mt-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">{error}</p>
+        <div className="px-4 py-4 md:p-8">
+          <div className="max-w-4xl mx-auto mt-8">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-800">{error}</p>
+            </div>
+            <button
+              onClick={() => router.push('/admin/emails')}
+              className="mt-4 flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Templates
+            </button>
           </div>
-          <button
-            onClick={() => router.push('/admin/emails')}
-            className="mt-4 flex items-center gap-2 text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Templates
-          </button>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!template) return null;
 
   return (
-    <div className="px-4 py-4 md:p-6">
+    <>
       <AdminTabs activeTab="emails" />
 
-      <div className="max-w-4xl mx-auto mt-4 md:mt-6">
+      <div className="px-4 py-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <button
@@ -467,6 +472,7 @@ export default function TemplateEditorPage() {
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

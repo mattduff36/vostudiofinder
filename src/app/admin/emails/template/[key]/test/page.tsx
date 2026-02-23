@@ -85,10 +85,11 @@ export default function TestSendPage() {
   };
 
   return (
-    <div className="px-4 py-4 md:p-6">
+    <>
       <AdminTabs activeTab="emails" />
 
-      <div className="max-w-2xl mx-auto mt-8">
+      <div className="px-4 py-4 md:p-8">
+      <div className="max-w-2xl mx-auto">
         <button
           onClick={() => router.push('/admin/emails')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
@@ -151,6 +152,7 @@ export default function TestSendPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

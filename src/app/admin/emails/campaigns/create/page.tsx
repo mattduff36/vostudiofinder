@@ -177,10 +177,11 @@ export default function CreateCampaignPage() {
   };
 
   return (
-    <div className="px-4 py-4 md:p-6">
+    <>
       <AdminTabs activeTab="emails" />
 
-      <div className="max-w-4xl mx-auto mt-4 md:mt-6">
+      <div className="px-4 py-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
         <button
           onClick={() => router.push('/admin/emails')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
@@ -489,6 +490,7 @@ export default function CreateCampaignPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

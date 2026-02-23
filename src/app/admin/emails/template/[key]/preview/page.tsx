@@ -89,49 +89,51 @@ export default function PreviewPage() {
   };
 
   return (
-    <div className="px-4 py-4 md:p-6">
+    <>
       <AdminTabs activeTab="emails" />
 
-      <div className="max-w-7xl mx-auto mt-8">
-        <button
-          onClick={() => router.push('/admin/emails')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Templates
-        </button>
+      <div className="px-4 py-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <button
+            onClick={() => router.push('/admin/emails')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Templates
+          </button>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <Eye className="w-6 h-6 text-gray-700" />
-            <h1 className="text-2xl font-bold text-gray-900">Email Preview</h1>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <Eye className="w-6 h-6 text-gray-700" />
+              <h1 className="text-2xl font-bold text-gray-900">Email Preview</h1>
+            </div>
+
+            {loading && (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-600 border-t-transparent"></div>
+                <p className="mt-2 text-gray-600">Generating preview...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+                {error}
+              </div>
+            )}
+
+            {!loading && !error && html && (
+              <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <iframe
+                  srcDoc={html}
+                  className="w-full h-[800px] bg-white"
+                  title="Email Preview"
+                  sandbox="allow-same-origin"
+                />
+              </div>
+            )}
           </div>
-
-          {loading && (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-600 border-t-transparent"></div>
-              <p className="mt-2 text-gray-600">Generating preview...</p>
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
-              {error}
-            </div>
-          )}
-
-          {!loading && !error && html && (
-            <div className="border border-gray-300 rounded-lg overflow-hidden">
-              <iframe
-                srcDoc={html}
-                className="w-full h-[800px] bg-white"
-                title="Email Preview"
-                sandbox="allow-same-origin"
-              />
-            </div>
-          )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
