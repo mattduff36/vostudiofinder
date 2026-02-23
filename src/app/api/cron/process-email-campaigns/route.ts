@@ -12,9 +12,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sendTemplatedEmail } from '@/lib/email/send-templated';
+import { generateLegacyUserResetUrl } from '@/lib/email/templates/legacy-user-announcement';
 
-const BATCH_SIZE = 50; // Process 50 emails per run
+const BATCH_SIZE = 50;
 const CRON_SECRET = process.env.CRON_SECRET;
+
+/**
+ * Resolve template-specific variables that require per-user generation
+ * (e.g. password reset URLs unique to each recipient).
+ */
+async function resolveTemplateVariables(
+  templateKey: string,
+  baseVariables: Record<string, any>,
+  userEmail: string,
+): Promise<Record<string, any>> {
+  const variables = { ...baseVariables };
+
+  if (templateKey === 'legacy-user-announcement') {
+    variables.resetPasswordUrl = await generateLegacyUserResetUrl(userEmail);
+  }
+
+  return variables;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -102,31 +121,18 @@ export async function POST(request: NextRequest) {
       // Process deliveries
       for (const delivery of deliveries) {
         try {
-          // Build variables from user data
-          // NOTE: Campaigns are designed for marketing emails with basic user data.
-          // Using transactional templates (payment-success, refund-processed, etc.)
-          // in campaigns will fail because they require additional context that
-          // campaigns don't store (payment amounts, dates, etc.)
-          const variables: Record<string, any> = {
-            // Core user variables (available for all templates)
+          const baseVariables: Record<string, any> = {
             displayName: delivery.user?.display_name || 'there',
             username: delivery.user?.username || '',
             userEmail: delivery.to_email,
-            
-            // Provide reasonable defaults for common template variables
-            // to prevent hard failures if someone accidentally uses wrong template
             studioName: delivery.user?.display_name || 'Your Studio',
             email: delivery.to_email,
-            
-            // URL defaults (templates should not use these in campaigns)
             verificationUrl: '',
             resetUrl: '',
             signupUrl: '',
             studioUrl: '',
             adminDashboardUrl: '',
             resetPasswordUrl: '',
-            
-            // Numeric/date defaults (templates should not use these in campaigns)
             amount: '0.00',
             currency: 'USD',
             paymentId: '',
@@ -144,13 +150,18 @@ export async function POST(request: NextRequest) {
             errorMessage: '',
             retryUrl: '',
           };
-          
-          // Send email
+
+          const variables = await resolveTemplateVariables(
+            campaign.template_key,
+            baseVariables,
+            delivery.to_email,
+          );
+
           const success = await sendTemplatedEmail({
             to: delivery.to_email,
             templateKey: campaign.template_key,
             variables,
-            skipMarketingCheck: true, // Skip check - recipients already filtered at campaign start
+            skipMarketingCheck: true,
           });
           
           if (success) {

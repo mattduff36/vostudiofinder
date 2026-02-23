@@ -35,8 +35,11 @@ function validateVariables(
 ): { valid: boolean; missing: string[] } {
   const missing: string[] = [];
   
-  for (const [key /* , type */] of Object.entries(variableSchema)) {
-    if (!(key in variables) || variables[key] === undefined || variables[key] === null) {
+  for (const [key, type] of Object.entries(variableSchema)) {
+    const value = variables[key];
+    if (value === undefined || value === null) {
+      missing.push(key);
+    } else if ((type === 'url' || type === 'email') && String(value).trim() === '') {
       missing.push(key);
     }
   }

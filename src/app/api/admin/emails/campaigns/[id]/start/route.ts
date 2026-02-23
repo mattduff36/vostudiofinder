@@ -101,7 +101,17 @@ export async function POST(
       );
     }
     
-    // Create delivery records
+    // Guard: check for existing deliveries (prevents duplicates if called twice)
+    const existingDeliveries = await db.email_deliveries.count({
+      where: { campaign_id: campaign.id },
+    });
+    if (existingDeliveries > 0) {
+      return NextResponse.json(
+        { error: 'Deliveries already exist for this campaign. It may have already been started.' },
+        { status: 400 }
+      );
+    }
+
     await db.email_deliveries.createMany({
       data: recipients.map(user => ({
         campaign_id: campaign.id,
@@ -110,8 +120,7 @@ export async function POST(
         status: 'PENDING',
       })),
     });
-    
-    // Update campaign status
+
     await db.email_campaigns.update({
       where: { id },
       data: {

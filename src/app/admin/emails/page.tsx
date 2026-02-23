@@ -2,7 +2,11 @@
 
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { useState, useEffect } from 'react';
-import { Mail, Send, Users, FileText, Edit, Eye, TestTube, Plus, ChevronRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import {
+  Mail, Send, Users, FileText, Edit, Eye, TestTube,
+  Plus, ChevronRight, Clock, CheckCircle, XCircle, Ban, RefreshCw,
+} from 'lucide-react';
 
 interface EmailTemplate {
   key: string;
@@ -16,6 +20,21 @@ interface EmailTemplate {
   updatedAt?: string;
 }
 
+interface Campaign {
+  id: string;
+  name: string;
+  template_key: string;
+  status: string;
+  recipient_count: number;
+  sent_count: number;
+  failed_count: number;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  template?: { name: string; is_marketing: boolean };
+  created_by?: { display_name: string };
+}
+
 interface Stats {
   templates: number;
   campaigns: number;
@@ -24,8 +43,10 @@ interface Stats {
 }
 
 export default function AdminEmailsPage() {
+  const router = useRouter();
   const [activeView, setActiveView] = useState<'overview' | 'templates' | 'campaigns'>('overview');
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [stats, setStats] = useState<Stats>({ templates: 0, campaigns: 0, sentToday: 0, optInUsers: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -36,22 +57,43 @@ export default function AdminEmailsPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      
-      // Load templates
-      const templatesRes = await fetch('/api/admin/emails/templates');
+
+      const [templatesRes, campaignsRes, statsRes] = await Promise.all([
+        fetch('/api/admin/emails/templates'),
+        fetch('/api/admin/emails/campaigns'),
+        fetch('/api/admin/emails/stats'),
+      ]);
+
+      let templateCount = 0;
       if (templatesRes.ok) {
         const data = await templatesRes.json();
-        setTemplates(data.templates || []);
-        
-        // Update stats
-        setStats(prev => ({
-          ...prev,
-          templates: data.templates?.length || 0,
-        }));
+        const tpls = data.templates || [];
+        setTemplates(tpls);
+        templateCount = tpls.length;
       }
-      
-      // TODO: Load other stats (campaigns, deliveries, preferences)
-      
+
+      if (campaignsRes.ok) {
+        const data = await campaignsRes.json();
+        setCampaigns(data.campaigns || []);
+      }
+
+      let campaignCount = 0;
+      let sentToday = 0;
+      let optInUsers = 0;
+
+      if (statsRes.ok) {
+        const data = await statsRes.json();
+        campaignCount = data.campaigns || 0;
+        sentToday = data.sentToday || 0;
+        optInUsers = data.optInUsers || 0;
+      }
+
+      setStats({
+        templates: templateCount,
+        campaigns: campaignCount,
+        sentToday,
+        optInUsers,
+      });
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -182,28 +224,28 @@ export default function AdminEmailsPage() {
                     </button>
 
                     <button
-                      className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors opacity-50 cursor-not-allowed"
-                      disabled
+                      onClick={() => router.push('/admin/emails/campaigns/create')}
+                      className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <Send className="w-6 h-6 text-red-600" />
                         <div className="text-left">
                           <div className="font-medium text-gray-900">Create Campaign</div>
-                          <div className="text-sm text-gray-500">Coming soon</div>
+                          <div className="text-sm text-gray-500">Send to all or filtered users</div>
                         </div>
                       </div>
                       <ChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
 
                     <button
-                      className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors opacity-50 cursor-not-allowed"
-                      disabled
+                      onClick={() => router.push('/admin/emails/recipients')}
+                      className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <Users className="w-6 h-6 text-red-600" />
                         <div className="text-left">
                           <div className="font-medium text-gray-900">View Recipients</div>
-                          <div className="text-sm text-gray-500">Coming soon</div>
+                          <div className="text-sm text-gray-500">Browse and filter users</div>
                         </div>
                       </div>
                       <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -331,18 +373,72 @@ export default function AdminEmailsPage() {
 
             {/* Campaigns View */}
             {activeView === 'campaigns' && (
-              <div className="text-center py-12">
-                <Send className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Campaign Management</h3>
-                <p className="text-gray-600 mb-6">
-                  Campaign creation and management UI coming soon.
-                </p>
-                <button
-                  className="px-4 py-2 bg-gray-200 text-gray-600 rounded-lg cursor-not-allowed"
-                  disabled
-                >
-                  Create Campaign (Coming Soon)
-                </button>
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Campaigns</h2>
+                  <button
+                    onClick={() => router.push('/admin/emails/campaigns/create')}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Campaign
+                  </button>
+                </div>
+
+                {campaigns.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Send className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <p>No campaigns yet. Create your first campaign to get started.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {campaigns.map(c => {
+                      const statusColors: Record<string, string> = {
+                        DRAFT: 'bg-gray-100 text-gray-700',
+                        SCHEDULED: 'bg-blue-100 text-blue-700',
+                        SENDING: 'bg-yellow-100 text-yellow-700',
+                        SENT: 'bg-green-100 text-green-700',
+                        FAILED: 'bg-red-100 text-red-700',
+                        CANCELLED: 'bg-gray-100 text-gray-500',
+                      };
+                      const StatusIcon =
+                        c.status === 'SENT' ? CheckCircle :
+                        c.status === 'FAILED' ? XCircle :
+                        c.status === 'SENDING' ? RefreshCw :
+                        c.status === 'CANCELLED' ? Ban :
+                        Clock;
+                      return (
+                        <button
+                          key={c.id}
+                          onClick={() => router.push(`/admin/emails/campaigns/${c.id}`)}
+                          className="w-full text-left flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-red-600 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-1">
+                              <h3 className="font-medium text-gray-900 truncate">{c.name}</h3>
+                              <span className={`flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${statusColors[c.status] || statusColors.DRAFT}`}>
+                                <StatusIcon className="w-3 h-3" />
+                                {c.status}
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {c.template?.name || c.template_key}
+                              {' · '}
+                              {c.recipient_count.toLocaleString()} recipient{c.recipient_count !== 1 ? 's' : ''}
+                              {c.sent_count > 0 && ` · ${c.sent_count.toLocaleString()} sent`}
+                              {c.failed_count > 0 && ` · ${c.failed_count.toLocaleString()} failed`}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Created {new Date(c.created_at).toLocaleDateString()}
+                              {c.created_by && ` by ${c.created_by.display_name}`}
+                            </div>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
