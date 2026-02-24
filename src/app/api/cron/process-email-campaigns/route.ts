@@ -35,7 +35,7 @@ async function resolveTemplateVariables(
   return variables;
 }
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     // Verify cron secret is configured
     if (!CRON_SECRET) {
