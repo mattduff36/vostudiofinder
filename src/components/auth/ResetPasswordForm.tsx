@@ -19,6 +19,8 @@ export function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
+  const [studioName, setStudioName] = useState<string | null>(null);
+  const [maskedEmail, setMaskedEmail] = useState<string | null>(null);
 
   const {
     register,
@@ -28,7 +30,6 @@ export function ResetPasswordForm() {
     resolver: zodResolver(resetPasswordSchema),
   });
 
-  // Verify token on mount
   useEffect(() => {
     if (!token) {
       setIsTokenValid(false);
@@ -36,9 +37,33 @@ export function ResetPasswordForm() {
       return;
     }
 
-    // Token presence is validated on form submission
-    // We'll show the form and validate the token when they submit
-    setIsTokenValid(true);
+    let cancelled = false;
+    async function verifyToken() {
+      try {
+        const res = await fetch('/api/auth/verify-reset-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+
+        if (res.ok && data.valid) {
+          setIsTokenValid(true);
+          setStudioName(data.studioName ?? null);
+          setMaskedEmail(data.maskedEmail ?? null);
+        } else {
+          setIsTokenValid(false);
+          setError(data.error || 'Invalid or expired reset token');
+        }
+      } catch {
+        if (!cancelled) {
+          setIsTokenValid(true);
+        }
+      }
+    }
+    verifyToken();
+    return () => { cancelled = true; };
   }, [token]);
 
   const onSubmit = async (data: ResetPasswordInput) => {
@@ -103,7 +128,17 @@ export function ResetPasswordForm() {
     }
   };
 
-  // Show error if no token
+  if (isTokenValid === null) {
+    return (
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-text-primary">Set New Password</h1>
+          <p className="mt-2 text-text-secondary">Verifying your reset link&hellip;</p>
+        </div>
+      </div>
+    );
+  }
+
   if (isTokenValid === false) {
     return (
       <div className="w-full max-w-md space-y-6">
@@ -167,8 +202,14 @@ export function ResetPasswordForm() {
       <div className="text-center">
         <h1 className="text-3xl font-bold text-text-primary">Set New Password</h1>
         <p className="mt-2 text-text-secondary">
-          Enter your new password below
+          Create a new password to access your studio profile
         </p>
+        {(studioName || maskedEmail) && (
+          <div className="mt-3 space-y-0.5 text-sm text-gray-500">
+            {studioName && <p>Studio: <span className="font-medium text-gray-600">{studioName}</span></p>}
+            {maskedEmail && <p>Account: <span className="font-medium text-gray-600">{maskedEmail}</span></p>}
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
