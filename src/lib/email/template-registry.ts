@@ -492,7 +492,7 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
       'Voiceover Studio Finder is back, and we\'re genuinely excited to share it with you!',
       'We\'ve rebuilt everything. The platform is faster. The search is smarter. The design is beautifully clean.',
       'Every feature has been meticulously rethought and redesigned. Every interaction has been refined. Every detail matters.',
-      'We now offer two membership tiers: Basic (free) and Premium. You\'ve been part of our community from the beginning. That\'s why six months of Premium membership starts the moment you sign in and see your new profile.',
+      'We now offer two membership tiers: Basic (free) and Premium. You\'ve been part of our community from the beginning. That\'s why six months of Premium membership starts the moment you sign in and see your new profile.\n\n{{profileUrl}}',
       'Thank you for being a member. We can\'t wait to show you what we\'ve built!',
     ],
     ctaPrimaryLabel: 'Set password and sign in',
@@ -502,6 +502,7 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
       displayName: 'string',
       userEmail: 'email',
       resetPasswordUrl: 'url',
+      profileUrl: 'url',
     },
   },
 ];

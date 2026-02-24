@@ -121,10 +121,12 @@ export async function GET(request: NextRequest) {
       // Process deliveries
       for (const delivery of deliveries) {
         try {
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://voiceoverstudiofinder.com';
           const baseVariables: Record<string, any> = {
             displayName: delivery.user?.display_name || 'there',
             username: delivery.user?.username || '',
             userEmail: delivery.to_email,
+            profileUrl: delivery.user?.username ? `${baseUrl}/${delivery.user.username}` : baseUrl,
             studioName: delivery.user?.display_name || 'Your Studio',
             email: delivery.to_email,
             verificationUrl: '',

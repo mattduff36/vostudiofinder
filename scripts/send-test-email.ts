@@ -24,6 +24,7 @@ async function sendTestEmail() {
       userEmail: recipientEmail,
       displayName,
       resetPasswordUrl,
+      profileUrl: 'https://voiceoverstudiofinder.com/mpdee',
     });
 
     console.log('📋 Email details:');
