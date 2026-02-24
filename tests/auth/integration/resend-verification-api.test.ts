@@ -50,7 +50,7 @@ describe('POST /api/auth/resend-verification', () => {
         status: UserStatus.PENDING,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -92,7 +92,7 @@ describe('POST /api/auth/resend-verification', () => {
         },
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -132,7 +132,7 @@ describe('POST /api/auth/resend-verification', () => {
       });
 
       const beforeTime = new Date();
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -172,7 +172,7 @@ describe('POST /api/auth/resend-verification', () => {
         data: { email_verified: true },
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -192,7 +192,7 @@ describe('POST /api/auth/resend-verification', () => {
     it('should not reveal if email does not exist', async () => {
       const nonExistentEmail = `nonexistent_${Date.now()}@test.example.com`;
 
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({ email: nonExistentEmail }),
       });
@@ -220,7 +220,7 @@ describe('POST /api/auth/resend-verification', () => {
         status: UserStatus.PENDING,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({ email: upperEmail }),
       });
@@ -254,7 +254,7 @@ describe('POST /api/auth/resend-verification', () => {
       // Mock email service failure
       mockSendVerificationEmail.mockResolvedValue(false);
 
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -289,7 +289,7 @@ describe('POST /api/auth/resend-verification', () => {
       // Mock email service failure
       mockSendVerificationEmail.mockResolvedValue(false);
 
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -304,7 +304,7 @@ describe('POST /api/auth/resend-verification', () => {
 
   describe('Validation', () => {
     it('should reject request without email', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({}),
       });
@@ -317,7 +317,7 @@ describe('POST /api/auth/resend-verification', () => {
     });
 
     it('should reject empty email', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({ email: '' }),
       });
@@ -343,7 +343,7 @@ describe('POST /api/auth/resend-verification', () => {
 
       // Make multiple rapid requests
       const requests = Array(3).fill(null).map(() =>
-        new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+        new NextRequest('http://localhost:4000/api/auth/resend-verification', {
           method: 'POST',
           body: JSON.stringify({ email }),
         })
@@ -372,7 +372,7 @@ describe('POST /api/auth/resend-verification', () => {
         status: UserStatus.PENDING,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/resend-verification', {
+      const request = new NextRequest('http://localhost:4000/api/auth/resend-verification', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });

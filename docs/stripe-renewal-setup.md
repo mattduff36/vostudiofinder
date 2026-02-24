@@ -86,7 +86,7 @@ STRIPE_5YEAR_MEMBERSHIP_PRICE_ID="price_test_..." # £80 five-year
 #### Local Testing:
 1. Start Stripe webhook forwarding:
    ```bash
-   stripe listen --forward-to localhost:3000/api/stripe/webhook
+   stripe listen --forward-to localhost:4000/api/stripe/webhook
    ```
 
 2. Copy the webhook secret (`whsec_...`) to `.env.local`

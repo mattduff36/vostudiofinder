@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin Authentication and Authorization', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the admin dashboard
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
   });
 
   test('should redirect unauthenticated users to signin page', async ({ page }) => {
@@ -18,7 +18,7 @@ test.describe('Admin Authentication and Authorization', () => {
   test('should allow admin users to access admin dashboard', async ({ page }) => {
     // First, we need to authenticate as admin
     // Navigate to signin page
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     
     // Fill in admin credentials (using the actual admin credentials from .env.local)
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
@@ -38,7 +38,7 @@ test.describe('Admin Authentication and Authorization', () => {
   test('should deny access to admin routes for non-admin users', async ({ page }) => {
     // This test would require creating a non-admin user
     // For now, we'll test the unauthorized page
-    await page.goto('http://localhost:3000/unauthorized');
+    await page.goto('http://localhost:4000/unauthorized');
     
     // Check for unauthorized message (the page shows "Welcome Back" which is the signin page)
     await expect(page.locator('h1')).toContainText('Welcome Back');
@@ -58,7 +58,7 @@ test.describe('Admin Authentication and Authorization', () => {
     ];
 
     for (const route of adminRoutes) {
-      await page.goto(`http://localhost:3000${route}`);
+      await page.goto(`http://localhost:4000${route}`);
       
       // Should redirect to signin for unauthenticated users
       await expect(page).toHaveURL(/.*\/auth\/signin/);
@@ -79,7 +79,7 @@ test.describe('Admin Authentication and Authorization', () => {
     ];
 
     for (const route of adminApiRoutes) {
-      const response = await page.request.get(`http://localhost:3000${route}`);
+      const response = await page.request.get(`http://localhost:4000${route}`);
       
       // Should return 307 redirect for unauthenticated requests
       expect(response.status()).toBe(307);
@@ -88,7 +88,7 @@ test.describe('Admin Authentication and Authorization', () => {
 
   test('should maintain admin session across page navigation', async ({ page }) => {
     // Authenticate as admin
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
@@ -97,20 +97,20 @@ test.describe('Admin Authentication and Authorization', () => {
     await page.waitForURL(/.*\/admin\/dashboard/, { timeout: 10000 });
     
     // Navigate to different admin pages
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     await expect(page).toHaveURL(/.*\/admin\/studios/);
     
-    await page.goto('http://localhost:3000/admin/analytics');
+    await page.goto('http://localhost:4000/admin/analytics');
     await expect(page).toHaveURL(/.*\/admin\/analytics/);
     
     // Should still be authenticated
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     await expect(page).toHaveURL(/.*\/admin\/dashboard/);
   });
 
   test('should handle admin logout', async ({ page }) => {
     // Authenticate as admin
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
@@ -125,7 +125,7 @@ test.describe('Admin Authentication and Authorization', () => {
     await expect(page).toHaveURL(/.*\/auth\/signin/);
     
     // Try to access admin route - should redirect to signin
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     await expect(page).toHaveURL(/.*\/auth\/signin/);
   });
 });

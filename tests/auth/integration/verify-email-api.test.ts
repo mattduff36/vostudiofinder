@@ -57,7 +57,7 @@ describe('GET /api/auth/verify-email', () => {
       });
 
       const request = new NextRequest(
-        `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`
+        `http://localhost:4000/api/auth/verify-email?token=${verificationToken}`
       );
 
       const response = await GET(request);
@@ -98,7 +98,7 @@ describe('GET /api/auth/verify-email', () => {
 
       // Simulate cross-browser request (no session cookies)
       const request = new NextRequest(
-        `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`
+        `http://localhost:4000/api/auth/verify-email?token=${verificationToken}`
       );
       // Don't set any cookies - this simulates a different browser
 
@@ -132,7 +132,7 @@ describe('GET /api/auth/verify-email', () => {
       });
 
       const request = new NextRequest(
-        `http://localhost:3000/api/auth/verify-email?token=${verificationToken}&redirect=${encodeURIComponent(customRedirect)}`
+        `http://localhost:4000/api/auth/verify-email?token=${verificationToken}&redirect=${encodeURIComponent(customRedirect)}`
       );
 
       const response = await GET(request);
@@ -174,7 +174,7 @@ describe('GET /api/auth/verify-email', () => {
       });
 
       const request = new NextRequest(
-        `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`
+        `http://localhost:4000/api/auth/verify-email?token=${verificationToken}`
       );
 
       await GET(request);
@@ -191,7 +191,7 @@ describe('GET /api/auth/verify-email', () => {
     it('should reject invalid token', async () => {
       const invalidToken = 'invalid_token_123';
       const request = new NextRequest(
-        `http://localhost:3000/api/auth/verify-email?token=${invalidToken}`
+        `http://localhost:4000/api/auth/verify-email?token=${invalidToken}`
       );
 
       const response = await GET(request);
@@ -204,7 +204,7 @@ describe('GET /api/auth/verify-email', () => {
 
     it('should reject missing token', async () => {
       const request = new NextRequest(
-        'http://localhost:3000/api/auth/verify-email'
+        'http://localhost:4000/api/auth/verify-email'
       );
 
       const response = await GET(request);
@@ -237,7 +237,7 @@ describe('GET /api/auth/verify-email', () => {
       });
 
       const request = new NextRequest(
-        `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`
+        `http://localhost:4000/api/auth/verify-email?token=${verificationToken}`
       );
 
       const response = await GET(request);
@@ -280,7 +280,7 @@ describe('GET /api/auth/verify-email', () => {
       });
 
       const request = new NextRequest(
-        `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`
+        `http://localhost:4000/api/auth/verify-email?token=${verificationToken}`
       );
 
       const response = await GET(request);
@@ -317,7 +317,7 @@ describe('GET /api/auth/verify-email', () => {
       });
 
       const request = new NextRequest(
-        `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`
+        `http://localhost:4000/api/auth/verify-email?token=${verificationToken}`
       );
 
       const response = await GET(request);
@@ -353,7 +353,7 @@ describe('GET /api/auth/verify-email', () => {
       });
 
       const request = new NextRequest(
-        `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`
+        `http://localhost:4000/api/auth/verify-email?token=${verificationToken}`
       );
 
       const response = await GET(request);
@@ -385,7 +385,7 @@ describe('GET /api/auth/verify-email', () => {
       });
 
       const request = new NextRequest(
-        `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`
+        `http://localhost:4000/api/auth/verify-email?token=${verificationToken}`
       );
 
       const response = await GET(request);

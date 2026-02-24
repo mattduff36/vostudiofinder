@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin Studios Table - Scaling and Column Visibility', () => {
   // Helper to authenticate as admin
   async function authenticateAdmin(page: import('@playwright/test').Page) {
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', process.env.TEST_ADMIN_EMAIL || '');
     await page.fill('input[name="password"]', process.env.TEST_ADMIN_PASSWORD || '');
     await page.click('button[type="submit"]');
@@ -27,7 +27,7 @@ test.describe('Admin Studios Table - Scaling and Column Visibility', () => {
 
     test('should display all columns at 1920px with minimal or no scaling', async ({ page }) => {
       await clearColumnPreferences(page);
-      await page.goto('http://localhost:3000/admin/studios');
+      await page.goto('http://localhost:4000/admin/studios');
       
       // Wait for table to load
       await page.waitForSelector('table', { timeout: 10000 });
@@ -71,7 +71,7 @@ test.describe('Admin Studios Table - Scaling and Column Visibility', () => {
 
     test('should scale table to fit at 1200px viewport', async ({ page }) => {
       await clearColumnPreferences(page);
-      await page.goto('http://localhost:3000/admin/studios');
+      await page.goto('http://localhost:4000/admin/studios');
       
       // Wait for table to load
       await page.waitForSelector('table', { timeout: 10000 });
@@ -104,7 +104,7 @@ test.describe('Admin Studios Table - Scaling and Column Visibility', () => {
 
     test('should show mobile card view at 700px (below md breakpoint)', async ({ page }) => {
       await clearColumnPreferences(page);
-      await page.goto('http://localhost:3000/admin/studios');
+      await page.goto('http://localhost:4000/admin/studios');
       
       // Wait for content to load
       await page.waitForTimeout(1000);
@@ -134,7 +134,7 @@ test.describe('Admin Studios Table - Scaling and Column Visibility', () => {
 
     test('should hide columns via filter and verify they are removed', async ({ page }) => {
       await clearColumnPreferences(page);
-      await page.goto('http://localhost:3000/admin/studios');
+      await page.goto('http://localhost:4000/admin/studios');
       
       // Wait for table to load
       await page.waitForSelector('table', { timeout: 10000 });
@@ -200,7 +200,7 @@ test.describe('Admin Studios Table - Scaling and Column Visibility', () => {
 
     test('should persist column preferences across page reloads', async ({ page }) => {
       await clearColumnPreferences(page);
-      await page.goto('http://localhost:3000/admin/studios');
+      await page.goto('http://localhost:4000/admin/studios');
       
       // Wait for table to load
       await page.waitForSelector('table', { timeout: 10000 });
@@ -246,7 +246,7 @@ test.describe('Admin Studios Table - Scaling and Column Visibility', () => {
 
     test('should reset columns to default via Reset button', async ({ page }) => {
       // First set some hidden columns via localStorage
-      await page.goto('http://localhost:3000/admin/studios');
+      await page.goto('http://localhost:4000/admin/studios');
       await page.evaluate(() => {
         localStorage.setItem('admin-studios-hidden-columns', JSON.stringify(['type', 'owner', 'lastLogin']));
       });
@@ -298,7 +298,7 @@ test.describe('Admin Studios Table - Scaling and Column Visibility', () => {
 
     test('should prevent hiding protected columns (Studio, Actions)', async ({ page }) => {
       await clearColumnPreferences(page);
-      await page.goto('http://localhost:3000/admin/studios');
+      await page.goto('http://localhost:4000/admin/studios');
       
       // Wait for table to load
       await page.waitForSelector('table', { timeout: 10000 });
@@ -340,7 +340,7 @@ test.describe('Admin Studios Table - Scaling and Column Visibility', () => {
       
       for (const width of viewportWidths) {
         await page.setViewportSize({ width, height: 900 });
-        await page.goto('http://localhost:3000/admin/studios');
+        await page.goto('http://localhost:4000/admin/studios');
         
         // Wait for table to load
         await page.waitForSelector('table', { timeout: 10000 });
@@ -373,7 +373,7 @@ test.describe('Admin Studios Table - Scaling and Column Visibility', () => {
 
     test('should update column count in filter button when columns are hidden', async ({ page }) => {
       await clearColumnPreferences(page);
-      await page.goto('http://localhost:3000/admin/studios');
+      await page.goto('http://localhost:4000/admin/studios');
       
       // Wait for table to load
       await page.waitForSelector('table', { timeout: 10000 });

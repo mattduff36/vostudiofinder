@@ -93,7 +93,7 @@ Subscribe to these events:
 npm run build
 npm run start
 
-# Visit http://localhost:3000 and test:
+# Visit http://localhost:4000 and test:
 - [ ] Homepage loads
 - [ ] Studio pages load: /[username]
 - [ ] Sitemap accessible: /sitemap.xml

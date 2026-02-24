@@ -35,7 +35,7 @@ describe('Admin API Endpoints', () => {
 
   describe('Admin Dashboard API', () => {
     it('should return dashboard statistics for ADMIN users', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/dashboard');
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/dashboard');
       
       // Mock database responses
       const mockStats = {
@@ -50,7 +50,7 @@ describe('Admin API Endpoints', () => {
     });
 
     it('should handle dashboard API errors gracefully', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/dashboard');
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/dashboard');
       
       // Test error handling
       expect(true).toBe(true); // Placeholder for actual test
@@ -59,7 +59,7 @@ describe('Admin API Endpoints', () => {
 
   describe('Admin Studios API', () => {
     it('should return studios list with pagination', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/studios?page=1&limit=10');
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/studios?page=1&limit=10');
       
       const mockStudios = [
         { id: '1', name: 'Studio 1', location: 'London' },
@@ -77,7 +77,7 @@ describe('Admin API Endpoints', () => {
         description: 'A new recording studio'
       };
       
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/studios', {
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/studios', {
       //   method: 'POST',
       //   body: JSON.stringify(mockStudioData)
       // });
@@ -92,7 +92,7 @@ describe('Admin API Endpoints', () => {
         location: 'Updated Location'
       };
       
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/studios/1', {
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/studios/1', {
       //   method: 'PUT',
       //   body: JSON.stringify(mockUpdateData)
       // });
@@ -102,7 +102,7 @@ describe('Admin API Endpoints', () => {
     });
 
     it('should delete studio', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/studios/1', {
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/studios/1', {
       //   method: 'DELETE'
       // });
 
@@ -113,7 +113,7 @@ describe('Admin API Endpoints', () => {
 
   describe('Admin FAQ API', () => {
     it('should return FAQ list', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/faq');
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/faq');
       
       const mockFaqs = [
         { id: '1', question: 'What is VOSF?', answer: 'Voice Over Studio Finder' },
@@ -130,7 +130,7 @@ describe('Admin API Endpoints', () => {
         answer: 'New Answer'
       };
       
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/faq', {
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/faq', {
       //   method: 'POST',
       //   body: JSON.stringify(mockFaqData)
       // });
@@ -142,7 +142,7 @@ describe('Admin API Endpoints', () => {
 
   describe('Admin Query API', () => {
     it('should execute SELECT queries only', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/query', {
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/query', {
       //   method: 'POST',
       //   body: JSON.stringify({
       //     query: 'SELECT * FROM studios LIMIT 10'
@@ -154,7 +154,7 @@ describe('Admin API Endpoints', () => {
     });
 
     it('should reject non-SELECT queries', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/query', {
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/query', {
       //   method: 'POST',
       //   body: JSON.stringify({
       //     query: 'DELETE FROM studios WHERE id = 1'
@@ -168,7 +168,7 @@ describe('Admin API Endpoints', () => {
 
   describe('Admin Analytics API', () => {
     it('should return analytics data', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/analytics');
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/analytics');
       
       const mockAnalytics = {
         userGrowth: [],
@@ -183,7 +183,7 @@ describe('Admin API Endpoints', () => {
 
   describe('Admin Schema API', () => {
     it('should return database schema information', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/schema');
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/schema');
       
       const mockSchema = {
         tables: ['users', 'studios', 'reviews'],
@@ -197,7 +197,7 @@ describe('Admin API Endpoints', () => {
 
   describe('Admin Browse API', () => {
     it('should return table data for browsing', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/browse?table=studios');
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/browse?table=studios');
       
       const mockTableData = {
         data: [],
@@ -213,7 +213,7 @@ describe('Admin API Endpoints', () => {
 
   describe('Admin Network API', () => {
     it('should return network connections data', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/network');
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/network');
       
       const mockNetworkData = {
         connections: [],
@@ -227,7 +227,7 @@ describe('Admin API Endpoints', () => {
 
   describe('Admin Venues API', () => {
     it('should return venues data', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/api/admin/venues');
+      // const _mockRequest = new NextRequest('http://localhost:4000/api/admin/venues');
       
       const mockVenues = [
         { id: '1', name: 'Venue 1', location: 'London' },

@@ -15,7 +15,7 @@
 
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:4000';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@mpdee.co.uk';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 

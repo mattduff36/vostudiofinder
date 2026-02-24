@@ -39,8 +39,8 @@
  * ✅ Date persists after save and reload
  * 
  * To run this test manually:
- * 1. Sign in as admin at http://localhost:3000/auth/signin
- * 2. Go to http://localhost:3000/admin/studios
+ * 1. Sign in as admin at http://localhost:4000/auth/signin
+ * 2. Go to http://localhost:4000/admin/studios
  * 3. Follow the test steps above
  * 
  * To verify in database (PostgreSQL):

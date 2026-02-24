@@ -115,7 +115,7 @@ describe('Back Button Recovery Utilities', () => {
   });
 
   describe('API Recovery Endpoints', () => {
-    const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
+    const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:4000';
 
     it('should recover signup state from check-signup-status API', async () => {
       // This test requires a real user in the database

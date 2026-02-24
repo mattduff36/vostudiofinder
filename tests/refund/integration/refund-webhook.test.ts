@@ -122,7 +122,7 @@ describe('Refund Webhook Handler', () => {
       });
 
       const event = createRefundEvent(refundId, 5000);
-      const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/webhook', {
         method: 'POST',
         headers: {
           'stripe-signature': 'test-signature',
@@ -147,7 +147,7 @@ describe('Refund Webhook Handler', () => {
       const refundAmount = 5000; // £50.00
 
       const event = createRefundEvent(refundId, refundAmount);
-      const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/webhook', {
         method: 'POST',
         headers: {
           'stripe-signature': 'test-signature',
@@ -181,7 +181,7 @@ describe('Refund Webhook Handler', () => {
       const refundAmount = testPayment.amount; // Full amount
 
       const event = createRefundEvent(refundId, refundAmount);
-      const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/webhook', {
         method: 'POST',
         headers: {
           'stripe-signature': 'test-signature',
@@ -208,7 +208,7 @@ describe('Refund Webhook Handler', () => {
 
       // First refund
       const event1 = createRefundEvent(firstRefundId, firstAmount);
-      const request1 = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      const request1 = new NextRequest('http://localhost:4000/api/stripe/webhook', {
         method: 'POST',
         headers: { 'stripe-signature': 'test-signature' },
         body: JSON.stringify(event1),
@@ -217,7 +217,7 @@ describe('Refund Webhook Handler', () => {
 
       // Second refund
       const event2 = createRefundEvent(secondRefundId, secondAmount);
-      const request2 = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      const request2 = new NextRequest('http://localhost:4000/api/stripe/webhook', {
         method: 'POST',
         headers: { 'stripe-signature': 'test-signature' },
         body: JSON.stringify(event2),
@@ -263,7 +263,7 @@ describe('Refund Webhook Handler', () => {
 
       const refundId = `re_test_${generateTestId()}`;
       const event = createRefundEvent(refundId, testPayment.amount);
-      const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/webhook', {
         method: 'POST',
         headers: { 'stripe-signature': 'test-signature' },
         body: JSON.stringify(event),
@@ -294,7 +294,7 @@ describe('Refund Webhook Handler', () => {
     it('should use admin user as processed_by when admin exists', async () => {
       const refundId = `re_test_${generateTestId()}`;
       const event = createRefundEvent(refundId, 5000);
-      const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/webhook', {
         method: 'POST',
         headers: { 'stripe-signature': 'test-signature' },
         body: JSON.stringify(event),
@@ -314,7 +314,7 @@ describe('Refund Webhook Handler', () => {
 
       const refundId = `re_test_${generateTestId()}`;
       const event = createRefundEvent(refundId, 5000);
-      const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/webhook', {
         method: 'POST',
         headers: { 'stripe-signature': 'test-signature' },
         body: JSON.stringify(event),
@@ -348,7 +348,7 @@ describe('Refund Webhook Handler', () => {
         },
       };
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/webhook', {
         method: 'POST',
         headers: { 'stripe-signature': 'test-signature' },
         body: JSON.stringify(event),
@@ -367,7 +367,7 @@ describe('Refund Webhook Handler', () => {
     it('should handle PENDING refund status from Stripe', async () => {
       const refundId = `re_test_${generateTestId()}`;
       const event = createRefundEvent(refundId, 5000, 'pending');
-      const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/webhook', {
         method: 'POST',
         headers: { 'stripe-signature': 'test-signature' },
         body: JSON.stringify(event),

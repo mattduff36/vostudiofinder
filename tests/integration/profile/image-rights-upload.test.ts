@@ -100,7 +100,7 @@ function buildUploadRequest(options: {
     headers['x-forwarded-for'] = ip;
   }
 
-  return new NextRequest('http://localhost:3000/api/user/profile/images', {
+  return new NextRequest('http://localhost:4000/api/user/profile/images', {
     method: 'POST',
     body: formData,
     headers,

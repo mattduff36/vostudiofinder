@@ -108,7 +108,7 @@ scoop install stripe
 stripe login
 
 # Forward webhooks to local server
-stripe listen --forward-to localhost:3000/api/stripe/webhook
+stripe listen --forward-to localhost:4000/api/stripe/webhook
 ```
 
 This will output a webhook signing secret like:
@@ -199,9 +199,9 @@ Stripe provides test cards that simulate different scenarios:
 1. Start your dev server: `npm run dev`
 2. In another terminal, start Stripe CLI webhook forwarding:
    ```bash
-   stripe listen --forward-to localhost:3000/api/stripe/webhook
+   stripe listen --forward-to localhost:4000/api/stripe/webhook
    ```
-3. Visit: `http://localhost:3000/auth/membership`
+3. Visit: `http://localhost:4000/auth/membership`
 4. Fill in test user details
 5. Click "Complete Membership Purchase"
 6. Use test card `4242 4242 4242 4242`

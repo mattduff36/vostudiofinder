@@ -38,7 +38,7 @@ TURSO_AUTH_TOKEN="your-turso-auth-token-here"
 #### NextAuth.js Configuration
 ```env
 NEXTAUTH_SECRET="your-secret-key-change-in-production"
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:4000"
 ```
 - **Required**: Yes
 - **Description**: NextAuth.js configuration for OAuth providers

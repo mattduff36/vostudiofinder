@@ -33,7 +33,7 @@ describe('POST /api/auth/register', () => {
   describe('New User Registration', () => {
     it('should create a new PENDING user with valid data', async () => {
       const email = generateTestEmail(testEmailPrefix);
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -61,7 +61,7 @@ describe('POST /api/auth/register', () => {
     it('should hash password before storing', async () => {
       const email = generateTestEmail(testEmailPrefix);
       const password = 'Test1234!@#$';
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -80,7 +80,7 @@ describe('POST /api/auth/register', () => {
 
     it('should set reservation_expires_at to 7 days from now', async () => {
       const email = generateTestEmail(testEmailPrefix);
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -105,7 +105,7 @@ describe('POST /api/auth/register', () => {
 
     it('should generate temporary username starting with temp_', async () => {
       const email = generateTestEmail(testEmailPrefix);
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -122,7 +122,7 @@ describe('POST /api/auth/register', () => {
 
     it('should generate verification token and expiry', async () => {
       const email = generateTestEmail(testEmailPrefix);
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -156,7 +156,7 @@ describe('POST /api/auth/register', () => {
 
     it('should send verification email on registration', async () => {
       const email = generateTestEmail(testEmailPrefix);
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -186,7 +186,7 @@ describe('POST /api/auth/register', () => {
 
     it('should set email_verified to false on registration', async () => {
       const email = generateTestEmail(testEmailPrefix);
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -208,7 +208,7 @@ describe('POST /api/auth/register', () => {
 
     it('should update message to mention email verification', async () => {
       const email = generateTestEmail(testEmailPrefix);
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -227,7 +227,7 @@ describe('POST /api/auth/register', () => {
 
   describe('Validation', () => {
     it('should reject invalid email format', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'invalid-email',
@@ -241,7 +241,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('should reject password without uppercase letter', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -255,7 +255,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('should reject password without lowercase letter', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -269,7 +269,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('should reject password without number', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -283,7 +283,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('should reject password without special character', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -297,7 +297,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('should reject password shorter than 8 characters', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -311,7 +311,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('should reject display_name shorter than 2 characters', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -325,7 +325,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('should reject display_name longer than 50 characters', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -339,7 +339,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('should reject missing required fields', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -361,7 +361,7 @@ describe('POST /api/auth/register', () => {
         ...createExpiredUserData({ email }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -391,7 +391,7 @@ describe('POST /api/auth/register', () => {
         reservation_expires_at: reservationExpires,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -420,7 +420,7 @@ describe('POST /api/auth/register', () => {
         reservation_expires_at: expiredDate,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -443,7 +443,7 @@ describe('POST /api/auth/register', () => {
         ...createActiveUserData({ email }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -471,7 +471,7 @@ describe('POST /api/auth/register', () => {
         reservation_expires_at: reservationExpires,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -507,7 +507,7 @@ describe('POST /api/auth/register', () => {
         status: 'SUCCEEDED',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -531,7 +531,7 @@ describe('POST /api/auth/register', () => {
       const baseEmail = generateTestEmail(testEmailPrefix);
       const emailUpper = baseEmail.toUpperCase();
       
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: emailUpper,
@@ -551,7 +551,7 @@ describe('POST /api/auth/register', () => {
       const email = generateTestEmail(testEmailPrefix);
       
       const requests = Array(3).fill(null).map(() => 
-        new NextRequest('http://localhost:3000/api/auth/register', {
+        new NextRequest('http://localhost:4000/api/auth/register', {
           method: 'POST',
           body: JSON.stringify({
             email,
@@ -579,7 +579,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('should handle malformed JSON', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: 'invalid json',
       });
@@ -590,7 +590,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('should handle empty request body', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({}),
       });

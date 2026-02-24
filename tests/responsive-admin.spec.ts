@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin Interface - Responsive Design', () => {
 
   test('should load admin signin page responsively', async ({ page }) => {
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     
     // Check page title
     await expect(page).toHaveTitle(/Sign In - VoiceoverStudioFinder/);
@@ -29,7 +29,7 @@ test.describe('Admin Interface - Responsive Design', () => {
   });
 
   test('should authenticate admin user responsively', async ({ page }) => {
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       
       // Fill in admin credentials
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
@@ -47,14 +47,14 @@ test.describe('Admin Interface - Responsive Design', () => {
 
   test('should display admin dashboard responsively', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin dashboard
-      await page.goto('http://localhost:3000/admin/dashboard');
+      await page.goto('http://localhost:4000/admin/dashboard');
       
       // Check admin dashboard elements
       await expect(page.locator('h1')).toContainText('VOSF Studio Management');
@@ -74,7 +74,7 @@ test.describe('Admin Interface - Responsive Design', () => {
 
   test('should handle admin navigation responsively', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
@@ -94,7 +94,7 @@ test.describe('Admin Interface - Responsive Design', () => {
       ];
       
       for (const adminPage of adminPages) {
-        await page.goto(`http://localhost:3000${adminPage}`);
+        await page.goto(`http://localhost:4000${adminPage}`);
         
         // Check that page loads without errors
         await expect(page.locator('body')).toBeVisible();
@@ -113,14 +113,14 @@ test.describe('Admin Interface - Responsive Design', () => {
 
   test('should handle admin forms responsively', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin query page
-      await page.goto('http://localhost:3000/admin/query');
+      await page.goto('http://localhost:4000/admin/query');
       
       // Check for form elements
       const textarea = page.locator('textarea');
@@ -139,14 +139,14 @@ test.describe('Admin Interface - Responsive Design', () => {
 
   test('should handle admin tables responsively', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin browse page
-      await page.goto('http://localhost:3000/admin/browse');
+      await page.goto('http://localhost:4000/admin/browse');
       
       // Check for table elements
       const tables = page.locator('table');
@@ -166,14 +166,14 @@ test.describe('Admin Interface - Responsive Design', () => {
 
   test('should handle admin modals responsively', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin dashboard
-      await page.goto('http://localhost:3000/admin/dashboard');
+      await page.goto('http://localhost:4000/admin/dashboard');
       
       // Look for modal triggers
       const modalTriggers = page.locator('button:has-text("Add"), button:has-text("Create"), button:has-text("New")');
@@ -196,14 +196,14 @@ test.describe('Admin Interface - Responsive Design', () => {
 
   test('should handle admin sidebar responsively', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin dashboard
-      await page.goto('http://localhost:3000/admin/dashboard');
+      await page.goto('http://localhost:4000/admin/dashboard');
       
       // Look for sidebar
       const sidebar = page.locator('aside, .sidebar, nav[role="navigation"]');
@@ -225,14 +225,14 @@ test.describe('Admin Interface - Responsive Design', () => {
 
   test('should handle admin buttons responsively', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin dashboard
-      await page.goto('http://localhost:3000/admin/dashboard');
+      await page.goto('http://localhost:4000/admin/dashboard');
       
       // Check all buttons are properly sized
       const buttons = page.locator('button');
@@ -253,14 +253,14 @@ test.describe('Admin Interface - Responsive Design', () => {
 
   test('should handle admin text responsively', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin dashboard
-      await page.goto('http://localhost:3000/admin/dashboard');
+      await page.goto('http://localhost:4000/admin/dashboard');
       
       // Check that text is readable
       const headings = page.locator('h1, h2, h3, h4, h5, h6');

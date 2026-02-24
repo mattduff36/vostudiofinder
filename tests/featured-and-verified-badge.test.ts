@@ -13,7 +13,7 @@ import { describe, it, expect } from '@jest/globals';
 describe('Featured Studios Availability', () => {
   describe('GET /api/featured/availability', () => {
     it('should return availability data with correct structure', async () => {
-      const response = await fetch('http://localhost:3000/api/featured/availability');
+      const response = await fetch('http://localhost:4000/api/featured/availability');
       const data = await response.json();
       
       expect(response.status).toBe(200);
@@ -27,7 +27,7 @@ describe('Featured Studios Availability', () => {
     });
 
     it('should return nextAvailableAt when all slots are taken', async () => {
-      const response = await fetch('http://localhost:3000/api/featured/availability');
+      const response = await fetch('http://localhost:4000/api/featured/availability');
       const data = await response.json();
       
       if (data.remaining === 0) {
@@ -41,7 +41,7 @@ describe('Featured Studios Availability', () => {
     });
 
     it('should have remaining count that matches max minus featured count', async () => {
-      const response = await fetch('http://localhost:3000/api/featured/availability');
+      const response = await fetch('http://localhost:4000/api/featured/availability');
       const data = await response.json();
       
       const expectedRemaining = Math.max(0, data.maxFeatured - data.featuredCount);
@@ -55,7 +55,7 @@ describe('Waitlist Type Support', () => {
     const testEmail = `test-${Date.now()}@example.com`;
 
     it('should accept GENERAL waitlist entries', async () => {
-      const response = await fetch('http://localhost:3000/api/waitlist', {
+      const response = await fetch('http://localhost:4000/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -71,7 +71,7 @@ describe('Waitlist Type Support', () => {
 
     it('should accept FEATURED waitlist entries', async () => {
       const featuredEmail = `featured-${Date.now()}@example.com`;
-      const response = await fetch('http://localhost:3000/api/waitlist', {
+      const response = await fetch('http://localhost:4000/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -85,7 +85,7 @@ describe('Waitlist Type Support', () => {
     });
 
     it('should reject invalid waitlist types', async () => {
-      const response = await fetch('http://localhost:3000/api/waitlist', {
+      const response = await fetch('http://localhost:4000/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -101,7 +101,7 @@ describe('Waitlist Type Support', () => {
     });
 
     it('should default to GENERAL type when not specified', async () => {
-      const response = await fetch('http://localhost:3000/api/waitlist', {
+      const response = await fetch('http://localhost:4000/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -119,7 +119,7 @@ describe('Waitlist Type Support', () => {
 describe('Verified Badge Request', () => {
   describe('POST /api/membership/request-verification', () => {
     it('should reject unauthenticated requests', async () => {
-      const response = await fetch('http://localhost:3000/api/membership/request-verification', {
+      const response = await fetch('http://localhost:4000/api/membership/request-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });

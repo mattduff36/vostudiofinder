@@ -29,7 +29,7 @@ interface HomePageProps {
 
 export function HomePage({ session, featuredStudios, stats }: HomePageProps) {
   return (
-    <div className="min-h-screen -mt-16 md:-mt-20 w-full max-w-full overflow-x-hidden flex flex-col" style={{ backgroundColor: colors.background }}>
+    <div className="min-h-screen -mt-16 md:-mt-[72px] w-full max-w-full overflow-x-hidden flex flex-col" style={{ backgroundColor: colors.background }}>
       <div className="flex-1">
         {/* Hero Section */}
         <HeroSection />

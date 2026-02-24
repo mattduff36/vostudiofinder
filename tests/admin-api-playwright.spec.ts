@@ -9,7 +9,7 @@ test.describe('Admin API Endpoints', () => {
     const page = await context.newPage();
     
     // Navigate to signin page
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     
     // Fill in admin credentials
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
@@ -29,7 +29,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should return dashboard data for authenticated admin', async ({ request }) => {
-    const response = await request.get('http://localhost:3000/api/admin/dashboard', {
+    const response = await request.get('http://localhost:4000/api/admin/dashboard', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -48,14 +48,14 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should return 401 for unauthenticated requests', async ({ request }) => {
-    const response = await request.get('http://localhost:3000/api/admin/dashboard');
+    const response = await request.get('http://localhost:4000/api/admin/dashboard');
     
     // Admin API endpoints redirect to signin for unauthenticated requests
     expect([401, 307, 200]).toContain(response.status());
   });
 
   test('should return studios data for authenticated admin', async ({ request }) => {
-    const response = await request.get('http://localhost:3000/api/admin/studios', {
+    const response = await request.get('http://localhost:4000/api/admin/studios', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -70,7 +70,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should return FAQ data for authenticated admin', async ({ request }) => {
-    const response = await request.get('http://localhost:3000/api/admin/faq', {
+    const response = await request.get('http://localhost:4000/api/admin/faq', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -85,7 +85,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should return analytics data for authenticated admin', async ({ request }) => {
-    const response = await request.get('http://localhost:3000/api/admin/analytics', {
+    const response = await request.get('http://localhost:4000/api/admin/analytics', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -98,7 +98,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should return network data for authenticated admin', async ({ request }) => {
-    const response = await request.get('http://localhost:3000/api/admin/network', {
+    const response = await request.get('http://localhost:4000/api/admin/network', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -111,7 +111,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should return query data for authenticated admin', async ({ request }) => {
-    const response = await request.post('http://localhost:3000/api/admin/query', {
+    const response = await request.post('http://localhost:4000/api/admin/query', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`,
         'Content-Type': 'application/json'
@@ -135,7 +135,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should return schema data for authenticated admin', async ({ request }) => {
-    const response = await request.get('http://localhost:3000/api/admin/schema?table=User', {
+    const response = await request.get('http://localhost:4000/api/admin/schema?table=User', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -149,7 +149,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should return venues data for authenticated admin', async ({ request }) => {
-    const response = await request.get('http://localhost:3000/api/admin/venues', {
+    const response = await request.get('http://localhost:4000/api/admin/venues', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -162,7 +162,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should return browse data for authenticated admin', async ({ request }) => {
-    const response = await request.get('http://localhost:3000/api/admin/browse?table=User', {
+    const response = await request.get('http://localhost:4000/api/admin/browse?table=User', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -178,7 +178,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should handle POST requests to admin endpoints', async ({ request }) => {
-    const response = await request.post('http://localhost:3000/api/admin/studios', {
+    const response = await request.post('http://localhost:4000/api/admin/studios', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`,
         'Content-Type': 'application/json'
@@ -194,7 +194,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should handle PUT requests to admin endpoints', async ({ request }) => {
-    const response = await request.put('http://localhost:3000/api/admin/studios/1', {
+    const response = await request.put('http://localhost:4000/api/admin/studios/1', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`,
         'Content-Type': 'application/json'
@@ -210,7 +210,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should handle DELETE requests to admin endpoints', async ({ request }) => {
-    const response = await request.delete('http://localhost:3000/api/admin/studios/1', {
+    const response = await request.delete('http://localhost:4000/api/admin/studios/1', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -233,7 +233,7 @@ test.describe('Admin API Endpoints', () => {
     ];
 
     for (const endpoint of adminEndpoints) {
-      const response = await (request as any)[endpoint.method.toLowerCase()](`http://localhost:3000${endpoint.path}`, {
+      const response = await (request as any)[endpoint.method.toLowerCase()](`http://localhost:4000${endpoint.path}`, {
         headers: {
           'Cookie': `next-auth.session-token=${authCookie}`
         }
@@ -245,7 +245,7 @@ test.describe('Admin API Endpoints', () => {
   });
 
   test('should handle malformed requests gracefully', async ({ request }) => {
-    const response = await request.post('http://localhost:3000/api/admin/dashboard', {
+    const response = await request.post('http://localhost:4000/api/admin/dashboard', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`,
         'Content-Type': 'application/json'
@@ -265,7 +265,7 @@ test.describe('Admin API Endpoints', () => {
       description: 'B'.repeat(10000)
     };
 
-    const response = await request.post('http://localhost:3000/api/admin/studios', {
+    const response = await request.post('http://localhost:4000/api/admin/studios', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`,
         'Content-Type': 'application/json'

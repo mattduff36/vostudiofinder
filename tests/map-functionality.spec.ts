@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Map Functionality Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the studios page with London search
-    await page.goto('http://localhost:3000/studios?location=London,UK&sortBy=name&sortOrder=asc&radius=25&lat=51.5072178&lng=-0.1275862&page=1');
+    await page.goto('http://localhost:4000/studios?location=London,UK&sortBy=name&sortOrder=asc&radius=25&lat=51.5072178&lng=-0.1275862&page=1');
     
     // Wait for the page to load and map to initialize
     await page.waitForSelector('[data-testid="google-map"]', { timeout: 10000 });

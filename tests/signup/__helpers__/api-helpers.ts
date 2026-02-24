@@ -4,7 +4,7 @@
  * Provides helper functions for making API requests in tests
  */
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:4000';
 
 export interface ApiResponse<T = any> {
   ok: boolean;

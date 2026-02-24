@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin Interface - Cross Browser', () => {
 
     test('should load admin signin page correctly', async ({ page }) => {
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       
       // Check page title
       await expect(page).toHaveTitle(/Sign In - VoiceoverStudioFinder/);
@@ -20,7 +20,7 @@ test.describe('Admin Interface - Cross Browser', () => {
     });
 
     test('should authenticate admin user successfully', async ({ page }) => {
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       
       // Fill in admin credentials
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
@@ -38,14 +38,14 @@ test.describe('Admin Interface - Cross Browser', () => {
 
     test('should access admin dashboard after authentication', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin dashboard
-      await page.goto('http://localhost:3000/admin/dashboard');
+      await page.goto('http://localhost:4000/admin/dashboard');
       
       // Check admin dashboard elements
       await expect(page.locator('h1')).toContainText('VOSF Studio Management');
@@ -61,7 +61,7 @@ test.describe('Admin Interface - Cross Browser', () => {
 
     test('should navigate between admin pages', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
@@ -81,7 +81,7 @@ test.describe('Admin Interface - Cross Browser', () => {
       ];
       
       for (const adminPage of adminPages) {
-        await page.goto(`http://localhost:3000${adminPage}`);
+        await page.goto(`http://localhost:4000${adminPage}`);
         
         // Check that page loads without errors
         await expect(page.locator('body')).toBeVisible();
@@ -93,14 +93,14 @@ test.describe('Admin Interface - Cross Browser', () => {
 
     test('should handle admin API calls correctly', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Test API calls
-      const response = await page.request.get('http://localhost:3000/api/admin/dashboard');
+      const response = await page.request.get('http://localhost:4000/api/admin/dashboard');
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -111,14 +111,14 @@ test.describe('Admin Interface - Cross Browser', () => {
 
     test('should display admin forms correctly', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin query page
-      await page.goto('http://localhost:3000/admin/query');
+      await page.goto('http://localhost:4000/admin/query');
       
       // Check for form elements
       await expect(page.locator('textarea')).toBeVisible();
@@ -127,7 +127,7 @@ test.describe('Admin Interface - Cross Browser', () => {
 
     test('should handle admin logout correctly', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
@@ -143,21 +143,21 @@ test.describe('Admin Interface - Cross Browser', () => {
         await expect(page).toHaveURL(/.*\/auth\/signin/);
         
         // Try to access admin page - should redirect to signin
-        await page.goto('http://localhost:3000/admin/dashboard');
+        await page.goto('http://localhost:4000/admin/dashboard');
         await expect(page).toHaveURL(/.*\/auth\/signin/);
       }
     });
 
     test('should handle admin page errors gracefully', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Test non-existent admin page
-      await page.goto('http://localhost:3000/admin/non-existent-page');
+      await page.goto('http://localhost:4000/admin/non-existent-page');
       
       // Should show 404 or redirect to dashboard
       const currentUrl = page.url();
@@ -166,14 +166,14 @@ test.describe('Admin Interface - Cross Browser', () => {
 
     test('should maintain admin session across page refreshes', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin dashboard
-      await page.goto('http://localhost:3000/admin/dashboard');
+      await page.goto('http://localhost:4000/admin/dashboard');
       
       // Refresh the page
       await page.reload();
@@ -187,14 +187,14 @@ test.describe('Admin Interface - Cross Browser', () => {
 
     test('should handle admin page loading states', async ({ page }) => {
       // Authenticate first
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
       await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
       
       // Navigate to admin dashboard
-      await page.goto('http://localhost:3000/admin/dashboard');
+      await page.goto('http://localhost:4000/admin/dashboard');
       
       // Check for loading states
       const loadingSpinner = page.locator('.animate-spin, [data-testid="loading"], .loading');

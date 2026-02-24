@@ -9,7 +9,7 @@ test.describe('Admin Functionality Validation', () => {
     const page = await context.newPage();
     
     // Navigate to signin page
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     
     // Fill in admin credentials
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
@@ -30,14 +30,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should display admin dashboard with correct statistics', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to admin dashboard
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     
     // Check dashboard title
     await expect(page.locator('h1')).toContainText('VOSF Studio Management');
@@ -53,14 +53,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should display studios management page', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to studios page
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     
     // Check page loads
     await expect(page.locator('body')).toBeVisible();
@@ -71,14 +71,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should display analytics page', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to analytics page
-    await page.goto('http://localhost:3000/admin/analytics');
+    await page.goto('http://localhost:4000/admin/analytics');
     
     // Check page loads
     await expect(page.locator('body')).toBeVisible();
@@ -89,14 +89,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should display network page', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to network page
-    await page.goto('http://localhost:3000/admin/network');
+    await page.goto('http://localhost:4000/admin/network');
     
     // Check page loads
     await expect(page.locator('body')).toBeVisible();
@@ -107,14 +107,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should display query page with form', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to query page
-    await page.goto('http://localhost:3000/admin/query');
+    await page.goto('http://localhost:4000/admin/query');
     
     // Check page loads
     await expect(page.locator('body')).toBeVisible();
@@ -126,14 +126,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should display schema page', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to schema page
-    await page.goto('http://localhost:3000/admin/schema');
+    await page.goto('http://localhost:4000/admin/schema');
     
     // Check page loads
     await expect(page.locator('body')).toBeVisible();
@@ -144,14 +144,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should display venues page', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to venues page
-    await page.goto('http://localhost:3000/admin/venues');
+    await page.goto('http://localhost:4000/admin/venues');
     
     // Check page loads
     await expect(page.locator('body')).toBeVisible();
@@ -162,14 +162,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should display FAQ management page', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to FAQ page
-    await page.goto('http://localhost:3000/admin/faq');
+    await page.goto('http://localhost:4000/admin/faq');
     
     // Check page loads
     await expect(page.locator('body')).toBeVisible();
@@ -180,14 +180,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should display browse page', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to browse page
-    await page.goto('http://localhost:3000/admin/browse');
+    await page.goto('http://localhost:4000/admin/browse');
     
     // Check page loads
     await expect(page.locator('body')).toBeVisible();
@@ -198,7 +198,7 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should handle admin navigation between pages', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
@@ -218,7 +218,7 @@ test.describe('Admin Functionality Validation', () => {
     ];
     
     for (const adminPage of adminPages) {
-      await page.goto(`http://localhost:3000${adminPage}`);
+      await page.goto(`http://localhost:4000${adminPage}`);
       
       // Check that page loads without errors
       await expect(page.locator('body')).toBeVisible();
@@ -234,37 +234,37 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should maintain admin session across page navigation', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to admin dashboard
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     
     // Navigate to different admin pages
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     await expect(page).toHaveURL(/.*\/admin\/studios/);
     
-    await page.goto('http://localhost:3000/admin/analytics');
+    await page.goto('http://localhost:4000/admin/analytics');
     await expect(page).toHaveURL(/.*\/admin\/analytics/);
     
     // Should still be authenticated
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     await expect(page).toHaveURL(/.*\/admin\/dashboard/);
   });
 
   test('should handle admin page refreshes', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to admin dashboard
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     
     // Refresh the page
     await page.reload();
@@ -278,14 +278,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should handle admin page loading states', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to admin dashboard
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     
     // Check for loading states
     const loadingSpinner = page.locator('.animate-spin, [data-testid="loading"], .loading');
@@ -300,14 +300,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should handle admin page errors gracefully', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Test non-existent admin page
-    await page.goto('http://localhost:3000/admin/non-existent-page');
+    await page.goto('http://localhost:4000/admin/non-existent-page');
     
     // Should show 404 or redirect to dashboard
     const currentUrl = page.url();
@@ -316,7 +316,7 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should validate admin API endpoints functionality', async ({ request }) => {
     // Test dashboard API
-    const dashboardResponse = await request.get('http://localhost:3000/api/admin/dashboard', {
+    const dashboardResponse = await request.get('http://localhost:4000/api/admin/dashboard', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -328,7 +328,7 @@ test.describe('Admin Functionality Validation', () => {
     expect(dashboardData).toHaveProperty('users');
     
     // Test studios API
-    const studiosResponse = await request.get('http://localhost:3000/api/admin/studios', {
+    const studiosResponse = await request.get('http://localhost:4000/api/admin/studios', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -339,7 +339,7 @@ test.describe('Admin Functionality Validation', () => {
     expect(studiosData).toHaveProperty('pagination');
     
     // Test FAQ API
-    const faqResponse = await request.get('http://localhost:3000/api/admin/faq', {
+    const faqResponse = await request.get('http://localhost:4000/api/admin/faq', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -352,14 +352,14 @@ test.describe('Admin Functionality Validation', () => {
 
   test('should validate admin form functionality', async ({ page }) => {
     // Authenticate first
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to query page
-    await page.goto('http://localhost:3000/admin/query');
+    await page.goto('http://localhost:4000/admin/query');
     
     // Test form functionality
     const textarea = page.locator('textarea');

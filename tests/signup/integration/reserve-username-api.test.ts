@@ -37,7 +37,7 @@ describe('POST /api/auth/reserve-username', () => {
         ...createPendingUserData({ email }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -67,7 +67,7 @@ describe('POST /api/auth/reserve-username', () => {
 
       expect(user.username).toMatch(/^temp_/);
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -91,7 +91,7 @@ describe('POST /api/auth/reserve-username', () => {
         ...createPendingUserData({ email }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -112,7 +112,7 @@ describe('POST /api/auth/reserve-username', () => {
         ...createPendingUserData({ email }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -133,7 +133,7 @@ describe('POST /api/auth/reserve-username', () => {
       const invalidUsernames = ['test-user', 'test.user', 'test@user', 'test user', 'test/user'];
 
       for (const username of invalidUsernames) {
-        const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
           method: 'POST',
           body: JSON.stringify({
             userId: user.id,
@@ -155,7 +155,7 @@ describe('POST /api/auth/reserve-username', () => {
       const validUsernames = ['test', 'test123', 'test_user', 'TestUser', 'TEST123', 'a1b2c3'];
 
       for (const username of validUsernames) {
-        const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
           method: 'POST',
           body: JSON.stringify({
             userId: user.id,
@@ -180,7 +180,7 @@ describe('POST /api/auth/reserve-username', () => {
         status: UserStatus.ACTIVE,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -193,7 +193,7 @@ describe('POST /api/auth/reserve-username', () => {
     });
 
     it('should reject reservation for non-existent user', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: 'nonexistent_user_id',
@@ -218,7 +218,7 @@ describe('POST /api/auth/reserve-username', () => {
         reservation_expires_at: expiredDate,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -256,7 +256,7 @@ describe('POST /api/auth/reserve-username', () => {
         ...createPendingUserData({ email: email2 }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user2.id,
@@ -287,7 +287,7 @@ describe('POST /api/auth/reserve-username', () => {
         ...createPendingUserData({ email: email2 }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user2.id,
@@ -317,7 +317,7 @@ describe('POST /api/auth/reserve-username', () => {
         ...createPendingUserData({ email: email2 }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user2.id,
@@ -345,14 +345,14 @@ describe('POST /api/auth/reserve-username', () => {
 
       // Both try to claim the same username simultaneously
       const requests = [
-        new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+        new NextRequest('http://localhost:4000/api/auth/reserve-username', {
           method: 'POST',
           body: JSON.stringify({
             userId: user1.id,
             username,
           }),
         }),
-        new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+        new NextRequest('http://localhost:4000/api/auth/reserve-username', {
           method: 'POST',
           body: JSON.stringify({
             userId: user2.id,
@@ -372,7 +372,7 @@ describe('POST /api/auth/reserve-username', () => {
 
   describe('Edge Cases', () => {
     it('should reject missing userId', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           username: generateTestUsername(),
@@ -389,7 +389,7 @@ describe('POST /api/auth/reserve-username', () => {
         ...createPendingUserData({ email }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -417,7 +417,7 @@ describe('POST /api/auth/reserve-username', () => {
         ...createPendingUserData({ email: email2 }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user2.id,

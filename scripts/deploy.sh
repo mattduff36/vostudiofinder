@@ -174,15 +174,15 @@ case $DEPLOYMENT_TYPE in
         sleep 10
         
         # Check health
-        if curl -f http://localhost:3000/api/health &> /dev/null; then
+        if curl -f http://localhost:4000/api/health &> /dev/null; then
             print_status "✅ Application is healthy!"
         else
             print_warning "Health check failed, but containers are running."
         fi
         
         print_status "✅ Docker deployment completed!"
-        print_status "Application available at: http://localhost:3000"
-        print_status "Admin interface available at: http://localhost:3000/admin"
+        print_status "Application available at: http://localhost:4000"
+        print_status "Admin interface available at: http://localhost:4000/admin"
         ;;
 esac
 
@@ -200,9 +200,9 @@ echo "  - [ ] Verify API endpoints are working"
 echo "  - [ ] Check error tracking (Sentry) if configured"
 echo ""
 echo "🔗 Useful URLs:"
-echo "  - Main app: http://localhost:3000"
-echo "  - Admin: http://localhost:3000/admin"
-echo "  - Health check: http://localhost:3000/api/health"
+echo "  - Main app: http://localhost:4000"
+echo "  - Admin: http://localhost:4000/admin"
+echo "  - Health check: http://localhost:4000/api/health"
 echo "  - pgAdmin: http://localhost:5050 (Docker only)"
 echo ""
 echo "📝 Logs:"

@@ -51,7 +51,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
 
       // User is not email_verified (default from createTestUserInDb)
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/create-membership-checkout', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/create-membership-checkout', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -61,7 +61,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         }),
       });
 
-      process.env.NEXTAUTH_URL = 'http://localhost:3000';
+      process.env.NEXTAUTH_URL = 'http://localhost:4000';
       process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
 
       const response = await POST(request);
@@ -96,7 +96,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         client_secret: 'cs_test_secret_123',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/create-membership-checkout', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/create-membership-checkout', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -106,7 +106,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         }),
       });
 
-      process.env.NEXTAUTH_URL = 'http://localhost:3000';
+      process.env.NEXTAUTH_URL = 'http://localhost:4000';
       process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
 
       const response = await POST(request);
@@ -119,7 +119,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       const email = generateTestEmail(testEmailPrefix);
       const fakeUserId = 'non_existent_user_id';
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/create-membership-checkout', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/create-membership-checkout', {
         method: 'POST',
         body: JSON.stringify({
           userId: fakeUserId,
@@ -129,7 +129,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         }),
       });
 
-      process.env.NEXTAUTH_URL = 'http://localhost:3000';
+      process.env.NEXTAUTH_URL = 'http://localhost:4000';
       process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
 
       const response = await POST(request);
@@ -165,7 +165,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         client_secret: 'cs_test_secret_123',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/create-membership-checkout', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/create-membership-checkout', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -176,7 +176,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       });
 
       // Mock environment variables
-      process.env.NEXTAUTH_URL = 'http://localhost:3000';
+      process.env.NEXTAUTH_URL = 'http://localhost:4000';
       process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
 
       await POST(request);
@@ -193,7 +193,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       expect(createCallArgs.return_url).toContain(`email=${encodeURIComponent(email)}`);
       
       // Verify email is properly URL encoded
-      const url = new URL(createCallArgs.return_url, 'http://localhost:3000');
+      const url = new URL(createCallArgs.return_url, 'http://localhost:4000');
       const emailParam = url.searchParams.get('email');
       expect(emailParam).toBe(email);
     });
@@ -222,7 +222,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         client_secret: 'cs_test_secret_123',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/create-membership-checkout', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/create-membership-checkout', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -232,7 +232,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         }),
       });
 
-      process.env.NEXTAUTH_URL = 'http://localhost:3000';
+      process.env.NEXTAUTH_URL = 'http://localhost:4000';
       process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
 
       await POST(request);
@@ -243,7 +243,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       expect(createCallArgs.return_url).toContain(encodeURIComponent(email));
       
       // Verify we can decode it back correctly
-      const url = new URL(createCallArgs.return_url, 'http://localhost:3000');
+      const url = new URL(createCallArgs.return_url, 'http://localhost:4000');
       const emailParam = url.searchParams.get('email');
       expect(emailParam).toBe(email);
     });
@@ -274,7 +274,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         client_secret: 'cs_test_secret_123',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/create-membership-checkout', {
+      const request = new NextRequest('http://localhost:4000/api/stripe/create-membership-checkout', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -284,7 +284,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
         }),
       });
 
-      process.env.NEXTAUTH_URL = 'http://localhost:3000';
+      process.env.NEXTAUTH_URL = 'http://localhost:4000';
       process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
 
       await POST(request);

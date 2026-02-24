@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { categoryTiles } from '@/lib/categoryTiles';
@@ -25,6 +25,20 @@ interface CategoryFilterBarProps {
   activeId?: string | null;
   /** Additional className for the outer wrapper */
   className?: string;
+  /** Enable Mac OS dock-style magnification (items start 25% smaller, grow on hover) */
+  dockEffect?: boolean;
+}
+
+const DOCK_REST = 0.7;
+const DOCK_HOVER = 1.0;
+const DOCK_NEIGHBOR_1 = 0.8;
+
+function getDockScale(hoveredIdx: number | null, itemIdx: number): number {
+  if (hoveredIdx === null) return DOCK_REST;
+  const dist = Math.abs(itemIdx - hoveredIdx);
+  if (dist === 0) return DOCK_HOVER;
+  if (dist === 1) return DOCK_NEIGHBOR_1;
+  return DOCK_REST;
 }
 
 export function CategoryFilterBar({
@@ -35,8 +49,13 @@ export function CategoryFilterBar({
   onSelect,
   activeId,
   className = '',
+  dockEffect = false,
 }: CategoryFilterBarProps) {
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  const onItemEnter = useCallback((idx: number) => setHoveredIdx(idx), []);
+  const onItemLeave = useCallback(() => setHoveredIdx(null), []);
 
   const sorted = [...categoryTiles].sort((a, b) => {
     if (a.gridPosition.row !== b.gridPosition.row) return a.gridPosition.row - b.gridPosition.row;
@@ -61,18 +80,21 @@ export function CategoryFilterBar({
 
     const baseClasses = [
       'group cursor-pointer select-none',
-      // Hover & active transforms (match CategoryTileButton)
-      'motion-safe:transition-all motion-safe:duration-[220ms] motion-safe:ease-out',
-      'motion-safe:hover:-translate-y-0.5 motion-safe:hover:scale-[1.02]',
-      'motion-safe:active:scale-[0.98] motion-safe:active:translate-y-0',
+      ...(dockEffect
+        ? ['transition-[transform,margin] duration-200 ease-out']
+        : [
+            'motion-safe:transition-all motion-safe:duration-[220ms] motion-safe:ease-out',
+            'motion-safe:hover:-translate-y-0.5 motion-safe:hover:scale-[1.02]',
+            'motion-safe:active:scale-[0.98] motion-safe:active:translate-y-0',
+          ]),
       hoverBg,
       `outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${focusRing}`,
-      // Shadow / glow on hover (subtle; tone-aware)
       isDark ? 'hover:shadow-[0_8px_30px_rgba(255,255,255,0.08)]' : 'hover:shadow-lg hover:shadow-black/10',
     ];
 
     if (variantType === 'compact') {
-      return [...baseClasses, 'flex flex-col items-center gap-1.5 px-3 py-2 min-w-[72px] rounded-xl'].join(' ');
+      const padding = 'px-3 py-2';
+      return [...baseClasses, `flex flex-col items-center gap-1.5 ${padding} min-w-[72px] rounded-xl`].join(' ');
     } else if (variantType === 'pill') {
       const borderColor = isDark ? 'border-white/20' : 'border-gray-300';
       const hoverBorder = isDark ? 'hover:border-white/40' : 'hover:border-gray-400';
@@ -174,11 +196,28 @@ export function CategoryFilterBar({
     );
   };
 
-  const renderItem = (tile: CategoryTile) => {
+  const renderItem = (tile: CategoryTile, index: number) => {
     const active = isActive(tile.id);
     const cls = [itemClasses[variant], active ? activeClasses[variant] : ''].join(' ');
-    const itemStyle =
-      variant === 'compact' ? ({ minWidth: `${Math.round(72 * imageScale)}px` } as const) : undefined;
+    const baseMinWidth = variant === 'compact' ? Math.round(72 * imageScale) : undefined;
+
+    const dockScale = dockEffect ? getDockScale(hoveredIdx, index) : undefined;
+    const dockMargin = dockScale != null ? (dockScale - 1) * 32 : 0;
+    const itemStyle: React.CSSProperties = {
+      ...(baseMinWidth != null ? { minWidth: `${baseMinWidth}px` } : {}),
+      ...(dockScale != null
+        ? {
+            transform: `scale(${dockScale})${dockScale === DOCK_HOVER ? ' translateY(-2px)' : ''}`,
+            transformOrigin: 'bottom center',
+            marginLeft: `${dockMargin}px`,
+            marginRight: `${dockMargin}px`,
+          }
+        : {}),
+    };
+
+    const dockHandlers = dockEffect
+      ? { onMouseEnter: () => onItemEnter(index), onMouseLeave: onItemLeave }
+      : {};
 
     const inner = (
       <>
@@ -197,6 +236,7 @@ export function CategoryFilterBar({
           className={cls}
           style={itemStyle}
           onClick={() => onSelect(tile)}
+          {...dockHandlers}
         >
           {inner}
         </button>
@@ -204,7 +244,7 @@ export function CategoryFilterBar({
     }
 
     return (
-      <Link key={tile.id} href={tile.href} aria-label={tile.ariaLabel} className={cls} style={itemStyle}>
+      <Link key={tile.id} href={tile.href} aria-label={tile.ariaLabel} className={cls} style={itemStyle} {...dockHandlers}>
         {inner}
       </Link>
     );
@@ -214,12 +254,13 @@ export function CategoryFilterBar({
 
   return (
     <div
-      className={`flex items-center gap-1 overflow-x-auto scrollbar-hide ${className}`}
+      className={`flex items-end ${dockEffect ? 'gap-0' : 'gap-1'} overflow-x-auto scrollbar-hide ${className}`}
       role="tablist"
       aria-label="Studio categories"
       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      {...(dockEffect ? { onMouseLeave: onItemLeave } : {})}
     >
-      {sorted.map(renderItem)}
+      {sorted.map((tile, i) => renderItem(tile, i))}
     </div>
   );
 }

@@ -34,7 +34,7 @@ describe('Signup Security Tests', () => {
 
   describe('Turnstile CAPTCHA Requirement', () => {
     it('should reject signup without Turnstile token', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -51,7 +51,7 @@ describe('Signup Security Tests', () => {
     });
 
     it('should reject signup with empty Turnstile token', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -68,7 +68,7 @@ describe('Signup Security Tests', () => {
 
   describe('Honeypot Detection', () => {
     it('should reject signup if honeypot field is filled', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -96,7 +96,7 @@ describe('Signup Security Tests', () => {
       ];
 
       for (const maliciousEmail of sqlInjectionAttempts) {
-        const request = new NextRequest('http://localhost:3000/api/auth/register', {
+        const request = new NextRequest('http://localhost:4000/api/auth/register', {
           method: 'POST',
           body: JSON.stringify({
             email: maliciousEmail,
@@ -119,7 +119,7 @@ describe('Signup Security Tests', () => {
       ];
 
       for (const maliciousName of sqlInjectionAttempts) {
-        const request = new NextRequest('http://localhost:3000/api/auth/register', {
+        const request = new NextRequest('http://localhost:4000/api/auth/register', {
           method: 'POST',
           body: JSON.stringify({
             email: generateTestEmail(testEmailPrefix),
@@ -149,7 +149,7 @@ describe('Signup Security Tests', () => {
       ];
 
       for (const maliciousUsername of sqlInjectionAttempts) {
-        const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
           method: 'POST',
           body: JSON.stringify({
             userId: user.id,
@@ -175,7 +175,7 @@ describe('Signup Security Tests', () => {
       ];
 
       for (const xssPayload of xssAttempts) {
-        const request = new NextRequest('http://localhost:3000/api/auth/register', {
+        const request = new NextRequest('http://localhost:4000/api/auth/register', {
           method: 'POST',
           body: JSON.stringify({
             email: generateTestEmail(testEmailPrefix),
@@ -213,7 +213,7 @@ describe('Signup Security Tests', () => {
       ];
 
       for (const xssPayload of xssAttempts) {
-        const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
           method: 'POST',
           body: JSON.stringify({
             userId: user.id,
@@ -232,7 +232,7 @@ describe('Signup Security Tests', () => {
     it('should reject extremely long email addresses', async () => {
       const longEmail = 'a'.repeat(300) + '@test.com';
       
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: longEmail,
@@ -248,7 +248,7 @@ describe('Signup Security Tests', () => {
     it('should reject extremely long display names', async () => {
       const longName = 'A'.repeat(1000);
       
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -264,7 +264,7 @@ describe('Signup Security Tests', () => {
     it('should reject extremely long passwords', async () => {
       const longPassword = 'A'.repeat(10000) + '1!';
       
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -299,7 +299,7 @@ describe('Signup Security Tests', () => {
       });
 
       // User2 tries to reserve username for User1's account (user1 is ACTIVE, not PENDING)
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user1.id, // User1's ID (ACTIVE user)
@@ -323,7 +323,7 @@ describe('Signup Security Tests', () => {
       ];
 
       for (const maliciousId of maliciousUserIds) {
-        const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
           method: 'POST',
           body: JSON.stringify({
             userId: maliciousId,
@@ -344,7 +344,7 @@ describe('Signup Security Tests', () => {
       
       // Make 4 rapid requests (limit is 3 per hour)
       const requests = Array(4).fill(null).map(() => 
-        new NextRequest('http://localhost:3000/api/auth/register', {
+        new NextRequest('http://localhost:4000/api/auth/register', {
           method: 'POST',
           headers: {
             'x-forwarded-for': '192.168.1.100', // Same IP
@@ -374,7 +374,7 @@ describe('Signup Security Tests', () => {
 
     it('should handle rapid registration attempts gracefully', async () => {
       const requests = Array(20).fill(null).map((_, i) => 
-        new NextRequest('http://localhost:3000/api/auth/register', {
+        new NextRequest('http://localhost:4000/api/auth/register', {
           method: 'POST',
           body: JSON.stringify({
             email: generateTestEmail(`${testEmailPrefix}_rapid_${i}`),
@@ -397,7 +397,7 @@ describe('Signup Security Tests', () => {
     it('should normalize email to lowercase', async () => {
       const mixedCaseEmail = 'TeSt@ExAmPlE.CoM';
       
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: mixedCaseEmail,
@@ -418,7 +418,7 @@ describe('Signup Security Tests', () => {
       const email = `  ${generateTestEmail(testEmailPrefix)}  `;
       const displayName = '  Test User  ';
       
-      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+      const request = new NextRequest('http://localhost:4000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email,

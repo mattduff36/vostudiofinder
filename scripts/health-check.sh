@@ -25,7 +25,7 @@ print_error() {
 }
 
 # Default URL
-URL="http://localhost:3000"
+URL="http://localhost:4000"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -37,7 +37,7 @@ while [[ $# -gt 0 ]]; do
         --help)
             echo "Usage: $0 [OPTIONS]"
             echo "Options:"
-            echo "  --url URL    Base URL to check (default: http://localhost:3000)"
+            echo "  --url URL    Base URL to check (default: http://localhost:4000)"
             echo "  --help       Show this help message"
             exit 0
             ;;

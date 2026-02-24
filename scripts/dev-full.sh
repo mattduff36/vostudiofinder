@@ -180,8 +180,8 @@ fi
 echo "  ✓ Next.js dev server (starting...)"
 echo ""
 echo "🔗 Access Points:"
-echo "  • Application: http://localhost:3000"
-echo "  • Admin Panel: http://localhost:3000/admin"
+echo "  • Application: http://localhost:4000"
+echo "  • Admin Panel: http://localhost:4000/admin"
 echo "  • Prisma Studio: npm run db:studio (in another terminal)"
 if [ "$ENABLE_DOCKER" = true ]; then
     echo "  • Docker Logs: npm run docker:logs (in another terminal)"

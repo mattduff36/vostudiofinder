@@ -4,7 +4,7 @@ A comprehensive Next.js platform connecting voiceover professionals with studios
 
 ## 🌐 Live Site
 - **Production**: https://voiceoverstudiofinder.com
-- **Development**: http://localhost:3000
+- **Development**: http://localhost:4000
 
 ---
 
@@ -47,7 +47,7 @@ A comprehensive Next.js platform connecting voiceover professionals with studios
 - **Admin UX** - Textarea input for refund explanations visible in refund history
 
 #### ✅ **Email Verification Fix**
-- **Dynamic URL Generation** - Fixed verification emails using `localhost:3000` instead of preview URLs
+- **Dynamic URL Generation** - Fixed verification emails using `localhost:4000` instead of preview URLs
 - **Base URL Function** - Implemented `getBaseUrl()` for dynamic environment detection
 - **Preview Build Support** - Verification now works correctly on Vercel preview deployments
 - **Database Migrations** - Applied to both development and production databases
@@ -426,7 +426,7 @@ vostudiofinder/
    ```env
    DATABASE_URL="your-postgresql-connection-string"
    NEXTAUTH_SECRET="your-nextauth-secret"
-   NEXTAUTH_URL="http://localhost:3000"
+   NEXTAUTH_URL="http://localhost:4000"
    
    # Google OAuth
    GOOGLE_CLIENT_ID="your-google-client-id"
@@ -467,7 +467,7 @@ vostudiofinder/
    ```
 
 6. **Open your browser:**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+   Navigate to [http://localhost:4000](http://localhost:4000)
 
 ---
 

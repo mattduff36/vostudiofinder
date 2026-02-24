@@ -11,7 +11,7 @@ import { test, expect } from '@playwright/test';
  * - Admin payments API
  */
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'http://localhost:4000';
 const ADMIN_EMAIL = 'admin@mpdee.co.uk';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
@@ -283,7 +283,7 @@ test.describe('Stripe API Integration Tests', () => {
     console.log('🎯 NEXT STEPS FOR MANUAL TESTING:');
     console.log('='.repeat(60) + '\n');
     
-    console.log('1. Navigate to: http://localhost:3000/auth/signup');
+    console.log('1. Navigate to: http://localhost:4000/auth/signup');
     console.log('2. Fill in signup form with test data');
     console.log('3. Use test card: 4242 4242 4242 4242');
     console.log('4. Expiry: Any future date (e.g., 12/25)');
@@ -296,7 +296,7 @@ test.describe('Stripe API Integration Tests', () => {
     console.log('\n' + '='.repeat(60));
     console.log('⚠️  IMPORTANT: Stripe CLI must be running!');
     console.log('='.repeat(60));
-    console.log('\nRun: stripe listen --forward-to localhost:3000/api/stripe/webhook\n');
+    console.log('\nRun: stripe listen --forward-to localhost:4000/api/stripe/webhook\n');
   });
 
 });

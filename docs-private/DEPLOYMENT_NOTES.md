@@ -174,7 +174,7 @@ TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
 ```
 
 Then test:
-1. Visit `http://localhost:3000/auth/signup`
+1. Visit `http://localhost:4000/auth/signup`
 2. Turnstile widget should appear
 3. Submit form - should succeed
 4. Check terminal for `✅ Turnstile verification passed`

@@ -30,7 +30,7 @@ describe('POST /api/auth/check-signup-status', () => {
 
   describe('Non-existent User', () => {
     it('should return canResume: false for non-existent email', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email: generateTestEmail(testEmailPrefix),
@@ -57,7 +57,7 @@ describe('POST /api/auth/check-signup-status', () => {
         reservation_expires_at: reservationExpires,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -88,7 +88,7 @@ describe('POST /api/auth/check-signup-status', () => {
         reservation_expires_at: reservationExpires,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -122,7 +122,7 @@ describe('POST /api/auth/check-signup-status', () => {
         status: 'SUCCEEDED',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -151,7 +151,7 @@ describe('POST /api/auth/check-signup-status', () => {
         reservation_expires_at: reservationExpires,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -177,7 +177,7 @@ describe('POST /api/auth/check-signup-status', () => {
         reservation_expires_at: expiredDate,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -205,7 +205,7 @@ describe('POST /api/auth/check-signup-status', () => {
         ...createActiveUserData({ email }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -230,7 +230,7 @@ describe('POST /api/auth/check-signup-status', () => {
         ...createExpiredUserData({ email }),
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -248,7 +248,7 @@ describe('POST /api/auth/check-signup-status', () => {
 
   describe('Validation', () => {
     it('should reject missing email', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({}),
       });
@@ -258,7 +258,7 @@ describe('POST /api/auth/check-signup-status', () => {
     });
 
     it('should reject invalid email format', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email: 'invalid-email',
@@ -270,7 +270,7 @@ describe('POST /api/auth/check-signup-status', () => {
     });
 
     it('should reject empty email string', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email: '',
@@ -292,7 +292,7 @@ describe('POST /api/auth/check-signup-status', () => {
         reservation_expires_at: reservationExpires,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email: emailUpper,
@@ -319,7 +319,7 @@ describe('POST /api/auth/check-signup-status', () => {
         reservation_expires_at: reservationExpires,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -360,7 +360,7 @@ describe('POST /api/auth/check-signup-status', () => {
         stripe_checkout_session_id: 'cs_success_1',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -392,7 +392,7 @@ describe('POST /api/auth/check-signup-status', () => {
         status: 'FAILED',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-signup-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-signup-status', {
         method: 'POST',
         body: JSON.stringify({
           email,

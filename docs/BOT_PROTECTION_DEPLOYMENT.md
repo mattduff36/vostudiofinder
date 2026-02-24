@@ -102,7 +102,7 @@ This creates the `rate_limit_events` table with:
    ```
 
 3. Test signup flow:
-   - Visit `http://localhost:3000/auth/signup`
+   - Visit `http://localhost:4000/auth/signup`
    - Turnstile widget should appear
    - Submit form with valid data
    - Should see Turnstile verification in server logs

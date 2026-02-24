@@ -13,7 +13,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'http://localhost:4000';
 
 test.describe('Complete Signup Flow', () => {
   let page: Page;

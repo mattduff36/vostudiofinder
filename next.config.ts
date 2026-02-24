@@ -110,7 +110,7 @@ const nextConfig: NextConfig = {
   experimental: {
     // Enable server actions for admin forms
     serverActions: {
-      allowedOrigins: ['localhost:3000'],
+      allowedOrigins: ['localhost:4000'],
     },
   },
 };

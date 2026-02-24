@@ -2,7 +2,7 @@ module.exports = {
   ci: {
     collect: {
       // URL to test
-      url: ['http://localhost:3000'],
+      url: ['http://localhost:4000'],
       
       // Number of runs per URL
       numberOfRuns: 3,

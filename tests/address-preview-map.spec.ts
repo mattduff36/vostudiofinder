@@ -7,7 +7,7 @@
 import { test, expect } from '@playwright/test';
 
 // Test configuration
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:4000';
 
 test.describe('Address Preview Map - Desktop Only', () => {
   test.use({ viewport: { width: 1280, height: 720 } }); // Desktop viewport

@@ -86,7 +86,7 @@ More: https://stripe.com/docs/testing#cards
 
 ## 🔍 Useful Links
 
-- Local App: http://localhost:3000
+- Local App: http://localhost:4000
 - Stripe Dashboard: https://dashboard.stripe.com/test
 - Stripe Docs: https://stripe.com/docs
 

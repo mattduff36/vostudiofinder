@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Signup Route Guards', () => {
   test.describe('Unauthenticated users', () => {
     test('should be able to access /auth/signup in development', async ({ page }) => {
-      await page.goto('http://localhost:3000/auth/signup');
+      await page.goto('http://localhost:4000/auth/signup');
       
       // Should stay on signup page
       await expect(page).toHaveURL(/.*\/auth\/signup/);
@@ -15,14 +15,14 @@ test.describe('Signup Route Guards', () => {
     });
 
     test('should be able to access /auth/username-selection', async ({ page }) => {
-      await page.goto('http://localhost:3000/auth/username-selection?display_name=Test');
+      await page.goto('http://localhost:4000/auth/username-selection?display_name=Test');
       
       // Should stay on username selection page
       await expect(page).toHaveURL(/.*\/auth\/username-selection/);
     });
 
     test('should be redirected from /register to /auth/signup in development', async ({ page }) => {
-      await page.goto('http://localhost:3000/register');
+      await page.goto('http://localhost:4000/register');
       
       // Should redirect to signup
       await page.waitForURL(/.*\/auth\/signup/, { timeout: 5000 });
@@ -33,7 +33,7 @@ test.describe('Signup Route Guards', () => {
   test.describe('Authenticated admin users', () => {
     test.beforeEach(async ({ page }) => {
       // Authenticate as admin
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
@@ -43,7 +43,7 @@ test.describe('Signup Route Guards', () => {
     });
 
     test('should redirect from /auth/signup to /admin', async ({ page }) => {
-      await page.goto('http://localhost:3000/auth/signup');
+      await page.goto('http://localhost:4000/auth/signup');
       
       // Should redirect to admin
       await page.waitForURL(/.*\/admin/, { timeout: 5000 });
@@ -51,7 +51,7 @@ test.describe('Signup Route Guards', () => {
     });
 
     test('should redirect from /auth/username-selection to /admin', async ({ page }) => {
-      await page.goto('http://localhost:3000/auth/username-selection?display_name=Test');
+      await page.goto('http://localhost:4000/auth/username-selection?display_name=Test');
       
       // Should redirect to admin
       await page.waitForURL(/.*\/admin/, { timeout: 5000 });
@@ -59,7 +59,7 @@ test.describe('Signup Route Guards', () => {
     });
 
     test('should redirect from /register to /admin', async ({ page }) => {
-      await page.goto('http://localhost:3000/register');
+      await page.goto('http://localhost:4000/register');
       
       // Should redirect to admin
       await page.waitForURL(/.*\/admin/, { timeout: 5000 });
@@ -74,7 +74,7 @@ test.describe('Signup Route Guards', () => {
       ];
 
       for (const route of signupRoutes) {
-        await page.goto(`http://localhost:3000${route}`);
+        await page.goto(`http://localhost:4000${route}`);
         
         // Should redirect to admin for authenticated admin users
         await page.waitForURL(/.*\/admin/, { timeout: 5000 });
@@ -90,7 +90,7 @@ test.describe('Signup Route Guards', () => {
       // Email: matt.mpdee@gmail.com
       
       // Try to sign in with the test account
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'matt.mpdee@gmail.com');
       await page.fill('input[name="password"]', 'Test123!@#');
       
@@ -107,7 +107,7 @@ test.describe('Signup Route Guards', () => {
       
       // Only run this test if we successfully authenticated
       if (!currentUrl.includes('/auth/signin')) {
-        await page.goto('http://localhost:3000/auth/signup');
+        await page.goto('http://localhost:4000/auth/signup');
         
         // Should redirect to dashboard
         await page.waitForURL(/.*\/dashboard/, { timeout: 5000 });
@@ -121,7 +121,7 @@ test.describe('Signup Route Guards', () => {
       const currentUrl = page.url();
       
       if (!currentUrl.includes('/auth/signin')) {
-        await page.goto('http://localhost:3000/auth/username-selection?display_name=Test');
+        await page.goto('http://localhost:4000/auth/username-selection?display_name=Test');
         
         // Should redirect to dashboard
         await page.waitForURL(/.*\/dashboard/, { timeout: 5000 });
@@ -135,7 +135,7 @@ test.describe('Signup Route Guards', () => {
       const currentUrl = page.url();
       
       if (!currentUrl.includes('/auth/signin')) {
-        await page.goto('http://localhost:3000/register');
+        await page.goto('http://localhost:4000/register');
         
         // Should redirect to dashboard
         await page.waitForURL(/.*\/dashboard/, { timeout: 5000 });
@@ -149,7 +149,7 @@ test.describe('Signup Route Guards', () => {
   test.describe('Session persistence', () => {
     test('should maintain redirect behavior across page reloads', async ({ page }) => {
       // Authenticate as admin
-      await page.goto('http://localhost:3000/auth/signin');
+      await page.goto('http://localhost:4000/auth/signin');
       await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
       await page.fill('input[name="password"]', 'GuyM@tt2025!');
       await page.click('button[type="submit"]');
@@ -158,7 +158,7 @@ test.describe('Signup Route Guards', () => {
       await page.waitForURL(/.*\/admin/, { timeout: 10000 });
       
       // Try to access signup after authentication
-      await page.goto('http://localhost:3000/auth/signup');
+      await page.goto('http://localhost:4000/auth/signup');
       await page.waitForURL(/.*\/admin/, { timeout: 5000 });
       await expect(page).toHaveURL(/.*\/admin/);
       
@@ -166,7 +166,7 @@ test.describe('Signup Route Guards', () => {
       await page.reload();
       
       // Try again - should still redirect
-      await page.goto('http://localhost:3000/auth/signup');
+      await page.goto('http://localhost:4000/auth/signup');
       await page.waitForURL(/.*\/admin/, { timeout: 5000 });
       await expect(page).toHaveURL(/.*\/admin/);
     });

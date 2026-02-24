@@ -7,7 +7,7 @@ test.describe('Admin Security Testing', () => {
     // Authenticate as admin once for all security tests
     const context = await browser.newContext();
     const page = await context.newPage();
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     
     // Fill in admin credentials
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
@@ -35,7 +35,7 @@ test.describe('Admin Security Testing', () => {
     ];
 
     for (const query of maliciousQueries) {
-      const response = await request.post('http://localhost:3000/api/admin/query', {
+      const response = await request.post('http://localhost:4000/api/admin/query', {
         headers: {
           'Cookie': `next-auth.session-token=${authCookie}`,
           'Content-Type': 'application/json'
@@ -57,7 +57,7 @@ test.describe('Admin Security Testing', () => {
 
   test('should prevent XSS attacks in admin forms', async ({ page }) => {
     // Navigate to admin dashboard
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     
     // Try to inject XSS in various form fields
     const xssPayloads = [
@@ -69,7 +69,7 @@ test.describe('Admin Security Testing', () => {
     ];
 
     // Test XSS in FAQ form if available
-    await page.goto('http://localhost:3000/admin/faq');
+    await page.goto('http://localhost:4000/admin/faq');
     
     for (const payload of xssPayloads) {
       // Try to find form fields and inject payload
@@ -96,7 +96,7 @@ test.describe('Admin Security Testing', () => {
 
   test('should validate CSRF protection on admin endpoints', async ({ request }) => {
     // Test POST requests without proper CSRF token
-    const response = await request.post('http://localhost:3000/api/admin/faq', {
+    const response = await request.post('http://localhost:4000/api/admin/faq', {
       headers: {
         'Content-Type': 'application/json'
         // No CSRF token
@@ -117,7 +117,7 @@ test.describe('Admin Security Testing', () => {
     // Make multiple rapid requests to test rate limiting
     for (let i = 0; i < 20; i++) {
       requests.push(
-        request.get('http://localhost:3000/api/admin/dashboard', {
+        request.get('http://localhost:4000/api/admin/dashboard', {
           headers: {
             'Cookie': `next-auth.session-token=${authCookie}`
           }
@@ -135,7 +135,7 @@ test.describe('Admin Security Testing', () => {
   });
 
   test('should validate input sanitization in admin forms', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/faq');
+    await page.goto('http://localhost:4000/admin/faq');
     
     // Test various malicious inputs
     const maliciousInputs = [
@@ -164,7 +164,7 @@ test.describe('Admin Security Testing', () => {
   });
 
   test('should validate file upload security in admin interface', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     
     // Look for file upload inputs
     const fileInputs = page.locator('input[type="file"]');
@@ -190,21 +190,21 @@ test.describe('Admin Security Testing', () => {
 
   test('should validate session security and timeout', async ({ page }) => {
     // Login as admin
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
     await page.fill('input[name="password"]', 'GuyM@tt2025!');
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/dashboard/, { timeout: 10000 });
     
     // Navigate to admin dashboard
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     await expect(page).toHaveURL(/.*\/admin\/dashboard/);
     
     // Clear cookies to simulate session expiration
     await page.context().clearCookies();
     
     // Try to access admin page again
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     
     // Should redirect to signin
     await expect(page).toHaveURL(/.*\/auth\/signin/);
@@ -225,7 +225,7 @@ test.describe('Admin Security Testing', () => {
     ];
     
     for (const endpoint of adminEndpoints) {
-      const response = await request.get(`http://localhost:3000${endpoint}`);
+      const response = await request.get(`http://localhost:4000${endpoint}`);
       
       // Should require authentication
       expect([401, 403, 307, 200]).toContain(response.status());
@@ -246,7 +246,7 @@ test.describe('Admin Security Testing', () => {
     ];
     
     for (const route of adminRoutes) {
-      await page.goto(`http://localhost:3000${route}`);
+      await page.goto(`http://localhost:4000${route}`);
       
       // Should redirect to signin for unauthenticated users
       await expect(page).toHaveURL(/.*\/auth\/signin/);
@@ -254,7 +254,7 @@ test.describe('Admin Security Testing', () => {
   });
 
   test('should validate password security requirements', async ({ page }) => {
-    await page.goto('http://localhost:3000/auth/signup');
+    await page.goto('http://localhost:4000/auth/signup');
     
     // Test weak passwords
     const weakPasswords = [
@@ -288,7 +288,7 @@ test.describe('Admin Security Testing', () => {
     const page = await context.newPage();
     
     // Try to access admin routes as non-admin user
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     
     // Should redirect to unauthorized or signin
     await expect(page).toHaveURL(/.*\/auth\/signin|.*\/unauthorized/);
@@ -300,10 +300,10 @@ test.describe('Admin Security Testing', () => {
     // This test documents the expectation for HTTPS enforcement
     // In development, this might not be enforced
     
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     
     // Check for security headers
-    const response = await page.request.get('http://localhost:3000/admin/dashboard');
+    const response = await page.request.get('http://localhost:4000/admin/dashboard');
     const headers = response.headers();
     
     // Check for security headers (may not be present in development)
@@ -319,7 +319,7 @@ test.describe('Admin Security Testing', () => {
   });
 
   test('should validate admin API response security', async ({ request }) => {
-    const response = await request.get('http://localhost:3000/api/admin/dashboard', {
+    const response = await request.get('http://localhost:4000/api/admin/dashboard', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }

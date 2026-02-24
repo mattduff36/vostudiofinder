@@ -47,7 +47,7 @@ describe('POST /api/auth/check-verification-status', () => {
         data: { email_verified: true },
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -76,7 +76,7 @@ describe('POST /api/auth/check-verification-status', () => {
         data: { email_verified: true },
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
         method: 'POST',
         body: JSON.stringify({ email: upperEmail }),
       });
@@ -100,7 +100,7 @@ describe('POST /api/auth/check-verification-status', () => {
         status: UserStatus.PENDING,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -115,7 +115,7 @@ describe('POST /api/auth/check-verification-status', () => {
     it('should return false for non-existent user', async () => {
       const nonExistentEmail = `nonexistent_${Date.now()}@test.example.com`;
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
         method: 'POST',
         body: JSON.stringify({ email: nonExistentEmail }),
       });
@@ -131,7 +131,7 @@ describe('POST /api/auth/check-verification-status', () => {
 
   describe('Validation', () => {
     it('should reject request without email', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
         method: 'POST',
         body: JSON.stringify({}),
       });
@@ -144,7 +144,7 @@ describe('POST /api/auth/check-verification-status', () => {
     });
 
     it('should reject empty email', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
         method: 'POST',
         body: JSON.stringify({ email: '' }),
       });
@@ -157,7 +157,7 @@ describe('POST /api/auth/check-verification-status', () => {
     });
 
     it('should handle malformed JSON', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
         method: 'POST',
         body: 'invalid json',
       });
@@ -185,7 +185,7 @@ describe('POST /api/auth/check-verification-status', () => {
         data: { email_verified: true },
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -215,7 +215,7 @@ describe('POST /api/auth/check-verification-status', () => {
 
       // Make multiple rapid requests
       const requests = Array(5).fill(null).map(() => 
-        new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+        new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
           method: 'POST',
           body: JSON.stringify({ email }),
         })
@@ -242,7 +242,7 @@ describe('POST /api/auth/check-verification-status', () => {
       });
 
       // Check 1: Unverified
-      const request1 = new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+      const request1 = new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -260,7 +260,7 @@ describe('POST /api/auth/check-verification-status', () => {
       });
 
       // Check 2: Verified
-      const request2 = new NextRequest('http://localhost:3000/api/auth/check-verification-status', {
+      const request2 = new NextRequest('http://localhost:4000/api/auth/check-verification-status', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });

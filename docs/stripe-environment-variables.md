@@ -28,7 +28,7 @@ STRIPE_WEBHOOK_SECRET="whsec_..."
 ```
 **Source**: Stripe CLI when running `stripe listen`
 ```bash
-stripe listen --forward-to localhost:3000/api/stripe/webhook
+stripe listen --forward-to localhost:4000/api/stripe/webhook
 # Returns: whsec_...
 ```
 
@@ -108,7 +108,7 @@ npm run dev
 
 # Terminal 2: Start Stripe CLI
 stripe login
-stripe listen --forward-to localhost:3000/api/stripe/webhook
+stripe listen --forward-to localhost:4000/api/stripe/webhook
 ```
 Copy the webhook secret from Terminal 2 output to `.env.local`
 

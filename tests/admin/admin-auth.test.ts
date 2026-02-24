@@ -28,7 +28,7 @@ describe('Admin Authentication', () => {
 
   describe('Admin Route Protection', () => {
     it('should allow access to admin routes for ADMIN users', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/admin/dashboard');
+      // const _mockRequest = new NextRequest('http://localhost:4000/admin/dashboard');
       const mockToken = { role: 'ADMIN', id: 'admin-user-id' };
       
       // Mock the middleware to return success for admin users
@@ -44,7 +44,7 @@ describe('Admin Authentication', () => {
     });
 
     it('should deny access to admin routes for non-ADMIN users', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/admin/dashboard');
+      // const _mockRequest = new NextRequest('http://localhost:4000/admin/dashboard');
       const mockToken = { role: 'USER', id: 'regular-user-id' };
       
       // Mock the middleware to redirect non-admin users
@@ -63,7 +63,7 @@ describe('Admin Authentication', () => {
     });
 
     it('should redirect unauthenticated users to signin', async () => {
-      // const _mockRequest = new NextRequest('http://localhost:3000/admin/dashboard');
+      // const _mockRequest = new NextRequest('http://localhost:4000/admin/dashboard');
       
       // Mock the middleware to redirect unauthenticated users
       (withAuth as jest.Mock).mockImplementation((handler) => {
@@ -86,7 +86,7 @@ describe('Admin Authentication', () => {
 
   describe('Admin API Protection', () => {
     it('should allow access to admin API endpoints for ADMIN users', async () => {
-      // const mockRequest = new NextRequest('http://localhost:3000/api/admin/dashboard');
+      // const mockRequest = new NextRequest('http://localhost:4000/api/admin/dashboard');
       const mockToken = { role: 'ADMIN', id: 'admin-user-id' };
       
       // Test admin API access
@@ -94,7 +94,7 @@ describe('Admin Authentication', () => {
     });
 
     it('should deny access to admin API endpoints for non-ADMIN users', async () => {
-      // const mockRequest = new NextRequest('http://localhost:3000/api/admin/dashboard');
+      // const mockRequest = new NextRequest('http://localhost:4000/api/admin/dashboard');
       const mockToken = { role: 'USER', id: 'regular-user-id' };
       
       // Test non-admin API access denial

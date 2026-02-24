@@ -52,7 +52,7 @@ export function HeroSection() {
   const recalcScale = useCallback(() => {
     if (!contentRef.current) return;
     const viewportH = window.innerHeight;
-    const navH = window.innerWidth >= 768 ? 80 : 56; // md+ navbar is 80px, mobile is 56px
+    const navH = window.innerWidth >= 768 ? 72 : 64; // md+ navbar is 72px, mobile is 64px
     const dropdownOffset = parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue('--dropdown-offset') || '0'
     );

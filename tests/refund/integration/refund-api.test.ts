@@ -114,7 +114,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
     it('should return 403 if user is not authenticated', async () => {
       mockGetServerSession.mockResolvedValue(null);
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: 5000, reason: 'requested_by_customer' }),
       });
@@ -135,7 +135,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         },
       });
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: 5000, reason: 'requested_by_customer' }),
       });
@@ -150,7 +150,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
 
   describe('Validation', () => {
     it('should return 400 if amount is missing', async () => {
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ reason: 'requested_by_customer' }),
       });
@@ -163,7 +163,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
     });
 
     it('should return 400 if amount is zero', async () => {
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: 0, reason: 'requested_by_customer' }),
       });
@@ -176,7 +176,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
     });
 
     it('should return 400 if amount is negative', async () => {
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: -1000, reason: 'requested_by_customer' }),
       });
@@ -190,7 +190,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
 
     it('should return 404 if payment does not exist', async () => {
       const nonExistentId = generateTestId();
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${nonExistentId}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${nonExistentId}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: 5000, reason: 'requested_by_customer' }),
       });
@@ -215,7 +215,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         data: { stripe_payment_intent_id: null },
       });
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${paymentWithoutIntent.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${paymentWithoutIntent.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: 5000, reason: 'requested_by_customer' }),
       });
@@ -231,7 +231,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
     });
 
     it('should return 400 if refund amount exceeds available balance', async () => {
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: 15000, reason: 'requested_by_customer' }), // More than payment amount
       });
@@ -251,7 +251,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         refunded_amount: 3000, // Already refunded £30
       });
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${partiallyRefundedPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${partiallyRefundedPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: 8000, reason: 'requested_by_customer' }), // More than remaining £70
       });
@@ -278,7 +278,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
 
       (stripe.refunds.create as jest.Mock).mockResolvedValue(mockStripeRefund);
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: refundAmount, reason: 'requested_by_customer' }),
       });
@@ -334,7 +334,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         amount: firstRefund,
       });
 
-      const request1 = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request1 = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: firstRefund, reason: 'duplicate' }),
       });
@@ -349,7 +349,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         amount: secondRefund,
       });
 
-      const request2 = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request2 = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: secondRefund, reason: 'requested_by_customer' }),
       });
@@ -380,7 +380,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
 
       (stripe.refunds.create as jest.Mock).mockResolvedValue(mockStripeRefund);
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: refundAmount, reason: 'requested_by_customer' }),
       });
@@ -436,7 +436,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         amount: refundAmount,
       });
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: refundAmount, reason: 'requested_by_customer' }),
       });
@@ -478,7 +478,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         amount: refundAmount,
       });
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${pendingPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${pendingPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: refundAmount, reason: 'requested_by_customer' }),
       });
@@ -504,7 +504,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         amount: refundAmount,
       });
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: refundAmount, reason: 'requested_by_customer' }),
       });
@@ -527,7 +527,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         amount: refundAmount,
       });
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: refundAmount, reason: 'duplicate' }),
       });
@@ -550,7 +550,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         amount: refundAmount,
       });
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: refundAmount, reason: 'fraudulent' }),
       });
@@ -573,7 +573,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         amount: refundAmount,
       });
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: refundAmount }),
       });
@@ -595,7 +595,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
       (stripeError as any).type = 'StripeInvalidRequestError';
       (stripe.refunds.create as jest.Mock).mockRejectedValue(stripeError);
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: 5000, reason: 'requested_by_customer' }),
       });
@@ -610,7 +610,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
     it('should handle generic errors', async () => {
       (stripe.refunds.create as jest.Mock).mockRejectedValue(new Error('Generic error'));
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: 5000, reason: 'requested_by_customer' }),
       });
@@ -630,7 +630,7 @@ describe('POST /api/admin/payments/[id]/refund', () => {
         amount: refundAmount,
       });
 
-      const request = new NextRequest(`http://localhost:3000/api/admin/payments/${testPayment.id}/refund`, {
+      const request = new NextRequest(`http://localhost:4000/api/admin/payments/${testPayment.id}/refund`, {
         method: 'POST',
         body: JSON.stringify({ amount: refundAmount, reason: 'requested_by_customer' }),
       });

@@ -660,12 +660,13 @@ export function Navbar({ session }: NavbarProps) {
           role="menu"
           aria-label="Browse studios by type"
         >
-          <div className="px-6 py-4">
+          <div className="px-6 pt-1 pb-2 -mt-2">
             <CategoryFilterBar
               variant="compact"
               tone={isScrolled ? 'light' : 'dark'}
               labelMode={!isScrolled ? 'full' : 'short'}
               imageScale={!isScrolled ? 2 : 1}
+              dockEffect
             />
           </div>
         </div>,
@@ -700,6 +701,7 @@ export function Navbar({ session }: NavbarProps) {
               tone="dark"
               labelMode="short"
               imageScale={Math.max(0.75, (viewportWidth - 16) / 500)}
+              dockEffect
               className="!overflow-visible justify-center"
             />
           </div>

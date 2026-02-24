@@ -76,7 +76,7 @@ describe('Reserved Username Protection', () => {
 
   describe('Check Username API - Reserved Names', () => {
     it('should reject reserved username "admin"', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
         method: 'POST',
         body: JSON.stringify({
           username: 'admin',
@@ -93,7 +93,7 @@ describe('Reserved Username Protection', () => {
     });
 
     it('should reject reserved username "dashboard"', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
         method: 'POST',
         body: JSON.stringify({
           username: 'dashboard',
@@ -113,7 +113,7 @@ describe('Reserved Username Protection', () => {
       const reservedVariants = ['ADMIN', 'Admin', 'DashBoard', 'SETTINGS'];
 
       for (const username of reservedVariants) {
-        const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
           method: 'POST',
           body: JSON.stringify({
             username,
@@ -134,7 +134,7 @@ describe('Reserved Username Protection', () => {
       const validUsernames = ['johndoe', 'VoiceStudio', 'my_studio123'];
 
       for (const username of validUsernames) {
-        const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
           method: 'POST',
           body: JSON.stringify({
             username,
@@ -171,7 +171,7 @@ describe('Reserved Username Protection', () => {
       ];
 
       for (const route of criticalRoutes) {
-        const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
           method: 'POST',
           body: JSON.stringify({
             username: route,
@@ -198,7 +198,7 @@ describe('Reserved Username Protection', () => {
         display_name: 'Test User',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -223,7 +223,7 @@ describe('Reserved Username Protection', () => {
         display_name: 'Test User',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -251,7 +251,7 @@ describe('Reserved Username Protection', () => {
       const reservedVariants = ['ADMIN', 'Admin', 'API', 'Auth', 'SETTINGS'];
 
       for (const username of reservedVariants) {
-        const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
           method: 'POST',
           body: JSON.stringify({
             userId: user.id,
@@ -279,7 +279,7 @@ describe('Reserved Username Protection', () => {
 
       const validUsername = `valid_user_${Date.now()}`;
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reserve-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reserve-username', {
         method: 'POST',
         body: JSON.stringify({
           userId: user.id,
@@ -298,7 +298,7 @@ describe('Reserved Username Protection', () => {
 
   describe('Edge Cases', () => {
     it('should reject reserved names with underscores', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
         method: 'POST',
         body: JSON.stringify({
           username: '_admin_',
@@ -315,7 +315,7 @@ describe('Reserved Username Protection', () => {
       const partialMatches = ['admins', 'my_admin', 'adminuser', 'dashboard123'];
 
       for (const username of partialMatches) {
-        const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
           method: 'POST',
           body: JSON.stringify({
             username,
@@ -335,7 +335,7 @@ describe('Reserved Username Protection', () => {
       const systemWords = ['null', 'undefined', 'true', 'false', 'root', 'system'];
 
       for (const word of systemWords) {
-        const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
           method: 'POST',
           body: JSON.stringify({
             username: word,
@@ -357,7 +357,7 @@ describe('Reserved Username Protection', () => {
     it('should prevent routing conflict with /admin page', async () => {
       // If someone registered as "admin", they would create a username page at /admin
       // which would conflict with the actual /admin route
-      const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+      const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
         method: 'POST',
         body: JSON.stringify({
           username: 'admin',
@@ -377,7 +377,7 @@ describe('Reserved Username Protection', () => {
       const impersonationNames = ['support', 'help', 'contact', 'administrator'];
 
       for (const username of impersonationNames) {
-        const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
           method: 'POST',
           body: JSON.stringify({
             username,
@@ -398,7 +398,7 @@ describe('Reserved Username Protection', () => {
       const specialRoutes = ['api', '_next', 'favicon', 'robots', 'sitemap'];
 
       for (const route of specialRoutes) {
-        const request = new NextRequest('http://localhost:3000/api/auth/check-username', {
+        const request = new NextRequest('http://localhost:4000/api/auth/check-username', {
           method: 'POST',
           body: JSON.stringify({
             username: route,

@@ -53,7 +53,7 @@ describe('POST /api/auth/reset-password', () => {
       });
 
       // Try to reset password WITHOUT confirmPassword (the bug)
-      const request = new NextRequest('http://localhost:3000/api/auth/reset-password', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({
           token: resetToken,
@@ -91,7 +91,7 @@ describe('POST /api/auth/reset-password', () => {
       });
 
       const newPassword = 'NewPassword123!@#';
-      const request = new NextRequest('http://localhost:3000/api/auth/reset-password', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({
           token: resetToken,
@@ -132,7 +132,7 @@ describe('POST /api/auth/reset-password', () => {
         },
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reset-password', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({
           token: resetToken,
@@ -169,7 +169,7 @@ describe('POST /api/auth/reset-password', () => {
       });
 
       // Test weak password (no special character)
-      const request = new NextRequest('http://localhost:3000/api/auth/reset-password', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({
           token: resetToken,
@@ -189,7 +189,7 @@ describe('POST /api/auth/reset-password', () => {
 
   describe('Token Validation', () => {
     it('should reject invalid reset token', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/reset-password', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({
           token: 'invalid-token-12345',
@@ -224,7 +224,7 @@ describe('POST /api/auth/reset-password', () => {
         },
       });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/reset-password', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({
           token: resetToken,
@@ -243,7 +243,7 @@ describe('POST /api/auth/reset-password', () => {
 
   describe('Required Fields', () => {
     it('should require token field', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/reset-password', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({
           // token is missing
@@ -260,7 +260,7 @@ describe('POST /api/auth/reset-password', () => {
     });
 
     it('should require password field', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/reset-password', {
+      const request = new NextRequest('http://localhost:4000/api/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({
           token: 'some-token',

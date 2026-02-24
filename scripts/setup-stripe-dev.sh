@@ -24,13 +24,62 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration
-PORT="${PORT:-3000}"
-WEBHOOK_URL="localhost:${PORT}/api/stripe/webhook"
+ENV_FILE=".env.local"
+DEFAULT_PORT=4000
+
+# Resolve local port for webhook forwarding.
+# Precedence:
+#  1) PORT env var (explicit)
+#  2) PORT in .env.local
+#  3) Port parsed from NEXTAUTH_URL in .env.local
+#  4) DEFAULT_PORT
+resolve_port() {
+    # Explicit PORT wins
+    if [ -n "${PORT:-}" ]; then
+        echo "$PORT"
+        return 0
+    fi
+
+    local file_port
+    file_port=$(
+        grep -E '^PORT=' "$ENV_FILE" 2>/dev/null \
+            | tail -n 1 \
+            | cut -d'=' -f2- \
+            | tr -d '"' \
+            | tr -d "'" \
+            | sed -E 's/[[:space:]]*#.*$//' \
+            | sed -E 's/[^0-9].*$//'
+    )
+    if [ -n "$file_port" ]; then
+        echo "$file_port"
+        return 0
+    fi
+
+    local nextauth_url
+    nextauth_url=$(
+        grep -E '^NEXTAUTH_URL=' "$ENV_FILE" 2>/dev/null \
+            | tail -n 1 \
+            | cut -d'=' -f2- \
+            | tr -d '"' \
+            | tr -d "'" \
+            | sed -E 's/[[:space:]]*#.*$//'
+    )
+    if [ -n "$nextauth_url" ]; then
+        local port_from_url
+        port_from_url=$(echo "$nextauth_url" | sed -nE 's|^[a-zA-Z]+://[^/:]+:([0-9]+).*|\1|p')
+        if [ -n "$port_from_url" ]; then
+            echo "$port_from_url"
+            return 0
+        fi
+    fi
+
+    echo "$DEFAULT_PORT"
+}
+
 PRODUCT_NAME="Annual Membership"
 PRODUCT_DESCRIPTION="Annual membership for VoiceoverStudioFinder platform"
 PRICE_AMOUNT="2500"  # £25.00 in pence
 PRICE_CURRENCY="gbp"
-ENV_FILE=".env.local"
 LISTENER_LOG="stripe-listener.log"
 START_DEV=false
 
@@ -136,6 +185,10 @@ else
     cp "$ENV_FILE" "$BACKUP_FILE"
     print_status "Backup created: $BACKUP_FILE"
 fi
+
+PORT="$(resolve_port)"
+WEBHOOK_URL="localhost:${PORT}/api/stripe/webhook"
+print_info "Webhook forwarding target: $WEBHOOK_URL"
 
 # Stop any existing Stripe listeners
 print_header "🛑 Stopping existing Stripe listeners"

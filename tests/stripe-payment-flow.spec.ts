@@ -14,13 +14,13 @@ import { test, expect, Page } from '@playwright/test';
  * - Refund flow
  * 
  * Prerequisites:
- * - Dev server running on localhost:3000
- * - Stripe CLI listening: stripe listen --forward-to localhost:3000/api/stripe/webhook
+ * - Dev server running on localhost:4000
+ * - Stripe CLI listening: stripe listen --forward-to localhost:4000/api/stripe/webhook
  * - Test environment variables configured in .env.local
  */
 
 // Test configuration
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'http://localhost:4000';
 const TEST_USERS = [
   {
     name: 'Test User One',

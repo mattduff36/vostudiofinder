@@ -12,7 +12,7 @@ test.describe('Database Migration and Data Integrity', () => {
     const page = await context.newPage();
     
     // Navigate to signin page
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     
     // Fill in admin credentials
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');

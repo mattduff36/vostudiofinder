@@ -7,7 +7,7 @@ test.describe('Admin Performance Testing', () => {
     // Authenticate as admin once for all performance tests
     const context = await browser.newContext();
     const page = await context.newPage();
-    await page.goto('http://localhost:3000/auth/signin');
+    await page.goto('http://localhost:4000/auth/signin');
     
     // Fill in admin credentials
     await page.fill('input[name="email"]', 'admin@mpdee.co.uk');
@@ -28,7 +28,7 @@ test.describe('Admin Performance Testing', () => {
   test('should load admin dashboard within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
@@ -44,7 +44,7 @@ test.describe('Admin Performance Testing', () => {
   test('should load admin studios page within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
@@ -60,7 +60,7 @@ test.describe('Admin Performance Testing', () => {
   test('should load admin FAQ page within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto('http://localhost:3000/admin/faq');
+    await page.goto('http://localhost:4000/admin/faq');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
@@ -76,7 +76,7 @@ test.describe('Admin Performance Testing', () => {
   test('should load admin analytics page within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto('http://localhost:3000/admin/analytics');
+    await page.goto('http://localhost:4000/admin/analytics');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
@@ -92,7 +92,7 @@ test.describe('Admin Performance Testing', () => {
   test('should load admin network page within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto('http://localhost:3000/admin/network');
+    await page.goto('http://localhost:4000/admin/network');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
@@ -108,7 +108,7 @@ test.describe('Admin Performance Testing', () => {
   test('should load admin query page within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto('http://localhost:3000/admin/query');
+    await page.goto('http://localhost:4000/admin/query');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
@@ -124,7 +124,7 @@ test.describe('Admin Performance Testing', () => {
   test('should load admin schema page within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto('http://localhost:3000/admin/schema');
+    await page.goto('http://localhost:4000/admin/schema');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
@@ -140,7 +140,7 @@ test.describe('Admin Performance Testing', () => {
   test('should load admin venues page within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto('http://localhost:3000/admin/venues');
+    await page.goto('http://localhost:4000/admin/venues');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
@@ -156,7 +156,7 @@ test.describe('Admin Performance Testing', () => {
   test('should load admin browse page within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto('http://localhost:3000/admin/browse');
+    await page.goto('http://localhost:4000/admin/browse');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
@@ -184,7 +184,7 @@ test.describe('Admin Performance Testing', () => {
     for (const endpoint of adminEndpoints) {
       const startTime = Date.now();
       
-      const response = await request.get(`http://localhost:3000${endpoint}`, {
+      const response = await request.get(`http://localhost:4000${endpoint}`, {
         headers: {
           'Cookie': `next-auth.session-token=${authCookie}`
         }
@@ -209,7 +209,7 @@ test.describe('Admin Performance Testing', () => {
     // Make concurrent requests to admin dashboard
     for (let i = 0; i < concurrentRequests; i++) {
       requests.push(
-        request.get('http://localhost:3000/api/admin/dashboard', {
+        request.get('http://localhost:4000/api/admin/dashboard', {
           headers: {
             'Cookie': `next-auth.session-token=${authCookie}`
           }
@@ -236,7 +236,7 @@ test.describe('Admin Performance Testing', () => {
     const startTime = Date.now();
     
     // Query a large dataset
-    const response = await request.get('http://localhost:3000/api/admin/browse?table=User&limit=100', {
+    const response = await request.get('http://localhost:4000/api/admin/browse?table=User&limit=100', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`
       }
@@ -256,7 +256,7 @@ test.describe('Admin Performance Testing', () => {
     const startTime = Date.now();
     
     // Execute a complex query
-    const response = await request.post('http://localhost:3000/api/admin/query', {
+    const response = await request.post('http://localhost:4000/api/admin/query', {
       headers: {
         'Cookie': `next-auth.session-token=${authCookie}`,
         'Content-Type': 'application/json'
@@ -278,7 +278,7 @@ test.describe('Admin Performance Testing', () => {
   });
 
   test('should maintain performance during admin form submissions', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/faq');
+    await page.goto('http://localhost:4000/admin/faq');
     
     // Fill out a form
     const questionField = page.locator('input[name="question"], textarea[name="question"]').first();
@@ -326,7 +326,7 @@ test.describe('Admin Performance Testing', () => {
     for (const pagePath of adminPages) {
       const startTime = Date.now();
       
-      await page.goto(`http://localhost:3000${pagePath}`);
+      await page.goto(`http://localhost:4000${pagePath}`);
       await page.waitForLoadState('networkidle');
       
       const navigationTime = Date.now() - startTime;
@@ -346,7 +346,7 @@ test.describe('Admin Performance Testing', () => {
   });
 
   test('should handle admin search functionality efficiently', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     
     // Look for search input
     const searchInput = page.locator('input[type="search"], input[placeholder*="search"], input[name*="search"]').first();
@@ -369,7 +369,7 @@ test.describe('Admin Performance Testing', () => {
   });
 
   test('should handle admin data filtering efficiently', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     
     // Look for filter controls
     const filterSelect = page.locator('select, input[type="checkbox"], input[type="radio"]').first();
@@ -391,7 +391,7 @@ test.describe('Admin Performance Testing', () => {
   });
 
   test('should handle admin pagination efficiently', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     
     // Look for pagination controls
     const nextPageButton = page.locator('button:has-text("Next"), button:has-text(">"), a:has-text("Next"), a:has-text(">")').first();
@@ -412,7 +412,7 @@ test.describe('Admin Performance Testing', () => {
   });
 
   test('should handle admin bulk operations efficiently', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     
     // Look for bulk operation controls
     const selectAllCheckbox = page.locator('input[type="checkbox"][name*="select"], input[type="checkbox"][id*="select"]').first();
@@ -433,7 +433,7 @@ test.describe('Admin Performance Testing', () => {
   });
 
   test('should handle admin export functionality efficiently', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     
     // Look for export button
     const exportButton = page.locator('button:has-text("Export"), button:has-text("Download"), a:has-text("Export"), a:has-text("Download")').first();
@@ -456,7 +456,7 @@ test.describe('Admin Performance Testing', () => {
   });
 
   test('should handle admin import functionality efficiently', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/studios');
+    await page.goto('http://localhost:4000/admin/studios');
     
     // Look for import button
     const importButton = page.locator('button:has-text("Import"), button:has-text("Upload"), a:has-text("Import"), a:has-text("Upload")').first();
@@ -479,7 +479,7 @@ test.describe('Admin Performance Testing', () => {
   });
 
   test('should handle admin real-time updates efficiently', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     
     // Monitor for real-time updates
     const startTime = Date.now();
@@ -510,7 +510,7 @@ test.describe('Admin Performance Testing', () => {
     ];
     
     for (const pagePath of adminPages) {
-      await page.goto(`http://localhost:3000${pagePath}`);
+      await page.goto(`http://localhost:4000${pagePath}`);
       await page.waitForLoadState('networkidle');
       
       // Wait a bit between page loads
@@ -518,7 +518,7 @@ test.describe('Admin Performance Testing', () => {
     }
     
     // Navigate back to dashboard
-    await page.goto('http://localhost:3000/admin/dashboard');
+    await page.goto('http://localhost:4000/admin/dashboard');
     await page.waitForLoadState('networkidle');
     
     // Page should still be responsive

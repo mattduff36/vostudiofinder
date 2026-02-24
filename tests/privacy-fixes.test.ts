@@ -9,7 +9,7 @@ import { describe, it, expect } from '@jest/globals';
 global.fetch = global.fetch || require('node-fetch');
 
 describe('Privacy Fixes - Address Exposure', () => {
-  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:4000';
 
   describe('Search Suggestions API', () => {
     it('should return abbreviated_address instead of full_address', async () => {

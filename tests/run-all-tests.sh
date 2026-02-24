@@ -16,7 +16,7 @@ echo ""
 
 # Check if dev server is running
 echo "Checking if dev server is running..."
-if ! curl -s http://localhost:3000 > /dev/null 2>&1; then
+if ! curl -s http://localhost:4000 > /dev/null 2>&1; then
     echo -e "${YELLOW}Dev server not running. Starting it...${NC}"
     npm run dev &
     DEV_PID=$!
