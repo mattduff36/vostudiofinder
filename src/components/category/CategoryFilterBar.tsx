@@ -93,7 +93,7 @@ export function CategoryFilterBar({
     ];
 
     if (variantType === 'compact') {
-      const padding = 'px-3 py-2';
+      const padding = dockEffect ? 'px-3 pt-0 pb-1' : 'px-3 py-2';
       return [...baseClasses, `flex flex-col items-center gap-1.5 ${padding} min-w-[72px] rounded-xl`].join(' ');
     } else if (variantType === 'pill') {
       const borderColor = isDark ? 'border-white/20' : 'border-gray-300';

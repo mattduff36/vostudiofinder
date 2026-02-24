@@ -117,7 +117,7 @@ export function StudiosPage() {
   
   // Mobile-only: Smooth scroll-driven animation to sync with top navbar
   const { translateY: navTranslateY } = useScrollDrivenNav({ 
-    navHeight: 64, // Mobile navbar height (matches top-16 = 4rem = 64px)
+    navHeight: 56, // Mobile navbar height (matches top-14 = 3.5rem = 56px)
     scrollThreshold: 3,
     enabled: isMobile
   });

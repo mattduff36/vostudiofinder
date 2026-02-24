@@ -197,7 +197,7 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
           {/* Menu Panel - Positioned below navbar, narrower width */}
           <div 
             ref={menuRef}
-            className="absolute top-16 right-4 w-64 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[80vh] overflow-y-auto"
+            className="absolute top-14 right-4 w-64 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[80vh] overflow-y-auto"
             role="menu"
             aria-orientation="vertical"
           >

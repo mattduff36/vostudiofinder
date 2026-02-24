@@ -52,7 +52,7 @@ export function HeroSection() {
   const recalcScale = useCallback(() => {
     if (!contentRef.current) return;
     const viewportH = window.innerHeight;
-    const navH = window.innerWidth >= 768 ? 72 : 64; // md+ navbar is 72px, mobile is 64px
+    const navH = window.innerWidth >= 768 ? 72 : 56; // md+ navbar is 72px, mobile is 56px (see docs/NAVBAR_HEIGHT_REFERENCE.md)
     const dropdownOffset = parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue('--dropdown-offset') || '0'
     );

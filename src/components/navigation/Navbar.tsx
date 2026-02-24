@@ -660,7 +660,7 @@ export function Navbar({ session }: NavbarProps) {
           role="menu"
           aria-label="Browse studios by type"
         >
-          <div className="px-6 pt-1 pb-2 -mt-2">
+          <div className="px-6 pt-0 pb-1 -mt-2">
             <CategoryFilterBar
               variant="compact"
               tone={isScrolled ? 'light' : 'dark'}
@@ -695,7 +695,7 @@ export function Navbar({ session }: NavbarProps) {
           role="menu"
           aria-label="Browse studios by type"
         >
-          <div className="px-2 py-3">
+          <div className="px-2 pt-0 pb-1">
             <CategoryFilterBar
               variant="compact"
               tone="dark"

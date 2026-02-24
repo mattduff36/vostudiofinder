@@ -41,7 +41,7 @@ export function DashboardContent({ dashboardData, initialProfileData, activeTab 
   
   // Mobile-only: Smooth scroll-driven animation to sync with top navbar
   const { translateY: navTranslateY } = useScrollDrivenNav({ 
-    navHeight: 64, // Mobile navbar height (matches top-16 = 4rem = 64px)
+    navHeight: 56, // Mobile navbar height (matches top-14 = 3.5rem = 56px)
     scrollThreshold: 3,
     enabled: isMobile
   });
@@ -129,7 +129,7 @@ export function DashboardContent({ dashboardData, initialProfileData, activeTab 
 
       {/* Content */}
       <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 ${
-        // Mobile: the fixed back-button sits at `top-16` and is ~48px tall.
+        // Mobile: when shown, the fixed back-button sits below the navbar and takes vertical space.
         // Use `pt-14` to give a small visual gap (~8px) between the back bar and the first content (e.g. progress strip).
         // Desktop: pb-32 to clear the fixed footer at the bottom.
         activeTab === 'overview' ? 'py-0 md:py-8 md:pb-32' : 'pt-14 pb-8 md:py-8 md:pb-32'
