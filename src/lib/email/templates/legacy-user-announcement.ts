@@ -86,7 +86,7 @@ export function generateLegacyUserAnnouncementEmail({
                 <tr>
                   <td align="center" style="padding: 0;">
                     <!-- Hero Image with proper aspect ratio control -->
-                    <img src="https://voiceoverstudiofinder.com/images/its-back-voiceover-studio-finder-email-header.png" alt="It's back... Voiceover Studio Finder - Professional Voiceover, Podcast & Broadcast Studios Worldwide. Verified locations. No commission. Direct studio contact." width="600" style="display: block; width: 100%; max-width: 600px; height: auto; margin: 0; padding: 0; border: 0; outline: none; line-height: 100%; -ms-interpolation-mode: bicubic;" />
+                    <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-its-back-banner-og2.png" alt="It's back... Voiceover Studio Finder - Professional Voiceover, Podcast & Broadcast Studios Worldwide. Verified locations. No commission. Direct studio contact." width="600" style="display: block; width: 100%; max-width: 600px; height: auto; margin: 0; padding: 0; border: 0; outline: none; line-height: 100%; -ms-interpolation-mode: bicubic;" />
                   </td>
                 </tr>
               </table>

@@ -132,9 +132,14 @@ export function renderHeroLayout(props: HeroLayoutProps): { html: string; text: 
     .split('\n')
     .map(line => {
       const escaped = escapeHtml(line);
-      // Convert email links
-      const withLinks = escaped.replace(
-        /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
+      // Convert URLs to clickable links
+      const withUrls = escaped.replace(
+        /(https?:\/\/[^\s<]+)/g,
+        '<a href="$1" style="color: #d42027; text-decoration: underline; word-break: break-all;">$1</a>'
+      );
+      // Convert email addresses to mailto links (only those not already inside an href)
+      const withLinks = withUrls.replace(
+        /(?<!["=])([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
         '<a href="mailto:$1" style="color: #d42027; text-decoration: underline;">$1</a>'
       );
       return `              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">${withLinks}</p>`;

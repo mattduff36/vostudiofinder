@@ -482,7 +482,7 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
     layout: 'HERO',
     isMarketing: true,
     isSystem: false,
-    heroImageUrl: 'https://voiceoverstudiofinder.com/images/its-back-voiceover-studio-finder-email-header.png',
+    heroImageUrl: 'https://voiceoverstudiofinder.com/images/voiceover-studio-finder-its-back-banner-og2.png',
     heroImageAlt: 'It\'s back... Voiceover Studio Finder - Professional Voiceover, Podcast & Broadcast Studios Worldwide',
     subject: 'Voiceover Studio Finder is back — and your Premium membership is waiting',
     preheader: 'Six months of free Premium membership starts the moment you sign in.',
