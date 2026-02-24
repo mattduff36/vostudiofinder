@@ -215,8 +215,9 @@ export default function CampaignDetailPage() {
   const defaultStatus = { color: 'bg-gray-100 text-gray-700', icon: Clock, label: 'Draft' };
   const statusCfg = STATUS_CONFIG[campaign.status] || defaultStatus;
   const StatusIcon = statusCfg.icon;
+  const processed = (deliveryStats?.sent || 0) + (deliveryStats?.failed || 0) + (deliveryStats?.bounced || 0);
   const progress = campaign.recipient_count > 0
-    ? Math.round(((campaign.sent_count + campaign.failed_count) / campaign.recipient_count) * 100)
+    ? Math.round((processed / campaign.recipient_count) * 100)
     : 0;
 
   return (
