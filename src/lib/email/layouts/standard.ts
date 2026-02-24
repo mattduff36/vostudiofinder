@@ -18,6 +18,7 @@ export interface StandardLayoutProps {
   ctaSecondaryLabel?: string;
   ctaSecondaryUrl?: string;
   footerText?: string;
+  unsubscribeUrl?: string;
 }
 
 /**
@@ -114,6 +115,7 @@ export function renderStandardLayout(props: StandardLayoutProps): { html: string
     ctaSecondaryLabel,
     ctaSecondaryUrl,
     footerText,
+    unsubscribeUrl,
   } = props;
 
   const escapedHeading = escapeHtml(heading);
@@ -175,6 +177,7 @@ ${renderButton(ctaSecondaryLabel, ctaSecondaryUrl, '#22c55e')}
 ` : ''}          <tr>
             <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
 ${footerHtml}
+${unsubscribeUrl ? `              <p style="margin: 16px 0 0 0; font-size: 12px; color: #999999; line-height: 1.6;"><a href="${escapeHtml(unsubscribeUrl)}" style="color: #999999; text-decoration: underline;">Click here to unsubscribe</a></p>` : ''}
             </td>
           </tr>
         </table>
@@ -195,13 +198,15 @@ ${footerHtml}
     ctaSecondaryLabel && ctaSecondaryUrl ? `\n${ctaSecondaryLabel}:\n${ctaSecondaryUrl}` : '',
   ].filter(Boolean).join('\n');
 
+  const unsubscribeText = unsubscribeUrl ? `\n\nTo unsubscribe: ${unsubscribeUrl}` : '';
+
   const text = `
 ${heading}
 
 ${textParagraphs}${textBullets}${textCtas}
 
 ---
-${finalFooter}
+${finalFooter}${unsubscribeText}
   `.trim();
 
   return { html, text };

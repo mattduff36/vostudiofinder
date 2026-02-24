@@ -33,7 +33,8 @@ export default function TestSendPage() {
         userEmail: recipientEmail,
         verificationUrl: 'https://voiceoverstudiofinder.com/verify/test',
         resetUrl: 'https://voiceoverstudiofinder.com/reset/test',
-        resetPasswordUrl: 'https://voiceoverstudiofinder.com/reset/test', // Required by legacy-user-announcement
+        resetPasswordUrl: 'https://voiceoverstudiofinder.com/reset/test',
+        profileUrl: 'https://voiceoverstudiofinder.com/testuser',
         signupUrl: 'https://voiceoverstudiofinder.com/signup',
         customerName: 'Test Customer',
         amount: '10.00',

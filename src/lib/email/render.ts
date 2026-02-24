@@ -146,11 +146,8 @@ export async function renderEmailTemplate(
   const ctaSecondaryUrl = template.ctaSecondaryUrl ? substituteVariables(template.ctaSecondaryUrl, variables) : undefined;
   let footerText = template.footerText ? substituteVariables(template.footerText, variables) : undefined;
   
-  // Add unsubscribe link for marketing emails
-  if (options.includeUnsubscribe && options.unsubscribeUrl) {
-    const unsubscribeLine = `\nUnsubscribe: ${options.unsubscribeUrl}`;
-    footerText = (footerText || '') + unsubscribeLine;
-  }
+  // Unsubscribe URL is passed separately to the layout renderer
+  // so it can be displayed as a clean "Click here to unsubscribe" link
   
   // Render using appropriate layout
   let rendered: { html: string; text: string };
@@ -174,6 +171,7 @@ export async function renderEmailTemplate(
     if (ctaSecondaryLabel) heroProps.ctaSecondaryLabel = ctaSecondaryLabel;
     if (ctaSecondaryUrl) heroProps.ctaSecondaryUrl = ctaSecondaryUrl;
     if (footerText) heroProps.footerText = footerText;
+    if (options.includeUnsubscribe && options.unsubscribeUrl) heroProps.unsubscribeUrl = options.unsubscribeUrl;
     
     rendered = renderHeroLayout(heroProps);
   } else {
@@ -190,6 +188,7 @@ export async function renderEmailTemplate(
     if (ctaSecondaryLabel) standardProps.ctaSecondaryLabel = ctaSecondaryLabel;
     if (ctaSecondaryUrl) standardProps.ctaSecondaryUrl = ctaSecondaryUrl;
     if (footerText) standardProps.footerText = footerText;
+    if (options.includeUnsubscribe && options.unsubscribeUrl) standardProps.unsubscribeUrl = options.unsubscribeUrl;
     
     rendered = renderStandardLayout(standardProps);
   }
