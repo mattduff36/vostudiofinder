@@ -64,6 +64,7 @@ export default function PreviewPage() {
         profileCompletion: 95,
         studioUrl: 'https://voiceoverstudiofinder.com/johndoe',
         adminDashboardUrl: 'https://voiceoverstudiofinder.com/admin',
+        profileUrl: 'https://voiceoverstudiofinder.com/johndoe',
       };
 
       const res = await fetch('/api/admin/emails/preview', {
