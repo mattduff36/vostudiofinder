@@ -13,7 +13,7 @@ import { config } from 'dotenv';
 import * as path from 'path';
 import Stripe from 'stripe';
 
-config({ path: path.resolve(process.cwd(), '.env.production') });
+config({ path: path.resolve(process.cwd(), '.env.production'), override: true });
 
 if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL not found in .env.production');
