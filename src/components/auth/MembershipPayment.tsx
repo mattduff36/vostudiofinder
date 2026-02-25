@@ -605,6 +605,9 @@ export function MembershipPayment() {
                       amount="£25"
                       buttonText={autoRenew ? 'Pay £25/year' : 'Pay £25 once'}
                     />
+                    <p className="text-[11px] text-gray-400 text-center mt-1">
+                      A receipt will be emailed to {email || 'your email'} after payment.
+                    </p>
                   </div>
                 </>
               )}

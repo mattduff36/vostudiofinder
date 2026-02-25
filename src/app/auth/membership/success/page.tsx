@@ -807,6 +807,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
         completionPercentage={completionPercentage}
         requiredFields={requiredFieldsWithStatus}
         optionalFields={optionalFieldsWithStatus}
+        sessionId={params.session_id}
       />
     </AutoLoginAfterPayment>
   );

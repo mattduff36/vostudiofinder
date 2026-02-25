@@ -116,7 +116,11 @@ export async function POST(request: NextRequest) {
           ui_mode: 'custom',
           return_url: `${baseUrl}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
           metadata,
-          payment_intent_data: { metadata },
+          payment_intent_data: {
+            metadata,
+            receipt_email: email,
+          },
+          invoice_creation: { enabled: true },
           allow_promotion_codes: true,
         });
 

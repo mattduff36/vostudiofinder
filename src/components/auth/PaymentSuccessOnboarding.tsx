@@ -8,6 +8,7 @@ import { AnimatedFieldCard } from '@/components/onboarding/AnimatedFieldCard';
 import { ProfileTipsGrid } from '@/components/onboarding/ProfileTipsGrid';
 import { SecurityPrivacySection } from '@/components/onboarding/SecurityPrivacySection';
 import { FloatingActionBar } from '@/components/onboarding/FloatingActionBar';
+import { ReceiptLink } from '@/components/billing/ReceiptLink';
 
 interface ProfileField {
   name: string;
@@ -23,6 +24,7 @@ interface PaymentSuccessOnboardingProps {
   completionPercentage: number;
   requiredFields: ProfileField[];
   optionalFields: ProfileField[];
+  sessionId?: string;
 }
 
 export function PaymentSuccessOnboarding({
@@ -30,6 +32,7 @@ export function PaymentSuccessOnboarding({
   completionPercentage,
   requiredFields,
   optionalFields,
+  sessionId,
 }: PaymentSuccessOnboardingProps) {
   const completedRequired = requiredFields.filter(f => f.completed).length;
   const totalRequired = requiredFields.length;
@@ -67,6 +70,15 @@ export function PaymentSuccessOnboarding({
             totalRequiredFields={totalRequired}
             overallCompletionPercentage={completionPercentage}
           />
+
+          {sessionId && (
+            <div className="flex justify-center -mt-4">
+              <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm border border-gray-100">
+                <span className="text-sm text-gray-500 mr-2">Payment confirmed.</span>
+                <ReceiptLink sessionId={sessionId} />
+              </div>
+            </div>
+          )}
 
           {/* Quick Start Guide */}
           <QuickStartGuide allRequiredComplete={allRequiredComplete} />

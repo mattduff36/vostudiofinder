@@ -105,7 +105,7 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
     layout: 'STANDARD',
     isMarketing: false,
     isSystem: true,
-    subject: 'Payment received',
+    subject: 'Payment received — here\'s your receipt',
     heading: 'Payment received',
     bodyParagraphs: [
       'We\'ve successfully processed your payment. Your Premium membership is now active.',
@@ -113,6 +113,7 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
       'Payment ID: {{paymentId}}',
       'Plan: {{planName}}',
       'Next billing date: {{nextBillingDate}}',
+      'A receipt from Stripe has also been sent to your email. You can view and download your receipts anytime from your dashboard under Payment History.',
     ],
     ctaPrimaryLabel: 'View dashboard',
     ctaPrimaryUrl: 'https://voiceoverstudiofinder.com/dashboard',
