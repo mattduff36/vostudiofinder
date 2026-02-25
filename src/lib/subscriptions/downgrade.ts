@@ -13,7 +13,7 @@ import { getBaseUrl } from '@/lib/seo/site';
  * Perform downgrade from Premium to Basic for a user.
  * Idempotent: safe to call multiple times (no-op if already BASIC).
  */
-export async function performDowngrade(userId: string): Promise<{ downgraded: boolean; error?: string }> {
+export async function performDowngrade(userId: string): Promise<{ downgraded: boolean; voiceoverRemoved?: boolean; error?: string }> {
   try {
     const user = await db.users.findUnique({
       where: { id: userId },
@@ -39,6 +39,8 @@ export async function performDowngrade(userId: string): Promise<{ downgraded: bo
     const studioId = user.studio_profiles?.id;
     const now = new Date();
 
+    let voiceoverRemoved = false;
+
     await db.$transaction(async (tx) => {
       // 1. Set membership_tier to BASIC
       await tx.users.update({
@@ -47,7 +49,16 @@ export async function performDowngrade(userId: string): Promise<{ downgraded: bo
       });
 
       if (studioId) {
-        // 2. Remove Premium visibility flags
+        // 2. Check for VOICEOVER type before profile update
+        const studioTypes = await tx.studio_studio_types.findMany({
+          where: { studio_id: studioId },
+          select: { studio_type: true },
+        });
+        const hasVoiceover = studioTypes.some((t) => t.studio_type === 'VOICEOVER');
+
+        // 3. Remove Premium visibility flags.
+        //    If VOICEOVER is being reverted, also hide the profile so the user
+        //    must manually re-enable visibility as a Home Studio.
         await tx.studio_profiles.update({
           where: { id: studioId },
           data: {
@@ -57,25 +68,21 @@ export async function performDowngrade(userId: string): Promise<{ downgraded: bo
             is_featured: false,
             featured_until: null,
             is_premium: false,
+            ...(hasVoiceover && { is_profile_visible: false }),
             updated_at: now,
           },
         });
 
-        // 3. Revert VOICEOVER to HOME if needed
-        const studioTypes = await tx.studio_studio_types.findMany({
-          where: { studio_id: studioId },
-          select: { studio_type: true },
-        });
-
-        const hasVoiceover = studioTypes.some((t) => t.studio_type === 'VOICEOVER');
+        // 4. Revert VOICEOVER to HOME if needed
         if (hasVoiceover) {
+          voiceoverRemoved = true;
+
           await tx.studio_studio_types.deleteMany({
             where: {
               studio_id: studioId,
               studio_type: 'VOICEOVER',
             },
           });
-          // If VOICEOVER was the only type, add HOME
           const remaining = studioTypes.filter((t) => t.studio_type !== 'VOICEOVER');
           if (remaining.length === 0) {
             const { randomBytes } = await import('crypto');
@@ -90,7 +97,7 @@ export async function performDowngrade(userId: string): Promise<{ downgraded: bo
         }
       }
 
-      // 4. Clear custom meta title (Premium advanced SEO feature)
+      // 5. Clear custom meta title (Premium advanced SEO feature)
       await tx.user_metadata.deleteMany({
         where: {
           user_id: userId,
@@ -119,8 +126,8 @@ export async function performDowngrade(userId: string): Promise<{ downgraded: bo
       console.error('[Downgrade] Confirmation email failed (downgrade still applied):', emailError);
     }
 
-    console.log(`[Downgrade] User ${userId} downgraded to BASIC`);
-    return { downgraded: true };
+    console.log(`[Downgrade] User ${userId} downgraded to BASIC${voiceoverRemoved ? ' (VOICEOVER removed, profile hidden)' : ''}`);
+    return { downgraded: true, voiceoverRemoved };
   } catch (error) {
     console.error('[Downgrade] Error:', error);
     return {
