@@ -63,24 +63,28 @@ export async function sendMembershipConfirmationEmail(
     }
   }
   
-  await sendTemplatedEmail({
-    to: params.recipientEmail,
-    templateKey: 'payment-success',
-    variables: {
-      customerName: params.customerName,
-      amount: (params.paymentAmount / 100).toFixed(2),
-      currency: params.paymentCurrency.toUpperCase(),
-      paymentId: params.paymentId,
-      planName,
-      nextBillingDate: actualExpiryDate.toLocaleDateString('en-GB', { 
-        day: 'numeric', 
-        month: 'long', 
-        year: 'numeric' 
-      }),
-    },
-  });
-  
-  console.log(`[EMAIL] Confirmation email sent to ${params.recipientEmail} with expiry: ${actualExpiryDate.toISOString()}`);
+  try {
+    await sendTemplatedEmail({
+      to: params.recipientEmail,
+      templateKey: 'payment-success',
+      variables: {
+        customerName: params.customerName,
+        amount: (params.paymentAmount / 100).toFixed(2),
+        currency: params.paymentCurrency.toUpperCase(),
+        paymentId: params.paymentId,
+        planName,
+        nextBillingDate: actualExpiryDate.toLocaleDateString('en-GB', { 
+          day: 'numeric', 
+          month: 'long', 
+          year: 'numeric' 
+        }),
+      },
+    });
+
+    console.log(`[EMAIL] Confirmation email sent to ${params.recipientEmail} with expiry: ${actualExpiryDate.toISOString()}`);
+  } catch (error) {
+    console.error(`[EMAIL] Failed to send confirmation to ${params.recipientEmail} (payment already processed):`, error);
+  }
 }
 
 /**

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft, Send, Users, FileText, Search,
-  ChevronDown, ChevronUp, AlertTriangle, CheckCircle,
+  ChevronDown, ChevronUp, AlertTriangle, CheckCircle, RotateCcw,
 } from 'lucide-react';
 
 interface EmailTemplate {
@@ -68,6 +68,8 @@ export default function CreateCampaignPage() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(hasInitialFilters);
   const [recipientCount, setRecipientCount] = useState<number | null>(null);
   const [countLoading, setCountLoading] = useState(false);
+  const [autoRetry, setAutoRetry] = useState(false);
+  const [maxRetries, setMaxRetries] = useState(3);
 
   useEffect(() => {
     loadTemplates();
@@ -155,6 +157,8 @@ export default function CreateCampaignPage() {
           name: name.trim(),
           templateKey,
           filters,
+          autoRetry,
+          maxRetries: autoRetry ? maxRetries : undefined,
         }),
       });
 
@@ -476,8 +480,43 @@ export default function CreateCampaignPage() {
           )}
         </div>
 
-        {/* Actions */}
+        {/* Options & Actions */}
         <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="mb-6 space-y-3">
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={autoRetry}
+                onChange={e => setAutoRetry(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
+                  <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+                  Auto-retry failed sends every 24 hours
+                </span>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  If any emails fail (e.g. daily sending limit reached), they will automatically be retried after 24 hours.
+                </p>
+              </div>
+            </label>
+
+            {autoRetry && (
+              <div className="ml-7 flex items-center gap-2">
+                <label className="text-sm text-gray-700">Max retries:</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={maxRetries}
+                  onChange={e => setMaxRetries(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
+                  className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+                <span className="text-xs text-gray-500">attempts before giving up</span>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-3 justify-end">
             <button
               onClick={() => router.push('/admin/emails')}

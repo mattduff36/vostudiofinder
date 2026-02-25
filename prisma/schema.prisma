@@ -886,6 +886,12 @@ model email_campaigns {
   sent_count      Int      @default(0)
   failed_count    Int      @default(0)
   
+  // Auto-retry
+  auto_retry      Boolean   @default(false)
+  max_retries     Int       @default(3)
+  retry_count     Int       @default(0)
+  retry_after     DateTime?
+
   // Metadata
   scheduled_at    DateTime? // When to send (null = send immediately)
   started_at      DateTime? // When sending started

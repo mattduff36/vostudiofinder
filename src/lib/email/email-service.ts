@@ -22,68 +22,60 @@ export interface EmailOptions {
 }
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
-  try {
-    // Validate required environment variable
-    if (!process.env.RESEND_API_KEY) {
-      console.error('❌ RESEND_API_KEY environment variable is not set');
-      return false;
-    }
-
-    // Additional check for placeholder key
-    if (process.env.RESEND_API_KEY === 're_placeholder_key') {
-      console.error('❌ RESEND_API_KEY is not configured properly');
-      return false;
-    }
-
-    // Set default sender if not provided
-    const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || 'noreply@voiceoverstudiofinder.com';
-    
-    console.log('📧 Sending email via Resend:', {
-      to: options.to,
-      subject: options.subject,
-      from: fromEmail,
-      htmlLength: options.html.length,
-    });
-
-    const emailPayload: {
-      from: string;
-      to: string;
-      subject: string;
-      html: string;
-      text?: string;
-      replyTo?: string;
-    } = {
-      from: fromEmail,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-    };
-
-    // Only include text if provided
-    if (options.text) {
-      emailPayload.text = options.text;
-    }
-
-    // Set reply-to if provided, or default to support email
-    if (options.replyTo) {
-      emailPayload.replyTo = options.replyTo;
-    } else if (process.env.RESEND_REPLY_TO_EMAIL) {
-      emailPayload.replyTo = process.env.RESEND_REPLY_TO_EMAIL;
-    }
-
-    const result = await getResendClient().emails.send(emailPayload);
-
-    if (result.error) {
-      console.error('❌ Failed to send email via Resend:', result.error);
-      return false;
-    }
-
-    console.log('✅ Email sent successfully via Resend:', result.data?.id);
-    return true;
-  } catch (error) {
-    console.error('❌ Failed to send email:', error);
+  // Validate required environment variable
+  if (!process.env.RESEND_API_KEY) {
+    console.error('❌ RESEND_API_KEY environment variable is not set');
     return false;
   }
+
+  if (process.env.RESEND_API_KEY === 're_placeholder_key') {
+    console.error('❌ RESEND_API_KEY is not configured properly');
+    return false;
+  }
+
+  const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || 'noreply@voiceoverstudiofinder.com';
+
+  console.log('📧 Sending email via Resend:', {
+    to: options.to,
+    subject: options.subject,
+    from: fromEmail,
+    htmlLength: options.html.length,
+  });
+
+  const emailPayload: {
+    from: string;
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+    replyTo?: string;
+  } = {
+    from: fromEmail,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+  };
+
+  if (options.text) {
+    emailPayload.text = options.text;
+  }
+
+  if (options.replyTo) {
+    emailPayload.replyTo = options.replyTo;
+  } else if (process.env.RESEND_REPLY_TO_EMAIL) {
+    emailPayload.replyTo = process.env.RESEND_REPLY_TO_EMAIL;
+  }
+
+  const result = await getResendClient().emails.send(emailPayload);
+
+  if (result.error) {
+    const msg = result.error.message || JSON.stringify(result.error);
+    console.error('❌ Failed to send email via Resend:', msg);
+    throw new Error(`Resend API error: ${msg}`);
+  }
+
+  console.log('✅ Email sent successfully via Resend:', result.data?.id);
+  return true;
 }
 
 /**

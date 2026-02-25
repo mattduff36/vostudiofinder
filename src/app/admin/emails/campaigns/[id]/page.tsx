@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, Send, Clock, CheckCircle, XCircle,
-  AlertTriangle, Users, RefreshCw, Ban,
+  AlertTriangle, Users, RefreshCw, Ban, RotateCcw,
 } from 'lucide-react';
 
 interface Campaign {
@@ -17,6 +17,10 @@ interface Campaign {
   recipient_count: number;
   sent_count: number;
   failed_count: number;
+  auto_retry: boolean;
+  max_retries: number;
+  retry_count: number;
+  retry_after: string | null;
   scheduled_at: string | null;
   started_at: string | null;
   completed_at: string | null;
@@ -77,6 +81,9 @@ export default function CampaignDetailPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showRetryDialog, setShowRetryDialog] = useState(false);
+  const [autoRetryChecked, setAutoRetryChecked] = useState(false);
+  const [maxRetriesInput, setMaxRetriesInput] = useState(3);
 
   const loadCampaign = useCallback(async () => {
     try {
@@ -168,6 +175,31 @@ export default function CampaignDetailPage() {
       await loadCampaign();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to cancel');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRetryFailed = async () => {
+    if (!campaign || !deliveryStats) return;
+
+    setShowRetryDialog(false);
+    setActionLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/emails/campaigns/${campaignId}/retry`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ autoRetry: autoRetryChecked, maxRetries: autoRetryChecked ? maxRetriesInput : undefined }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to retry');
+      }
+      await loadCampaign();
+      await loadDeliveries();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to retry');
     } finally {
       setActionLoading(false);
     }
@@ -285,8 +317,34 @@ export default function CampaignDetailPage() {
                   Cancel
                 </button>
               )}
+              {campaign.status !== 'SENDING' && (deliveryStats?.failed || 0) > 0 && (
+                <button
+                  onClick={() => { setAutoRetryChecked(campaign.auto_retry || false); setMaxRetriesInput(campaign.max_retries || 3); setShowRetryDialog(true); }}
+                  disabled={actionLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Retry Failed ({(deliveryStats?.failed || 0).toLocaleString()})
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Auto-retry indicator */}
+          {campaign.auto_retry && (
+            <div className="mt-3 flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <RotateCcw className="w-4 h-4 flex-shrink-0" />
+              <span>
+                {campaign.retry_after
+                  ? <>Auto-retry scheduled for {formatDate(campaign.retry_after)}</>
+                  : <>Auto-retry enabled — failed sends will be retried in 24 hours</>
+                }
+                <span className="ml-2 text-amber-600 font-medium">
+                  ({campaign.retry_count}/{campaign.max_retries} retries used)
+                </span>
+              </span>
+            </div>
+          )}
 
           {/* Progress Bar (when sending) */}
           {campaign.status === 'SENDING' && (
@@ -304,6 +362,65 @@ export default function CampaignDetailPage() {
             </div>
           )}
         </div>
+
+        {/* Retry Dialog */}
+        {showRetryDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+              <h3 className="text-lg font-semibold text-gray-900">Retry Failed Deliveries</h3>
+              <p className="mt-2 text-sm text-gray-600">
+                {(deliveryStats?.failed || 0).toLocaleString()} failed deliveries will be reset to pending and re-sent by the background processor.
+              </p>
+
+              <label className="mt-4 flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={autoRetryChecked}
+                  onChange={e => setAutoRetryChecked(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900">Auto-retry failed sends every 24 hours</span>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    If any emails fail again (e.g. daily limit reached), they will automatically be retried after 24 hours.
+                  </p>
+                </div>
+              </label>
+
+              {autoRetryChecked && (
+                <div className="mt-3 ml-7 flex items-center gap-2">
+                  <label className="text-sm text-gray-700">Max retries:</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={maxRetriesInput}
+                    onChange={e => setMaxRetriesInput(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
+                    className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                  <span className="text-xs text-gray-500">attempts before giving up</span>
+                </div>
+              )}
+
+              <div className="mt-6 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setShowRetryDialog(false)}
+                  className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRetryFailed}
+                  disabled={actionLoading}
+                  className="flex items-center gap-2 px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Retry Now
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
@@ -374,6 +491,12 @@ export default function CampaignDetailPage() {
               <span className="text-gray-500">Completed</span>
               <p className="font-medium text-gray-900">{formatDate(campaign.completed_at)}</p>
             </div>
+            {campaign.retry_after && (
+              <div>
+                <span className="text-amber-600">Next Retry</span>
+                <p className="font-medium text-amber-700">{formatDate(campaign.retry_after)}</p>
+              </div>
+            )}
           </div>
         </div>
 

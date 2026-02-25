@@ -229,17 +229,16 @@ Voiceover Studio Finder
 Questions? support@voiceoverstudiofinder.com
       `.trim();
 
-      const copySent = await sendEmail({
-        from: `Voiceover Studio Finder <${process.env.RESEND_BOOKING_FROM_EMAIL || 'booking-enquiry@voiceoverstudiofinder.com'}>`,
-        to: senderEmail,
-        subject: `Copy of your message to ${studioName}`,
-        html: copyHtmlContent,
-        text: copyTextContent,
-      });
-
-      if (copySent) {
+      try {
+        await sendEmail({
+          from: `Voiceover Studio Finder <${process.env.RESEND_BOOKING_FROM_EMAIL || 'booking-enquiry@voiceoverstudiofinder.com'}>`,
+          to: senderEmail,
+          subject: `Copy of your message to ${studioName}`,
+          html: copyHtmlContent,
+          text: copyTextContent,
+        });
         console.log(`✅ Copy sent to sender ${senderEmail}`);
-      } else {
+      } catch {
         console.warn(`⚠️ Failed to send copy to sender ${senderEmail}`);
       }
     }

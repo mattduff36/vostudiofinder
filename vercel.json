@@ -16,6 +16,9 @@
     },
     "src/app/api/admin/**/*.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/**/*.ts": {
+      "maxDuration": 60
     }
   },
   "headers": [

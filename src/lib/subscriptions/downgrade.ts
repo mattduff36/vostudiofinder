@@ -100,18 +100,24 @@ export async function performDowngrade(userId: string): Promise<{ downgraded: bo
     });
 
     // 5. Send downgrade confirmation email (outside transaction)
-    const baseUrl = getBaseUrl();
-    const renewUrl = `${baseUrl}/dashboard/settings?section=membership`;
+    // Non-critical: a failed email must not mask the successful downgrade,
+    // otherwise enforcement skips setting the studio back to ACTIVE.
+    try {
+      const baseUrl = getBaseUrl();
+      const renewUrl = `${baseUrl}/dashboard/settings?section=membership`;
 
-    await sendTemplatedEmail({
-      to: user.email,
-      templateKey: 'downgrade-confirmation',
-      variables: {
-        displayName: user.display_name || 'there',
-        renewUrl,
-      },
-      skipMarketingCheck: true,
-    });
+      await sendTemplatedEmail({
+        to: user.email,
+        templateKey: 'downgrade-confirmation',
+        variables: {
+          displayName: user.display_name || 'there',
+          renewUrl,
+        },
+        skipMarketingCheck: true,
+      });
+    } catch (emailError) {
+      console.error('[Downgrade] Confirmation email failed (downgrade still applied):', emailError);
+    }
 
     console.log(`[Downgrade] User ${userId} downgraded to BASIC`);
     return { downgraded: true };

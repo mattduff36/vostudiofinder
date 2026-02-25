@@ -18,6 +18,8 @@ const createCampaignSchema = z.object({
   templateKey: z.string(),
   filters: z.record(z.string(), z.any()),
   scheduledAt: z.string().datetime().optional(),
+  autoRetry: z.boolean().optional(),
+  maxRetries: z.number().int().min(1).max(50).optional(),
 });
 
 export async function GET() {
@@ -141,6 +143,8 @@ export async function POST(request: NextRequest) {
         recipient_count: recipientCount,
         status: validated.scheduledAt ? 'SCHEDULED' : 'DRAFT',
         scheduled_at: validated.scheduledAt ? new Date(validated.scheduledAt) : null,
+        auto_retry: validated.autoRetry ?? false,
+        max_retries: validated.maxRetries ?? 3,
         created_by_id: session.user.id,
       },
     });

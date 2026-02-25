@@ -14,7 +14,7 @@ import { db } from '@/lib/db';
 import { sendTemplatedEmail } from '@/lib/email/send-templated';
 import { generateLegacyUserResetUrl } from '@/lib/email/templates/legacy-user-announcement';
 
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 10;
 const CRON_SECRET = process.env.CRON_SECRET;
 
 /**
@@ -53,10 +53,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Find campaigns that are currently sending
+    // Find campaigns that are currently sending and not waiting for a scheduled retry
     const campaigns = await db.email_campaigns.findMany({
       where: {
         status: 'SENDING',
+        OR: [
+          { retry_after: null },
+          { retry_after: { lte: new Date() } },
+        ],
       },
       include: {
         template: {
@@ -66,7 +70,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      take: 5, // Process up to 5 campaigns per run
+      take: 5,
     });
     
     let totalProcessed = 0;
@@ -74,7 +78,14 @@ export async function GET(request: NextRequest) {
     let totalFailed = 0;
     
     for (const campaign of campaigns) {
-      // Get pending deliveries for this campaign
+      // Clear retry_after when we start processing (the wait period has elapsed)
+      if (campaign.retry_after) {
+        await db.email_campaigns.update({
+          where: { id: campaign.id },
+          data: { retry_after: null },
+        });
+      }
+
       const deliveries = await db.email_deliveries.findMany({
         where: {
           campaign_id: campaign.id,
@@ -92,18 +103,41 @@ export async function GET(request: NextRequest) {
       });
       
       if (deliveries.length === 0) {
-        // All deliveries processed, mark campaign as complete
+        // All PENDING deliveries processed — check for auto-retry or mark complete
         const stats = await db.email_deliveries.groupBy({
           by: ['status'],
-          where: {
-            campaign_id: campaign.id,
-          },
+          where: { campaign_id: campaign.id },
           _count: true,
         });
-        
+
         const sentCount = stats.find(s => s.status === 'SENT')?._count || 0;
         const failedCount = stats.find(s => s.status === 'FAILED')?._count || 0;
-        
+
+        const nextRetryCount = campaign.retry_count + 1;
+        const withinRetryLimit = campaign.max_retries > 0 && nextRetryCount <= campaign.max_retries;
+
+        if (campaign.auto_retry && failedCount > 0 && withinRetryLimit) {
+          const retryAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+          await db.email_deliveries.updateMany({
+            where: { campaign_id: campaign.id, status: 'FAILED' },
+            data: { status: 'PENDING', failed_at: null, error_message: null },
+          });
+
+          await db.email_campaigns.update({
+            where: { id: campaign.id },
+            data: {
+              retry_after: retryAt,
+              retry_count: nextRetryCount,
+              sent_count: sentCount,
+              failed_count: failedCount,
+            },
+          });
+
+          console.log(`🔄 Auto-retry ${nextRetryCount}/${campaign.max_retries} scheduled for campaign: ${campaign.name} — ${failedCount} failed deliveries will retry at ${retryAt.toISOString()}`);
+          continue;
+        }
+
         await db.email_campaigns.update({
           where: { id: campaign.id },
           data: {
@@ -111,9 +145,11 @@ export async function GET(request: NextRequest) {
             completed_at: new Date(),
             sent_count: sentCount,
             failed_count: failedCount,
+            auto_retry: false,
+            retry_after: null,
           },
         });
-        
+
         console.log(`✅ Campaign completed: ${campaign.name} (${sentCount} sent, ${failedCount} failed)`);
         continue;
       }
