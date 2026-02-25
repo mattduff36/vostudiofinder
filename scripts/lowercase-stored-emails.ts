@@ -4,8 +4,9 @@
  * Finds and normalises all email addresses stored in the database to lowercase.
  *
  * Modes:
- *   --report   (default) List every row with uppercase email characters, per table.
- *   --apply    Actually update those rows to lowercase.
+ *   --report       (default) List every row with uppercase email characters, per table.
+ *   --apply        Actually update those rows to lowercase.
+ *   --production   Target the production database (loads .env.production).
  *
  * Target columns (from prisma/schema.prisma):
  *   users.email                       (UNIQUE — collision-safe handling)
@@ -17,12 +18,30 @@
  *   email_template_versions.reply_to_email
  *
  * Usage:
- *   npx tsx scripts/lowercase-stored-emails.ts            # report mode
- *   npx tsx scripts/lowercase-stored-emails.ts --report   # report mode (explicit)
- *   npx tsx scripts/lowercase-stored-emails.ts --apply    # apply mode
+ *   npx tsx scripts/lowercase-stored-emails.ts                        # report (dev)
+ *   npx tsx scripts/lowercase-stored-emails.ts --apply                # apply (dev)
+ *   npx tsx scripts/lowercase-stored-emails.ts --production --report  # report (prod)
+ *   npx tsx scripts/lowercase-stored-emails.ts --production --apply   # apply (prod)
  */
 
 import { PrismaClient } from '@prisma/client';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+import * as fs from 'fs';
+
+const isProduction = process.argv.includes('--production');
+
+if (isProduction) {
+  const prodEnvPath = path.resolve(process.cwd(), '.env.production');
+  if (!fs.existsSync(prodEnvPath)) {
+    console.error('❌ .env.production not found. Cannot target production.');
+    process.exit(1);
+  }
+  dotenv.config({ path: prodEnvPath, override: true });
+  console.log('🔴 TARGETING PRODUCTION DATABASE\n');
+} else {
+  console.log('🟢 Targeting dev database (.env.local)\n');
+}
 
 const db = new PrismaClient({ log: ['warn', 'error'] });
 
