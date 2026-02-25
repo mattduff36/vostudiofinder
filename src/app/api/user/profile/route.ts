@@ -403,6 +403,27 @@ export async function GET() {
     const userTier = isAdmin ? 'PREMIUM' : effectiveTier;
     const tierLimits = getTierLimits(userTier);
 
+    // Legacy VOICEOVER restriction metadata for in-app warning
+    let legacyVoiceoverRestriction: {
+      isRestricted: boolean;
+      graceActive: boolean;
+      graceEndsAt: string | null;
+      hasVoiceoverUnlock: boolean;
+    } | null = null;
+
+    if (!isAdmin) {
+      const { getLegacyVoiceoverStatus } = await import('@/lib/membership');
+      const lvStatus = await getLegacyVoiceoverStatus(userId);
+      if (lvStatus.isLegacyUser) {
+        legacyVoiceoverRestriction = {
+          isRestricted: lvStatus.isRestricted,
+          graceActive: lvStatus.graceActive,
+          graceEndsAt: lvStatus.graceEndsAt?.toISOString() ?? null,
+          hasVoiceoverUnlock: lvStatus.hasVoiceoverUnlock,
+        };
+      }
+    }
+
     const response = {
       success: true,
       data: {
@@ -498,6 +519,7 @@ export async function GET() {
         metadata,
         membership: membershipInfo,
         tierLimits,
+        legacyVoiceoverRestriction,
       },
     };
 
@@ -881,6 +903,18 @@ export async function PUT(request: NextRequest) {
             // Track excluded studio types that were dropped
             if (excludedTypes.length > 0) {
               droppedFields.push('studio_types');
+            }
+
+            // Legacy VOICEOVER restriction: block VOICEOVER for restricted legacy users
+            if (!isAdmin && allowedTypes.includes('VOICEOVER')) {
+              const { getLegacyVoiceoverStatus } = await import('@/lib/membership');
+              const legacyStatus = await getLegacyVoiceoverStatus(userId);
+              if (legacyStatus.shouldBlockVoiceover) {
+                allowedTypes = allowedTypes.filter((t: string) => t !== 'VOICEOVER');
+                if (!droppedFields.includes('studio_types')) {
+                  droppedFields.push('studio_types');
+                }
+              }
             }
 
             // Enforce VOICEOVER exclusivity: if VOICEOVER is present alongside other types,

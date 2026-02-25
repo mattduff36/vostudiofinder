@@ -385,6 +385,10 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
 
     console.log(`[DEBUG ${timestamp}] ✅ User ${user_id} activated with ${membershipMonths}-month PREMIUM membership (zero-amount)${couponCode ? ` using coupon ${couponCode}` : ''}`);
     console.log(`[DEBUG ${timestamp}] Membership expires: ${expiryDate.toISOString()}`);
+    if (membershipMonths >= 12) {
+      const { setLegacyVoiceoverUnlocked } = await import('@/lib/membership');
+      await setLegacyVoiceoverUnlocked(user_id);
+    }
     console.log(`[DEBUG ${timestamp}] ========== WEBHOOK: handleMembershipPaymentSuccess END (zero-amount) ==========`);
     return; // Exit early, membership granted
   }
@@ -532,6 +536,9 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
       console.log(`[DEBUG ${timestamp}] Processing ${renewal_type} renewal for user ${user.id}...`);
       await handleMembershipRenewal(user.id, renewal_type as 'early' | 'standard' | '5year', current_expiry);
       console.log(`[DEBUG ${timestamp}] ✅ Membership renewal processed successfully`);
+      // All renewals are 12+ months — unlock legacy VOICEOVER restriction
+      const { setLegacyVoiceoverUnlocked } = await import('@/lib/membership');
+      await setLegacyVoiceoverUnlocked(user.id);
     } else {
       // Grant membership and update payment tracking in single atomic operation
       console.log(`[DEBUG ${timestamp}] Granting ${membershipMonths}-month membership to user ${user.id}${couponCode ? ` using coupon ${couponCode}` : ''}...`);
@@ -540,6 +547,10 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
         payment_retry_count: 0,
       }, membershipMonths, session.customer as string || null);
       console.log(`[DEBUG ${timestamp}] ✅ Membership granted successfully`);
+      if (membershipMonths >= 12) {
+        const { setLegacyVoiceoverUnlocked } = await import('@/lib/membership');
+        await setLegacyVoiceoverUnlocked(user.id);
+      }
     }
   } catch (error) {
     // Store error but don't throw yet - we need to send confirmation email first
@@ -692,6 +703,10 @@ async function handleMembershipSubscriptionCompleted(session: Stripe.Checkout.Se
       updated_at: now,
     },
   });
+
+  // Subscription memberships are annual (12+ months) — unlock legacy VOICEOVER
+  const { setLegacyVoiceoverUnlocked } = await import('@/lib/membership');
+  await setLegacyVoiceoverUnlocked(user_id);
 
   console.log(`[SUCCESS] Subscription membership granted for user ${user_id} until ${periodEnd.toISOString()}`);
 }

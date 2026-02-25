@@ -269,3 +269,251 @@ export async function canPerformAction(
   return true;
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// Legacy VOICEOVER restriction
+//
+// Legacy users (studio created before 2026-01-01) who received a free 6-month
+// premium grant cannot list as VOICEOVER unless they have completed a qualifying
+// paid extension of 12+ months. Existing VOICEOVER legacy users get a 14-day
+// grace period (in-app warning) before automatic removal.
+// ────────────────────────────────────────────────────────────────────────────
+
+const LEGACY_CUTOFF = new Date('2026-01-01T00:00:00.000Z');
+const GRACE_PERIOD_DAYS = 14;
+const MIN_QUALIFYING_DAYS = 335; // ~11 months to account for setMonth rounding
+
+export interface LegacyVoiceoverStatus {
+  isLegacyUser: boolean;
+  isRestricted: boolean;
+  hasVoiceoverUnlock: boolean;
+  graceActive: boolean;
+  graceEndsAt: Date | null;
+  shouldBlockVoiceover: boolean;
+  shouldRemoveVoiceover: boolean;
+}
+
+const UNRESTRICTED: LegacyVoiceoverStatus = {
+  isLegacyUser: false,
+  isRestricted: false,
+  hasVoiceoverUnlock: false,
+  graceActive: false,
+  graceEndsAt: null,
+  shouldBlockVoiceover: false,
+  shouldRemoveVoiceover: false,
+};
+
+/**
+ * Determine whether a user is subject to the legacy VOICEOVER restriction.
+ *
+ * A legacy user (studio created before LEGACY_CUTOFF) is restricted from
+ * listing as VOICEOVER unless they have a qualifying paid subscription of
+ * 12+ months (annual, 5-year, or qualifying coupon). Admin users are exempt.
+ */
+export async function getLegacyVoiceoverStatus(userId: string): Promise<LegacyVoiceoverStatus> {
+  const user = await db.users.findUnique({
+    where: { id: userId },
+    select: {
+      role: true,
+      studio_profiles: {
+        select: { created_at: true },
+      },
+      subscriptions: {
+        orderBy: { created_at: 'desc' as const },
+        select: {
+          stripe_subscription_id: true,
+          stripe_customer_id: true,
+          current_period_start: true,
+          current_period_end: true,
+          created_at: true,
+        },
+      },
+      payments: {
+        where: { status: 'SUCCEEDED' },
+        take: 1,
+        select: { id: true },
+      },
+      user_metadata: {
+        where: {
+          key: {
+            in: [
+              'legacy_voiceover_grace_ends_at',
+              'legacy_voiceover_unlocked_at',
+            ],
+          },
+        },
+        select: { key: true, value: true },
+      },
+    },
+  });
+
+  if (!user) return UNRESTRICTED;
+  if (user.role === 'ADMIN') return UNRESTRICTED;
+
+  const studioCreatedAt = user.studio_profiles?.created_at;
+  if (!studioCreatedAt || studioCreatedAt >= LEGACY_CUTOFF) return UNRESTRICTED;
+
+  // User is legacy — check for unlock
+  const metaMap = new Map(user.user_metadata.map((m) => [m.key, m.value]));
+
+  if (metaMap.get('legacy_voiceover_unlocked_at')) {
+    return {
+      isLegacyUser: true,
+      isRestricted: false,
+      hasVoiceoverUnlock: true,
+      graceActive: false,
+      graceEndsAt: null,
+      shouldBlockVoiceover: false,
+      shouldRemoveVoiceover: false,
+    };
+  }
+
+  // Check subscriptions for a qualifying paid 12+ month period
+  const hasPaidPayment = user.payments.length > 0;
+  if (hasPaidPayment) {
+    const hasQualifyingSub = user.subscriptions.some((sub) => {
+      const isPaid = sub.stripe_subscription_id != null || sub.stripe_customer_id != null;
+      if (!isPaid) return false;
+      const start = sub.current_period_start || sub.created_at;
+      const end = sub.current_period_end;
+      if (!end) return false;
+      const durationDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+      return durationDays >= MIN_QUALIFYING_DAYS;
+    });
+
+    if (hasQualifyingSub) {
+      return {
+        isLegacyUser: true,
+        isRestricted: false,
+        hasVoiceoverUnlock: true,
+        graceActive: false,
+        graceEndsAt: null,
+        shouldBlockVoiceover: false,
+        shouldRemoveVoiceover: false,
+      };
+    }
+  }
+
+  // User is restricted — determine grace status
+  const now = new Date();
+  const graceEndsAtRaw = metaMap.get('legacy_voiceover_grace_ends_at');
+  let graceEndsAt: Date | null = null;
+  if (graceEndsAtRaw) {
+    graceEndsAt = new Date(graceEndsAtRaw);
+  }
+
+  const graceActive = graceEndsAt != null && graceEndsAt > now;
+  const graceExpired = graceEndsAt != null && graceEndsAt <= now;
+
+  return {
+    isLegacyUser: true,
+    isRestricted: true,
+    hasVoiceoverUnlock: false,
+    graceActive,
+    graceEndsAt,
+    shouldBlockVoiceover: true,
+    shouldRemoveVoiceover: graceExpired,
+  };
+}
+
+/**
+ * Start the 14-day grace period for a legacy user currently listing as VOICEOVER.
+ * No-op if grace already started or user is already unlocked.
+ */
+export async function startLegacyVoiceoverGrace(userId: string): Promise<Date | null> {
+  const existing = await db.user_metadata.findMany({
+    where: {
+      user_id: userId,
+      key: { in: ['legacy_voiceover_grace_ends_at', 'legacy_voiceover_unlocked_at'] },
+    },
+    select: { key: true },
+  });
+
+  const keys = new Set(existing.map((m) => m.key));
+  if (keys.has('legacy_voiceover_unlocked_at') || keys.has('legacy_voiceover_grace_ends_at')) {
+    return null;
+  }
+
+  const now = new Date();
+  const graceEndsAt = new Date(now);
+  graceEndsAt.setDate(graceEndsAt.getDate() + GRACE_PERIOD_DAYS);
+
+  const { randomBytes } = await import('crypto');
+
+  await db.user_metadata.createMany({
+    data: [
+      {
+        id: randomBytes(12).toString('base64url'),
+        user_id: userId,
+        key: 'legacy_voiceover_grace_started_at',
+        value: now.toISOString(),
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        id: randomBytes(12).toString('base64url'),
+        user_id: userId,
+        key: 'legacy_voiceover_grace_ends_at',
+        value: graceEndsAt.toISOString(),
+        created_at: now,
+        updated_at: now,
+      },
+    ],
+  });
+
+  return graceEndsAt;
+}
+
+/**
+ * Mark a legacy user as having unlocked VOICEOVER via qualifying paid extension.
+ * Called from the Stripe webhook when a qualifying 12+ month payment succeeds.
+ */
+export async function setLegacyVoiceoverUnlocked(userId: string): Promise<void> {
+  const now = new Date();
+  const { randomBytes } = await import('crypto');
+
+  await db.user_metadata.upsert({
+    where: { user_id_key: { user_id: userId, key: 'legacy_voiceover_unlocked_at' } },
+    update: { value: now.toISOString(), updated_at: now },
+    create: {
+      id: randomBytes(12).toString('base64url'),
+      user_id: userId,
+      key: 'legacy_voiceover_unlocked_at',
+      value: now.toISOString(),
+      created_at: now,
+      updated_at: now,
+    },
+  });
+}
+
+/**
+ * Remove VOICEOVER type from a studio, replacing with HOME if it was the only type.
+ * Mirrors the downgrade fallback logic in src/lib/subscriptions/downgrade.ts.
+ */
+export async function removeLegacyVoiceoverType(studioId: string): Promise<boolean> {
+  const studioTypes = await db.studio_studio_types.findMany({
+    where: { studio_id: studioId },
+    select: { studio_type: true },
+  });
+
+  const hasVoiceover = studioTypes.some((t) => t.studio_type === 'VOICEOVER');
+  if (!hasVoiceover) return false;
+
+  await db.studio_studio_types.deleteMany({
+    where: { studio_id: studioId, studio_type: 'VOICEOVER' },
+  });
+
+  const remaining = studioTypes.filter((t) => t.studio_type !== 'VOICEOVER');
+  if (remaining.length === 0) {
+    const { randomBytes } = await import('crypto');
+    await db.studio_studio_types.create({
+      data: {
+        id: randomBytes(12).toString('base64url'),
+        studio_id: studioId,
+        studio_type: 'HOME',
+      },
+    });
+  }
+
+  return true;
+}
+

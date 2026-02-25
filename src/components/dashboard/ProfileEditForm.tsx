@@ -143,6 +143,12 @@ interface ProfileData {
     membership_tier?: string;
     auto_renew?: boolean;
   };
+  legacyVoiceoverRestriction?: {
+    isRestricted: boolean;
+    graceActive: boolean;
+    graceEndsAt: string | null;
+    hasVoiceoverUnlock: boolean;
+  } | null;
 }
 
 const STUDIO_TYPES = [
@@ -353,7 +359,6 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         
         const adminData = await response.json();
         const profileData = adminProfileToProfileData(adminData);
-        
         setProfile(profileData);
         setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
         
@@ -382,6 +387,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
             custom_meta_title: data.data.metadata?.custom_meta_title || '',
           },
           tierLimits: data.data.tierLimits || null,
+          legacyVoiceoverRestriction: data.data.legacyVoiceoverRestriction || null,
         };
         setProfile(profileData);
         setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
@@ -1029,6 +1035,9 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 <div className="grid grid-cols-3 gap-3">
                   {STUDIO_TYPES.map((type) => {
                     const tierExcluded = profile?.tierLimits?.studioTypesExcluded?.includes(type.value);
+                    const legacyBlocked = type.value === 'VOICEOVER'
+                      && !isSessionAdmin
+                      && profile?.legacyVoiceoverRestriction?.isRestricted === true;
                     const maxReached = profile?.tierLimits?.studioTypesMax !== null
                       && profile?.tierLimits?.studioTypesMax !== undefined
                       && profile.studio_types.length >= profile.tierLimits.studioTypesMax
@@ -1042,11 +1051,12 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                     });
                     const exclusivityBlocked = !isSessionAdmin && !type.exclusive && hasExclusiveSelected && !profile.studio_types.includes(type.value);
 
-                    const isDisabled = type.disabled || tierExcluded || maxReached || exclusivityBlocked;
+                    const isDisabled = type.disabled || tierExcluded || legacyBlocked || maxReached || exclusivityBlocked;
                     
                     let tooltipText = type.description;
                     if (type.disabled) tooltipText = 'Coming soon!';
                     else if (tierExcluded) tooltipText = 'Upgrade to Premium to unlock';
+                    else if (legacyBlocked) tooltipText = 'Extend your Premium membership (12+ months) to list as Voiceover.';
                     else if (exclusivityBlocked) tooltipText = 'Voiceover cannot be combined with other studio types. Deselect Voiceover first to choose this type.';
                     else if (maxReached) tooltipText = `Basic members can select up to ${profile.tierLimits?.studioTypesMax ?? 1} studio type. Upgrade to Premium for all studio types.`;
                     
@@ -1072,6 +1082,27 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                     );
                   })}
                 </div>
+                {profile?.legacyVoiceoverRestriction?.isRestricted && (
+                  <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <p className="font-medium">Voiceover listing requires a paid Premium extension</p>
+                    <p className="mt-1 text-amber-700">
+                      Your free Premium membership does not include the Voiceover listing type.
+                      {profile.legacyVoiceoverRestriction.graceActive && profile.legacyVoiceoverRestriction.graceEndsAt && (
+                        <> Your current Voiceover listing will remain active until{' '}
+                          <strong>{new Date(profile.legacyVoiceoverRestriction.graceEndsAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
+                        </>
+                      )}
+                      {' '}To keep listing as Voiceover,{' '}
+                      <a
+                        href="/dashboard/settings?section=membership"
+                        className="font-medium underline hover:text-amber-900"
+                      >
+                        extend your membership
+                      </a>{' '}
+                      for 12 months or more.
+                    </p>
+                  </div>
+                )}
               </div>
               
               {/* Website URL */}

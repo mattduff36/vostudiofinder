@@ -21,6 +21,9 @@ export function detectManualCoordinateOverride(
   requestLat: number | null,
   requestLng: number | null
 ): boolean {
+  if ((requestLat !== null || requestLng !== null) && existingLat === null && existingLng === null) {
+    return true;
+  }
   const epsilon = 0.000001;
   const latChanged = requestLat !== null && existingLat !== null && Math.abs(requestLat - existingLat) > epsilon;
   const lngChanged = requestLng !== null && existingLng !== null && Math.abs(requestLng - existingLng) > epsilon;
@@ -115,6 +118,15 @@ export async function maybeGeocodeStudioAddress(
       return {};
     }
   } else if (!existingStudio.latitude || !existingStudio.longitude) {
+    const { lat: requestLat, lng: requestLng } = parseRequestCoordinates(
+      requestBody._meta?.latitude,
+      requestBody._meta?.longitude
+    );
+    if (requestLat !== null && requestLng !== null) {
+      logger.log(`[Geocoding] Skipped - request provides coordinates: lat=${requestLat}, lng=${requestLng}`);
+      return {};
+    }
+
     // Address hasn't changed but coordinates are empty - geocode anyway
     logger.log(`[Geocoding] Coordinates empty, geocoding existing address: ${newFullAddress}`);
     const { geocodeAddress } = await import('@/lib/maps');

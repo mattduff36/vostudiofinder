@@ -66,12 +66,20 @@ export async function POST(request: NextRequest) {
         },
       });
       
-      // Add studio types
+      // Add studio types (filter out VOICEOVER for restricted legacy users)
       if (validatedData.studio_studio_types && validatedData.studio_studio_types.length > 0) {
-        for (const studio_type of validatedData.studio_studio_types) {
+        let studioTypes = validatedData.studio_studio_types;
+        if (studioTypes.includes('VOICEOVER')) {
+          const { getLegacyVoiceoverStatus } = await import('@/lib/membership');
+          const legacyStatus = await getLegacyVoiceoverStatus(session.user.id);
+          if (legacyStatus.shouldBlockVoiceover) {
+            studioTypes = studioTypes.filter((t: string) => t !== 'VOICEOVER');
+          }
+        }
+        for (const studio_type of studioTypes) {
           await tx.studio_studio_types.create({
             data: {
-              id: randomBytes(12).toString('base64url'), // Generate unique ID
+              id: randomBytes(12).toString('base64url'),
               studio_id: newStudio.id,
               studio_type,
             },

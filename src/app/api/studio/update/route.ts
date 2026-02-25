@@ -92,9 +92,17 @@ export async function PUT(request: NextRequest) {
 
     // Handle studio types update if provided
     if (updateData.studio_studio_types !== undefined) {
+      let filteredTypes = updateData.studio_studio_types;
+      if (filteredTypes.includes('VOICEOVER')) {
+        const { getLegacyVoiceoverStatus } = await import('@/lib/membership');
+        const legacyStatus = await getLegacyVoiceoverStatus(session.user.id);
+        if (legacyStatus.shouldBlockVoiceover) {
+          filteredTypes = filteredTypes.filter((t: string) => t !== 'VOICEOVER');
+        }
+      }
       updateFields.studio_studio_types = {
-        deleteMany: {}, // Remove existing studio types
-        create: updateData.studio_studio_types.map(studio_type => ({ studio_type })),
+        deleteMany: {},
+        create: filteredTypes.map((studio_type: string) => ({ studio_type })),
       };
     }
 

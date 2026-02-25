@@ -59,12 +59,13 @@ export const showUnsavedChangesDialog = (): Promise<UnsavedChangesResult> => {
 export function UnsavedChangesDialog() {
   const { current, resolve } = useUnsavedChangesDialogStore();
 
-  const handleCancel = () => resolve('cancel');
+  const handleDismiss = () => resolve('cancel');
+  const handleDiscard = () => resolve('discard');
   const handleSave = () => resolve('save');
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      handleCancel();
+      handleDismiss();
     }
   };
 
@@ -96,7 +97,7 @@ export function UnsavedChangesDialog() {
           >
             {/* Close button */}
             <button
-              onClick={handleCancel}
+              onClick={handleDismiss}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Close dialog"
             >
@@ -123,10 +124,10 @@ export function UnsavedChangesDialog() {
               {/* Actions - 3 buttons */}
               <div className="flex gap-3 justify-end mt-6">
                 <button
-                  onClick={handleCancel}
+                  onClick={handleDiscard}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                 >
-                  Cancel
+                  Don&apos;t Save
                 </button>
                 <button
                   onClick={handleSave}
