@@ -124,7 +124,7 @@ export default function TestSendPage() {
             <input
               type="email"
               value={recipientEmail}
-              onChange={(e) => setRecipientEmail(e.target.value)}
+              onChange={(e) => setRecipientEmail(e.target.value.toLowerCase())}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
               placeholder="admin@example.com"
               disabled={sending || success}

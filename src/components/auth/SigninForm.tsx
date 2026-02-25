@@ -120,7 +120,13 @@ export function SigninForm() {
             autoComplete="username"
             placeholder="Enter your email or username"
             error={errors.identifier?.message || ''}
-            {...register('identifier')}
+            {...register('identifier', {
+              onChange: (e) => {
+                if (e.target.value.includes('@')) {
+                  e.target.value = e.target.value.toLowerCase();
+                }
+              },
+            })}
           />
           <User className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />
         </div>

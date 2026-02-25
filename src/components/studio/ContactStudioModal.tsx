@@ -151,7 +151,7 @@ export function ContactStudioModal({
                 label="Your Email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.toLowerCase())}
                 placeholder="john@example.com"
                 required
                 disabled={isSubmitting}

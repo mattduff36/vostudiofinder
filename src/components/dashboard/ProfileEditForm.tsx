@@ -165,7 +165,7 @@ const STUDIO_TYPES = [
 const CONNECTION_TYPES = [
   { id: 'connection6', label: 'Cleanfeed' },
   { id: 'connection1', label: 'Source Connect' },
-  { id: 'connection2', label: 'Source Connect Nexus' },
+  { id: 'connection2', label: 'Source-Nexus' },
   { id: 'connection3', label: 'Phone Patch' },
   { id: 'connection4', label: 'Session Link Pro' },
   { id: 'connection5', label: 'Zoom or Teams' },
@@ -473,9 +473,11 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
   // Sandbox overrides are DISABLED when editing another user's profile via the admin panel,
   // because the sandbox is only for testing the admin's own profile behaviour.
   const [sandboxLegacyOverride, setSandboxLegacyOverride] = useState(false);
+  const [sandboxVoiceoverRestriction, setSandboxVoiceoverRestriction] = useState<ProfileData['legacyVoiceoverRestriction']>(null);
   useEffect(() => {
     if (disableSandboxOverrides) {
       setSandboxLegacyOverride(false);
+      setSandboxVoiceoverRestriction(null);
       return;
     }
     try {
@@ -484,6 +486,19 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         const sandbox = JSON.parse(stored);
         if (sandbox.enabled && sandbox.legacyProfile) {
           setSandboxLegacyOverride(true);
+        }
+        if (sandbox.enabled && sandbox.legacyVoiceoverRestricted) {
+          const graceEndsAt = sandbox.legacyVoiceoverGrace
+            ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+            : null;
+          setSandboxVoiceoverRestriction({
+            isRestricted: true,
+            graceActive: !!sandbox.legacyVoiceoverGrace,
+            graceEndsAt,
+            hasVoiceoverUnlock: false,
+          });
+        } else {
+          setSandboxVoiceoverRestriction(null);
         }
       }
     } catch { /* ignore */ }
@@ -498,6 +513,12 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     const createdAt = new Date(profile.studio.created_at);
     return createdAt < new Date('2026-01-01T00:00:00.000Z');
   }, [profile?.studio?.created_at, sandboxLegacyOverride]);
+
+  // Effective legacy VOICEOVER restriction: sandbox override takes priority over API data
+  const effectiveLegacyVoiceoverRestriction = useMemo(() => {
+    if (sandboxVoiceoverRestriction) return sandboxVoiceoverRestriction;
+    return profile?.legacyVoiceoverRestriction ?? null;
+  }, [sandboxVoiceoverRestriction, profile?.legacyVoiceoverRestriction]);
 
   // Calculate per-section completion status for mobile accordion icons
   const sectionStatusById = useMemo(() => {
@@ -1036,8 +1057,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                   {STUDIO_TYPES.map((type) => {
                     const tierExcluded = profile?.tierLimits?.studioTypesExcluded?.includes(type.value);
                     const legacyBlocked = type.value === 'VOICEOVER'
-                      && !isSessionAdmin
-                      && profile?.legacyVoiceoverRestriction?.isRestricted === true;
+                      && (!isSessionAdmin || sandboxVoiceoverRestriction != null)
+                      && effectiveLegacyVoiceoverRestriction?.isRestricted === true;
                     const maxReached = profile?.tierLimits?.studioTypesMax !== null
                       && profile?.tierLimits?.studioTypesMax !== undefined
                       && profile.studio_types.length >= profile.tierLimits.studioTypesMax
@@ -1082,14 +1103,14 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                     );
                   })}
                 </div>
-                {profile?.legacyVoiceoverRestriction?.isRestricted && (
+                {effectiveLegacyVoiceoverRestriction?.isRestricted && (
                   <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                     <p className="font-medium">Voiceover listing requires a paid Premium extension</p>
                     <p className="mt-1 text-amber-700">
                       Your free Premium membership does not include the Voiceover listing type.
-                      {profile.legacyVoiceoverRestriction.graceActive && profile.legacyVoiceoverRestriction.graceEndsAt && (
+                      {effectiveLegacyVoiceoverRestriction.graceActive && effectiveLegacyVoiceoverRestriction.graceEndsAt && (
                         <> Your current Voiceover listing will remain active until{' '}
-                          <strong>{new Date(profile.legacyVoiceoverRestriction.graceEndsAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
+                          <strong>{new Date(effectiveLegacyVoiceoverRestriction.graceEndsAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
                         </>
                       )}
                       {' '}To keep listing as Voiceover,{' '}
@@ -1753,7 +1774,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 label="Email"
                 type="email"
                 value={profile.user.email || ''}
-                onChange={(e) => updateUserField('email', e.target.value)}
+                onChange={(e) => updateUserField('email', e.target.value.toLowerCase())}
                 helperText="User's email address (changing will require re-verification)"
                 required
               />

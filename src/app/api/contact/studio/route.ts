@@ -19,7 +19,7 @@ const contactSchema = z.object({
   studioName: z.string().min(1),
   ownerEmail: z.string().email(),
   senderName: z.string().min(1, 'Name is required').transform(val => val.trim()),
-  senderEmail: z.string().email('Valid email is required').transform(val => val.trim()),
+  senderEmail: z.string().email('Valid email is required').transform(val => val.toLowerCase().trim()),
   message: z.string()
     .min(1, 'Message is required')
     .transform(val => val.trim())

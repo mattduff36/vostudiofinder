@@ -461,7 +461,7 @@ function AddAccountTab({
             <Input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value.toLowerCase())}
               placeholder="e.g., john@example.com"
               disabled={isLoading}
             />
@@ -566,7 +566,7 @@ function TestAccountTab({
         <Input
           type="email"
           value={testEmail}
-          onChange={(e) => setTestEmail(e.target.value)}
+          onChange={(e) => setTestEmail(e.target.value.toLowerCase())}
           placeholder="Auto-generated test email"
           disabled={isLoading}
         />

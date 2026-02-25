@@ -11,7 +11,7 @@ import { z } from 'zod';
 
 const testSendSchema = z.object({
   templateKey: z.string(),
-  recipientEmail: z.string().email(),
+  recipientEmail: z.string().email().transform(val => val.toLowerCase().trim()),
   variables: z.record(z.string(), z.any()),
 });
 

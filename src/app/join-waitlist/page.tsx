@@ -164,7 +164,7 @@ export default function JoinWaitlistPage() {
                     type="email"
                     required
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value.toLowerCase() })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-black"
                     placeholder="your.email@example.com"
                   />

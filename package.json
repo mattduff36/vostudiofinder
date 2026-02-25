@@ -71,6 +71,8 @@
     "stripe:stop": "bash scripts/stop-stripe-dev.sh",
     "stripe:stop:clean": "bash scripts/stop-stripe-dev.sh --clean",
     "user:delete": "tsx scripts/delete-user-data.ts",
+    "emails:lowercase:report": "tsx scripts/lowercase-stored-emails.ts --report",
+    "emails:lowercase:apply": "tsx scripts/lowercase-stored-emails.ts --apply",
     "postinstall": "prisma generate"
   },
   "dependencies": {

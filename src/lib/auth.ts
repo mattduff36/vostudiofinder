@@ -12,18 +12,18 @@ export const authOptions: NextAuthOptions = {
   adapter: {
     ...PrismaAdapter(db),
     createUser: async (data: { email?: string; name?: string; image?: string; email_verified?: Date | null }) => {
-      // Generate username from email if not provided
-      const emailPrefix = data.email?.split('@')[0] || 'user';
+      const normalizedEmail = data.email?.toLowerCase().trim() || '';
+      const emailPrefix = normalizedEmail.split('@')[0] || 'user';
       const username = emailPrefix.replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.random().toString(36).substring(7);
       const { randomBytes } = require('crypto');
       
       return db.users.create({
         data: {
           id: randomBytes(12).toString('base64url'),
-          email: data.email!,
+          email: normalizedEmail,
           password: '', // OAuth users don't have passwords
           username: username,
-          display_name: data.name || data.email?.split('@')[0] || 'User',
+          display_name: data.name || normalizedEmail.split('@')[0] || 'User',
           avatar_url: data.image || null,
           email_verified: !!data.email_verified,
           role: 'USER',

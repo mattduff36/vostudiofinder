@@ -80,7 +80,9 @@ export function ForgotPasswordForm() {
             type="email"
             placeholder="your@email.com"
             error={errors.email?.message || ''}
-            {...register('email')}
+            {...register('email', {
+              onChange: (e) => { e.target.value = e.target.value.toLowerCase(); },
+            })}
           />
           <Mail className="absolute right-3 top-9 h-5 w-5 text-text-secondary" />
         </div>

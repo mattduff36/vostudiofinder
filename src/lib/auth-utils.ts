@@ -57,10 +57,12 @@ export async function createUser(
   const { randomBytes } = await import('crypto');
   const client = tx || db;
   
+  const normalizedEmail = data.email.toLowerCase().trim();
+
   return client.users.create({
     data: {
       id: randomBytes(12).toString('base64url'),
-      email: data.email,
+      email: normalizedEmail,
       password: hashedPassword,
       username,
       display_name: data.display_name,

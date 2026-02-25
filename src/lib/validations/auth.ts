@@ -6,7 +6,8 @@ export const registerSchema = z.object({
     .string()
     .min(1, 'Email is required')
     .max(254, 'Email address is too long') // RFC 5321 limit
-    .email('Please enter a valid email address'),
+    .email('Please enter a valid email address')
+    .transform(val => val.toLowerCase().trim()),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters long')
@@ -25,7 +26,8 @@ export const signupSchema = z.object({
   email: z
     .string()
     .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
+    .email('Please enter a valid email address')
+    .transform(val => val.toLowerCase().trim()),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters long')
@@ -79,7 +81,8 @@ export const forgotPasswordSchema = z.object({
   email: z
     .string()
     .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
+    .email('Please enter a valid email address')
+    .transform(val => val.toLowerCase().trim()),
 });
 
 export const resetPasswordSchema = z.object({
