@@ -25,7 +25,7 @@ export function UserEditProfileFloatingButton({ onClick, onMessageClick }: UserE
           {onMessageClick && (
             <button
               onClick={onMessageClick}
-              className="flex items-center gap-2 px-4 py-2 bg-[#d42027] text-white text-sm rounded-full font-medium shadow-lg hover:bg-[#a1181d] transition-colors focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:ring-offset-2 opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-[#d42027] text-white text-sm rounded-full font-medium shadow-lg hover:bg-[#a1181d] transition-all focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:ring-offset-2 opacity-50 hover:opacity-100 active:opacity-100"
               aria-label="Message as admin"
             >
               <Mail className="w-4 h-4" />
@@ -58,10 +58,11 @@ export function UserEditProfileFloatingButton({ onClick, onMessageClick }: UserE
               }
             }}
             whileHover={{ 
+              opacity: 1,
               scale: 1.05,
               boxShadow: '0 8px 30px rgba(212, 32, 39, 0.5)',
             }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ opacity: 1, scale: 0.95 }}
             onClick={onClick}
             onMouseEnter={() => setIsPulsing(false)}
             className="flex items-center gap-2 px-4 py-2 bg-[#d42027] text-white text-sm rounded-full font-medium shadow-lg hover:bg-[#a1181d] transition-colors focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:ring-offset-2"
