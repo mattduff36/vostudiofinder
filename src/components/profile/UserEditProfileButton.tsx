@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { EditProfileModal } from './EditProfileModal';
 import { UserEditProfileFloatingButton } from './UserEditProfileFloatingButton';
+import { AdminMessageUserModal } from './AdminMessageUserModal';
 
 interface UserEditProfileButtonProps {
   username: string;
@@ -12,6 +13,7 @@ interface UserEditProfileButtonProps {
 export function UserEditProfileButton({ username }: UserEditProfileButtonProps) {
   const { data: session } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -35,18 +37,14 @@ export function UserEditProfileButton({ username }: UserEditProfileButtonProps) 
     if (!showButton || !mounted) return;
 
     const checkHash = () => {
-      // Support both #edit-profile (owner) and #edit (admin legacy)
       if (window.location.hash === '#edit-profile' || window.location.hash === '#edit') {
         setIsModalOpen(true);
-        // Clear hash
         window.history.replaceState(null, '', window.location.pathname);
       }
     };
 
-    // Check on mount
     checkHash();
 
-    // Listen for hash changes
     window.addEventListener('hashchange', checkHash);
 
     return () => {
@@ -54,15 +52,16 @@ export function UserEditProfileButton({ username }: UserEditProfileButtonProps) 
     };
   }, [showButton, mounted]);
 
-  // Don't render anything if not owner/admin or not mounted
   if (!mounted || !showButton || !session?.user?.id) {
     return null;
   }
 
   return (
     <>
-      {/* Show floating button for all users who can edit (both owners and admins) */}
-      <UserEditProfileFloatingButton onClick={() => setIsModalOpen(true)} />
+      <UserEditProfileFloatingButton
+        onClick={() => setIsModalOpen(true)}
+        onMessageClick={() => setIsMessageModalOpen(true)}
+      />
       
       <EditProfileModal
         isOpen={isModalOpen}
@@ -70,6 +69,12 @@ export function UserEditProfileButton({ username }: UserEditProfileButtonProps) 
         userId={session.user.id}
         mode={editMode}
         targetUsername={username}
+      />
+
+      <AdminMessageUserModal
+        isOpen={isMessageModalOpen}
+        onClose={() => setIsMessageModalOpen(false)}
+        username={username}
       />
     </>
   );
