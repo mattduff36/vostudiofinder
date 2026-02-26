@@ -16,10 +16,11 @@ import {
   X,
   Mail,
   Lightbulb,
-  Sparkles
+  Sparkles,
+  FileText
 } from 'lucide-react';
 
-export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'suggestions' | 'payments' | 'reservations' | 'error_log' | 'emails' | 'sandbox' | 'platform_updates';
+export type AdminTab = 'overview' | 'studios' | 'analytics' | 'faq' | 'waitlist' | 'suggestions' | 'payments' | 'reservations' | 'error_log' | 'emails' | 'sandbox' | 'platform_updates' | 'message_templates';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -47,6 +48,7 @@ const mainTabs: TabConfig[] = [
 const secondaryTabs: TabConfig[] = [
   { id: 'platform_updates', label: "What's New", icon: Sparkles, href: '/admin/platform-updates' },
   { id: 'emails', label: 'Emails', icon: Mail, href: '/admin/emails' },
+  { id: 'message_templates', label: 'Msg Templates', icon: FileText, href: '/admin/message-templates' },
   { id: 'analytics', label: 'Analytics', icon: Activity, href: '/admin/analytics' },
   { id: 'error_log', label: 'Error Log', icon: AlertTriangle, href: '/admin/error-log' },
   { id: 'sandbox', label: 'Sandbox', icon: Lightbulb, href: '/admin/sandbox' },

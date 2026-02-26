@@ -1014,3 +1014,12 @@ enum PlatformUpdateCategory {
   FIX
   SECURITY
 }
+
+model admin_message_templates {
+  id         String   @id @default(cuid())
+  label      String
+  body       String
+  sort_order Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}

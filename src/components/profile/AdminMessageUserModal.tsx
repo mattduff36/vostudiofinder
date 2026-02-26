@@ -1,11 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, CheckCircle, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
+
+interface MessageTemplate {
+  id: string;
+  label: string;
+  body: string;
+}
 
 interface AdminMessageUserModalProps {
   isOpen: boolean;
@@ -22,6 +28,23 @@ export function AdminMessageUserModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [templates, setTemplates] = useState<MessageTemplate[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    fetch('/api/admin/message-templates')
+      .then((res) => res.json())
+      .then((data) => setTemplates(data.templates || []))
+      .catch(() => {});
+  }, [isOpen]);
+
+  const handleTemplateChange = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    if (!templateId) return;
+    const tpl = templates.find((t) => t.id === templateId);
+    if (tpl) setMessage(tpl.body);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +83,7 @@ export function AdminMessageUserModal({
 
   const handleClose = () => {
     setMessage('');
+    setSelectedTemplate('');
     setError(null);
     setSuccess(false);
     onClose();
@@ -117,10 +141,34 @@ export function AdminMessageUserModal({
                 disabled
               />
 
+              {templates.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Template
+                  </label>
+                  <select
+                    value={selectedTemplate}
+                    onChange={(e) => handleTemplateChange(e.target.value)}
+                    disabled={isSubmitting}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    <option value="">Select a template...</option>
+                    {templates.map((tpl) => (
+                      <option key={tpl.id} value={tpl.id}>
+                        {tpl.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <Textarea
                 label="Message"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  setSelectedTemplate('');
+                }}
                 placeholder="Type your admin message here..."
                 rows={6}
                 required
