@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Mail, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -29,6 +29,7 @@ export function ContactStudioModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,8 +77,7 @@ export function ContactStudioModal({
 
       setSuccess(true);
       
-      // Close modal after 4 seconds (2 seconds longer than before)
-      setTimeout(() => {
+      closeTimerRef.current = setTimeout(() => {
         handleClose();
       }, 4000);
     } catch (err) {
@@ -88,6 +88,10 @@ export function ContactStudioModal({
   };
 
   const handleClose = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
     setName('');
     setEmail('');
     setMessage('');

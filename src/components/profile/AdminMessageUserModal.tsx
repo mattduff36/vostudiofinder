@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, CheckCircle, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -29,6 +29,7 @@ export function AdminMessageUserModal({
   const [success, setSuccess] = useState(false);
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState('');
+  const autoCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -70,7 +71,7 @@ export function AdminMessageUserModal({
       }
 
       setSuccess(true);
-      setTimeout(() => {
+      autoCloseTimer.current = setTimeout(() => {
         handleClose();
       }, 4000);
     } catch (err) {
@@ -81,12 +82,22 @@ export function AdminMessageUserModal({
   };
 
   const handleClose = () => {
+    if (autoCloseTimer.current) {
+      clearTimeout(autoCloseTimer.current);
+      autoCloseTimer.current = null;
+    }
     setMessage('');
     setSelectedTemplate('');
     setError(null);
     setSuccess(false);
     onClose();
   };
+
+  useEffect(() => {
+    return () => {
+      if (autoCloseTimer.current) clearTimeout(autoCloseTimer.current);
+    };
+  }, []);
 
   if (!isOpen) return null;
 
