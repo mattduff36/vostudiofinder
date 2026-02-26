@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, CheckCircle, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 
 interface MessageTemplate {
@@ -97,7 +96,7 @@ export function AdminMessageUserModal({
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="w-6 h-6 text-red-600" />
-            <h2 className="text-xl font-bold text-gray-900">Message As Admin</h2>
+            <h2 className="text-xl font-bold text-gray-900">Message {username} As <span className="text-[#d42027]">Admin</span></h2>
           </div>
           <button
             onClick={handleClose}
@@ -124,22 +123,6 @@ export function AdminMessageUserModal({
                   <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
-
-              <Input
-                label="From"
-                type="text"
-                value="Voiceover Studio Finder Admin"
-                readOnly
-                disabled
-              />
-
-              <Input
-                label="To"
-                type="text"
-                value={username}
-                readOnly
-                disabled
-              />
 
               {templates.length > 0 && (
                 <div>
