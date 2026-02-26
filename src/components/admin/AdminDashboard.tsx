@@ -15,6 +15,7 @@ import {
   ChevronDown,
   StickyNote
 } from 'lucide-react';
+import Link from 'next/link';
 import { AdminTabs } from './AdminTabs';
 import { AdminInsights } from './AdminInsights';
 import { AdminStickyNotes } from './AdminStickyNotes';
@@ -147,6 +148,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       subtitle: `${stats.activeStudios} active studios`,
       icon: Users,
       color: 'bg-blue-500',
+      href: '/admin/studios',
     },
     {
       title: 'Verified Studios',
@@ -156,6 +158,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
         : 'verified accounts',
       icon: CheckCircle,
       color: 'bg-purple-500',
+      href: '/admin/studios',
     },
     {
       title: 'Featured Studios',
@@ -165,6 +168,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
         : 'homepage highlights',
       icon: Sparkles,
       color: 'bg-yellow-500',
+      href: '/admin/studios',
     },
     {
       title: 'Payments',
@@ -172,6 +176,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       subtitle: formatPaymentAmount(stats.recentPaymentAmount) + ' recent payments (30d)',
       icon: CreditCard,
       color: 'bg-green-500',
+      href: '/admin/payments',
     },
     {
       title: 'Pending Reservations',
@@ -179,6 +184,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       subtitle: `${stats.totalReservations} total`,
       icon: Clock,
       color: 'bg-orange-500',
+      href: '/admin/reservations',
     },
     {
       title: 'New Suggestions',
@@ -186,6 +192,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       subtitle: `${stats.totalSuggestions} total`,
       icon: Lightbulb,
       color: 'bg-yellow-500',
+      href: '/admin/suggestions',
     },
     {
       title: 'Active Users (30d)',
@@ -195,6 +202,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
         : 'active in last 30 days',
       icon: Activity,
       color: 'bg-teal-500',
+      href: '/admin/studios',
     },
   ];
 
@@ -376,9 +384,10 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {statCards.map((stat, index) => (
-                <div
+                <Link
                   key={index}
-                  className="bg-white rounded-lg shadow p-6"
+                  href={stat.href}
+                  className="bg-white rounded-lg shadow p-6 block hover:shadow-md hover:ring-2 hover:ring-blue-200 transition-all"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className={`p-3 ${stat.color} rounded-lg`}>
@@ -392,7 +401,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
                       <p className="text-sm text-gray-700 mt-2 font-medium">{stat.subtitle}</p>
                     )}
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
 

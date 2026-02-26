@@ -36,11 +36,13 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || 'noreply@voiceoverstudiofinder.com';
 
     console.log('📧 Sending email via Resend:', {
-      to: options.to,
+      to: options.to.toLowerCase().trim(),
       subject: options.subject,
       from: fromEmail,
       htmlLength: options.html.length,
     });
+
+    const normalizedTo = options.to.toLowerCase().trim();
 
     const emailPayload: {
       from: string;
@@ -51,7 +53,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       replyTo?: string;
     } = {
       from: fromEmail,
-      to: options.to,
+      to: normalizedTo,
       subject: options.subject,
       html: options.html,
     };

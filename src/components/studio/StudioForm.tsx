@@ -124,7 +124,7 @@ export function StudioForm({ initialData, isEditing = false }: StudioFormProps) 
   const serviceOptions = [
     { value: ServiceType.ISDN, label: 'ISDN' },
     { value: ServiceType.SOURCE_CONNECT, label: 'Source Connect' },
-    { value: ServiceType.SOURCE_CONNECT_NOW, label: 'Source Connect Nexus' },
+    { value: ServiceType.SOURCE_CONNECT_NOW, label: 'Source-Nexus' },
     { value: ServiceType.CLEANFEED, label: 'Cleanfeed' },
     { value: ServiceType.SESSION_LINK_PRO, label: 'Session Link Pro' },
     { value: ServiceType.ZOOM, label: 'Zoom' },

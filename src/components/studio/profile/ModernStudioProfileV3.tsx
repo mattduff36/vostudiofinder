@@ -519,7 +519,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
             const standardConnections = [
               { id: 'connection6', value: profile?.connection6, label: 'Cleanfeed' },
               { id: 'connection1', value: profile?.connection1, label: 'Source Connect' },
-              { id: 'connection2', value: profile?.connection2, label: 'Source Connect Nexus' },
+              { id: 'connection2', value: profile?.connection2, label: 'Source-Nexus' },
               { id: 'connection3', value: profile?.connection3, label: 'Phone Patch' },
               { id: 'connection4', value: profile?.connection4, label: 'Session Link Pro' },
               { id: 'connection5', value: profile?.connection5, label: 'Zoom or Teams' },
@@ -1037,7 +1037,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
                 const standardConnections = [
                   { id: 'connection6', label: 'Cleanfeed', value: profile?.connection6 },
                   { id: 'connection1', label: 'Source Connect', value: profile?.connection1 },
-                  { id: 'connection2', label: 'Source Connect Nexus', value: profile?.connection2 },
+                  { id: 'connection2', label: 'Source-Nexus', value: profile?.connection2 },
                   { id: 'connection3', label: 'Phone Patch', value: profile?.connection3 },
                   { id: 'connection4', label: 'Session Link Pro', value: profile?.connection4 },
                   { id: 'connection5', label: 'Zoom or Teams', value: profile?.connection5 },

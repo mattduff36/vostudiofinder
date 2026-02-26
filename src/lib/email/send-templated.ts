@@ -29,7 +29,8 @@ export interface SendTemplatedEmailOptions {
 export async function sendTemplatedEmail(
   options: SendTemplatedEmailOptions
 ): Promise<boolean> {
-  const { to, templateKey, variables, fromOverride, replyToOverride, skipMarketingCheck } = options;
+  const { templateKey, variables, fromOverride, replyToOverride, skipMarketingCheck } = options;
+  const to = options.to.toLowerCase().trim();
   
   // Get template definition to check if it's marketing
   // Check database first (custom templates), then fall back to registry
@@ -156,7 +157,7 @@ export async function sendTemplatedEmailBatch(
   for (const recipient of recipients) {
     try {
       const success = await sendTemplatedEmail({
-        to: recipient,
+        to: recipient.toLowerCase().trim(),
         templateKey,
         variables,
         ...options,

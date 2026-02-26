@@ -18,6 +18,8 @@ export function AdminSandbox() {
   const [sandboxFeaturedRemaining, setSandboxFeaturedRemaining] = useState<number>(6);
   const [sandboxNextAvailableDate, setSandboxNextAvailableDate] = useState<string>('');
   const [sandboxLegacyProfile, setSandboxLegacyProfile] = useState(false);
+  const [sandboxLegacyVoiceoverRestricted, setSandboxLegacyVoiceoverRestricted] = useState(false);
+  const [sandboxLegacyVoiceoverGrace, setSandboxLegacyVoiceoverGrace] = useState(false);
   const [sendingPreviewEmail, setSendingPreviewEmail] = useState(false);
   const initialised = useRef(false);
 
@@ -36,6 +38,8 @@ export function AdminSandbox() {
         if (typeof s.featuredRemaining === 'number') setSandboxFeaturedRemaining(s.featuredRemaining);
         if (typeof s.nextAvailableDate === 'string') setSandboxNextAvailableDate(s.nextAvailableDate);
         if (s.legacyProfile) setSandboxLegacyProfile(true);
+        if (s.legacyVoiceoverRestricted) setSandboxLegacyVoiceoverRestricted(true);
+        if (s.legacyVoiceoverGrace) setSandboxLegacyVoiceoverGrace(true);
       }
     } catch { /* ignore corrupt data */ }
     initialised.current = true;
@@ -55,10 +59,12 @@ export function AdminSandbox() {
         featuredRemaining: sandboxFeaturedRemaining,
         nextAvailableDate: sandboxNextAvailableDate,
         legacyProfile: sandboxLegacyProfile,
+        legacyVoiceoverRestricted: sandboxLegacyVoiceoverRestricted,
+        legacyVoiceoverGrace: sandboxLegacyVoiceoverGrace,
       };
       sessionStorage.setItem(SANDBOX_STORAGE_KEY, JSON.stringify(state));
     } catch { /* sessionStorage full or unavailable */ }
-  }, [sandboxEnabled, sandboxProfileCompletion, sandboxIsVerified, sandboxMembershipActive, sandboxMembershipTier, sandboxStudioIsFeatured, sandboxFeaturedRemaining, sandboxNextAvailableDate, sandboxLegacyProfile]);
+  }, [sandboxEnabled, sandboxProfileCompletion, sandboxIsVerified, sandboxMembershipActive, sandboxMembershipTier, sandboxStudioIsFeatured, sandboxFeaturedRemaining, sandboxNextAvailableDate, sandboxLegacyProfile, sandboxLegacyVoiceoverRestricted, sandboxLegacyVoiceoverGrace]);
 
   const handleReset = () => {
     setSandboxEnabled(false);
@@ -70,6 +76,8 @@ export function AdminSandbox() {
     setSandboxFeaturedRemaining(6);
     setSandboxNextAvailableDate('');
     setSandboxLegacyProfile(false);
+    setSandboxLegacyVoiceoverRestricted(false);
+    setSandboxLegacyVoiceoverGrace(false);
     try { sessionStorage.removeItem(SANDBOX_STORAGE_KEY); } catch {}
   };
 
@@ -147,12 +155,33 @@ export function AdminSandbox() {
                 {/* Legacy profile emulation */}
                 <div className="bg-white rounded-lg border border-amber-100 p-4 md:col-span-2">
                   <p className="text-sm font-semibold text-gray-900 mb-3">Legacy profile emulation</p>
-                  <Toggle
-                    label="Simulate legacy profile"
-                    description="When enabled, the Edit Profile tab treats your account as a legacy profile (created before Jan 2025). This bypasses the required-fields check on the Profile Visibility toggle."
-                    checked={sandboxLegacyProfile}
-                    onChange={setSandboxLegacyProfile}
-                  />
+                  <div className="space-y-3">
+                    <Toggle
+                      label="Simulate legacy profile"
+                      description="When enabled, the Edit Profile tab treats your account as a legacy profile (created before Jan 2026). This bypasses the required-fields check on the Profile Visibility toggle."
+                      checked={sandboxLegacyProfile}
+                      onChange={setSandboxLegacyProfile}
+                    />
+                    <Toggle
+                      label="Simulate legacy VOICEOVER restriction"
+                      description="When enabled alongside legacy profile, the VOICEOVER studio type is disabled and the restriction warning banner is shown. Simulates a legacy user who has NOT paid for 12+ months."
+                      checked={sandboxLegacyVoiceoverRestricted}
+                      onChange={(v) => {
+                        setSandboxLegacyVoiceoverRestricted(v);
+                        if (!v) setSandboxLegacyVoiceoverGrace(false);
+                      }}
+                    />
+                    {sandboxLegacyVoiceoverRestricted && (
+                      <div className="ml-6">
+                        <Toggle
+                          label="Simulate active grace period"
+                          description="When enabled, shows the grace period expiry date in the warning banner (14 days from now). When off, simulates a user who has not yet been given a grace period."
+                          checked={sandboxLegacyVoiceoverGrace}
+                          onChange={setSandboxLegacyVoiceoverGrace}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="bg-white rounded-lg border border-amber-100 p-4">

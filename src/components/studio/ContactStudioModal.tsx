@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Mail, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -100,6 +100,12 @@ export function ContactStudioModal({
     setSuccess(false);
     onClose();
   };
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
+  }, []);
 
   if (!isOpen) return null;
 

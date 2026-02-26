@@ -116,7 +116,7 @@ export async function POST(
       data: recipients.map(user => ({
         campaign_id: campaign.id,
         user_id: user.id,
-        to_email: user.email,
+        to_email: user.email.toLowerCase().trim(),
         status: 'PENDING',
       })),
     });
