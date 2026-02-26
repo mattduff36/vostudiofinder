@@ -114,11 +114,12 @@ Voiceover Studio Finder
 Questions? support@voiceoverstudiofinder.com
     `.trim();
 
-    const fromAddress = process.env.RESEND_FROM_EMAIL || 'noreply@voiceoverstudiofinder.com';
+    const rawFrom = process.env.RESEND_FROM_EMAIL || 'noreply@voiceoverstudiofinder.com';
+    const fromEmail = rawFrom.match(/<(.+)>/)?.[1] || rawFrom;
     const replyTo = process.env.RESEND_REPLY_TO_EMAIL || 'support@voiceoverstudiofinder.com';
 
     const emailSent = await sendEmail({
-      from: `Voiceover Studio Finder Admin <${fromAddress}>`,
+      from: `Voiceover Studio Finder Admin <${fromEmail}>`,
       to: user.email,
       replyTo,
       subject: 'Message from Voiceover Studio Finder Admin',
