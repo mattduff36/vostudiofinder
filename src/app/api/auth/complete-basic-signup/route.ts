@@ -88,6 +88,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Ensure studio profile exists so the user appears on /admin/studios immediately
+    const { ensureStudioProfile } = await import('@/lib/studio-profile');
+    await ensureStudioProfile(userId);
+
     console.log(`✅ User ${userId} activated with BASIC (free) membership`);
 
     return NextResponse.json({

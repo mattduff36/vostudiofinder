@@ -704,6 +704,53 @@ async function handleMembershipSubscriptionCompleted(session: Stripe.Checkout.Se
     },
   });
 
+  // Ensure studio profile exists and is ACTIVE
+  const { ensureStudioProfile } = await import('@/lib/studio-profile');
+  await ensureStudioProfile(user_id);
+
+  // Record a payment so subscription revenue is visible on admin payments page.
+  // Retrieve the initial invoice to get the actual charge and payment intent IDs.
+  try {
+    const latestInvoiceId = (subscription as any).latest_invoice as string | null;
+    let paymentIntentId: string | null = null;
+    let chargeId: string | null = null;
+    let amountPaid = session.amount_total || 0;
+    let currency = session.currency || 'gbp';
+
+    if (latestInvoiceId) {
+      const invoice = await stripe.invoices.retrieve(latestInvoiceId) as any;
+      paymentIntentId = (invoice.payment_intent as string) || null;
+      amountPaid = invoice.amount_paid || amountPaid;
+      currency = invoice.currency || currency;
+      if (paymentIntentId) {
+        const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+        chargeId = (pi as any).latest_charge as string || null;
+      }
+    }
+
+    await db.payments.create({
+      data: {
+        id: randomBytes(12).toString('base64url'),
+        user_id,
+        stripe_checkout_session_id: session.id,
+        stripe_payment_intent_id: paymentIntentId,
+        stripe_charge_id: chargeId,
+        amount: amountPaid,
+        currency,
+        status: 'SUCCEEDED',
+        refunded_amount: 0,
+        metadata: { ...session.metadata, subscription_id: subscriptionId },
+        created_at: now,
+        updated_at: now,
+      },
+    });
+    console.log(`[SUCCESS] Payment record created for subscription checkout (user ${user_id})`);
+  } catch (paymentRecordError) {
+    // Non-fatal: subscription and membership are already granted above.
+    // Log loudly so the gap can be spotted, but don't fail the webhook.
+    console.error(`[WARNING] Failed to create payment record for subscription (user ${user_id}):`, paymentRecordError);
+  }
+
   // Subscription memberships are annual (12+ months) — unlock legacy VOICEOVER
   const { setLegacyVoiceoverUnlocked } = await import('@/lib/membership');
   await setLegacyVoiceoverUnlocked(user_id);
@@ -771,21 +818,9 @@ async function grantMembership(
     },
   });
 
-  // Ensure studio profile is ACTIVE if exists
-  const studio = await db.studio_profiles.findUnique({
-    where: { user_id: userId },
-  });
-
-  if (studio && studio.status !== 'ACTIVE') {
-    await db.studio_profiles.update({
-      where: { user_id: userId },
-      data: {
-        status: 'ACTIVE',
-        updated_at: now,
-      },
-    });
-    console.log(`🔄 Studio status set to ACTIVE for user ${userId}`);
-  }
+  // Ensure studio profile exists and is ACTIVE
+  const { ensureStudioProfile } = await import('@/lib/studio-profile');
+  await ensureStudioProfile(userId);
 
   console.log(`[SUCCESS] Membership granted to user ${userId} for ${membershipMonths} months until ${expiryDate.toISOString()}`);
   return subscription;
