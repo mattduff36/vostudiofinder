@@ -256,6 +256,24 @@ export async function POST(request: NextRequest) {
     
     // Create PENDING user (placeholder) with 7-day reservation
     const hashedPassword = await hashPassword(validatedData.password);
+    
+    // Pre-create guard: verify bcrypt produced a valid hash before touching the DB.
+    // A valid bcrypt hash is always 60 chars and starts with "$2a$" or "$2b$".
+    if (
+      !hashedPassword ||
+      hashedPassword.length !== 60 ||
+      !hashedPassword.startsWith('$2')
+    ) {
+      console.error(
+        `[CRITICAL] Password hashing produced invalid output for ${normalizedEmail}:`,
+        `type=${typeof hashedPassword}, length=${hashedPassword?.length ?? 'null'}`
+      );
+      return NextResponse.json(
+        { error: 'Account creation failed. Please try again.' },
+        { status: 500 }
+      );
+    }
+    
     const userId = randomBytes(12).toString('base64url');
     const reservationExpires = new Date();
     reservationExpires.setDate(reservationExpires.getDate() + 7); // 7 days from now
@@ -268,20 +286,40 @@ export async function POST(request: NextRequest) {
     const verificationToken = randomBytes(32).toString('hex');
     const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     
-    const user = await db.users.create({
-      data: {
-        id: userId,
-        email: normalizedEmail,
-        password: hashedPassword,
-        username: tempUsername,
-        display_name: sanitizedDisplayName,
-        status: UserStatus.PENDING,
-        reservation_expires_at: reservationExpires,
-        email_verified: false,
-        verification_token: verificationToken,
-        verification_token_expiry: verificationTokenExpiry,
-        updated_at: new Date(),
-      },
+    // Use a transaction so the user is rolled back if password persistence fails
+    const user = await db.$transaction(async (tx) => {
+      const created = await tx.users.create({
+        data: {
+          id: userId,
+          email: normalizedEmail,
+          password: hashedPassword,
+          username: tempUsername,
+          display_name: sanitizedDisplayName,
+          status: UserStatus.PENDING,
+          reservation_expires_at: reservationExpires,
+          email_verified: false,
+          verification_token: verificationToken,
+          verification_token_expiry: verificationTokenExpiry,
+          updated_at: new Date(),
+        },
+      });
+      
+      // Post-create guard: re-read from DB to confirm the password was persisted
+      const persisted = await tx.users.findUnique({
+        where: { id: created.id },
+        select: { password: true },
+      });
+      
+      if (!persisted?.password || persisted.password.length !== 60) {
+        console.error(
+          `[CRITICAL] Password not persisted for user ${created.id} (${normalizedEmail}).`,
+          `Expected 60-char hash, got length=${persisted?.password?.length ?? 'null'}.`,
+          'Rolling back user creation.'
+        );
+        throw new Error('Password persistence verification failed');
+      }
+      
+      return created;
     });
     
     console.log(`✅ Created PENDING user: ${user.email} (ID: ${user.id}), reservation expires: ${reservationExpires.toISOString()}`);
@@ -329,6 +367,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid input data' },
         { status: 400 }
+      );
+    }
+    
+    if (error instanceof Error && error.message === 'Password persistence verification failed') {
+      return NextResponse.json(
+        { error: 'Account creation failed. Please try again.' },
+        { status: 500 }
       );
     }
     
