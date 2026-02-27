@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
 async function computeRevenueSummary() {
   const allSucceeded = await db.payments.findMany({
-    where: { status: 'SUCCEEDED' },
+    where: { status: { in: ['SUCCEEDED', 'REFUNDED', 'PARTIALLY_REFUNDED'] } },
     select: { amount: true, refunded_amount: true, metadata: true },
   });
 
