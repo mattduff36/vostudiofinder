@@ -196,43 +196,43 @@ export default function AdminReservationsPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
             <div className="flex items-center">
-              <Clock className="w-8 h-8 text-yellow-500 mr-3" />
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
-                <p className="text-sm text-gray-600">Pending</p>
+              <Clock className="w-6 h-6 md:w-8 md:h-8 text-yellow-500 mr-2 md:mr-3 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xl md:text-2xl font-bold text-gray-900">{stats.pending}</p>
+                <p className="text-xs md:text-sm text-gray-600">Pending</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
             <div className="flex items-center">
-              <AlertCircle className="w-8 h-8 text-orange-500 mr-3" />
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.expiringSoon}</p>
-                <p className="text-sm text-gray-600">Expiring Soon (≤2 days)</p>
+              <AlertCircle className="w-6 h-6 md:w-8 md:h-8 text-orange-500 mr-2 md:mr-3 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xl md:text-2xl font-bold text-gray-900">{stats.expiringSoon}</p>
+                <p className="text-xs md:text-sm text-gray-600 truncate">Expiring Soon</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
             <div className="flex items-center">
-              <XCircle className="w-8 h-8 text-red-500 mr-3" />
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.failedPayments}</p>
-                <p className="text-sm text-gray-600">Failed Payments</p>
+              <XCircle className="w-6 h-6 md:w-8 md:h-8 text-red-500 mr-2 md:mr-3 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xl md:text-2xl font-bold text-gray-900">{stats.failedPayments}</p>
+                <p className="text-xs md:text-sm text-gray-600 truncate">Failed Payments</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
             <div className="flex items-center">
-              <XCircle className="w-8 h-8 text-gray-400 mr-3" />
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.expired}</p>
-                <p className="text-sm text-gray-600">Expired</p>
+              <XCircle className="w-6 h-6 md:w-8 md:h-8 text-gray-400 mr-2 md:mr-3 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xl md:text-2xl font-bold text-gray-900">{stats.expired}</p>
+                <p className="text-xs md:text-sm text-gray-600">Expired</p>
               </div>
             </div>
           </div>

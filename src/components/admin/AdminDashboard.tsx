@@ -361,10 +361,10 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       <div className="px-4 py-4 md:p-8 min-h-screen">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
+          <div className="mb-4 md:mb-8 flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-0.5 md:mt-2 text-xs md:text-base hidden sm:block">
                 Overview of platform statistics and recent activity
               </p>
             </div>
@@ -372,33 +372,33 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
             {/* Sticky Notes Button */}
             <button
               onClick={() => setIsStickyNotesOpen(true)}
-              className="flex items-center justify-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm w-full md:w-auto"
+              className="flex items-center justify-center space-x-1.5 md:space-x-2 px-3 md:px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm flex-shrink-0"
               aria-label="Open sticky notes"
             >
-              <StickyNote className="w-5 h-5 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">Notes</span>
+              <StickyNote className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+              <span className="text-xs md:text-sm font-medium text-gray-700">Notes</span>
             </button>
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-4 md:space-y-8">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
               {statCards.map((stat, index) => (
                 <Link
                   key={index}
                   href={stat.href}
-                  className="bg-white rounded-lg shadow p-6 block hover:shadow-md hover:ring-2 hover:ring-blue-200 transition-all"
+                  className="bg-white rounded-lg shadow p-3 md:p-6 block hover:shadow-md hover:ring-2 hover:ring-blue-200 transition-all"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`p-3 ${stat.color} rounded-lg`}>
-                      <stat.icon className="w-6 h-6 text-white" />
+                  <div className="flex items-center justify-between mb-2 md:mb-4">
+                    <div className={`p-2 md:p-3 ${stat.color} rounded-lg`}>
+                      <stat.icon className="w-4 h-4 md:w-6 md:h-6 text-white" />
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                    <p className="text-xs md:text-sm font-medium text-gray-600">{stat.title}</p>
+                    <p className="text-xl md:text-3xl font-bold text-gray-900 mt-0.5 md:mt-1">{stat.value}</p>
                     {stat.subtitle && (
-                      <p className="text-sm text-gray-700 mt-2 font-medium">{stat.subtitle}</p>
+                      <p className="text-xs md:text-sm text-gray-700 mt-1 md:mt-2 font-medium line-clamp-2">{stat.subtitle}</p>
                     )}
                   </div>
                 </Link>
@@ -410,13 +410,13 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
 
             {/* Recent Activity Section */}
             <div className="bg-white rounded-lg shadow">
-              <div className="p-6 border-b border-gray-200">
+              <div className="p-4 md:p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Activity className="w-5 h-5 text-gray-700" />
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <Activity className="w-4 h-4 md:w-5 md:h-5 text-gray-700" />
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900">Recent Activity & Insights</h2>
-                      <p className="text-sm text-gray-600 mt-1">Platform activity with detailed context</p>
+                      <h2 className="text-base md:text-xl font-bold text-gray-900">Recent Activity</h2>
+                      <p className="text-xs md:text-sm text-gray-600 mt-0.5 md:mt-1 hidden sm:block">Platform activity with detailed context</p>
                     </div>
                   </div>
                 </div>
@@ -424,7 +424,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
               
               <div className="divide-y divide-gray-200">
                 {sortedActivities.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
+                  <div className="p-6 md:p-8 text-center text-gray-500">
                     No recent activity to display
                   </div>
                 ) : (
@@ -432,29 +432,29 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
                     {visibleActivities.map((activity) => {
                       const Icon = activity.icon;
                       return (
-                        <div key={activity.id} className="p-4 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3 flex-1">
-                              <div className={`p-2 rounded-lg ${activity.bgColor}`}>
-                                <Icon className={`w-4 h-4 ${activity.color}`} />
+                        <div key={activity.id} className="px-3 py-2.5 md:p-4 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-start justify-between gap-2 md:gap-4">
+                            <div className="flex items-start gap-2 md:gap-3 flex-1 min-w-0">
+                              <div className={`p-1.5 md:p-2 rounded-lg ${activity.bgColor} flex-shrink-0`}>
+                                <Icon className={`w-3.5 h-3.5 md:w-4 md:h-4 ${activity.color}`} />
                               </div>
                               
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-medium text-gray-900">
+                                <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
+                                  <span className="text-sm md:text-base font-medium text-gray-900">
                                     {activity.title}
                                   </span>
                                   {activity.metadata && (
-                                    <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-100 text-gray-800">
+                                    <span className="text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 rounded-full font-medium bg-gray-100 text-gray-800">
                                       {activity.metadata}
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                                <p className="text-xs md:text-sm text-gray-600 mt-0.5 md:mt-1 line-clamp-2">{activity.description}</p>
                               </div>
                             </div>
                             
-                            <time className="text-xs text-gray-500 whitespace-nowrap">
+                            <time className="text-[10px] md:text-xs text-gray-500 whitespace-nowrap flex-shrink-0 mt-0.5">
                               {getRelativeTime(activity.timestamp)}
                             </time>
                           </div>
@@ -464,11 +464,11 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
                     
                     {/* Show More Button */}
                     {hasMoreItems && (
-                      <div className="p-4 border-t border-gray-200 bg-gray-50">
+                      <div className="p-3 md:p-4 border-t border-gray-200 bg-gray-50">
                         <Button
                           onClick={handleShowMore}
                           variant="outline"
-                          className="w-full flex items-center justify-center gap-2 hover:bg-white transition-colors"
+                          className="w-full flex items-center justify-center gap-2 hover:bg-white transition-colors text-sm"
                         >
                           <span>Show More</span>
                           <ChevronDown className="w-4 h-4" />

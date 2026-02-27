@@ -232,25 +232,23 @@ export function Suggestions() {
 
           {/* Filters */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4 mb-4 md:mb-6">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center space-x-2">
-                <Filter className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">Filter:</span>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="OPEN">Open</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="CLOSED">Closed</option>
+                </select>
               </div>
 
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="OPEN">Open</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="RESOLVED">Resolved</option>
-                <option value="CLOSED">Closed</option>
-              </select>
-
-              <div className="ml-auto text-sm text-gray-600">
+              <div className="text-xs md:text-sm text-gray-600 flex-shrink-0">
                 {suggestions.length} suggestion{suggestions.length !== 1 ? 's' : ''}
               </div>
             </div>
@@ -281,25 +279,25 @@ export function Suggestions() {
                         : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                     }`}
                   >
-                    <div className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <Lightbulb className="w-5 h-5 text-yellow-600" />
-                          <h3 className="font-semibold text-gray-900">
-                            Suggestion - {suggestion.category}
+                    <div className="p-3 md:p-4">
+                      <div className="flex items-start justify-between mb-2 md:mb-3 gap-2">
+                        <div className="flex items-center space-x-1.5 md:space-x-2 min-w-0">
+                          <Lightbulb className="w-4 h-4 md:w-5 md:h-5 text-yellow-600 flex-shrink-0" />
+                          <h3 className="text-sm md:text-base font-semibold text-gray-900 truncate">
+                            {suggestion.category}
                           </h3>
                         </div>
                         {getStatusBadge(suggestion.status)}
                       </div>
 
-                      <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                      <p className="text-xs md:text-sm text-gray-700 mb-2 md:mb-3 line-clamp-2">
                         {suggestion.message}
                       </p>
 
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <div className="flex items-center space-x-3">
-                          <span>By: {suggestion.users.display_name}</span>
-                          <span className="flex items-center space-x-1">
+                      <div className="flex items-center justify-between text-[10px] md:text-xs text-gray-500 gap-2">
+                        <div className="flex items-center gap-2 md:space-x-3 min-w-0 truncate">
+                          <span className="truncate">{suggestion.users.display_name}</span>
+                          <span className="flex items-center space-x-1 flex-shrink-0">
                             <Calendar className="w-3 h-3" />
                             <span>{new Date(suggestion.created_at).toLocaleDateString('en-GB')}</span>
                           </span>

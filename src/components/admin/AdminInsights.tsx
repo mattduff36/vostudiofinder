@@ -66,36 +66,36 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
 
 
   return (
-    <div className="space-y-6 md:space-y-8">
+    <div className="space-y-4 md:space-y-8">
       {/* Top Charts Grid - Studio Types and Locations */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
         
-        {/* Studio Types - Same height as Studio Locations */}
-        <div className="bg-white rounded-lg shadow p-6 flex flex-col">
-          <div className="flex items-center gap-3 mb-4">
-            <Building2 className="w-5 h-5 text-purple-600" />
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Studio Types (Home, Recording & Podcast)</h3>
-              <p className="text-sm text-gray-600">Individual types and common combinations</p>
+        {/* Studio Types */}
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 flex flex-col">
+          <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+            <Building2 className="w-4 h-4 md:w-5 md:h-5 text-purple-600 flex-shrink-0" />
+            <div className="min-w-0">
+              <h3 className="text-sm md:text-lg font-bold text-gray-900 truncate">Studio Types</h3>
+              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Individual types and common combinations</p>
             </div>
           </div>
           {insights.studioTypeStats.length > 0 ? (
-            <div className="flex-1 min-h-0">
-              <ResponsiveContainer width="100%" height={350}>
+            <div className="flex-1 min-h-0 h-[250px] md:h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={insights.studioTypeStats.map(item => ({
                   name: item.name,
                   count: item.count,
-                }))} margin={{ top: 5, right: 10, bottom: 60, left: 10 }}>
+                }))} margin={{ top: 5, right: 5, bottom: 60, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis 
                     dataKey="name" 
                     stroke="#6b7280" 
-                    fontSize={11}
+                    fontSize={10}
                     angle={-45}
                     textAnchor="end"
                     height={80}
                   />
-                  <YAxis stroke="#6b7280" fontSize={12} />
+                  <YAxis stroke="#6b7280" fontSize={11} width={30} />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: '#fff', 
@@ -118,18 +118,18 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
           )}
         </div>
 
-        {/* Studio Locations - Same height as Studio Types */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <MapPin className="w-5 h-5 text-blue-600" />
+        {/* Studio Locations */}
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-6">
+            <MapPin className="w-4 h-4 md:w-5 md:h-5 text-blue-600 flex-shrink-0" />
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Studio Locations</h3>
-              <p className="text-sm text-gray-600">Top 4 countries + other</p>
+              <h3 className="text-sm md:text-lg font-bold text-gray-900">Studio Locations</h3>
+              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Top 4 countries + other</p>
             </div>
           </div>
           {insights.locationStats.length > 0 ? (
-            <div className="flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={350}>
+            <div className="flex items-center justify-center h-[250px] md:h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={insights.locationStats.map(item => ({
@@ -142,7 +142,6 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                     label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
                       if (midAngle === undefined) return null;
                       const RADIAN = Math.PI / 180;
-                      // Position label in the middle of the slice
                       const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
                       const x = cx + radius * Math.cos(-midAngle * RADIAN);
                       const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -154,7 +153,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                           fill="#000" 
                           textAnchor={x > cx ? 'start' : 'end'} 
                           dominantBaseline="central"
-                          fontSize={13}
+                          fontSize={11}
                           fontWeight="600"
                         >
                           {`${name} ${percent ? (percent * 100).toFixed(0) : '0'}%`}
@@ -181,36 +180,37 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-[350px] flex items-center justify-center text-gray-500 text-sm">
+            <div className="h-[250px] md:h-[350px] flex items-center justify-center text-gray-500 text-sm">
               No location data available
             </div>
           )}
         </div>
       </div>
 
-      {/* Bottom Charts Grid - Responsive: stack on mobile, 3 columns on desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+      {/* Bottom Charts Grid - 2 columns on mobile, 3 on desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
         
         {/* Custom Connection Methods */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <LinkIcon className="w-5 h-5 text-indigo-600" />
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Custom Connection Methods</h3>
-              <p className="text-sm text-gray-600">Most popular user-added connections</p>
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-6">
+            <LinkIcon className="w-4 h-4 md:w-5 md:h-5 text-indigo-600 flex-shrink-0" />
+            <div className="min-w-0">
+              <h3 className="text-sm md:text-lg font-bold text-gray-900 truncate">Custom Connections</h3>
+              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Most popular user-added connections</p>
             </div>
           </div>
           {customConnectionsData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
+            <div className="h-[180px] md:h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={customConnectionsData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" stroke="#6b7280" fontSize={12} />
+                <XAxis type="number" stroke="#6b7280" fontSize={11} />
                 <YAxis 
                   type="category" 
                   dataKey="name" 
-                  width={100}
+                  width={80}
                   stroke="#6b7280" 
-                  fontSize={11}
+                  fontSize={10}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -222,33 +222,35 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                 <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            </div>
           ) : (
-            <div className="h-[200px] flex items-center justify-center text-gray-500 text-sm">
+            <div className="h-[180px] md:h-[200px] flex items-center justify-center text-gray-500 text-sm">
               No custom connections yet
             </div>
           )}
         </div>
         
         {/* Signups Trend */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <TrendingUp className="w-5 h-5 text-teal-600" />
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Signups (Last 30 Days)</h3>
-              <p className="text-sm text-gray-600">Daily user registrations</p>
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-6">
+            <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-teal-600 flex-shrink-0" />
+            <div className="min-w-0">
+              <h3 className="text-sm md:text-lg font-bold text-gray-900 truncate">Signups (30d)</h3>
+              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Daily user registrations</p>
             </div>
           </div>
           {signupChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
+            <div className="h-[180px] md:h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={signupChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey="date" 
                   stroke="#6b7280" 
-                  fontSize={11}
-                  interval={Math.floor(signupChartData.length / 8)} // Show ~8 labels
+                  fontSize={10}
+                  interval={Math.floor(signupChartData.length / 6)}
                 />
-                <YAxis stroke="#6b7280" fontSize={12} />
+                <YAxis stroke="#6b7280" fontSize={11} width={30} />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: '#fff', 
@@ -261,38 +263,40 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                   dataKey="signups" 
                   stroke="#14b8a6" 
                   strokeWidth={2}
-                  dot={{ fill: '#14b8a6', r: 3 }}
-                  activeDot={{ r: 5 }}
+                  dot={{ fill: '#14b8a6', r: 2 }}
+                  activeDot={{ r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
+            </div>
           ) : (
-            <div className="h-[200px] flex items-center justify-center text-gray-500 text-sm">
+            <div className="h-[180px] md:h-[200px] flex items-center justify-center text-gray-500 text-sm">
               No signup data available
             </div>
           )}
         </div>
 
         {/* Payments Trend */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <TrendingUp className="w-5 h-5 text-green-600" />
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Payments (Last 30 Days)</h3>
-              <p className="text-sm text-gray-600">Daily revenue (£) and transaction count</p>
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-6">
+            <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" />
+            <div className="min-w-0">
+              <h3 className="text-sm md:text-lg font-bold text-gray-900 truncate">Payments (30d)</h3>
+              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Daily revenue (£) and transaction count</p>
             </div>
           </div>
           {paymentChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
+            <div className="h-[180px] md:h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={paymentChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey="date" 
                   stroke="#6b7280" 
-                  fontSize={11}
-                  interval={Math.floor(paymentChartData.length / 8)}
+                  fontSize={10}
+                  interval={Math.floor(paymentChartData.length / 6)}
                 />
-                <YAxis stroke="#6b7280" fontSize={12} />
+                <YAxis stroke="#6b7280" fontSize={11} width={30} />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: '#fff', 
@@ -305,27 +309,28 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
                     return ['', ''];
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: '11px' }} />
                 <Line 
                   type="monotone" 
                   dataKey="revenue" 
                   stroke="#10b981" 
                   strokeWidth={2}
-                  dot={{ fill: '#10b981', r: 3 }}
-                  activeDot={{ r: 5 }}
+                  dot={{ fill: '#10b981', r: 2 }}
+                  activeDot={{ r: 4 }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="payments" 
                   stroke="#3b82f6" 
                   strokeWidth={2}
-                  dot={{ fill: '#3b82f6', r: 3 }}
-                  activeDot={{ r: 5 }}
+                  dot={{ fill: '#3b82f6', r: 2 }}
+                  activeDot={{ r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
+            </div>
           ) : (
-            <div className="h-[200px] flex items-center justify-center text-gray-500 text-sm">
+            <div className="h-[180px] md:h-[200px] flex items-center justify-center text-gray-500 text-sm">
               No payment data available
             </div>
           )}

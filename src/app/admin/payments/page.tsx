@@ -670,12 +670,12 @@ export default function AdminPaymentsPage() {
 
                 {/* Pagination */}
                 {pagination.totalPages > 1 && (
-                  <div className="mt-6 flex items-center justify-between bg-white rounded-lg shadow-sm border border-gray-200 px-6 py-4">
-                    <Button onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })} disabled={pagination.page === 1} variant="outline" className="border-gray-300">
-                      Previous
+                  <div className="mt-4 md:mt-6 flex items-center justify-between bg-white rounded-lg shadow-sm border border-gray-200 px-3 py-3 md:px-6 md:py-4">
+                    <Button onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })} disabled={pagination.page === 1} variant="outline" className="border-gray-300 text-sm px-3 md:px-4">
+                      Prev
                     </Button>
-                    <span className="text-sm text-gray-700 font-medium">Page {pagination.page} of {pagination.totalPages}</span>
-                    <Button onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })} disabled={pagination.page === pagination.totalPages} variant="outline" className="border-gray-300">
+                    <span className="text-xs md:text-sm text-gray-700 font-medium">{pagination.page} / {pagination.totalPages}</span>
+                    <Button onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })} disabled={pagination.page === pagination.totalPages} variant="outline" className="border-gray-300 text-sm px-3 md:px-4">
                       Next
                     </Button>
                   </div>
@@ -923,12 +923,12 @@ export default function AdminPaymentsPage() {
 
                 {/* Subscription Pagination */}
                 {subPagination.totalPages > 1 && (
-                  <div className="mt-6 flex items-center justify-between bg-white rounded-lg shadow-sm border border-gray-200 px-6 py-4">
-                    <Button onClick={() => setSubPagination({ ...subPagination, page: subPagination.page - 1 })} disabled={subPagination.page === 1} variant="outline" className="border-gray-300">
-                      Previous
+                  <div className="mt-4 md:mt-6 flex items-center justify-between bg-white rounded-lg shadow-sm border border-gray-200 px-3 py-3 md:px-6 md:py-4">
+                    <Button onClick={() => setSubPagination({ ...subPagination, page: subPagination.page - 1 })} disabled={subPagination.page === 1} variant="outline" className="border-gray-300 text-sm px-3 md:px-4">
+                      Prev
                     </Button>
-                    <span className="text-sm text-gray-700 font-medium">Page {subPagination.page} of {subPagination.totalPages}</span>
-                    <Button onClick={() => setSubPagination({ ...subPagination, page: subPagination.page + 1 })} disabled={subPagination.page === subPagination.totalPages} variant="outline" className="border-gray-300">
+                    <span className="text-xs md:text-sm text-gray-700 font-medium">{subPagination.page} / {subPagination.totalPages}</span>
+                    <Button onClick={() => setSubPagination({ ...subPagination, page: subPagination.page + 1 })} disabled={subPagination.page === subPagination.totalPages} variant="outline" className="border-gray-300 text-sm px-3 md:px-4">
                       Next
                     </Button>
                   </div>
@@ -1176,12 +1176,12 @@ function SummaryCard({ icon, label, value, accent }: {
     'border-l-green-500';
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 border-l-4 ${borderClass} p-4`}>
-      <div className="flex items-center gap-2 mb-1">
-        {icon}
-        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
+    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 border-l-4 ${borderClass} p-3 md:p-4`}>
+      <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+        <span className="flex-shrink-0 [&>svg]:w-4 [&>svg]:h-4 md:[&>svg]:w-5 md:[&>svg]:h-5">{icon}</span>
+        <span className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide truncate">{label}</span>
       </div>
-      <p className="text-xl md:text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-lg md:text-2xl font-bold text-gray-900">{value}</p>
     </div>
   );
 }

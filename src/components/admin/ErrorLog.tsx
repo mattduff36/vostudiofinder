@@ -331,44 +331,47 @@ export function ErrorLog() {
 
           {/* Filters */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4 mb-4 md:mb-6">
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-4">
               <div className="flex items-center space-x-2">
                 <Filter className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-medium text-gray-700">Filters:</span>
+                <span className="text-xs text-gray-500 md:hidden">({totalCount} error{totalCount !== 1 ? 's' : ''})</span>
               </div>
 
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="OPEN">Open</option>
-                <option value="RESOLVED">Resolved</option>
-                <option value="IGNORED">Ignored</option>
-              </select>
+              <div className="grid grid-cols-2 gap-2 md:flex md:gap-4">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="OPEN">Open</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="IGNORED">Ignored</option>
+                </select>
 
-              <select
-                value={filterLevel}
-                onChange={(e) => setFilterLevel(e.target.value)}
-                className="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
-              >
-                <option value="ALL">All Levels</option>
-                <option value="fatal">Fatal</option>
-                <option value="error">Error</option>
-                <option value="warning">Warning</option>
-                <option value="info">Info</option>
-              </select>
+                <select
+                  value={filterLevel}
+                  onChange={(e) => setFilterLevel(e.target.value)}
+                  className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                >
+                  <option value="ALL">All Levels</option>
+                  <option value="fatal">Fatal</option>
+                  <option value="error">Error</option>
+                  <option value="warning">Warning</option>
+                  <option value="info">Info</option>
+                </select>
+              </div>
 
               <input
                 type="text"
                 placeholder="Search errors..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                className="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027] flex-grow max-w-md"
+                className="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027] w-full md:flex-grow md:max-w-md"
               />
 
-              <div className="ml-auto text-sm text-gray-600">
+              <div className="hidden md:block ml-auto text-sm text-gray-600">
                 {totalCount} error{totalCount !== 1 ? 's' : ''}
               </div>
             </div>
@@ -393,45 +396,41 @@ export function ErrorLog() {
                 >
                   {/* Error Summary - Clickable to expand (desktop inline, mobile drawer) */}
                   <div 
-                    className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="p-3 md:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                     onClick={() => toggleErrorDetails(error.id)}
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start justify-between gap-2 md:gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2 flex-wrap">
                           {getLevelBadge(error.level)}
                           {getStatusBadge(error.status)}
                           {error.environment && (
-                            <span className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700">
+                            <span className="px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-medium rounded bg-gray-100 text-gray-700">
                               {error.environment}
                             </span>
                           )}
                         </div>
-                        <h3 className="text-base font-medium text-gray-900 mb-1 break-words">
+                        <h3 className="text-sm md:text-base font-medium text-gray-900 mb-1 break-words line-clamp-2">
                           {error.title}
                         </h3>
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                        <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-500">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            First: {formatDate(error.first_seen_at)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            Last: {formatDate(error.last_seen_at)}
+                            {formatDate(error.last_seen_at)}
                           </span>
                           <span className="font-medium text-gray-700">
-                            {error.event_count.toLocaleString()} occurrence{error.event_count !== 1 ? 's' : ''}
+                            {error.event_count.toLocaleString()}x
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         {loadingDetails && expandedErrorId === error.id ? (
-                          <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                          <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin text-gray-400" />
                         ) : expandedErrorId === error.id ? (
-                          <ChevronUp className="w-5 h-5 text-gray-400 transition-transform" />
+                          <ChevronUp className="w-4 h-4 md:w-5 md:h-5 text-gray-400 transition-transform" />
                         ) : (
-                          <ChevronDown className="w-5 h-5 text-gray-400 transition-transform" />
+                          <ChevronDown className="w-4 h-4 md:w-5 md:h-5 text-gray-400 transition-transform" />
                         )}
                       </div>
                     </div>
