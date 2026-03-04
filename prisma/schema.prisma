@@ -420,6 +420,7 @@ model users {
   deletion_scheduled_for                                     DateTime?
   deletion_status                                            String                  @default("ACTIVE")
   last_login                                                 DateTime?
+  last_seen_updates_at                                       DateTime?
   
   // Membership tier (BASIC = free, PREMIUM = paid £25/year)
   membership_tier                                            MembershipTier          @default(BASIC)

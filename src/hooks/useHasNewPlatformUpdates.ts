@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 
 interface UseHasNewPlatformUpdatesResult {
   hasNew: boolean;
   isLoading: boolean;
+  markSeen: () => void;
 }
 
 /**
- * Hook to check if there are new platform updates since the user's last login.
- * Only fetches when the user is logged in.
+ * Hook to check if there are new platform updates since the user last viewed them.
+ * Listens for 'platformUpdatesSeen' events so all instances clear in sync.
  */
 export function useHasNewPlatformUpdates(): UseHasNewPlatformUpdatesResult {
   const { data: session, status } = useSession();
@@ -53,5 +54,17 @@ export function useHasNewPlatformUpdates(): UseHasNewPlatformUpdatesResult {
     };
   }, [session?.user?.id, status]);
 
-  return { hasNew, isLoading };
+  useEffect(() => {
+    const handleSeen = () => setHasNew(false);
+    window.addEventListener('platformUpdatesSeen', handleSeen);
+    return () => window.removeEventListener('platformUpdatesSeen', handleSeen);
+  }, []);
+
+  const markSeen = useCallback(() => {
+    setHasNew(false);
+    window.dispatchEvent(new CustomEvent('platformUpdatesSeen'));
+    fetch('/api/platform-updates/mark-seen', { method: 'POST' }).catch(() => {});
+  }, []);
+
+  return { hasNew, isLoading, markSeen };
 }
