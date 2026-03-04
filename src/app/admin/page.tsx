@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth-guards';
 import { Role, UserStatus } from '@prisma/client';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { db } from '@/lib/db';
+import { getVisitorSummary } from '@/lib/vercel-analytics';
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard - Voiceover Studio Finder',
@@ -407,6 +408,11 @@ export default async function AdminPage() {
     }),
   ]);
 
+  // Fetch Vercel Analytics visitor summary (non-blocking – falls back to null)
+  const visitorResult = await getVisitorSummary();
+  const visitors24h = visitorResult.ok ? visitorResult.data.visitors24h : null;
+  const visitors7d = visitorResult.ok ? visitorResult.data.visitors7d : null;
+
   // Aggregate custom connections
   const customConnectionsMap = new Map<string, number>();
   customConnectionsList.forEach(profile => {
@@ -434,6 +440,8 @@ export default async function AdminPage() {
     totalReservations: pendingReservations + expiredReservations,
     totalSuggestions,
     openSuggestions,
+    visitors24h,
+    visitors7d,
   };
 
   return (

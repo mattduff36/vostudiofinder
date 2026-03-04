@@ -13,7 +13,8 @@ import {
   Star,
   Link as LinkIcon,
   ChevronDown,
-  StickyNote
+  StickyNote,
+  Eye
 } from 'lucide-react';
 import Link from 'next/link';
 import { AdminTabs } from './AdminTabs';
@@ -112,6 +113,8 @@ interface AdminDashboardProps {
     totalReservations: number;
     totalSuggestions: number;
     openSuggestions: number;
+    visitors24h: number | null;
+    visitors7d: number | null;
   };
   insights: InsightsData;
   recentActivity: RecentActivityData;
@@ -203,6 +206,16 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       icon: Activity,
       color: 'bg-teal-500',
       href: '/admin/studios',
+    },
+    {
+      title: 'Visitors (24h)',
+      value: stats.visitors24h !== null ? stats.visitors24h.toLocaleString() : '—',
+      subtitle: stats.visitors7d !== null
+        ? `${stats.visitors7d.toLocaleString()} in last 7 days`
+        : 'Analytics not configured',
+      icon: Eye,
+      color: 'bg-indigo-500',
+      href: '/admin/analytics',
     },
   ];
 
