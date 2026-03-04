@@ -12,6 +12,7 @@ import { signOut } from 'next-auth/react';
 import { LayoutDashboard, User, Loader2 } from 'lucide-react';
 import { Session } from 'next-auth';
 import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
+import { useHasNewPlatformUpdates } from '@/hooks/useHasNewPlatformUpdates';
 
 interface DesktopBurgerMenuProps {
   session: Session | null;
@@ -36,6 +37,7 @@ export function DesktopBurgerMenu({
   const [menuPosition, setMenuPosition] = useState({ top: 72, right: 16 });
   const router = useRouter();
   const pathname = usePathname();
+  const { hasNew: hasNewPlatformUpdates } = useHasNewPlatformUpdates();
 
   // Fetch profile visibility on mount (signed-in only)
   useEffect(() => {
@@ -293,6 +295,9 @@ export function DesktopBurgerMenu({
                   >
                     {Icon && <Icon className="w-5 h-5" aria-hidden="true" />}
                     <span>{item.label}</span>
+                    {item.id === 'whatsNew' && hasNewPlatformUpdates && (
+                      <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" aria-hidden />
+                    )}
                   </button>
                 ) : item.href ? (
                   <button

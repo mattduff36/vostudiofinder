@@ -13,6 +13,7 @@ import { Home, Search, User, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Session } from 'next-auth';
 import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
 import { FreeBadge } from '@/components/ui/FreeBadge';
+import { useHasNewPlatformUpdates } from '@/hooks/useHasNewPlatformUpdates';
 
 interface MobileBurgerMenuProps {
   session: Session | null;
@@ -27,6 +28,7 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const { hasNew: hasNewPlatformUpdates } = useHasNewPlatformUpdates();
 
   // Fetch profile visibility on mount (signed-in only)
   useEffect(() => {
@@ -375,6 +377,9 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
                       >
                         {Icon && <Icon className="w-5 h-5" aria-hidden="true" />}
                         <span>{item.label}</span>
+                        {item.id === 'whatsNew' && hasNewPlatformUpdates && (
+                          <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" aria-hidden />
+                        )}
                       </button>
                     ) : item.href ? (
                       <button

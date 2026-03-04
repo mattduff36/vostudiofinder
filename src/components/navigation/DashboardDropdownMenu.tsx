@@ -232,6 +232,9 @@ export function DashboardDropdownMenu({
                   >
                     <Icon className="w-4 h-4" aria-hidden="true" />
                     {item.label}
+                    {item.id === 'whatsNew' && hasNewPlatformUpdates && (
+                      <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" aria-hidden />
+                    )}
                   </button>
                 ) : (
                   <button
