@@ -36,6 +36,7 @@ import { formatDaysAsYearsMonthsDays } from '@/lib/date-format';
 import { logger } from '@/lib/logger';
 import { showSuccess, showError } from '@/lib/toast';
 import { PrivacySettingsToggles } from '@/components/dashboard/PrivacySettingsToggles';
+import { BillingHistoryCard } from '@/components/dashboard/BillingHistoryCard';
 
 interface SettingsProps {
   data: any; // dashboardData
@@ -553,7 +554,7 @@ export function Settings({ data }: SettingsProps) {
 
       case 'membership':
         return (
-          <div className="space-y-3">
+          <div className="space-y-5">
             {loadingProfile ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
@@ -562,7 +563,7 @@ export function Settings({ data }: SettingsProps) {
               <>
                 {/* Admin Account Warning Banner */}
                 {isAdminUser && (
-                  <div className="p-2 bg-red-50 rounded-md border border-red-200">
+                  <div className="p-3 bg-red-50 rounded-xl border border-red-200">
                     <div className="flex items-center space-x-2">
                       <span className="text-sm">👑</span>
                       <p className="text-xs font-medium text-red-900">
@@ -587,7 +588,7 @@ export function Settings({ data }: SettingsProps) {
                 {effectiveTier !== 'PREMIUM' && (sandboxEnabled || profileData?.user?.role !== 'ADMIN') ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* BASIC (current plan) card */}
-                    <div className="border-2 border-gray-300 rounded-xl p-6 flex flex-col">
+                    <div className="border border-gray-200 rounded-xl p-6 flex flex-col bg-gradient-to-br from-white to-gray-50 shadow-sm">
                       <div className="text-center mb-4">
                         <h3 className="text-xl font-bold text-gray-900 mb-1">Basic</h3>
                         <div className="text-3xl font-bold text-gray-900">Free</div>
@@ -644,7 +645,7 @@ export function Settings({ data }: SettingsProps) {
                     </div>
 
                     {/* PREMIUM card */}
-                    <div className="border-2 border-[#d42027] rounded-xl p-6 relative bg-gradient-to-br from-white to-red-50/30 shadow-lg flex flex-col">
+                    <div className="border-2 border-[#d42027] rounded-xl p-6 relative bg-gradient-to-br from-white to-red-50/30 shadow-sm flex flex-col">
                       {/* Recommended Badge */}
                       <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                         <div className="bg-[#d42027] text-white px-3 py-0.5 rounded-full text-xs font-semibold flex items-center">
@@ -708,7 +709,7 @@ export function Settings({ data }: SettingsProps) {
                       <button
                         type="button"
                         onClick={() => setUpgradeModalOpen(true)}
-                        className="w-full bg-[#d42027] text-white py-3 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-sm text-center shadow-lg"
+                        className="w-full bg-[#d42027] text-white py-3 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-sm text-center shadow-sm hover:shadow-md"
                       >
                         Upgrade to Premium — £25/year
                       </button>
@@ -725,9 +726,14 @@ export function Settings({ data }: SettingsProps) {
                         <div className="p-5">
                           {/* Header row */}
                           <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <Crown className="w-5 h-5 text-[#d42027]" />
-                              <h3 className="text-base font-bold text-gray-900">Membership Status</h3>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                                <Crown className="w-5 h-5 text-[#d42027]" />
+                              </div>
+                              <div>
+                                <h3 className="text-base font-semibold text-gray-900">Membership Status</h3>
+                                <p className="text-xs text-gray-500">Your current plan and renewal info</p>
+                              </div>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="px-2.5 py-1 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full border border-amber-200">
@@ -867,9 +873,15 @@ export function Settings({ data }: SettingsProps) {
 
                 {/* Membership & Upgrade Options */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-semibold text-gray-900 flex items-center space-x-2">
-                    <span>Membership & Upgrade Options</span>
-                  </h4>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-[#d42027]" />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900">Membership & Upgrade Options</h4>
+                      <p className="text-xs text-gray-500">Renew, extend, or upgrade your membership</p>
+                    </div>
+                  </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Early Renewal Card (6+ months remaining) - Premium only */}
@@ -1300,9 +1312,13 @@ export function Settings({ data }: SettingsProps) {
                     })()}
                   </div>
                 </div>
+
               </>
                   );
                 })()}
+
+                {/* Billing & Invoices */}
+                <BillingHistoryCard />
               </>
             )}
           </div>
@@ -1632,16 +1648,13 @@ export function Settings({ data }: SettingsProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="bg-white rounded-lg border border-gray-200 shadow-sm hidden md:block md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100"
-        style={{
-          boxShadow: 'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 25px 50px -12px rgb(0 0 0 / 0.25)'
-        }}
+        className="hidden md:block bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 shadow-2xl"
       >
         {/* Desktop Header */}
         <div className="flex border-b border-gray-100 px-6 py-5 items-center justify-between gap-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 md:text-3xl md:font-extrabold md:tracking-tight">Settings</h2>
-            <p className="text-sm text-gray-600 mt-1 md:text-base">
+            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Settings</h2>
+            <p className="text-base text-gray-600 mt-1">
               Manage your account settings and preferences
             </p>
           </div>
@@ -1759,7 +1772,7 @@ export function Settings({ data }: SettingsProps) {
             <div
               key={section.id}
               ref={(el) => { sectionRefs.current[section.id] = el; }}
-              className="!bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm"
+              className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm"
             >
               {/* Section Header */}
               <button
