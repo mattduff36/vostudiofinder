@@ -98,7 +98,7 @@ export function Navbar({ session }: NavbarProps) {
   
   // Mobile-only: Smooth scroll-driven animation for top navbar
   const { translateY: navTranslateY } = useScrollDrivenNav({ 
-    navHeight: 56, // Mobile navbar height (matches top-14 = 3.5rem = 56px)
+    navHeight: 72, // Mobile navbar height (4.5rem = 72px)
     scrollThreshold: 3,
     enabled: isMobile // Only enable on mobile
   });

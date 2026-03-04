@@ -77,7 +77,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
   
   // Mobile-only: Smooth scroll-driven animation to sync with top navbar
   const { translateY: navTranslateY } = useScrollDrivenNav({ 
-    navHeight: 56, // Mobile navbar height (matches top-14 = 3.5rem = 56px)
+    navHeight: 72, // Mobile navbar height (4.5rem = 72px)
     scrollThreshold: 3,
     enabled: isMobile
   });
@@ -220,7 +220,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
 
       {/* Mobile Tabs - Syncs with navbar scroll animation */}
       <div 
-        className="md:hidden sticky top-14 z-50 bg-red-600 border-b border-red-700"
+        className="md:hidden sticky top-[72px] z-50 bg-red-600 border-b border-red-700"
         style={isMobile ? {
           transform: `translateY(-${navTranslateY}px)`,
           transition: 'none', // Let scroll drive the animation

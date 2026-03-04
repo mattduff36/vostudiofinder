@@ -1,6 +1,6 @@
 # Navbar Height Reference
 
-**Last Updated**: January 24, 2026  
+**Last Updated**: March 4, 2026  
 **Status**: ✅ Verified and Documented
 
 ## Correct Navbar Heights
@@ -11,8 +11,8 @@
 - **Usage**: Used for sticky positioning of elements below the navbar (e.g., admin tabs)
 
 ### Mobile (< 768px)
-- **Height**: 56px
-- **Tailwind Class**: `top-14` (3.5rem = 56px)
+- **Height**: 72px
+- **Tailwind Class**: `top-[72px]` (custom value)
 - **Usage**: Used for sticky positioning of elements below the navbar (e.g., admin tabs, mobile navigation calculations)
 
 ## Implementation Examples
@@ -25,7 +25,7 @@
 </div>
 
 // Mobile tabs
-<div className="md:hidden sticky top-14 ...">
+<div className="md:hidden sticky top-[72px] ...">
   {/* Mobile admin tabs */}
 </div>
 ```
@@ -34,7 +34,7 @@
 ```tsx
 // In Navbar.tsx
 const { translateY: navTranslateY } = useScrollDrivenNav({ 
-  navHeight: 56, // Mobile navbar height (matches top-14 = 3.5rem = 56px)
+  navHeight: 72, // Mobile navbar height (4.5rem = 72px)
   scrollThreshold: 3,
   enabled: isMobile
 });
@@ -43,8 +43,8 @@ const { translateY: navTranslateY } = useScrollDrivenNav({
 ## Common Mistakes to Avoid
 
 ❌ **Incorrect**: Using `top-20` (80px) for desktop - navbar is 72px, not 80px  
-❌ **Incorrect**: Using `top-16` (64px) for mobile - navbar is 56px, not 64px  
-✅ **Correct**: Use `top-[72px]` for desktop and `top-14` for mobile
+❌ **Incorrect**: Using `top-14` (56px) for mobile - navbar is 72px, not 56px  
+✅ **Correct**: Use `top-[72px]` for both desktop and mobile
 
 ## Related Files
 
