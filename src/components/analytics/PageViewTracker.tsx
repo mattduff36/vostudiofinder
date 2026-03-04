@@ -1,0 +1,32 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from 'react';
+
+export function PageViewTracker() {
+  const pathname = usePathname();
+  const lastTracked = useRef('');
+
+  useEffect(() => {
+    if (pathname === lastTracked.current) return;
+    lastTracked.current = pathname;
+
+    const timeout = setTimeout(() => {
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          path: pathname,
+          referrer: document.referrer || null,
+        }),
+        keepalive: true,
+      }).catch(() => {
+        // Silently ignore tracking failures
+      });
+    }, 100);
+
+    return () => clearTimeout(timeout);
+  }, [pathname]);
+
+  return null;
+}

@@ -85,6 +85,7 @@
     "@stripe/stripe-js": "^8.8.0",
     "@types/archiver": "^7.0.0",
     "@vercel/analytics": "^1.5.0",
+    "@vercel/sdk": "^1.19.9",
     "archiver": "^7.0.1",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.8.0",

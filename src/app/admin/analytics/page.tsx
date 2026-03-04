@@ -7,7 +7,7 @@ import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 
 export const metadata: Metadata = {
   title: 'Analytics - Voiceover Studio Finder Admin',
-  description: 'Site visitor analytics powered by Vercel Web Analytics',
+  description: 'Site visitor analytics',
 };
 
 export default async function AnalyticsPage() {
@@ -23,7 +23,7 @@ export default async function AnalyticsPage() {
           <div className="mb-6 md:mb-8">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Analytics</h1>
             <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
-              Site visitor analytics powered by Vercel Web Analytics (production only)
+              Site visitor and pageview analytics
             </p>
           </div>
 
@@ -38,19 +38,9 @@ export default async function AnalyticsPage() {
                   </svg>
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  {result.configured ? 'Analytics Unavailable' : 'Analytics Not Configured'}
+                  Analytics Unavailable
                 </h2>
                 <p className="text-gray-600 mb-6">{result.error}</p>
-                {!result.configured && (
-                  <div className="bg-gray-50 rounded-lg p-4 text-left text-sm text-gray-700">
-                    <p className="font-semibold mb-2">Required environment variables:</p>
-                    <ul className="space-y-1 font-mono text-xs">
-                      <li>VERCEL_API_TOKEN</li>
-                      <li>VERCEL_TEAM_ID</li>
-                      <li>VERCEL_PROJECT_ID</li>
-                    </ul>
-                  </div>
-                )}
               </div>
             </div>
           )}

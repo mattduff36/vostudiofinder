@@ -1,18 +1,12 @@
 import 'server-only';
+import { db } from '@/lib/db';
 
 // ---------------------------------------------------------------------------
-// Vercel Web Analytics – server-side data client
+// Site Analytics – powered by self-hosted page_views table
 // ---------------------------------------------------------------------------
-//
-// Required env vars (add to .env.local / Vercel project settings):
-//   VERCEL_API_TOKEN   – personal or team-scoped Vercel API token
-//   VERCEL_TEAM_ID     – team_xxx  (from Vercel dashboard → Settings → General)
-//   VERCEL_PROJECT_ID  – prj_xxx   (from Vercel dashboard → Project → Settings)
-//
-// All fetches are server-only (imported with 'server-only' guard).
+// Tracks visitors (unique per-day hash) and pageviews via /api/track.
+// Replaces the earlier Vercel Web Analytics API approach (no public read API).
 // ---------------------------------------------------------------------------
-
-const API_BASE = 'https://api.vercel.com';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -26,7 +20,7 @@ export interface AnalyticsSummary {
 }
 
 export interface TimeseriesPoint {
-  date: string;   // ISO date (YYYY-MM-DD or ISO timestamp)
+  date: string;
   visitors: number;
   pageviews: number;
 }
@@ -49,85 +43,13 @@ export interface AnalyticsDetail {
   topDevices: BreakdownEntry[];
 }
 
-export interface AnalyticsError {
-  error: string;
-  configured: boolean;
-}
-
 export type AnalyticsResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string; configured: boolean };
 
 // ---------------------------------------------------------------------------
-// Config helpers
-// ---------------------------------------------------------------------------
-
-function getConfig() {
-  const token = process.env.VERCEL_API_TOKEN;
-  const teamId = process.env.VERCEL_TEAM_ID;
-  const projectId = process.env.VERCEL_PROJECT_ID;
-  return { token, teamId, projectId };
-}
-
-function isConfigured(): boolean {
-  const { token, teamId, projectId } = getConfig();
-  return !!(token && teamId && projectId);
-}
-
-function headers(): HeadersInit {
-  const { token } = getConfig();
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Low-level Vercel API helpers
-// ---------------------------------------------------------------------------
-
-interface VercelTimeseriesResponse {
-  data?: Array<{
-    date?: string;
-    key?: string;
-    visits?: number;
-    visitors?: number;
-    pageviews?: number;
-    total?: number;
-  }>;
-  // Fallback shapes for alternate API versions
-  [key: string]: unknown;
-}
-
-async function fetchVercelAnalytics(
-  path: string,
-  params: Record<string, string>,
-): Promise<VercelTimeseriesResponse> {
-  const { teamId } = getConfig();
-  const url = new URL(`${API_BASE}${path}`);
-  if (teamId) url.searchParams.set('teamId', teamId);
-  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-
-  const res = await fetch(url.toString(), {
-    headers: headers(),
-    next: { revalidate: 300 }, // cache for 5 min
-  });
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Vercel API ${res.status}: ${body.slice(0, 200)}`);
-  }
-
-  return res.json() as Promise<VercelTimeseriesResponse>;
-}
-
-// ---------------------------------------------------------------------------
 // Date helpers
 // ---------------------------------------------------------------------------
-
-function isoDate(d: Date): string {
-  return d.toISOString().split('T')[0]!;
-}
 
 function daysAgo(n: number): Date {
   const d = new Date();
@@ -136,30 +58,60 @@ function daysAgo(n: number): Date {
   return d;
 }
 
+function isoDate(d: Date): string {
+  return d.toISOString().split('T')[0]!;
+}
+
 // ---------------------------------------------------------------------------
-// Normalise varying response shapes into our canonical types
+// Query helpers
 // ---------------------------------------------------------------------------
 
-function normaliseTimeseries(raw: VercelTimeseriesResponse): TimeseriesPoint[] {
-  const arr = Array.isArray(raw.data) ? raw.data : Array.isArray(raw) ? raw as unknown[] : [];
-  return (arr as Array<Record<string, unknown>>).map((item) => ({
-    date: String(item.date ?? item.key ?? ''),
-    visitors: Number(item.visitors ?? item.visits ?? 0),
-    pageviews: Number(item.pageviews ?? item.total ?? 0),
+async function getTimeseries(since: Date): Promise<TimeseriesPoint[]> {
+  const rows = await db.$queryRaw<Array<{ day: Date; visitors: bigint; pageviews: bigint }>>`
+    SELECT
+      DATE(created_at) AS day,
+      COUNT(DISTINCT visitor_hash) AS visitors,
+      COUNT(*) AS pageviews
+    FROM page_views
+    WHERE created_at >= ${since}
+    GROUP BY DATE(created_at)
+    ORDER BY day ASC
+  `;
+
+  return rows.map((r) => ({
+    date: isoDate(r.day),
+    visitors: Number(r.visitors),
+    pageviews: Number(r.pageviews),
   }));
 }
 
-function normaliseBreakdown(raw: VercelTimeseriesResponse): BreakdownEntry[] {
-  const arr = Array.isArray(raw.data) ? raw.data : Array.isArray(raw) ? raw as unknown[] : [];
-  return (arr as Array<Record<string, unknown>>).map((item) => ({
-    key: String(item.key ?? item.date ?? ''),
-    visitors: Number(item.visitors ?? item.visits ?? 0),
-    pageviews: Number(item.pageviews ?? item.total ?? 0),
-  }));
-}
+async function getBreakdown(
+  column: string,
+  since: Date,
+  limit: number,
+): Promise<BreakdownEntry[]> {
+  // Using raw query for dynamic column; column name is hard-coded at call sites
+  const rows = await db.$queryRawUnsafe<
+    Array<{ key: string | null; visitors: bigint; pageviews: bigint }>
+  >(
+    `SELECT
+       ${column} AS key,
+       COUNT(DISTINCT visitor_hash) AS visitors,
+       COUNT(*) AS pageviews
+     FROM page_views
+     WHERE created_at >= $1 AND ${column} IS NOT NULL
+     GROUP BY ${column}
+     ORDER BY visitors DESC
+     LIMIT $2`,
+    since,
+    limit,
+  );
 
-function sumField(points: TimeseriesPoint[], field: 'visitors' | 'pageviews'): number {
-  return points.reduce((sum, p) => sum + p[field], 0);
+  return rows.map((r) => ({
+    key: r.key ?? '(unknown)',
+    visitors: Number(r.visitors),
+    pageviews: Number(r.pageviews),
+  }));
 }
 
 // ---------------------------------------------------------------------------
@@ -167,46 +119,38 @@ function sumField(points: TimeseriesPoint[], field: 'visitors' | 'pageviews'): n
 // ---------------------------------------------------------------------------
 
 export async function getVisitorSummary(): Promise<AnalyticsResult<AnalyticsSummary>> {
-  if (!isConfigured()) {
-    return {
-      ok: false,
-      error: 'Vercel Analytics not configured. Set VERCEL_API_TOKEN, VERCEL_TEAM_ID, and VERCEL_PROJECT_ID.',
-      configured: false,
-    };
-  }
-
   try {
-    const { projectId } = getConfig();
-    const now = new Date();
-    const today = isoDate(now);
-    const yesterday = isoDate(daysAgo(1));
-    const sevenDaysAgo = isoDate(daysAgo(7));
+    const since24h = daysAgo(1);
+    const since7d = daysAgo(7);
 
-    // Fetch 7-day timeseries (contains both 24h and 7d data)
-    const raw7d = await fetchVercelAnalytics('/v1/web-analytics/timeseries', {
-      projectId: projectId!,
-      environment: 'production',
-      from: sevenDaysAgo,
-      to: today,
-    });
-
-    const points = normaliseTimeseries(raw7d);
-
-    // Sum totals
-    const visitors7d = sumField(points, 'visitors');
-    const pageviews7d = sumField(points, 'pageviews');
-
-    // Filter for last 24h (yesterday + today)
-    const recent = points.filter((p) => p.date >= yesterday);
-    const visitors24h = sumField(recent, 'visitors');
-    const pageviews24h = sumField(recent, 'pageviews');
+    const [day, week] = await Promise.all([
+      db.$queryRaw<[{ visitors: bigint; pageviews: bigint }]>`
+        SELECT
+          COUNT(DISTINCT visitor_hash) AS visitors,
+          COUNT(*) AS pageviews
+        FROM page_views
+        WHERE created_at >= ${since24h}
+      `,
+      db.$queryRaw<[{ visitors: bigint; pageviews: bigint }]>`
+        SELECT
+          COUNT(DISTINCT visitor_hash) AS visitors,
+          COUNT(*) AS pageviews
+        FROM page_views
+        WHERE created_at >= ${since7d}
+      `,
+    ]);
 
     return {
       ok: true,
-      data: { visitors24h, visitors7d, pageviews24h, pageviews7d },
+      data: {
+        visitors24h: Number(day[0]?.visitors ?? 0),
+        visitors7d: Number(week[0]?.visitors ?? 0),
+        pageviews24h: Number(day[0]?.pageviews ?? 0),
+        pageviews7d: Number(week[0]?.pageviews ?? 0),
+      },
     };
   } catch (err) {
-    console.error('[vercel-analytics] getVisitorSummary failed:', err);
+    console.error('[analytics] getVisitorSummary failed:', err);
     return {
       ok: false,
       error: err instanceof Error ? err.message : 'Unknown error',
@@ -220,99 +164,38 @@ export async function getVisitorSummary(): Promise<AnalyticsResult<AnalyticsSumm
 // ---------------------------------------------------------------------------
 
 export async function getAnalyticsDetail(): Promise<AnalyticsResult<AnalyticsDetail>> {
-  if (!isConfigured()) {
-    return {
-      ok: false,
-      error: 'Vercel Analytics not configured. Set VERCEL_API_TOKEN, VERCEL_TEAM_ID, and VERCEL_PROJECT_ID.',
-      configured: false,
-    };
-  }
-
   try {
-    const { projectId } = getConfig();
-    const pid = projectId!;
-    const now = new Date();
-    const today = isoDate(now);
-    const yesterday = isoDate(daysAgo(1));
-    const sevenDaysAgo = isoDate(daysAgo(7));
-    const thirtyDaysAgo = isoDate(daysAgo(30));
+    const since7d = daysAgo(7);
+    const since30d = daysAgo(30);
 
-    const commonParams = { projectId: pid, environment: 'production' };
-
-    // Fire requests in parallel
     const [
-      raw7d,
-      raw30d,
-      rawPages,
-      rawReferrers,
-      rawCountries,
-      rawBrowsers,
-      rawOS,
-      rawDevices,
+      timeseries7d,
+      timeseries30d,
+      topPages,
+      topReferrers,
+      topCountries,
+      topBrowsers,
+      topOS,
+      topDevices,
     ] = await Promise.all([
-      fetchVercelAnalytics('/v1/web-analytics/timeseries', {
-        ...commonParams,
-        from: sevenDaysAgo,
-        to: today,
-      }),
-      fetchVercelAnalytics('/v1/web-analytics/timeseries', {
-        ...commonParams,
-        from: thirtyDaysAgo,
-        to: today,
-      }),
-      fetchVercelAnalytics('/v1/web-analytics/top', {
-        ...commonParams,
-        from: sevenDaysAgo,
-        to: today,
-        column: 'path',
-        limit: '20',
-      }).catch(() => ({ data: [] })),
-      fetchVercelAnalytics('/v1/web-analytics/top', {
-        ...commonParams,
-        from: sevenDaysAgo,
-        to: today,
-        column: 'referrer',
-        limit: '20',
-      }).catch(() => ({ data: [] })),
-      fetchVercelAnalytics('/v1/web-analytics/top', {
-        ...commonParams,
-        from: sevenDaysAgo,
-        to: today,
-        column: 'country',
-        limit: '20',
-      }).catch(() => ({ data: [] })),
-      fetchVercelAnalytics('/v1/web-analytics/top', {
-        ...commonParams,
-        from: sevenDaysAgo,
-        to: today,
-        column: 'browser',
-        limit: '15',
-      }).catch(() => ({ data: [] })),
-      fetchVercelAnalytics('/v1/web-analytics/top', {
-        ...commonParams,
-        from: sevenDaysAgo,
-        to: today,
-        column: 'os',
-        limit: '15',
-      }).catch(() => ({ data: [] })),
-      fetchVercelAnalytics('/v1/web-analytics/top', {
-        ...commonParams,
-        from: sevenDaysAgo,
-        to: today,
-        column: 'device',
-        limit: '10',
-      }).catch(() => ({ data: [] })),
+      getTimeseries(since7d),
+      getTimeseries(since30d),
+      getBreakdown('path', since7d, 20),
+      getBreakdown('referrer', since7d, 20),
+      getBreakdown('country', since7d, 20),
+      getBreakdown('browser', since7d, 15),
+      getBreakdown('os', since7d, 15),
+      getBreakdown('device', since7d, 10),
     ]);
 
-    const timeseries7d = normaliseTimeseries(raw7d);
-    const timeseries30d = normaliseTimeseries(raw30d);
-
     // Compute summary from 7d series
-    const visitors7d = sumField(timeseries7d, 'visitors');
-    const pageviews7d = sumField(timeseries7d, 'pageviews');
-    const recent = timeseries7d.filter((p) => p.date >= yesterday);
-    const visitors24h = sumField(recent, 'visitors');
-    const pageviews24h = sumField(recent, 'pageviews');
+    const since24h = daysAgo(1);
+    const today = isoDate(since24h);
+    const recent = timeseries7d.filter((p) => p.date >= today);
+    const visitors24h = recent.reduce((s, p) => s + p.visitors, 0);
+    const pageviews24h = recent.reduce((s, p) => s + p.pageviews, 0);
+    const visitors7d = timeseries7d.reduce((s, p) => s + p.visitors, 0);
+    const pageviews7d = timeseries7d.reduce((s, p) => s + p.pageviews, 0);
 
     return {
       ok: true,
@@ -320,16 +203,16 @@ export async function getAnalyticsDetail(): Promise<AnalyticsResult<AnalyticsDet
         summary: { visitors24h, visitors7d, pageviews24h, pageviews7d },
         timeseries7d,
         timeseries30d,
-        topPages: normaliseBreakdown(rawPages),
-        topReferrers: normaliseBreakdown(rawReferrers),
-        topCountries: normaliseBreakdown(rawCountries),
-        topBrowsers: normaliseBreakdown(rawBrowsers),
-        topOS: normaliseBreakdown(rawOS),
-        topDevices: normaliseBreakdown(rawDevices),
+        topPages,
+        topReferrers,
+        topCountries,
+        topBrowsers,
+        topOS,
+        topDevices,
       },
     };
   } catch (err) {
-    console.error('[vercel-analytics] getAnalyticsDetail failed:', err);
+    console.error('[analytics] getAnalyticsDetail failed:', err);
     return {
       ok: false,
       error: err instanceof Error ? err.message : 'Unknown error',

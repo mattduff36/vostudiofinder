@@ -209,10 +209,10 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
     },
     {
       title: 'Visitors (24h)',
-      value: stats.visitors24h !== null ? stats.visitors24h.toLocaleString() : '—',
+      value: stats.visitors24h !== null ? stats.visitors24h.toLocaleString() : '0',
       subtitle: stats.visitors7d !== null
         ? `${stats.visitors7d.toLocaleString()} in last 7 days`
-        : 'Analytics not configured',
+        : '0 in last 7 days',
       icon: Eye,
       color: 'bg-indigo-500',
       href: '/admin/analytics',

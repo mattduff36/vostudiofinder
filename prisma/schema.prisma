@@ -1024,3 +1024,19 @@ model admin_message_templates {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
+
+model page_views {
+  id           String   @id @default(cuid())
+  path         String
+  referrer     String?
+  country      String?
+  device       String?
+  browser      String?
+  os           String?
+  visitor_hash String
+  created_at   DateTime @default(now())
+
+  @@index([created_at])
+  @@index([visitor_hash, created_at])
+  @@index([path, created_at])
+}

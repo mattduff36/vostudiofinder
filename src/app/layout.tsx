@@ -14,6 +14,7 @@ import { DynamicAnalytics } from '@/components/consent/DynamicAnalytics';
 import { GlobalEditProfileModal } from '@/components/profile/GlobalEditProfileModal';
 import { GlobalWhatsNewModal } from '@/components/whats-new/GlobalWhatsNewModal';
 import { AdminBuildInfoBadge } from '@/components/admin/AdminBuildInfoBadge';
+import { PageViewTracker } from '@/components/analytics/PageViewTracker';
 import { authOptions } from '@/lib/auth';
 import Script from 'next/script';
 import { getBaseUrl, SITE_NAME } from '@/lib/seo/site';
@@ -110,6 +111,7 @@ export default async function RootLayout({
             <MobileShell session={session} />
           </LoadingProvider>
         </SessionProvider>
+        <PageViewTracker />
         <DynamicAnalytics />
         <CookieConsentBanner initialLevel={consentLevel || null} />
       </body>
