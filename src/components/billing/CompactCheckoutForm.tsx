@@ -33,10 +33,14 @@ function PromotionCodeInput() {
     setPromoError(null);
 
     try {
-      await applyPromotionCode(code.trim());
-      setAppliedCode(code.trim().toUpperCase());
-      setCode('');
-      setIsOpen(false);
+      const result = await applyPromotionCode(code.trim());
+      if (result.type === 'error') {
+        setPromoError(result.error.message || 'Invalid or expired promo code');
+      } else {
+        setAppliedCode(code.trim().toUpperCase());
+        setCode('');
+        setIsOpen(false);
+      }
     } catch {
       setPromoError('Invalid or expired promo code');
     } finally {
@@ -45,7 +49,11 @@ function PromotionCodeInput() {
   };
 
   const handleRemove = async () => {
-    await removePromotionCode();
+    try {
+      await removePromotionCode();
+    } catch {
+      // Silently handle removal errors
+    }
     setAppliedCode(null);
     setPromoError(null);
   };
@@ -77,7 +85,7 @@ function PromotionCodeInput() {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="mb-3 flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#d42027] transition-colors"
+        className="mb-3 flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#9C060B] transition-colors"
       >
         <Tag className="w-3 h-3" />
         Have a promo code?
@@ -95,14 +103,14 @@ function PromotionCodeInput() {
           onChange={(e) => { setCode(e.target.value); setPromoError(null); }}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApply(); } }}
           placeholder="Enter promo code"
-          className="flex-1 min-w-0 text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#d42027]/30 focus:border-[#d42027]"
+          className="flex-1 min-w-0 text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#9C060B]/30 focus:border-[#9C060B]"
           autoFocus
         />
         <button
           type="button"
           onClick={handleApply}
           disabled={isApplying || !code.trim()}
-          className="text-xs font-semibold text-[#d42027] hover:text-[#b01b21] border border-[#d42027] rounded-lg px-3 py-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="text-xs font-semibold text-[#9C060B] hover:text-[#7D0509] border border-[#9C060B] rounded-lg px-3 py-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isApplying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Apply'}
         </button>
@@ -132,6 +140,18 @@ function PaymentForm({ amount, buttonText }: { amount: string; buttonText?: stri
 
   const isReady = checkoutState.type === 'success';
 
+  const hasDiscount = isReady
+    && checkoutState.checkout.discountAmounts
+    && checkoutState.checkout.discountAmounts.length > 0;
+
+  const displayButtonText = (() => {
+    if (isReady && hasDiscount) {
+      const liveTotal = checkoutState.checkout.total.total.amount;
+      return `Pay ${liveTotal}`;
+    }
+    return buttonText || `Pay ${amount}`;
+  })();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isReady) return;
@@ -140,11 +160,14 @@ function PaymentForm({ amount, buttonText }: { amount: string; buttonText?: stri
     setError(null);
 
     try {
-      // confirm() uses the session's return_url (set server-side) for redirect
-      await checkoutState.checkout.confirm();
+      const result = await checkoutState.checkout.confirm({ redirect: 'always' });
+      if (result.type === 'error') {
+        setError(result.error.message || 'Payment failed. Please try again.');
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Payment failed. Please try again.';
       setError(message);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -172,7 +195,7 @@ function PaymentForm({ amount, buttonText }: { amount: string; buttonText?: stri
       <button
         type="submit"
         disabled={isSubmitting || !isReady}
-        className="w-full mt-4 bg-[#d42027] text-white py-2.5 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full mt-4 bg-[#9C060B] text-white py-2.5 rounded-lg hover:bg-[#7D0509] transition-colors font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? (
           <span className="flex items-center justify-center">
@@ -180,7 +203,7 @@ function PaymentForm({ amount, buttonText }: { amount: string; buttonText?: stri
             Processing…
           </span>
         ) : (
-          buttonText || `Pay ${amount}`
+          displayButtonText
         )}
       </button>
 
@@ -239,7 +262,7 @@ export function CompactCheckoutForm({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-5 h-5 animate-spin text-[#d42027] mr-2" />
+        <Loader2 className="w-5 h-5 animate-spin text-[#9C060B] mr-2" />
         <span className="text-sm text-gray-500">Setting up payment…</span>
       </div>
     );
@@ -275,7 +298,7 @@ export function CompactCheckoutForm({
               fontSizeBase: '14px',
               spacingUnit: '3px',
               borderRadius: '6px',
-              colorPrimary: '#d42027',
+              colorPrimary: '#9C060B',
             },
           },
         },
