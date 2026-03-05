@@ -52,6 +52,11 @@ export async function GET() {
         });
 
         for (const invoice of invoices.data) {
+          // Skip invoices auto-created by invoice_creation on one-time checkout
+          // sessions — those payments are already tracked in the DB payments
+          // table with their own invoice/receipt links.
+          if (invoice.billing_reason === 'manual') continue;
+
           const piId = (invoice as unknown as { payment_intent?: string | null }).payment_intent;
           if (piId && typeof piId === 'string') {
             invoicePaymentIntentIds.add(piId);
