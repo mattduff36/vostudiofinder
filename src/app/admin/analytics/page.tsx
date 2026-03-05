@@ -20,9 +20,9 @@ export default async function AnalyticsPage() {
       <AdminTabs activeTab="analytics" />
       <div className="px-4 py-4 md:p-8 min-h-screen">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Analytics</h1>
-            <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
+          <div className="mb-4 md:mb-8">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Analytics</h1>
+            <p className="text-gray-600 mt-0.5 md:mt-2 text-xs md:text-base hidden sm:block">
               Site visitor and pageview analytics
             </p>
           </div>

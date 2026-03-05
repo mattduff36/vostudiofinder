@@ -30,8 +30,16 @@ interface AnalyticsDashboardProps {
 }
 
 const COLORS = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981',
-  '#3b82f6', '#ef4444', '#06b6d4', '#f97316', '#14b8a6',
+  '#3b82f6', // blue
+  '#8b5cf6', // purple
+  '#10b981', // green
+  '#f59e0b', // amber
+  '#ef4444', // red
+  '#06b6d4', // cyan
+  '#ec4899', // pink
+  '#f97316', // orange
+  '#14b8a6', // teal
+  '#a855f7', // violet
 ];
 
 function formatNumber(n: number): string {
@@ -50,7 +58,7 @@ function formatDateLabel(d: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// KPI Card
+// KPI Card — matches AdminDashboard stat card pattern
 // ---------------------------------------------------------------------------
 
 interface KpiCardProps {
@@ -62,20 +70,22 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, icon: Icon, color }: KpiCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-4 md:p-6">
-      <div className="flex items-center gap-3 mb-2">
-        <div className={`p-2 rounded-lg ${color}`}>
-          <Icon className="w-5 h-5 text-white" />
+    <div className="bg-white rounded-lg shadow p-3 md:p-6 hover:shadow-md hover:ring-2 hover:ring-[#fecaca] transition-all">
+      <div className="flex items-center justify-between mb-2 md:mb-4">
+        <div className={`p-2 md:p-3 ${color} rounded-lg`}>
+          <Icon className="w-4 h-4 md:w-6 md:h-6 text-white" />
         </div>
-        <span className="text-xs md:text-sm font-medium text-gray-600">{label}</span>
       </div>
-      <p className="text-2xl md:text-3xl font-bold text-gray-900">{formatNumber(value)}</p>
+      <div>
+        <p className="text-xs md:text-sm font-medium text-gray-600">{label}</p>
+        <p className="text-xl md:text-3xl font-bold text-gray-900 mt-0.5 md:mt-1">{formatNumber(value)}</p>
+      </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Timeseries Chart
+// Timeseries Chart — matches AdminInsights chart card pattern
 // ---------------------------------------------------------------------------
 
 interface TimeseriesChartProps {
@@ -92,23 +102,29 @@ function TimeseriesChart({ points, title }: TimeseriesChartProps) {
 
   return (
     <div className="bg-white rounded-lg shadow p-4 md:p-6">
-      <h3 className="text-sm md:text-lg font-bold text-gray-900 mb-4">{title}</h3>
+      <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+        <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-teal-600 flex-shrink-0" />
+        <div className="min-w-0">
+          <h3 className="text-sm md:text-lg font-bold text-gray-900 truncate">{title}</h3>
+          <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Daily unique visitors and total page views</p>
+        </div>
+      </div>
       {chartData.length === 0 ? (
-        <div className="h-[250px] flex items-center justify-center text-gray-400 text-sm">
-          No data available
+        <div className="h-[250px] md:h-[350px] flex items-center justify-center text-gray-500 text-sm">
+          No data available yet — views will appear as visitors browse the site
         </div>
       ) : (
-        <div className="h-[250px] md:h-[300px]">
+        <div className="h-[250px] md:h-[350px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
               <defs>
                 <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorPageviews" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -130,7 +146,7 @@ function TimeseriesChart({ points, title }: TimeseriesChartProps) {
               <Area
                 type="monotone"
                 dataKey="visitors"
-                stroke="#6366f1"
+                stroke="#8b5cf6"
                 strokeWidth={2}
                 fill="url(#colorVisitors)"
                 name="Visitors"
@@ -138,7 +154,7 @@ function TimeseriesChart({ points, title }: TimeseriesChartProps) {
               <Area
                 type="monotone"
                 dataKey="pageviews"
-                stroke="#10b981"
+                stroke="#14b8a6"
                 strokeWidth={2}
                 fill="url(#colorPageviews)"
                 name="Pageviews"
@@ -158,24 +174,25 @@ function TimeseriesChart({ points, title }: TimeseriesChartProps) {
 interface BreakdownTableProps {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
+  iconColor: string;
   entries: BreakdownEntry[];
   keyLabel?: string;
 }
 
-function BreakdownTable({ title, icon: Icon, entries, keyLabel = 'Name' }: BreakdownTableProps) {
+function BreakdownTable({ title, icon: Icon, iconColor, entries, keyLabel = 'Name' }: BreakdownTableProps) {
   const maxVisitors = Math.max(...entries.map((e) => e.visitors), 1);
 
   return (
     <div className="bg-white rounded-lg shadow p-4 md:p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Icon className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+      <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+        <Icon className={`w-4 h-4 md:w-5 md:h-5 ${iconColor} flex-shrink-0`} />
         <h3 className="text-sm md:text-lg font-bold text-gray-900">{title}</h3>
       </div>
       {entries.length === 0 ? (
-        <p className="text-gray-400 text-sm py-4 text-center">No data available</p>
+        <p className="text-gray-500 text-sm py-4 text-center">No data available</p>
       ) : (
         <div className="space-y-2">
-          <div className="grid grid-cols-[1fr_70px_70px] gap-2 text-xs font-medium text-gray-500 pb-1 border-b border-gray-100">
+          <div className="grid grid-cols-[1fr_70px_70px] gap-2 text-xs font-medium text-gray-500 pb-1 border-b border-gray-200">
             <span>{keyLabel}</span>
             <span className="text-right">Visitors</span>
             <span className="text-right">Views</span>
@@ -184,10 +201,10 @@ function BreakdownTable({ title, icon: Icon, entries, keyLabel = 'Name' }: Break
             <div key={entry.key + i} className="grid grid-cols-[1fr_70px_70px] gap-2 items-center text-sm">
               <div className="relative min-w-0">
                 <div
-                  className="absolute inset-y-0 left-0 rounded bg-indigo-100"
+                  className="absolute inset-y-0 left-0 rounded bg-[#fef2f2]"
                   style={{ width: `${(entry.visitors / maxVisitors) * 100}%` }}
                 />
-                <span className="relative z-10 truncate block px-1.5 py-0.5">{entry.key || '(direct)'}</span>
+                <span className="relative z-10 truncate block px-1.5 py-0.5 text-gray-800">{entry.key || '(direct)'}</span>
               </div>
               <span className="text-right font-medium text-gray-900">{formatNumber(entry.visitors)}</span>
               <span className="text-right text-gray-600">{formatNumber(entry.pageviews)}</span>
@@ -200,26 +217,27 @@ function BreakdownTable({ title, icon: Icon, entries, keyLabel = 'Name' }: Break
 }
 
 // ---------------------------------------------------------------------------
-// Horizontal Bar Chart for Devices / Browsers / OS
+// Horizontal Bar Chart
 // ---------------------------------------------------------------------------
 
 interface HBarChartProps {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
+  iconColor: string;
   entries: BreakdownEntry[];
 }
 
-function HBarChart({ title, icon: Icon, entries }: HBarChartProps) {
+function HBarChart({ title, icon: Icon, iconColor, entries }: HBarChartProps) {
   const chartData = entries.map((e) => ({ name: e.key || '(unknown)', visitors: e.visitors }));
 
   return (
     <div className="bg-white rounded-lg shadow p-4 md:p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Icon className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+      <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+        <Icon className={`w-4 h-4 md:w-5 md:h-5 ${iconColor} flex-shrink-0`} />
         <h3 className="text-sm md:text-lg font-bold text-gray-900">{title}</h3>
       </div>
       {chartData.length === 0 ? (
-        <p className="text-gray-400 text-sm py-4 text-center">No data available</p>
+        <p className="text-gray-500 text-sm py-4 text-center">No data available</p>
       ) : (
         <div className="h-[250px] md:h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -248,7 +266,7 @@ function HBarChart({ title, icon: Icon, entries }: HBarChartProps) {
               />
               <Bar dataKey="visitors" radius={[0, 4, 4, 0]}>
                 {chartData.map((_, idx) => (
-                  <Cell key={idx} fill={COLORS[idx % COLORS.length] ?? '#6366f1'} />
+                  <Cell key={idx} fill={COLORS[idx % COLORS.length] ?? '#8b5cf6'} />
                 ))}
               </Bar>
             </BarChart>
@@ -268,13 +286,13 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
   const [timeRange, setTimeRange] = useState<'7d' | '30d'>('7d');
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* KPI Row */}
+    <div className="space-y-4 md:space-y-8">
+      {/* KPI Row — semantic colors matching AdminDashboard stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-        <KpiCard label="Visitors (24h)" value={summary.visitors24h} icon={Eye} color="bg-indigo-500" />
+        <KpiCard label="Visitors (24h)" value={summary.visitors24h} icon={Eye} color="bg-blue-500" />
         <KpiCard label="Pageviews (24h)" value={summary.pageviews24h} icon={FileText} color="bg-green-500" />
         <KpiCard label="Visitors (7d)" value={summary.visitors7d} icon={Users} color="bg-purple-500" />
-        <KpiCard label="Pageviews (7d)" value={summary.pageviews7d} icon={TrendingUp} color="bg-blue-500" />
+        <KpiCard label="Pageviews (7d)" value={summary.pageviews7d} icon={TrendingUp} color="bg-orange-500" />
       </div>
 
       {/* Timeseries Toggle + Chart */}
@@ -284,7 +302,7 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
             onClick={() => setTimeRange('7d')}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               timeRange === '7d'
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-[#d42027] text-white shadow-sm'
                 : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
             }`}
           >
@@ -294,7 +312,7 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
             onClick={() => setTimeRange('30d')}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               timeRange === '30d'
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-[#d42027] text-white shadow-sm'
                 : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
             }`}
           >
@@ -309,18 +327,18 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
 
       {/* Breakdown Tables: Pages + Referrers */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
-        <BreakdownTable title="Top Pages" icon={FileText} entries={topPages} keyLabel="Path" />
-        <BreakdownTable title="Top Referrers" icon={ArrowUpRight} entries={topReferrers} keyLabel="Referrer" />
+        <BreakdownTable title="Top Pages" icon={FileText} iconColor="text-blue-600" entries={topPages} keyLabel="Path" />
+        <BreakdownTable title="Top Referrers" icon={ArrowUpRight} iconColor="text-indigo-600" entries={topReferrers} keyLabel="Referrer" />
       </div>
 
       {/* Breakdown: Countries */}
-      <BreakdownTable title="Top Countries" icon={Globe} entries={topCountries} keyLabel="Country" />
+      <BreakdownTable title="Top Countries" icon={Globe} iconColor="text-green-600" entries={topCountries} keyLabel="Country" />
 
       {/* Bar Charts: Browsers, OS, Devices */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
-        <HBarChart title="Browsers" icon={Globe} entries={topBrowsers} />
-        <HBarChart title="Operating Systems" icon={Monitor} entries={topOS} />
-        <HBarChart title="Devices" icon={Smartphone} entries={topDevices} />
+        <HBarChart title="Browsers" icon={Globe} iconColor="text-purple-600" entries={topBrowsers} />
+        <HBarChart title="Operating Systems" icon={Monitor} iconColor="text-teal-600" entries={topOS} />
+        <HBarChart title="Devices" icon={Smartphone} iconColor="text-orange-600" entries={topDevices} />
       </div>
     </div>
   );

@@ -400,7 +400,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
                 <Link
                   key={index}
                   href={stat.href}
-                  className="bg-white rounded-lg shadow p-3 md:p-6 block hover:shadow-md hover:ring-2 hover:ring-blue-200 transition-all"
+                  className="bg-white rounded-lg shadow p-3 md:p-6 block hover:shadow-md hover:ring-2 hover:ring-[#fecaca] transition-all"
                 >
                   <div className="flex items-center justify-between mb-2 md:mb-4">
                     <div className={`p-2 md:p-3 ${stat.color} rounded-lg`}>

@@ -14,7 +14,24 @@ const config: Config = {
         'desktop': '1080px',
       },
       colors: {
-        // Original VoiceoverStudioFinder color scheme
+        // ⚠️  BRAND color — the site's actual primary color is RED (#d42027).
+        //    Use `brand-*` classes for anything that should match the site brand.
+        //    Defined in theme.ts as theme.colors.primary.
+        brand: {
+          50:  '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#e84848',
+          600: '#d42027', // Brand primary — matches theme.ts
+          700: '#b01b21', // Brand hover
+          800: '#a1181d', // Brand dark hover — matches theme.ts primaryHover
+          900: '#7f1d1d',
+        },
+        // ⚠️  LEGACY purple palette — NOT the brand color.
+        //    Kept for backward compatibility with existing components.
+        //    Do NOT use for new brand-related styling; use `brand-*` instead.
         primary: {
           50: '#f8f7fa',
           100: '#f1eff5',
@@ -24,7 +41,7 @@ const config: Config = {
           500: '#8f7ba3',
           600: '#7a6389',
           700: '#6b5370',
-          800: '#5a4f66', // Main accent color from original
+          800: '#5a4f66',
           900: '#4a3f56',
         },
         secondary: {
@@ -55,11 +72,11 @@ const config: Config = {
         'text-primary': '#27292b',
         'text-secondary': '#999',
         'text-light': '#ccc',
-        // Button and form colors
+        // Button and form colors (legacy — see brand-* for brand-colored elements)
         'btn-primary': '#666',
         'btn-primary-hover': '#241935',
         'form-border': '#555',
-        'form-focus': '#5A4F66',
+        'form-focus': '#5A4F66',  // Legacy purple focus ring — new forms should use brand-600
         // Background colors
         background: 'var(--background)',
         foreground: 'var(--foreground)',
