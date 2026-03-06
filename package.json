@@ -94,7 +94,7 @@
     "framer-motion": "^12.35.0",
     "ioredis": "^5.10.0",
     "lucide-react": "^0.577.0",
-    "minimatch": "^5.1.9",
+    "minimatch": "^6.2.2",
     "nanoid": "^5.1.6",
     "next": "^16.1.5",
     "next-auth": "^4.24.11",
