@@ -31,6 +31,7 @@ export async function getProfileVisibilityEligibility(userId: string): Promise<P
       name: true,
       website_url: true,
       short_about: true,
+      about_me: true,
       about: true,
       location: true,
       is_profile_visible: true,
@@ -65,6 +66,7 @@ export async function getProfileVisibilityEligibility(userId: string): Promise<P
     },
     profile: {
       short_about: studio?.short_about || null,
+      about_me: studio?.about_me || null,
       about: studio?.about || null,
       location: studio?.location || null,
       connection1: studio?.connection1 || null,

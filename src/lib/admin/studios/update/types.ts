@@ -36,6 +36,7 @@ export interface AdminStudioUpdateInput {
     
     // Profile content
     last_name?: string;
+    about_me?: string;
     about?: string;
     short_about?: string;
     shortabout?: string; // Legacy support

@@ -70,6 +70,7 @@ export async function loadDashboardData(userId: string) {
       profile: studioProfile
         ? {
             about: studioProfile.about ?? '',
+            about_me: studioProfile.about_me ?? '',
             short_about: studioProfile.short_about ?? '',
             phone: studioProfile.phone ?? '',
             location: studioProfile.location ?? '',

@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
       },
       profile: {
         short_about: studio.short_about,
+        about_me: studio.about_me,
         about: studio.about,
         phone: studio.phone,
         location: studio.location,

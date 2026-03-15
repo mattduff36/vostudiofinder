@@ -1,7 +1,7 @@
 /**
  * Calculate profile completion statistics
  * Returns required fields completion and overall percentage
- * Based on 17 fields (11 required + 6 optional) with weighted calculation
+ * Based on 18 fields (11 required + 7 optional) with weighted calculation
  */
 
 interface ProfileCompletionData {
@@ -13,6 +13,7 @@ interface ProfileCompletionData {
   };
   profile?: {
     short_about?: string | null | undefined;
+    about_me?: string | null | undefined;
     about?: string | null | undefined;
     phone?: string | null | undefined;
     location?: string | null | undefined;
@@ -57,7 +58,7 @@ export interface CompletionStats {
     total: number; // Always 11
   };
   overall: {
-    percentage: number; // Weighted calculation from 17 fields
+    percentage: number; // Weighted calculation from 18 fields
   };
 }
 
@@ -92,32 +93,33 @@ export function calculateCompletionStats(data: ProfileCompletionData): Completio
     data.profile?.connection12 === '1'
   );
 
-  // REQUIRED fields (11 fields × 5.92% ≈ 65.12%)
+  // REQUIRED fields (11 fields × 5.91% ≈ 65.01%)
   const requiredFields = [
-    { completed: !!(data.user.username && !data.user.username.startsWith('temp_')), weight: 5.92 },
-    { completed: !!(data.user.display_name && data.user.display_name.trim()), weight: 5.92 },
-    { completed: !!(data.user.email && data.user.email.trim()), weight: 5.92 },
-    { completed: !!(data.studio?.name && data.studio.name.trim()), weight: 5.92 },
-    { completed: !!(data.profile?.short_about && data.profile.short_about.trim()), weight: 5.92 },
-    { completed: !!(data.profile?.about && data.profile.about.trim()), weight: 5.92 },
-    { completed: !!(data.studio?.studio_types && data.studio.studio_types.length >= 1), weight: 5.92 },
-    { completed: !!(data.profile?.location && data.profile.location.trim()), weight: 5.92 },
-    { completed: hasConnectionMethod, weight: 5.92 },
-    { completed: !!(data.studio?.website_url && data.studio.website_url.trim()), weight: 5.92 },
-    { completed: !!(data.studio?.images && data.studio.images.length >= 1), weight: 5.92 },
+    { completed: !!(data.user.username && !data.user.username.startsWith('temp_')), weight: 5.91 },
+    { completed: !!(data.user.display_name && data.user.display_name.trim()), weight: 5.91 },
+    { completed: !!(data.user.email && data.user.email.trim()), weight: 5.91 },
+    { completed: !!(data.studio?.name && data.studio.name.trim()), weight: 5.91 },
+    { completed: !!(data.profile?.short_about && data.profile.short_about.trim()), weight: 5.91 },
+    { completed: !!(data.profile?.about && data.profile.about.trim()), weight: 5.91 },
+    { completed: !!(data.studio?.studio_types && data.studio.studio_types.length >= 1), weight: 5.91 },
+    { completed: !!(data.profile?.location && data.profile.location.trim()), weight: 5.91 },
+    { completed: hasConnectionMethod, weight: 5.91 },
+    { completed: !!(data.studio?.website_url && data.studio.website_url.trim()), weight: 5.91 },
+    { completed: !!(data.studio?.images && data.studio.images.length >= 1), weight: 5.91 },
   ];
 
-  // OPTIONAL fields (6 fields × 5.88% ≈ 35.28%)
+  // OPTIONAL fields (7 fields × 5.0% = 35%)
   const optionalFields = [
-    { completed: !!(data.user.avatar_url && data.user.avatar_url.trim()), weight: 5.88 },
-    { completed: !!(data.profile?.phone && data.profile.phone.trim()), weight: 5.88 },
-    { completed: socialMediaCount >= 2, weight: 5.88 },
+    { completed: !!(data.user.avatar_url && data.user.avatar_url.trim()), weight: 5.0 },
+    { completed: !!(data.profile?.about_me && data.profile.about_me.trim()), weight: 5.0 },
+    { completed: !!(data.profile?.phone && data.profile.phone.trim()), weight: 5.0 },
+    { completed: socialMediaCount >= 2, weight: 5.0 },
     {
       completed: !!(data.profile?.rate_tier_1 && (typeof data.profile.rate_tier_1 === 'number' ? data.profile.rate_tier_1 > 0 : parseFloat(data.profile.rate_tier_1 as string) > 0)),
-      weight: 5.88
+      weight: 5.0
     },
-    { completed: !!(data.profile?.equipment_list && data.profile.equipment_list.trim()), weight: 5.88 },
-    { completed: !!(data.profile?.services_offered && data.profile.services_offered.trim()), weight: 5.88 },
+    { completed: !!(data.profile?.equipment_list && data.profile.equipment_list.trim()), weight: 5.0 },
+    { completed: !!(data.profile?.services_offered && data.profile.services_offered.trim()), weight: 5.0 },
   ];
 
   // Count required fields completed

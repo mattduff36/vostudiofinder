@@ -30,6 +30,7 @@ interface EnhancedUserProfileProps {
       is_profile_visible?: boolean;
       studio_name?: string | null;
       last_name?: string | null;
+      about_me?: string | null;
       about?: string | null;
       short_about?: string | null;
       location?: string | null;
@@ -243,11 +244,25 @@ export function EnhancedUserProfile({ user, isHidden = false }: EnhancedUserProf
             {/* Main Content Column */}
             <div className="lg:col-span-2 space-y-8">
               
-              {/* About Section */}
+              {/* About Me Section */}
+              {profile?.about_me && (
+                <div className="bg-white rounded-lg border border-gray-200 shadow-md p-6">
+                  <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.textPrimary }}>
+                    About Me
+                  </h2>
+                  <div className="prose max-w-none">
+                    <p className="text-base leading-relaxed" style={{ color: colors.textSecondary }}>
+                      {profile.about_me}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Full Description Section */}
               {profile?.about && (
                 <div className="bg-white rounded-lg border border-gray-200 shadow-md p-6">
                   <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.textPrimary }}>
-                    About
+                    Full Description
                   </h2>
                   <div className="prose max-w-none">
                     <p className="text-base leading-relaxed" style={{ color: colors.textSecondary }}>

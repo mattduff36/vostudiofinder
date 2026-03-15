@@ -86,6 +86,7 @@ export type UserProfile = {
   last_name?: string | null;
   phone?: string | null;
   about?: string | null;
+  about_me?: string | null;
   short_about?: string | null;
   location?: string | null;
   show_email: boolean;

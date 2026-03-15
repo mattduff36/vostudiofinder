@@ -67,6 +67,7 @@ export function buildProfileUpdate(
   // Profile content
   if (body._meta?.last_name !== undefined) profileUpdateData.last_name = body._meta.last_name;
   if (body._meta?.location !== undefined) profileUpdateData.location = body._meta.location;
+  if (body._meta?.about_me !== undefined) profileUpdateData.about_me = body._meta.about_me;
   if (body._meta?.about !== undefined) profileUpdateData.about = body._meta.about;
   if (body._meta?.short_about !== undefined) profileUpdateData.short_about = body._meta.short_about;
   if (body._meta?.shortabout !== undefined) profileUpdateData.short_about = body._meta.shortabout; // Legacy

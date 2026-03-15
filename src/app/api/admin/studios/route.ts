@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
           name: true,
           description: true,
           short_about: true,
+          about_me: true,
           about: true,
           phone: true,
           location: true,
@@ -176,6 +177,7 @@ export async function GET(request: NextRequest) {
         },
         profile: {
           short_about: studio.short_about,
+          about_me: studio.about_me,
           about: studio.about,
           phone: studio.phone,
           location: studio.location,

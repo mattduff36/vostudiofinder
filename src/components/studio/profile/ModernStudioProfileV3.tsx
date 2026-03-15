@@ -94,6 +94,7 @@ interface ModernStudioProfileV3Props {
         last_name?: string | null;
         phone?: string | null;
         about?: string | null;
+        about_me?: string | null;
         short_about?: string | null;
         location?: string | null;
         rate_tier_1?: string | null;
@@ -488,7 +489,8 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
           )}
 
           <AboutCollapsible
-            about={profile?.about || profile?.short_about || studio.description}
+            aboutMe={profile?.about_me || profile?.short_about || ''}
+            studioDescription={profile?.about || studio.description || ''}
             equipmentList={profile?.equipment_list}
             servicesOffered={profile?.services_offered}
             studioTypes={studio.studio_studio_types}
@@ -787,22 +789,35 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
 
             {/* Description and Info Cards - Desktop: separate boxes like right column */}
             {(() => {
-              const cleanedAbout = cleanDescription(profile?.about || profile?.short_about || studio.description);
+              const cleanedAboutMe = cleanDescription(profile?.about_me || profile?.short_about || '');
+              const cleanedStudioDescription = cleanDescription(profile?.about || studio.description || '');
               const cleanedEquipment = profile?.equipment_list ? cleanDescription(profile.equipment_list) : '';
               const cleanedServices = profile?.services_offered ? cleanDescription(profile.services_offered) : '';
-              const hasContent = cleanedAbout || cleanedEquipment || cleanedServices;
+              const hasContent = cleanedAboutMe || cleanedStudioDescription || cleanedEquipment || cleanedServices;
               
               if (!hasContent) return null;
 
               return (
                 <div className="mb-6 w-full space-y-6">
-                  {/* Description Card */}
-                  {cleanedAbout && (
+                  {/* About Me Card */}
+                  {cleanedAboutMe && (
                     <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3 w-full">
-                      <h3 className="text-base !text-black !font-bold mb-2 mt-0">Description</h3>
+                      <h3 className="text-base !text-black !font-bold mb-2 mt-0">About Me</h3>
                       <div className="prose prose-gray max-w-none w-full">
                         <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words w-full">
-                          {cleanedAbout}
+                          {cleanedAboutMe}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Full Description Card */}
+                  {cleanedStudioDescription && (
+                    <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3 w-full">
+                      <h3 className="text-base !text-black !font-bold mb-2 mt-0">Full Description</h3>
+                      <div className="prose prose-gray max-w-none w-full">
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words w-full">
+                          {cleanedStudioDescription}
                         </p>
                       </div>
                     </div>

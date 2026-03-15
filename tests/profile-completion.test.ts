@@ -21,6 +21,7 @@ describe('Profile Completion Calculation', () => {
     },
     profile: {
       short_about: 'Short bio',
+      about_me: 'About me summary',
       about: 'Longer bio about the user',
       phone: '+1234567890',
       location: 'United States',
@@ -343,6 +344,23 @@ describe('Profile Completion Calculation', () => {
       expect(stats.required.completed).toBeLessThan(11);
     });
 
+    it('should treat about_me as optional while still affecting percentage', () => {
+      const withoutAboutMe = {
+        ...createBaseProfile(),
+        profile: {
+          ...createBaseProfile().profile,
+          about_me: '',
+        },
+      };
+      const withAboutMe = createBaseProfile();
+
+      const statsWithout = calculateCompletionStats(withoutAboutMe);
+      const statsWith = calculateCompletionStats(withAboutMe);
+
+      expect(statsWithout.required.completed).toBe(11);
+      expect(statsWith.overall.percentage).toBeGreaterThan(statsWithout.overall.percentage);
+    });
+
     it('should require about', () => {
       const profile = {
         ...createBaseProfile(),
@@ -453,7 +471,7 @@ describe('Profile Completion Calculation', () => {
   });
 
   describe('Percentage Calculation', () => {
-    it('should return approximately 65% for required fields only', () => {
+    it('should return approximately 70% for required fields only', () => {
       const profile = {
         ...createBaseProfile(),
         user: {
@@ -472,8 +490,8 @@ describe('Profile Completion Calculation', () => {
       };
 
       const stats = calculateCompletionStats(profile);
-      expect(stats.overall.percentage).toBeGreaterThanOrEqual(63);
-      expect(stats.overall.percentage).toBeLessThanOrEqual(67);
+      expect(stats.overall.percentage).toBeGreaterThanOrEqual(68);
+      expect(stats.overall.percentage).toBeLessThanOrEqual(72);
     });
 
     it('should return 100% for all fields completed', () => {

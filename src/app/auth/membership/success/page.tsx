@@ -106,6 +106,13 @@ const OPTIONAL_FIELDS = [
     why: 'Adds personality and makes your profile more memorable and trustworthy',
   },
   {
+    name: 'About Me',
+    required: false,
+    where: 'Full profile page',
+    how: 'Personal introduction shown on your profile page',
+    why: 'Helps clients understand your background and who they will be working with',
+  },
+  {
     name: 'Phone',
     required: false,
     where: 'Profile page contact section (if enabled)',
@@ -196,7 +203,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     const basicStudioProfile = await db.studio_profiles.findUnique({
       where: { user_id: basicUser.id },
       select: {
-        id: true, name: true, short_about: true, about: true, phone: true,
+        id: true, name: true, short_about: true, about_me: true, about: true, phone: true,
         location: true, website_url: true, equipment_list: true, services_offered: true,
         facebook_url: true, x_url: true, linkedin_url: true, instagram_url: true,
         youtube_url: true, tiktok_url: true, threads_url: true, soundcloud_url: true,
@@ -219,6 +226,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       },
       profile: basicStudioProfile ? {
         short_about: basicStudioProfile.short_about,
+        about_me: basicStudioProfile.about_me,
         about: basicStudioProfile.about,
         phone: basicStudioProfile.phone,
         location: basicStudioProfile.location,
@@ -290,11 +298,12 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
 
     const basicOptionalFields = [
       { name: OPTIONAL_FIELDS[0]!.name, required: false, completed: !!(basicUser.avatar_url && basicUser.avatar_url.trim()), where: OPTIONAL_FIELDS[0]!.where, how: OPTIONAL_FIELDS[0]!.how, why: OPTIONAL_FIELDS[0]!.why },
-      { name: OPTIONAL_FIELDS[1]!.name, required: false, completed: !!(basicStudioProfile?.phone && basicStudioProfile.phone.trim()), where: OPTIONAL_FIELDS[1]!.where, how: OPTIONAL_FIELDS[1]!.how, why: OPTIONAL_FIELDS[1]!.why },
-      { name: OPTIONAL_FIELDS[2]!.name, required: false, completed: basicSocialCount >= 2, where: OPTIONAL_FIELDS[2]!.where, how: OPTIONAL_FIELDS[2]!.how, why: OPTIONAL_FIELDS[2]!.why },
-      { name: OPTIONAL_FIELDS[3]!.name, required: false, completed: !!(basicStudioProfile?.rate_tier_1 && (typeof basicStudioProfile.rate_tier_1 === 'number' ? basicStudioProfile.rate_tier_1 > 0 : parseFloat(basicStudioProfile.rate_tier_1) > 0)), where: OPTIONAL_FIELDS[3]!.where, how: OPTIONAL_FIELDS[3]!.how, why: OPTIONAL_FIELDS[3]!.why },
-      { name: OPTIONAL_FIELDS[4]!.name, required: false, completed: !!(basicStudioProfile?.equipment_list && basicStudioProfile.equipment_list.trim()), where: OPTIONAL_FIELDS[4]!.where, how: OPTIONAL_FIELDS[4]!.how, why: OPTIONAL_FIELDS[4]!.why },
-      { name: OPTIONAL_FIELDS[5]!.name, required: false, completed: !!(basicStudioProfile?.services_offered && basicStudioProfile.services_offered.trim()), where: OPTIONAL_FIELDS[5]!.where, how: OPTIONAL_FIELDS[5]!.how, why: OPTIONAL_FIELDS[5]!.why },
+      { name: OPTIONAL_FIELDS[1]!.name, required: false, completed: !!(basicStudioProfile?.about_me && basicStudioProfile.about_me.trim()), where: OPTIONAL_FIELDS[1]!.where, how: OPTIONAL_FIELDS[1]!.how, why: OPTIONAL_FIELDS[1]!.why },
+      { name: OPTIONAL_FIELDS[2]!.name, required: false, completed: !!(basicStudioProfile?.phone && basicStudioProfile.phone.trim()), where: OPTIONAL_FIELDS[2]!.where, how: OPTIONAL_FIELDS[2]!.how, why: OPTIONAL_FIELDS[2]!.why },
+      { name: OPTIONAL_FIELDS[3]!.name, required: false, completed: basicSocialCount >= 2, where: OPTIONAL_FIELDS[3]!.where, how: OPTIONAL_FIELDS[3]!.how, why: OPTIONAL_FIELDS[3]!.why },
+      { name: OPTIONAL_FIELDS[4]!.name, required: false, completed: !!(basicStudioProfile?.rate_tier_1 && (typeof basicStudioProfile.rate_tier_1 === 'number' ? basicStudioProfile.rate_tier_1 > 0 : parseFloat(basicStudioProfile.rate_tier_1) > 0)), where: OPTIONAL_FIELDS[4]!.where, how: OPTIONAL_FIELDS[4]!.how, why: OPTIONAL_FIELDS[4]!.why },
+      { name: OPTIONAL_FIELDS[5]!.name, required: false, completed: !!(basicStudioProfile?.equipment_list && basicStudioProfile.equipment_list.trim()), where: OPTIONAL_FIELDS[5]!.where, how: OPTIONAL_FIELDS[5]!.how, why: OPTIONAL_FIELDS[5]!.why },
+      { name: OPTIONAL_FIELDS[6]!.name, required: false, completed: !!(basicStudioProfile?.services_offered && basicStudioProfile.services_offered.trim()), where: OPTIONAL_FIELDS[6]!.where, how: OPTIONAL_FIELDS[6]!.how, why: OPTIONAL_FIELDS[6]!.why },
     ];
 
     return (
@@ -654,6 +663,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
       id: true,
       name: true,
       short_about: true,
+      about_me: true,
       about: true,
       phone: true,
       location: true,
@@ -706,6 +716,7 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
     },
     profile: studioProfile ? {
       short_about: studioProfile.short_about,
+      about_me: studioProfile.about_me,
       about: studioProfile.about,
       phone: studioProfile.phone,
       location: studioProfile.location,
@@ -793,11 +804,12 @@ export default async function MembershipSuccessPage({ searchParams }: Membership
 
   const optionalFieldsWithStatus = [
     { name: OPTIONAL_FIELDS[0]!.name, required: false, completed: !!(finalUser.avatar_url && finalUser.avatar_url.trim()), where: OPTIONAL_FIELDS[0]!.where, how: OPTIONAL_FIELDS[0]!.how, why: OPTIONAL_FIELDS[0]!.why },
-    { name: OPTIONAL_FIELDS[1]!.name, required: false, completed: !!(studioProfile?.phone && studioProfile.phone.trim()), where: OPTIONAL_FIELDS[1]!.where, how: OPTIONAL_FIELDS[1]!.how, why: OPTIONAL_FIELDS[1]!.why },
-    { name: OPTIONAL_FIELDS[2]!.name, required: false, completed: socialMediaCount >= 2, where: OPTIONAL_FIELDS[2]!.where, how: OPTIONAL_FIELDS[2]!.how, why: OPTIONAL_FIELDS[2]!.why },
-    { name: OPTIONAL_FIELDS[3]!.name, required: false, completed: !!(studioProfile?.rate_tier_1 && (typeof studioProfile.rate_tier_1 === 'number' ? studioProfile.rate_tier_1 > 0 : parseFloat(studioProfile.rate_tier_1) > 0)), where: OPTIONAL_FIELDS[3]!.where, how: OPTIONAL_FIELDS[3]!.how, why: OPTIONAL_FIELDS[3]!.why },
-    { name: OPTIONAL_FIELDS[4]!.name, required: false, completed: !!(studioProfile?.equipment_list && studioProfile.equipment_list.trim()), where: OPTIONAL_FIELDS[4]!.where, how: OPTIONAL_FIELDS[4]!.how, why: OPTIONAL_FIELDS[4]!.why },
-    { name: OPTIONAL_FIELDS[5]!.name, required: false, completed: !!(studioProfile?.services_offered && studioProfile.services_offered.trim()), where: OPTIONAL_FIELDS[5]!.where, how: OPTIONAL_FIELDS[5]!.how, why: OPTIONAL_FIELDS[5]!.why },
+    { name: OPTIONAL_FIELDS[1]!.name, required: false, completed: !!(studioProfile?.about_me && studioProfile.about_me.trim()), where: OPTIONAL_FIELDS[1]!.where, how: OPTIONAL_FIELDS[1]!.how, why: OPTIONAL_FIELDS[1]!.why },
+    { name: OPTIONAL_FIELDS[2]!.name, required: false, completed: !!(studioProfile?.phone && studioProfile.phone.trim()), where: OPTIONAL_FIELDS[2]!.where, how: OPTIONAL_FIELDS[2]!.how, why: OPTIONAL_FIELDS[2]!.why },
+    { name: OPTIONAL_FIELDS[3]!.name, required: false, completed: socialMediaCount >= 2, where: OPTIONAL_FIELDS[3]!.where, how: OPTIONAL_FIELDS[3]!.how, why: OPTIONAL_FIELDS[3]!.why },
+    { name: OPTIONAL_FIELDS[4]!.name, required: false, completed: !!(studioProfile?.rate_tier_1 && (typeof studioProfile.rate_tier_1 === 'number' ? studioProfile.rate_tier_1 > 0 : parseFloat(studioProfile.rate_tier_1) > 0)), where: OPTIONAL_FIELDS[4]!.where, how: OPTIONAL_FIELDS[4]!.how, why: OPTIONAL_FIELDS[4]!.why },
+    { name: OPTIONAL_FIELDS[5]!.name, required: false, completed: !!(studioProfile?.equipment_list && studioProfile.equipment_list.trim()), where: OPTIONAL_FIELDS[5]!.where, how: OPTIONAL_FIELDS[5]!.how, why: OPTIONAL_FIELDS[5]!.why },
+    { name: OPTIONAL_FIELDS[6]!.name, required: false, completed: !!(studioProfile?.services_offered && studioProfile.services_offered.trim()), where: OPTIONAL_FIELDS[6]!.where, how: OPTIONAL_FIELDS[6]!.how, why: OPTIONAL_FIELDS[6]!.why },
   ];
 
   return (

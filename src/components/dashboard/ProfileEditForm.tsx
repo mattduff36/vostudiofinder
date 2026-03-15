@@ -59,6 +59,7 @@ interface ProfileData {
   profile: {
     phone?: string;
     about?: string;
+    about_me?: string;
     short_about?: string;
     location?: string;
     rate_tier_1?: number;
@@ -201,6 +202,11 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
 
   const fullAboutRef = useAutosizeTextarea({
     value: profile?.profile?.about || '',
+    isEnabled: isBasicTabActive,
+  });
+
+  const aboutMeRef = useAutosizeTextarea({
+    value: profile?.profile?.about_me || '',
     isEnabled: isBasicTabActive,
   });
 
@@ -1139,7 +1145,33 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               </div>
             </div>
 
-            {/* Row 3: Full Description (textarea, full width) - SWAPPED ORDER */}
+            {/* Row 3: About Me (textarea, full width) */}
+            <div>
+              <Textarea
+                ref={aboutMeRef}
+                label="About Me"
+                value={profile.profile.about_me || ''}
+                onChange={(e) => updateProfile('about_me', e.target.value)}
+                maxLength={profile?.tierLimits?.aboutMaxChars ?? 1500}
+                className="min-h-[120px] resize-none overflow-hidden"
+              />
+              <div className="flex justify-between items-center text-xs mt-1">
+                <span className="text-gray-500">Tell visitors about you and your background</span>
+                <span
+                  className={`${
+                    (profile.profile.about_me || '').length >= (profile?.tierLimits?.aboutMaxChars ?? 1500) - 100
+                      ? 'text-red-600 font-semibold'
+                      : (profile.profile.about_me || '').length >= (profile?.tierLimits?.aboutMaxChars ?? 1500) - 200
+                      ? 'text-orange-600 font-medium'
+                      : 'text-gray-500'
+                  }`}
+                >
+                  {(profile.profile.about_me || '').length}/{profile?.tierLimits?.aboutMaxChars ?? 1500} characters
+                </span>
+              </div>
+            </div>
+
+            {/* Row 4: Full Description (textarea, full width) */}
             <div>
               <Textarea
                 ref={fullAboutRef}
@@ -1150,7 +1182,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 className="min-h-[150px] resize-none overflow-hidden"
               />
               <div className="flex justify-between items-center text-xs mt-1">
-                <span className="text-gray-500">Detailed description for your profile page</span>
+                <span className="text-gray-500">Describe your studio, space, and services in detail</span>
                 <span 
                   className={`${
                     (profile.profile.about || '').length >= (profile?.tierLimits?.aboutMaxChars ?? 1500) - 100
@@ -1165,7 +1197,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               </div>
             </div>
 
-            {/* Row 4: Short Description (single line input, full width) - SWAPPED ORDER */}
+            {/* Row 5: Short Description (single line input, full width) */}
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <label className="block text-sm font-medium text-text-primary">
@@ -1187,7 +1219,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 maxLength={150}
               />
               <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                <span>Shown on studio cards and used by search engines. Make the most of the 150 characters</span>
+                <span>Shown on studio cards and used by search engines. Keep this a concise studio summary.</span>
                 <span>{(profile.profile.short_about || '').length}/150 characters</span>
               </div>
             </div>

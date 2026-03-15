@@ -13,6 +13,7 @@ import { getProfileVisibilityEligibility } from '@/lib/utils/profile-visibility'
 function detectVoiceoverArtistMisuse(fields: {
   name?: string;
   short_about?: string;
+  about_me?: string;
   about?: string;
   services_offered?: string;
   equipment_list?: string;
@@ -55,6 +56,7 @@ function detectVoiceoverArtistMisuse(fields: {
   const combinedText = [
     fields.name || '',
     fields.short_about || '',
+    fields.about_me || '',
     fields.about || '',
     fields.services_offered || '',
     fields.equipment_list || '',
@@ -445,6 +447,7 @@ export async function GET() {
           user_id: studioProfile.user_id,
           // Profile-specific fields (about, location, social, connections, settings)
           short_about: studioProfile.short_about,
+          about_me: studioProfile.about_me,
           about: studioProfile.about,
           location: studioProfile.location,
           // Contact settings
@@ -626,6 +629,11 @@ export async function PUT(request: NextRequest) {
       if (updates.name !== undefined) profileUpdates.name = updates.name;
       if (updates.description !== undefined) profileUpdates.description = updates.description;
       if (updates.short_about !== undefined) profileUpdates.short_about = updates.short_about;
+      if (updates.about_me !== undefined) {
+        profileUpdates.about_me = typeof updates.about_me === 'string'
+          ? updates.about_me.substring(0, tierLimits.aboutMaxChars)
+          : updates.about_me;
+      }
       // Enforce about max chars based on tier
       if (updates.about !== undefined) {
         profileUpdates.about = typeof updates.about === 'string'
@@ -1043,6 +1051,7 @@ export async function PUT(request: NextRequest) {
       const fieldsToCheck = {
         name: body.studio?.name || body.profile?.name,
         short_about: body.profile?.short_about,
+        about_me: body.profile?.about_me,
         about: body.profile?.about,
         services_offered: body.profile?.services_offered,
         equipment_list: body.profile?.equipment_list,

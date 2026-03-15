@@ -165,6 +165,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
       },
       profile: {
         short_about: profileData.profile?.short_about || null,
+        about_me: profileData.profile?.about_me || null,
         about: profileData.profile?.about || null,
         phone: profileData.profile?.phone || null,
         location: profileData.profile?.location || null,
@@ -535,6 +536,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                       username: profileData.user?.username,
                       email: profileData.user?.email,
                       about: profileData.profile?.about,
+                      about_me: profileData.profile?.about_me,
                       short_about: profileData.profile?.short_about,
                       phone: profileData.profile?.phone,
                       location: profileData.profile?.location,

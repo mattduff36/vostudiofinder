@@ -257,6 +257,7 @@ model studio_profiles {
   name                    String
   description             String?
   short_about             String?
+  about_me                String?
   about                   String?
   
   // Location

@@ -95,8 +95,9 @@ export const userProfileUpdateSchema = z.object({
   location: z.string().max(255).optional(),
   
   // About sections (with HTML sanitization)
-  about: z.string().max(1500, 'About section must be less than 1500 characters').transform(stripHtmlTags).optional(),
-  short_about: z.string().max(140, 'Short about must be less than 140 characters').transform(stripHtmlTags).optional(),
+  short_about: z.string().max(150, 'Short description must be less than 150 characters').transform(stripHtmlTags).optional(),
+  about_me: z.string().max(2000, 'About Me must be less than 2000 characters').transform(stripHtmlTags).optional(),
+  about: z.string().max(2000, 'Full description must be less than 2000 characters').transform(stripHtmlTags).optional(),
   
   // Rates
   rate_tier_1: rateSchema,

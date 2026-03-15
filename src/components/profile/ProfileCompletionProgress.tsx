@@ -10,6 +10,7 @@ interface ProfileCompletionProgressProps {
     username?: string | undefined;
     email?: string | undefined;
     about?: string | undefined;
+    about_me?: string | undefined;
     short_about?: string | undefined;
     phone?: string | undefined;
     location?: string | undefined;
@@ -76,6 +77,7 @@ export function ProfileCompletionProgress({
       },
       profile: {
         short_about: profileData.short_about || null,
+        about_me: profileData.about_me || null,
         about: profileData.about || null,
         phone: profileData.phone || null,
         location: profileData.location || null,
@@ -157,14 +159,14 @@ export function ProfileCompletionProgress({
     profileData.connection12 === '1'
   );
 
-  // REQUIRED fields - must complete all 11 to publish profile - memoized
+  // REQUIRED fields - must complete all required fields to publish profile - memoized
   const requiredFields = useMemo((): ProfileField[] => [
     { label: 'Username', completed: !!(profileData.username && !profileData.username.startsWith('temp_')), required: true, sectionId: 'basic' },
     { label: 'Display Name', completed: !!(profileData.display_name && profileData.display_name.trim()), required: true, sectionId: 'basic' },
     { label: 'Email', completed: !!(profileData.email && profileData.email.trim()), required: true, sectionId: 'basic' },
     { label: 'Studio Name', completed: !!(profileData.studio_name && profileData.studio_name.trim()), required: true, sectionId: 'basic' },
-    { label: 'Short About', completed: !!(profileData.short_about && profileData.short_about.trim()), required: true, sectionId: 'basic' },
-    { label: 'Full About', completed: !!(profileData.about && profileData.about.trim()), required: true, sectionId: 'basic' },
+    { label: 'Short Description', completed: !!(profileData.short_about && profileData.short_about.trim()), required: true, sectionId: 'basic' },
+    { label: 'Full Description', completed: !!(profileData.about && profileData.about.trim()), required: true, sectionId: 'basic' },
     { label: 'Studio Type selected', completed: (profileData.studio_types_count || 0) >= 1, required: true, sectionId: 'basic' },
     { label: 'Location', completed: !!(profileData.location && profileData.location.trim()), required: true, sectionId: 'contact' },
     { label: 'Connection Methods', completed: hasConnectionMethod, required: true, sectionId: 'connections' },
@@ -175,12 +177,13 @@ export function ProfileCompletionProgress({
   // OPTIONAL fields - boost profile quality, also count toward 100% - memoized
   const optionalFields = useMemo((): ProfileField[] => [
     { label: 'Avatar', completed: !!(profileData.avatar_url && profileData.avatar_url.trim()), required: false, sectionId: 'basic' },
+    { label: 'About Me', completed: !!(profileData.about_me && profileData.about_me.trim()), required: false, sectionId: 'basic' },
     { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), required: false, sectionId: 'contact' },
     { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, required: false, sectionId: 'social' },
     { label: 'Session Rate Tier(s)', completed: !!(profileData.rate_tier_1 && (typeof profileData.rate_tier_1 === 'number' ? profileData.rate_tier_1 > 0 : parseFloat(profileData.rate_tier_1) > 0)), required: false, sectionId: 'rates' },
     { label: 'Equipment List', completed: !!(profileData.equipment_list && profileData.equipment_list.trim()), required: false, sectionId: 'rates' },
     { label: 'Services Offered', completed: !!(profileData.services_offered && profileData.services_offered.trim()), required: false, sectionId: 'rates' },
-  ], [profileData.avatar_url, profileData.phone, socialMediaCount, profileData.rate_tier_1, profileData.equipment_list, profileData.services_offered]);
+  ], [profileData.avatar_url, profileData.about_me, profileData.phone, socialMediaCount, profileData.rate_tier_1, profileData.equipment_list, profileData.services_offered]);
 
   // Count completed optional fields
   const completedOptionalCount = optionalFields.filter(field => field.completed).length;

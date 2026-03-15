@@ -17,14 +17,16 @@ import { cleanDescription } from '@/lib/utils/text';
 import { formatStudioTypeLabel } from '@/lib/utils/studio-types';
 
 interface AboutCollapsibleProps {
-  about?: string | undefined;
+  aboutMe?: string | undefined;
+  studioDescription?: string | undefined;
   equipmentList?: string | null | undefined;
   servicesOffered?: string | null | undefined;
   studioTypes: string[];
 }
 
 export function AboutCollapsible({
-  about,
+  aboutMe,
+  studioDescription,
   equipmentList,
   servicesOffered,
   studioTypes,
@@ -38,16 +40,27 @@ export function AboutCollapsible({
 
   // Phase 3 feature gate
 
-  const description = about ? cleanDescription(about) : '';
+  const cleanedAboutMe = aboutMe ? cleanDescription(aboutMe) : '';
+  const cleanedStudioDescription = studioDescription ? cleanDescription(studioDescription) : '';
 
   return (
     <div className="md:hidden bg-white border-b border-gray-200">
-      {/* About Description */}
-      {description && (
+      {/* About Me */}
+      {cleanedAboutMe && (
         <div className="px-4 py-4 border-b border-gray-100">
-          <p className="text-xs !text-black !font-bold mb-2">Description</p>
+          <p className="text-xs !text-black !font-bold mb-2">About Me</p>
           <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
-            {description}
+            {cleanedAboutMe}
+          </div>
+        </div>
+      )}
+
+      {/* Studio Description */}
+      {cleanedStudioDescription && (
+        <div className="px-4 py-4 border-b border-gray-100">
+          <p className="text-xs !text-black !font-bold mb-2">Full Description</p>
+          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
+            {cleanedStudioDescription}
           </div>
         </div>
       )}

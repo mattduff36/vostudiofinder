@@ -105,9 +105,9 @@ export function ProfileVisibilityCard({
               
               <p className="mt-3 text-sm font-semibold text-gray-700">
                 {allRequiredComplete ? (
-                  <span className="text-green-700">Must be 10/10 ✓</span>
+                  <span className="text-green-700">Must be {totalRequiredFields}/{totalRequiredFields} ✓</span>
                 ) : (
-                  <span className="text-red-700">Must be 10/10 to unlock</span>
+                  <span className="text-red-700">Must be {totalRequiredFields}/{totalRequiredFields} to unlock</span>
                 )}
               </p>
             </div>

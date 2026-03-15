@@ -40,6 +40,7 @@ export interface AdminProfileResponse {
       youtubepage?: string;
       tiktok?: string;
       threads?: string;
+      about_me?: string;
       about?: string;
       latitude?: number | null;
       longitude?: number | null;
@@ -116,6 +117,7 @@ export interface ProfileData {
   };
   profile: {
     phone?: string;
+    about_me?: string;
     about?: string;
     short_about?: string;
     location?: string;
@@ -243,6 +245,7 @@ export function adminProfileToProfileData(response: AdminProfileResponse): Profi
     },
     profile: {
       phone: meta.phone || '',
+      about_me: meta.about_me || '',
       about: meta.about || '',
       short_about: meta.short_about || '',
       location: meta.location || '',
@@ -331,6 +334,7 @@ export function profileDataToAdminPayload(data: ProfileData): any {
       // Prefer studio.name - the form field is bound to it; profile.studio_name is only set on initial load
       studio_name: data.studio?.name ?? data.profile.studio_name ?? '',
       phone: data.profile.phone || '',
+      about_me: data.profile.about_me || '',
       about: data.profile.about || '',
       short_about: data.profile.short_about || '',
       location: data.profile.location || '',

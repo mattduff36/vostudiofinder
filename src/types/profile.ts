@@ -19,6 +19,7 @@ export interface UserProfile {
   id?: string;
   user_id?: string;
   about?: string;
+  about_me?: string;
   short_about?: string;
   phone?: string;
   location?: string;
@@ -109,6 +110,7 @@ export interface ProfileCompletionData {
   username?: string;
   email?: string;
   about?: string;
+  about_me?: string;
   short_about?: string;
   phone?: string;
   location?: string;

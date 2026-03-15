@@ -115,7 +115,7 @@ export function QuickActions({
   }, [profileData]);
 
   // Compute if all required fields are complete
-  // Must match the 11 required fields defined in profile-completion.ts
+  // Must match the required fields defined in profile-completion.ts
   const allRequiredComplete = useMemo(() => {
     if (!profileData) return false;
 
@@ -352,6 +352,7 @@ export function QuickActions({
                   username: profileData.user?.username,
                   email: profileData.user?.email,
                   about: profileData.profile?.about,
+                  about_me: profileData.profile?.about_me,
                   short_about: profileData.profile?.short_about,
                   phone: profileData.profile?.phone,
                   location: profileData.profile?.location,
