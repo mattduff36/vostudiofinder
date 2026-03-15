@@ -1152,21 +1152,22 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 label="About Me"
                 value={profile.profile.about_me || ''}
                 onChange={(e) => updateProfile('about_me', e.target.value)}
-                maxLength={profile?.tierLimits?.aboutMaxChars ?? 1500}
-                className="min-h-[120px] resize-none overflow-hidden"
+                maxLength={300}
+                placeholder="Introduce yourself and your professional background."
+                className="min-h-[60px] resize-none overflow-hidden"
               />
               <div className="flex justify-between items-center text-xs mt-1">
                 <span className="text-gray-500">Tell visitors about you and your background</span>
                 <span
                   className={`${
-                    (profile.profile.about_me || '').length >= (profile?.tierLimits?.aboutMaxChars ?? 1500) - 100
+                    (profile.profile.about_me || '').length >= 300 - 50
                       ? 'text-red-600 font-semibold'
-                      : (profile.profile.about_me || '').length >= (profile?.tierLimits?.aboutMaxChars ?? 1500) - 200
+                      : (profile.profile.about_me || '').length >= 300 - 100
                       ? 'text-orange-600 font-medium'
                       : 'text-gray-500'
                   }`}
                 >
-                  {(profile.profile.about_me || '').length}/{profile?.tierLimits?.aboutMaxChars ?? 1500} characters
+                  {(profile.profile.about_me || '').length}/300 characters
                 </span>
               </div>
             </div>
@@ -1179,6 +1180,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 value={profile.profile.about || ''}
                 onChange={(e) => updateProfile('about', e.target.value)}
                 maxLength={profile?.tierLimits?.aboutMaxChars ?? 1500}
+                placeholder="Give full details of your studio, recording environment, and the services available."
                 className="min-h-[150px] resize-none overflow-hidden"
               />
               <div className="flex justify-between items-center text-xs mt-1">
@@ -1217,9 +1219,10 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 value={profile.profile.short_about || ''}
                 onChange={(e) => updateProfile('short_about', e.target.value)}
                 maxLength={150}
+                placeholder="Keep this a concise studio summary."
               />
               <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
-                <span>Shown on studio cards and used by search engines. Keep this a concise studio summary.</span>
+                <span>Shown on studio cards and used by search engines.</span>
                 <span>{(profile.profile.short_about || '').length}/150 characters</span>
               </div>
             </div>

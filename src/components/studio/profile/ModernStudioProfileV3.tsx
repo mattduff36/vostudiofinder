@@ -489,7 +489,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
           )}
 
           <AboutCollapsible
-            aboutMe={profile?.about_me || profile?.short_about || ''}
+            aboutMe={profile?.about_me || ''}
             studioDescription={profile?.about || studio.description || ''}
             equipmentList={profile?.equipment_list}
             servicesOffered={profile?.services_offered}
@@ -789,7 +789,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
 
             {/* Description and Info Cards - Desktop: separate boxes like right column */}
             {(() => {
-              const cleanedAboutMe = cleanDescription(profile?.about_me || profile?.short_about || '');
+              const cleanedAboutMe = cleanDescription(profile?.about_me || '');
               const cleanedStudioDescription = cleanDescription(profile?.about || studio.description || '');
               const cleanedEquipment = profile?.equipment_list ? cleanDescription(profile.equipment_list) : '';
               const cleanedServices = profile?.services_offered ? cleanDescription(profile.services_offered) : '';
