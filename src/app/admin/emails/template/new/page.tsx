@@ -97,6 +97,8 @@ export default function NewEmailTemplatePage() {
     setVariables((prev) => prev.filter((_, idx) => idx !== index));
   };
 
+  const RESERVED_KEYS = ['new', 'create', 'edit', 'delete', 'preview', 'test'];
+
   const normalizeTemplateKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
 
   const buildVariableSchema = () => {
@@ -116,6 +118,11 @@ export default function NewEmailTemplatePage() {
     const normalizedKey = normalizeTemplateKey(form.key.trim()).replace(/^-+|-+$/g, '');
     if (!normalizedKey) {
       setError('Template key is required.');
+      return;
+    }
+
+    if (RESERVED_KEYS.includes(normalizedKey)) {
+      setError(`"${normalizedKey}" is a reserved key. Please choose a different template key.`);
       return;
     }
 

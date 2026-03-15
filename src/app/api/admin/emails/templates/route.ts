@@ -14,8 +14,12 @@ import { EMAIL_TEMPLATES } from '@/lib/email/template-registry';
 import { validateTemplatePlaceholders } from '@/lib/email/render';
 import { z } from 'zod';
 
+const RESERVED_TEMPLATE_KEYS = ['new', 'create', 'edit', 'delete', 'preview', 'test'];
+
 const createTemplateSchema = z.object({
-  key: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/, 'Key must be lowercase alphanumeric with hyphens'),
+  key: z.string().min(1).max(100)
+    .regex(/^[a-z0-9-]+$/, 'Key must be lowercase alphanumeric with hyphens')
+    .refine((k) => !RESERVED_TEMPLATE_KEYS.includes(k), { message: 'This key is reserved and cannot be used' }),
   name: z.string().min(1).max(200),
   description: z.string().optional(),
   layout: z.enum(['STANDARD', 'HERO']),
