@@ -3,8 +3,8 @@ import { cn } from '@/lib/utils';
 
 // New color palette
 const colors = {
-  primary: '#d42027',
-  primaryHover: '#a1181d',
+  primary: '#9C060B',
+  primaryHover: '#680407',
   background: '#ffffff',
   textPrimary: '#000000',
   textSecondary: '#444444',

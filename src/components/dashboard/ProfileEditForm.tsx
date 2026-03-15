@@ -1708,7 +1708,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 <button
                   type="button"
                   onClick={handleCopyMetaTitle}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-[#d42027] transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-[#9C060B] transition-colors"
                   title="Copy to clipboard"
                 >
                   <Copy className="w-4 h-4" />
@@ -2065,7 +2065,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                     rel="noopener noreferrer"
                     className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    {getBaseUrl()}/<span className="text-[#d42027] font-medium">{profile.user.username}</span>
+                    {getBaseUrl()}/<span className="text-[#9C060B] font-medium">{profile.user.username}</span>
                   </a>
                 </div>
               </div>
@@ -2201,7 +2201,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
             const iconColorClass = 
               status === 'complete' ? 'text-green-600' :
               status === 'neutral' ? 'text-gray-500' :
-              'text-[#d42027]';
+              'text-[#9C060B]';
 
             return (
               <div

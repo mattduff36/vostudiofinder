@@ -130,8 +130,8 @@ This PRD defines the requirements for creating a comprehensive voiceover studio 
 
 ### Visual Design
 - **Color Palette:**
-  - Primary: #d42027 (red)
-  - Primary Hover: #a1181d
+  - Primary: #9C060B (red)
+  - Primary Hover: #680407
   - Background: #ffffff
   - Text Primary: #000000
   - Text Secondary: #444444

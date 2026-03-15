@@ -377,7 +377,7 @@ export function ProfileCompletionProgress({
             </div>
             {/* Pencil icon badge - bottom right, hidden after first click */}
             {!pencilDismissed && (
-              <div className="absolute bottom-1 right-1 bg-gray-400 text-white rounded-full p-1.5 shadow-md group-hover:bg-[#d42027] transition-colors">
+              <div className="absolute bottom-1 right-1 bg-gray-400 text-white rounded-full p-1.5 shadow-md group-hover:bg-[#9C060B] transition-colors">
                 <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
               </div>
             )}

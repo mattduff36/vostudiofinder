@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: 'Browse Recording Studios - Voiceover Studio Finder',
   description: 'Search and discover professional recording studios worldwide. Filter by location, services, and studio type to find the perfect space for your voiceover projects.',
   keywords: 'recording studios, voiceover studios, audio production, studio search, professional studios',
+  alternates: {
+    canonical: '/studios',
+  },
 };
 
 export default function Studios() {

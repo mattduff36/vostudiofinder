@@ -289,7 +289,7 @@ export function Settings({ data }: SettingsProps) {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-2">
                     <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-[#d42027]" />
+                      <Shield className="w-5 h-5 text-[#9C060B]" />
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-gray-900">Privacy Settings</h3>
@@ -337,7 +337,7 @@ export function Settings({ data }: SettingsProps) {
                 <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-center space-x-2 mb-4">
                     <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                      <Lock className="w-5 h-5 text-[#d42027]" />
+                      <Lock className="w-5 h-5 text-[#9C060B]" />
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-gray-900">Password</h3>
@@ -348,7 +348,7 @@ export function Settings({ data }: SettingsProps) {
                     onClick={() => setShowPasswordModal(true)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 px-4 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] transition-all shadow-sm hover:shadow-md mt-auto"
+                    className="w-full py-3 px-4 text-sm font-semibold text-white bg-[#9C060B] rounded-lg hover:bg-[#680407] transition-all shadow-sm hover:shadow-md mt-auto"
                   >
                     Change Password
                   </motion.button>
@@ -421,7 +421,7 @@ export function Settings({ data }: SettingsProps) {
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="w-5 h-5 text-[#d42027]" />
+                    <AlertCircle className="w-5 h-5 text-[#9C060B]" />
                   </div>
                   <div className="text-left">
                     <h3 className="text-base font-semibold text-gray-900">Report an Issue</h3>
@@ -442,7 +442,7 @@ export function Settings({ data }: SettingsProps) {
                       value={issueCategory}
                       onChange={(e) => setIssueCategory(e.target.value)}
                       disabled={submittingIssue}
-                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent"
                       required
                     >
                       <option value="">Select a category</option>
@@ -460,7 +460,7 @@ export function Settings({ data }: SettingsProps) {
                       disabled={submittingIssue}
                       rows={4}
                       placeholder="Please describe the issue in detail..."
-                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent resize-none"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent resize-none"
                       required
                     />
                   </div>
@@ -471,7 +471,7 @@ export function Settings({ data }: SettingsProps) {
                       disabled={submittingIssue}
                       whileHover={submittingIssue ? {} : { scale: 1.02 }}
                       whileTap={submittingIssue ? {} : { scale: 0.98 }}
-                      className="px-6 py-2.5 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
+                      className="px-6 py-2.5 text-sm font-semibold text-white bg-[#9C060B] rounded-lg hover:bg-[#680407] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
                     >
                       {submittingIssue && <Loader2 className="w-4 h-4 animate-spin" />}
                       <span>{submittingIssue ? 'Submitting...' : 'Submit Issue'}</span>
@@ -490,7 +490,7 @@ export function Settings({ data }: SettingsProps) {
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                    <Lightbulb className="w-5 h-5 text-[#d42027]" />
+                    <Lightbulb className="w-5 h-5 text-[#9C060B]" />
                   </div>
                   <div className="text-left">
                     <h3 className="text-base font-semibold text-gray-900">Make a Suggestion</h3>
@@ -511,7 +511,7 @@ export function Settings({ data }: SettingsProps) {
                       value={suggestionCategory}
                       onChange={(e) => setSuggestionCategory(e.target.value)}
                       disabled={submittingSuggestion}
-                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent"
                       required
                     >
                       <option value="">Select a category</option>
@@ -529,7 +529,7 @@ export function Settings({ data }: SettingsProps) {
                       disabled={submittingSuggestion}
                       rows={4}
                       placeholder="Tell us your idea..."
-                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent resize-none"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent resize-none"
                       required
                     />
                   </div>
@@ -540,7 +540,7 @@ export function Settings({ data }: SettingsProps) {
                       disabled={submittingSuggestion}
                       whileHover={submittingSuggestion ? {} : { scale: 1.02 }}
                       whileTap={submittingSuggestion ? {} : { scale: 0.98 }}
-                      className="px-6 py-2.5 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
+                      className="px-6 py-2.5 text-sm font-semibold text-white bg-[#9C060B] rounded-lg hover:bg-[#680407] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
                     >
                       {submittingSuggestion && <Loader2 className="w-4 h-4 animate-spin" />}
                       <span>{submittingSuggestion ? 'Submitting...' : 'Submit Suggestion'}</span>
@@ -645,10 +645,10 @@ export function Settings({ data }: SettingsProps) {
                     </div>
 
                     {/* PREMIUM card */}
-                    <div className="border-2 border-[#d42027] rounded-xl p-6 relative bg-gradient-to-br from-white to-red-50/30 shadow-sm flex flex-col">
+                    <div className="border-2 border-[#9C060B] rounded-xl p-6 relative bg-gradient-to-br from-white to-red-50/30 shadow-sm flex flex-col">
                       {/* Recommended Badge */}
                       <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                        <div className="bg-[#d42027] text-white px-3 py-0.5 rounded-full text-xs font-semibold flex items-center">
+                        <div className="bg-[#9C060B] text-white px-3 py-0.5 rounded-full text-xs font-semibold flex items-center">
                           <Crown className="w-3.5 h-3.5 mr-1" />
                           RECOMMENDED
                         </div>
@@ -657,7 +657,7 @@ export function Settings({ data }: SettingsProps) {
                       <div className="text-center mb-4 mt-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-1">Premium</h3>
                         <div className="flex items-baseline justify-center">
-                          <span className="text-3xl font-bold text-[#d42027]">£25</span>
+                          <span className="text-3xl font-bold text-[#9C060B]">£25</span>
                           <span className="text-gray-600 ml-1.5 text-sm">/year</span>
                         </div>
                         <p className="text-xs text-gray-600 mt-1">One booking more than pays for itself</p>
@@ -665,43 +665,43 @@ export function Settings({ data }: SettingsProps) {
 
                       <ul className="space-y-2.5 mb-6 flex-1 text-sm">
                         <li className="flex items-start">
-                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <Check className="w-4 h-4 text-[#9C060B] mr-2.5 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700 font-medium">Everything in Basic, plus:</span>
                         </li>
                         <li className="flex items-start">
-                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <Check className="w-4 h-4 text-[#9C060B] mr-2.5 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">Add more studio images</span>
                         </li>
                         <li className="flex items-start">
-                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <Check className="w-4 h-4 text-[#9C060B] mr-2.5 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">All studio categories + Voiceover artist listing</span>
                         </li>
                         <li className="flex items-start">
-                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <Check className="w-4 h-4 text-[#9C060B] mr-2.5 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">All connections + 2 custom methods</span>
                         </li>
                         <li className="flex items-start">
-                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <Check className="w-4 h-4 text-[#9C060B] mr-2.5 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">Include all social media platforms</span>
                         </li>
                         <li className="flex items-start">
-                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <Check className="w-4 h-4 text-[#9C060B] mr-2.5 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">2000 character description</span>
                         </li>
                         <li className="flex items-start">
-                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <Check className="w-4 h-4 text-[#9C060B] mr-2.5 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">Phone & Directions visibility controls</span>
                         </li>
                         <li className="flex items-start">
-                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <Check className="w-4 h-4 text-[#9C060B] mr-2.5 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">Control how your studio appears on Google</span>
                         </li>
                         <li className="flex items-start">
-                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <Check className="w-4 h-4 text-[#9C060B] mr-2.5 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">Verified badge eligibility</span>
                         </li>
                         <li className="flex items-start">
-                          <Check className="w-4 h-4 text-[#d42027] mr-2.5 mt-0.5 flex-shrink-0" />
+                          <Check className="w-4 h-4 text-[#9C060B] mr-2.5 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">Featured studio eligibility</span>
                         </li>
                       </ul>
@@ -709,7 +709,7 @@ export function Settings({ data }: SettingsProps) {
                       <button
                         type="button"
                         onClick={() => setUpgradeModalOpen(true)}
-                        className="w-full bg-[#d42027] text-white py-3 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-sm text-center shadow-sm hover:shadow-md"
+                        className="w-full bg-[#9C060B] text-white py-3 px-4 rounded-lg hover:bg-[#7D0509] transition-colors font-semibold text-sm text-center shadow-sm hover:shadow-md"
                       >
                         Upgrade to Premium — £25/year
                       </button>
@@ -728,7 +728,7 @@ export function Settings({ data }: SettingsProps) {
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center space-x-2">
                               <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                                <Crown className="w-5 h-5 text-[#d42027]" />
+                                <Crown className="w-5 h-5 text-[#9C060B]" />
                               </div>
                               <div>
                                 <h3 className="text-base font-semibold text-gray-900">Membership Status</h3>
@@ -840,7 +840,7 @@ export function Settings({ data }: SettingsProps) {
                                       setEnableAutoRenewLoading(false);
                                     }
                                   }}
-                                  className="text-sm text-[#d42027] hover:text-[#b01b21] underline font-medium disabled:opacity-50"
+                                  className="text-sm text-[#9C060B] hover:text-[#7D0509] underline font-medium disabled:opacity-50"
                                 >
                                   {enableAutoRenewLoading ? 'Enabling…' : 'Enable auto-renewal'}
                                 </button>
@@ -848,7 +848,7 @@ export function Settings({ data }: SettingsProps) {
                                 <button
                                   type="button"
                                   onClick={() => setSwitchToAutoRenewModalOpen(true)}
-                                  className="text-sm text-[#d42027] hover:text-[#b01b21] underline font-medium"
+                                  className="text-sm text-[#9C060B] hover:text-[#7D0509] underline font-medium"
                                 >
                                   Enable auto-renewal
                                 </button>
@@ -875,7 +875,7 @@ export function Settings({ data }: SettingsProps) {
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">
                     <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                      <CreditCard className="w-5 h-5 text-[#d42027]" />
+                      <CreditCard className="w-5 h-5 text-[#9C060B]" />
                     </div>
                     <div>
                       <h4 className="text-base font-semibold text-gray-900">Membership & Upgrade Options</h4>
@@ -894,10 +894,10 @@ export function Settings({ data }: SettingsProps) {
                         disabled={!profileData?.membership?.expiresAt}
                         whileHover={!profileData?.membership?.expiresAt ? {} : { scale: 1.02 }}
                         whileTap={!profileData?.membership?.expiresAt ? {} : { scale: 0.98 }}
-                        className="flex-1 relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left transition-all duration-200 bg-gradient-to-br from-red-50 to-pink-50 border-[#d42027] hover:border-[#a1181d] cursor-pointer shadow-sm hover:shadow-md"
+                        className="flex-1 relative overflow-hidden rounded-xl border-2 p-4 sm:p-5 text-left transition-all duration-200 bg-gradient-to-br from-red-50 to-pink-50 border-[#9C060B] hover:border-[#680407] cursor-pointer shadow-sm hover:shadow-md"
                       >
                         {/* Bonus Badge */}
-                        <div className="absolute top-2 sm:top-3 right-2 sm:right-3 px-2 py-0.5 sm:py-1 bg-[#d42027] text-white text-xs font-bold rounded-full shadow-sm">
+                        <div className="absolute top-2 sm:top-3 right-2 sm:right-3 px-2 py-0.5 sm:py-1 bg-[#9C060B] text-white text-xs font-bold rounded-full shadow-sm">
                           BONUS!
                         </div>
                         
@@ -906,7 +906,7 @@ export function Settings({ data }: SettingsProps) {
                             <h5 className="text-sm sm:text-base font-bold text-gray-900">
                               Early Renewal
                             </h5>
-                            <span className="text-lg sm:text-xl font-extrabold text-[#d42027]">
+                            <span className="text-lg sm:text-xl font-extrabold text-[#9C060B]">
                               £25
                             </span>
                           </div>
@@ -917,7 +917,7 @@ export function Settings({ data }: SettingsProps) {
                           
                           {profileData?.membership?.expiresAt && (
                             <div className="flex items-center space-x-2 pt-0.5 sm:pt-1">
-                              <span className="text-xs font-semibold text-[#d42027]">
+                              <span className="text-xs font-semibold text-[#9C060B]">
                                 New expiry: {calculateFinalExpiryForDisplay(
                                   new Date(profileData.membership.expiresAt),
                                   'early'
@@ -950,7 +950,7 @@ export function Settings({ data }: SettingsProps) {
                             <h5 className="text-sm sm:text-base font-bold text-gray-900">
                               Standard Renewal
                             </h5>
-                            <span className="text-lg sm:text-xl font-extrabold text-[#d42027]">
+                            <span className="text-lg sm:text-xl font-extrabold text-[#9C060B]">
                               £25
                             </span>
                           </div>
@@ -1006,7 +1006,7 @@ export function Settings({ data }: SettingsProps) {
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="relative overflow-hidden rounded-xl border-2 border-gray-300 hover:border-[#d42027] bg-gradient-to-br from-gray-50 to-white p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md group"
+                      className="relative overflow-hidden rounded-xl border-2 border-gray-300 hover:border-[#9C060B] bg-gradient-to-br from-gray-50 to-white p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md group"
                     >
                     {/* Best Value Badge */}
                     <div className="absolute top-2 sm:top-3 right-2 sm:right-3 px-2 py-0.5 sm:py-1 bg-gradient-to-r from-amber-400 to-amber-500 text-gray-900 text-xs font-bold rounded-full shadow-sm">
@@ -1018,7 +1018,7 @@ export function Settings({ data }: SettingsProps) {
                         <h5 className="text-sm sm:text-base font-bold text-gray-900">
                           5-Year Membership
                         </h5>
-                        <span className="text-lg sm:text-xl font-extrabold text-[#d42027] group-hover:text-[#a1181d] transition-colors">
+                        <span className="text-lg sm:text-xl font-extrabold text-[#9C060B] group-hover:text-[#680407] transition-colors">
                           £80
                         </span>
                       </div>
@@ -1111,7 +1111,7 @@ export function Settings({ data }: SettingsProps) {
                               <h5 className={`text-sm sm:text-base font-bold ${isEligible ? 'text-gray-900' : 'text-gray-500'}`}>
                                 Featured Studio Upgrade
                               </h5>
-                              <span className={`text-lg sm:text-xl font-extrabold ${isEligible ? 'text-[#d42027]' : 'text-gray-400'}`}>
+                              <span className={`text-lg sm:text-xl font-extrabold ${isEligible ? 'text-[#9C060B]' : 'text-gray-400'}`}>
                                 £100
                               </span>
                             </div>
@@ -1126,7 +1126,7 @@ export function Settings({ data }: SettingsProps) {
                               </p>
                             ) : !isPremiumUser ? (
                               <p className="text-xs sm:text-sm text-gray-500">
-                                Featured Studio is a <span className="font-semibold">Premium</span> feature. <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-[#d42027] hover:underline font-medium">Upgrade to Premium</a> for £25/year, then complete your profile to 100%.
+                                Featured Studio is a <span className="font-semibold">Premium</span> feature. <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-[#9C060B] hover:underline font-medium">Upgrade to Premium</a> for £25/year, then complete your profile to 100%.
                               </p>
                             ) : !isProfileComplete ? (
                               <p className="text-xs sm:text-sm text-gray-500">
@@ -1280,7 +1280,7 @@ export function Settings({ data }: SettingsProps) {
                               </p>
                             ) : !isPremium ? (
                               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                                Verification is a <span className="font-semibold">Premium</span> feature. <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-[#d42027] hover:underline font-medium">Upgrade to Premium</a> for £25/year to unlock verification, then complete your profile to 85%.
+                                Verification is a <span className="font-semibold">Premium</span> feature. <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-[#9C060B] hover:underline font-medium">Upgrade to Premium</a> for £25/year to unlock verification, then complete your profile to 85%.
                               </p>
                             ) : !meetsCompletion ? (
                               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
@@ -1350,7 +1350,7 @@ export function Settings({ data }: SettingsProps) {
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="w-5 h-5 text-[#d42027]" />
+                    <AlertCircle className="w-5 h-5 text-[#9C060B]" />
                   </div>
                   <div className="text-left">
                     <h3 className="text-base font-semibold text-gray-900">Report an Issue</h3>
@@ -1371,7 +1371,7 @@ export function Settings({ data }: SettingsProps) {
                       value={issueCategory}
                       onChange={(e) => setIssueCategory(e.target.value)}
                       disabled={submittingIssue}
-                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent"
                       required
                     >
                       <option value="">Select a category</option>
@@ -1389,7 +1389,7 @@ export function Settings({ data }: SettingsProps) {
                       disabled={submittingIssue}
                       rows={4}
                       placeholder="Please describe the issue in detail..."
-                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent resize-none"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent resize-none"
                       required
                     />
                   </div>
@@ -1400,7 +1400,7 @@ export function Settings({ data }: SettingsProps) {
                       disabled={submittingIssue}
                       whileHover={submittingIssue ? {} : { scale: 1.02 }}
                       whileTap={submittingIssue ? {} : { scale: 0.98 }}
-                      className="px-6 py-2.5 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
+                      className="px-6 py-2.5 text-sm font-semibold text-white bg-[#9C060B] rounded-lg hover:bg-[#680407] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
                     >
                       {submittingIssue && <Loader2 className="w-4 h-4 animate-spin" />}
                       <span>{submittingIssue ? 'Submitting...' : 'Submit Issue'}</span>
@@ -1419,7 +1419,7 @@ export function Settings({ data }: SettingsProps) {
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                    <Lightbulb className="w-5 h-5 text-[#d42027]" />
+                    <Lightbulb className="w-5 h-5 text-[#9C060B]" />
                   </div>
                   <div className="text-left">
                     <h3 className="text-base font-semibold text-gray-900">Make a Suggestion</h3>
@@ -1440,7 +1440,7 @@ export function Settings({ data }: SettingsProps) {
                       value={suggestionCategory}
                       onChange={(e) => setSuggestionCategory(e.target.value)}
                       disabled={submittingSuggestion}
-                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent"
                       required
                     >
                       <option value="">Select a category</option>
@@ -1458,7 +1458,7 @@ export function Settings({ data }: SettingsProps) {
                       disabled={submittingSuggestion}
                       rows={4}
                       placeholder="Tell us your idea..."
-                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent resize-none"
+                      className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent resize-none"
                       required
                     />
                   </div>
@@ -1469,7 +1469,7 @@ export function Settings({ data }: SettingsProps) {
                       disabled={submittingSuggestion}
                       whileHover={submittingSuggestion ? {} : { scale: 1.02 }}
                       whileTap={submittingSuggestion ? {} : { scale: 0.98 }}
-                      className="px-6 py-2.5 text-sm font-semibold text-white bg-[#d42027] rounded-lg hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
+                      className="px-6 py-2.5 text-sm font-semibold text-white bg-[#9C060B] rounded-lg hover:bg-[#680407] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm hover:shadow-md transition-all"
                     >
                       {submittingSuggestion && <Loader2 className="w-4 h-4 animate-spin" />}
                       <span>{submittingSuggestion ? 'Submitting...' : 'Submit Suggestion'}</span>
@@ -1755,7 +1755,7 @@ export function Settings({ data }: SettingsProps) {
             if (isExpired || (daysUntilExpiry !== null && daysUntilExpiry !== undefined && daysUntilExpiry < 0)) {
               // Expired - red
               iconBgClass = 'bg-red-50';
-              iconColorClass = 'text-[#d42027]';
+              iconColorClass = 'text-[#9C060B]';
             } else if (daysUntilExpiry !== null && daysUntilExpiry !== undefined && daysUntilExpiry < 180) {
               // Last 6 months (<180 days) - yellow/amber
               iconBgClass = 'bg-amber-50';

@@ -191,7 +191,7 @@ export function CompactHero({
                     onError={() => setImageError(true)}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-[#d42027] text-white text-xl font-bold">
+                  <div className="w-full h-full flex items-center justify-center bg-[#9C060B] text-white text-xl font-bold">
                     {ownerDisplayName.charAt(0).toUpperCase()}
                   </div>
                 )}

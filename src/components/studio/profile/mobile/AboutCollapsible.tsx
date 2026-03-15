@@ -60,7 +60,7 @@ export function AboutCollapsible({
             {studioTypes.map((type, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#d42027]/10 !text-[#d42027]"
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#9C060B]/10 !text-[#9C060B]"
               >
                 {formatStudioTypeLabel(type)}
               </span>

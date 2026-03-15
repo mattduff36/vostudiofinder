@@ -38,7 +38,7 @@ export function ServicesListCompact({ services }: ServicesListCompactProps) {
             key={index}
             className="flex items-center space-x-2 text-sm text-gray-700"
           >
-            <CheckCircle2 className="w-4 h-4 text-[#d42027] flex-shrink-0" aria-hidden="true" />
+            <CheckCircle2 className="w-4 h-4 text-[#9C060B] flex-shrink-0" aria-hidden="true" />
             <span className="truncate">{service.service}</span>
           </div>
         ))}
@@ -48,7 +48,7 @@ export function ServicesListCompact({ services }: ServicesListCompactProps) {
       {hasMore && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-3 flex items-center justify-center w-full py-2 text-sm font-medium text-[#d42027] hover:bg-gray-50 rounded-lg transition-colors"
+          className="mt-3 flex items-center justify-center w-full py-2 text-sm font-medium text-[#9C060B] hover:bg-gray-50 rounded-lg transition-colors"
           aria-expanded={isExpanded}
         >
           {isExpanded ? (

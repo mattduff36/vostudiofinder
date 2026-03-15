@@ -106,7 +106,7 @@ export function DashboardContent({ dashboardData, initialProfileData, activeTab 
         >
           <button
             onClick={() => router.push('/dashboard')}
-            className="flex items-center space-x-2 text-[#d42027] hover:text-[#a1181d] transition-colors"
+            className="flex items-center space-x-2 text-[#9C060B] hover:text-[#680407] transition-colors"
           >
             <svg
               className="w-5 h-5"

@@ -109,7 +109,7 @@ export function UnsavedChangesDialog() {
               {/* Icon & Title */}
               <div className="flex items-start gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6 text-[#d42027]" />
+                  <AlertTriangle className="w-6 h-6 text-[#9C060B]" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -131,7 +131,7 @@ export function UnsavedChangesDialog() {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 text-sm font-medium text-white bg-[#d42027] hover:bg-[#b01a20] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-white bg-[#9C060B] hover:bg-[#7D0509] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                 >
                   Save
                 </button>

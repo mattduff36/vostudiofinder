@@ -97,7 +97,7 @@ export function DowngradeConfirmModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-[#d42027] text-white font-semibold rounded-lg hover:bg-[#b01b21] transition-colors"
+            className="flex-1 px-4 py-2.5 bg-[#9C060B] text-white font-semibold rounded-lg hover:bg-[#7D0509] transition-colors"
           >
             Stay Premium
           </button>

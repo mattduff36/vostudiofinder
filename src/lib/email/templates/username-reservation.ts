@@ -42,7 +42,7 @@ export const paymentFailedReservationTemplate = (data: {
           </tr>
           <tr>
             <td style="padding: 0 40px 24px 40px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fef2f2; border-left: 3px solid #d42027; border-radius: 4px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fef2f2; border-left: 3px solid #9C060B; border-radius: 4px;">
                 <tr>
                   <td style="padding: 16px 20px;">
                     <p style="margin: 0; font-size: 14px; color: #991b1b; line-height: 1.6;"><strong>Error:</strong> ${data.errorMessage}</p>
@@ -72,7 +72,7 @@ export const paymentFailedReservationTemplate = (data: {
                     <!--[if mso]>
                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
                       href="${data.retryUrl}" style="height:48px;v-text-anchor:middle;width:180px;" arcsize="12%"
-                      stroke="f" fillcolor="#d42027">
+                      stroke="f" fillcolor="#9C060B">
                       <w:anchorlock/>
                       <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
                         Retry payment
@@ -81,7 +81,7 @@ export const paymentFailedReservationTemplate = (data: {
                     <![endif]-->
                     <!--[if !mso]><!-- -->
                     <a href="${data.retryUrl}"
-                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      style="background:#9C060B;border-radius:6px;color:#FFFFFF !important;display:inline-block;
                       font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
                       text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
                       <span style="color:#FFFFFF !important;display:inline-block;">Retry payment</span>
@@ -96,7 +96,7 @@ export const paymentFailedReservationTemplate = (data: {
             <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
-              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #9C060B; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
             </td>
           </tr>
         </table>
@@ -163,7 +163,7 @@ export const reservationReminderDay2Template = (data: {
                     <!--[if mso]>
                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
                       href="${data.signupUrl}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="12%"
-                      stroke="f" fillcolor="#d42027">
+                      stroke="f" fillcolor="#9C060B">
                       <w:anchorlock/>
                       <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
                         Complete signup
@@ -172,7 +172,7 @@ export const reservationReminderDay2Template = (data: {
                     <![endif]-->
                     <!--[if !mso]><!-- -->
                     <a href="${data.signupUrl}"
-                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      style="background:#9C060B;border-radius:6px;color:#FFFFFF !important;display:inline-block;
                       font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
                       text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
                       <span style="color:#FFFFFF !important;display:inline-block;">Complete signup</span>
@@ -187,7 +187,7 @@ export const reservationReminderDay2Template = (data: {
             <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
-              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #9C060B; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
             </td>
           </tr>
         </table>
@@ -254,7 +254,7 @@ export const reservationUrgencyDay5Template = (data: {
                     <!--[if mso]>
                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
                       href="${data.signupUrl}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="12%"
-                      stroke="f" fillcolor="#d42027">
+                      stroke="f" fillcolor="#9C060B">
                       <w:anchorlock/>
                       <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
                         Complete signup
@@ -263,7 +263,7 @@ export const reservationUrgencyDay5Template = (data: {
                     <![endif]-->
                     <!--[if !mso]><!-- -->
                     <a href="${data.signupUrl}"
-                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      style="background:#9C060B;border-radius:6px;color:#FFFFFF !important;display:inline-block;
                       font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
                       text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
                       <span style="color:#FFFFFF !important;display:inline-block;">Complete signup</span>
@@ -278,7 +278,7 @@ export const reservationUrgencyDay5Template = (data: {
             <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
-              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #9C060B; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
             </td>
           </tr>
         </table>
@@ -348,7 +348,7 @@ export const reservationExpiredTemplate = (data: {
                     <!--[if mso]>
                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
                       href="${data.signupUrl}" style="height:48px;v-text-anchor:middle;width:180px;" arcsize="12%"
-                      stroke="f" fillcolor="#d42027">
+                      stroke="f" fillcolor="#9C060B">
                       <w:anchorlock/>
                       <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
                         Sign up again
@@ -357,7 +357,7 @@ export const reservationExpiredTemplate = (data: {
                     <![endif]-->
                     <!--[if !mso]><!-- -->
                     <a href="${data.signupUrl}"
-                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      style="background:#9C060B;border-radius:6px;color:#FFFFFF !important;display:inline-block;
                       font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
                       text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
                       <span style="color:#FFFFFF !important;display:inline-block;">Sign up again</span>
@@ -372,7 +372,7 @@ export const reservationExpiredTemplate = (data: {
             <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
-              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #9C060B; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
             </td>
           </tr>
         </table>

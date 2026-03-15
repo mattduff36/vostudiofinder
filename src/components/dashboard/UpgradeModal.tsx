@@ -65,7 +65,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
       {/* Header */}
       <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-200 pr-12">
         <div className="flex items-center gap-2 mb-1">
-          <Crown className="w-5 h-5 text-[#d42027]" />
+          <Crown className="w-5 h-5 text-[#9C060B]" />
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
             Upgrade to Premium
           </h2>
@@ -85,13 +85,13 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
               onClick={() => setAutoRenew(true)}
               className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                 autoRenew
-                  ? 'border-[#d42027] bg-red-50/50 shadow-sm'
+                  ? 'border-[#9C060B] bg-red-50/50 shadow-sm'
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
               <div className="flex items-start gap-3">
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                  autoRenew ? 'border-[#d42027] bg-[#d42027]' : 'border-gray-300'
+                  autoRenew ? 'border-[#9C060B] bg-[#9C060B]' : 'border-gray-300'
                 }`}>
                   {autoRenew && <Check className="w-3 h-3 text-white" />}
                 </div>
@@ -101,11 +101,11 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                       <span className={`text-sm font-bold ${autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
                         Auto-renew annually
                       </span>
-                      <span className="text-[10px] font-semibold text-white bg-[#d42027] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                      <span className="text-[10px] font-semibold text-white bg-[#9C060B] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
                         Recommended
                       </span>
                     </div>
-                    <span className={`text-lg font-extrabold flex-shrink-0 ${autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
+                    <span className={`text-lg font-extrabold flex-shrink-0 ${autoRenew ? 'text-[#9C060B]' : 'text-gray-500'}`}>
                       £25<span className="text-xs font-semibold">/yr</span>
                     </span>
                   </div>
@@ -121,13 +121,13 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
               onClick={() => setAutoRenew(false)}
               className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                 !autoRenew
-                  ? 'border-[#d42027] bg-red-50/50 shadow-sm'
+                  ? 'border-[#9C060B] bg-red-50/50 shadow-sm'
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
               <div className="flex items-start gap-3">
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                  !autoRenew ? 'border-[#d42027] bg-[#d42027]' : 'border-gray-300'
+                  !autoRenew ? 'border-[#9C060B] bg-[#9C060B]' : 'border-gray-300'
                 }`}>
                   {!autoRenew && <Check className="w-3 h-3 text-white" />}
                 </div>
@@ -136,7 +136,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                     <span className={`text-sm font-bold ${!autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
                       Pay once
                     </span>
-                    <span className={`text-lg font-extrabold flex-shrink-0 ${!autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
+                    <span className={`text-lg font-extrabold flex-shrink-0 ${!autoRenew ? 'text-[#9C060B]' : 'text-gray-500'}`}>
                       £25
                     </span>
                   </div>
@@ -151,7 +151,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           <button
             type="button"
             onClick={() => setPaymentOptionConfirmed(true)}
-            className="w-full mt-4 bg-[#d42027] text-white py-3 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-sm shadow-sm"
+            className="w-full mt-4 bg-[#9C060B] text-white py-3 px-4 rounded-lg hover:bg-[#7D0509] transition-colors font-semibold text-sm shadow-sm"
           >
             Continue to payment
           </button>
@@ -168,7 +168,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
               <button
                 type="button"
                 onClick={() => setPaymentOptionConfirmed(false)}
-                className="text-xs text-[#d42027] hover:underline font-medium"
+                className="text-xs text-[#9C060B] hover:underline font-medium"
               >
                 Change
               </button>

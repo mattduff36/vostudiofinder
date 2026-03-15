@@ -55,7 +55,7 @@ export function ReceiptLink({ sessionId }: ReceiptLinkProps) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center text-sm font-medium text-[#d42027] hover:text-[#b01b21] hover:underline transition-colors"
+      className="inline-flex items-center text-sm font-medium text-[#9C060B] hover:text-[#7D0509] hover:underline transition-colors"
     >
       View receipt
       <svg className="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -238,7 +238,7 @@ export function Suggestions() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                  className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="OPEN">Open</option>
@@ -259,7 +259,7 @@ export function Suggestions() {
             <div className="lg:col-span-2 space-y-3">
               {loading ? (
                 <div className="flex items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#d42027]" />
+                  <Loader2 className="w-8 h-8 animate-spin text-[#9C060B]" />
                 </div>
               ) : suggestions.length === 0 ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
@@ -275,7 +275,7 @@ export function Suggestions() {
                     }}
                     className={`bg-white rounded-lg border cursor-pointer transition-all ${
                       selectedSuggestion?.id === suggestion.id
-                        ? 'border-[#d42027] shadow-md'
+                        ? 'border-[#9C060B] shadow-md'
                         : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                     }`}
                   >
@@ -364,7 +364,7 @@ export function Suggestions() {
                       value={selectedSuggestion.status}
                       onChange={(e) => handleUpdateStatus(selectedSuggestion.id, e.target.value)}
                       disabled={updatingStatus}
-                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
                     >
                       <option value="OPEN">Open</option>
                       <option value="IN_PROGRESS">In Progress</option>
@@ -402,13 +402,13 @@ export function Suggestions() {
                       onChange={(e) => setReplyMessage(e.target.value)}
                       rows={6}
                       placeholder="Type your reply message..."
-                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027] mb-3"
+                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B] mb-3"
                       disabled={sendingReply}
                     />
                     <button
                       type="submit"
                       disabled={sendingReply || !replyMessage.trim()}
-                      className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                      className="w-full px-4 py-2 text-sm font-medium text-white bg-[#9C060B] rounded-md hover:bg-[#680407] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                     >
                       {sendingReply ? (
                         <>
@@ -499,7 +499,7 @@ export function Suggestions() {
                 value={selectedSuggestion.status}
                 onChange={(e) => handleUpdateStatus(selectedSuggestion.id, e.target.value)}
                 disabled={updatingStatus}
-                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
               >
                 <option value="OPEN">Open</option>
                 <option value="IN_PROGRESS">In Progress</option>
@@ -539,13 +539,13 @@ export function Suggestions() {
                 onChange={(e) => setReplyMessage(e.target.value)}
                 rows={6}
                 placeholder="Type your reply message..."
-                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
                 disabled={sendingReply}
               />
               <button
                 type="submit"
                 disabled={sendingReply || !replyMessage.trim()}
-                className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-[#9C060B] rounded-md hover:bg-[#680407] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
                 {sendingReply ? (
                   <>

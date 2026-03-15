@@ -41,7 +41,7 @@ export function PageHero({
         >
           {title}
         </h1>
-        <div className="w-24 h-1 bg-[#d42027] mx-auto mb-6"></div>
+        <div className="w-24 h-1 bg-[#9C060B] mx-auto mb-6"></div>
         <p 
           className={`text-xl text-center transition-all duration-1000 ease-out ${
             isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'

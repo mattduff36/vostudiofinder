@@ -129,7 +129,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
                 required
               />
               <button
@@ -155,7 +155,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
                 required
               />
               <button
@@ -181,7 +181,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
                 required
               />
               <button
@@ -229,7 +229,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#d42027] disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-4 py-2 text-sm font-medium text-white bg-[#9C060B] rounded-md hover:bg-[#680407] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#9C060B] disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               <span>{loading ? 'Changing...' : 'Change Password'}</span>

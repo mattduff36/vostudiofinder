@@ -89,7 +89,7 @@ export function RenewalModal({
             ? 'Standard Renewal'
             : '5-Year Membership'}
         </h2>
-        <p className="mt-1 text-base sm:text-lg font-semibold text-[#d42027]">
+        <p className="mt-1 text-base sm:text-lg font-semibold text-[#9C060B]">
           {priceInfo.formatted}
           {priceInfo.savings && (
             <span className="ml-2 text-xs sm:text-sm text-green-600">

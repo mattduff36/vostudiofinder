@@ -50,7 +50,7 @@ export function generateEmailVerificationEmail({
                     <!--[if mso]>
                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
                       href="${verificationUrl}" style="height:48px;v-text-anchor:middle;width:220px;" arcsize="12%"
-                      stroke="f" fillcolor="#d42027">
+                      stroke="f" fillcolor="#9C060B">
                       <w:anchorlock/>
                       <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
                         Verify email address
@@ -59,7 +59,7 @@ export function generateEmailVerificationEmail({
                     <![endif]-->
                     <!--[if !mso]><!-- -->
                     <a href="${verificationUrl}"
-                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      style="background:#9C060B;border-radius:6px;color:#FFFFFF !important;display:inline-block;
                       font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
                       text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
                       <span style="color:#FFFFFF !important;display:inline-block;">Verify email address</span>
@@ -73,7 +73,7 @@ export function generateEmailVerificationEmail({
           <tr>
             <td style="padding: 0 40px 32px 40px;">
               <p style="margin: 0 0 16px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">If the button doesn't work, copy and paste this link:</p>
-              <p style="margin: 0; font-size: 14px; color: #1a1a1a; word-break: break-all; line-height: 1.6;"><a href="${verificationUrl}" style="color: #d42027; text-decoration: underline;">${verificationUrl}</a></p>
+              <p style="margin: 0; font-size: 14px; color: #1a1a1a; word-break: break-all; line-height: 1.6;"><a href="${verificationUrl}" style="color: #9C060B; text-decoration: underline;">${verificationUrl}</a></p>
             </td>
           </tr>
           <tr>
@@ -85,7 +85,7 @@ export function generateEmailVerificationEmail({
             <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
-              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #9C060B; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
             </td>
           </tr>
         </table>

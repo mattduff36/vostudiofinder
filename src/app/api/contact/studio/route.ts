@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
               <div style="margin-bottom: 32px;">
                 <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
               </div>
-              <h1 style="margin: 0 0 24px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">New enquiry received for<br><a href="${studioProfileUrl}" style="color: #d42027; text-decoration: underline;">${safeStudioName}</a></h1>
+              <h1 style="margin: 0 0 24px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">New enquiry received for<br><a href="${studioProfileUrl}" style="color: #9C060B; text-decoration: underline;">${safeStudioName}</a></h1>
             </td>
           </tr>
           <tr>
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
                 <tr>
                   <td style="padding: 24px;">
                     <p style="margin: 0 0 8px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">From</p>
-                    <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 500; color: #1a1a1a; line-height: 1.6;">${safeSenderName} &lt;<a href="mailto:${senderEmail}" style="color: #d42027; text-decoration: none;">${safeSenderEmail}</a>&gt;</p>
+                    <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 500; color: #1a1a1a; line-height: 1.6;">${safeSenderName} &lt;<a href="mailto:${senderEmail}" style="color: #9C060B; text-decoration: none;">${safeSenderEmail}</a>&gt;</p>
                   </td>
                 </tr>
               </table>
@@ -107,14 +107,14 @@ export async function POST(request: NextRequest) {
           </tr>
           <tr>
             <td style="padding: 0 40px 32px 40px;">
-              <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">To reply, simply respond to this email or contact ${safeSenderName} directly at <a href="mailto:${senderEmail}" style="color: #d42027; text-decoration: underline;">${safeSenderEmail}</a>.</p>
+              <p style="margin: 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">To reply, simply respond to this email or contact ${safeSenderName} directly at <a href="mailto:${senderEmail}" style="color: #9C060B; text-decoration: underline;">${safeSenderEmail}</a>.</p>
             </td>
           </tr>
           <tr>
             <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
-              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #9C060B; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
             </td>
           </tr>
         </table>
@@ -182,8 +182,8 @@ Questions? support@voiceoverstudiofinder.com
               <div style="margin-bottom: 32px;">
                 <img src="https://voiceoverstudiofinder.com/images/voiceover-studio-finder-logo-email-white-bg.png" alt="Voiceover Studio Finder" width="200" height="auto" style="max-width: 200px; height: auto; display: block;" />
               </div>
-              <h1 style="margin: 0 0 24px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Copy of your message to<br><a href="${studioProfileUrl}" style="color: #d42027; text-decoration: underline;">${safeStudioName}</a></h1>
-              <p style="margin: 0 0 24px 0; font-size: 16px; color: #6a6a6a; line-height: 1.6;">This is a copy of the message you sent to <a href="${studioProfileUrl}" style="color: #d42027; text-decoration: underline;">${safeStudioName}</a>. They will reply to you directly at ${safeSenderEmail}.</p>
+              <h1 style="margin: 0 0 24px 0; font-size: 24px; font-weight: 500; color: #1a1a1a; line-height: 1.3;">Copy of your message to<br><a href="${studioProfileUrl}" style="color: #9C060B; text-decoration: underline;">${safeStudioName}</a></h1>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #6a6a6a; line-height: 1.6;">This is a copy of the message you sent to <a href="${studioProfileUrl}" style="color: #9C060B; text-decoration: underline;">${safeStudioName}</a>. They will reply to you directly at ${safeSenderEmail}.</p>
             </td>
           </tr>
           <tr>
@@ -202,7 +202,7 @@ Questions? support@voiceoverstudiofinder.com
             <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
-              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #9C060B; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
             </td>
           </tr>
         </table>

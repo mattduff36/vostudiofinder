@@ -65,12 +65,12 @@ export function FeaturedUpgradeModal({
       {/* Header */}
       <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-200 pr-12">
         <div className="flex items-center space-x-2 mb-2">
-          <Star className="w-5 h-5 sm:w-6 sm:h-6 text-[#d42027]" />
+          <Star className="w-5 h-5 sm:w-6 sm:h-6 text-[#9C060B]" />
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
             Featured Studio Upgrade
           </h2>
         </div>
-        <p className="text-base sm:text-lg font-semibold text-[#d42027]">
+        <p className="text-base sm:text-lg font-semibold text-[#9C060B]">
           £100 for 6 months
         </p>
       </div>
@@ -82,19 +82,19 @@ export function FeaturedUpgradeModal({
         </h3>
         <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-600">
           <li className="flex items-start">
-            <span className="text-[#d42027] mr-2 flex-shrink-0">✓</span>
+            <span className="text-[#9C060B] mr-2 flex-shrink-0">✓</span>
             <span>Prominent placement on the homepage</span>
           </li>
           <li className="flex items-start">
-            <span className="text-[#d42027] mr-2 flex-shrink-0">✓</span>
+            <span className="text-[#9C060B] mr-2 flex-shrink-0">✓</span>
             <span>Priority positioning in search results</span>
           </li>
           <li className="flex items-start">
-            <span className="text-[#d42027] mr-2 flex-shrink-0">✓</span>
+            <span className="text-[#9C060B] mr-2 flex-shrink-0">✓</span>
             <span>Increased visibility to voiceover artists seeking studios</span>
           </li>
           <li className="flex items-start">
-            <span className="text-[#d42027] mr-2 flex-shrink-0">✓</span>
+            <span className="text-[#9C060B] mr-2 flex-shrink-0">✓</span>
             <span>Stand out from the competition with featured badge</span>
           </li>
         </ul>

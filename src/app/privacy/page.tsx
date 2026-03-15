@@ -176,7 +176,7 @@ export default function PrivacyPage() {
             
             <p className="mb-6">
               To exercise these rights, contact:{' '}
-              <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#d42027] hover:text-[#b91c23] font-semibold">
+              <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#9C060B] hover:text-[#7D0509] font-semibold">
                 support@voiceoverstudiofinder.com
               </a>
             </p>
@@ -215,7 +215,7 @@ export default function PrivacyPage() {
             <p className="mb-2">For privacy questions or data access requests:</p>
             
             <p className="mb-8">
-              <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#d42027] hover:text-[#b91c23] font-semibold">
+              <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#9C060B] hover:text-[#7D0509] font-semibold">
                 support@voiceoverstudiofinder.com
               </a>
             </p>

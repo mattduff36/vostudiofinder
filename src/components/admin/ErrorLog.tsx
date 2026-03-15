@@ -321,7 +321,7 @@ export function ErrorLog() {
               <button
                 onClick={handleSyncNow}
                 disabled={syncing}
-                className="px-4 py-2 bg-[#d42027] hover:bg-[#b01a20] text-white rounded-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto text-sm"
+                className="px-4 py-2 bg-[#9C060B] hover:bg-[#7D0509] text-white rounded-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto text-sm"
               >
                 <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
                 {syncing ? 'Syncing...' : 'Sync Now'}
@@ -342,7 +342,7 @@ export function ErrorLog() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                  className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="OPEN">Open</option>
@@ -353,7 +353,7 @@ export function ErrorLog() {
                 <select
                   value={filterLevel}
                   onChange={(e) => setFilterLevel(e.target.value)}
-                  className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                  className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
                 >
                   <option value="ALL">All Levels</option>
                   <option value="fatal">Fatal</option>
@@ -368,7 +368,7 @@ export function ErrorLog() {
                 placeholder="Search errors..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                className="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027] w-full md:flex-grow md:max-w-md"
+                className="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B] w-full md:flex-grow md:max-w-md"
               />
 
               <div className="hidden md:block ml-auto text-sm text-gray-600">
@@ -381,7 +381,7 @@ export function ErrorLog() {
           <div className="space-y-3">
             {loading ? (
               <div className="flex items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
-                <Loader2 className="w-8 h-8 animate-spin text-[#d42027]" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#9C060B]" />
               </div>
             ) : errorLogGroups.length === 0 ? (
               <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
@@ -460,7 +460,7 @@ export function ErrorLog() {
                               value={selectedError.status}
                               onChange={(e) => handleUpdateStatus(error.id, e.target.value)}
                               disabled={updatingStatus}
-                              className="text-sm px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                              className="text-sm px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
                             >
                               <option value="OPEN">Open</option>
                               <option value="RESOLVED">Resolved</option>
@@ -773,7 +773,7 @@ export function ErrorLog() {
                   value={selectedError.status}
                   onChange={(e) => handleUpdateStatus(selectedError.id, e.target.value)}
                   disabled={updatingStatus}
-                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#d42027]"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
                 >
                   <option value="OPEN">Open</option>
                   <option value="RESOLVED">Resolved</option>

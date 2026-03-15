@@ -14,20 +14,21 @@ const config: Config = {
         'desktop': '1080px',
       },
       colors: {
-        // ⚠️  BRAND color — the site's actual primary color is RED (#d42027).
+        // ⚠️  BRAND color — the site's actual primary color is RED (#9C060B).
         //    Use `brand-*` classes for anything that should match the site brand.
         //    Defined in theme.ts as theme.colors.primary.
+        //    Brand primary: #9C060B | Hover: #7D0509 | Dark hover: #680407
         brand: {
           50:  '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#e84848',
-          600: '#d42027', // Brand primary — matches theme.ts
-          700: '#b01b21', // Brand hover
-          800: '#a1181d', // Brand dark hover — matches theme.ts primaryHover
-          900: '#7f1d1d',
+          100: '#fde1e1',
+          200: '#fbc4c5',
+          300: '#f7999b',
+          400: '#ef5f62',
+          500: '#c92f33',
+          600: '#9C060B', // Brand primary — matches theme.ts
+          700: '#7D0509', // Brand hover
+          800: '#680407', // Brand dark hover — matches theme.ts primaryHover
+          900: '#4E0306',
         },
         // ⚠️  LEGACY purple palette — NOT the brand color.
         //    Kept for backward compatibility with existing components.

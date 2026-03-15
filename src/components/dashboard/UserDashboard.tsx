@@ -441,7 +441,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                     rel="noopener noreferrer"
                     className="text-primary-600 hover:text-primary-700 hover:underline transition-colors"
                   >
-                    {getBaseUrl()}/<span className="text-[#d42027] font-medium">{user.username}</span>
+                    {getBaseUrl()}/<span className="text-[#9C060B] font-medium">{user.username}</span>
                   </a>
                 </p>
               </div>
@@ -472,7 +472,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                     {!allRequiredComplete && (
                       <button
                         onClick={() => window.dispatchEvent(new CustomEvent('openEditProfileModal'))}
-                        className="text-xs text-[#d42027] hover:text-[#b01b21] transition-colors mt-0.5"
+                        className="text-xs text-[#9C060B] hover:text-[#7D0509] transition-colors mt-0.5"
                       >
                         Edit profile to go live &rarr;
                       </button>
@@ -651,7 +651,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                   {/* Left Column - Content */}
                   <div className="flex items-center gap-4 text-left">
                     <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Share2 className="w-7 h-7 text-[#d42027]" aria-hidden="true" />
+                      <Share2 className="w-7 h-7 text-[#9C060B]" aria-hidden="true" />
                     </div>
                     <div>
                       <h3 className="text-xl font-extrabold text-gray-900 mb-2 tracking-tight">
@@ -685,7 +685,7 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                         Email the link to{' '}
                         <a 
                           href="mailto:support@voiceoverstudiofinder.com" 
-                          className="underline hover:text-[#d42027] transition-colors"
+                          className="underline hover:text-[#9C060B] transition-colors"
                         >
                           support@voiceoverstudiofinder.com
                         </a>

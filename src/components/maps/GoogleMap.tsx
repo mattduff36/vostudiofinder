@@ -320,7 +320,7 @@ export function GoogleMap({
                 ctx.fill();
                 
                 // Draw the count number in brand red
-                ctx.fillStyle = '#d42027'; // Brand red color
+                ctx.fillStyle = '#9C060B'; // Brand red color
                 ctx.font = 'bold 12px Arial'; // Increased font size from 11px to 12px
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';

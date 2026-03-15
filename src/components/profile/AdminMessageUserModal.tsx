@@ -107,7 +107,7 @@ export function AdminMessageUserModal({
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="w-6 h-6 text-red-600" />
-            <h2 className="text-xl font-bold text-gray-900">Message {username} As <span className="text-[#d42027]">Admin</span></h2>
+            <h2 className="text-xl font-bold text-gray-900">Message {username} As <span className="text-[#9C060B]">Admin</span></h2>
           </div>
           <button
             onClick={handleClose}

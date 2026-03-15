@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
             <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">&copy; ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
-              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #9C060B; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
             </td>
           </tr>
         </table>

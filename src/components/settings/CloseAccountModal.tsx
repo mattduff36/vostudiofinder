@@ -158,7 +158,7 @@ export function CloseAccountModal({ isOpen, onClose }: CloseAccountModalProps) {
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 ${
                     confirmationText && !isConfirmationValid
                       ? 'border-red-300 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-[#d42027]'
+                      : 'border-gray-300 focus:ring-[#9C060B]'
                   }`}
                   required
                   autoComplete="off"

@@ -276,7 +276,7 @@ export function DesktopBurgerMenu({
                     <button
                       type="button"
                       onClick={() => handleAction(item.action!)}
-                      className="w-[200px] px-4 py-2.5 rounded-lg border-2 border-[#d42027] text-[#d42027] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
+                      className="w-[200px] px-4 py-2.5 rounded-lg border-2 border-[#9C060B] text-[#9C060B] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
                       role="menuitem"
                     >
                       {item.label}

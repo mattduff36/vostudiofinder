@@ -102,7 +102,7 @@ export function generateLegacyUserAnnouncementEmail({
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We've rebuilt everything. The platform is faster. The search is smarter. The design is beautifully clean.</p>
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">Every feature has been meticulously rethought and redesigned. Every interaction has been refined. Every detail matters.</p>
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">We now offer two membership tiers: Basic (free) and Premium. You've been part of our community from the beginning. That's why <strong>six months of Premium membership</strong> starts the moment you sign in and see your new profile.</p>
-              <p style="margin: 0 0 24px 0; font-size: 16px; color: #d42027; line-height: 1.6;"><a href="${profileUrl}" style="color: #d42027; text-decoration: underline; word-break: break-all;">${profileUrl}</a></p>
+              <p style="margin: 0 0 24px 0; font-size: 16px; color: #9C060B; line-height: 1.6;"><a href="${profileUrl}" style="color: #9C060B; text-decoration: underline; word-break: break-all;">${profileUrl}</a></p>
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">Thank you for being a member. We can't wait to show you what we've built!</p>
             </td>
           </tr>
@@ -131,7 +131,7 @@ export function generateLegacyUserAnnouncementEmail({
                     <!--[if mso]>
                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
                       href="${resetPasswordUrl}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="12%"
-                      stroke="f" fillcolor="#d42027">
+                      stroke="f" fillcolor="#9C060B">
                       <w:anchorlock/>
                       <center style="color:#FFFFFF;font-family:Arial, sans-serif;font-size:16px;font-weight:bold;">
                         Set password and sign in
@@ -140,7 +140,7 @@ export function generateLegacyUserAnnouncementEmail({
                     <![endif]-->
                     <!--[if !mso]><!-- -->
                     <a href="${resetPasswordUrl}"
-                      style="background:#d42027;border-radius:6px;color:#FFFFFF !important;display:inline-block;
+                      style="background:#9C060B;border-radius:6px;color:#FFFFFF !important;display:inline-block;
                       font-family:Arial, sans-serif;font-size:16px;font-weight:700;line-height:48px;text-align:center;
                       text-decoration:none !important;padding:0 28px;-webkit-text-size-adjust:none;">
                       <span style="color:#FFFFFF !important;display:inline-block;">Set password and sign in</span>
@@ -154,7 +154,7 @@ export function generateLegacyUserAnnouncementEmail({
           <tr>
             <td style="padding: 0 40px 32px 40px;">
               <p style="margin: 0 0 16px 0; font-size: 14px; color: #6a6a6a; line-height: 1.6;">If the button doesn't work, copy and paste this link:</p>
-              <p style="margin: 0; font-size: 14px; color: #1a1a1a; word-break: break-all; line-height: 1.6;"><a href="${resetPasswordUrl}" style="color: #d42027; text-decoration: underline;">${resetPasswordUrl}</a></p>
+              <p style="margin: 0; font-size: 14px; color: #1a1a1a; word-break: break-all; line-height: 1.6;"><a href="${resetPasswordUrl}" style="color: #9C060B; text-decoration: underline;">${resetPasswordUrl}</a></p>
             </td>
           </tr>
           <tr>
@@ -166,7 +166,7 @@ export function generateLegacyUserAnnouncementEmail({
             <td style="padding: 32px 40px; border-top: 1px solid #e5e5e5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Voiceover Studio Finder</p>
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">© ${new Date().getFullYear()} Voiceover Studio Finder. All rights reserved.</p>
-              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #d42027; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
+              <p style="margin: 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">Questions? <a href="mailto:support@voiceoverstudiofinder.com" style="color: #9C060B; text-decoration: underline;">support@voiceoverstudiofinder.com</a></p>
             </td>
           </tr>
         </table>

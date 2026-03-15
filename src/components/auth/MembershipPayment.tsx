@@ -279,7 +279,7 @@ export function MembershipPayment() {
 
       <div className="relative z-10 w-full max-w-7xl mx-auto mt-6">
         {/* Welcome Header */}
-        <div className="bg-[#d42027] px-8 pt-12 pb-8 text-white text-center rounded-t-xl shadow-lg">
+        <div className="bg-[#9C060B] px-8 pt-12 pb-8 text-white text-center rounded-t-xl shadow-lg">
           <div className="text-4xl font-bold mb-3">Welcome {name || 'Studio Owner'}!</div>
           <div className="flex flex-col items-center justify-center mb-4 gap-1.5">
             <span className="inline-flex items-center bg-white/15 backdrop-blur-sm rounded-full px-5 py-2 text-sm sm:text-base tracking-wide">
@@ -363,10 +363,10 @@ export function MembershipPayment() {
               </div>
 
               {/* PREMIUM TIER */}
-              <div className="border-2 border-[#d42027] rounded-xl p-8 relative bg-gradient-to-br from-white to-red-50/30 shadow-lg">
+              <div className="border-2 border-[#9C060B] rounded-xl p-8 relative bg-gradient-to-br from-white to-red-50/30 shadow-lg">
                 {/* Popular Badge */}
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-[#d42027] text-white px-4 py-1 rounded-full text-sm font-semibold flex items-center">
+                  <div className="bg-[#9C060B] text-white px-4 py-1 rounded-full text-sm font-semibold flex items-center">
                     <Crown className="w-4 h-4 mr-1" />
                     RECOMMENDED
                   </div>
@@ -375,7 +375,7 @@ export function MembershipPayment() {
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
                   <div className="flex items-baseline justify-center">
-                    <span className="text-4xl font-bold text-[#d42027]">£25</span>
+                    <span className="text-4xl font-bold text-[#9C060B]">£25</span>
                     <span className="text-gray-600 ml-2">/year</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-2">One booking more than pays for itself</p>
@@ -383,50 +383,50 @@ export function MembershipPayment() {
 
                 <ul className="space-y-3 mb-8 min-h-[320px]">
                   <li className="flex items-start">
-                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#9C060B] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700 font-medium">Everything in Basic, plus:</span>
                   </li>
                   <li className="flex items-start">
-                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#9C060B] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">Add more studio images</span>
                   </li>
                   <li className="flex items-start">
-                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#9C060B] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">All studio categories + Voiceover artist listing</span>
                   </li>
                   <li className="flex items-start">
-                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#9C060B] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">All connections + 2 custom methods</span>
                   </li>
                   <li className="flex items-start">
-                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#9C060B] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">Include all social media platforms</span>
                   </li>
                   <li className="flex items-start">
-                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#9C060B] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">2000 character studio description</span>
                   </li>
                   <li className="flex items-start">
-                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#9C060B] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">Show Phone & Directions visibility controls</span>
                   </li>
                   <li className="flex items-start">
-                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#9C060B] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">Control how your studio appears on Google</span>
                   </li>
                   <li className="flex items-start">
-                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#9C060B] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">Verified badge eligibility</span>
                   </li>
                   <li className="flex items-start">
-                    <Check className="w-5 h-5 text-[#d42027] mr-3 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#9C060B] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">Featured studio eligibility</span>
                   </li>
                 </ul>
 
                 <button
                   onClick={() => setSelectedTier('premium')}
-                  className="w-full bg-[#d42027] text-white py-4 px-6 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-lg shadow-lg"
+                  className="w-full bg-[#9C060B] text-white py-4 px-6 rounded-lg hover:bg-[#7D0509] transition-colors font-semibold text-lg shadow-lg"
                 >
                   Upgrade to Premium - £25/year
                 </button>
@@ -475,7 +475,7 @@ export function MembershipPayment() {
                     <div className="mt-3 pt-3 border-t border-red-200">
                       <button
                         onClick={() => router.push('/auth/signup')}
-                        className="w-full bg-[#d42027] text-white py-2 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-medium"
+                        className="w-full bg-[#9C060B] text-white py-2 px-4 rounded-lg hover:bg-[#7D0509] transition-colors font-medium"
                       >
                         Start Fresh Signup
                       </button>
@@ -505,14 +505,14 @@ export function MembershipPayment() {
                       onClick={() => setAutoRenew(true)}
                       className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                         autoRenew
-                          ? 'border-[#d42027] bg-red-50/50 shadow-sm'
+                          ? 'border-[#9C060B] bg-red-50/50 shadow-sm'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         {/* Radio indicator */}
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          autoRenew ? 'border-[#d42027] bg-[#d42027]' : 'border-gray-300'
+                          autoRenew ? 'border-[#9C060B] bg-[#9C060B]' : 'border-gray-300'
                         }`}>
                           {autoRenew && <Check className="w-3 h-3 text-white" />}
                         </div>
@@ -522,11 +522,11 @@ export function MembershipPayment() {
                               <span className={`text-sm font-bold ${autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
                                 Auto-renew annually
                               </span>
-                              <span className="text-[10px] font-semibold text-white bg-[#d42027] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                              <span className="text-[10px] font-semibold text-white bg-[#9C060B] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
                                 Recommended
                               </span>
                             </div>
-                            <span className={`text-lg font-extrabold flex-shrink-0 ${autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
+                            <span className={`text-lg font-extrabold flex-shrink-0 ${autoRenew ? 'text-[#9C060B]' : 'text-gray-500'}`}>
                               £25<span className="text-xs font-semibold">/yr</span>
                             </span>
                           </div>
@@ -543,14 +543,14 @@ export function MembershipPayment() {
                       onClick={() => setAutoRenew(false)}
                       className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                         !autoRenew
-                          ? 'border-[#d42027] bg-red-50/50 shadow-sm'
+                          ? 'border-[#9C060B] bg-red-50/50 shadow-sm'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         {/* Radio indicator */}
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          !autoRenew ? 'border-[#d42027] bg-[#d42027]' : 'border-gray-300'
+                          !autoRenew ? 'border-[#9C060B] bg-[#9C060B]' : 'border-gray-300'
                         }`}>
                           {!autoRenew && <Check className="w-3 h-3 text-white" />}
                         </div>
@@ -559,7 +559,7 @@ export function MembershipPayment() {
                             <span className={`text-sm font-bold ${!autoRenew ? 'text-gray-900' : 'text-gray-700'}`}>
                               Pay once
                             </span>
-                            <span className={`text-lg font-extrabold flex-shrink-0 ${!autoRenew ? 'text-[#d42027]' : 'text-gray-500'}`}>
+                            <span className={`text-lg font-extrabold flex-shrink-0 ${!autoRenew ? 'text-[#9C060B]' : 'text-gray-500'}`}>
                               £25
                             </span>
                           </div>
@@ -574,7 +574,7 @@ export function MembershipPayment() {
                   <button
                     type="button"
                     onClick={() => setPaymentOptionConfirmed(true)}
-                    className="w-full mt-4 bg-[#d42027] text-white py-3 px-4 rounded-lg hover:bg-[#b01b21] transition-colors font-semibold text-sm shadow-sm"
+                    className="w-full mt-4 bg-[#9C060B] text-white py-3 px-4 rounded-lg hover:bg-[#7D0509] transition-colors font-semibold text-sm shadow-sm"
                   >
                     Continue to payment
                   </button>
@@ -591,7 +591,7 @@ export function MembershipPayment() {
                       <button
                         type="button"
                         onClick={() => setPaymentOptionConfirmed(false)}
-                        className="text-xs text-[#d42027] hover:underline font-medium"
+                        className="text-xs text-[#9C060B] hover:underline font-medium"
                       >
                         Change
                       </button>
@@ -619,7 +619,7 @@ export function MembershipPayment() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Questions? Contact us at{' '}
-            <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#d42027] hover:underline">
+            <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#9C060B] hover:underline">
               support@voiceoverstudiofinder.com
             </a>
           </p>

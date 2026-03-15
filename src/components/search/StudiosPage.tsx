@@ -953,7 +953,7 @@ export function StudiosPage() {
                         Selected Studio
                       </div>
                       <div className="bg-white rounded-lg border border-gray-200 shadow-lg px-6 py-8 text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: '#d42027' }}></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: '#9C060B' }}></div>
                         <p className="mt-4 text-sm text-gray-500">Loading studio details...</p>
                       </div>
                     </div>
@@ -973,7 +973,7 @@ export function StudiosPage() {
           <div className="lg:col-span-3">
             {loading ? (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#d42027' }}></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#9C060B' }}></div>
                 <p className="mt-4 text-text-secondary">Searching studios...</p>
               </div>
             ) : searchResults ? (

@@ -125,7 +125,7 @@ export function ReviewsCompact({
         <div className="p-4 border-t border-gray-100">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center justify-center w-full py-2 text-sm font-medium text-[#d42027] hover:bg-gray-50 rounded-lg transition-colors"
+            className="flex items-center justify-center w-full py-2 text-sm font-medium text-[#9C060B] hover:bg-gray-50 rounded-lg transition-colors"
             aria-expanded={isExpanded}
           >
             {isExpanded ? (

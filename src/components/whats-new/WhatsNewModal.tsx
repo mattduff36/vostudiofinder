@@ -35,7 +35,7 @@ function getCategoryLabel(category: PlatformUpdateCategory): string {
 
 function getCategoryBadgeClass(category: PlatformUpdateCategory): string {
   const classes: Record<PlatformUpdateCategory, string> = {
-    FEATURE: 'border-[#d42027] text-[#d42027]',
+    FEATURE: 'border-[#9C060B] text-[#9C060B]',
     IMPROVEMENT: 'border-primary-600 text-primary-700',
     FIX: 'border-secondary-500 text-secondary-700',
     SECURITY: 'border-red-800 text-red-800',
@@ -80,8 +80,8 @@ export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
         {/* Header */}
         <div className="flex-shrink-0 flex items-start justify-between p-6 sm:p-8 pb-4 sm:pb-5 border-b border-primary-100 bg-white">
           <div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-[#d42027] to-red-400 bg-clip-text text-transparent flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-[#d42027] flex-shrink-0" aria-hidden />
+            <h2 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-[#9C060B] to-red-400 bg-clip-text text-transparent flex items-center gap-3">
+              <Sparkles className="w-8 h-8 text-[#9C060B] flex-shrink-0" aria-hidden />
               What&apos;s New
             </h2>
             <p className="text-base text-gray-900 font-medium ml-11">
@@ -105,7 +105,7 @@ export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
         <div className="flex-1 overflow-y-auto p-6 sm:p-8 bg-gradient-to-b from-primary-50 to-white">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-[#d42027]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#9C060B]" />
             </div>
           ) : updates.length === 0 ? (
             <p className="text-center text-gray-900 py-12">No updates yet. Check back soon!</p>
@@ -117,7 +117,7 @@ export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
                 return (
                   <section key={dateKey}>
                     <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#d42027]" aria-hidden />
+                      <Sparkles className="w-4 h-4 text-[#9C060B]" aria-hidden />
                       {formatReleaseDate(dateStr)}
                     </h3>
                     <div className="space-y-4">
@@ -126,7 +126,7 @@ export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
                           key={update.id}
                           className={`rounded-xl p-5 shadow-sm ${
                             update.is_highlighted
-                              ? 'bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 border-l-4 border-l-[#d42027]'
+                              ? 'bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 border-l-4 border-l-[#9C060B]'
                               : 'bg-gradient-to-br from-white to-primary-50 border border-primary-200'
                           }`}
                         >

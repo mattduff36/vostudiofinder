@@ -111,7 +111,7 @@ export default function AccountDeletionScheduledPage() {
             <div className="pt-4 space-y-3">
               <button
                 onClick={() => router.push('/sign-in')}
-                className="w-full px-4 py-2 text-sm font-medium text-white bg-[#d42027] rounded-md hover:bg-[#a1181d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#d42027] transition-colors"
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-[#9C060B] rounded-md hover:bg-[#680407] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#9C060B] transition-colors"
               >
                 Sign In to Cancel Deletion
               </button>
@@ -126,7 +126,7 @@ export default function AccountDeletionScheduledPage() {
             </div>
 
             <p className="text-xs text-center text-gray-500 pt-4">
-              Need help? Contact <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#d42027] hover:underline">support@voiceoverstudiofinder.com</a>
+              Need help? Contact <a href="mailto:support@voiceoverstudiofinder.com" className="text-[#9C060B] hover:underline">support@voiceoverstudiofinder.com</a>
             </p>
           </div>
         </div>

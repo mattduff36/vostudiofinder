@@ -43,7 +43,7 @@ export default function AboutPage() {
               Whether you need a voiceover booth, a full recording studio, or a podcast space, we make it easy to find verified studios near you, see what they offer, and contact them directly — with no commission and no middlemen.
             </p>
 
-            <div className="w-24 h-1 bg-[#d42027] mx-auto my-12"></div>
+            <div className="w-24 h-1 bg-[#9C060B] mx-auto my-12"></div>
 
             <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Why We Exist</h2>
             
@@ -63,7 +63,7 @@ export default function AboutPage() {
               Simple, transparent, and built for people who actually record for a living.
             </p>
 
-            <div className="w-24 h-1 bg-[#d42027] mx-auto my-12"></div>
+            <div className="w-24 h-1 bg-[#9C060B] mx-auto my-12"></div>
 
             <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">For Studio Owners</h2>
             
@@ -99,7 +99,7 @@ export default function AboutPage() {
               Every studio page is designed to present your space clearly and professionally — often giving studios a stronger, more focused showcase than their own website.
             </p>
 
-            <div className="w-24 h-1 bg-[#d42027] mx-auto my-12"></div>
+            <div className="w-24 h-1 bg-[#9C060B] mx-auto my-12"></div>
 
             <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">What Makes Us Different</h2>
             

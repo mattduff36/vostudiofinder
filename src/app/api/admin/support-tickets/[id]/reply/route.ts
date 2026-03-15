@@ -75,13 +75,13 @@ export async function POST(
       subject: emailSubject,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #d42027;">Voiceover Studio Finder Support</h2>
+          <h2 style="color: #9C060B;">Voiceover Studio Finder Support</h2>
           
           <p>Hi ${ticket.users.display_name},</p>
           
           <p>Thank you for your ${ticket.type === 'ISSUE' ? 'issue report' : 'suggestion'}. We've reviewed it and wanted to get back to you:</p>
           
-          <div style="background-color: #f5f5f5; padding: 15px; border-left: 4px solid #d42027; margin: 20px 0;">
+          <div style="background-color: #f5f5f5; padding: 15px; border-left: 4px solid #9C060B; margin: 20px 0;">
             ${message.replace(/\n/g, '<br>')}
           </div>
           

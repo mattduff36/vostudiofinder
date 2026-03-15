@@ -302,7 +302,7 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
             onClick={() => setTimeRange('7d')}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               timeRange === '7d'
-                ? 'bg-[#d42027] text-white shadow-sm'
+                ? 'bg-[#9C060B] text-white shadow-sm'
                 : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
             }`}
           >
@@ -312,7 +312,7 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
             onClick={() => setTimeRange('30d')}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               timeRange === '30d'
-                ? 'bg-[#d42027] text-white shadow-sm'
+                ? 'bg-[#9C060B] text-white shadow-sm'
                 : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
             }`}
           >

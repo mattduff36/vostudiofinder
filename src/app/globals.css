@@ -47,7 +47,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #d42027;
+  background: #9C060B;
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -57,7 +57,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #d42027;
+  background: #9C060B;
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -72,15 +72,15 @@
 
   /* Brand colors — the site's actual primary color (red) */
   --color-brand-50: #fef2f2;
-  --color-brand-100: #fee2e2;
-  --color-brand-200: #fecaca;
-  --color-brand-300: #fca5a5;
-  --color-brand-400: #f87171;
-  --color-brand-500: #e84848;
-  --color-brand-600: #d42027;
-  --color-brand-700: #b01b21;
-  --color-brand-800: #a1181d;
-  --color-brand-900: #7f1d1d;
+  --color-brand-100: #fde1e1;
+  --color-brand-200: #fbc4c5;
+  --color-brand-300: #f7999b;
+  --color-brand-400: #ef5f62;
+  --color-brand-500: #c92f33;
+  --color-brand-600: #9C060B;
+  --color-brand-700: #7D0509;
+  --color-brand-800: #680407;
+  --color-brand-900: #4E0306;
 
   /* Legacy purple palette (kept for backward compatibility) */
   --color-primary-50: #f8f7fa;
@@ -369,8 +369,8 @@ input[type="checkbox"]:hover {
 }
 
 input[type="checkbox"]:checked {
-  background-color: #d42027; /* brand red color */
-  border-color: #d42027;
+  background-color: #9C060B; /* brand red color */
+  border-color: #9C060B;
 }
 
 input[type="checkbox"]:checked::after {

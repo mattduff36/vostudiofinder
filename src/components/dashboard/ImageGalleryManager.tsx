@@ -564,7 +564,7 @@ export function ImageGalleryManager({
                   isBasicWithExtraImages ? 'cursor-pointer' : 'cursor-move'
                 } ${draggedIndex === index ? 'opacity-50' : ''} ${
                   isBasicWithExtraImages ? 'opacity-60' : ''
-                } ${index === 0 ? 'ring-2 ring-[#d42027]' : ''}`}
+                } ${index === 0 ? 'ring-2 ring-[#9C060B]' : ''}`}
               >
                 <img
                   src={image.image_url}
@@ -587,7 +587,7 @@ export function ImageGalleryManager({
                 
                 {/* Featured Badge for first image */}
                 {index === 0 && !isBasicWithExtraImages && (
-                  <div className="absolute top-2 left-2 px-2 py-1 bg-[#d42027] text-white text-xs font-bold rounded shadow-lg flex items-center gap-1">
+                  <div className="absolute top-2 left-2 px-2 py-1 bg-[#9C060B] text-white text-xs font-bold rounded shadow-lg flex items-center gap-1">
                     <Star className="w-3 h-3" aria-hidden="true" />
                     <span>Featured</span>
                   </div>
@@ -639,7 +639,7 @@ export function ImageGalleryManager({
               <div
                 key={image.id}
                 className={`bg-white border rounded-lg overflow-hidden shadow-sm ${
-                  index === 0 ? 'ring-2 ring-[#d42027]' : 'border-gray-200'
+                  index === 0 ? 'ring-2 ring-[#9C060B]' : 'border-gray-200'
                 } ${isBasicWithExtraImages ? 'opacity-75' : ''}`}
               >
                 {/* Image Preview */}
@@ -664,7 +664,7 @@ export function ImageGalleryManager({
                   
                   {/* Featured Badge */}
                   {index === 0 && (
-                    <div className="absolute top-3 left-3 px-2.5 py-1.5 bg-[#d42027] text-white text-xs font-bold rounded shadow-lg flex items-center gap-1">
+                    <div className="absolute top-3 left-3 px-2.5 py-1.5 bg-[#9C060B] text-white text-xs font-bold rounded shadow-lg flex items-center gap-1">
                       <Star className="w-3 h-3" aria-hidden="true" />
                       <span>Featured</span>
                     </div>

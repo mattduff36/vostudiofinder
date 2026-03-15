@@ -245,7 +245,7 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
                 <button
                   type="button"
                   onClick={() => handleNavigation('/auth/signin')}
-                  className="w-[220px] px-4 py-2.5 rounded-lg border-2 border-[#d42027] text-[#d42027] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
+                  className="w-[220px] px-4 py-2.5 rounded-lg border-2 border-[#9C060B] text-[#9C060B] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
                   role="menuitem"
                 >
                   Sign In
@@ -254,7 +254,7 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
                 <button
                   type="button"
                   onClick={() => handleNavigation('/auth/signup')}
-                  className="relative w-[220px] px-4 py-2.5 rounded-lg bg-[#d42027] text-white hover:bg-[#b91c23] active:bg-[#a01820] text-sm font-medium transition-all"
+                  className="relative w-[220px] px-4 py-2.5 rounded-lg bg-[#9C060B] text-white hover:bg-[#7D0509] active:bg-[#680407] text-sm font-medium transition-all"
                   role="menuitem"
                 >
                   List Your Studio
@@ -358,7 +358,7 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
                         <button
                           type="button"
                           onClick={() => handleAction(item.action!)}
-                          className="w-[220px] px-4 py-2.5 rounded-lg border-2 border-[#d42027] text-[#d42027] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
+                          className="w-[220px] px-4 py-2.5 rounded-lg border-2 border-[#9C060B] text-[#9C060B] bg-transparent hover:bg-red-50 active:bg-red-100 text-sm font-medium transition-all"
                           role="menuitem"
                         >
                           {item.label}

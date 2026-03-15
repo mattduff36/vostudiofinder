@@ -441,7 +441,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
             {canContactViaEmail ? (
               <button 
                 onClick={() => setShowContactModal(true)}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors font-medium"
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#9C060B] text-white rounded-lg hover:bg-[#680407] transition-colors font-medium"
               >
                 <Mail className="w-5 h-5" aria-hidden="true" />
                 <span>Message Studio</span>
@@ -453,7 +453,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
                 rel="noopener noreferrer"
                 className="block w-full"
               >
-                <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors font-medium">
+                <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#9C060B] text-white rounded-lg hover:bg-[#680407] transition-colors font-medium">
                   <Globe className="w-5 h-5" aria-hidden="true" />
                   <span>Visit Website</span>
                 </button>
@@ -461,7 +461,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
             ) : (
               <button 
                 onClick={handleContactClick}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors font-medium"
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#9C060B] text-white rounded-lg hover:bg-[#680407] transition-colors font-medium"
               >
                 <MessageCircle className="w-5 h-5" aria-hidden="true" />
                 <span>Contact Studio</span>
@@ -479,7 +479,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
                     href={`tel:${profile?.phone || studio.phone}`}
                     className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <Phone className="w-5 h-5 !text-[#d42027]" aria-hidden="true" />
+                    <Phone className="w-5 h-5 !text-[#9C060B]" aria-hidden="true" />
                     <span className="text-sm text-gray-700">{profile?.phone || studio.phone}</span>
                   </a>
                 )}
@@ -502,7 +502,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
                 {rates.map((rate, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span className="text-sm font-medium text-gray-700">{rate.duration}</span>
-                    <span className="text-sm font-semibold !text-[#d42027]">{rate.price}</span>
+                    <span className="text-sm font-semibold !text-[#9C060B]">{rate.price}</span>
                   </div>
                 ))}
               </div>
@@ -615,7 +615,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
                   <button
                     onClick={handleGetDirections}
                     disabled={!studio.latitude && !studio.longitude && !studio.full_address && !studio.address}
-                    className="mt-3 w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#d42027] text-white rounded-lg hover:bg-[#a1181d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-3 w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#9C060B] text-white rounded-lg hover:bg-[#680407] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ExternalLink className="w-5 h-5" aria-hidden="true" />
                     <span className="font-medium">Get Directions</span>
@@ -678,7 +678,7 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
                     {displayImages.slice(1, 5).map((image, index) => (
                       <div 
                         key={image.id} 
-                        className="relative aspect-[25/12] bg-gray-200 rounded-md overflow-hidden cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-[#d42027] transition-all"
+                        className="relative aspect-[25/12] bg-gray-200 rounded-md overflow-hidden cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-[#9C060B] transition-all"
                         onClick={() => { setLightboxIndex(index + 1); setShowLightbox(true); }}
                       >
                         <Image

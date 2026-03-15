@@ -417,7 +417,7 @@ export function QuickActions({
                 </div>
               ) : (
                 <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                  <EyeOff className="w-5 h-5 text-[#d42027]" />
+                  <EyeOff className="w-5 h-5 text-[#9C060B]" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
@@ -452,11 +452,11 @@ export function QuickActions({
 
         // Determine icon colors based on tile completion status
         let iconBgClass = 'bg-red-50';
-        let iconColorClass = 'text-[#d42027]';
+        let iconColorClass = 'text-[#9C060B]';
 
         if (action.id === 'edit-profile') {
           iconBgClass = tileCompletionStatus.editProfile ? 'bg-green-50' : 'bg-red-50';
-          iconColorClass = tileCompletionStatus.editProfile ? 'text-green-600' : 'text-[#d42027]';
+          iconColorClass = tileCompletionStatus.editProfile ? 'text-green-600' : 'text-[#9C060B]';
         } else if (action.id === 'settings') {
           iconBgClass = 'bg-gray-50';
           iconColorClass = 'text-gray-500';
@@ -507,7 +507,7 @@ export function QuickActions({
           >
             <div className="flex-1 flex justify-center items-center space-x-3">
               <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <Share2 className="w-5 h-5 text-[#d42027]" />
+                <Share2 className="w-5 h-5 text-[#9C060B]" />
               </div>
               <p className="font-semibold text-gray-900 text-base leading-none m-0 !pb-0">
                 {profileData?.user?.membership_tier === 'PREMIUM'
@@ -550,7 +550,7 @@ export function QuickActions({
                   Email the link to{' '}
                   <a 
                     href="mailto:support@voiceoverstudiofinder.com" 
-                    className="underline hover:text-[#d42027] transition-colors"
+                    className="underline hover:text-[#9C060B] transition-colors"
                   >
                     support@voiceoverstudiofinder.com
                   </a>

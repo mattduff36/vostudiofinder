@@ -69,7 +69,7 @@ export function SwitchToAutoRenewModal({ isOpen, onClose, expiryDate }: SwitchTo
       {/* Header */}
       <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-200 pr-12">
         <div className="flex items-center gap-2 mb-1">
-          <RefreshCw className="w-5 h-5 text-[#d42027]" />
+          <RefreshCw className="w-5 h-5 text-[#9C060B]" />
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
             Enable Auto-Renewal
           </h2>
@@ -97,7 +97,7 @@ export function SwitchToAutoRenewModal({ isOpen, onClose, expiryDate }: SwitchTo
         {/* Price summary */}
         <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border border-gray-200 mb-4">
           <span className="text-sm text-gray-700">Auto-renew annually</span>
-          <span className="text-lg font-extrabold text-[#d42027]">
+          <span className="text-lg font-extrabold text-[#9C060B]">
             £25<span className="text-xs font-semibold">/yr</span>
           </span>
         </div>

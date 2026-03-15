@@ -398,7 +398,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
               }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               style={{
-                background: `linear-gradient(to right, #d42027 0%, #d42027 ${(() => {
+                background: `linear-gradient(to right, #9C060B 0%, #9C060B ${(() => {
                   // Convert radius to percentage for visual progress bar
                   if (filters.radius <= 5) return ((filters.radius - 1) / 4) * 25;
                   if (filters.radius <= 10) return 25 + ((filters.radius - 5) / 5) * 25;
@@ -446,7 +446,7 @@ export const SearchFilters = forwardRef<SearchFiltersRef, SearchFiltersProps>(fu
                 style={{ minWidth: 'calc(50% - 4px)' }}
               >
                 <span>{option.label}</span>
-                <span className="ml-2 text-xs font-semibold text-[#d42027] bg-white px-1.5 py-0.5 rounded">
+                <span className="ml-2 text-xs font-semibold text-[#9C060B] bg-white px-1.5 py-0.5 rounded">
                   {count}
                 </span>
               </button>

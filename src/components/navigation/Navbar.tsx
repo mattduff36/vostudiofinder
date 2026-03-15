@@ -547,7 +547,7 @@ export function Navbar({ session }: NavbarProps) {
                     <button
                       ref={desktopBurgerBtnRef}
                       onClick={() => setIsDesktopBurgerOpen(!isDesktopBurgerOpen)}
-                      className="flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10"
+                      className="flex items-center justify-center p-2 rounded-lg border-2 border-[#9C060B] text-[#9C060B] hover:bg-[#9C060B] hover:text-white transition-all duration-300 w-10 h-10"
                       aria-label="Menu"
                     >
                       {isDesktopBurgerOpen ? (
@@ -615,7 +615,7 @@ export function Navbar({ session }: NavbarProps) {
             <div className="md:hidden relative">
               <button
                 onClick={() => window.dispatchEvent(new Event('toggleMobileBurgerMenu'))}
-                className="flex items-center justify-center p-2 rounded-lg border-2 border-[#d42027] text-[#d42027] hover:bg-[#d42027] hover:text-white transition-all duration-300 w-10 h-10 mobile-burger-btn"
+                className="flex items-center justify-center p-2 rounded-lg border-2 border-[#9C060B] text-[#9C060B] hover:bg-[#9C060B] hover:text-white transition-all duration-300 w-10 h-10 mobile-burger-btn"
                 aria-label="Toggle menu"
               >
                 <Menu className="w-5 h-5 mobile-burger-icon" />
@@ -760,7 +760,7 @@ export function Navbar({ session }: NavbarProps) {
           </Link>
           <Link
             href="/auth/signup"
-            className="relative flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#d42027] hover:bg-red-50 transition-colors"
+            className="relative flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#9C060B] hover:bg-red-50 transition-colors"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             List Your Studio

@@ -35,7 +35,7 @@ export function MembershipPaywall({
       <div className="flex flex-col sm:flex-row gap-3">
         <Button
           onClick={handleRenew}
-          className="bg-[#d42027] hover:bg-[#b91c23] text-white"
+          className="bg-[#9C060B] hover:bg-[#7D0509] text-white"
         >
           <CreditCard className="w-4 h-4 mr-2" />
           {action}

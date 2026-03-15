@@ -70,7 +70,7 @@ ${listItems}
 /**
  * Render CTA button with Outlook MSO fallback
  */
-function renderButton(label: string, url: string, backgroundColor: string = '#d42027'): string {
+function renderButton(label: string, url: string, backgroundColor: string = '#9C060B'): string {
   const escapedLabel = escapeHtml(label);
   const escapedUrl = escapeHtml(url);
   
@@ -131,7 +131,7 @@ export function renderStandardLayout(props: StandardLayoutProps): { html: string
       // Convert email links
       const withLinks = escaped.replace(
         /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
-        '<a href="mailto:$1" style="color: #d42027; text-decoration: underline;">$1</a>'
+        '<a href="mailto:$1" style="color: #9C060B; text-decoration: underline;">$1</a>'
       );
       return `              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6a6a6a; line-height: 1.6;">${withLinks}</p>`;
     })
