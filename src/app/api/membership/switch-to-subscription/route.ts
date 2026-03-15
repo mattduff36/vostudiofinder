@@ -62,9 +62,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const subscriptionPriceId = process.env.STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID;
+    const subscriptionPriceId = process.env.STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID_30;
     if (!subscriptionPriceId) {
-      console.error('STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID not configured');
+      console.error('STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID_30 not configured');
       return NextResponse.json(
         { error: 'Subscription payment not configured' },
         { status: 500 }

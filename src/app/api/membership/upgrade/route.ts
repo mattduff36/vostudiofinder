@@ -57,18 +57,18 @@ export async function POST(request: NextRequest) {
 
     const baseUrl = getBaseUrl(request);
     const useSubscription = autoRenew;
-    const subscriptionPriceId = process.env.STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID;
-    const oneTimePriceId = process.env.STRIPE_MEMBERSHIP_PRICE_ID;
+    const subscriptionPriceId = process.env.STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID_30;
+    const oneTimePriceId = process.env.STRIPE_MEMBERSHIP_PRICE_ID_30_ONE_TIME;
 
     if (useSubscription && !subscriptionPriceId) {
-      console.error('STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID not configured');
+      console.error('STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID_30 not configured');
       return NextResponse.json(
         { error: 'Subscription payment not configured' },
         { status: 500 }
       );
     }
     if (!useSubscription && !oneTimePriceId) {
-      console.error('STRIPE_MEMBERSHIP_PRICE_ID not configured');
+      console.error('STRIPE_MEMBERSHIP_PRICE_ID_30_ONE_TIME not configured');
       return NextResponse.json(
         { error: 'Payment system not configured' },
         { status: 500 }

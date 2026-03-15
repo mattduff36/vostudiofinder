@@ -60,9 +60,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get 5-year price ID from environment
-    const priceId = process.env.STRIPE_5YEAR_MEMBERSHIP_PRICE_ID;
+    const priceId = process.env.STRIPE_5YEAR_MEMBERSHIP_PRICE_ID_100;
     if (!priceId) {
-      console.error('STRIPE_5YEAR_MEMBERSHIP_PRICE_ID not configured');
+      console.error('STRIPE_5YEAR_MEMBERSHIP_PRICE_ID_100 not configured');
       return NextResponse.json(
         { error: 'Payment system not configured. Please contact support.' },
         { status: 500 }

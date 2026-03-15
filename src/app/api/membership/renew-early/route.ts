@@ -91,9 +91,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get price ID from environment
-    const priceId = process.env.STRIPE_MEMBERSHIP_PRICE_ID;
+    const priceId = process.env.STRIPE_MEMBERSHIP_PRICE_ID_30_ONE_TIME;
     if (!priceId) {
-      console.error('STRIPE_MEMBERSHIP_PRICE_ID not configured');
+      console.error('STRIPE_MEMBERSHIP_PRICE_ID_30_ONE_TIME not configured');
       return NextResponse.json(
         { error: 'Payment system not configured' },
         { status: 500 }

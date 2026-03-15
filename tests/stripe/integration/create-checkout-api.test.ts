@@ -62,7 +62,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       });
 
       process.env.NEXTAUTH_URL = 'http://localhost:4000';
-      process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
+      process.env.STRIPE_MEMBERSHIP_PRICE_ID_30_ONE_TIME = 'price_test_123';
 
       const response = await POST(request);
       const data = await response.json();
@@ -107,7 +107,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       });
 
       process.env.NEXTAUTH_URL = 'http://localhost:4000';
-      process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
+      process.env.STRIPE_MEMBERSHIP_PRICE_ID_30_ONE_TIME = 'price_test_123';
 
       const response = await POST(request);
 
@@ -130,7 +130,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       });
 
       process.env.NEXTAUTH_URL = 'http://localhost:4000';
-      process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
+      process.env.STRIPE_MEMBERSHIP_PRICE_ID_30_ONE_TIME = 'price_test_123';
 
       const response = await POST(request);
       const data = await response.json();
@@ -177,7 +177,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
 
       // Mock environment variables
       process.env.NEXTAUTH_URL = 'http://localhost:4000';
-      process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
+      process.env.STRIPE_MEMBERSHIP_PRICE_ID_30_ONE_TIME = 'price_test_123';
 
       await POST(request);
 
@@ -233,7 +233,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       });
 
       process.env.NEXTAUTH_URL = 'http://localhost:4000';
-      process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
+      process.env.STRIPE_MEMBERSHIP_PRICE_ID_30_ONE_TIME = 'price_test_123';
 
       await POST(request);
 
@@ -285,7 +285,7 @@ describe('POST /api/stripe/create-membership-checkout', () => {
       });
 
       process.env.NEXTAUTH_URL = 'http://localhost:4000';
-      process.env.STRIPE_MEMBERSHIP_PRICE_ID = 'price_test_123';
+      process.env.STRIPE_MEMBERSHIP_PRICE_ID_30_ONE_TIME = 'price_test_123';
 
       await POST(request);
 
