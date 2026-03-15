@@ -37,6 +37,9 @@ export async function GET(request: NextRequest) {
       lastLoginAfter: searchParams.get('lastLoginAfter'),
       lastLoginBefore: searchParams.get('lastLoginBefore'),
       search: searchParams.get('search'),
+      excludedEmails: searchParams.get('excludedEmails')
+        ? searchParams.get('excludedEmails')!.split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+        : null,
       page: parseInt(searchParams.get('page') || '1'),
       limit: Math.min(parseInt(searchParams.get('limit') || '50'), 500),
     };
@@ -155,6 +158,10 @@ export async function GET(request: NextRequest) {
         { username: { contains: filters.search, mode: 'insensitive' } },
         { display_name: { contains: filters.search, mode: 'insensitive' } },
       ];
+    }
+
+    if (filters.excludedEmails && filters.excludedEmails.length > 0) {
+      where.email = { notIn: filters.excludedEmails };
     }
     
     // Get total count

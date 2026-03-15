@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft, Send, Users, FileText, Search,
   ChevronDown, ChevronUp, AlertTriangle, CheckCircle, RotateCcw,
+  UserMinus, X, Plus,
 } from 'lucide-react';
 
 interface EmailTemplate {
@@ -30,6 +31,14 @@ interface RecipientFilters {
   lastLoginAfter?: string;
   lastLoginBefore?: string;
   search?: string;
+  excludedEmails?: string[];
+}
+
+interface UserSearchResult {
+  id: string;
+  email: string;
+  username: string;
+  display_name: string;
 }
 
 export default function CreateCampaignPage() {
@@ -71,6 +80,14 @@ export default function CreateCampaignPage() {
   const [autoRetry, setAutoRetry] = useState(false);
   const [maxRetries, setMaxRetries] = useState(3);
 
+  const [excludedEmails, setExcludedEmails] = useState<string[]>([]);
+  const [excludeSearch, setExcludeSearch] = useState('');
+  const [excludeResults, setExcludeResults] = useState<UserSearchResult[]>([]);
+  const [excludeSearching, setExcludeSearching] = useState(false);
+  const [showExcludeSection, setShowExcludeSection] = useState(false);
+  const [bulkExcludeText, setBulkExcludeText] = useState('');
+  const [showBulkInput, setShowBulkInput] = useState(false);
+
   useEffect(() => {
     loadTemplates();
   }, []);
@@ -89,7 +106,16 @@ export default function CreateCampaignPage() {
       fetchRecipientCount();
     }, 300);
     return () => clearTimeout(timer);
-  }, [filters, templateKey]);
+  }, [filters, templateKey, excludedEmails]);
+
+  useEffect(() => {
+    if (!excludeSearch.trim() || excludeSearch.trim().length < 2) {
+      setExcludeResults([]);
+      return;
+    }
+    const timer = setTimeout(() => searchUsersForExclude(excludeSearch.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [excludeSearch]);
 
   const loadTemplates = async () => {
     try {
@@ -103,6 +129,55 @@ export default function CreateCampaignPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const searchUsersForExclude = async (query: string) => {
+    setExcludeSearching(true);
+    try {
+      const params = new URLSearchParams({ search: query, limit: '10' });
+      const res = await fetch(`/api/admin/emails/users?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setExcludeResults(
+          (data.users || [])
+            .filter((u: UserSearchResult) => !excludedEmails.includes(u.email.toLowerCase()))
+            .map((u: UserSearchResult) => ({
+              id: u.id,
+              email: u.email,
+              username: u.username,
+              display_name: u.display_name,
+            }))
+        );
+      }
+    } catch {
+      setExcludeResults([]);
+    } finally {
+      setExcludeSearching(false);
+    }
+  };
+
+  const addExcludedEmail = (email: string) => {
+    const normalized = email.toLowerCase().trim();
+    if (normalized && !excludedEmails.includes(normalized)) {
+      setExcludedEmails(prev => [...prev, normalized]);
+    }
+    setExcludeSearch('');
+    setExcludeResults([]);
+  };
+
+  const removeExcludedEmail = (email: string) => {
+    setExcludedEmails(prev => prev.filter(e => e !== email));
+  };
+
+  const handleBulkExclude = () => {
+    const emails = bulkExcludeText
+      .split(/[\n,;]+/)
+      .map(e => e.trim().toLowerCase())
+      .filter(e => e && e.includes('@'));
+    const unique = [...new Set([...excludedEmails, ...emails])];
+    setExcludedEmails(unique);
+    setBulkExcludeText('');
+    setShowBulkInput(false);
   };
 
   const fetchRecipientCount = async () => {
@@ -121,6 +196,7 @@ export default function CreateCampaignPage() {
       if (filters.lastLoginAfter) params.set('lastLoginAfter', filters.lastLoginAfter);
       if (filters.lastLoginBefore) params.set('lastLoginBefore', filters.lastLoginBefore);
       if (filters.search) params.set('search', filters.search);
+      if (excludedEmails.length > 0) params.set('excludedEmails', excludedEmails.join(','));
 
       const res = await fetch(`/api/admin/emails/users?${params.toString()}`);
       if (res.ok) {
@@ -156,7 +232,10 @@ export default function CreateCampaignPage() {
         body: JSON.stringify({
           name: name.trim(),
           templateKey,
-          filters,
+          filters: {
+            ...filters,
+            ...(excludedEmails.length > 0 ? { excludedEmails } : {}),
+          },
           autoRetry,
           maxRetries: autoRetry ? maxRetries : undefined,
         }),
@@ -476,6 +555,129 @@ export default function CreateCampaignPage() {
                   />
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Excluded Users */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <button
+            onClick={() => setShowExcludeSection(!showExcludeSection)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors w-full"
+          >
+            <UserMinus className="w-4 h-4" />
+            Exclude Users
+            {excludedEmails.length > 0 && (
+              <span className="ml-1 px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
+                {excludedEmails.length}
+              </span>
+            )}
+            {showExcludeSection ? (
+              <ChevronUp className="w-4 h-4 ml-auto" />
+            ) : (
+              <ChevronDown className="w-4 h-4 ml-auto" />
+            )}
+          </button>
+
+          {showExcludeSection && (
+            <div className="mt-4 space-y-4">
+              <p className="text-xs text-gray-500">
+                These users will be excluded from the campaign even if they match the recipient filters above.
+              </p>
+
+              {/* Search to add individual users */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by email, username, or name to exclude..."
+                  value={excludeSearch}
+                  onChange={e => setExcludeSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm"
+                />
+                {excludeSearching && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">Searching...</span>
+                )}
+              </div>
+
+              {/* Search results dropdown */}
+              {excludeResults.length > 0 && (
+                <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                  {excludeResults.map(user => (
+                    <button
+                      key={user.id}
+                      onClick={() => addExcludedEmail(user.email)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-amber-50 transition-colors text-left"
+                    >
+                      <div>
+                        <span className="font-medium text-gray-900">{user.display_name}</span>
+                        <span className="text-gray-500 ml-2">{user.email}</span>
+                      </div>
+                      <Plus className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Bulk add toggle */}
+              <button
+                onClick={() => setShowBulkInput(!showBulkInput)}
+                className="text-xs text-amber-700 hover:text-amber-900 font-medium transition-colors"
+              >
+                {showBulkInput ? 'Hide bulk input' : 'Bulk add emails (paste a list)'}
+              </button>
+
+              {showBulkInput && (
+                <div className="space-y-2">
+                  <textarea
+                    value={bulkExcludeText}
+                    onChange={e => setBulkExcludeText(e.target.value)}
+                    placeholder="Paste emails separated by commas, semicolons, or new lines..."
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono"
+                  />
+                  <button
+                    onClick={handleBulkExclude}
+                    disabled={!bulkExcludeText.trim()}
+                    className="px-4 py-1.5 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Add Emails
+                  </button>
+                </div>
+              )}
+
+              {/* Excluded emails list */}
+              {excludedEmails.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-gray-500">
+                      {excludedEmails.length} user{excludedEmails.length !== 1 ? 's' : ''} excluded
+                    </span>
+                    <button
+                      onClick={() => setExcludedEmails([])}
+                      className="text-xs text-red-600 hover:text-red-800 transition-colors"
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {excludedEmails.map(email => (
+                      <span
+                        key={email}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-full"
+                      >
+                        {email}
+                        <button
+                          onClick={() => removeExcludedEmail(email)}
+                          className="hover:text-red-600 transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

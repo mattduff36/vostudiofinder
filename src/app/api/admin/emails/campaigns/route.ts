@@ -299,6 +299,10 @@ function buildUserWhereClause(filters: any): Prisma.usersWhereInput {
       where.OR = searchConditions;
     }
   }
+
+  if (filters.excludedEmails && Array.isArray(filters.excludedEmails) && filters.excludedEmails.length > 0) {
+    where.email = { notIn: filters.excludedEmails.map((e: string) => e.toLowerCase().trim()) };
+  }
   
   return where;
 }
