@@ -504,15 +504,32 @@ export default function CampaignDetailPage() {
         {campaign.filters && Object.keys(campaign.filters).length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 className="text-sm font-semibold text-gray-900 mb-3">Recipient Filters</h2>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(campaign.filters).map(([key, value]) => (
-                <span
-                  key={key}
-                  className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full"
-                >
-                  {key}: {String(value)}
-                </span>
-              ))}
+            <div className="space-y-2">
+              {Object.entries(campaign.filters).map(([key, value]) => {
+                const items = Array.isArray(value) ? value : typeof value === 'string' && value.includes(',') ? value.split(',') : null;
+                if (items && items.length > 3) {
+                  return (
+                    <div key={key}>
+                      <span className="text-xs font-semibold text-gray-600">{key}</span>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {items.map((item: string, i: number) => (
+                          <span key={i} className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
+                            {String(item).trim()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <span
+                    key={key}
+                    className="inline-block px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full mr-2"
+                  >
+                    {key}: {String(value)}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
