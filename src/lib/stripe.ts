@@ -21,7 +21,7 @@ export const SUBSCRIPTION_PLANS = {
     id: 'premium_yearly',
     name: 'Premium Studio Listing',
     description: 'Enhanced studio listing with premium features',
-    price: 2500, // £25.00 in pence
+    price: 3000, // £30.00 in pence
     currency: 'gbp',
     interval: 'year',
     features: [

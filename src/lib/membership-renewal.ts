@@ -2,9 +2,9 @@
  * Membership Renewal Utilities
  * 
  * Handles calculations and logic for membership renewals:
- * - Early Renewal: £25 with 30-day bonus (requires >= 180 days remaining - first 6 months)
- * - Standard Renewal: £25 for 1 year (no bonus, available when < 180 days remaining - last 6 months)
- * - 5-Year Renewal: £80 for 5 years (1,825 days) - always available
+ * - Early Renewal: £30 with 30-day bonus (requires >= 180 days remaining - first 6 months)
+ * - Standard Renewal: £30 for 1 year (no bonus, available when < 180 days remaining - last 6 months)
+ * - 5-Year Renewal: £100 for 5 years (1,825 days) - always available
  */
 
 /**
@@ -185,16 +185,16 @@ export function getRenewalPrice(renewalType: 'early' | 'standard' | '5year'): {
 } {
   if (renewalType === 'early' || renewalType === 'standard') {
     return {
-      amount: 25,
+      amount: 30,
       currency: 'GBP',
-      formatted: '£25',
+      formatted: '£30',
     };
   } else {
     return {
-      amount: 80,
+      amount: 100,
       currency: 'GBP',
-      formatted: '£80',
-      savings: '£45',
+      formatted: '£100',
+      savings: '£50',
     };
   }
 }

@@ -164,7 +164,7 @@ export async function requirePremiumMembership(userId: string): Promise<{ error?
 
   if (user?.membership_tier !== 'PREMIUM') {
     return {
-      error: 'This feature requires a Premium membership. Upgrade to Premium for £25/year to unlock all features.',
+      error: 'This feature requires a Premium membership. Upgrade to Premium for £30/year to unlock all features.',
       status: 403,
     };
   }

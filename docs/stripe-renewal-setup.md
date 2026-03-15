@@ -7,15 +7,15 @@
 ## Overview
 
 This feature allows users to renew their membership with two options:
-1. **Early Renewal** (£25): Get 1 year + 1 month bonus (requires 30+ days remaining)
-2. **5-Year Membership** (£80): Get 5 years, save £45 vs annual renewals
+1. **Early Renewal** (£30): Get 1 year + 1 month bonus (requires 30+ days remaining)
+2. **5-Year Membership** (£100): Get 5 years, save £50 vs annual renewals
 
 ---
 
 ## Prerequisites
 
 - Existing Stripe account configured
-- `STRIPE_MEMBERSHIP_PRICE_ID` already set up for £25 annual membership
+- `STRIPE_MEMBERSHIP_PRICE_ID` already set up for £30 annual membership
 - Access to Stripe Dashboard
 
 ---
@@ -30,9 +30,9 @@ This feature allows users to renew their membership with two options:
 3. Navigate to **Products** → **Create product**
 4. Fill in details:
    - **Name**: `Five-Year Membership`
-   - **Description**: `VoiceoverStudioFinder five-year membership - save £45`
+   - **Description**: `VoiceoverStudioFinder five-year membership - save £50`
 5. **Pricing**:
-   - **Price**: `80.00`
+   - **Price**: `100.00`
    - **Currency**: `GBP`
    - **Billing period**: **One time** (NOT recurring)
 6. Click **Save product**
@@ -53,10 +53,10 @@ This feature allows users to renew their membership with two options:
 STRIPE_SECRET_KEY="sk_test_..."
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..." 
-STRIPE_MEMBERSHIP_PRICE_ID="price_test_..." # £25 annual
+STRIPE_MEMBERSHIP_PRICE_ID="price_test_..." # £30 annual
 
 # New - Add this
-STRIPE_5YEAR_MEMBERSHIP_PRICE_ID="price_test_..." # £80 five-year
+STRIPE_5YEAR_MEMBERSHIP_PRICE_ID="price_test_..." # £100 five-year
 ```
 
 #### Vercel Development Environment:
@@ -142,14 +142,14 @@ The webhook already handles renewal events automatically. No additional webhook 
 - **Available**: When user has >= 30 days remaining
 - **Calculation**: Current remaining + 365 days + 30 bonus days
 - **Example**: 45 days remaining → 440 days total (45 + 365 + 30)
-- **Price**: £25
+- **Price**: £30
 
 ### 5-Year Renewal:
 - **Available**: Always (even if expired)
 - **Calculation**: Current remaining (or now if expired) + 1825 days
 - **Example**: 100 days remaining → 1925 days total
-- **Price**: £80
-- **Savings**: £45 (vs 5 × £25 = £125)
+- **Price**: £100
+- **Savings**: £50 (vs 5 × £30 = £150)
 
 ---
 
@@ -180,7 +180,7 @@ The webhook already handles renewal events automatically. No additional webhook 
 ## API Endpoints
 
 ### POST `/api/membership/renew-early`
-Creates checkout session for early renewal (£25 + bonus)
+Creates checkout session for early renewal (£30 + bonus)
 
 **Authentication**: Required (session)  
 **Returns**: `{ clientSecret: string }`  
@@ -190,7 +190,7 @@ Creates checkout session for early renewal (£25 + bonus)
 - 500: Stripe configuration error
 
 ### POST `/api/membership/renew-5year`
-Creates checkout session for 5-year renewal (£80)
+Creates checkout session for 5-year renewal (£100)
 
 **Authentication**: Required (session)  
 **Returns**: `{ clientSecret: string }`  

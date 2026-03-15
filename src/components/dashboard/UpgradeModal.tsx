@@ -71,7 +71,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           </h2>
         </div>
         <p className="text-sm text-gray-600">
-          Unlock all features for just £25/year
+          Unlock all features for just £30/year
         </p>
       </div>
 
@@ -106,7 +106,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                       </span>
                     </div>
                     <span className={`text-lg font-extrabold flex-shrink-0 ${autoRenew ? 'text-[#9C060B]' : 'text-gray-500'}`}>
-                      £25<span className="text-xs font-semibold">/yr</span>
+                      £30<span className="text-xs font-semibold">/yr</span>
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">
@@ -137,7 +137,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                       Pay once
                     </span>
                     <span className={`text-lg font-extrabold flex-shrink-0 ${!autoRenew ? 'text-[#9C060B]' : 'text-gray-500'}`}>
-                      £25
+                      £30
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">
@@ -163,7 +163,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           <div className="px-5 sm:px-6 pt-4 pb-3">
             <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
               <span className="text-sm text-gray-700">
-                {autoRenew ? 'Auto-renew annually — £25/year' : 'Pay once — £25 for 1 year'}
+                {autoRenew ? 'Auto-renew annually — £30/year' : 'Pay once — £30 for 1 year'}
               </span>
               <button
                 type="button"
@@ -186,8 +186,8 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
             <div className="stripe-payment-element">
               <CompactCheckoutForm
                 fetchClientSecret={fetchClientSecret}
-                amount="£25"
-                buttonText={autoRenew ? 'Pay £25/year' : 'Pay £25 once'}
+                amount="£30"
+                buttonText={autoRenew ? 'Pay £30/year' : 'Pay £30 once'}
               />
             </div>
           </div>

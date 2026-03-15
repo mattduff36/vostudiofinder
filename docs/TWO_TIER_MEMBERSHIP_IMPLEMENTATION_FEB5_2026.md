@@ -7,7 +7,7 @@
 
 Implemented a two-tier membership selection page that gives users the choice between:
 - **Basic (Free)** - Limited features to get started
-- **Premium (£25/year)** - Full access to all features
+- **Premium (£30/year)** - Full access to all features
 
 ## Changes Made
 
@@ -36,7 +36,7 @@ Implemented a two-tier membership selection page that gives users the choice bet
 
 #### Feature Comparison Matrix
 
-| Feature | Basic (Free) | Premium (£25/year) |
+| Feature | Basic (Free) | Premium (£30/year) |
 |---------|-------------|-------------------|
 | Studio listing | ✓ | ✓ |
 | Studio images | 2 max | 5 max |
@@ -88,7 +88,7 @@ Migration `20260205_add_membership_tier` was successfully applied to the dev dat
 ### New User Signup (Premium)
 1. Complete signup form → Email verification
 2. Reach membership page
-3. Click "Upgrade to Premium - £25/year"
+3. Click "Upgrade to Premium - £30/year"
 4. Complete Stripe payment
 5. Account activated with PREMIUM tier
 6. Redirected to onboarding/profile creation

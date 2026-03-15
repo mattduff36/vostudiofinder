@@ -1035,6 +1035,9 @@ async function main() {
           error_message: ed.error_message,
           sent_at: ed.sent_at,
           failed_at: ed.failed_at,
+          opened_at: ed.opened_at,
+          clicked_at: ed.clicked_at,
+          clicked_link: ed.clicked_link,
           created_at: ed.created_at,
         }
       });

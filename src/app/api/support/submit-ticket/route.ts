@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       const fromHeader = `${fromName} <${fromEmail.match(/<([^>]+)>/)?.[1] || fromEmail}>`;
 
       // Escape user-provided data before interpolation into HTML email templates
-      const emailSent = await sendTemplatedEmail({
+      const emailResult = await sendTemplatedEmail({
         to: supportEmail,
         templateKey: 'support-request',
         variables: {
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         skipMarketingCheck: true,
       });
 
-      if (!emailSent) {
+      if (!emailResult.success) {
         logger.error(`Failed to send support email for user ${session.user.id}`);
         return NextResponse.json(
           { error: 'Failed to send support email. Please try again.' },

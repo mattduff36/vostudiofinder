@@ -8,7 +8,7 @@
  * 4. Sends via email service
  */
 
-import { sendEmail } from './email-service';
+import { sendEmail, SendEmailResult } from './email-service';
 import { renderEmailTemplate } from './render';
 import { db } from '@/lib/db';
 import { getTemplateDefinition } from './template-registry';
@@ -28,7 +28,7 @@ export interface SendTemplatedEmailOptions {
  */
 export async function sendTemplatedEmail(
   options: SendTemplatedEmailOptions
-): Promise<boolean> {
+): Promise<SendEmailResult> {
   const { templateKey, variables, fromOverride, replyToOverride, skipMarketingCheck } = options;
   const to = options.to.toLowerCase().trim();
   
@@ -77,7 +77,7 @@ export async function sendTemplatedEmail(
         const prefs = user.email_preferences;
         if (prefs && (!prefs.marketing_opt_in || prefs.unsubscribed_at)) {
           console.log(`📧 Skipping marketing email to ${to} (opted out)`);
-          return false;
+          return { success: false };
         }
       }
     } catch (error) {
@@ -156,14 +156,14 @@ export async function sendTemplatedEmailBatch(
   
   for (const recipient of recipients) {
     try {
-      const success = await sendTemplatedEmail({
+      const result = await sendTemplatedEmail({
         to: recipient.toLowerCase().trim(),
         templateKey,
         variables,
         ...options,
       });
       
-      if (success) {
+      if (result.success) {
         sent++;
       } else {
         failed++;

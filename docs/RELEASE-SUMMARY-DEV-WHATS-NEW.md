@@ -19,7 +19,7 @@
 - Configure: title, description (one line per bullet), category, release date, and "Highlight this update"
 
 ### 3. Premium Membership & Downgrade
-- **Auto-renew option** at checkout: two-step selection — "Auto-renew annually £25/year" (default on) or "Pay once £25" — then Stripe payment form
+- **Auto-renew option** at checkout: two-step selection — "Auto-renew annually £30/year" (default on) or "Pay once £30" — then Stripe payment form
 - **Renewal reminders** by email at 30, 14, 7, and 1 day(s) before expiry
 - **Settings controls** for Premium users:
   - "Cancel auto-renewal" — stop subscription; keep Premium until current period ends
@@ -60,7 +60,7 @@ Updates appear in the What's New modal for users.
 - **Downgrade to Basic:** Settings → Membership → "Downgrade to Basic" (takes effect at end of current period)
 
 ### For Basic Users
-- **Upgrade to Premium:** Settings → Membership → "Upgrade to Premium — £25/year" button
+- **Upgrade to Premium:** Settings → Membership → "Upgrade to Premium — £30/year" button
 
 ---
 
@@ -79,7 +79,7 @@ Updates appear in the What's New modal for users.
 
 ### Upgrade flow (existing Basic user)
 1. As a Basic user, go to Settings → Membership
-2. Click **Upgrade to Premium — £25/year**
+2. Click **Upgrade to Premium — £30/year**
 3. Select payment option and complete the Stripe checkout
 4. Confirm upgrade to Premium with correct auto-renew setting
 

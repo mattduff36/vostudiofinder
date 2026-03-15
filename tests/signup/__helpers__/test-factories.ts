@@ -132,7 +132,7 @@ export function createTestPaymentData(overrides?: any) {
   return {
     status: 'SUCCEEDED',
     stripe_checkout_session_id: `cs_test_${randomBytes(16).toString('hex')}`,
-    amount: 2500, // £25.00 in pence
+    amount: 3000, // £30.00 in pence
     currency: 'gbp',
     ...overrides,
   };

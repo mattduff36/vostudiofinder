@@ -657,7 +657,7 @@ export function Settings({ data }: SettingsProps) {
                       <div className="text-center mb-4 mt-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-1">Premium</h3>
                         <div className="flex items-baseline justify-center">
-                          <span className="text-3xl font-bold text-[#9C060B]">£25</span>
+                          <span className="text-3xl font-bold text-[#9C060B]">£30</span>
                           <span className="text-gray-600 ml-1.5 text-sm">/year</span>
                         </div>
                         <p className="text-xs text-gray-600 mt-1">One booking more than pays for itself</p>
@@ -711,7 +711,7 @@ export function Settings({ data }: SettingsProps) {
                         onClick={() => setUpgradeModalOpen(true)}
                         className="w-full bg-[#9C060B] text-white py-3 px-4 rounded-lg hover:bg-[#7D0509] transition-colors font-semibold text-sm text-center shadow-sm hover:shadow-md"
                       >
-                        Upgrade to Premium — £25/year
+                        Upgrade to Premium — £30/year
                       </button>
                       <p className="text-xs text-gray-500 text-center mt-2">Cancel or change plan anytime in Settings</p>
                     </div>
@@ -907,7 +907,7 @@ export function Settings({ data }: SettingsProps) {
                               Early Renewal
                             </h5>
                             <span className="text-lg sm:text-xl font-extrabold text-[#9C060B]">
-                              £25
+                              £30
                             </span>
                           </div>
                           
@@ -951,7 +951,7 @@ export function Settings({ data }: SettingsProps) {
                               Standard Renewal
                             </h5>
                             <span className="text-lg sm:text-xl font-extrabold text-[#9C060B]">
-                              £25
+                              £30
                             </span>
                           </div>
                           
@@ -986,7 +986,7 @@ export function Settings({ data }: SettingsProps) {
                               Annual Renewal
                             </h5>
                             <span className="text-lg sm:text-xl font-extrabold text-gray-400">
-                              £25
+                              £30
                             </span>
                           </div>
                           <p className="text-xs sm:text-sm leading-relaxed text-gray-400">
@@ -1010,7 +1010,7 @@ export function Settings({ data }: SettingsProps) {
                     >
                     {/* Best Value Badge */}
                     <div className="absolute top-2 sm:top-3 right-2 sm:right-3 px-2 py-0.5 sm:py-1 bg-gradient-to-r from-amber-400 to-amber-500 text-gray-900 text-xs font-bold rounded-full shadow-sm">
-                      SAVE £45
+                      SAVE £50
                     </div>
                     
                     <div className="space-y-1.5 sm:space-y-2">
@@ -1019,12 +1019,12 @@ export function Settings({ data }: SettingsProps) {
                           5-Year Membership
                         </h5>
                         <span className="text-lg sm:text-xl font-extrabold text-[#9C060B] group-hover:text-[#680407] transition-colors">
-                          £80
+                          £100
                         </span>
                       </div>
                       
                       <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
-                        Lock in the best rate and save £45 compared to annual renewals
+                        Lock in the best rate and save £50 compared to annual renewals
                       </p>
                       
                       <div className="flex items-center space-x-2 pt-0.5 sm:pt-1">
@@ -1049,7 +1049,7 @@ export function Settings({ data }: SettingsProps) {
                           }
                         </span>
                         <span className="text-xs text-gray-400">•</span>
-                        <span className="text-xs text-gray-500 line-through">£125</span>
+                        <span className="text-xs text-gray-500 line-through">£150</span>
                       </div>
                     </div>
                     </motion.button>
@@ -1126,7 +1126,7 @@ export function Settings({ data }: SettingsProps) {
                               </p>
                             ) : !isPremiumUser ? (
                               <p className="text-xs sm:text-sm text-gray-500">
-                                Featured Studio is a <span className="font-semibold">Premium</span> feature. <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-[#9C060B] hover:underline font-medium">Upgrade to Premium</a> for £25/year, then complete your profile to 100%.
+                                Featured Studio is a <span className="font-semibold">Premium</span> feature. <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-[#9C060B] hover:underline font-medium">Upgrade to Premium</a> for £30/year, then complete your profile to 100%.
                               </p>
                             ) : !isProfileComplete ? (
                               <p className="text-xs sm:text-sm text-gray-500">
@@ -1280,7 +1280,7 @@ export function Settings({ data }: SettingsProps) {
                               </p>
                             ) : !isPremium ? (
                               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                                Verification is a <span className="font-semibold">Premium</span> feature. <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-[#9C060B] hover:underline font-medium">Upgrade to Premium</a> for £25/year to unlock verification, then complete your profile to 85%.
+                                Verification is a <span className="font-semibold">Premium</span> feature. <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="text-[#9C060B] hover:underline font-medium">Upgrade to Premium</a> for £30/year to unlock verification, then complete your profile to 85%.
                               </p>
                             ) : !meetsCompletion ? (
                               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">

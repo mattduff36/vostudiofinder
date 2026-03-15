@@ -139,7 +139,7 @@ export function AdminSandbox() {
                               : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
                           }`}
                         >
-                          Premium (£25/yr)
+                          Premium (£30/yr)
                         </button>
                       </div>
                     </div>

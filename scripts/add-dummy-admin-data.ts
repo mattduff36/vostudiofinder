@@ -10,8 +10,8 @@ const prisma = new PrismaClient();
 // Email pattern to identify dummy data
 const DUMMY_EMAIL_PATTERN = 'dummy.test';
 
-// Payment amount: £25 = 2500 pence
-const MEMBERSHIP_AMOUNT = 2500;
+// Payment amount: £30 = 3000 pence
+const MEMBERSHIP_AMOUNT = 3000;
 const CURRENCY = 'gbp';
 
 // First names for realistic dummy data

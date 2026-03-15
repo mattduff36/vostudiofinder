@@ -1561,7 +1561,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-sm text-amber-800">
                     Custom connection methods require a Premium membership.{' '}
-                    <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-amber-900">Upgrade now</a> for £25/year to add custom connections.
+                    <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-amber-900">Upgrade now</a> for £30/year to add custom connections.
                   </p>
                 </div>
               ) : (
@@ -1713,7 +1713,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
                 <p className="text-sm text-amber-800 font-medium">
                   Advanced settings require a Premium membership.{' '}
-                  <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-900">Upgrade now</a> for £25/year to customise your SEO meta title.
+                  <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-900">Upgrade now</a> for £30/year to customise your SEO meta title.
                 </p>
               </div>
             )}

@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const resetUrl = `${getBaseUrl(request)}/auth/reset-password?token=${resetToken}`;
     
     // Send password reset email using template
-    const emailSent = await sendTemplatedEmail({
+    const emailResult = await sendTemplatedEmail({
       to: user.email,
       templateKey: 'password-reset',
       variables: {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       },
     });
     
-    if (!emailSent) {
+    if (!emailResult.success) {
       console.error('Failed to send password reset email to:', user.email);
       // Still return success to prevent email enumeration
       // but log the error for debugging

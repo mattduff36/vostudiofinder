@@ -138,7 +138,7 @@ describe('Stripe Membership Webhook - Email Verification Defense', () => {
           user_id: user.id,
           stripe_checkout_session_id: sessionId,
           stripe_payment_intent_id: `pi_test_${randomBytes(16).toString('hex')}`,
-          amount: 2500,
+          amount: 3000,
           currency: 'gbp',
           status: 'SUCCEEDED',
           refunded_amount: 0,

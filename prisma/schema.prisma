@@ -423,7 +423,7 @@ model users {
   last_login                                                 DateTime?
   last_seen_updates_at                                       DateTime?
   
-  // Membership tier (BASIC = free, PREMIUM = paid £25/year)
+  // Membership tier (BASIC = free, PREMIUM = paid £30/year)
   membership_tier                                            MembershipTier          @default(BASIC)
   auto_renew                                                 Boolean                 @default(false)
   
@@ -926,6 +926,9 @@ model email_deliveries {
   
   sent_at         DateTime?
   failed_at       DateTime?
+  opened_at       DateTime?  // First open (via Resend webhook)
+  clicked_at      DateTime?  // First link click (via Resend webhook)
+  clicked_link    String?    // URL of the first link clicked
   
   created_at      DateTime @default(now())
   
@@ -936,6 +939,7 @@ model email_deliveries {
   @@index([user_id])
   @@index([to_email])
   @@index([status])
+  @@index([resend_id])
   @@index([created_at])
 }
 

@@ -118,7 +118,7 @@ Questions? support@voiceoverstudiofinder.com
     const fromEmail = rawFrom.match(/<(.+)>/)?.[1] || rawFrom;
     const replyTo = process.env.RESEND_REPLY_TO_EMAIL || 'support@voiceoverstudiofinder.com';
 
-    const emailSent = await sendEmail({
+    const emailResult = await sendEmail({
       from: `Voiceover Studio Finder Admin <${fromEmail}>`,
       to: user.email,
       replyTo,
@@ -127,7 +127,7 @@ Questions? support@voiceoverstudiofinder.com
       text: textContent,
     });
 
-    if (!emailSent) {
+    if (!emailResult.success) {
       throw new Error('Failed to send email');
     }
 

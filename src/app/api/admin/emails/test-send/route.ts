@@ -31,14 +31,14 @@ export async function POST(request: NextRequest) {
     // For now, keeping it strict for security
     
     // Send test email (skip marketing check for test sends)
-    const success = await sendTemplatedEmail({
+    const emailResult = await sendTemplatedEmail({
       to: validated.recipientEmail,
       templateKey: validated.templateKey,
       variables: validated.variables,
       skipMarketingCheck: true, // Test sends bypass opt-in checks
     });
     
-    if (!success) {
+    if (!emailResult.success) {
       return NextResponse.json(
         { error: 'Failed to send test email' },
         { status: 500 }

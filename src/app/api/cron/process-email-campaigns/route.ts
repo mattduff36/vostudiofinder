@@ -195,19 +195,20 @@ export async function GET(request: NextRequest) {
             delivery.to_email,
           );
 
-          const success = await sendTemplatedEmail({
+          const result = await sendTemplatedEmail({
             to: delivery.to_email,
             templateKey: campaign.template_key,
             variables,
             skipMarketingCheck: true,
           });
           
-          if (success) {
+          if (result.success) {
             await db.email_deliveries.update({
               where: { id: delivery.id },
               data: {
                 status: 'SENT',
                 sent_at: new Date(),
+                resend_id: result.resendId ?? null,
               },
             });
             totalSent++;

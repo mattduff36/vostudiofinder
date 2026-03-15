@@ -152,7 +152,7 @@ export async function createTestPaymentInDb(data: {
       user_id: data.user_id,
       status: data.status || PaymentStatus.SUCCEEDED,
       stripe_checkout_session_id: data.stripe_checkout_session_id || `cs_test_${Date.now()}`,
-      amount: 2500,
+      amount: 3000,
       currency: 'gbp',
       updated_at: new Date(),
     },

@@ -145,7 +145,7 @@ Questions? support@voiceoverstudiofinder.com
     `.trim();
 
     // Send email using Resend
-    const emailSent = await sendEmail({
+    const emailResult = await sendEmail({
       from: `Voiceover Studio Finder <${process.env.RESEND_BOOKING_FROM_EMAIL || 'booking-enquiry@voiceoverstudiofinder.com'}>`,
       to: ownerEmail,
       replyTo: senderEmail, // Allow studio owner to reply directly
@@ -154,7 +154,7 @@ Questions? support@voiceoverstudiofinder.com
       text: textContent,
     });
 
-    if (!emailSent) {
+    if (!emailResult.success) {
       throw new Error('Failed to send email');
     }
 

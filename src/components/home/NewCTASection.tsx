@@ -34,7 +34,7 @@ export function NewCTASection() {
         'Get discovered by thousands of voice artists worldwide', 
         'Showcase your studio with photos, equipment lists, prices  and services', 
         'Receive direct enquiries from qualified clients', 
-        'List for free or go Premium for £25/year - one booking pays for itself.'
+        'List for free or go Premium for £30/year - one booking pays for itself.'
       ] 
     },
     { 

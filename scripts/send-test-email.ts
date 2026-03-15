@@ -41,7 +41,7 @@ async function sendTestEmail() {
       from: 'Voiceover Studio Finder <support@voiceoverstudiofinder.com>',
     });
 
-    if (result) {
+    if (result.success) {
       console.log('✅ Test email sent successfully!');
       console.log('📬 Check your inbox at:', recipientEmail);
       console.log('');

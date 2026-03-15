@@ -9,19 +9,19 @@
 
 **New System:**
 - **Early Renewal (First 6 Months)**: Available when ≥180 days remaining
-  - Price: £25
+  - Price: £30
   - Duration: 1 year + 30-day bonus (395 days total)
   - Badge: "BONUS!"
   
 - **Standard Renewal (Last 6 Months)**: Available when 0-179 days remaining
-  - Price: £25
+  - Price: £30
   - Duration: 1 year (365 days, no bonus)
   - No bonus badge
   
 - **5-Year Renewal**: Always available
-  - Price: £80
+  - Price: £100
   - Duration: 5 years (1,825 days)
-  - Savings: £45
+  - Savings: £50
 
 ### 2. Date Display Format Changes
 
@@ -105,17 +105,17 @@ validateRenewalRequest(renewalType: 'early' | 'standard' | '5year', ...): {...}
 ### Scenario 1: User with 200 days remaining
 - ✅ Sees "Early Renewal" with bonus badge
 - ✅ Shows "6 months and 20 days remaining"
-- ✅ Can purchase for £25 with 30-day bonus
+- ✅ Can purchase for £30 with 30-day bonus
 
 ### Scenario 2: User with 150 days remaining  
 - ✅ Sees "Standard Renewal" (no bonus)
 - ✅ Shows "5 months remaining"
-- ✅ Can purchase for £25, gets exactly 1 year
+- ✅ Can purchase for £30, gets exactly 1 year
 
 ### Scenario 3: User with 20 days remaining
 - ✅ Sees "Standard Renewal" (no bonus)
 - ✅ Shows "20 days remaining" in amber
-- ✅ Can purchase for £25, gets exactly 1 year
+- ✅ Can purchase for £30, gets exactly 1 year
 
 ### Scenario 4: User with -10 days (expired)
 - ✅ Sees disabled annual renewal state

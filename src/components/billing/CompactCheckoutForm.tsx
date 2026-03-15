@@ -221,9 +221,9 @@ function PaymentForm({ amount, buttonText }: { amount: string; buttonText?: stri
 interface CompactCheckoutFormProps {
   /** Callback that returns the Checkout Session client_secret from your API */
   fetchClientSecret: () => Promise<string>;
-  /** Display amount on the pay button, e.g. "£25" */
+  /** Display amount on the pay button, e.g. "£30" */
   amount: string;
-  /** Override the full button label, e.g. "Pay £25/year" */
+  /** Override the full button label, e.g. "Pay £30/year" */
   buttonText?: string;
 }
 

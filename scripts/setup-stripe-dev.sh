@@ -78,7 +78,7 @@ resolve_port() {
 
 PRODUCT_NAME="Annual Membership"
 PRODUCT_DESCRIPTION="Annual membership for VoiceoverStudioFinder platform"
-PRICE_AMOUNT="2500"  # £25.00 in pence
+PRICE_AMOUNT="3000"  # £30.00 in pence
 PRICE_CURRENCY="gbp"
 LISTENER_LOG="stripe-listener.log"
 START_DEV=false

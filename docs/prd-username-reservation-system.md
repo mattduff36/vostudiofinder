@@ -296,7 +296,7 @@ Good news: Your username @{{username}} is still available!
 
 You have 5 days left to claim it before it expires.
 
-[Complete Signup Now - Only £25/year]
+[Complete Signup Now - Only £30/year]
 
 Questions? Just reply to this email.
 
@@ -315,7 +315,7 @@ This is your final reminder - your reserved username @{{username}} expires in 2 
 
 After {{expirationDate}}, someone else can claim it.
 
-[Claim @{{username}} Now - £25/year]
+[Claim @{{username}} Now - £30/year]
 
 Don't miss out on joining the VoiceoverStudioFinder community.
 

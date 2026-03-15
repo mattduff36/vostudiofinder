@@ -156,15 +156,15 @@ describe('Membership Tiers Configuration', () => {
 
   describe('Price constants', () => {
     it('should have correct price in pence', () => {
-      expect(PREMIUM_PRICE_PENCE).toBe(2500);
+      expect(PREMIUM_PRICE_PENCE).toBe(3000);
     });
 
     it('should have correct display price', () => {
-      expect(PREMIUM_PRICE_DISPLAY).toBe('£25');
+      expect(PREMIUM_PRICE_DISPLAY).toBe('£30');
     });
 
     it('should have correct price per year', () => {
-      expect(PREMIUM_PRICE_PER_YEAR).toBe('£25/year');
+      expect(PREMIUM_PRICE_PER_YEAR).toBe('£30/year');
     });
   });
 });

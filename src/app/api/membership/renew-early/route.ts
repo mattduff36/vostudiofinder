@@ -17,9 +17,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 
 /**
  * POST /api/membership/renew-early
- * Create Stripe checkout session for annual renewal (£25)
- * - Early renewal (6+ months): £25 + 30 day bonus
- * - Standard renewal (<6 months): £25, no bonus
+ * Create Stripe checkout session for annual renewal (£30)
+ * - Early renewal (6+ months): £30 + 30 day bonus
+ * - Standard renewal (<6 months): £30, no bonus
  */
 export async function POST(request: NextRequest) {
   try {

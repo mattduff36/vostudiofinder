@@ -224,7 +224,7 @@ export function getCurrencySymbol(country: string | null | undefined): string {
  * Format a rate value with currency symbol
  * @param rate - The rate value (can be string or number)
  * @param country - Country name to determine currency
- * @returns Formatted rate string (e.g., "£80", "$100")
+ * @returns Formatted rate string (e.g., "£100", "$100")
  */
 export function formatRateWithCurrency(
   rate: string | number | null | undefined,

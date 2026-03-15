@@ -101,14 +101,14 @@ async function testAllTemplates() {
     try {
       const variables = getSampleVariables(templateKey);
       
-      const success = await sendTemplatedEmail({
+      const emailResult = await sendTemplatedEmail({
         to: TEST_EMAIL,
         templateKey,
         variables,
         skipMarketingCheck: true, // Skip marketing check for testing
       });
       
-      if (success) {
+      if (emailResult.success) {
         console.log('✅ SUCCESS');
         results.push({ template: templateKey, status: 'success' });
       } else {

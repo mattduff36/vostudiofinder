@@ -66,7 +66,7 @@ export function DowngradeConfirmModal({
           {isCancelAutoRenew ? 'Cancel auto-renewal?' : 'Downgrade to Basic?'}
         </h2>
         <p className="text-gray-600 mb-4">
-          Premium is just £25 per year — less than £2.10 per month.
+          Premium is just £30 per year — less than £2.50 per month.
           Most studios recover this from a single booking.
         </p>
 

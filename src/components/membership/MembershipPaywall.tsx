@@ -52,7 +52,7 @@ export function MembershipPaywall({
       
       <div className="mt-6 text-sm text-gray-500 text-center max-w-md">
         <p>
-          Upgrade to <span className="font-semibold">Premium for £25/year</span> to
+          Upgrade to <span className="font-semibold">Premium for £30/year</span> to
           unlock all features including unlimited studio types, more images, verification
           eligibility, and featured studio access.
         </p>

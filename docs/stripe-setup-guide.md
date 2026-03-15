@@ -6,7 +6,7 @@
 
 ## Overview
 
-This project uses Stripe for one-time annual membership payments (£25/year). This guide walks you through:
+This project uses Stripe for one-time annual membership payments (£30/year). This guide walks you through:
 
 1. Creating a Stripe account
 2. Setting up the membership product
@@ -43,7 +43,7 @@ This project uses Stripe for one-time annual membership payments (£25/year). Th
    - **Name**: `Annual Membership`
    - **Description**: `VoiceoverStudioFinder annual membership - full site access for 12 months`
 3. **Pricing**:
-   - **Price**: `25.00`
+   - **Price**: `30.00`
    - **Currency**: `GBP` (or your currency)
    - **Billing period**: **One time** (NOT recurring)
    - ⚠️ **IMPORTANT**: Do NOT select "Recurring" or "Subscription"
@@ -53,7 +53,7 @@ This project uses Stripe for one-time annual membership payments (£25/year). Th
 
 ### Why One-Time Payment?
 
-- Members pay £25 for exactly 12 months of access
+- Members pay £30 for exactly 12 months of access
 - After 12 months, membership expires
 - Manual renewal (another one-time payment) required
 - No auto-billing or subscription management needed
@@ -234,7 +234,7 @@ Stripe provides test cards that simulate different scenarios:
 1. In Stripe Dashboard, toggle to **Live mode** (top-right)
 2. Create a NEW product for live mode:
    - Go to **Products** → **Add product**
-   - Same settings as test product (£25, one-time)
+   - Same settings as test product (£30, one-time)
    - Copy the LIVE Price ID (`price_...`)
 3. Get LIVE API keys:
    - **Developers** → **API keys**
@@ -261,7 +261,7 @@ STRIPE_MEMBERSHIP_PRICE_ID="price_YOUR_REAL_PRICE_ID"
 ⚠️ **Use your own card first** to verify everything works!
 
 1. Visit your live site
-2. Complete a real £25 payment
+2. Complete a real £30 payment
 3. Verify:
    - ✅ Webhook fired successfully (check Stripe Dashboard)
    - ✅ Payment appears in admin console: `/admin/payments`
@@ -272,7 +272,7 @@ STRIPE_MEMBERSHIP_PRICE_ID="price_YOUR_REAL_PRICE_ID"
    - Go to `/admin/payments/[payment-id]`
    - Issue partial refund (e.g., £10)
    - Verify membership still active
-   - Issue full refund (remaining £15)
+   - Issue full refund (remaining £20)
    - Verify membership immediately cancelled
 
 ---

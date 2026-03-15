@@ -542,7 +542,7 @@ vostudiofinder/
 - **Interactive Map Locations** with GPS coordinates and clickable markers
 - **Professional Equipment Lists** (Neumann U87, TLM 103, Apollo X4/X6, etc.)
 - **Connection Services** (ISDN, Source Connect, Zoom, Teams, Session Link Pro)
-- **Membership System** with £25/year studio owner subscriptions
+- **Membership System** with £30/year studio owner subscriptions
 - **Comprehensive Static Content** (About, Contact, Privacy, Terms, Help pages)
 - **Admin Management System** with full CRUD operations and bulk processing
 

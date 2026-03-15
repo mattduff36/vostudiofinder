@@ -93,3 +93,5 @@ docs/**/*.tsbuildinfo
 
 # Development test pages (not for production)
 src/app/glass-nav-test/
+
+.vercel

@@ -50,7 +50,7 @@
 5. **`src/lib/stripe.ts`**
    - Exports server-side `stripe` instance
    - Exports client-side `getStripe()` promise
-   - **`SUBSCRIPTION_PLANS`** constant defines premium yearly plan (£25/year)
+   - **`SUBSCRIPTION_PLANS`** constant defines premium yearly plan (£30/year)
    - **`createCheckoutSession()`** - creates subscription checkout
    - **`createBillingPortalSession()`** - for subscription management
    - **`handleSubscriptionSuccess()`** - logs subscription creation
@@ -60,7 +60,7 @@
 
 #### Client Components
 6. **`src/components/auth/MembershipPayment.tsx`**
-   - UI for £25/year membership purchase
+   - UI for £30/year membership purchase
    - Sends `priceId` from `NEXT_PUBLIC_STRIPE_MEMBERSHIP_PRICE_ID` to server
    - **Issue**: Client controls price ID (security risk)
    - Redirects to Stripe hosted checkout
@@ -164,7 +164,7 @@ status                  StudioStatus            @default(ACTIVE)
 **Current**: 
 - `is_premium` field set based on subscription status
 - Premium subscription grants "enhanced features"
-- But baseline membership (£25) should apply to all users
+- But baseline membership (£30) should apply to all users
 **Required**: 
 - Decouple `is_premium` from baseline membership
 - Use `subscriptions` table for membership entitlement

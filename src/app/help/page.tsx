@@ -102,7 +102,7 @@ export default function HelpPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-lg mb-1">No Commission</h4>
-                    <p className="text-gray-600">Keep 100% of what you earn. List your studio for free, or upgrade to Premium for just £25/year to unlock all features—one booking pays for itself.</p>
+                    <p className="text-gray-600">Keep 100% of what you earn. List your studio for free, or upgrade to Premium for just £30/year to unlock all features—one booking pays for itself.</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -143,7 +143,7 @@ export default function HelpPage() {
               <div className="space-y-2 text-gray-700">
                 <p>✓ <strong>Privacy first:</strong> Control what information is visible on your profile.</p>
                 <p>✓ <strong>No commission fees:</strong> We don't take a cut of your bookings.</p>
-                <p>✓ <strong>Simple membership:</strong> List your studio for free, or go Premium for just £25/year to unlock all features.</p>
+                <p>✓ <strong>Simple membership:</strong> List your studio for free, or go Premium for just £30/year to unlock all features.</p>
                 <p>✓ <strong>Direct communication:</strong> All enquiries go straight to you—we're just the platform.</p>
               </div>
             </div>

@@ -89,7 +89,7 @@ export function SwitchToAutoRenewModal({ isOpen, onClose, expiryDate }: SwitchTo
               • <strong>You won&apos;t be charged now</strong> — your current membership
               {formattedExpiry ? ` runs until ${formattedExpiry}` : ' continues as normal'}
             </li>
-            <li>• When your current period ends, your subscription renews automatically at £25/year</li>
+            <li>• When your current period ends, your subscription renews automatically at £30/year</li>
             <li>• You can cancel auto-renewal at any time from Settings</li>
           </ul>
         </div>
@@ -98,7 +98,7 @@ export function SwitchToAutoRenewModal({ isOpen, onClose, expiryDate }: SwitchTo
         <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border border-gray-200 mb-4">
           <span className="text-sm text-gray-700">Auto-renew annually</span>
           <span className="text-lg font-extrabold text-[#9C060B]">
-            £25<span className="text-xs font-semibold">/yr</span>
+            £30<span className="text-xs font-semibold">/yr</span>
           </span>
         </div>
 
@@ -111,7 +111,7 @@ export function SwitchToAutoRenewModal({ isOpen, onClose, expiryDate }: SwitchTo
         <div className="stripe-payment-element">
           <CompactCheckoutForm
             fetchClientSecret={fetchClientSecret}
-            amount="£25"
+            amount="£30"
             buttonText="Set up auto-renewal"
           />
         </div>

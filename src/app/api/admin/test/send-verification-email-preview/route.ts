@@ -47,7 +47,7 @@ export async function POST(_request: NextRequest) {
     });
 
     // Send preview email to admin@mpdee.co.uk
-    const success = await sendEmail({
+    const emailResult = await sendEmail({
       to: 'admin@mpdee.co.uk',
       subject: `[TEST PREVIEW] ${subject}`,
       html,
@@ -55,7 +55,7 @@ export async function POST(_request: NextRequest) {
       replyTo: 'john@example.com',
     });
 
-    if (!success) {
+    if (!emailResult.success) {
       console.error('❌ Failed to send preview email to admin@mpdee.co.uk');
       return NextResponse.json(
         { error: 'Failed to send preview email' },

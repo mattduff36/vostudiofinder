@@ -375,7 +375,7 @@ export function MembershipPayment() {
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
                   <div className="flex items-baseline justify-center">
-                    <span className="text-4xl font-bold text-[#9C060B]">£25</span>
+                    <span className="text-4xl font-bold text-[#9C060B]">£30</span>
                     <span className="text-gray-600 ml-2">/year</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-2">One booking more than pays for itself</p>
@@ -428,7 +428,7 @@ export function MembershipPayment() {
                   onClick={() => setSelectedTier('premium')}
                   className="w-full bg-[#9C060B] text-white py-4 px-6 rounded-lg hover:bg-[#7D0509] transition-colors font-semibold text-lg shadow-lg"
                 >
-                  Upgrade to Premium - £25/year
+                  Upgrade to Premium - £30/year
                 </button>
                 <p className="text-sm text-gray-500 text-center mt-3">Cancel or change plan anytime in Settings</p>
               </div>
@@ -527,7 +527,7 @@ export function MembershipPayment() {
                               </span>
                             </div>
                             <span className={`text-lg font-extrabold flex-shrink-0 ${autoRenew ? 'text-[#9C060B]' : 'text-gray-500'}`}>
-                              £25<span className="text-xs font-semibold">/yr</span>
+                              £30<span className="text-xs font-semibold">/yr</span>
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 mt-0.5">
@@ -560,7 +560,7 @@ export function MembershipPayment() {
                               Pay once
                             </span>
                             <span className={`text-lg font-extrabold flex-shrink-0 ${!autoRenew ? 'text-[#9C060B]' : 'text-gray-500'}`}>
-                              £25
+                              £30
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 mt-0.5">
@@ -586,7 +586,7 @@ export function MembershipPayment() {
                   <div className="pl-5 pr-12 pb-3">
                     <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
                       <span className="text-sm text-gray-700">
-                        {autoRenew ? 'Auto-renew annually — £25/year' : 'Pay once — £25 for 1 year'}
+                        {autoRenew ? 'Auto-renew annually — £30/year' : 'Pay once — £30 for 1 year'}
                       </span>
                       <button
                         type="button"
@@ -602,8 +602,8 @@ export function MembershipPayment() {
                   <div className="px-5 py-4 stripe-payment-element">
                     <CompactCheckoutForm
                       fetchClientSecret={fetchClientSecret}
-                      amount="£25"
-                      buttonText={autoRenew ? 'Pay £25/year' : 'Pay £25 once'}
+                      amount="£30"
+                      buttonText={autoRenew ? 'Pay £30/year' : 'Pay £30 once'}
                     />
                     <p className="text-[11px] text-gray-400 text-center mt-1">
                       A receipt will be emailed to {email || 'your email'} after payment.

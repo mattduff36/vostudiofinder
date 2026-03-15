@@ -170,7 +170,7 @@ export async function POST(_request: NextRequest) {
 
     for (const recipientEmail of recipientEmails) {
       try {
-        const success = await sendTemplatedEmail({
+        const emailResult = await sendTemplatedEmail({
           to: recipientEmail,
           templateKey: 'verification-request',
           variables: {
@@ -185,7 +185,7 @@ export async function POST(_request: NextRequest) {
           replyToOverride: user.email, // Allow admins to reply directly to the user
         });
 
-        if (success) {
+        if (emailResult.success) {
           emailsSent++;
           console.log(`✅ Verification request email sent to ${recipientEmail}`);
         } else {

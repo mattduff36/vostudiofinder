@@ -61,13 +61,13 @@ export const TIER_LIMITS: Record<MembershipTier, TierLimits> = {
 };
 
 /** Price in pence for the Premium annual membership */
-export const PREMIUM_PRICE_PENCE = 2500; // £25.00
+export const PREMIUM_PRICE_PENCE = 3000; // £30.00
 
 /** Formatted display price */
-export const PREMIUM_PRICE_DISPLAY = '£25';
+export const PREMIUM_PRICE_DISPLAY = '£30';
 
 /** Formatted price per year */
-export const PREMIUM_PRICE_PER_YEAR = '£25/year';
+export const PREMIUM_PRICE_PER_YEAR = '£30/year';
 
 /**
  * Get limits for a given tier.

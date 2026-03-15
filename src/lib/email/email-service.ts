@@ -21,15 +21,20 @@ export interface EmailOptions {
   replyTo?: string; // Optional reply-to address for better UX
 }
 
-export async function sendEmail(options: EmailOptions): Promise<boolean> {
+export interface SendEmailResult {
+  success: boolean;
+  resendId?: string;
+}
+
+export async function sendEmail(options: EmailOptions): Promise<SendEmailResult> {
   if (!process.env.RESEND_API_KEY) {
     console.error('❌ RESEND_API_KEY environment variable is not set');
-    return false;
+    return { success: false };
   }
 
   if (process.env.RESEND_API_KEY === 're_placeholder_key') {
     console.error('❌ RESEND_API_KEY is not configured properly');
-    return false;
+    return { success: false };
   }
 
   try {
@@ -73,14 +78,15 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     if (result.error) {
       const msg = result.error.message || JSON.stringify(result.error);
       console.error('❌ Failed to send email via Resend:', msg);
-      return false;
+      return { success: false };
     }
 
-    console.log('✅ Email sent successfully via Resend:', result.data?.id);
-    return true;
+    const resendId = result.data?.id;
+    console.log('✅ Email sent successfully via Resend:', resendId);
+    return { success: true, resendId };
   } catch (error) {
     console.error('❌ Failed to send email:', error);
-    return false;
+    return { success: false };
   }
 }
 
@@ -96,12 +102,13 @@ export async function sendPasswordResetEmail(
     userEmail: to,
   });
 
-  return sendEmail({
+  const result = await sendEmail({
     to,
     subject: 'Reset Your Password - VoiceoverStudioFinder',
     html,
     text,
   });
+  return result.success;
 }
 
 /**
@@ -118,12 +125,13 @@ export async function sendVerificationEmail(
     displayName,
   });
 
-  return sendEmail({
+  const result = await sendEmail({
     to,
     subject: 'Verify Your Email - VoiceoverStudioFinder',
     html,
     text,
   });
+  return result.success;
 }
 
 export const emailService = {

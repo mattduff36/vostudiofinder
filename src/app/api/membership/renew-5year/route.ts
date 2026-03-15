@@ -13,7 +13,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 
 /**
  * POST /api/membership/renew-5year
- * Create Stripe checkout session for 5-year renewal (£80)
+ * Create Stripe checkout session for 5-year renewal (£100)
  */
 export async function POST(request: NextRequest) {
   try {

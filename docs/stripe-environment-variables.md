@@ -52,7 +52,7 @@ STRIPE_WEBHOOK_SECRET="whsec_..."
 
 ### 3. Membership Price IDs
 
-#### Annual Membership (£25)
+#### Annual Membership (£30)
 ```env
 STRIPE_MEMBERSHIP_PRICE_ID="price_..."
 ```
@@ -60,11 +60,11 @@ STRIPE_MEMBERSHIP_PRICE_ID="price_..."
 **How to create**:
 1. Stripe Dashboard → Products → Create product
 2. Name: "Annual Membership"
-3. Price: £25.00 GBP
+3. Price: £30.00 GBP
 4. Billing: **One-time** (NOT recurring)
 5. Copy the Price ID (starts with `price_`)
 
-#### 5-Year Membership (£80) - NEW
+#### 5-Year Membership (£100) - NEW
 ```env
 STRIPE_5YEAR_MEMBERSHIP_PRICE_ID="price_..."
 ```
@@ -72,8 +72,8 @@ STRIPE_5YEAR_MEMBERSHIP_PRICE_ID="price_..."
 **How to create**:
 1. Stripe Dashboard → Products → Create product
 2. Name: "Five-Year Membership"
-3. Description: "VoiceoverStudioFinder five-year membership - save £45"
-4. Price: £80.00 GBP
+3. Description: "VoiceoverStudioFinder five-year membership - save £50"
+4. Price: £100.00 GBP
 5. Billing: **One-time** (NOT recurring)
 6. Copy the Price ID (starts with `price_`)
 
