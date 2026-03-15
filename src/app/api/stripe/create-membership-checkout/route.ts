@@ -131,11 +131,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ clientSecret: session.client_secret });
   } catch (error) {
-    console.error('Stripe checkout error:', error);
+    const stripeError = error instanceof Error ? error.message : 'Unknown error';
+    const errorCode = (error as any)?.code || (error as any)?.type || 'unknown';
+    console.error('Stripe checkout error:', { message: stripeError, code: errorCode, error });
     handleApiError(error, 'Stripe checkout failed');
     
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      { error: `Failed to create checkout session: ${stripeError}` },
       { status: 500 }
     );
   }
