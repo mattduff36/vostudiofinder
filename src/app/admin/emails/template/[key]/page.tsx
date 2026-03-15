@@ -141,7 +141,7 @@ export default function TemplateEditorPage() {
       <>
         <AdminTabs activeTab="emails" />
         <div className="px-4 py-4 md:p-8">
-          <div className="max-w-4xl mx-auto mt-8 text-center">
+          <div className="max-w-7xl mx-auto mt-8 text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-600 border-t-transparent"></div>
             <p className="mt-2 text-gray-600">Loading template...</p>
           </div>
@@ -155,7 +155,7 @@ export default function TemplateEditorPage() {
       <>
         <AdminTabs activeTab="emails" />
         <div className="px-4 py-4 md:p-8">
-          <div className="max-w-4xl mx-auto mt-8">
+          <div className="max-w-7xl mx-auto mt-8">
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-800">{error}</p>
             </div>
@@ -179,7 +179,7 @@ export default function TemplateEditorPage() {
       <AdminTabs activeTab="emails" />
 
       <div className="px-4 py-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <button
@@ -190,7 +190,7 @@ export default function TemplateEditorPage() {
             Back to Templates
           </button>
           
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{template.name}</h1>
               <p className="text-sm text-gray-600 mt-1">
@@ -213,7 +213,7 @@ export default function TemplateEditorPage() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 xl:justify-end">
               {template.defaultTemplate && (
                 <button
                   onClick={handleReset}

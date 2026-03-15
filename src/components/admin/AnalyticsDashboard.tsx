@@ -57,6 +57,24 @@ function formatDateLabel(d: string): string {
   }
 }
 
+const regionNames =
+  typeof Intl !== 'undefined' && typeof Intl.DisplayNames === 'function'
+    ? new Intl.DisplayNames(['en'], { type: 'region' })
+    : null;
+
+function formatCountryCode(code: string): string {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return '';
+  if (normalized === 'ZZ' || normalized === 'XX') return 'Unknown';
+  if (!regionNames) return normalized;
+
+  try {
+    return regionNames.of(normalized) ?? normalized;
+  } catch {
+    return normalized;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // KPI Card — matches AdminDashboard stat card pattern
 // ---------------------------------------------------------------------------
@@ -177,9 +195,17 @@ interface BreakdownTableProps {
   iconColor: string;
   entries: BreakdownEntry[];
   keyLabel?: string;
+  keyFormatter?: (key: string) => string;
 }
 
-function BreakdownTable({ title, icon: Icon, iconColor, entries, keyLabel = 'Name' }: BreakdownTableProps) {
+function BreakdownTable({
+  title,
+  icon: Icon,
+  iconColor,
+  entries,
+  keyLabel = 'Name',
+  keyFormatter,
+}: BreakdownTableProps) {
   const maxVisitors = Math.max(...entries.map((e) => e.visitors), 1);
 
   return (
@@ -197,19 +223,23 @@ function BreakdownTable({ title, icon: Icon, iconColor, entries, keyLabel = 'Nam
             <span className="text-right">Visitors</span>
             <span className="text-right">Views</span>
           </div>
-          {entries.map((entry, i) => (
-            <div key={entry.key + i} className="grid grid-cols-[1fr_70px_70px] gap-2 items-center text-sm">
-              <div className="relative min-w-0">
-                <div
-                  className="absolute inset-y-0 left-0 rounded bg-[#fef2f2]"
-                  style={{ width: `${(entry.visitors / maxVisitors) * 100}%` }}
-                />
-                <span className="relative z-10 truncate block px-1.5 py-0.5 text-gray-800">{entry.key || '(direct)'}</span>
+          {entries.map((entry, i) => {
+            const displayKey = keyFormatter ? keyFormatter(entry.key) : entry.key;
+
+            return (
+              <div key={entry.key + i} className="grid grid-cols-[1fr_70px_70px] gap-2 items-center text-sm">
+                <div className="relative min-w-0">
+                  <div
+                    className="absolute inset-y-0 left-0 rounded bg-[#fef2f2]"
+                    style={{ width: `${(entry.visitors / maxVisitors) * 100}%` }}
+                  />
+                  <span className="relative z-10 truncate block px-1.5 py-0.5 text-gray-800">{displayKey || '(direct)'}</span>
+                </div>
+                <span className="text-right font-medium text-gray-900">{formatNumber(entry.visitors)}</span>
+                <span className="text-right text-gray-600">{formatNumber(entry.pageviews)}</span>
               </div>
-              <span className="text-right font-medium text-gray-900">{formatNumber(entry.visitors)}</span>
-              <span className="text-right text-gray-600">{formatNumber(entry.pageviews)}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -332,7 +362,14 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
       </div>
 
       {/* Breakdown: Countries */}
-      <BreakdownTable title="Top Countries" icon={Globe} iconColor="text-green-600" entries={topCountries} keyLabel="Country" />
+      <BreakdownTable
+        title="Top Countries"
+        icon={Globe}
+        iconColor="text-green-600"
+        entries={topCountries}
+        keyLabel="Country"
+        keyFormatter={formatCountryCode}
+      />
 
       {/* Bar Charts: Browsers, OS, Devices */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">

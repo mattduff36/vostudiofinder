@@ -58,7 +58,7 @@ export function AboutCollapsible({
       {/* Studio Description */}
       {cleanedStudioDescription && (
         <div className="px-4 py-4 border-b border-gray-100">
-          <p className="text-xs !text-black !font-bold mb-2">Full Description</p>
+          <p className="text-xs !text-black !font-bold mb-2">Studio Description</p>
           <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
             {cleanedStudioDescription}
           </div>

@@ -811,10 +811,10 @@ export function ModernStudioProfileV3({ studio, previewMode = false, isAdminView
                     </div>
                   )}
 
-                  {/* Full Description Card */}
+                  {/* Studio Description Card */}
                   {cleanedStudioDescription && (
                     <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3 w-full">
-                      <h3 className="text-base !text-black !font-bold mb-2 mt-0">Full Description</h3>
+                      <h3 className="text-base !text-black !font-bold mb-2 mt-0">Studio Description</h3>
                       <div className="prose prose-gray max-w-none w-full">
                         <p className="text-gray-700 leading-relaxed whitespace-pre-line break-words w-full">
                           {cleanedStudioDescription}
