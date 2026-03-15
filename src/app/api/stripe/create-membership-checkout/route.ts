@@ -4,12 +4,21 @@ import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
 import { getBaseUrl } from '@/lib/seo/site';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-  apiVersion: '2025-10-29.clover',
-});
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeKey
+  ? new Stripe(stripeKey, { apiVersion: '2025-10-29.clover' })
+  : null;
 
 export async function POST(request: NextRequest) {
   try {
+    if (!stripe || !stripeKey) {
+      console.error('[CHECKOUT] STRIPE_SECRET_KEY is not configured');
+      return NextResponse.json(
+        { error: 'Payment system not configured: missing Stripe key' },
+        { status: 500 }
+      );
+    }
+
     const { email, name, username, userId, autoRenew } = await request.json();
 
     if (!email || !name) {
@@ -26,7 +35,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // CRITICAL: Verify email before creating checkout session
     console.log(`🔐 Verifying email for user: ${userId} (${email})`);
     
     const user = await db.users.findUnique({
