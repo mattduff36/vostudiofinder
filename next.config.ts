@@ -23,6 +23,10 @@ const gitCommitDateIso =
 const nextConfig: NextConfig = {
   /* config options here */
 
+  // Disable streamed metadata so crawlers and SEO tools always receive
+  // robots/canonical tags inside <head> on App Router routes.
+  htmlLimitedBots: /.*/,
+
   // Image optimization
   images: {
     remotePatterns: [

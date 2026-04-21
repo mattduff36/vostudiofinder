@@ -34,9 +34,10 @@ function buildRobotsMetadata(shouldIndex: boolean): Metadata['robots'] {
   };
 }
 
-function buildStudioNotFoundMetadata(): Metadata {
+function buildNonPublicProfileMetadata(title: string, description?: string): Metadata {
   return {
-    title: `Studio Not Found - ${SITE_NAME}`,
+    title,
+    ...(description ? { description } : {}),
     robots: buildRobotsMetadata(false),
   };
 }
@@ -121,7 +122,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   });
 
   if (!user) {
-    return buildStudioNotFoundMetadata();
+    notFound();
   }
 
   const baseUrl = getBaseUrl();
@@ -136,6 +137,10 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     const profileName = user.display_name?.trim() || canonicalUsername;
     const shouldIndexUserProfile = user.status === 'ACTIVE';
     const description = `${profileName} profile on ${SITE_NAME}.`;
+
+    if (!shouldIndexUserProfile) {
+      return buildNonPublicProfileMetadata(`${profileName} - ${SITE_NAME}`, description);
+    }
 
     return {
       title: `${profileName} - ${SITE_NAME}`,
@@ -158,7 +163,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   // Only index if profile is ACTIVE and visible to public
   const shouldIndex = studio.status === 'ACTIVE' && studio.is_profile_visible === true;
   if (!shouldIndex && !canPreviewPrivateStudio) {
-    return buildStudioNotFoundMetadata();
+    notFound();
   }
 
   // Construct the full page URL
@@ -198,6 +203,10 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     city: studio.city,
   });
 
+  if (!shouldIndex) {
+    return buildNonPublicProfileMetadata(metaTitle, seoDescription.substring(0, 160));
+  }
+
   const metadata: Metadata = {
     title: metaTitle,
     description: seoDescription.substring(0, 160),
@@ -205,7 +214,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     authors: [{ name: studio.name }],
     creator: studio.name,
     publisher: SITE_NAME,
-    robots: buildRobotsMetadata(shouldIndex),
+    robots: buildRobotsMetadata(true),
     alternates: {
       canonical: pageUrl,
     },

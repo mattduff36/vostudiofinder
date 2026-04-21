@@ -1,8 +1,14 @@
-'use client';
-
 import Image from 'next/image';
 import { PageHero } from '@/components/common/PageHero';
 import { Footer } from '@/components/home/Footer';
+import { buildPublicPageMetadata } from '@/lib/seo/metadata';
+
+export const metadata = buildPublicPageMetadata({
+  title: 'Privacy Policy - Voiceover Studio Finder',
+  description:
+    'Read how Voiceover Studio Finder collects, uses, and protects personal data, cookies, and analytics information.',
+  pathname: '/privacy',
+});
 
 export default function PrivacyPage() {
 

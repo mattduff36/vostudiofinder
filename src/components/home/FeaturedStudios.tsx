@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Star } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { cleanDescription } from '@/lib/utils/text';
@@ -31,7 +32,7 @@ interface Studio {
   studio_services?: Array<{ service: string }>;
   studio_images?: Array<{
     image_url: string;
-    alt_text?: string;
+    alt_text?: string | null;
   }>;
   _count?: {
     reviews: number;
@@ -39,8 +40,8 @@ interface Studio {
   is_verified?: boolean;
   owner?: {
     username: string;
-    display_name?: string;
-    avatar_url?: string;
+    display_name?: string | null;
+    avatar_url?: string | null;
   };
 }
 
@@ -142,12 +143,10 @@ export function FeaturedStudios({ studios, session }: FeaturedStudiosProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Real Studio Cards */}
-          {displayStudios.map((studio) => (
-              <div
-                key={studio.id}
-                onClick={() => window.location.href = `/${studio.owner?.username}`}
-                className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col h-full cursor-pointer group"
-              >
+          {displayStudios.map((studio) => {
+            const profileHref = studio.owner?.username ? `/${studio.owner.username}` : null;
+            const cardContent = (
+              <>
                 {/* Studio Image */}
                 <div className="aspect-[25/12] bg-gray-200 rounded-t-lg overflow-hidden relative">
                   {studio.studio_images?.[0]?.image_url ? (
@@ -301,8 +300,32 @@ export function FeaturedStudios({ studios, session }: FeaturedStudiosProps) {
                     </div>
                   </div>
                 </div>
+              </>
+            );
+
+            if (profileHref) {
+              return (
+                <Link
+                  key={studio.id}
+                  href={profileHref}
+                  aria-label={`View ${studio.name}`}
+                  prefetch={false}
+                  className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-primary-200 hover:scale-[1.02] transition-all duration-300 flex flex-col h-full cursor-pointer group"
+                >
+                  {cardContent}
+                </Link>
+              );
+            }
+
+            return (
+              <div
+                key={studio.id}
+                className="bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-300 flex flex-col h-full"
+              >
+                {cardContent}
               </div>
-          ))}
+            );
+          })}
           
           {/* Placeholder Cards */}
           {placeholders.map((_, index) => (
@@ -351,13 +374,13 @@ export function FeaturedStudios({ studios, session }: FeaturedStudiosProps) {
 
         {/* View All Studios Button */}
         <div className="text-center mt-8 sm:mt-10 md:mt-12">
-          <button 
-            onClick={() => router.push('/studios')}
+          <Link 
+            href="/studios"
             className="px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-medium rounded-lg transition-all duration-300 hover:shadow-lg" 
             style={{ border: `1px solid ${colors.primary}`, color: colors.primary, backgroundColor: 'transparent' }}
           >
             View All Studios
-          </button>
+          </Link>
         </div>
         </div>
       </div>

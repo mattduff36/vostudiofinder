@@ -1,8 +1,14 @@
-'use client';
-
 import Image from 'next/image';
 import { PageHero } from '@/components/common/PageHero';
 import { Footer } from '@/components/home/Footer';
+import { buildPublicPageMetadata } from '@/lib/seo/metadata';
+
+export const metadata = buildPublicPageMetadata({
+  title: 'About Voiceover Studio Finder',
+  description:
+    'Learn how Voiceover Studio Finder helps voice artists, podcasters, and producers discover professional recording studios worldwide.',
+  pathname: '/about',
+});
 
 export default function AboutPage() {
 

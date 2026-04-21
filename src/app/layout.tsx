@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono, Raleway } from 'next/font/google';
 import { getServerSession } from 'next-auth';
 import { cookies } from 'next/headers';
@@ -66,6 +66,14 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -85,19 +93,13 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover"
-        />
+      <body className={`${geistSans.variable} ${geistMono.variable} ${raleway.variable} antialiased`}>
         {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
           <Script
             src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
             strategy="beforeInteractive"
           />
         )}
-      </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${raleway.variable} antialiased`}>
         <SessionProvider session={session}>
           <LoadingProvider>
             <ToastProvider />

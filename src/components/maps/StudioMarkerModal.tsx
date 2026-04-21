@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import { colors } from '@/components/home/HomePage';
 
@@ -11,11 +12,11 @@ interface StudioMarkerModalProps {
     name: string;
     users?: {
       username: string;
-      avatar_url?: string;
+      avatar_url?: string | null;
     };
     studio_images?: Array<{
       image_url: string;
-      alt_text?: string;
+      alt_text?: string | null;
     }>;
   };
   position: {
@@ -27,6 +28,7 @@ interface StudioMarkerModalProps {
 
 export function StudioMarkerModal({ studio, position, onClose }: StudioMarkerModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const profileHref = studio.users?.username ? `/${studio.users.username}` : null;
 
   // Handle click outside to close
   useEffect(() => {
@@ -72,18 +74,6 @@ export function StudioMarkerModal({ studio, position, onClose }: StudioMarkerMod
     };
   }, [onClose]);
 
-  const handleModalClick = (e: React.MouseEvent) => {
-    // Don't navigate if clicking the close button
-    if ((e.target as HTMLElement).closest('button')) {
-      return;
-    }
-    
-    if (studio.users?.username) {
-      window.open(`/${studio.users.username}`, '_blank', 'noopener,noreferrer');
-      onClose(); // Close modal after opening profile
-    }
-  };
-
   const handleCloseClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClose();
@@ -98,11 +88,10 @@ export function StudioMarkerModal({ studio, position, onClose }: StudioMarkerMod
         top: `${position.y}px`,
         transform: 'translate(-50%, -100%) translateY(-12px)', // Position above the marker
       }}
-      onClick={handleModalClick}
     >
-      <div 
+      <div
         className="bg-white rounded-lg shadow-xl border-2 hover:shadow-2xl transition-all duration-200"
-        style={{ 
+        style={{
           borderColor: colors.primary,
           maxWidth: '300px',
           maxHeight: '100px',
@@ -118,37 +107,73 @@ export function StudioMarkerModal({ studio, position, onClose }: StudioMarkerMod
           <X className="w-3 h-3" style={{ color: colors.primary }} />
         </button>
 
-        {/* Content */}
-        <div className="flex items-center gap-3 p-3">
-          {/* Avatar/Thumbnail */}
-          <div className="flex-shrink-0">
-            <div 
-              className="bg-gray-200 rounded-md overflow-hidden"
-              style={{ width: '40px', height: '40px' }}
-            >
-              <Image
-                src={studio.users?.avatar_url || studio.studio_images?.[0]?.image_url || '/favicon_transparent/android-chrome-192x192.png'}
-                alt={studio.users?.avatar_url ? `${studio.name} avatar` : studio.studio_images?.[0]?.alt_text || studio.name}
-                width={40}
-                height={40}
-                className="object-cover w-full h-full"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/favicon_transparent/android-chrome-192x192.png';
-                }}
-              />
+        {profileHref ? (
+          <Link
+            href={profileHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            prefetch={false}
+            aria-label={`View ${studio.name}`}
+            className="flex items-center gap-3 p-3 cursor-pointer"
+            onClick={onClose}
+          >
+            <div className="flex-shrink-0">
+              <div
+                className="bg-gray-200 rounded-md overflow-hidden"
+                style={{ width: '40px', height: '40px' }}
+              >
+                <Image
+                  src={studio.users?.avatar_url || studio.studio_images?.[0]?.image_url || '/favicon_transparent/android-chrome-192x192.png'}
+                  alt={studio.users?.avatar_url ? `${studio.name} avatar` : studio.studio_images?.[0]?.alt_text || studio.name}
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/favicon_transparent/android-chrome-192x192.png';
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0 pr-4">
+              <h3
+                className="font-semibold text-sm truncate"
+                style={{ color: colors.textPrimary }}
+              >
+                {studio.name}
+              </h3>
+            </div>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3 p-3">
+            <div className="flex-shrink-0">
+              <div
+                className="bg-gray-200 rounded-md overflow-hidden"
+                style={{ width: '40px', height: '40px' }}
+              >
+                <Image
+                  src={studio.users?.avatar_url || studio.studio_images?.[0]?.image_url || '/favicon_transparent/android-chrome-192x192.png'}
+                  alt={studio.users?.avatar_url ? `${studio.name} avatar` : studio.studio_images?.[0]?.alt_text || studio.name}
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/favicon_transparent/android-chrome-192x192.png';
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0 pr-4">
+              <h3
+                className="font-semibold text-sm truncate"
+                style={{ color: colors.textPrimary }}
+              >
+                {studio.name}
+              </h3>
             </div>
           </div>
-
-          {/* Studio name */}
-          <div className="flex-1 min-w-0 pr-4">
-            <h3 
-              className="font-semibold text-sm truncate"
-              style={{ color: colors.textPrimary }}
-            >
-              {studio.name}
-            </h3>
-          </div>
-        </div>
+        )}
 
         {/* Pointer arrow */}
         <div 

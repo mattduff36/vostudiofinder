@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SearchFilters } from './SearchFilters';
 import { StudiosList } from './StudiosList';
@@ -17,72 +18,35 @@ import { Button } from '@/components/ui/Button';
 import { showWarning } from '@/lib/toast';
 import { formatStudioTypeLabel } from '@/lib/utils/studio-types';
 import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
+import type { StudioSearchResponse, StudioSearchStudio } from '@/components/search/studios-page-types';
 
-interface Studio {
-  id: string;
-  name: string;
-  description: string;
-  studio_studio_types: Array<{ studio_type: string }>;
-  address: string;
-  city?: string;
-  website_url?: string;
-  phone?: string;
-  is_premium: boolean;
-  is_verified: boolean;
-  latitude?: number;
-  longitude?: number;
-  owner?: {
-    id: string;
-    display_name: string;
-    username: string;
-    avatar_url?: string;
-  };
-  studio_services: Array<{ service: string }>;
-  studio_images: Array<{ image_url: string; alt_text?: string }>;
-  _count: { reviews: number };
+interface StudiosPageProps {
+  initialSearchResponse?: StudioSearchResponse | null;
+  initialSeed?: number | undefined;
+  initialPage?: number;
 }
 
-interface SearchResponse {
-  studios: Studio[];
-  mapMarkers?: Array<{
-    id: string;
-    name: string;
-    latitude: number | null;
-    longitude: number | null;
-    show_exact_location: boolean;
-    studio_studio_types: Array<{ studio_type: string }>;
-    is_verified: boolean;
-    users?: {
-      username?: string | null;
-      avatar_url?: string | null;
-    };
-    studio_images?: Array<{ image_url: string; alt_text?: string }>;
-  }>;
-  pagination: {
-    page: number;
-    limit: number;
-    offset: number;
-    totalCount: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-    hasMore?: boolean; // New flag for load-more pattern
-  };
-  filters: {
-    query?: string;
-    location?: string;
-    studioTypes?: string[];
-    services?: string[];
-  };
-  searchCoordinates?: { lat: number; lng: number } | null;
-  searchRadius?: number | null;
+function buildStudiosBrowseHref(pageNumber: number): string {
+  return pageNumber <= 1 ? '/studios' : `/studios?page=${pageNumber}`;
 }
 
-export function StudiosPage() {
+function getVisibleBrowsePages(currentPage: number, totalPages: number): number[] {
+  const windowSize = 5;
+  const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - windowSize + 1));
+  const endPage = Math.min(totalPages, startPage + windowSize - 1);
+
+  return Array.from({ length: endPage - startPage + 1 }, (_value, index) => startPage + index);
+}
+
+export function StudiosPage({
+  initialSearchResponse = null,
+  initialSeed,
+  initialPage = 1,
+}: StudiosPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [searchResults, setSearchResults] = useState<StudioSearchResponse | null>(initialSearchResponse);
+  const [loading, setLoading] = useState(!initialSearchResponse);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
   const [viewedStudioIds, setViewedStudioIds] = useState<string[]>([]); // Track viewing history
@@ -103,7 +67,7 @@ export function StudiosPage() {
   
   // Stable seed for deterministic studio shuffle ordering across paginated requests.
   // Generated once on mount so that initial load and "Load More" get the same ordering.
-  const shuffleSeedRef = useRef(Math.floor(Math.random() * 2147483647));
+  const shuffleSeedRef = useRef(initialSeed ?? Math.floor(Math.random() * 2147483647));
 
   // Check if we're on mobile viewport
   useEffect(() => {
@@ -175,6 +139,20 @@ export function StudiosPage() {
       return { dynamicH1Text: `Studios Available in ${location}`, dynamicH2Text: defaultH2 };
     }
     return { dynamicH1Text: 'Studios Available Worldwide', dynamicH2Text: defaultH2 };
+  }, [searchParams]);
+
+  const currentBrowsePage = useMemo(() => {
+    const rawPage = Number.parseInt(searchParams.get('page') || '1', 10);
+    return Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+  }, [searchParams]);
+
+  const isDefaultBrowseMode = useMemo(() => {
+    const activeKeys = Array.from(new Set(Array.from(searchParams.keys()))).filter(key => {
+      const value = searchParams.get(key);
+      return typeof value === 'string' && value.length > 0;
+    });
+
+    return activeKeys.every(key => key === 'page');
   }, [searchParams]);
 
   // Function to close the modal
@@ -371,6 +349,53 @@ export function StudiosPage() {
       }));
   }, [searchResults, handleMarkerClick]);
 
+  const mobileMapMarkers = useMemo(() => {
+    if (!searchResults) return [];
+
+    if (searchResults.mapMarkers) {
+      return searchResults.mapMarkers.map(marker => {
+        const { studio_images, ...restMarker } = marker;
+
+        return {
+          ...restMarker,
+          ...(studio_images
+          ? {
+              studio_images: studio_images.map(image => ({
+                image_url: image.image_url,
+                ...(image.alt_text ? { alt_text: image.alt_text } : {}),
+              })),
+            }
+          : {}),
+        };
+      });
+    }
+
+    return searchResults.studios.map(studio => ({
+      id: studio.id,
+      name: studio.name,
+      latitude: studio.latitude ?? null,
+      longitude: studio.longitude ?? null,
+      studio_studio_types: studio.studio_studio_types,
+      is_verified: studio.is_verified,
+      ...(studio.owner
+        ? {
+            users: {
+              username: studio.owner.username,
+              ...(studio.owner.avatar_url ? { avatar_url: studio.owner.avatar_url } : {}),
+            },
+          }
+        : {}),
+      ...(studio.studio_images.length > 0
+        ? {
+            studio_images: studio.studio_images.map(image => ({
+              image_url: image.image_url,
+              ...(image.alt_text ? { alt_text: image.alt_text } : {}),
+            })),
+          }
+        : {}),
+    }));
+  }, [searchResults]);
+
   // Count visible markers on the map (for showing/hiding Filter by Map Area button)
   const visibleMarkerCount = useMemo(() => {
     if (!mapBounds || !memoizedMarkers.length) return memoizedMarkers.length;
@@ -404,7 +429,7 @@ export function StudiosPage() {
   }, [searchResults?.mapMarkers]);
 
   // Studios filtered by map area - fetched separately
-  const [mapAreaStudios, setMapAreaStudios] = useState<Studio[]>([]);
+  const [mapAreaStudios, setMapAreaStudios] = useState<StudioSearchStudio[]>([]);
   const [loadingMapArea, setLoadingMapArea] = useState(false);
 
   // Fetch studios by their IDs when filtering by map area
@@ -471,7 +496,7 @@ export function StudiosPage() {
     if (!searchResults) return [];
     
     // When filtering by map area, use the fetched map area studios
-    let studiosForGrid: Studio[];
+    let studiosForGrid: StudioSearchStudio[];
     
     if (isFilteringByMapArea && mapAreaStudios.length > 0) {
       logger.log(`🗺️ Using ${mapAreaStudios.length} studios from map area filter`);
@@ -487,8 +512,8 @@ export function StudiosPage() {
     }
     
     // Separate viewed and not-viewed studios
-    const viewedStudios: Studio[] = [];
-    const otherStudios: Studio[] = [];
+    const viewedStudios: StudioSearchStudio[] = [];
+    const otherStudios: StudioSearchStudio[] = [];
     
     studiosForGrid.forEach(studio => {
       if (viewedStudioIds.includes(studio.id)) {
@@ -511,6 +536,17 @@ export function StudiosPage() {
 
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
 
+  useEffect(() => {
+    if (initialSearchResponse) {
+      setSearchResults(initialSearchResponse);
+      setLoading(false);
+      return;
+    }
+
+    setSearchResults(null);
+    setLoading(true);
+  }, [initialSearchResponse]);
+
   // Auto-clear map-area filtering when returning to Map tab on mobile
   useEffect(() => {
     if (mobileView === 'map' && isFilteringByMapArea) {
@@ -525,8 +561,11 @@ export function StudiosPage() {
   const performSearch = async (params: URLSearchParams, resetOffset: boolean = true) => {
     setLoading(true);
     if (resetOffset) {
-      params.set('offset', '0');
-      params.set('limit', '30'); // Initial load: 30 studios
+      const requestedPage = Number.parseInt(params.get('page') || '1', 10);
+      const normalizedPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+      const defaultLimit = 30;
+      params.set('limit', defaultLimit.toString());
+      params.set('offset', ((normalizedPage - 1) * defaultLimit).toString());
     }
     // Pass shuffle seed for deterministic ordering across paginated requests
     params.set('seed', shuffleSeedRef.current.toString());
@@ -576,7 +615,7 @@ export function StudiosPage() {
           if (!prev) return data;
           // Deduplicate: filter out any studios already in the list (safety net)
           const existingIds = new Set(prev.studios.map(s => s.id));
-          const newStudios = data.studios.filter((s: Studio) => !existingIds.has(s.id));
+          const newStudios = data.studios.filter((studio: StudioSearchStudio) => !existingIds.has(studio.id));
           return {
             ...data,
             studios: [...prev.studios, ...newStudios],
@@ -594,9 +633,13 @@ export function StudiosPage() {
 
   // Initial search on component mount
   useEffect(() => {
+    if (initialSearchResponse && isDefaultBrowseMode && currentBrowsePage === initialPage) {
+      return;
+    }
+
     const params = new URLSearchParams(searchParams.toString());
     performSearch(params);
-  }, [searchParams.toString()]);
+  }, [searchParams.toString(), initialSearchResponse, isDefaultBrowseMode, currentBrowsePage, initialPage]);
 
 
   // Clear selection and viewing history when search parameters change (new search from URL)
@@ -1000,7 +1043,7 @@ export function StudiosPage() {
                 {/* Mobile: Map - Only show on Map View tab */}
                 {mobileView === 'map' && (
                   <MapCollapsible
-                      markers={searchResults.mapMarkers || searchResults.studios}
+                      markers={mobileMapMarkers}
                       center={searchResults.searchCoordinates 
                         ? { lat: searchResults.searchCoordinates.lat, lng: searchResults.searchCoordinates.lng }
                         : { lat: 20, lng: 0 }
@@ -1063,7 +1106,58 @@ export function StudiosPage() {
                     pagination={searchResults.pagination}
                     onLoadMore={loadMore}
                     loadingMore={loadingMore}
+                    showLoadMore={!isDefaultBrowseMode}
                   />
+
+                  {isDefaultBrowseMode && searchResults.pagination.totalPages > 1 && (
+                    <nav className="mt-8 flex flex-col gap-4 items-center" aria-label="Browse studio pages">
+                      <div className="flex items-center gap-2 text-sm">
+                        {searchResults.pagination.hasPrevPage ? (
+                          <Link
+                            href={buildStudiosBrowseHref(currentBrowsePage - 1)}
+                            className="px-3 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                            prefetch={false}
+                          >
+                            Previous
+                          </Link>
+                        ) : (
+                          <span className="px-3 py-2 rounded-md border border-gray-200 text-gray-400">
+                            Previous
+                          </span>
+                        )}
+
+                        {getVisibleBrowsePages(currentBrowsePage, searchResults.pagination.totalPages).map(pageNumber => (
+                          <Link
+                            key={pageNumber}
+                            href={buildStudiosBrowseHref(pageNumber)}
+                            aria-current={pageNumber === currentBrowsePage ? 'page' : undefined}
+                            className={`px-3 py-2 rounded-md border text-sm ${
+                              pageNumber === currentBrowsePage
+                                ? 'border-red-600 bg-red-50 text-red-700'
+                                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                            }`}
+                            prefetch={false}
+                          >
+                            {pageNumber}
+                          </Link>
+                        ))}
+
+                        {searchResults.pagination.hasNextPage ? (
+                          <Link
+                            href={buildStudiosBrowseHref(currentBrowsePage + 1)}
+                            className="px-3 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                            prefetch={false}
+                          >
+                            Next
+                          </Link>
+                        ) : (
+                          <span className="px-3 py-2 rounded-md border border-gray-200 text-gray-400">
+                            Next
+                          </span>
+                        )}
+                      </div>
+                    </nav>
+                  )}
                 </div>
               </div>
             ) : (

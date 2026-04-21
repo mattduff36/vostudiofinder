@@ -1,10 +1,10 @@
-import { Metadata } from 'next';
 import AdminGuard from '@/components/admin/AdminGuard';
+import { buildNoIndexMetadata } from '@/lib/seo/metadata';
 
-export const metadata: Metadata = {
+export const metadata = buildNoIndexMetadata({
   title: 'Admin Dashboard - Voiceover Studio Finder',
-  description: 'Administrative interface for Voiceover Studio Finder',
-};
+  description: 'Administrative interface for Voiceover Studio Finder.',
+});
 
 export default function AdminLayout({
   children,

@@ -1,8 +1,14 @@
-'use client';
-
 import Image from 'next/image';
 import { PageHero } from '@/components/common/PageHero';
 import { Footer } from '@/components/home/Footer';
+import { buildPublicPageMetadata } from '@/lib/seo/metadata';
+
+export const metadata = buildPublicPageMetadata({
+  title: 'Terms and Conditions - Voiceover Studio Finder',
+  description:
+    'Review the terms and conditions for using Voiceover Studio Finder, including listing responsibilities and platform limitations.',
+  pathname: '/terms',
+});
 
 export default function TermsPage() {
 
