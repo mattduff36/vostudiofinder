@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       'is_verified': { is_verified: sortOrder },
       'is_featured': { is_featured: sortOrder },
       'admin_review': { admin_review: sortOrder },
-      'last_login': { users: { last_login: sortOrder } },
+      'last_login': { users: { last_login: { sort: sortOrder, nulls: 'last' } } },
       'profile_completion': { updated_at: sortOrder }, // Will sort on client after calculation
     };
 

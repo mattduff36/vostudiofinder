@@ -76,6 +76,10 @@ dev.log
 # Email template testing
 .email-test-output/
 
+# Search Console OAuth + exports
+.cache/search-console/
+reports/search-console/
+
 # Prisma
 prisma/*.backup
 
