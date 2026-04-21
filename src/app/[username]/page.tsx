@@ -12,6 +12,35 @@ interface UsernamePageProps {
   params: Promise<{ username: string }>;
 }
 
+function getPrimaryRelationItem<T>(relation: T | T[] | null | undefined): T | null {
+  if (Array.isArray(relation)) {
+    return relation[0] ?? null;
+  }
+
+  return relation ?? null;
+}
+
+function buildRobotsMetadata(shouldIndex: boolean): Metadata['robots'] {
+  return {
+    index: shouldIndex,
+    follow: shouldIndex,
+    googleBot: {
+      index: shouldIndex,
+      follow: shouldIndex,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  };
+}
+
+function buildStudioNotFoundMetadata(): Metadata {
+  return {
+    title: `Studio Not Found - ${SITE_NAME}`,
+    robots: buildRobotsMetadata(false),
+  };
+}
+
 // Generate static params for all active studio profiles with visible profiles
 // Falls back to on-demand rendering if database is unavailable during build
 export async function generateStaticParams() {
@@ -44,14 +73,17 @@ export const revalidate = 3600;
 export async function generateMetadata({ params }: UsernamePageProps): Promise<Metadata> {
   const { username: rawUsername } = await params;
   const username = rawUsername.trim();
+  const session = await getServerSession(authOptions);
   
   // Find user by username and get their studio profile data
   // Don't filter by status - let the main component handle permission checks
   const user = await db.users.findFirst({
     where: { username: { equals: username, mode: 'insensitive' } },
     select: {
+      id: true,
       username: true,
       display_name: true,
+      status: true,
       user_metadata: {
         where: { key: 'custom_meta_title' },
         select: {
@@ -88,27 +120,36 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     },
   });
 
-  if (!user || !user.studio_profiles) {
-    return {
-      title: `Studio Not Found - ${SITE_NAME}`,
-      robots: {
-        index: false,
-        follow: false,
-      },
-    };
+  if (!user) {
+    return buildStudioNotFoundMetadata();
   }
 
-  // Extract first element since studio_profiles is a relation array (even with @unique constraint)
-  const studio = Array.isArray(user.studio_profiles)
-    ? user.studio_profiles[0]
-    : user.studio_profiles;
-  
+  const baseUrl = getBaseUrl();
+  const canonicalUsername = user.username ?? username;
+  const pageUrl = `${baseUrl}/${canonicalUsername}`;
+  const studio = getPrimaryRelationItem(user.studio_profiles);
+  const isOwner = session?.user?.id === user.id;
+  const isAdmin = session?.user?.role === 'ADMIN';
+  const canPreviewPrivateStudio = isOwner || isAdmin;
+
   if (!studio) {
+    const profileName = user.display_name?.trim() || canonicalUsername;
+    const shouldIndexUserProfile = user.status === 'ACTIVE';
+    const description = `${profileName} profile on ${SITE_NAME}.`;
+
     return {
-      title: `Studio Not Found - ${SITE_NAME}`,
-      robots: {
-        index: false,
-        follow: false,
+      title: `${profileName} - ${SITE_NAME}`,
+      description,
+      robots: buildRobotsMetadata(shouldIndexUserProfile),
+      alternates: {
+        canonical: pageUrl,
+      },
+      openGraph: {
+        title: `${profileName} - ${SITE_NAME}`,
+        description,
+        type: 'profile',
+        url: pageUrl,
+        siteName: SITE_NAME,
       },
     };
   }
@@ -116,12 +157,11 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   // Determine if profile should be indexed by search engines
   // Only index if profile is ACTIVE and visible to public
   const shouldIndex = studio.status === 'ACTIVE' && studio.is_profile_visible === true;
+  if (!shouldIndex && !canPreviewPrivateStudio) {
+    return buildStudioNotFoundMetadata();
+  }
 
   // Construct the full page URL
-  const baseUrl = getBaseUrl();
-  const canonicalUsername = user.username ?? username;
-  const pageUrl = `${baseUrl}/${canonicalUsername}`;
-
   // Use short_about if available, otherwise fall back to description
   const description = studio?.short_about || studio.description?.substring(0, 160) || `${studio.name} recording studio`;
 
@@ -165,17 +205,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     authors: [{ name: studio.name }],
     creator: studio.name,
     publisher: SITE_NAME,
-    robots: {
-      index: shouldIndex,
-      follow: shouldIndex,
-      googleBot: {
-        index: shouldIndex,
-        follow: shouldIndex,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
+    robots: buildRobotsMetadata(shouldIndex),
     alternates: {
       canonical: pageUrl,
     },
@@ -289,11 +319,10 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     redirect(`/${user.username}`);
   }
 
-  // If user has a studio profile, show it
-  // Extract first element since studio_profiles is a relation array (even with @unique constraint)
-  const studioProfile = Array.isArray(user.studio_profiles)
-    ? user.studio_profiles[0]
-    : user.studio_profiles;
+  const isOwner = session?.user?.id === user.id;
+  const isAdmin = session?.user?.role === 'ADMIN';
+  const canPreviewPrivateStudio = isOwner || isAdmin;
+  const studioProfile = getPrimaryRelationItem(user.studio_profiles);
   
   if (studioProfile) {
     const studio = studioProfile;
@@ -302,45 +331,8 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
       return <div>Studio not found</div>;
     }
 
-    // Check if viewer is the owner or an admin
-    const isOwner = session?.user?.id === user.id;
-    const isAdmin = session?.user?.role === 'ADMIN';
-
-    // If profile status is INACTIVE, only allow owner or admin to view
-    if (studio.status !== 'ACTIVE') {
-      if (!isOwner && !isAdmin) {
-        notFound();
-      }
-      // If owner or admin, continue to show profile in preview mode
-    }
-
-    // If profile is hidden, show the simplified user profile with hidden message
-    // UNLESS the viewer is the owner or an admin - then show full profile in preview mode
-    if (studio.is_profile_visible === false) {
-      // If the viewer is NOT the owner AND NOT an admin, show the hidden profile message
-      if (!isOwner && !isAdmin) {
-        // Serialize user data to avoid Decimal serialization issues
-        const serializedUser = {
-          ...user,
-          studio_profiles: {
-            ...studio,
-            status: studio.status,
-            is_profile_visible: studio.is_profile_visible,
-            latitude: studio.latitude ? Number(studio.latitude) : null,
-            longitude: studio.longitude ? Number(studio.longitude) : null,
-          }
-        };
-        
-        return (
-          <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              <EnhancedUserProfile user={serializedUser as any} isHidden={true} />
-            </div>
-          </div>
-        );
-      }
-      // If the viewer IS the owner or IS an admin, continue rendering the full profile
-      // with previewMode flag below
+    if ((studio.status !== 'ACTIVE' || studio.is_profile_visible === false) && !canPreviewPrivateStudio) {
+      notFound();
     }
 
     // Calculate average rating
