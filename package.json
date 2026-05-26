@@ -8,7 +8,7 @@
     "tmp": "^0.2.4",
     "tough-cookie": "^4.1.3",
     "lodash": "^4.18.1",
-    "lodash-es": "^4.17.23"
+    "lodash-es": "^4.18.1"
   },
   "scripts": {
     "dev": "next dev -p 4000",
