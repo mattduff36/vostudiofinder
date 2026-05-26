@@ -1070,10 +1070,11 @@ export default function AdminStudiosPage() {
                     {isColumnVisible('membershipExpires') && (
                       <th 
                         data-column="membershipExpires"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        title="Membership expiry date"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => handleSort('membership_expires_at')}
+                        title="Click to sort by membership expiry date"
                       >
-                        Membership Expires
+                        Membership Expires{getSortIcon('membership_expires_at')}
                       </th>
                     )}
                     {isColumnVisible('updated') && (

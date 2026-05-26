@@ -60,10 +60,10 @@ export async function GET(request: NextRequest) {
       orderBy = validSortFields[sortBy];
     }
 
-    // For profile_completion sorting, we need to fetch all studios first, then sort and paginate
-    const shouldFetchAll = sortBy === 'profile_completion';
+    // Calculated/derived fields need to be sorted after serialization, before pagination.
+    const shouldFetchAll = sortBy === 'profile_completion' || sortBy === 'membership_expires_at';
     
-    // Get studio profiles with pagination (or all if sorting by profile_completion)
+    // Get studio profiles with pagination (or all if sorting by derived values)
     const [studios, total] = await Promise.all([
       db.studio_profiles.findMany({
         where,
@@ -234,7 +234,6 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Sort by profile completion if requested (since it's calculated, not in DB)
     if (sortBy === 'profile_completion') {
       serializedStudios.sort((a, b) => {
         const aCompletion = a.profile_completion || 0;
@@ -243,7 +242,24 @@ export async function GET(request: NextRequest) {
           ? aCompletion - bCompletion 
           : bCompletion - aCompletion;
       });
-      
+    }
+
+    if (sortBy === 'membership_expires_at') {
+      serializedStudios.sort((a, b) => {
+        if (!a.membership_expires_at && !b.membership_expires_at) return 0;
+        if (!a.membership_expires_at) return 1;
+        if (!b.membership_expires_at) return -1;
+
+        const aExpiresAt = new Date(a.membership_expires_at).getTime();
+        const bExpiresAt = new Date(b.membership_expires_at).getTime();
+
+        return sortOrder === 'asc'
+          ? aExpiresAt - bExpiresAt
+          : bExpiresAt - aExpiresAt;
+      });
+    }
+
+    if (shouldFetchAll) {
       // Now apply pagination to the sorted results
       serializedStudios = serializedStudios.slice(offset, offset + limit);
     }
