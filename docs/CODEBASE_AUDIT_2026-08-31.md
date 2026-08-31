@@ -4,7 +4,7 @@ Audit date: 31 August 2026
 
 ## Executive summary
 
-The application code is substantially newer than the documentation suggests. The dependency manifest already uses Next.js 16.2.6, React 19.2.3 and Prisma 6.16.3, while the root README still describes an older Next.js 15 / Prisma 6.15-era system and includes session-history material as if it were current reference documentation.
+The application code is substantially newer than the documentation suggests. After Phase 2D the dependency manifest uses Next.js 16.3.3 (August 2026 Active LTS security baseline; previously 16.2.6), React 19.2.3 and Prisma 6.16.3. The root README is now an index into canonical docs rather than a session-history dump.
 
 The strongest problem is therefore not simply an old application. It is **authority drift**: Cursor has no reliable way to distinguish current implementation truth from historical notes, private maintenance material, stale setup guides and an obsolete `.cursorrules` prompt-optimizer persona.
 
@@ -187,17 +187,50 @@ Refreshed `env.example` from live `process.env` usage, set Node 24 LTS as the su
 
 Docker build notes (packaging only): deps stage uses `npm ci --ignore-scripts` because `postinstall` runs `prisma generate` before the schema is copied; the builder generates the client. Page-data collection requires a non-empty `RESEND_API_KEY`; the Dockerfile supplies `re_build_placeholder` on the build command only (not stored as an image ENV). Sitemap generation already tolerates a missing database.
 
+## Phase 2D — Next.js security baseline (31 August 2026)
+
+Moved the framework from Next.js **16.2.6** to the official August 2026 Active LTS security release **16.3.3**. Official guidance: `https://nextjs.org/blog/august-2026-security-release`. That release addresses two CRITICAL issues:
+
+- `GHSA-2xp9-vwfh-vxw4` — unauthenticated RCE in Image Optimization when AVIF is processed (libheif / sharp). 16.3.3 disables AVIF optimization until an upstream fix is propagated.
+- `CVE-2026-75604` / `GHSA-p293-qw3h-jr36` — unauthenticated RCE on Windows-hosted servers. Linux/macOS hosts are not affected; the patch is still required for a complete 16.x baseline.
+
+`npm audit` on 16.2.6 did **not** clearly list those August advisories. It did report older Next.js HIGH/MODERATE issues patched before 16.2.11 (`GHSA-6gpp-xcg3-4w24`, `GHSA-m99w-x7hq-7vfj`, `GHSA-89xv-2m56-2m9x`, cache-confusion and related). 16.3.3 is past that range.
+
+16.3.4 existed on npm the same day as a follow-up that re-enables AVIF optimization. It was **not** installed: the official August advisory names 16.3.3, and newer patch versions were not assumed desirable. The health floor is `>= 16.3.3`, so a later deliberate 16.3.x bump can pass without changing the comparator unless a new required secure release appears.
+
+What changed: `next` `^16.2.6` → `^16.3.3` (lockfile 16.3.3) and the Next.js transitive graph (`@next/env`, `@next/swc-*`, `@swc/helpers` 0.5.23, Next-nested `sharp` 0.35.4, hoisted `postcss` 8.5.23). React/React DOM, Prisma, NextAuth, Stripe, membership, `next.config.ts` (including `output: 'standalone'` and `formats: ['image/webp', 'image/avif']`), middleware, and CI were not changed. Instant Navigations / `cacheComponents` / `partialPrefetching` were not enabled. `middleware.ts` → `proxy.ts` remains Phase 2E.
+
+`npm run health` now FAILs if declared or lockfile Next.js is below 16.3.3 (numeric semver; prereleases fail). The existing middleware/proxy WARN remains.
+
+No production deployment. No production database, Stripe, Resend, Neon, or Search Console calls were made as part of this phase.
+
+| Command | Result |
+|---|---|
+| `npm ci` | PASS against the updated lockfile. Prisma Client 6.19.2. |
+| Pre-update `npm audit` | 44 total (3 critical, 27 high, 12 moderate, 2 low). `next` HIGH (older <16.2.11 advisories). August CRITICAL Next advisories not mapped. Remaining criticals: Auth.js / `next-auth` / `@auth/core`. |
+| Post-update `npm audit` | 42 total (3 critical, 25 high, 12 moderate, 2 low). `next` no longer listed. Remaining criticals: Auth.js / `next-auth` / `@auth/core` / `@auth/prisma-adapter`. Remaining high-direct includes Prisma, top-level `sharp` 0.34.5, `nanoid`, `undici`, `@lhci/cli`, `broken-link-checker`. No `npm audit fix`. |
+| `npm run type-check` | PASS |
+| `npm run lint` | PASS (exit 0). 0 errors, 818 pre-existing warnings (unchanged). |
+| `npm run test:unit` | PASS: 7 suites, 148 tests. |
+| `npm run build` | PASS. Next.js 16.3.3 Turbopack. `.next/standalone/server.js` and `.next/static` generated. Middleware-deprecation warning unchanged. |
+| Docker `vostudiofinder:local-test` | PASS. Base `node:24-alpine` (runtime Node v24.20.0). Image Next.js 16.3.3. Standalone `server.js` copied. No `.env`, `.env.local`, `.env.production`, or private trees in the image. Image not pushed. |
+| Container smoke-start | PASS with **fake** env only on host port 4010. Next.js 16.3.3 reported Ready on `0.0.0.0:4000`. `GET /robots.txt` returned 200. `/api/health` was not called. Container removed after the check. Not a production deployment. |
+| `npm run health` (quick) | Overall **WARN**, exit 0. **PASS:** `next-security-baseline` (declared ^16.3.3, lockfile 16.3.3). **WARN:** `next-proxy-migration` still present. Other WARNs unchanged (CI, Prisma query logging, critical-path TODOs, large files). |
+| `npm run health:full` | Overall **WARN**, exit 0. type-check/lint/unit PASS (818 warnings, 148 tests). Build skipped unless `HEALTH_BUILD=1`. |
+| `git diff --check` | PASS (exit 0). CRLF/LF working-copy notices only. |
+
 ## Recommended work order
 
 1. Install this governance pack only.
 2. Run the new quick health audit and record baseline WARN items. **Done** (Phase 2A). Phase 2B repaired lint tooling, the geocoding unit assertion, integration-test classification, and `TEST_DATABASE_URL` safety. Remaining full-health WARNs are Priority 1 runtime/ops items, not verification-toolchain failures.
 3. Refresh `env.example` and environment documentation in a documentation/config-only workstream. **Done** (Phase 2C).
 4. Move Docker to Node 24 LTS and repair/verify standalone output as one deployment workstream. **Done** (Phase 2C). Docker image build/smoke-start evidence is in the Phase 2C section above.
-5. Migrate Next.js `middleware.ts` to `proxy.ts` with focused tests.
-6. Restore a current CI workflow after local checks are deterministic.
-7. Resolve Sentry runtime/operations intent.
-8. Triage high-risk payment/account TODOs individually.
-9. Plan Prisma and auth major upgrades separately. Do not combine them.
+5. Bring Next.js onto the August 2026 Active LTS security release. **Done** (Phase 2D): 16.2.6 → 16.3.3. `next-security-baseline` health check added. Middleware/proxy migration is still separate.
+6. Migrate Next.js `middleware.ts` to `proxy.ts` with focused tests.
+7. Restore a current CI workflow after local checks are deterministic.
+8. Resolve Sentry runtime/operations intent.
+9. Triage high-risk payment/account TODOs individually.
+10. Plan Prisma and auth major upgrades separately. Do not combine them.
 
 ## What the governance pack deliberately does not decide
 

@@ -5,7 +5,7 @@ Audit baseline: 31 August 2026
 
 ## Runtime
 
-- Next.js App Router application
+- Next.js App Router application (security baseline 16.3.3)
 - React + TypeScript
 - PostgreSQL through Prisma
 - NextAuth v4-era authentication integration
@@ -59,4 +59,4 @@ Server/domain helpers for auth, membership, subscriptions, Stripe, email, locati
 
 ## Known architecture drift
 
-See `CODEBASE_AUDIT_2026-08-31.md` for the audit backlog. Docker uses Node 24 LTS with Next.js `output: 'standalone'`. Remaining items include Next.js middleware deprecation, Prisma major-version lag, Sentry intent drift and disabled CI.
+See `CODEBASE_AUDIT_2026-08-31.md` for the audit backlog. Docker uses Node 24 LTS with Next.js `output: 'standalone'`. Next.js is on the August 2026 Active LTS security release 16.3.3. Remaining items include Next.js middleware deprecation (`middleware.ts` → `proxy.ts`), Prisma major-version lag, Sentry intent drift and disabled CI.

@@ -1,7 +1,7 @@
 # Security
 
 Status: canonical security engineering guide
-Last reviewed: 31 August 2026
+Last reviewed: 31 August 2026 (Phase 2D Next.js 16.3.3 security baseline)
 
 ## High-risk domains
 
@@ -45,3 +45,9 @@ Review `src/lib/db.ts` before relying on production logging policy: Prisma query
 ## Dependencies/runtimes
 
 Do not run production on unsupported runtimes. The supported Node major is 24 LTS (Docker `node:24-alpine`, `.nvmrc`). Node 25 is EOL and must not be used.
+
+The required Next.js security baseline is **16.3.3** (August 2026 Active LTS). That release addresses two CRITICAL issues: unauthenticated RCE while optimizing AVIF images (`GHSA-2xp9-vwfh-vxw4`) and unauthenticated RCE on Windows-hosted servers (`CVE-2026-75604` / `GHSA-p293-qw3h-jr36`). The previous in-repo baseline was 16.2.6. `npm run health` fails if the declared or lockfile Next.js version is below 16.3.3. Do not treat a later 16.3.x follow-up as automatically in-scope; bump the health floor only when a new required secure release is adopted.
+
+The patched 16.3.3 runtime disables AVIF image optimization until an upstream libheif fix is propagated. This repository still lists `image/avif` in `next.config.ts`; Next.js serves those files without the vulnerable optimizer. Instant Navigations / Cache Components were not enabled. Middleware-to-proxy migration remains a separate phase.
+
+Do not run `npm audit fix` or `npm audit fix --force` as a substitute for a scoped framework update. Remaining npm audit findings (Auth.js, Prisma, sharp top-level, tooling) are a separate backlog.

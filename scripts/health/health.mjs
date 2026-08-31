@@ -23,6 +23,31 @@ function run(cmd, args, label) {
   add(r.status === 0 ? 'PASS' : 'FAIL', 'verification', label, output.slice(-1200) || `exit ${r.status}`);
 }
 
+/** August 2026 Next.js Active-LTS security floor. Bump when a later required secure release ships. */
+const NEXT_MIN_SECURE = { major: 16, minor: 3, patch: 3 };
+
+function parseSemverCore(input) {
+  if (input == null) return null;
+  const m = String(input).match(/(\d+)\.(\d+)\.(\d+)/);
+  if (!m) return null;
+  return { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]) };
+}
+
+function semverGte(a, b) {
+  if (!a || !b) return false;
+  if (a.major !== b.major) return a.major > b.major;
+  if (a.minor !== b.minor) return a.minor > b.minor;
+  return a.patch >= b.patch;
+}
+
+function formatSemver(v) {
+  return v ? `${v.major}.${v.minor}.${v.patch}` : 'unknown';
+}
+
+function isPrereleaseSpec(input) {
+  return /-(?:canary|alpha|beta|rc|preview)\b/i.test(String(input || ''));
+}
+
 for (const tool of ['node', 'npm', 'git']) {
   add(commandExists(tool) ? 'PASS' : 'FAIL', 'tooling', `tool:${tool}`, commandExists(tool) ? 'available' : 'missing');
 }
@@ -82,6 +107,32 @@ if (exists('Dockerfile')) {
   if (docker.includes('.next/standalone')) {
     const standalone = exists('next.config.ts') && /output\s*:\s*['\"]standalone['\"]/.test(read('next.config.ts'));
     add(standalone ? 'PASS' : 'WARN', 'runtime', 'docker-standalone-contract', standalone ? 'next.config enables standalone' : 'Docker expects .next/standalone but next.config.ts does not visibly enable output: standalone');
+  }
+}
+
+{
+  const declaredSpec = pkg?.dependencies?.next;
+  let lockVersion = null;
+  if (exists('package-lock.json')) {
+    try {
+      lockVersion = JSON.parse(read('package-lock.json')).packages?.['node_modules/next']?.version || null;
+    } catch {
+      lockVersion = null;
+    }
+  }
+  const declared = parseSemverCore(declaredSpec);
+  const resolved = parseSemverCore(lockVersion);
+  const declaredOk = semverGte(declared, NEXT_MIN_SECURE);
+  const resolvedOk = lockVersion ? semverGte(resolved, NEXT_MIN_SECURE) : declaredOk;
+  const prerelease = isPrereleaseSpec(declaredSpec) || isPrereleaseSpec(lockVersion);
+  const minLabel = formatSemver(NEXT_MIN_SECURE);
+  const detail = `declared ${declaredSpec || 'missing'} (core ${formatSemver(declared)}); lockfile ${lockVersion || 'unknown'}; minimum secure baseline ${minLabel} (Next.js August 2026 Active LTS: GHSA-2xp9-vwfh-vxw4, CVE-2026-75604 / GHSA-p293-qw3h-jr36)`;
+  if (prerelease) {
+    add('FAIL', 'framework', 'next-security-baseline', `Next.js prerelease is not an allowed security baseline. ${detail}`);
+  } else if (!declaredOk || !resolvedOk) {
+    add('FAIL', 'framework', 'next-security-baseline', `Next.js is below the required secure release ${minLabel}. ${detail}`);
+  } else {
+    add('PASS', 'framework', 'next-security-baseline', detail);
   }
 }
 

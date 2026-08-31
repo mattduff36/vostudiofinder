@@ -1,7 +1,7 @@
 # Development
 
 Status: canonical engineering workflow
-Last reviewed: 31 August 2026
+Last reviewed: 31 August 2026 (Phase 2D Next.js 16.3.3 security baseline)
 
 ## Baseline commands
 
@@ -45,6 +45,8 @@ ESLint covers application/config JavaScript/TypeScript but currently ignores tes
 ## Dependencies
 
 Do not mix opportunistic dependency upgrades into feature/bugfix work. Runtime/framework/auth/database upgrades should be scoped separately with release notes and compatibility checks.
+
+The current Next.js security baseline is **16.3.3** (declared `^16.3.3`, lockfile 16.3.3). React remains `^19.2.3` (lockfile 19.2.4). There is no `eslint-config-next` package in this repo. `legacy-peer-deps=true` in `.npmrc` is a pre-existing install setting, not a new workaround from the 16.3.3 update.
 
 ## Data/auth/payments
 

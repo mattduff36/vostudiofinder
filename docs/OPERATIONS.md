@@ -1,7 +1,7 @@
 # Operations
 
 Status: canonical operational safety guide
-Last reviewed: 31 August 2026
+Last reviewed: 31 August 2026 (Phase 2D Next.js 16.3.3 security baseline)
 
 ## Environments
 
@@ -12,6 +12,7 @@ Treat local development, preview/staging and production as distinct systems. Ide
 Vercel is the current primary production host (`vercel.json`). Docker is a secondary packaging path for self-hosting.
 
 - Docker base image: `node:24-alpine` (builder and runner).
+- Next.js security baseline is **16.3.3** (August 2026 Active LTS). Confirm the image/lockfile version after any framework change.
 - Next.js `output: 'standalone'` produces `.next/standalone` plus `.next/static`; the Dockerfile copies both (and `public/`) into the runtime image.
 - A successful `npm run build` on a developer machine is not proof that the Docker image builds. Build a local test tag to verify packaging.
 - Deps stage runs `npm ci --ignore-scripts` because `postinstall` would otherwise generate Prisma before the schema is copied. The builder runs `prisma generate`.
