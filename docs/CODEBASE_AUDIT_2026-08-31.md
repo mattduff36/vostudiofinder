@@ -60,9 +60,9 @@ Reference: Node.js release schedule, `https://nodejs.org/en/about/previous-relea
 
 The Docker runner copies `/app/.next/standalone`, but `next.config.ts` does not set `output: 'standalone'`. This should be reproduced and fixed as a focused deployment task rather than silently changed in the governance installation.
 
-### 8. Next.js 16 deprecates `middleware.ts`
+### 8. Next.js 16 `middleware.ts` → `proxy.ts` — **done** (Phase 2E)
 
-The project still uses `src/middleware.ts`. Next.js 16 renamed this convention to `proxy.ts` and deprecated the middleware filename. A focused migration should preserve the current query-sanitization/redirect behaviour and test it before deployment.
+Migrated `src/middleware.ts` to `src/proxy.ts` (`export function proxy`) while preserving query sanitisation, 301 redirects, exclusions, and the matcher. `next.config.ts` had no Middleware-specific flags to rename. Focused unit tests: `tests/unit/proxy.test.ts`. `npm run health` PASSes `next-proxy-migration` when `src/proxy.ts` exists and `src/middleware.ts` is absent.
 
 Reference: `https://nextjs.org/docs/app/guides/upgrading/version-16`
 
@@ -219,6 +219,32 @@ No production deployment. No production database, Stripe, Resend, Neon, or Searc
 | `npm run health:full` | Overall **WARN**, exit 0. type-check/lint/unit PASS (818 warnings, 148 tests). Build skipped unless `HEALTH_BUILD=1`. |
 | `git diff --check` | PASS (exit 0). CRLF/LF working-copy notices only. |
 
+## Phase 2E — Next.js middleware → proxy (31 August 2026)
+
+Migrated the deprecated Next.js `middleware.ts` convention to the supported Next.js 16 `proxy.ts` convention. Behaviour preserved: URL/query sanitisation and canonical 301 redirects only. Not authentication, membership, payments, or database access. No Next.js config Middleware-specific flags existed, so `next.config.ts` was not changed. No dependency upgrade.
+
+Runtime source change: `src/middleware.ts` → `src/proxy.ts` and `export function middleware` → `export function proxy`. Matcher, excluded prefixes, `/studios` whitelist, toxic-key rules, numeric validation, decode-on-toxic-check, and 301 status were left intact.
+
+Focused regression tests: `tests/unit/proxy.test.ts` (matcher via Next 16.3.3 `unstable_doesMiddlewareMatch`; redirect inspection via `getRedirectUrl`). `unstable_doesProxyMatch` is not exported by 16.3.3.
+
+Health check `next-proxy-migration` now PASSes when `src/proxy.ts` exists and `src/middleware.ts` does not; it FAILs if the deprecated file returns, both files exist, or neither convention is present.
+
+No production deployment. No production database, Stripe, Resend, Neon, or Search Console calls were made as part of this phase. Nothing was pushed.
+
+| Command | Result |
+|---|---|
+| `npm ci` | PASS against the existing lockfile. Prisma Client 6.19.2. `npm audit` 42 vulnerabilities (unchanged from Phase 2D); not treated as in-scope. No dependency upgrade. |
+| `npm run type-check` | PASS |
+| `npm run lint` | PASS (exit 0). 0 errors, 818 pre-existing warnings (unchanged). |
+| Focused Proxy tests | PASS: `tests/unit/proxy.test.ts` — 1 suite, 23 tests (matcher + query sanitisation). |
+| `npm run test:unit` | PASS: 8 suites, 171 tests (was 7/148; +23 Proxy tests). |
+| `npm run build` | PASS. Next.js 16.3.3 Turbopack. `.next/standalone/server.js` and `.next/static` generated. Route table lists `ƒ Proxy (Middleware)`. The deprecated Middleware-file warning is gone. |
+| Docker `vostudiofinder:local-test` | PASS. Base `node:24-alpine` (runtime Node v24.20.0). Image Next.js 16.3.3. Standalone `server.js` copied. Image not pushed. |
+| Container smoke-start | PASS with **fake** env only on host port 4010. Next.js 16.3.3 reported Ready on `0.0.0.0:4000`. `GET /robots.txt` returned 200. `GET /about?foo=bar` returned **301** `Location: /about`. `GET /blog?utm_source=test` returned **301** `Location: /blog`. Redirects were not followed. `/api/health` was not called. Container removed after the check. Not a production deployment. |
+| `npm run health` (quick) | Overall **WARN**, exit 0. **PASS:** `next-proxy-migration`. Remaining WARNs: disabled CI, Prisma query logging, critical-path TODOs, large source files. |
+| `npm run health:full` | Overall **WARN**, exit 0. type-check/lint/unit PASS (818 warnings, 171 tests). `next-proxy-migration` PASS. Build skipped unless `HEALTH_BUILD=1`. |
+| `git diff --check` | PASS (exit 0). CRLF/LF working-copy notices only. |
+
 ## Recommended work order
 
 1. Install this governance pack only.
@@ -226,7 +252,7 @@ No production deployment. No production database, Stripe, Resend, Neon, or Searc
 3. Refresh `env.example` and environment documentation in a documentation/config-only workstream. **Done** (Phase 2C).
 4. Move Docker to Node 24 LTS and repair/verify standalone output as one deployment workstream. **Done** (Phase 2C). Docker image build/smoke-start evidence is in the Phase 2C section above.
 5. Bring Next.js onto the August 2026 Active LTS security release. **Done** (Phase 2D): 16.2.6 → 16.3.3. `next-security-baseline` health check added. Middleware/proxy migration is still separate.
-6. Migrate Next.js `middleware.ts` to `proxy.ts` with focused tests.
+6. Migrate Next.js `middleware.ts` to `proxy.ts` with focused tests. **Done** (Phase 2E).
 7. Restore a current CI workflow after local checks are deterministic.
 8. Resolve Sentry runtime/operations intent.
 9. Triage high-risk payment/account TODOs individually.

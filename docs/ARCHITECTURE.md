@@ -48,6 +48,19 @@ Server/domain helpers for auth, membership, subscriptions, Stripe, email, locati
 - `src/lib/db.ts` — Prisma client lifecycle
 - `prisma/schema.prisma` — database model contract
 - `vercel.json` — deployment route headers/redirects and cron schedules
+- `src/proxy.ts` — Next.js 16 request-boundary file. URL/query sanitisation and canonical 301 redirects only; not authentication or membership gating
+
+## Request boundary (`src/proxy.ts`)
+
+Next.js 16 uses the `proxy.ts` file convention (migrated from deprecated `middleware.ts` in Phase 2E). The function sanitises inbound URLs:
+
+- Known static pages (`/`, `/about`, `/privacy`, `/terms`, `/help`, `/blog`) drop any query string via a 301 redirect.
+- `/studios` keeps an explicit search-parameter whitelist, rejects toxic keys/values and non-finite numeric values, and 301-redirects when the query is not already canonical.
+- Other matched non-excluded paths drop any query string via a 301 redirect.
+- Prefixes `/api`, `/admin`, `/dashboard`, `/auth`, `/_next`, `/private`, and `/email/unsubscribe` are passed through without query stripping.
+- The matcher continues to exclude Next static assets, the image optimizer, `favicon.ico`, `robots.txt`, `sitemap.xml`, and paths with a file extension.
+
+Proxy runs on Next.js's supported Node.js runtime. It does not import Prisma, NextAuth, Stripe, or Resend, and it does not fetch data. Focused unit tests live in `tests/unit/proxy.test.ts`.
 
 ## Data flow principles
 
@@ -59,4 +72,4 @@ Server/domain helpers for auth, membership, subscriptions, Stripe, email, locati
 
 ## Known architecture drift
 
-See `CODEBASE_AUDIT_2026-08-31.md` for the audit backlog. Docker uses Node 24 LTS with Next.js `output: 'standalone'`. Next.js is on the August 2026 Active LTS security release 16.3.3. Remaining items include Next.js middleware deprecation (`middleware.ts` → `proxy.ts`), Prisma major-version lag, Sentry intent drift and disabled CI.
+See `CODEBASE_AUDIT_2026-08-31.md` for the audit backlog. Docker uses Node 24 LTS with Next.js `output: 'standalone'`. Next.js is on the August 2026 Active LTS security release 16.3.3. The deprecated `middleware.ts` convention was migrated to `src/proxy.ts` in Phase 2E. Remaining items include Prisma major-version lag, Sentry intent drift and disabled CI.

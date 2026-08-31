@@ -84,7 +84,7 @@ function redirectWithSearch(request: NextRequest, search: string): NextResponse 
   return NextResponse.redirect(redirectUrl, 301);
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
   if (isExcludedPath(pathname)) {

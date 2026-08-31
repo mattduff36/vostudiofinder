@@ -11,9 +11,9 @@ Package scripts:
 
 ## Quick mode
 
-Checks project governance files, environment-contract drift (`env.example` vs `process.env` in `src/`, `scripts/`, and `next.config.ts`), Docker Node major (supported: 24 LTS), Docker/Next standalone contract, Next.js security baseline (declared `package.json` and lockfile resolved `next` must be semver `>= 16.3.3`, the August 2026 Active LTS floor; prereleases fail), Next 16 middleware/proxy drift, disabled CI, production query logging, high-risk TODOs, large-file advisory hotspots, obvious tracked sensitive paths and `git diff --check`.
+Checks project governance files, environment-contract drift (`env.example` vs `process.env` in `src/`, `scripts/`, and `next.config.ts`), Docker Node major (supported: 24 LTS), Docker/Next standalone contract, Next.js security baseline (declared `package.json` and lockfile resolved `next` must be semver `>= 16.3.3`, the August 2026 Active LTS floor; prereleases fail), Next 16 Proxy convention (`src/proxy.ts` present and deprecated `src/middleware.ts` absent), disabled CI, production query logging, high-risk TODOs, large-file advisory hotspots, obvious tracked sensitive paths and `git diff --check`.
 
-The Next.js floor is a numeric major/minor/patch comparison, not a string compare. Update `NEXT_MIN_SECURE` in `health.mjs` when a later required secure release is adopted. The middleware/proxy warning is independent and stays until that migration ships.
+The Next.js floor is a numeric major/minor/patch comparison, not a string compare. Update `NEXT_MIN_SECURE` in `health.mjs` when a later required secure release is adopted. The Proxy convention check PASSes when only `src/proxy.ts` exists and FAILs if `src/middleware.ts` returns, both files exist, or neither convention is present.
 
 WARN is informational and does not fail the command. FAIL indicates a structural/security verification problem and returns non-zero.
 

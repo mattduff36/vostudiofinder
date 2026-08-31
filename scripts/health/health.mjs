@@ -136,7 +136,19 @@ if (exists('Dockerfile')) {
   }
 }
 
-if (exists('src/middleware.ts') && pkg?.dependencies?.next) add('WARN', 'framework', 'next-proxy-migration', `src/middleware.ts exists with Next ${pkg.dependencies.next}; Next 16 deprecates the middleware filename in favour of proxy.`);
+{
+  const hasProxy = exists('src/proxy.ts');
+  const hasMiddleware = exists('src/middleware.ts');
+  if (hasProxy && !hasMiddleware) {
+    add('PASS', 'framework', 'next-proxy-migration', 'src/proxy.ts is the canonical Next.js request-boundary file; deprecated src/middleware.ts is absent.');
+  } else if (hasProxy && hasMiddleware) {
+    add('FAIL', 'framework', 'next-proxy-migration', 'Both src/proxy.ts and deprecated src/middleware.ts exist. Keep only src/proxy.ts.');
+  } else if (hasMiddleware) {
+    add('FAIL', 'framework', 'next-proxy-migration', 'src/middleware.ts exists without src/proxy.ts. Next.js 16 requires the proxy.ts convention.');
+  } else {
+    add('FAIL', 'framework', 'next-proxy-migration', 'Neither src/proxy.ts nor src/middleware.ts exists. Expected src/proxy.ts for URL/query sanitisation.');
+  }
+}
 if (exists('.github/workflows/ci.yml.disabled')) add('WARN', 'ci', 'github-ci', 'CI workflow is disabled.');
 
 if (exists('src/lib/db.ts') && /log\s*:\s*\[\s*['\"]query['\"]\s*\]/.test(read('src/lib/db.ts'))) add('WARN', 'operations', 'prisma-query-logging', 'Prisma query logging appears enabled globally. Review production logging intent.');

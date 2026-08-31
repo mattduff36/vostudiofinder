@@ -1,7 +1,7 @@
 # Testing
 
 Status: canonical verification guide
-Last reviewed: 31 August 2026
+Last reviewed: 31 August 2026 (Phase 2E Next.js proxy migration)
 
 ## Current tools
 
@@ -79,7 +79,9 @@ If a pre-existing test/lint/build failure exists, capture it as baseline evidenc
 
 Phase 2A (31 August 2026) recorded lint-tooling failure, one stale geocoding unit assertion, live-server HTTP tests misclassified as self-contained integration tests, and an enforcement fixture that predated BASIC/PREMIUM membership. Phase 2B repaired that verification toolchain. See `docs/CODEBASE_AUDIT_2026-08-31.md` for the dated command results.
 
-Remaining backlog after Phase 2C includes Next `middleware.ts` → `proxy.ts`, disabled CI, Prisma query logging, and high-risk payment/auth TODOs. Environment-example drift, Docker Node 25, and the Docker/standalone mismatch were addressed in Phase 2C.
+`tests/unit/proxy.test.ts` covers the Next.js Proxy matcher and URL/query sanitisation (static-page stripping, `/studios` whitelist, toxic/encoded values, excluded prefixes, 301 redirects). Those tests are class A and run under `npm run test:unit`.
+
+Remaining backlog after Phase 2E includes disabled CI, Prisma query logging, and high-risk payment/auth TODOs. Environment-example drift, Docker Node 25, the Docker/standalone mismatch, the Next.js 16.3.3 security baseline, and `middleware.ts` → `proxy.ts` were addressed in Phases 2C–2E.
 
 ## Do not weaken proof
 

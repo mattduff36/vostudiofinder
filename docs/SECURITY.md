@@ -1,7 +1,7 @@
 # Security
 
 Status: canonical security engineering guide
-Last reviewed: 31 August 2026 (Phase 2D Next.js 16.3.3 security baseline)
+Last reviewed: 31 August 2026 (Phase 2E Next.js proxy migration)
 
 ## High-risk domains
 
@@ -48,6 +48,8 @@ Do not run production on unsupported runtimes. The supported Node major is 24 LT
 
 The required Next.js security baseline is **16.3.3** (August 2026 Active LTS). That release addresses two CRITICAL issues: unauthenticated RCE while optimizing AVIF images (`GHSA-2xp9-vwfh-vxw4`) and unauthenticated RCE on Windows-hosted servers (`CVE-2026-75604` / `GHSA-p293-qw3h-jr36`). The previous in-repo baseline was 16.2.6. `npm run health` fails if the declared or lockfile Next.js version is below 16.3.3. Do not treat a later 16.3.x follow-up as automatically in-scope; bump the health floor only when a new required secure release is adopted.
 
-The patched 16.3.3 runtime disables AVIF image optimization until an upstream libheif fix is propagated. This repository still lists `image/avif` in `next.config.ts`; Next.js serves those files without the vulnerable optimizer. Instant Navigations / Cache Components were not enabled. Middleware-to-proxy migration remains a separate phase.
+The patched 16.3.3 runtime disables AVIF image optimization until an upstream libheif fix is propagated. This repository still lists `image/avif` in `next.config.ts`; Next.js serves those files without the vulnerable optimizer. Instant Navigations / Cache Components were not enabled.
+
+`src/proxy.ts` is the canonical Next.js request-boundary file (migrated from deprecated `middleware.ts`). It sanitises and canonicalises inbound URLs with 301 redirects. It is not authentication middleware: it does not check sessions, roles, or membership, and it does not touch payments or the database. Do not reintroduce `src/middleware.ts`.
 
 Do not run `npm audit fix` or `npm audit fix --force` as a substitute for a scoped framework update. Remaining npm audit findings (Auth.js, Prisma, sharp top-level, tooling) are a separate backlog.
