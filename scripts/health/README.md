@@ -11,7 +11,7 @@ Package scripts:
 
 ## Quick mode
 
-Checks project governance files, environment-contract drift, EOL Node 25 Docker pin, Docker standalone mismatch, Next 16 middleware/proxy drift, disabled CI, production query logging, high-risk TODOs, large-file advisory hotspots, obvious tracked sensitive paths and `git diff --check`.
+Checks project governance files, environment-contract drift (`env.example` vs `process.env` in `src/`, `scripts/`, and `next.config.ts`), Docker Node major (supported: 24 LTS), Docker/Next standalone contract, Next 16 middleware/proxy drift, disabled CI, production query logging, high-risk TODOs, large-file advisory hotspots, obvious tracked sensitive paths and `git diff --check`.
 
 WARN is informational and does not fail the command. FAIL indicates a structural/security verification problem and returns non-zero.
 

@@ -24,7 +24,7 @@ These documents remain useful where current code still supports the feature, but
 
 | File | Status |
 |------|--------|
-| `environment-setup.md` | Setup guide; env contract is stale vs current code/`env.example` |
+| `environment-setup.md` | Setup guide; non-canonical. Prefer `ENVIRONMENT.md` and `env.example` (Phase 2C). |
 | `deployment-guide.md` | Setup/ops checklist; references older go-live files and claims |
 | `database-safety-setup.md` | Still describes current safety scripts; written as a completion note |
 | `stripe-setup-guide.md` | Stripe configuration |

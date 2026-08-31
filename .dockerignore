@@ -1,17 +1,57 @@
-Dockerfile
-.dockerignore
-node_modules
-npm-debug.log
-README.md
-.env
-.env.local
-.env.production.local
-.env.local
-.env.development.local
-.env.test.local
-.vercel
-.next
+# VCS / editor
 .git
 .gitignore
+.cursor
+.vscode
+.idea
+*.code-workspace
+
+# Dependencies and build output
+node_modules
+.next
+out
+dist
+build
+.vercel
+.turbo
+*.tsbuildinfo
+
+# Secrets and local env (never bake into the image)
+.env
+.env.*
+!.env.example
+.env*.backup*
+
+# Private / local-only trees
+docs-private/
+scripts-private/
+project-archive/
+backup/
+backups/
+**/*.dump
+**/*.pem
+**/*.backup
+**/*.backup.*
+
+# Tests, reports, logs
+tests/
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+.lighthouseci/
+.email-test-output/
+reports/
+logs/
+*.log
+npm-debug.log*
+dev.log
+
+# Docs are not required to compile the image
 *.md
-tasks/
+AGENTS.md
+
+# Docker metadata (already available to the daemon)
+Dockerfile
+.dockerignore
+docker-compose.yml

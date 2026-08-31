@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22 <25"
+  },
   "description": "Modern platform for finding and connecting voiceover professionals with recording studios",
   "overrides": {
     "tmp": "^0.2.4",

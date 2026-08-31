@@ -17,7 +17,7 @@ Production web application for discovering voiceover/recording studios and manag
 
 ## Development
 
-Use the exact runtime/dependency versions supported by the current `package.json`/lockfile and deployment configuration.
+Supported Node.js major is **24 LTS**. See `docs/DEVELOPMENT.md` and `docs/ENVIRONMENT.md`.
 
 Typical local flow:
 

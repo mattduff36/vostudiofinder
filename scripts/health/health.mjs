@@ -75,8 +75,10 @@ add(missingEnv.length ? 'WARN' : 'PASS', 'config', 'env-contract', missingEnv.le
 if (exists('Dockerfile')) {
   const docker = read('Dockerfile');
   const m = docker.match(/FROM\s+node:(\d+)/);
-  if (m && Number(m[1]) === 25) add('WARN', 'runtime', 'docker-node', 'Dockerfile uses Node 25, which is EOL.');
-  else add('PASS', 'runtime', 'docker-node', m ? `Node ${m[1]}` : 'No node major detected');
+  const dockerMajor = m ? Number(m[1]) : null;
+  if (dockerMajor === 24) add('PASS', 'runtime', 'docker-node', 'Node 24 LTS');
+  else if (dockerMajor === 25) add('WARN', 'runtime', 'docker-node', 'Dockerfile uses Node 25, which is EOL. Supported baseline is Node 24 LTS.');
+  else add('WARN', 'runtime', 'docker-node', dockerMajor ? `Dockerfile uses Node ${dockerMajor}; supported baseline is Node 24 LTS.` : 'No node major detected');
   if (docker.includes('.next/standalone')) {
     const standalone = exists('next.config.ts') && /output\s*:\s*['\"]standalone['\"]/.test(read('next.config.ts'));
     add(standalone ? 'PASS' : 'WARN', 'runtime', 'docker-standalone-contract', standalone ? 'next.config enables standalone' : 'Docker expects .next/standalone but next.config.ts does not visibly enable output: standalone');

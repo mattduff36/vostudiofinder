@@ -9,9 +9,27 @@ Treat local development, preview/staging and production as distinct systems. Ide
 
 ## Deployment
 
-Vercel is the current primary deployment configuration in the repository. Docker files also exist and require a separate runtime refresh before they should be assumed healthy.
+Vercel is the current primary production host (`vercel.json`). Docker is a secondary packaging path for self-hosting.
+
+- Docker base image: `node:24-alpine` (builder and runner).
+- Next.js `output: 'standalone'` produces `.next/standalone` plus `.next/static`; the Dockerfile copies both (and `public/`) into the runtime image.
+- A successful `npm run build` on a developer machine is not proof that the Docker image builds. Build a local test tag to verify packaging.
+- Deps stage runs `npm ci --ignore-scripts` because `postinstall` would otherwise generate Prisma before the schema is copied. The builder runs `prisma generate`.
+- Next.js page-data collection requires a non-empty `RESEND_API_KEY`. The Dockerfile passes `re_build_placeholder` on the build command only; it is not stored as a runtime image ENV.
+- Do not bake `.env.local` or production credentials into the image. Supply runtime secrets at container start.
 
 Never deploy as an incidental completion step. Deployment requires explicit user intent.
+
+### Safe Docker image verification
+
+```bash
+docker build -t vostudiofinder:local-test .
+docker run --rm vostudiofinder:local-test node -v
+```
+
+A smoke-start may use **fake** environment values only. Do not pass production `DATABASE_URL`, Stripe, Resend, or Neon credentials. `/api/health` queries PostgreSQL; reaching `node server.js` listening on port 4000 is enough to prove the standalone entrypoint without contacting production systems.
+
+Do not claim a Docker **deployment** was tested if only the image was built or smoke-started locally.
 
 ## Database
 
@@ -40,7 +58,7 @@ Sentry-related webhook/sync/admin functionality remains in the repo, but direct 
 
 ## Health
 
-Run `npm run health` for cheap static governance/drift checks. `npm run health:full` adds available local deterministic checks when dependencies/environment support them. The 31 August 2026 verified baseline is recorded in `docs/CODEBASE_AUDIT_2026-08-31.md` and `docs/TESTING.md`: quick health is WARN; full health currently FAILs on ESLint startup (`globals` missing) and one unit test. Production build is separately green and remains opt-in for `health:full` via `HEALTH_BUILD=1`.
+Run `npm run health` for cheap static governance/drift checks. `npm run health:full` adds available local deterministic checks when dependencies/environment support them. Dated command results live in `docs/CODEBASE_AUDIT_2026-08-31.md`. A production build remains opt-in for `health:full` via `HEALTH_BUILD=1`.
 
 ## Recovery first
 

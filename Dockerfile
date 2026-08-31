@@ -1,5 +1,5 @@
 # VoiceoverStudioFinder Next.js Application Dockerfile
-FROM node:25-alpine AS base
+FROM node:24-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -8,8 +8,10 @@ RUN apk add --no-cache libc6-compat curl
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+COPY package.json package-lock.json* .npmrc* ./
+# Skip lifecycle scripts here: postinstall runs `prisma generate`, but the
+# schema is not in this stage. The builder generates the client after COPY.
+RUN npm ci --ignore-scripts
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -25,7 +27,9 @@ RUN npx prisma generate
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN npm run build
+# Builder-only placeholder so Next can collect page data without secrets.
+# Inline on the build command so it is not stored as an image ENV.
+RUN RESEND_API_KEY=re_build_placeholder npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner

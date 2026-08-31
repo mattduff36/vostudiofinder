@@ -1,6 +1,6 @@
 # Stripe Environment Variables - Complete Guide
 
-> **Historical/staleness note (31 August 2026):** Confirm every key against current code and `env.example`. `docs/ENVIRONMENT.md` is the canonical environment-contract guide; `env.example` itself is known to have drifted.
+> **Historical/staleness note (31 August 2026):** Confirm every key against current code and `env.example`. `docs/ENVIRONMENT.md` is the canonical environment-contract guide. `env.example` was refreshed in Phase 2C.
 
 ## Required Variables for All Environments
 

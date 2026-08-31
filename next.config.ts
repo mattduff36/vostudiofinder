@@ -23,6 +23,10 @@ const gitCommitDateIso =
 const nextConfig: NextConfig = {
   /* config options here */
 
+  // Required by the production Dockerfile, which copies `.next/standalone`.
+  // Vercel does not need this option; it is set for the Docker packaging path.
+  output: 'standalone',
+
   // Disable streamed metadata so crawlers and SEO tools always receive
   // robots/canonical tags inside <head> on App Router routes.
   htmlLimitedBots: /.*/,

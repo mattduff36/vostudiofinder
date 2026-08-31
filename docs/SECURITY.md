@@ -44,4 +44,4 @@ Review `src/lib/db.ts` before relying on production logging policy: Prisma query
 
 ## Dependencies/runtimes
 
-Do not run production on unsupported runtimes. The audited Dockerfile uses Node 25, which is EOL as of this review and should be replaced in a separate deployment task.
+Do not run production on unsupported runtimes. The supported Node major is 24 LTS (Docker `node:24-alpine`, `.nvmrc`). Node 25 is EOL and must not be used.

@@ -1,51 +1,81 @@
 # Environment Configuration
 
 Status: canonical environment contract guide
-Last reviewed: 31 August 2026
+Last reviewed: 31 August 2026 (Phase 2C)
 
 ## Principle
 
-Environment files contain deployment-specific values. Never commit real secrets. Exact variables required by a feature must be confirmed against current code/provider configuration, not copied from an old setup guide.
+Environment files contain deployment-specific values. Never commit real secrets. `env.example` is the repository template; exact values live in `.env.local` or the hosting secret store.
 
-The audited `env.example` is stale and should be refreshed in a dedicated config/documentation workstream. The health checker reports code-referenced keys that are missing from it.
+Copy `env.example` to `.env.local` and replace placeholders. Do not copy production values into the example file.
+
+## Node.js
+
+Supported major for development and deployment is **Node 24 LTS**. `package.json` `engines.node` is `>=22 <25` so Node 22 (Maintenance LTS) still installs without npm rejection. Docker and `.nvmrc` / `.node-version` pin the 24 major. Do not use Node 25 (EOL).
 
 ## Client-visible variables
 
-Variables beginning with `NEXT_PUBLIC_` are exposed to browser code. Current code/config references include public base/site URL, Google Maps key, Stripe publishable key, Turnstile site key and build metadata. Never place server secrets in a `NEXT_PUBLIC_*` variable.
+Variables beginning with `NEXT_PUBLIC_` are exposed to browser code. Current public keys:
 
-## Server-side categories
+- `NEXT_PUBLIC_BASE_URL` — canonical site origin (also used in emails/cron when set)
+- `NEXT_PUBLIC_SITE_URL` — optional alias if `NEXT_PUBLIC_BASE_URL` is unset
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+- `NEXT_PUBLIC_GIT_COMMIT_DATE` / `NEXT_PUBLIC_BUILD_VERSION` — injected at build from git/CI; do not set by hand
 
-The current repository references server-side configuration for:
+`next.config.ts` also maps `GOOGLE_MAPS_API_KEY` onto `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, and maps `CUSTOM_KEY` into the client bundle if present. Never place server secrets in a `NEXT_PUBLIC_*` variable or in `CUSTOM_KEY`.
 
-- PostgreSQL/Prisma
-- NextAuth and OAuth providers
-- Stripe secret/webhook/price identifiers
-- Resend sending/webhook configuration
+## Runtime categories
+
+Required for a functioning app (local or production):
+
+- PostgreSQL: `DATABASE_URL`
+- NextAuth: `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
+- Stripe: secret/publishable keys, webhook secret, server-owned price IDs
+- Resend: `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (reply-to and booking-from are optional)
 - Cloudinary
-- Redis/cache
-- Sentry sync/webhook/admin integration
-- Neon administrative scripts
-- Google Search Console tooling
-- cron authentication
-- Turnstile secret verification
+- Cron: `CRON_SECRET`
+- Turnstile (signup bot protection)
+- Google Maps (search/geocoding UI)
 
-Some tools/scripts may use variables that are not required by the application runtime itself. Keep environment requirements scoped by command/deployment surface rather than declaring every key mandatory everywhere.
+Optional at runtime:
+
+- Redis (`REDIS_URL` and related) — cache is skipped when unset
+- Sentry webhook/org/project/token — admin error-log sync and inbound webhook only; `@sentry/nextjs` is not a runtime dependency
+- OAuth provider pairs — only for the matching sign-in method
+- `RESEND_REPLY_TO_EMAIL`, `RESEND_BOOKING_FROM_EMAIL`, `CUSTOM_KEY`
+
+Tooling only (not required to boot the app):
+
+- `NEON_API_KEY` / `NEON_PROJECT_ID` — `scripts/cleanup-neon-branches.ts`
+- `GSC_OAUTH_CLIENT_PATH` — Search Console indexing script
+- `HEALTH_BUILD` — opt-in production build inside `npm run health:full`
+
+Test-only:
+
+- `TEST_DATABASE_URL` — required for mutating Jest integration tests. Must be an isolated database. Never production. Never the shared development database.
+
+Platform-injected (omit from `.env.local`): `NODE_ENV`, `VERCEL_ENV`, `VERCEL_URL`, `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_GIT_COMMIT_DATE`, `GITHUB_RUN_NUMBER`, `NEXT_RUNTIME`.
+
+## Removed from the example (Phase 2C)
+
+These names are not referenced by current `src/`, `scripts/`, or `next.config.ts`:
+
+- Turso (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`) — Prisma uses PostgreSQL
+- PayPal client credentials — leftover from a retired payment path (the Prisma `PAYPAL` enum value is unrelated)
+- Legacy admin (`AUTH_USERNAME`, `AUTH_PASSWORD`, `JWT_SECRET`) — NextAuth replaced this
+- Legacy MySQL dump import (`LEGACY_DB_*`)
+- `BATEY_TEST_PASSWORD` — the script it documented is gone
 
 ## Environment separation
 
-- Local development: use non-production databases/provider modes whenever possible.
-- Preview/staging: use isolated non-production data/payment/email resources when available.
-- Production: values live in the deployment platform/secure secret store, not committed files.
+- Local development: non-production databases and Stripe test mode.
+- Preview/staging: isolated non-production data/payment/email resources when available.
+- Production: values live in the deployment platform secret store, not committed files.
 
 Before database, Stripe, real-email or destructive operations, identify the environment explicitly.
 
-## Refreshing `env.example`
+## Docker
 
-When the dedicated cleanup is performed:
-
-1. inventory `process.env` usage plus framework/provider implicit requirements
-2. remove genuinely retired Turso/PayPal/legacy variables only after confirming no scripts/operations still need them
-3. add missing active variables with safe placeholders
-4. group variables by runtime/tool and mark required vs optional
-5. never copy real values from `.env*` into the example
-6. run `npm run health` and verify the env-contract warning improves without hiding intentional implicit variables
+Do not bake `.env.local` or production credentials into the image. `.dockerignore` excludes env files, private docs/scripts, backups and Git metadata. Runtime secrets belong in the orchestrator/`docker run -e`/Compose `env_file` at **run** time, not build time.

@@ -1,6 +1,6 @@
 # Environment Setup Guide
 
-> **Historical/staleness note (31 August 2026):** This is not the canonical environment contract. Prefer `docs/ENVIRONMENT.md` and current `process.env` usage. This guide still mentions Turso/legacy alternatives and may omit keys the app actually reads. Refresh `env.example` in a dedicated config workstream before treating this as complete.
+> **Historical/staleness note (31 August 2026):** This is not the canonical environment contract. Prefer `docs/ENVIRONMENT.md` and `env.example` (refreshed in Phase 2C). This guide still mentions retired Turso/PayPal/legacy-admin keys that are no longer in `env.example`.
 
 This document provides comprehensive instructions for setting up environment variables for the merged VoiceoverStudioFinder application, which now includes both the main application and admin functionality from the old site.
 

@@ -168,12 +168,31 @@ Repaired local verification tooling without changing production application beha
 | `npm run health:full` | Overall **WARN**, exit 0 (was FAIL in Phase 2A). type-check/lint/unit PASS. Build skipped unless `HEALTH_BUILD=1`. |
 | `git diff --check` | PASS (exit 0). CRLF/LF working-copy notices only. |
 
+## Phase 2C — environment contract and Node/Docker baseline (31 August 2026)
+
+Refreshed `env.example` from live `process.env` usage, set Node 24 LTS as the supported major, moved Docker off EOL Node 25, and enabled Next.js `output: 'standalone'` so the Dockerfile packaging path matches the build output. Application dependencies, Prisma schema, auth, Stripe, middleware/proxy, and GitHub CI were not changed. Nothing was deployed or pushed.
+
+| Command | Result |
+|---|---|
+| `npm ci` | PASS against the existing lockfile. Prisma Client 6.19.2. `npm audit` 44 vulnerabilities; not treated as in-scope. |
+| `npm run type-check` | PASS |
+| `npm run lint` | PASS (exit 0). 0 errors, 818 pre-existing warnings. |
+| `npm run test:unit` | PASS: 7 suites, 148 tests. |
+| `npm run build` | PASS. Next.js 16.2.6 Turbopack. `.next/standalone/server.js` and `.next/static` generated. Middleware-deprecation warning unchanged. |
+| Docker `vostudiofinder:local-test` | PASS. Base `node:24-alpine` (runtime Node v24.20.0). Standalone `server.js` copied. No `.env*` files in the image. |
+| Container smoke-start | PASS with **fake** env only on host port 4010. Next.js reported Ready on `0.0.0.0:4000`. `GET /robots.txt` returned 200. `/api/health` was not called (it requires PostgreSQL). Container removed after the check. Not a production deployment. |
+| `npm run health` (quick) | Overall **WARN**, exit 0. **PASS:** `env-contract`, `docker-node`, `docker-standalone-contract`. Remaining WARNs: middleware/proxy, disabled CI, Prisma query logging, critical-path TODOs, large source files. |
+| `npm run health:full` | Overall **WARN**, exit 0. type-check/lint/unit PASS. Build skipped unless `HEALTH_BUILD=1`. |
+| `git diff --check` | PASS (exit 0). CRLF/LF working-copy notices only. |
+
+Docker build notes (packaging only): deps stage uses `npm ci --ignore-scripts` because `postinstall` runs `prisma generate` before the schema is copied; the builder generates the client. Page-data collection requires a non-empty `RESEND_API_KEY`; the Dockerfile supplies `re_build_placeholder` on the build command only (not stored as an image ENV). Sitemap generation already tolerates a missing database.
+
 ## Recommended work order
 
 1. Install this governance pack only.
 2. Run the new quick health audit and record baseline WARN items. **Done** (Phase 2A). Phase 2B repaired lint tooling, the geocoding unit assertion, integration-test classification, and `TEST_DATABASE_URL` safety. Remaining full-health WARNs are Priority 1 runtime/ops items, not verification-toolchain failures.
-3. Refresh `env.example` and environment documentation in a documentation/config-only workstream.
-4. Move Docker to Node 24 LTS and repair/verify standalone output as one deployment workstream.
+3. Refresh `env.example` and environment documentation in a documentation/config-only workstream. **Done** (Phase 2C).
+4. Move Docker to Node 24 LTS and repair/verify standalone output as one deployment workstream. **Done** (Phase 2C). Docker image build/smoke-start evidence is in the Phase 2C section above.
 5. Migrate Next.js `middleware.ts` to `proxy.ts` with focused tests.
 6. Restore a current CI workflow after local checks are deterministic.
 7. Resolve Sentry runtime/operations intent.

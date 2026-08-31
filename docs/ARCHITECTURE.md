@@ -15,6 +15,7 @@ Audit baseline: 31 August 2026
 - Resend email
 - Google Maps/location services
 - Redis-compatible caching where configured
+- Docker packaging uses Node 24 Alpine and Next.js `output: 'standalone'` (Vercel remains the primary host)
 - Sentry-related sync/webhook/admin error-log subsystem remains in code, while direct runtime instrumentation appears removed
 
 Exact package versions are authoritative in `package.json` and `package-lock.json`.
@@ -58,4 +59,4 @@ Server/domain helpers for auth, membership, subscriptions, Stripe, email, locati
 
 ## Known architecture drift
 
-See `CODEBASE_AUDIT_2026-08-31.md` for the audit backlog. Important items include Node 25 Docker EOL, Next.js middleware deprecation, Docker standalone mismatch, Prisma major-version lag, Sentry intent drift and disabled CI.
+See `CODEBASE_AUDIT_2026-08-31.md` for the audit backlog. Docker uses Node 24 LTS with Next.js `output: 'standalone'`. Remaining items include Next.js middleware deprecation, Prisma major-version lag, Sentry intent drift and disabled CI.

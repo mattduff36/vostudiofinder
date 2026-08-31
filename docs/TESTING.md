@@ -79,7 +79,7 @@ If a pre-existing test/lint/build failure exists, capture it as baseline evidenc
 
 Phase 2A (31 August 2026) recorded lint-tooling failure, one stale geocoding unit assertion, live-server HTTP tests misclassified as self-contained integration tests, and an enforcement fixture that predated BASIC/PREMIUM membership. Phase 2B repaired that verification toolchain. See `docs/CODEBASE_AUDIT_2026-08-31.md` for the dated command results.
 
-Remaining backlog outside this verification-toolchain phase includes Docker Node 25, Docker/standalone contract, Next `middleware.ts` → `proxy.ts`, disabled CI, `env.example` drift beyond `TEST_DATABASE_URL`, Prisma query logging, and high-risk payment/auth TODOs.
+Remaining backlog after Phase 2C includes Next `middleware.ts` → `proxy.ts`, disabled CI, Prisma query logging, and high-risk payment/auth TODOs. Environment-example drift, Docker Node 25, and the Docker/standalone mismatch were addressed in Phase 2C.
 
 ## Do not weaken proof
 

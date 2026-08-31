@@ -30,6 +30,10 @@ See `docs/TESTING.md` for the unit / database-integration / live-server test cla
 7. Inspect the final diff.
 8. Commit locally for completed coding tasks under the user's Git policy. Do not push without explicit authorization.
 
+## Node.js
+
+Install Node 24 LTS when possible (`nvm use` / `fnm use` reads `.nvmrc`). `package.json` `engines.node` is `>=22 <25` so Node 22 still installs without rejection. Application dependencies are not upgraded merely to match a local Node 22 toolchain.
+
 ## TypeScript
 
 The application uses strict TypeScript settings. Note that the current `tsconfig.json` excludes tests and scripts, so `npm run type-check` does not validate those trees.
