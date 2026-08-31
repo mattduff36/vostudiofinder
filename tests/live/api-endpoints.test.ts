@@ -1,15 +1,30 @@
 /**
- * Integration Tests for API Endpoints
- * Tests that all modified APIs work correctly
+ * Live-server HTTP tests for public search APIs.
+ *
+ * These are not self-contained Jest tests. They require the Next.js application
+ * to be listening (default http://localhost:4000). Run with:
+ *   npm run test:live          (reuse a running `npm run dev`)
+ *   npm run test:live:start    (start, wait, run, shut down)
+ *
+ * Nothing listening on that port is a missing prerequisite, not an application regression.
+ *
+ * @jest-environment node
  */
 
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, beforeAll } from '@jest/globals';
+import {
+  LIVE_SERVER_BASE_URL,
+  assertLiveServerAvailable,
+} from '../helpers/live-server';
 
-// Polyfill fetch for Node.js environment
 global.fetch = global.fetch || require('node-fetch');
 
-describe('API Endpoints Integration', () => {
-  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:4000';
+describe('API Endpoints (live server)', () => {
+  const BASE_URL = LIVE_SERVER_BASE_URL;
+
+  beforeAll(async () => {
+    await assertLiveServerAvailable(BASE_URL);
+  });
 
   describe('Search Suggestions Endpoint', () => {
     it('should handle empty query', async () => {
@@ -43,9 +58,9 @@ describe('API Endpoints Integration', () => {
     it('should include metadata with coordinates', async () => {
       const response = await fetch(`${BASE_URL}/api/search/suggestions?q=london`);
       const data = await response.json();
-      
+
       if (data.suggestions && data.suggestions.length > 0) {
-        const locationSuggestion = data.suggestions.find((s: any) => s.type === 'location');
+        const locationSuggestion = data.suggestions.find((s: { type?: string }) => s.type === 'location');
         if (locationSuggestion && locationSuggestion.metadata) {
           if (locationSuggestion.metadata.coordinates) {
             expect(locationSuggestion.metadata.coordinates.lat).toBeDefined();
@@ -53,7 +68,7 @@ describe('API Endpoints Integration', () => {
           }
         }
       }
-      
+
       expect(response.status).toBe(200);
     });
   });
@@ -76,16 +91,16 @@ describe('API Endpoints Integration', () => {
     it('should return user data structure', async () => {
       const response = await fetch(`${BASE_URL}/api/search/users?q=test`);
       const data = await response.json();
-      
+
       expect(response.status).toBe(200);
       expect(Array.isArray(data.users)).toBe(true);
-      
+
       if (data.users.length > 0) {
         const user = data.users[0];
         expect(user).toHaveProperty('id');
         expect(user).toHaveProperty('username');
         expect(user).toHaveProperty('display_name');
-        expect(user).not.toHaveProperty('full_location'); // Privacy check
+        expect(user).not.toHaveProperty('full_location');
       }
     });
   });
@@ -94,7 +109,7 @@ describe('API Endpoints Integration', () => {
     it('should return studios with correct structure', async () => {
       const response = await fetch(`${BASE_URL}/api/studios/search?limit=5`);
       const data = await response.json();
-      
+
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('studios');
       expect(data).toHaveProperty('pagination');
@@ -104,7 +119,7 @@ describe('API Endpoints Integration', () => {
     it('should handle pagination parameters', async () => {
       const response = await fetch(`${BASE_URL}/api/studios/search?limit=10&offset=0`);
       const data = await response.json();
-      
+
       expect(response.status).toBe(200);
       expect(data.pagination).toHaveProperty('limit');
       expect(data.pagination).toHaveProperty('offset');
@@ -114,7 +129,7 @@ describe('API Endpoints Integration', () => {
     it('should filter by location', async () => {
       const response = await fetch(`${BASE_URL}/api/studios/search?location=London`);
       const data = await response.json();
-      
+
       expect(response.status).toBe(200);
       expect(data.filters).toHaveProperty('location');
     });
@@ -122,7 +137,7 @@ describe('API Endpoints Integration', () => {
     it('should filter by studio types', async () => {
       const response = await fetch(`${BASE_URL}/api/studios/search?studioTypes=VOICEOVER,HOME`);
       const data = await response.json();
-      
+
       expect(response.status).toBe(200);
       if (data.filters && data.filters.studioTypes) {
         expect(Array.isArray(data.filters.studioTypes)).toBe(true);
@@ -132,24 +147,24 @@ describe('API Endpoints Integration', () => {
     it('should return studio with required fields', async () => {
       const response = await fetch(`${BASE_URL}/api/studios/search?limit=1`);
       const data = await response.json();
-      
+
       if (data.studios && data.studios.length > 0) {
         const studio = data.studios[0];
         expect(studio).toHaveProperty('id');
         expect(studio).toHaveProperty('name');
-        expect(studio).toHaveProperty('address'); // Should be abbreviated
-        expect(studio).not.toHaveProperty('full_address'); // Privacy check
+        expect(studio).toHaveProperty('address');
+        expect(studio).not.toHaveProperty('full_address');
         expect(studio).toHaveProperty('studio_studio_types');
         expect(studio).toHaveProperty('studio_images');
       }
-      
+
       expect(response.status).toBe(200);
     });
 
     it('should include map markers', async () => {
       const response = await fetch(`${BASE_URL}/api/studios/search?location=London&radius=10`);
       const data = await response.json();
-      
+
       expect(response.status).toBe(200);
       if (data.mapMarkers) {
         expect(Array.isArray(data.mapMarkers)).toBe(true);
@@ -160,7 +175,7 @@ describe('API Endpoints Integration', () => {
   describe('Error Handling', () => {
     it('should handle malformed requests gracefully', async () => {
       const response = await fetch(`${BASE_URL}/api/search/suggestions?q=`);
-      expect(response.status).toBeLessThan(500); // Should not crash
+      expect(response.status).toBeLessThan(500);
     });
 
     it('should return valid JSON for all requests', async () => {
@@ -174,11 +189,8 @@ describe('API Endpoints Integration', () => {
         const response = await fetch(`${BASE_URL}${endpoint}`);
         const contentType = response.headers.get('content-type');
         expect(contentType).toContain('application/json');
-        
-        // Should parse without error
         await expect(response.json()).resolves.toBeDefined();
       }
     });
   });
 });
-

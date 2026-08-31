@@ -2,9 +2,7 @@
 
 The health checker is intentionally cheap and mostly static. It detects governance/config drift without requiring production credentials or network access.
 
-## Package scripts to add
-
-Add these entries to `package.json` without replacing existing scripts:
+Package scripts:
 
 ```json
 "health": "node scripts/health/health.mjs --mode=quick",
@@ -23,7 +21,9 @@ When `node_modules` exists, full mode additionally runs:
 
 - `npm run type-check`
 - `npm run lint`
-- Jest tests under `tests/unit`
+- Jest unit tests under `tests/unit` (`npx jest tests/unit --runInBand`)
+
+Full mode does **not** run database integration tests or live-server HTTP tests. Those require `TEST_DATABASE_URL` or a listening app; see `docs/TESTING.md`.
 
 A production build is intentionally opt-in because the current app may require environment/database access during build:
 

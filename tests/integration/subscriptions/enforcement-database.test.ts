@@ -1,24 +1,57 @@
 /**
  * Integration Test: Subscription Enforcement with Database
+ *
+ * Requires TEST_DATABASE_URL pointing at an isolated database.
+ * Creates uniquely named records and deletes them in afterAll.
+ *
  * @jest-environment node
  */
+
+jest.mock('@/lib/email/send-templated', () => ({
+  sendTemplatedEmail: jest.fn().mockResolvedValue({ success: true }),
+}));
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { db } from '@/lib/db';
 import { randomBytes } from 'crypto';
 import { computeEnforcementDecisions, applyEnforcementDecisions } from '@/lib/subscriptions/enforcement';
+import { requireTestDatabase } from '../../helpers/require-test-database';
+
+requireTestDatabase();
+
+const enforcementStudioSelect = {
+  id: true,
+  status: true,
+  is_featured: true,
+  featured_until: true,
+  users: {
+    select: {
+      id: true,
+      email: true,
+      membership_tier: true,
+      subscriptions: {
+        orderBy: { created_at: 'desc' as const },
+        take: 1,
+        select: {
+          current_period_end: true,
+        },
+      },
+    },
+  },
+};
 
 describe('Subscription Enforcement - Database Integration', () => {
   const testUserIds: string[] = [];
   const testStudioIds: string[] = [];
+  let activePremiumStudioId = '';
+  let expiredPremiumStudioId = '';
+  let expiredFeaturedStudioId = '';
 
   beforeAll(async () => {
-    // Create test studios with various states
     const now = new Date();
-    const pastDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
-    const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days ahead
+    const pastDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-    // Studio 1: Active with valid subscription
     const user1Id = randomBytes(12).toString('base64url');
     testUserIds.push(user1Id);
     await db.users.create({
@@ -30,18 +63,19 @@ describe('Subscription Enforcement - Database Integration', () => {
         password: 'test-password',
         status: 'ACTIVE',
         email_verified: true,
+        membership_tier: 'PREMIUM',
         created_at: now,
         updated_at: now,
       },
     });
 
-    const studio1Id = randomBytes(12).toString('base64url');
-    testStudioIds.push(studio1Id);
+    activePremiumStudioId = randomBytes(12).toString('base64url');
+    testStudioIds.push(activePremiumStudioId);
     await db.studio_profiles.create({
       data: {
-        id: studio1Id,
+        id: activePremiumStudioId,
         user_id: user1Id,
-        name: 'Active Studio',
+        name: 'Active Premium Studio',
         status: 'ACTIVE',
         is_featured: false,
         created_at: now,
@@ -62,7 +96,9 @@ describe('Subscription Enforcement - Database Integration', () => {
       },
     });
 
-    // Studio 2: Active but subscription expired (needs deactivation)
+    // Premium membership with an expired subscription — current BASIC/PREMIUM model
+    // treats missing membership_tier as BASIC (free/active), so this fixture must
+    // be explicitly PREMIUM or enforcement will not deactivate it.
     const user2Id = randomBytes(12).toString('base64url');
     testUserIds.push(user2Id);
     await db.users.create({
@@ -74,19 +110,20 @@ describe('Subscription Enforcement - Database Integration', () => {
         password: 'test-password',
         status: 'ACTIVE',
         email_verified: true,
+        membership_tier: 'PREMIUM',
         created_at: now,
         updated_at: now,
       },
     });
 
-    const studio2Id = randomBytes(12).toString('base64url');
-    testStudioIds.push(studio2Id);
+    expiredPremiumStudioId = randomBytes(12).toString('base64url');
+    testStudioIds.push(expiredPremiumStudioId);
     await db.studio_profiles.create({
       data: {
-        id: studio2Id,
+        id: expiredPremiumStudioId,
         user_id: user2Id,
-        name: 'Expired Studio',
-        status: 'ACTIVE', // Should become INACTIVE
+        name: 'Expired Premium Studio',
+        status: 'ACTIVE',
         is_featured: false,
         created_at: now,
         updated_at: now,
@@ -106,7 +143,6 @@ describe('Subscription Enforcement - Database Integration', () => {
       },
     });
 
-    // Studio 3: Featured but expired (needs unfeaturing)
     const user3Id = randomBytes(12).toString('base64url');
     testUserIds.push(user3Id);
     await db.users.create({
@@ -118,20 +154,21 @@ describe('Subscription Enforcement - Database Integration', () => {
         password: 'test-password',
         status: 'ACTIVE',
         email_verified: true,
+        membership_tier: 'PREMIUM',
         created_at: now,
         updated_at: now,
       },
     });
 
-    const studio3Id = randomBytes(12).toString('base64url');
-    testStudioIds.push(studio3Id);
+    expiredFeaturedStudioId = randomBytes(12).toString('base64url');
+    testStudioIds.push(expiredFeaturedStudioId);
     await db.studio_profiles.create({
       data: {
-        id: studio3Id,
+        id: expiredFeaturedStudioId,
         user_id: user3Id,
         name: 'Expired Featured Studio',
         status: 'ACTIVE',
-        is_featured: true, // Should be unfeatured
+        is_featured: true,
         featured_until: pastDate,
         created_at: now,
         updated_at: now,
@@ -153,7 +190,6 @@ describe('Subscription Enforcement - Database Integration', () => {
   });
 
   afterAll(async () => {
-    // Cleanup
     for (const studioId of testStudioIds) {
       await db.studio_profiles.deleteMany({ where: { id: studioId } });
     }
@@ -168,41 +204,27 @@ describe('Subscription Enforcement - Database Integration', () => {
       where: {
         id: { in: testStudioIds },
       },
-      select: {
-        id: true,
-        status: true,
-        is_featured: true,
-        featured_until: true,
-        users: {
-          select: {
-            email: true,
-            subscriptions: {
-              orderBy: { created_at: 'desc' },
-              take: 1,
-              select: {
-                current_period_end: true,
-              },
-            },
-          },
-        },
-      },
+      select: enforcementStudioSelect,
     });
 
     const decisions = computeEnforcementDecisions(studios);
 
-    // Should have decisions for studios 2 and 3
     expect(decisions.length).toBeGreaterThanOrEqual(2);
 
-    // Find specific decisions
-    const expiredStudioDecision = decisions.find(d => 
-      studios.find(s => s.id === d.studioId && s.users.subscriptions[0]?.current_period_end < new Date())
-    );
-    const featuredStudioDecision = decisions.find(d => d.unfeaturedUpdate === true);
+    const expiredPremiumStudio = studios.find((studio) => studio.id === expiredPremiumStudioId);
+    expect(expiredPremiumStudio?.users.membership_tier).toBe('PREMIUM');
 
+    const expiredStudioDecision = decisions.find((decision) => decision.studioId === expiredPremiumStudioId);
     expect(expiredStudioDecision).toBeDefined();
     expect(expiredStudioDecision?.statusUpdate?.status).toBe('INACTIVE');
+    expect(expiredStudioDecision?.triggerDowngrade).toBe(true);
 
+    const featuredStudioDecision = decisions.find((decision) => decision.studioId === expiredFeaturedStudioId);
     expect(featuredStudioDecision).toBeDefined();
+    expect(featuredStudioDecision?.unfeaturedUpdate).toBe(true);
+
+    const activeStudioDecision = decisions.find((decision) => decision.studioId === activePremiumStudioId);
+    expect(activeStudioDecision).toBeUndefined();
   });
 
   it('should apply enforcement decisions to database', async () => {
@@ -210,24 +232,7 @@ describe('Subscription Enforcement - Database Integration', () => {
       where: {
         id: { in: testStudioIds },
       },
-      select: {
-        id: true,
-        status: true,
-        is_featured: true,
-        featured_until: true,
-        users: {
-          select: {
-            email: true,
-            subscriptions: {
-              orderBy: { created_at: 'desc' },
-              take: 1,
-              select: {
-                current_period_end: true,
-              },
-            },
-          },
-        },
-      },
+      select: enforcementStudioSelect,
     });
 
     const decisions = computeEnforcementDecisions(studios);
@@ -236,7 +241,6 @@ describe('Subscription Enforcement - Database Integration', () => {
     expect(statusUpdates).toBeGreaterThanOrEqual(0);
     expect(unfeaturedUpdates).toBeGreaterThanOrEqual(0);
 
-    // Verify changes were applied
     if (statusUpdates > 0 || unfeaturedUpdates > 0) {
       const updatedStudios = await db.studio_profiles.findMany({
         where: {
@@ -244,7 +248,6 @@ describe('Subscription Enforcement - Database Integration', () => {
         },
       });
 
-      // At least one studio should have been updated
       expect(updatedStudios.length).toBeGreaterThan(0);
     }
   });

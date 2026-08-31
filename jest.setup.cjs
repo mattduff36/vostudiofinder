@@ -31,22 +31,35 @@ jest.mock('next-auth/react', () => ({
 }))
 
 // Load .env.local if it exists (for other env vars)
-// Store DATABASE_URL before loading .env.local for safety checks
-const databaseUrlBeforeDotenv = process.env.DATABASE_URL
 const dotenvResult = require('dotenv').config({ path: '.env.local' })
 
-// For tests: Use TEST_DATABASE_URL if provided, otherwise keep DATABASE_URL from .env.local
-// This allows tests to run against the dev database by default
-if (dotenvResult.parsed?.TEST_DATABASE_URL) {
-  process.env.DATABASE_URL = dotenvResult.parsed.TEST_DATABASE_URL
-  console.log('✅ Using TEST_DATABASE_URL for tests')
-} else if (dotenvResult.parsed?.DATABASE_URL) {
-  // Keep the DATABASE_URL from .env.local for dev environment tests
-  console.log('✅ Using DATABASE_URL from .env.local for tests')
-} else if (databaseUrlBeforeDotenv) {
-  // DATABASE_URL was set in system env, keep it
-  console.log('✅ Using DATABASE_URL from system environment for tests')
+// Mutating database tests must use an explicit isolated target.
+// Do not silently fall through to the shared development DATABASE_URL.
+const testDatabaseUrl = process.env.TEST_DATABASE_URL || dotenvResult.parsed?.TEST_DATABASE_URL
+if (testDatabaseUrl) {
+  process.env.TEST_DATABASE_URL = testDatabaseUrl
+  process.env.DATABASE_URL = testDatabaseUrl
+  console.log('Using TEST_DATABASE_URL for isolated database tests')
 }
+
+function isMutatingDatabaseIntegrationTest(testPath) {
+  if (!testPath) return false
+  const normalized = testPath.replace(/\\/g, '/')
+  return normalized.includes('/tests/') && normalized.includes('/integration/')
+}
+
+beforeAll(() => {
+  const testPath = expect.getState().testPath || ''
+  if (!isMutatingDatabaseIntegrationTest(testPath)) return
+  if (!process.env.TEST_DATABASE_URL) {
+    throw new Error(
+      'Refusing to run mutating database integration tests: TEST_DATABASE_URL is not set. ' +
+        'Set TEST_DATABASE_URL to an isolated test database (not the shared development DATABASE_URL). ' +
+        'This is a missing test-environment prerequisite, not an application regression.'
+    )
+  }
+  process.env.DATABASE_URL = process.env.TEST_DATABASE_URL
+})
 
 // Polyfill TextDecoder/TextEncoder for Node.js < 18 (if needed)
 if (typeof globalThis.TextDecoder === 'undefined') {
@@ -273,11 +286,9 @@ if (!process.env.NEXTAUTH_SECRET) {
 if (!process.env.NEXTAUTH_URL) {
   process.env.NEXTAUTH_URL = 'http://localhost:4000'
 }
-// Fallback if no DATABASE_URL is set
+// Unit tests may import Prisma without querying. Mutating suites still require TEST_DATABASE_URL.
 if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db'
-  console.warn('⚠️  No DATABASE_URL set. Using safe fallback. Database tests will fail.')
-  console.warn('⚠️  Set DATABASE_URL or TEST_DATABASE_URL in .env.local to run database tests.')
+  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db_unused'
 }
 
 // Mock console methods to reduce noise in tests

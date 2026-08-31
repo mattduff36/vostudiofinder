@@ -90,7 +90,7 @@ describe('Admin Studio Update Geocoding', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false when request coordinates are null', () => {
+    it('should return false when request coordinates are absent', () => {
       const existingLat = 51.5074;
       const existingLng = -0.1278;
       const requestLat = null;
@@ -106,7 +106,7 @@ describe('Admin Studio Update Geocoding', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false when existing coordinates are null', () => {
+    it('should treat supplied request coordinates as a manual override when the studio has no stored coordinates', () => {
       const existingLat = null;
       const existingLng = null;
       const requestLat = 51.5074;
@@ -118,6 +118,12 @@ describe('Admin Studio Update Geocoding', () => {
         requestLat,
         requestLng
       );
+
+      expect(result).toBe(true);
+    });
+
+    it('should allow automatic geocoding when both stored and request coordinates are absent', () => {
+      const result = detectManualCoordinateOverride(null, null, null, null);
 
       expect(result).toBe(false);
     });

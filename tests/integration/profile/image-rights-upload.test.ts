@@ -70,6 +70,9 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { randomBytes } from 'crypto';
 import { IMAGE_RIGHTS_CONFIRMATION_TEXT } from '@/lib/legal/image-rights';
+import { requireTestDatabase } from '../../helpers/require-test-database';
+
+requireTestDatabase();
 
 // ---------------------------------------------------------------------------
 // Helpers

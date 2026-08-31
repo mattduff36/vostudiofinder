@@ -144,12 +144,34 @@ Environment used: Node v22.18.0, npm 10.9.3, `npm ci` against the existing lockf
 | `npm run health:full` | Overall **FAIL**, exit 1, because full mode re-runs lint and unit tests. Type-check PASS. Build skipped (default). `tracked-sensitive-paths` PASS. |
 | `git diff --check` | PASS (exit 0). Unrelated working-copy LF/CRLF notice on `vostudiofinder.code-workspace` only. |
 
-Do not treat the full-health FAIL as a regression from untracking `docs-private/`. Quick health no longer FAILs on tracked private documentation. Lint, the geocoding unit assertion, the live-server integration suite, and the enforcement-database assertion are backlog items.
+Do not treat the full-health FAIL as a regression from untracking `docs-private/`. Quick health no longer FAILs on tracked private documentation. Lint, the geocoding unit assertion, the live-server integration suite, and the enforcement-database assertion were Phase 2B verification-toolchain backlog (see below).
+
+## Phase 2B — verification toolchain repair (31 August 2026)
+
+Repaired local verification tooling without changing production application behaviour.
+
+- ESLint: upgraded `eslint-plugin-sonarjs` from 3.0.6 (ESLint 8/9 peer, runtime `globals` missing) to **4.2.0** (official ESLint 8/9/10 peer; depends on `globals` 17.11.0). Existing narrow Sonar rule selection preserved (`cognitive-complexity`, `no-duplicate-string`, `no-identical-functions`). Recommended Sonar ruleset not enabled. Lint now completes: 0 errors, 818 pre-existing warnings (not refactored).
+- Geocoding unit test: runtime `detectManualCoordinateOverride()` treating request-supplied coordinates as a manual override when stored coordinates are null is intentional. The stale test expectation was updated; production geocoding was not changed.
+- Enforcement integration fixture: updated to the current BASIC/PREMIUM model (explicit `membership_tier: PREMIUM` for expired-subscription studios; query shape matches `src/app/api/cron/check-subscriptions/route.ts`). Production enforcement logic was not changed. The suite was not executed against a database in this phase because `TEST_DATABASE_URL` is unset.
+- Test classes: `npm test` is unit-only. Database integration tests require `TEST_DATABASE_URL` and refuse the shared development `DATABASE_URL`. Live HTTP tests live under `tests/live/` and are run with `npm run test:live` / `test:live:start`.
+
+| Command | Result |
+|---|---|
+| `npm ci` | PASS (lockfile with `eslint-plugin-sonarjs` 4.2.0). Prisma Client 6.19.2. `npm audit` 44 vulnerabilities; not treated as in-scope. |
+| `npm run type-check` | PASS |
+| `npm run lint` | PASS (exit 0). 0 errors, 818 warnings. Tooling no longer fails before analysis. |
+| `npx jest tests/unit --runInBand` | PASS: 7 suites, 148 tests. |
+| `npm run test:live` | Exit 2 by design: nothing listening on port 4000. Prerequisite message, not an application regression. Suite not executed. |
+| `npm run test:integration` | Refusal: `TEST_DATABASE_URL` unset. No shared development-database mutations. Fixture not executed. |
+| `npm run build` | PASS. Next.js 16.2.6 Turbopack. Middleware-deprecation warning unchanged. |
+| `npm run health` (quick) | Overall **WARN**, exit 0. Same Priority 1 WARNs as Phase 2A. `tracked-sensitive-paths` PASS. |
+| `npm run health:full` | Overall **WARN**, exit 0 (was FAIL in Phase 2A). type-check/lint/unit PASS. Build skipped unless `HEALTH_BUILD=1`. |
+| `git diff --check` | PASS (exit 0). CRLF/LF working-copy notices only. |
 
 ## Recommended work order
 
 1. Install this governance pack only.
-2. Run the new quick health audit and record baseline WARN items. **Done** (see verified baseline above). Remaining full-health FAILs are lint/test backlog, not governance/index hygiene.
+2. Run the new quick health audit and record baseline WARN items. **Done** (Phase 2A). Phase 2B repaired lint tooling, the geocoding unit assertion, integration-test classification, and `TEST_DATABASE_URL` safety. Remaining full-health WARNs are Priority 1 runtime/ops items, not verification-toolchain failures.
 3. Refresh `env.example` and environment documentation in a documentation/config-only workstream.
 4. Move Docker to Node 24 LTS and repair/verify standalone output as one deployment workstream.
 5. Migrate Next.js `middleware.ts` to `proxy.ts` with focused tests.

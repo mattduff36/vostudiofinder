@@ -10,10 +10,14 @@ Read `package.json` for the exact current scripts. Common commands include:
 - `npm run dev`
 - `npm run type-check`
 - `npm run lint`
-- `npm test`
+- `npm test` (unit tests under `tests/unit` only)
+- `npm run test:integration` (requires `TEST_DATABASE_URL`)
+- `npm run test:live` / `npm run test:live:start` (requires or starts the app on port 4000)
 - `npm run build`
 - `npm run health`
 - `npm run health:full`
+
+See `docs/TESTING.md` for the unit / database-integration / live-server test classes.
 
 ## Workflow
 

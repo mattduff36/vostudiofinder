@@ -1,12 +1,16 @@
 /**
  * Integration Test: Admin Studio Update API with Refactored Helpers
  * Tests the complete PUT /api/admin/studios/[id] flow
+ * Requires TEST_DATABASE_URL (isolated database). Unique test records are deleted in afterAll.
  * @jest-environment node
  */
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { db } from '@/lib/db';
 import { randomBytes } from 'crypto';
+import { requireTestDatabase } from '../../helpers/require-test-database';
+
+requireTestDatabase();
 
 describe('Admin Studio Update API - Integration', () => {
   let testUserId: string;
