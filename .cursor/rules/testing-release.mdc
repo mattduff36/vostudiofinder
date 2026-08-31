@@ -1,0 +1,29 @@
+---
+description: Verification, tests, build/release evidence and current coverage boundaries.
+globs:
+  - "tests/**/*"
+  - "jest.config.cjs"
+  - "jest.setup.cjs"
+  - "playwright.config.ts"
+  - "eslint.config.mjs"
+  - "tsconfig.json"
+  - "package.json"
+  - "package-lock.json"
+  - "next.config.ts"
+  - "vercel.json"
+  - "Dockerfile"
+  - "docker-compose.yml"
+  - ".github/**/*"
+alwaysApply: false
+---
+# Testing and release
+
+- Follow `docs/TESTING.md` and run the narrowest deterministic check that proves the changed contract first.
+- Do not claim `npm run type-check` validates tests/scripts: the current `tsconfig.json` excludes them.
+- Do not claim `npm run lint` validates tests/scripts: ESLint currently ignores those trees.
+- Do not weaken assertions, skip failing tests or reduce safety thresholds merely to obtain green output.
+- Separate pre-existing/baseline failures from regressions introduced by the task.
+- Run a production build when framework/config/rendering changes can affect build-time behaviour and an appropriate non-production environment is available.
+- Playwright tests may start the dev server and may depend on test data/services. Confirm the intended environment before E2E runs with persistence effects.
+- CI is currently disabled. Do not state that GitHub CI passed unless an enabled workflow actually ran.
+- Dependency, Node, Prisma, auth and Next.js major/minor upgrades require their own compatibility checks rather than being hidden inside unrelated work.

@@ -75,6 +75,8 @@
     "emails:lowercase:apply": "tsx scripts/lowercase-stored-emails.ts --apply",
     "seo:gsc": "tsx scripts/fetch-search-console-indexing.ts",
     "seo:gsc:help": "tsx scripts/fetch-search-console-indexing.ts --help",
+    "health": "node scripts/health/health.mjs --mode=quick",
+    "health:full": "node scripts/health/health.mjs --mode=full",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -1,0 +1,41 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+.sentryclirc
+
+# Dependencies and generated build output
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+.vercel/
+.turbo/
+
+# Private/sensitive maintenance material
+backup/
+backups/
+**/backup/
+docs-private/
+scripts-private/
+
+# Historical/noisy local evidence
+project-archive/
+.email-test-output/
+.lighthouseci/
+logs/
+*.log
+*.dump
+*.backup
+*.backup.*
+
+# Tool/editor noise
+.cache/
+.DS_Store
+.vscode/
+.idea/

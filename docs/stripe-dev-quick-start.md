@@ -1,5 +1,7 @@
 # Stripe Development - Quick Start Guide
 
+> **Historical/staleness note (31 August 2026):** Local Stripe CLI/dev scripts in `package.json` (`stripe:setup`, `stripe:stop`) still exist. Confirm commands and webhook forwarding against the current scripts before use.
+
 ## 🚀 One-Time Setup
 
 ### 1. Install Stripe CLI

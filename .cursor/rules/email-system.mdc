@@ -1,0 +1,23 @@
+---
+description: Email templates, campaigns, Resend webhooks and safe real-user messaging behaviour.
+globs:
+  - "src/lib/email/**/*.ts"
+  - "src/app/api/email/**/*.ts"
+  - "src/app/api/admin/emails/**/*.ts"
+  - "src/app/api/webhooks/resend/**/*.ts"
+  - "src/app/api/cron/process-email-campaigns/**/*.ts"
+  - "src/app/api/cron/send-engagement-emails/**/*.ts"
+  - "src/app/api/cron/send-renewal-reminders/**/*.ts"
+  - "scripts/*email*.ts"
+  - "scripts/*email*.js"
+alwaysApply: false
+---
+# Email system
+
+- Separate template rendering/preview verification from actual delivery.
+- Do not send email to real users or start/resume a campaign as a test unless the user explicitly requests that operation.
+- Preserve unsubscribe/preferences and transactional-vs-marketing distinctions.
+- Keep provider webhook verification intact and handle duplicate delivery events idempotently.
+- Use the existing template registry/rendering abstractions before adding one-off HTML email paths.
+- Avoid logging full recipient datasets, tokens or sensitive provider payloads.
+- For campaign/bulk-email changes, verify recipient selection and retry semantics before any live send.

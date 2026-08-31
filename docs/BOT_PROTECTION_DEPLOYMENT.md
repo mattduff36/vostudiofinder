@@ -1,5 +1,7 @@
 # Bot Protection Deployment Guide
 
+> **Historical/staleness note (31 August 2026):** Turnstile, rate limiting and honeypot code still exist. Treat this as a setup aide, not proof of current production Cloudflare/Vercel state. Confirm keys and routes against current auth/register code.
+
 This guide explains how to deploy the bot protection features that have been implemented.
 
 ## Overview

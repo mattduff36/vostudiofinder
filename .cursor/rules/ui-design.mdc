@@ -1,0 +1,23 @@
+---
+description: Voiceover Studio Finder UI, branding, responsive behaviour and component conventions.
+globs:
+  - "src/app/**/*.tsx"
+  - "src/app/**/*.css"
+  - "src/components/**/*.tsx"
+  - "src/lib/theme.ts"
+  - "src/config/navigation.ts"
+  - "tailwind.config.ts"
+alwaysApply: false
+---
+# UI and design
+
+- `docs/DESIGN.md`, `src/lib/theme.ts` and existing approved UI are the visual authority.
+- The current brand primary is red `#9C060B`. Do not use the legacy purple palette as the brand colour for new work.
+- Reuse `theme` and `zIndex` from `src/lib/theme.ts` where applicable. Avoid arbitrary stacking values when a shared layer exists.
+- Reuse navigation definitions in `src/config/navigation.ts`; do not create competing hard-coded menu registries.
+- Preserve mobile-first behaviour, touch targets, iOS-safe layout behaviour and the existing desktop/burger breakpoint unless a task changes them.
+- Prefer existing project components and patterns. Do not add shadcn/ui, Radix, `nuqs` or another component/state library solely because a global rule mentions it.
+- Use Next.js Image for new application images when its optimisation model fits. Preserve explicit sizes/`sizes` to avoid layout shifts.
+- Avoid page-specific copies of shared colours, z-indexes, membership labels or navigation rules.
+- Large existing components may be edited locally. Do not refactor them merely because they are large.
+- When visual behaviour changes, verify the affected desktop and mobile surfaces and any modal/fixed-navigation overlap relevant to the change.

@@ -2,6 +2,8 @@
 
 **Quick setup guide for membership renewal feature**
 
+> **Historical/staleness note (31 August 2026):** Current code in `src/lib/membership-renewal.ts` uses a **180-day** early-renewal threshold (first six months), not the 30-day threshold described below. Confirm price IDs, webhook events and bonus rules against live membership/Stripe helpers before changing configuration.
+
 ---
 
 ## Overview

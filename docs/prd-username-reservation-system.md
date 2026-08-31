@@ -1,5 +1,7 @@
 # PRD: Username Reservation & Payment Capture System
 
+> **Historical/staleness note (31 August 2026):** Draft PRD, not current product authority. Reservation/expiry cron routes still exist; verify implemented behaviour against current auth/reservation code and `docs/PRODUCT_BEHAVIOUR.md` before changing the feature.
+
 **Status:** Draft  
 **Priority:** High  
 **Created:** 2026-01-06  

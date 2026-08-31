@@ -1,0 +1,48 @@
+---
+description: CRITICAL rules for Prisma, migrations, auth, membership, Stripe, destructive account operations and production data.
+globs:
+  - "prisma/**/*"
+  - "src/lib/auth*.ts"
+  - "src/lib/session.ts"
+  - "src/lib/membership*.ts"
+  - "src/lib/subscriptions/**/*.ts"
+  - "src/lib/stripe/**/*.ts"
+  - "src/app/api/stripe/**/*.ts"
+  - "src/app/api/membership/**/*.ts"
+  - "src/app/api/auth/**/*.ts"
+  - "src/app/api/user/close-account/route.ts"
+  - "src/app/api/admin/payments/**/*.ts"
+  - "scripts/**/*.{ts,js,mjs,cjs,sh}"
+alwaysApply: false
+---
+# Data, payments and security
+
+These areas are CRITICAL under the global TEE skill whenever behaviour, schema, permissions, money or stored data can change.
+
+## Database and migrations
+
+- Identify dev/preview/production before executing any mutation.
+- Never run a new migration against production automatically.
+- Inspect `prisma/schema.prisma`, migration history and current migration status before changing schema.
+- Use a tested rollback/recovery plan for production-impacting changes.
+- Prefer dry-run/report mode for cleanup/backfill/destructive scripts.
+- Production data deletes/rewrites require explicit user scope and deterministic selection evidence.
+- Do not use `prisma db push` as an undocumented substitute for an auditable production migration.
+
+## Auth and permissions
+
+- Preserve authentication, account-linking, reset/verification and role invariants unless the task explicitly changes them.
+- Never weaken admin guards, token validation, rate limits or permission checks to make tests pass.
+- Treat adapter/framework auth upgrades as separate migration work with focused regression coverage.
+
+## Stripe and membership
+
+- Server owns price/product/tier rules. Do not trust client-supplied amounts or entitlements.
+- Verify webhook signatures before processing events.
+- Preserve idempotency for event/payment/subscription handling.
+- Treat refunds, renewals, membership expiry, featured upgrades and cancellation as money/state transitions requiring deterministic tests.
+- Use `src/lib/membership-tiers.ts` and `src/lib/membership.ts` as current membership sources of truth unless the task intentionally changes them.
+
+## Destructive operations
+
+Account deletion, bulk deletion, production cleanup and subscription cancellation require explicit target confirmation, environment identity and evidence that the selected records are exactly the intended records.

@@ -1,0 +1,19 @@
+---
+description: Server-side TypeScript, App Router API routes, validation, auth guards, logging and external service boundaries.
+globs:
+  - "src/app/api/**/*.ts"
+  - "src/lib/**/*.ts"
+  - "src/types/**/*.ts"
+alwaysApply: false
+---
+# Backend and API
+
+- Keep server-only concerns server-side. Never expose secret environment values through `NEXT_PUBLIC_*` or response payloads.
+- Reuse established auth guards/session helpers rather than implementing route-specific authorization from scratch.
+- Validate untrusted request data at the boundary. Prefer existing Zod schemas/helpers when available.
+- Normalize emails/usernames consistently with existing auth/profile flows.
+- Return intentional HTTP status codes and stable JSON contracts. Do not leak internal stack traces, SQL, provider secrets or raw third-party errors to clients.
+- Do not log passwords, reset tokens, verification tokens, payment secrets, full authorization headers or unnecessary personal data.
+- Treat external calls to Stripe, Resend, Cloudinary, Google, Sentry, Redis and Vercel as failure boundaries. Handle retry/idempotency according to the domain contract rather than retrying blindly.
+- Preserve existing public browse/search/profile contracts unless the user explicitly requests a change.
+- API/auth/payment/database behaviour with user, money or persistence consequences escalates under the CRITICAL rule rather than being treated as routine backend cleanup.

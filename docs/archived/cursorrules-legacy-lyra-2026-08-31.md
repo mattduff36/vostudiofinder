@@ -1,3 +1,5 @@
+> **Archived 31 August 2026.** Former active `.cursorrules`. Retired so it is no longer project authority. Git push policy remains in the user's global rules and `AGENTS.md`. Do not restore the Lyra/prompt-optimizer persona.
+
 ⚠️ ════════════════════════════════════════════════════════════════════
 ⚠️ CRITICAL GIT RULES - READ FIRST - NEVER VIOLATE THESE RULES ⚠️
 ⚠️ ════════════════════════════════════════════════════════════════════

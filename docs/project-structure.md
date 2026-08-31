@@ -1,5 +1,7 @@
 # 📁 Project Structure
 
+> **Historical/staleness note (31 August 2026):** Descriptive overview only. Prefer `docs/ARCHITECTURE.md` and the live tree. This listing may omit newer paths and should not be used as a complete inventory.
+
 ## **Root Directory**
 
 ```

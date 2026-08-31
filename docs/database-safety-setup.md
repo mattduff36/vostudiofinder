@@ -1,5 +1,7 @@
 # 🛡️ Database Safety Setup Complete
 
+> **Historical/staleness note (31 August 2026):** Written as a completion report. The named safety scripts and `db:*` package commands still exist, but treat `docs/OPERATIONS.md`, `docs/SECURITY.md` and the live scripts as authority. Database/schema work remains CRITICAL and environment-identified.
+
 ## **PROTECTION MECHANISMS INSTALLED**
 
 ### ✅ **1. Environment Separation**

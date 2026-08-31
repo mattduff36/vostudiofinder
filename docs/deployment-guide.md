@@ -1,6 +1,8 @@
 # 🚀 Quick Deployment Guide
 **VoiceoverStudioFinder - Go Live Checklist**
 
+> **Historical/staleness note (31 August 2026):** Not the canonical operations guide. Prefer `docs/OPERATIONS.md`. This checklist references older go-live files (for example `PRE_PRODUCTION_CHECKLIST.md`) and dated SEO/SSG claims. Confirm against current `vercel.json`, `package.json` and App Router code before following a step.
+
 ---
 
 ## ✅ What's Been Done

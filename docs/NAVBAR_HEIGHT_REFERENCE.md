@@ -1,5 +1,7 @@
 # Navbar Height Reference
 
+> **Historical/staleness note (31 August 2026):** Height values may still be useful. The navigation **desktop breakpoint** is 1080px (`tailwind.config.ts` / `docs/DESIGN.md`), not 768px. Confirm heights against current layout components before changing stacking or sticky offsets.
+
 **Last Updated**: March 4, 2026  
 **Status**: ✅ Verified and Documented
 

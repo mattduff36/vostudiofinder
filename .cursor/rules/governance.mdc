@@ -1,0 +1,17 @@
+---
+description: Project governance, authority, Git/deployment boundaries and TEE integration.
+globs:
+alwaysApply: true
+---
+# Governance
+
+Read `AGENTS.md` before substantive repository work. Apply the user's global Token-Efficient Engineering skill and use project rules to refine repository-specific behaviour.
+
+- Current user instruction > `AGENTS.md` > scoped project rules > canonical docs > current code/tests/config > dated/historical evidence.
+- Never treat `project-archive`, backups, private docs or dated implementation summaries as current authority without verification.
+- Do not reintroduce the legacy Lyra/prompt-optimizer behaviour from the former `.cursorrules`.
+- Do not reveal or request private chain-of-thought. Provide concise conclusions, evidence and decisions.
+- Never push or deploy without the user's explicit authorization.
+- Production data, auth, money, destructive operations, real-user email and schema/migration work are CRITICAL.
+- For ambiguous historical-vs-current behaviour, investigate the live implementation and canonical docs before changing behaviour.
+- Keep governance/documentation changes separate from runtime modernization unless the user explicitly combines them.

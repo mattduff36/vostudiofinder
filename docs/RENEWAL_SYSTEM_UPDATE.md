@@ -1,5 +1,7 @@
 # Renewal System Update - Implementation Summary
 
+> **Historical/staleness note (31 August 2026):** Not a canonical product doc. The 180-day early-renewal threshold described here still matches `src/lib/membership-renewal.ts` as of this review; prefer that module and `docs/PRODUCT_BEHAVIOUR.md` if this note and the code diverge.
+
 ## Changes Overview
 
 ### 1. New Renewal Logic (6-Month Threshold)

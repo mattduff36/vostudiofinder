@@ -1,6 +1,7 @@
 ---
 name: AI SEO + Copy Assistant
 overview: Add AI-assisted SEO suggestions and description generation to studio profile editing, with safe user-approval UX, rate limiting, and a provider-agnostic LLM layer so models can be swapped later.
+# Historical/staleness note (31 August 2026): Future-concept plan only. Not implemented as a shipped product contract.
 todos:
   - id: repo-audit-ai-touchpoints
     content: Confirm profile edit fields to include in prompts, and extract current SEO builder into a reusable helper for consistent "current SEO" display.

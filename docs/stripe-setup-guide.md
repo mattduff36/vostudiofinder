@@ -2,6 +2,8 @@
 
 **Complete guide for setting up Stripe membership payments on VoiceoverStudioFinder**
 
+> **Historical/staleness note (31 August 2026):** Stripe remains the payment provider. Verify product/price IDs, webhook endpoints and env var names against current `src/lib/stripe` code, `env.example` and `docs/ENVIRONMENT.md` before applying this guide.
+
 ---
 
 ## Overview

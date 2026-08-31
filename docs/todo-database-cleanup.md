@@ -1,5 +1,7 @@
 # Database Cleanup Task - Unused Tables
 
+> **Historical/staleness note (31 August 2026):** Backlog only. Do not drop tables or rewrite production data from this list without a CRITICAL, environment-identified data plan. Confirm unused status against `prisma/schema.prisma` and current queries first.
+
 **Status:** Deferred for Future  
 **Created:** January 4, 2026  
 **Priority:** Low (No Impact on Performance)

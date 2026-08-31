@@ -1,5 +1,7 @@
 # Error Log Management System
 
+> **Historical/staleness note (31 August 2026):** Direct Sentry runtime instrumentation was removed (`src/instrumentation.ts` / `src/instrumentation-client.ts`; no `@sentry/nextjs` dependency). Webhook/sync/admin error-log code and the Sentry cron still exist. Do not assume application runtime errors currently flow into Sentry. See `docs/OPERATIONS.md` and `docs/CODEBASE_AUDIT_2026-08-31.md`.
+
 ## Overview
 
 The Error Log Management System provides a centralized admin interface for monitoring, reviewing, and triaging site-wide errors captured by Sentry. This system allows administrators to:

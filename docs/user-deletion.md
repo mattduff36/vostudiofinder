@@ -1,5 +1,7 @@
 # User Deletion Script (Dev / Prod)
 
+> **Note:** Account deletion is CRITICAL. Identify the environment first, prefer dry-run, and do not run against production without explicit scope. Canonical safety rules: `docs/OPERATIONS.md`, `docs/SECURITY.md`.
+
 This repo includes a safe, parameterized script for deleting a user and all related data.
 
 ## Safety defaults

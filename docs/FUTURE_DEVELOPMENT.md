@@ -1,5 +1,7 @@
 # Future Development & Deferred Items
 
+> **Historical/staleness note (31 August 2026):** Last updated 27 January 2026. Some items (for example bot protection) may already be in production. Verify each item against current code before treating it as still deferred. Canonical product contracts live in `docs/PRODUCT_BEHAVIOUR.md`.
+
 This document tracks features, enhancements, and improvements that have been identified but deferred for future implementation.
 
 **Last Updated**: January 27, 2026
